@@ -1,0 +1,22 @@
+{
+  "name": "newspack-newsletters",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "calypso-build --watch --config='./webpack.config.js'",
+    "build": "calypso-build --config='./webpack.config.js'",
+    "clean": "rm -rf dist/"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "webpack": "^4.42.1"
+  },
+  "devDependencies": {
+    "@automattic/calypso-build": "^5.1.0",
+    "@babel/core": "^7.9.0",
+    "prettier": "https://github.com/Automattic/wp-prettier/releases/download/wp-1.16.4/wp-prettier-1.16.4.tgz"
+  }
+}

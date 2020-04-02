@@ -1,0 +1,12 @@
+{
+    "name": "jeffrabb/newspack-newsletters",
+    "authors": [
+        {
+            "name": "Jefferson Rabb",
+            "email": "jeff@atavist.net"
+        }
+    ],
+    "require": {
+        "drewm/mailchimp-api": "^2.5"
+    }
+}
