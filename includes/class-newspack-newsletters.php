@@ -132,6 +132,9 @@ final class Newspack_Newsletters {
 					'id'      => [
 						'sanitize_callback' => 'absint',
 					],
+					'test_email'      => [
+						'sanitize_callback' => 'sanitize_email',
+					],
 				],
 			]
 		);
@@ -145,6 +148,12 @@ final class Newspack_Newsletters {
 				'args'                => [
 					'id'      => [
 						'sanitize_callback' => 'absint',
+					],
+					'sender_email'      => [
+						'sanitize_callback' => 'sanitize_email',
+					],
+					'sender_name'      => [
+						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
 			]
@@ -245,7 +254,6 @@ final class Newspack_Newsletters {
 				'template_id' => $template_id,
 			],
 		];
-		error_log( $template_id );
 		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 
 		$data = self::retrieve_data( $id );
@@ -300,6 +308,7 @@ final class Newspack_Newsletters {
 
 	public static function api_test_mailchimp_campaign( $request ) {
 		$id = $request['id'];
+		$test_email = $request['test_email'];
 		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
 			return new WP_Error(
 				'newspack_newsletters_incorrect_post_type',
@@ -319,8 +328,7 @@ final class Newspack_Newsletters {
 		$mc = new Mailchimp( self::mailchimp_api_key() );
 		$payload = [
 			'test_emails' => [
-				'j.max.rabb@gmail.com',
-				'jefferson.rabb@automattic.com',
+				$test_email
 			],
 			'send_type' => 'html',
 		];
@@ -334,6 +342,8 @@ final class Newspack_Newsletters {
 
 	public static function api_send_mailchimp_campaign( $request ) {
 		$id = $request['id'];
+		$sender_name = $request['sender_name'];
+		$sender_email = $request['sender_email'];
 		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
 			return new WP_Error(
 				'newspack_newsletters_incorrect_post_type',
@@ -351,11 +361,16 @@ final class Newspack_Newsletters {
 		}
 
 		$mc = new Mailchimp( self::mailchimp_api_key() );
+
 		$payload = [
-			'test_emails' => [
-				'j.max.rabb@gmail.com',
-				'jefferson.rabb@automattic.com',
-			],
+			'settings'   => [
+				'from_name' => $sender_name,
+				'reply_to' => $sender_email,
+			]
+		];
+		$mc->patch( "campaigns/$mc_campaign_id", $payload );
+
+		$payload = [
 			'send_type' => 'html',
 		];
 		$result = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
@@ -415,8 +430,6 @@ final class Newspack_Newsletters {
 			'settings'   => [
 				'subject_line' => $post->post_title,
 				'title' => $post->post_title,
-				'from_name' => 'Jeff',
-				'reply_to' => 'jeff@atavist.net',
 			]
 		];
 
@@ -436,15 +449,11 @@ final class Newspack_Newsletters {
 
 		$template_data = $mc->get( "templates/$template_id" );
 
-		error_log( json_encode( $template_data ) );
-
 		$content_payload = [
 			'html' => $body
 		];
 
 		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
-
-		// error_log( json_encode( $result ) );
 	}
 }
 Newspack_Newsletters::instance();
