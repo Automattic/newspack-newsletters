@@ -101,6 +101,13 @@ final class Newspack_Newsletters {
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.js' ),
 			true
 		);
+
+		\wp_enqueue_style(
+			'newspack-newsletters',
+			plugins_url( '../dist/editor.css', __FILE__ ),
+			null,
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.css' )
+		);
 	}
 
 	/**

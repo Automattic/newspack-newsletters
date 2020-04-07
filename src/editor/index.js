@@ -24,6 +24,12 @@ import {
 	PluginDocumentSettingPanel,
 	PluginPostStatusInfo,
 } from "@wordpress/edit-post";
+
+/**
+ * WordPress dependencies
+ */
+import TemplateModal from '../components/template-modal';
+
 class NewsletterSidebar extends Component {
 	state = {
 		campaign: {},
@@ -38,6 +44,10 @@ class NewsletterSidebar extends Component {
 		senderName: "",
 	};
 	componentDidMount = () => {
+		const { isCleanNewPost } = this.props;
+		if ( isCleanNewPost() ) {
+			this.setState( { needsModal: true } );
+		}
 		this.retrieveMailchimp();
 		subscribe((event) => {
 			const { isPublishingPost, isSavingPost } = this.props;
@@ -133,7 +143,12 @@ class NewsletterSidebar extends Component {
 			testEmail,
 			senderName,
 			senderEmail,
+			needsModal,
+			modalDismissed,
 		} = this.state;
+		if ( needsModal && ! modalDismissed ) {
+			return <TemplateModal closeModal={ () => this.setState( { modalDismissed: true } ) } />;
+		}
 		if (!hasResults) {
 			return [
 				__("Loading Mailchimp data", "newspack-newsletters"),
@@ -270,10 +285,10 @@ class NewsletterSidebar extends Component {
 
 const NewsletterSidebarWithSelect = compose([
 	withSelect((select, props) => {
-		const { getCurrentPostId, isPublishingPost, isSavingPost } = select(
+		const { getCurrentPostId, isCleanNewPost, isPublishingPost, isSavingPost } = select(
 			"core/editor"
 		);
-		return { postId: getCurrentPostId(), isPublishingPost, isSavingPost };
+		return { postId: getCurrentPostId(), isCleanNewPost, isPublishingPost, isSavingPost };
 	}),
 ])(NewsletterSidebar);
 
