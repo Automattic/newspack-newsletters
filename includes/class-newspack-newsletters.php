@@ -175,23 +175,6 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
-		\register_rest_route(
-			'newspack-newsletters/v1/',
-			'mailchimp/(?P<id>[\a-z]+)/template/(?P<template_id>[\a-z]+)',
-			[
-				'methods'  => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_set_mailchimp_template' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
-				'args'                => [
-					'id'      => [
-						'sanitize_callback' => 'absint',
-					],
-					'template_id'      => [
-						'sanitize_callback' => 'esc_attr',
-					],
-				],
-			]
-		);
 	}
 
 	public static function api_set_mailchimp_list( $request ) {
@@ -228,40 +211,6 @@ final class Newspack_Newsletters {
 		return \rest_ensure_response( $data );
 	}
 
-	public static function api_set_mailchimp_template( $request ) {
-		$id = $request['id'];
-		$template_id = intval( $request['template_id'] );
-
-		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
-			return new WP_Error(
-				'newspack_newsletters_incorrect_post_type',
-				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
-			);
-		}
-
-
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
-
-		$mc = new Mailchimp( self::mailchimp_api_key() );
-		$payload = [
-			'settings' => [
-				'template_id' => $template_id,
-			],
-		];
-		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
-
-		$data = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
-	}
-
 	/**
 	 * Register custom fields.
 	 */
@@ -280,18 +229,6 @@ final class Newspack_Newsletters {
 		\register_meta(
 			'post',
 			'mc_list_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-
-		\register_meta(
-			'post',
-			'mc_template_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => true,
@@ -386,7 +323,6 @@ final class Newspack_Newsletters {
 		$mc = new Mailchimp( self::mailchimp_api_key() );
 		return [
 			'lists'       => $mc->get( 'lists' ),
-			'templates'   => $mc->get( 'templates' ),
 			'campaign'    => $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null,
 			'campaign_id' => $mc_campaign_id,
 		];
@@ -442,12 +378,6 @@ final class Newspack_Newsletters {
 		foreach ( $blocks as $block ) {
 			$body .= render_block( $block );
 		}
-
-		$templates = $mc->get( "templates" );
-
-		$template_id = '364254';
-
-		$template_data = $mc->get( "templates/$template_id" );
 
 		$content_payload = [
 			'html' => $body
