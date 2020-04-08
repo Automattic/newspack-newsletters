@@ -47,7 +47,9 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'newsletter_published' ], 10, 2 );
+		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
+		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 	}
 
 	/**
@@ -84,6 +86,30 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Restrict block types for Newsletter CPT.
+	 *
+	 * @param array   $allowed_block_types default block types.
+	 * @param WP_Post $post the post to consider.
+	 */
+	public static function newsletters_allowed_block_types( $allowed_block_types, $post ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+			return $allowed_block_types;
+		}
+		return array(
+			'core/paragraph',
+			'core/heading',
+			'core/column',
+			'core/columns',
+			'core/buttons',
+			'core/image',
+			'core/separator',
+			'core/list',
+			'core/quote',
+			'core/social-links',
+		);
+	}
+
+	/**
 	 * Load up common JS/CSS for wizards.
 	 */
 	public static function enqueue_block_editor_assets() {
@@ -99,6 +125,14 @@ final class Newspack_Newsletters {
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.js' ),
 			true
 		);
+		wp_register_style(
+			'newspack-newsletters',
+			plugins_url( '../dist/editor.css', __FILE__ ),
+			[],
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.css' )
+		);
+		wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
+		wp_enqueue_style( 'newspack-newsletters' );
 	}
 
 	/**
@@ -404,14 +438,9 @@ final class Newspack_Newsletters {
 		$campaign_id = $campaign['id'];
 		update_post_meta( $id, 'mc_campaign_id', $campaign_id );
 
-		$blocks = parse_blocks( $post->post_content );
-		$body   = sprintf( '<h1>%s</h1>', $post->post_title );
-		foreach ( $blocks as $block ) {
-			$body .= render_block( $block );
-		}
-
+		$renderer        = new Newspack_Newsletters_Renderer();
 		$content_payload = [
-			'html' => $body,
+			'html' => $renderer->render_html_email( $post ),
 		];
 
 		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
