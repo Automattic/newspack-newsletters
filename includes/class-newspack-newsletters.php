@@ -48,8 +48,6 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'newsletter_published' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
-
-		// include_once dirname( __FILE__ ) . '/class-newspack-popups-model.php';
 	}
 
 	/**
@@ -111,11 +109,11 @@ final class Newspack_Newsletters {
 			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)',
 			[
-				'methods'  => \WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_mailchimp_data' ],
 				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
 				'args'                => [
-					'id'      => [
+					'id' => [
 						'sanitize_callback' => 'absint',
 					],
 				],
@@ -125,14 +123,14 @@ final class Newspack_Newsletters {
 			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)/test',
 			[
-				'methods'  => \WP_REST_Server::EDITABLE,
+				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_test_mailchimp_campaign' ],
 				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
 				'args'                => [
-					'id'      => [
+					'id'         => [
 						'sanitize_callback' => 'absint',
 					],
-					'test_email'      => [
+					'test_email' => [
 						'sanitize_callback' => 'sanitize_email',
 					],
 				],
@@ -142,17 +140,17 @@ final class Newspack_Newsletters {
 			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)/send',
 			[
-				'methods'  => \WP_REST_Server::EDITABLE,
+				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_send_mailchimp_campaign' ],
 				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
 				'args'                => [
-					'id'      => [
+					'id'           => [
 						'sanitize_callback' => 'absint',
 					],
-					'sender_email'      => [
+					'sender_email' => [
 						'sanitize_callback' => 'sanitize_email',
 					],
-					'sender_name'      => [
+					'sender_name'  => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -162,14 +160,14 @@ final class Newspack_Newsletters {
 			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)/list/(?P<list_id>[\a-z]+)',
 			[
-				'methods'  => \WP_REST_Server::EDITABLE,
+				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_mailchimp_list' ],
 				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
 				'args'                => [
 					'id'      => [
 						'sanitize_callback' => 'absint',
 					],
-					'list_id'      => [
+					'list_id' => [
 						'sanitize_callback' => 'esc_attr',
 					],
 				],
@@ -177,8 +175,13 @@ final class Newspack_Newsletters {
 		);
 	}
 
+	/**
+	 * Set Mailchimp list.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
 	public static function api_set_mailchimp_list( $request ) {
-		$id = $request['id'];
+		$id      = $request['id'];
 		$list_id = $request['list_id'];
 
 		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
@@ -197,15 +200,15 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+		$mc      = new Mailchimp( self::mailchimp_api_key() );
 		$payload = [
 			'recipients' => [
 				'list_id' => $list_id,
 			],
 		];
-		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 
-		$data = self::retrieve_data( $id );
+		$data           = self::retrieve_data( $id );
 		$data['result'] = $result;
 
 		return \rest_ensure_response( $data );
@@ -239,12 +242,22 @@ final class Newspack_Newsletters {
 		);
 	}
 
+	/**
+	 * Get Mailchimp data.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
 	public static function api_mailchimp_data( $request ) {
-		return \rest_ensure_response( self::retrieve_data( $request[ 'id' ] ) );
+		return \rest_ensure_response( self::retrieve_data( $request['id'] ) );
 	}
 
+	/**
+	 * Send a test email via Mailchimp.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
 	public static function api_test_mailchimp_campaign( $request ) {
-		$id = $request['id'];
+		$id         = $request['id'];
 		$test_email = $request['test_email'];
 		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
 			return new WP_Error(
@@ -262,24 +275,29 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+		$mc      = new Mailchimp( self::mailchimp_api_key() );
 		$payload = [
 			'test_emails' => [
-				$test_email
+				$test_email,
 			],
-			'send_type' => 'html',
+			'send_type'   => 'html',
 		];
-		$result = $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload );
+		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload );
 
-		$data = self::retrieve_data( $id );
+		$data           = self::retrieve_data( $id );
 		$data['result'] = $result;
 
 		return \rest_ensure_response( $data );
 	}
 
+	/**
+	 * Send the Mailchimp campaign.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
 	public static function api_send_mailchimp_campaign( $request ) {
-		$id = $request['id'];
-		$sender_name = $request['sender_name'];
+		$id           = $request['id'];
+		$sender_name  = $request['sender_name'];
 		$sender_email = $request['sender_email'];
 		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
 			return new WP_Error(
@@ -300,27 +318,32 @@ final class Newspack_Newsletters {
 		$mc = new Mailchimp( self::mailchimp_api_key() );
 
 		$payload = [
-			'settings'   => [
+			'settings' => [
 				'from_name' => $sender_name,
-				'reply_to' => $sender_email,
-			]
+				'reply_to'  => $sender_email,
+			],
 		];
 		$mc->patch( "campaigns/$mc_campaign_id", $payload );
 
 		$payload = [
 			'send_type' => 'html',
 		];
-		$result = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
+		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
 
-		$data = self::retrieve_data( $id );
+		$data           = self::retrieve_data( $id );
 		$data['result'] = $result;
 
 		return \rest_ensure_response( $data );
 	}
 
+	/**
+	 * Get Mailchimp data.
+	 *
+	 * @param string $id post ID.
+	 */
 	public static function retrieve_data( $id ) {
 		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+		$mc             = new Mailchimp( self::mailchimp_api_key() );
 		return [
 			'lists'       => $mc->get( 'lists' ),
 			'campaign'    => $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null,
@@ -328,6 +351,9 @@ final class Newspack_Newsletters {
 		];
 	}
 
+	/**
+	 * Get Mailchimp API key.
+	 */
 	public static function mailchimp_api_key() {
 		return get_option( 'newspack_newsletters_mailchimp_api_key', false );
 	}
@@ -351,25 +377,30 @@ final class Newspack_Newsletters {
 		return true;
 	}
 
+	/**
+	 * Callback for CPT publishing. Will sync with Mailchimp.
+	 *
+	 * @param string  $id post ID.
+	 * @param WP_Post $post the post.
+	 */
 	public static function newsletter_published( $id, $post ) {
-
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
 			return;
 		}
 		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
 
-		$mc = new Mailchimp( $api_key );
+		$mc      = new Mailchimp( $api_key );
 		$payload = [
-			'type'       => 'regular',
+			'type'         => 'regular',
 			'content_type' => 'template',
-			'settings'   => [
+			'settings'     => [
 				'subject_line' => $post->post_title,
-				'title' => $post->post_title,
-			]
+				'title'        => $post->post_title,
+			],
 		];
 
-		$campaign = $mc_campaign_id ? $mc->patch( "campaigns/$mc_campaign_id", $payload ) : $mc->post( "campaigns", $payload );
+		$campaign    = $mc_campaign_id ? $mc->patch( "campaigns/$mc_campaign_id", $payload ) : $mc->post( 'campaigns', $payload );
 		$campaign_id = $campaign['id'];
 		update_post_meta( $id, 'mc_campaign_id', $campaign_id );
 
@@ -380,7 +411,7 @@ final class Newspack_Newsletters {
 		}
 
 		$content_payload = [
-			'html' => $body
+			'html' => $body,
 		];
 
 		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
