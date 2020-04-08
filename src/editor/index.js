@@ -1,13 +1,9 @@
 /**
- * Popup Custom Post Type
- */
-
-/**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-import { withSelect, withDispatch, subscribe } from '@wordpress/data';
+import { withSelect, subscribe } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Component, Fragment } from '@wordpress/element';
 import {
@@ -20,7 +16,9 @@ import {
 	TextControl,
 } from '@wordpress/components';
 import { registerPlugin } from '@wordpress/plugins';
-import { PluginDocumentSettingPanel, PluginPostStatusInfo } from '@wordpress/edit-post';
+import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+import './style.scss';
+
 class NewsletterSidebar extends Component {
 	state = {
 		campaign: {},
@@ -35,7 +33,7 @@ class NewsletterSidebar extends Component {
 	};
 	componentDidMount = () => {
 		this.retrieveMailchimp();
-		subscribe( event => {
+		subscribe( () => {
 			const { isPublishingPost, isSavingPost } = this.props;
 			const { isPublishingOrSaving } = this.state;
 			if ( ( isPublishingPost() || isSavingPost() ) && ! isPublishingOrSaving ) {
@@ -98,6 +96,7 @@ class NewsletterSidebar extends Component {
 			inFlight: false,
 		} );
 	};
+
 	/**
 	 * Render
 	 */
@@ -113,9 +112,9 @@ class NewsletterSidebar extends Component {
 			senderEmail,
 		} = this.state;
 		if ( ! hasResults ) {
-			return [ __( 'Loading Mailchimp data', 'newspack-newsletters' ), <Spinner /> ];
+			return [ __( 'Loading Mailchimp data', 'newspack-newsletters' ), <Spinner key="spinner" /> ];
 		}
-		const { recipients, settings, status, long_archive_url } = campaign || {};
+		const { recipients, status, long_archive_url } = campaign || {};
 		const { list_id } = recipients || {};
 		if ( ! status ) {
 			return (
@@ -207,7 +206,7 @@ class NewsletterSidebar extends Component {
 }
 
 const NewsletterSidebarWithSelect = compose( [
-	withSelect( ( select, props ) => {
+	withSelect( select => {
 		const { getCurrentPostId, isPublishingPost, isSavingPost } = select( 'core/editor' );
 		return { postId: getCurrentPostId(), isPublishingPost, isSavingPost };
 	} ),

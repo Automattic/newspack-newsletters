@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Manages Settings page.
  */
-class Settings {
+class Newspack_Newsletters_Settings {
 	/**
 	 * Set up hooks.
 	 */
@@ -87,5 +87,5 @@ class Settings {
 }
 
 if ( is_admin() ) {
-	Settings::init();
+	Newspack_Newsletters_Settings::init();
 }
