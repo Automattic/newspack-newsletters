@@ -42,6 +42,7 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
+		add_action( 'admin_init', [ __CLASS__, 'remove_other_editor_modifications' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
@@ -50,6 +51,39 @@ final class Newspack_Newsletters {
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
+	}
+
+	/**
+	 * Remove all editor enqueued assets besides this plugins'.
+	 * This is to prevent theme styles being loaded in the editor.
+	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
+	 */
+	public static function remove_other_editor_modifications() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post = isset( $_GET['post'] ) ? sanitize_text_field( $_GET['post'] ) : false;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : false;
+		if ( ! $post && ! $post_type ) {
+			return;
+		}
+		if ( $post ) {
+			$post_type = get_post_type( $post );
+		}
+		if ( $post_type && self::NEWSPACK_NEWSLETTERS_CPT != $post_type ) {
+			return;
+		}
+
+		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
+		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
+			$action_handlers = array_keys( $filter );
+			if ( ! in_array( __CLASS__ . '::enqueue_block_editor_assets', $action_handlers ) ) {
+				foreach ( $action_handlers as $handler ) {
+					remove_action( 'enqueue_block_editor_assets', $handler, $index );
+				}
+			}
+		}
+
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
