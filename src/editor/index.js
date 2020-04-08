@@ -149,9 +149,9 @@ class NewsletterSidebar extends Component {
 		if ( needsModal && ! modalDismissed ) {
 			return <TemplateModal closeModal={ () => this.setState( { modalDismissed: true } ) } />;
 		}
-		if (!hasResults) {
+		if ( ! hasResults ) {
 			return [
-				__("Loading Mailchimp data", "newspack-newsletters"),
+				__( 'Loading Mailchimp data', 'newspack-newsletters' ),
 				<Spinner />,
 			];
 		}
@@ -161,15 +161,15 @@ class NewsletterSidebar extends Component {
 		const { template_id } = settings || {};
 		if (!status) {
 			return (
-				<Notice status="info" isDismissible={false}>
-					<p>{__("Publish to sync to Mailchimp")}</p>
+				<Notice status="info" isDismissible={ false }>
+					{ __( 'Publish to sync to Mailchimp', 'newspack-newsletters' ) }
 				</Notice>
 			);
 		}
 		if ("sent" === status || "sending" === status) {
 			return (
-				<Notice status="info" isDismissible={false}>
-					<p>{__("Campaign has been sent.")}</p>
+				<Notice status="info" isDismissible={ false }>
+					{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
 				</Notice>
 			);
 		}

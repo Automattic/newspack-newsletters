@@ -7,7 +7,7 @@
  */
 import { __ } from '@wordpress/i18n';
 import { Component, Fragment } from '@wordpress/element';
-import { Modal, TabPanel } from '@wordpress/components';
+import { Button, Modal } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -19,10 +19,19 @@ class TemplateModal extends Component {
     const { closeModal } = this.props;
     return (
       <Modal
-        title={ __( 'Newsletter Layouts', 'newspack-newsletters' ) }
-        onRequestClose={ closeModal }
-        className="newspack-newsletters_newsletter-modal"
-      />
+				className="newspack-newsletters-modal__frame"
+				isDismissible={ false }
+				onRequestClose={ closeModal }
+				overlayClassName="newspack-newsletters-modal__screen-overlay"
+				shouldCloseOnClickOutside={ false }
+				shouldCloseOnEsc={ false }
+				title={ __( 'Select a layout', 'newspack-newsletters' ) }
+      >
+				<p>{ __( 'Layout selector with preview will go here.', 'newspack-newsletters' ) }</p>
+				<Button isPrimary onClick={ closeModal }>
+					{ __( 'Use CURRENTLAYOUT layout', 'newspack-newsletters' ) }
+				</Button>
+			</Modal>
     );
   };
 }
