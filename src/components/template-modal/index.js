@@ -27,7 +27,9 @@ class TemplateModal extends Component {
 				shouldCloseOnEsc={ false }
 				title={ __( 'Select a layout', 'newspack-newsletters' ) }
       >
-				<p>{ __( 'Layout selector with preview will go here.', 'newspack-newsletters' ) }</p>
+				<div className="newspack-newsletters-modal__content">
+					<p>{ __( 'Layout selector with preview will go here.', 'newspack-newsletters' ) }</p>
+				</div>
 				<Button isPrimary onClick={ closeModal }>
 					{ __( 'Use CURRENTLAYOUT layout', 'newspack-newsletters' ) }
 				</Button>
