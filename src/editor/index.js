@@ -25,7 +25,6 @@ class NewsletterSidebar extends Component {
 	state = {
 		campaign: {},
 		lists: [],
-		templates: [],
 		hasResults: false,
 		inFlight: false,
 		isPublishingOrSaving: false,
@@ -91,20 +90,10 @@ class NewsletterSidebar extends Component {
 		};
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
-	setTemplate = templateId => {
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
-		const params = {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/template/${ templateId }`,
-			method: 'POST',
-		};
-		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
-	};
 	setStateFromAPIResponse = result => {
 		this.setState( {
 			campaign: result.campaign,
 			lists: result.lists.lists,
-			templates: result.templates.templates,
 			hasResults: true,
 			inFlight: false,
 		} );
@@ -119,7 +108,6 @@ class NewsletterSidebar extends Component {
 			inFlight,
 			lists,
 			showTestModal,
-			templates,
 			testEmail,
 			senderName,
 			senderEmail,
@@ -129,7 +117,6 @@ class NewsletterSidebar extends Component {
 		}
 		const { recipients, settings, status, long_archive_url } = campaign || {};
 		const { list_id } = recipients || {};
-		const { template_id } = settings || {};
 		if ( ! status ) {
 			return (
 				<Notice status="info" isDismissible={ false }>
@@ -188,22 +175,6 @@ class NewsletterSidebar extends Component {
 						} ) ),
 					] }
 					onChange={ value => this.setList( value ) }
-					disabled={ inFlight }
-				/>
-				<SelectControl
-					label={ __( 'Mailchimp Templates' ) }
-					value={ template_id }
-					options={ [
-						{
-							value: null,
-							label: __( '-- Select A Template --', 'newspack-newsletters' ),
-						},
-						...templates.map( ( { id, name } ) => ( {
-							value: id,
-							label: name,
-						} ) ),
-					] }
-					onChange={ value => this.setTemplate( value ) }
 					disabled={ inFlight }
 				/>
 				<TextControl
