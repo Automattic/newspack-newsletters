@@ -27,7 +27,7 @@ add_filter(
 		$content = $decode['content'];
 
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		$logo           = wp_get_attachment_image( $custom_logo_id, 'full' );
+		$logo           = wp_get_attachment_image_src( $custom_logo_id, 'full' )[0];
 
 		$sitename = get_bloginfo( 'name' );
 		$content  = str_replace(
