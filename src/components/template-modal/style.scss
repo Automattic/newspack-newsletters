@@ -74,6 +74,7 @@
 
 				&.selected {
 					box-shadow: white 0 0 0 1px inset, $blue-medium-focus 0 0 0 2px;
+					pointer-events: none;
 				}
 			}
 
