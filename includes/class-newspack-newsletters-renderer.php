@@ -410,59 +410,7 @@ final class Newspack_Newsletters_Renderer {
 	private static function render_mjml( $post ) {
 		$title  = $post->post_title;
 		$blocks = parse_blocks( $post->post_content );
-		$body   = "
-    <mjml>
-  		<mj-head>
-  	    <mj-title>$title</mj-title>
-  			<mj-style>
-          /* Paragraph */
-  				p.has-background { padding: 20px 30px !important; }
-          p {
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-          }
-
-          /* Button */
-          .is-style-outline a {
-            background: none !important;
-            border: 2px solid !important;
-          }
-
-          /* Heading */
-          h1 { font-size: 2.64em; }
-          h2 { font-size: 2.15em; }
-          h3 { font-size: 1.76em; }
-          h4 { font-size: 1.45em; }
-          h5 { font-size: 1.2em; }
-          h6 { font-size: 1em; }
-          h1, h2, h3, h4, h5, h6 {margin: 0 !important;}
-
-          /* Quote */
-          .wp-block-quote {
-            margin: 0 0 28px;
-            padding-left: 1em;
-          }
-          .wp-block-quote cite {
-            color: #6c7781;
-            font-size: 13px;
-          }
-          .wp-block-quote.is-style-default {
-            border-left: 4px solid #000;
-          }
-          .wp-block-quote.is-style-large p {
-            font-size: 24px;
-            font-style: italic;
-            line-height: 1.6;
-          }
-
-          /* Social links */
-          .social-element img {
-            border-radius: 0 !important;
-          }
-  			</mj-style>
-  	  </mj-head>
-		  <mj-body>";
-
+		$body   = '';
 		foreach ( $blocks as $block ) {
 			$block_content = self::render_mjml_component( $block );
 			if ( ! empty( $block_content ) ) {
@@ -470,9 +418,9 @@ final class Newspack_Newsletters_Renderer {
 			}
 		}
 
-		$body .= '</mj-body></mjml>';
-
-		return $body;
+		ob_start();
+		include dirname( __FILE__ ) . '/email-template.mjml.php';
+		return ob_get_clean();
 	}
 
 	/**
