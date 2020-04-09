@@ -62,18 +62,26 @@
 			height: auto;
 		}
 
-		.newspack-patterns-block-styles {
+		.block-editor-patterns {
 			display: grid;
 			gap: 16px;
 			grid-template-columns: repeat( 2, 1fr );
 			grid-template-rows: minmax( min-content, max-content );
-		}
+			padding: 0;
 
-		.block-editor-patterns__item {
-			margin: 0;
+			&__item {
+				margin: 0;
 
-			&.selected {
-				box-shadow: white 0 0 0 1px inset, $blue-medium-focus 0 0 0 2px;
+				&.selected {
+					box-shadow: white 0 0 0 1px inset, $blue-medium-focus 0 0 0 2px;
+				}
+			}
+
+			&__item-preview {
+				overflow: hidden;
+				padding: 0 0 100%;
+				position: relative;
+				width: 100%;
 			}
 		}
 	}
@@ -84,6 +92,14 @@
 		border-radius: 2px;
 		display: flex;
 		justify-content: center;
-		padding: 3px;
+		position: relative;
+
+		.block-editor-block-preview {
+			&__container {
+				align-self: flex-start;
+				margin: 0 auto;
+				max-width: 810px;
+			}
+		}
 	}
 }

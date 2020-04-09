@@ -44,8 +44,8 @@ class TemplateModal extends Component {
 				title={ __( 'Select a layout', 'newspack-newsletters' ) }
 			>
 				<div className="newspack-newsletters-modal__content">
-					<div className="block-editor-patterns newspack-patterns-block-styles">
-						{ ( templates || [] ).map( ( { title, image }, index ) => (
+					<div className="block-editor-patterns">
+						{ ( templates || [] ).map( ( { title, content }, index ) => (
 							<div
 								key={ index }
 								className={
@@ -65,7 +65,7 @@ class TemplateModal extends Component {
 								aria-label={ title }
 							>
 								<div className="block-editor-patterns__item-preview">
-									<img src={ image } alt={ __( 'Preview', 'newspack-newsletters' ) } />
+									<BlockPreview blocks={ parse( content ) } viewportWidth={ 810 } />
 								</div>
 								<div className="block-editor-patterns__item-title">{ title }</div>
 							</div>
@@ -73,7 +73,7 @@ class TemplateModal extends Component {
 					</div>
 
 					<div className="newspack-newsletters-modal__preview">
-						{ blockPreview && <BlockPreview blocks={ blockPreview } __experimentalPadding={ 8 } /> }
+						{ blockPreview && <BlockPreview blocks={ blockPreview } viewportWidth={ 810 } /> }
 					</div>
 				</div>
 
