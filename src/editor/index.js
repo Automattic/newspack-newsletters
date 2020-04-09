@@ -6,7 +6,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { withSelect, withDispatch, subscribe } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { Component, Fragment } from '@wordpress/element';
+import { Component, Fragment, useState } from '@wordpress/element';
 import {
 	Button,
 	ExternalLink,
@@ -34,11 +34,8 @@ class NewsletterSidebar extends Component {
 		isPublishingOrSaving: false,
 		showTestModal: false,
 		testEmail: '',
-		selectedTemplate: 0,
 		senderEmail: '',
 		senderName: '',
-		templates:
-			window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates,
 	};
 	componentDidMount = () => {
 		this.retrieveMailchimp();
@@ -105,18 +102,7 @@ class NewsletterSidebar extends Component {
 			inFlight: false,
 		} );
 	};
-	onSelectTemplate = selectedTemplate => this.setState( { selectedTemplate } );
-	onInsertTemplate = selectedTemplate => {
-		const { templates } = this.state;
-		const template = templates[ selectedTemplate ];
-		const { getBlocks, insertBlocks, replaceBlocks } = this.props;
-		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
-		this.setState( { modalDismissed: true }, () =>
-			clientIds && clientIds.length
-				? replaceBlocks( clientIds, parse( template.content ) )
-				: insertBlocks( parse( template.content ) )
-		);
-	};
+
 	/**
 	 * Render
 	 */
@@ -130,22 +116,7 @@ class NewsletterSidebar extends Component {
 			testEmail,
 			senderName,
 			senderEmail,
-			modalDismissed,
-			selectedTemplate,
-			templates,
 		} = this.state;
-		const { getCurrentPostAttribute } = this.props;
-		if ( 'auto-draft' === getCurrentPostAttribute( 'status' ) && ! modalDismissed ) {
-			return (
-				<TemplateModal
-					templates={ templates }
-					onInsertTemplate={ this.onInsertTemplate }
-					onSelectTemplate={ this.onSelectTemplate }
-					closeModal={ () => this.setState( { modalDismissed: true } ) }
-					selectedTemplate={ selectedTemplate }
-				/>
-			);
-		}
 		if ( ! hasResults ) {
 			return [ __( 'Loading Mailchimp data', 'newspack-newsletters' ), <Spinner key="spinner" /> ];
 		}
@@ -242,6 +213,56 @@ class NewsletterSidebar extends Component {
 
 const NewsletterSidebarWithSelect = compose( [
 	withSelect( select => {
+		const { getCurrentPostId, isPublishingPost, isSavingPost } = select( 'core/editor' );
+		return {
+			postId: getCurrentPostId(),
+			isPublishingPost,
+			isSavingPost,
+		};
+	} ),
+] )( NewsletterSidebar );
+
+const NewsletterEdit = props => {
+	const templates =
+		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
+
+	const isNew = 'auto-draft' === props.getCurrentPostAttribute( 'status' );
+
+	const [ selectedTemplate, setSelectedTemplate ] = useState( 0 );
+	const [ insertedTemplate, setInserted ] = useState();
+
+	const handleTemplateInsertion = templateIndex => {
+		const template = templates[ templateIndex ];
+		const { getBlocks, insertBlocks, replaceBlocks } = props;
+		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
+		if ( clientIds && clientIds.length ) {
+			replaceBlocks( clientIds, parse( template.content ) );
+		} else {
+			insertBlocks( parse( template.content ) );
+		}
+
+		setInserted( templateIndex );
+	};
+
+	return ! isNew || ! templates || insertedTemplate ? (
+		<PluginDocumentSettingPanel
+			name="newsletters-settings-panel"
+			title={ __( ' Newsletter Settings' ) }
+		>
+			<NewsletterSidebarWithSelect />
+		</PluginDocumentSettingPanel>
+	) : (
+		<TemplateModal
+			templates={ templates }
+			onInsertTemplate={ handleTemplateInsertion }
+			onSelectTemplate={ setSelectedTemplate }
+			selectedTemplate={ selectedTemplate }
+		/>
+	);
+};
+
+const NewsletterEditWithSelect = compose( [
+	withSelect( select => {
 		const { getCurrentPostId, getCurrentPostAttribute, isPublishingPost, isSavingPost } = select(
 			'core/editor'
 		);
@@ -258,17 +279,9 @@ const NewsletterSidebarWithSelect = compose( [
 		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
 		return { insertBlocks, replaceBlocks };
 	} ),
-] )( NewsletterSidebar );
+] )( NewsletterEdit );
 
-const PluginDocumentSettingPanelDemo = () => (
-	<PluginDocumentSettingPanel
-		name="newsletters-settings-panel"
-		title={ __( ' Newsletter Settings' ) }
-	>
-		<NewsletterSidebarWithSelect />
-	</PluginDocumentSettingPanel>
-);
 registerPlugin( 'newspack-newsletters', {
-	render: PluginDocumentSettingPanelDemo,
+	render: NewsletterEditWithSelect,
 	icon: null,
 } );

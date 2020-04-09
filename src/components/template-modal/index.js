@@ -25,19 +25,12 @@ class TemplateModal extends Component {
 			: null;
 	};
 	render = () => {
-		const {
-			closeModal,
-			onInsertTemplate,
-			onSelectTemplate,
-			selectedTemplate,
-			templates,
-		} = this.props;
+		const { onInsertTemplate, onSelectTemplate, selectedTemplate, templates } = this.props;
 		const blockPreview = this.generateBlockPreview();
 		return (
 			<Modal
 				className="newspack-newsletters-modal__frame"
 				isDismissible={ false }
-				onRequestClose={ closeModal }
 				overlayClassName="newspack-newsletters-modal__screen-overlay"
 				shouldCloseOnClickOutside={ false }
 				shouldCloseOnEsc={ false }
