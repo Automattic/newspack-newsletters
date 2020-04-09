@@ -66,7 +66,7 @@
 			display: grid;
 			gap: 16px;
 			grid-template-columns: repeat( 2, 1fr );
-			grid-template-rows: minmax( min-content, max-content );
+			grid-auto-rows: minmax( min-content, max-content );
 			padding: 0;
 
 			&__item {
