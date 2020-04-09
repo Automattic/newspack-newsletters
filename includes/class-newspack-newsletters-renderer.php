@@ -9,8 +9,6 @@ defined( 'ABSPATH' ) || exit;
 
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/vendor/autoload.php';
 
-use \PHPHtmlParser\Dom;
-
 /**
  * Newspack Newsletters Renderer Class.
  */
@@ -176,12 +174,12 @@ final class Newspack_Newsletters_Renderer {
 				// - align right, align left.
 
 				// Parse block content.
-				$dom = new Dom();
-				$dom->load( $inner_html );
-
-				$img        = $dom->find( 'img' )[0];
+				$dom = new DomDocument();
+				@$dom->loadHTML( $inner_html ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				$xpath      = new DOMXpath( $dom );
+				$img        = $xpath->query( '//img' )[0];
 				$img_src    = $img->getAttribute( 'src' );
-				$figcaption = $dom->find( 'figcaption' )[0];
+				$figcaption = $xpath->query( '//figcaption/text()' )[0];
 
 				$img_attrs = array(
 					'padding' => '0',
@@ -215,7 +213,8 @@ final class Newspack_Newsletters_Renderer {
 						'color'     => '#555d66',
 						'font-size' => '13px',
 					);
-					$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . $figcaption->text . '</mj-text>';
+					 // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . $figcaption->wholeText . '</mj-text>';
 				}
 
 				$block_mjml_markup = $markup;
@@ -231,12 +230,13 @@ final class Newspack_Newsletters_Renderer {
 				// - gradients.
 
 				foreach ( $inner_blocks as $button_block ) {
-					$dom = new Dom();
-					$dom->load( $button_block['innerHTML'] );
-
+					// Parse block content.
+					$dom = new DomDocument();
+					@$dom->loadHTML( $button_block['innerHTML'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					$xpath         = new DOMXpath( $dom );
+					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = $button_block['attrs'];
-					$anchor        = $dom->find( 'a' )[0];
-					$text          = $anchor->text;
+					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 28;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
