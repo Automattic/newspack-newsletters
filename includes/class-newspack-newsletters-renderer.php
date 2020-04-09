@@ -297,27 +297,27 @@ final class Newspack_Newsletters_Renderer {
 				// - align right, align left (it will always be center aligned, in columns. mjml does not handle one next to another).
 
 				$social_icons = array(
-					'core/social-link-wordpress' => array(
+					'wordpress' => array(
 						'color' => '#3499cd',
 						'icon'  => 'wordpress.svg',
 					),
-					'core/social-link-facebook'  => array(
+					'facebook'  => array(
 						'color' => '#1977f2',
 						'icon'  => 'facebook.svg',
 					),
-					'core/social-link-twitter'   => array(
+					'twitter'   => array(
 						'color' => '#21a1f3',
 						'icon'  => 'twitter.svg',
 					),
-					'core/social-link-instagram' => array(
+					'instagram' => array(
 						'color' => '#f00075',
 						'icon'  => 'instagram.svg',
 					),
-					'core/social-link-linkedin'  => array(
+					'linkedin'  => array(
 						'color' => '#0577b5',
 						'icon'  => 'linkedin.svg',
 					),
-					'core/social-link-youtube'   => array(
+					'youtube'   => array(
 						'color' => '#ff0100',
 						'icon'  => 'youtube.svg',
 					),
@@ -335,15 +335,19 @@ final class Newspack_Newsletters_Renderer {
 				foreach ( $inner_blocks as $link_block ) {
 					if ( isset( $link_block['attrs']['url'] ) ) {
 						$url = $link_block['attrs']['url'];
+						// Handle older version of the block, where innner blocks we named `core/social-link-<service>`.
+						$service_name = isset( $link_block['attrs']['service'] ) ? $link_block['attrs']['service'] : str_replace( 'core/social-link-', '', $link_block['blockName'] );
 
-						$img_attrs = array(
-							'href'             => $url,
-							'src'              => plugins_url( 'assets/' . $social_icons[ $link_block['blockName'] ]['icon'], dirname( __FILE__ ) ),
-							'background-color' => $social_icons[ $link_block['blockName'] ]['color'],
-							'css-class'        => 'social-element',
-						);
+						if ( isset( $social_icons[ $service_name ] ) ) {
+							$img_attrs = array(
+								'href'             => $url,
+								'src'              => plugins_url( 'assets/' . $social_icons[ $service_name ]['icon'], dirname( __FILE__ ) ),
+								'background-color' => $social_icons[ $service_name ]['color'],
+								'css-class'        => 'social-element',
+							);
 
-						$markup .= '<mj-social-element ' . self::array_to_attributes( $img_attrs ) . '/>';
+							$markup .= '<mj-social-element ' . self::array_to_attributes( $img_attrs ) . '/>';
+						}
 					}
 				}
 				$block_mjml_markup .= $markup . '</mj-social>';
