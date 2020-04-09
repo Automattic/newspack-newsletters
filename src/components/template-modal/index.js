@@ -8,6 +8,7 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { Component } from '@wordpress/element';
 import { Button, Modal } from '@wordpress/components';
+import { ENTER, SPACE } from '@wordpress/keycodes';
 
 /**
  * Internal dependencies
@@ -34,17 +35,39 @@ class TemplateModal extends Component {
 				title={ __( 'Select a layout', 'newspack-newsletters' ) }
 			>
 				<div className="newspack-newsletters-modal__content">
-					{ ( templates || [] ).map( ( { title, image }, index ) => (
-						<button
-							key={ index }
-							className={ selectedTemplate === index ? 'selected' : null }
-							onClick={ () => onSelectTemplate( index ) }
-						>
-							<h2>{ title }</h2>
-							<img src={ image } alt={ title } />
-						</button>
-					) ) }
+					<div className="block-editor-patterns newspack-patterns-block-styles">
+						{ ( templates || [] ).map( ( { title, image }, index ) => (
+							<div
+								key={ index }
+								className={
+									selectedTemplate === index
+										? 'selected block-editor-patterns__item'
+										: 'block-editor-patterns__item'
+								}
+								onClick={ () => onSelectTemplate( index ) }
+								onKeyDown={ event => {
+									if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
+										event.preventDefault();
+										onSelectTemplate( index );
+									}
+								} }
+								role="button"
+								tabIndex="0"
+								aria-label={ title }
+							>
+								<div className="block-editor-patterns__item-preview">
+									<img src={ image } alt={ __( 'Preview', 'newspack-newsletters' ) } />
+								</div>
+								<div className="block-editor-patterns__item-title">{ title }</div>
+							</div>
+						) ) }
+					</div>
+
+					<div className="newspack-newsletters-modal__preview">
+						<p>{ __( 'Layout preview goes here.', 'newspack-newsletters' ) }</p>
+					</div>
 				</div>
+
 				{ selectedTemplate !== null && (
 					<Button isPrimary onClick={ () => onInsertTemplate( selectedTemplate ) }>
 						{ sprintf(

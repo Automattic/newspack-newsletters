@@ -17,7 +17,7 @@
 
 		@media only screen and ( min-width: 961px ) {
 			// Not folded sidebar
-			body:not( .folded ) & {
+			body:not( .folded ):not( .is-fullscreen-mode ) & {
 				margin-left: 160px;
 			}
 		}
@@ -49,16 +49,36 @@
 	}
 
 	&__content {
-		align-items: center;
-		background: aliceblue; // test
-		display: flex;
+		display: grid;
+		gap: 0 24px;
+		grid-template-columns: 1fr 2fr;
+		grid-template-rows: 1fr;
 		height: calc( 100% - 24px - 60px );
-		justify-content: center;
+
 		img {
-			max-width: 250px;
+			max-width: 100%;
+			height: auto;
 		}
-		li.selected {
-			background-color: lightgray;
+
+		.newspack-patterns-block-styles {
+			display: grid;
+			gap: 16px;
+			grid-template-columns: repeat( 2, 1fr );
+			grid-template-rows: minmax( min-content, max-content );
 		}
+
+		.block-editor-patterns__item {
+			margin: 0;
+		}
+	}
+
+	&__preview {
+		align-items: center;
+		background: cyan;
+		border: 1px solid;
+		border-radius: 2px;
+		display: flex;
+		justify-content: center;
+		padding: 3px;
 	}
 }
