@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Define NEWSPACK_ADS_PLUGIN_FILE.
+// Define NEWSPACK_NEWSLETTERS_PLUGIN_FILE.
 if ( ! defined( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE' ) ) {
 	define( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE', plugin_dir_path( __FILE__ ) );
 }
@@ -23,3 +23,5 @@ if ( ! defined( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE' ) ) {
 if ( ! class_exists( 'Newspack_Newsletters' ) ) {
 	include_once dirname( __FILE__ ) . '/includes/class-newspack-newsletters.php';
 }
+
+require_once dirname( __FILE__ ) . '/newspack-newsletters-templates.php';

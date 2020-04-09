@@ -1,9 +1,10 @@
 /**
  * WordPress dependencies
  */
+import { parse } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-import { withSelect, subscribe } from '@wordpress/data';
+import { withSelect, withDispatch, subscribe } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Component, Fragment } from '@wordpress/element';
 import {
@@ -33,8 +34,11 @@ class NewsletterSidebar extends Component {
 		isPublishingOrSaving: false,
 		showTestModal: false,
 		testEmail: '',
+		selectedTemplate: null,
 		senderEmail: '',
 		senderName: '',
+		templates:
+			window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates,
 	};
 	componentDidMount = () => {
 		this.retrieveMailchimp();
@@ -101,7 +105,18 @@ class NewsletterSidebar extends Component {
 			inFlight: false,
 		} );
 	};
-
+	onSelectTemplate = selectedTemplate => this.setState( { selectedTemplate } );
+	onInsertTemplate = selectedTemplate => {
+		const { templates } = this.state;
+		const template = templates[ selectedTemplate ];
+		const { getBlocks, insertBlocks, replaceBlocks } = this.props;
+		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
+		this.setState( { modalDismissed: true }, () =>
+			clientIds && clientIds.length
+				? replaceBlocks( clientIds, parse( template.content ) )
+				: insertBlocks( parse( template.content ) )
+		);
+	};
 	/**
 	 * Render
 	 */
@@ -116,10 +131,20 @@ class NewsletterSidebar extends Component {
 			senderName,
 			senderEmail,
 			modalDismissed,
+			selectedTemplate,
+			templates,
 		} = this.state;
 		const { getCurrentPostAttribute } = this.props;
 		if ( 'auto-draft' === getCurrentPostAttribute( 'status' ) && ! modalDismissed ) {
-			return <TemplateModal closeModal={ () => this.setState( { modalDismissed: true } ) } />;
+			return (
+				<TemplateModal
+					templates={ templates }
+					onInsertTemplate={ this.onInsertTemplate }
+					onSelectTemplate={ this.onSelectTemplate }
+					closeModal={ () => this.setState( { modalDismissed: true } ) }
+					selectedTemplate={ selectedTemplate }
+				/>
+			);
 		}
 		if ( ! hasResults ) {
 			return [ __( 'Loading Mailchimp data', 'newspack-newsletters' ), <Spinner key="spinner" /> ];
@@ -220,7 +245,18 @@ const NewsletterSidebarWithSelect = compose( [
 		const { getCurrentPostId, getCurrentPostAttribute, isPublishingPost, isSavingPost } = select(
 			'core/editor'
 		);
-		return { postId: getCurrentPostId(), getCurrentPostAttribute, isPublishingPost, isSavingPost };
+		const { getBlocks } = select( 'core/block-editor' );
+		return {
+			postId: getCurrentPostId(),
+			getBlocks,
+			getCurrentPostAttribute,
+			isPublishingPost,
+			isSavingPost,
+		};
+	} ),
+	withDispatch( dispatch => {
+		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
+		return { insertBlocks, replaceBlocks };
 	} ),
 ] )( NewsletterSidebar );
 

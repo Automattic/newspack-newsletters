@@ -5,8 +5,8 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
-import { Component, Fragment } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
+import { Component } from '@wordpress/element';
 import { Button, Modal } from '@wordpress/components';
 
 /**
@@ -15,10 +15,16 @@ import { Button, Modal } from '@wordpress/components';
 import './style.scss';
 
 class TemplateModal extends Component {
-  render = () => {
-    const { closeModal } = this.props;
-    return (
-      <Modal
+	render = () => {
+		const {
+			closeModal,
+			onInsertTemplate,
+			onSelectTemplate,
+			selectedTemplate,
+			templates,
+		} = this.props;
+		return (
+			<Modal
 				className="newspack-newsletters-modal__frame"
 				isDismissible={ false }
 				onRequestClose={ closeModal }
@@ -26,16 +32,30 @@ class TemplateModal extends Component {
 				shouldCloseOnClickOutside={ false }
 				shouldCloseOnEsc={ false }
 				title={ __( 'Select a layout', 'newspack-newsletters' ) }
-      >
+			>
 				<div className="newspack-newsletters-modal__content">
-					<p>{ __( 'Layout selector with preview will go here.', 'newspack-newsletters' ) }</p>
+					{ ( templates || [] ).map( ( { title, image }, index ) => (
+						<button
+							key={ index }
+							className={ selectedTemplate === index ? 'selected' : null }
+							onClick={ () => onSelectTemplate( index ) }
+						>
+							<h2>{ title }</h2>
+							<img src={ image } alt={ title } />
+						</button>
+					) ) }
 				</div>
-				<Button isPrimary onClick={ closeModal }>
-					{ __( 'Use CURRENTLAYOUT layout', 'newspack-newsletters' ) }
-				</Button>
+				{ selectedTemplate !== null && (
+					<Button isPrimary onClick={ () => onInsertTemplate( selectedTemplate ) }>
+						{ sprintf(
+							__( 'Use %s layout', 'newspack-newsletter' ),
+							templates[ selectedTemplate ].title
+						) }
+					</Button>
+				) }
 			</Modal>
-    );
-  };
+		);
+	};
 }
 
 export default TemplateModal;

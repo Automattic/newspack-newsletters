@@ -4,7 +4,7 @@
 		background: white;
 		margin-top: 46px;
 
-		@media only screen and (min-width: 783px) {
+		@media only screen and ( min-width: 783px ) {
 			margin-left: 36px;
 			margin-top: 32px;
 
@@ -15,7 +15,7 @@
 			}
 		}
 
-		@media only screen and (min-width: 961px) {
+		@media only screen and ( min-width: 961px ) {
 			// Not folded sidebar
 			body:not( .folded ) & {
 				margin-left: 160px;
@@ -54,5 +54,11 @@
 		display: flex;
 		height: calc( 100% - 24px - 60px );
 		justify-content: center;
+		img {
+			max-width: 250px;
+		}
+		li.selected {
+			background-color: lightgray;
+		}
 	}
 }

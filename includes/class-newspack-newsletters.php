@@ -100,6 +100,14 @@ final class Newspack_Newsletters {
 			true
 		);
 
+		wp_localize_script(
+			'newspack-newsletters',
+			'newspack_newsletters_data',
+			[
+				'templates' => self::get_newsletter_templates(),
+			]
+		);
+
 		\wp_enqueue_style(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.css', __FILE__ ),
@@ -422,6 +430,15 @@ final class Newspack_Newsletters {
 		];
 
 		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
+	}
+
+	/**
+	 * Get newsletter templates.
+	 *
+	 * @return array Array of templates.
+	 */
+	public static function get_newsletter_templates() {
+		return apply_filters( 'newspack_newsletters_templates', [] );
 	}
 }
 Newspack_Newsletters::instance();
