@@ -5,10 +5,12 @@
 /**
  * WordPress dependencies
  */
+import { parse } from '@wordpress/blocks';
 import { __, sprintf } from '@wordpress/i18n';
 import { Component } from '@wordpress/element';
 import { Button, Modal } from '@wordpress/components';
 import { ENTER, SPACE } from '@wordpress/keycodes';
+import { BlockPreview } from '@wordpress/block-editor';
 
 /**
  * Internal dependencies
@@ -16,6 +18,12 @@ import { ENTER, SPACE } from '@wordpress/keycodes';
 import './style.scss';
 
 class TemplateModal extends Component {
+	generateBlockPreview = () => {
+		const { selectedTemplate, templates } = this.props;
+		return templates && templates[ selectedTemplate ]
+			? parse( templates[ selectedTemplate ].content )
+			: null;
+	};
 	render = () => {
 		const {
 			closeModal,
@@ -24,6 +32,7 @@ class TemplateModal extends Component {
 			selectedTemplate,
 			templates,
 		} = this.props;
+		const blockPreview = this.generateBlockPreview();
 		return (
 			<Modal
 				className="newspack-newsletters-modal__frame"
@@ -64,7 +73,7 @@ class TemplateModal extends Component {
 					</div>
 
 					<div className="newspack-newsletters-modal__preview">
-						<p>{ __( 'Layout preview goes here.', 'newspack-newsletters' ) }</p>
+						{ blockPreview && <BlockPreview blocks={ blockPreview } __experimentalPadding={ 8 } /> }
 					</div>
 				</div>
 

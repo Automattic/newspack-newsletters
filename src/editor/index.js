@@ -34,7 +34,7 @@ class NewsletterSidebar extends Component {
 		isPublishingOrSaving: false,
 		showTestModal: false,
 		testEmail: '',
-		selectedTemplate: null,
+		selectedTemplate: 0,
 		senderEmail: '',
 		senderName: '',
 		templates:
