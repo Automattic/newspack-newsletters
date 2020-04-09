@@ -21,15 +21,12 @@ final class Newspack_Newsletters_Renderer {
 	 * @param array $attributes Array of attributes.
 	 * @return string HTML attributes as a string.
 	 */
-	private static function array_to_attributtes( $attributes ) {
+	private static function array_to_attributes( $attributes ) {
 		return join(
 			' ',
 			array_map(
 				function( $key ) use ( $attributes ) {
 					if ( isset( $attributes[ $key ] ) ) {
-						if ( is_bool( $attributes[ $key ] ) ) {
-							return $attributes[ $key ] ? $key : '';
-						}
 						return $key . '="' . $attributes[ $key ] . '"';
 					} else {
 						return '';
@@ -123,7 +120,7 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
-	 * Render MJML component form a Gutenberg block.
+	 * Render MJML component for a Gutenberg block.
 	 *
 	 * @param WP_Block $block The block.
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
@@ -168,7 +165,7 @@ final class Newspack_Newsletters_Renderer {
 					self::get_colors( $attrs )
 				);
 
-				$block_mjml_markup = '<mj-text ' . self::array_to_attributtes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
+				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
 				break;
 
 			/**
@@ -210,7 +207,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
 				}
-				$markup = '<mj-image ' . self::array_to_attributtes( $img_attrs ) . ' />';
+				$markup = '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
 
 				if ( $figcaption ) {
 					$caption_attrs = array(
@@ -218,7 +215,7 @@ final class Newspack_Newsletters_Renderer {
 						'color'     => '#555d66',
 						'font-size' => '13px',
 					);
-					$markup       .= '<mj-text ' . self::array_to_attributtes( $caption_attrs ) . '>' . $figcaption->text . '</mj-text>';
+					$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . $figcaption->text . '</mj-text>';
 				}
 
 				$block_mjml_markup = $markup;
@@ -263,7 +260,7 @@ final class Newspack_Newsletters_Renderer {
 						$button_attrs['css-class'] = $attrs['className'];
 					}
 
-					$block_mjml_markup .= '<mj-column ' . self::array_to_attributtes( $column_attrs ) . '><mj-button ' . self::array_to_attributtes( $button_attrs ) . ">$text</mj-button></mj-column>";
+					$block_mjml_markup .= '<mj-column ' . self::array_to_attributes( $column_attrs ) . '><mj-button ' . self::array_to_attributes( $button_attrs ) . ">$text</mj-button></mj-column>";
 				}
 
 
@@ -287,7 +284,7 @@ final class Newspack_Newsletters_Renderer {
 					),
 					self::get_colors( $attrs )
 				);
-				$block_mjml_markup .= '<mj-divider ' . self::array_to_attributtes( $divider_attrs ) . '/>';
+				$block_mjml_markup .= '<mj-divider ' . self::array_to_attributes( $divider_attrs ) . '/>';
 
 				break;
 
@@ -334,7 +331,7 @@ final class Newspack_Newsletters_Renderer {
 					'border-radius' => '999px',
 					'icon-padding'  => '8px',
 				);
-				$markup               = '<mj-social ' . self::array_to_attributtes( $social_wrapper_attrs ) . '>';
+				$markup               = '<mj-social ' . self::array_to_attributes( $social_wrapper_attrs ) . '>';
 				foreach ( $inner_blocks as $link_block ) {
 					if ( isset( $link_block['attrs']['url'] ) ) {
 						$url = $link_block['attrs']['url'];
@@ -346,7 +343,7 @@ final class Newspack_Newsletters_Renderer {
 							'css-class'        => 'social-element',
 						);
 
-						$markup .= '<mj-social-element ' . self::array_to_attributtes( $img_attrs ) . '/>';
+						$markup .= '<mj-social-element ' . self::array_to_attributes( $img_attrs ) . '/>';
 					}
 				}
 				$block_mjml_markup .= $markup . '</mj-social>';
@@ -372,7 +369,7 @@ final class Newspack_Newsletters_Renderer {
 					$column_attrs['width'] = $attrs['width'] . '%';
 				}
 
-				$markup = '<mj-column ' . self::array_to_attributtes( $column_attrs ) . '>';
+				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
 					$markup .= self::render_mjml_component( $block, true );
 				}
@@ -394,13 +391,13 @@ final class Newspack_Newsletters_Renderer {
 
 		if ( ! $is_in_column && 'core/columns' != $block_name && 'core/column' != $block_name && 'core/buttons' != $block_name ) {
 			$column_attrs['width'] = '100%';
-			$block_mjml_markup     = '<mj-column ' . self::array_to_attributtes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
+			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
 		if ( $is_in_column ) {
 			// For a nested block, render without a wrapping section.
 			return $block_mjml_markup;
 		} else {
-			return '<mj-section ' . self::array_to_attributtes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
+			return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
 		}
 	}
 
@@ -486,7 +483,7 @@ final class Newspack_Newsletters_Renderer {
 	public static function mjml_api_credentials() {
 		$key    = ( defined( 'NEWSPACK_MJML_API_KEY' ) && NEWSPACK_MJML_API_KEY ) ? NEWSPACK_MJML_API_KEY : false;
 		$secret = ( defined( 'NEWSPACK_MJML_API_SECRET' ) && NEWSPACK_MJML_API_SECRET ) ? NEWSPACK_MJML_API_SECRET : false;
-		if ( isset( $key ) && isset( $secret ) ) {
+		if ( isset( $key, $secret ) ) {
 			return "$key:$secret";
 		}
 		return false;
