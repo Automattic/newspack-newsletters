@@ -44,32 +44,34 @@ class TemplateModal extends Component {
 				title={ __( 'Select a layout', 'newspack-newsletters' ) }
 			>
 				<div className="newspack-newsletters-modal__content">
-					<div className="block-editor-patterns">
-						{ ( templates || [] ).map( ( { title, content }, index ) => (
-							<div
-								key={ index }
-								className={
-									selectedTemplate === index
-										? 'selected block-editor-patterns__item'
-										: 'block-editor-patterns__item'
-								}
-								onClick={ () => onSelectTemplate( index ) }
-								onKeyDown={ event => {
-									if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
-										event.preventDefault();
-										onSelectTemplate( index );
+					<div className="newspack-newsletters-modal__patterns">
+						<div className="block-editor-patterns">
+							{ ( templates || [] ).map( ( { title, content }, index ) => (
+								<div
+									key={ index }
+									className={
+										selectedTemplate === index
+											? 'selected block-editor-patterns__item'
+											: 'block-editor-patterns__item'
 									}
-								} }
-								role="button"
-								tabIndex="0"
-								aria-label={ title }
-							>
-								<div className="block-editor-patterns__item-preview">
-									<BlockPreview blocks={ parse( content ) } viewportWidth={ 810 } />
+									onClick={ () => onSelectTemplate( index ) }
+									onKeyDown={ event => {
+										if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
+											event.preventDefault();
+											onSelectTemplate( index );
+										}
+									} }
+									role="button"
+									tabIndex="0"
+									aria-label={ title }
+								>
+									<div className="block-editor-patterns__item-preview">
+										<BlockPreview blocks={ parse( content ) } viewportWidth={ 810 } />
+									</div>
+									<div className="block-editor-patterns__item-title">{ title }</div>
 								</div>
-								<div className="block-editor-patterns__item-title">{ title }</div>
-							</div>
-						) ) }
+							) ) }
+						</div>
 					</div>
 
 					<div className="newspack-newsletters-modal__preview">

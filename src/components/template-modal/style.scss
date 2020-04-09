@@ -50,17 +50,18 @@
 		grid-template-rows: 1fr;
 		height: calc( 100% - 24px - 60px );
 
-		img {
-			max-width: 100%;
-			height: auto;
-		}
-
 		+ .is-primary {
 			position: absolute;
 			right: 24px;
 			top: 12px;
 			z-index: 11;
 		}
+	}
+
+	&__patterns {
+		overflow-y: scroll;
+		padding: 3px;
+		margin: -3px;
 
 		.block-editor-patterns {
 			display: grid;
@@ -93,7 +94,7 @@
 		border-radius: 2px;
 		display: flex;
 		justify-content: center;
-		overflow: scroll;
+		overflow-y: scroll;
 		position: relative;
 
 		.block-editor-block-preview {
