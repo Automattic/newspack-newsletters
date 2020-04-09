@@ -41,13 +41,6 @@
 		top: 0;
 		transform: none;
 		width: 100%;
-
-		.is-primary {
-			position: absolute;
-			right: 24px;
-			top: 12px;
-			z-index: 11;
-		}
 	}
 
 	&__content {
@@ -60,6 +53,13 @@
 		img {
 			max-width: 100%;
 			height: auto;
+		}
+
+		+ .is-primary {
+			position: absolute;
+			right: 24px;
+			top: 12px;
+			z-index: 11;
 		}
 
 		.block-editor-patterns {

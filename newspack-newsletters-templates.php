@@ -51,3 +51,18 @@ add_filter(
 	10,
 	2
 );
+
+add_filter(
+	'newspack_newsletters_templates',
+	function( $templates ) {
+ 		$decode  = json_decode( file_get_contents( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'src/templates/template-2.json'), true ); //phpcs:ignore
+		$content     = $decode['content'];
+		$templates[] = [
+			'content' => $content,
+			'title'   => __( 'Template 2', 'newspack-newsletters' ),
+		];
+		return $templates;
+	},
+	10,
+	2
+);
