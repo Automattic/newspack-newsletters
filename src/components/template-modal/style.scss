@@ -1,3 +1,5 @@
+@import '~@wordpress/base-styles/colors';
+
 .newspack-newsletters-modal {
 	&__screen-overlay {
 		animation: none;
@@ -69,13 +71,16 @@
 
 		.block-editor-patterns__item {
 			margin: 0;
+
+			&.selected {
+				box-shadow: white 0 0 0 1px inset, $blue-medium-focus 0 0 0 2px;
+			}
 		}
 	}
 
 	&__preview {
 		align-items: center;
-		background: cyan;
-		border: 1px solid;
+		border: 1px solid $light-gray-500;
 		border-radius: 2px;
 		display: flex;
 		justify-content: center;
