@@ -223,15 +223,15 @@ const NewsletterSidebarWithSelect = compose( [
 ] )( NewsletterSidebar );
 
 const NewsletterEdit = props => {
+	const { isReady } = props;
 	const templates =
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
-
-	const isNew = 'auto-draft' === props.getCurrentPostAttribute( 'status' );
 
 	const [ selectedTemplate, setSelectedTemplate ] = useState( 0 );
 	const [ insertedTemplate, setInserted ] = useState();
 
 	const handleTemplateInsertion = templateIndex => {
+		const { onMetaFieldChange } = props;
 		const template = templates[ templateIndex ];
 		const { getBlocks, insertBlocks, replaceBlocks } = props;
 		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
@@ -240,11 +240,11 @@ const NewsletterEdit = props => {
 		} else {
 			insertBlocks( parse( template.content ) );
 		}
-
+		onMetaFieldChange( 'is_ready', true );
 		setInserted( templateIndex );
 	};
 
-	return ! isNew || ! templates || insertedTemplate ? (
+	return isReady || ! templates || insertedTemplate ? (
 		<PluginDocumentSettingPanel
 			name="newsletters-settings-panel"
 			title={ __( ' Newsletter Settings' ) }
@@ -263,9 +263,15 @@ const NewsletterEdit = props => {
 
 const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
-		const { getCurrentPostId, getCurrentPostAttribute, isPublishingPost, isSavingPost } = select(
-			'core/editor'
-		);
+		const {
+			getCurrentPostId,
+			getCurrentPostAttribute,
+			getEditedPostAttribute,
+			isPublishingPost,
+			isSavingPost,
+		} = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		const { is_ready: isReady } = meta || {};
 		const { getBlocks } = select( 'core/block-editor' );
 		return {
 			postId: getCurrentPostId(),
@@ -273,11 +279,15 @@ const NewsletterEditWithSelect = compose( [
 			getCurrentPostAttribute,
 			isPublishingPost,
 			isSavingPost,
+			isReady,
 		};
 	} ),
 	withDispatch( dispatch => {
 		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
-		return { insertBlocks, replaceBlocks };
+		const onMetaFieldChange = ( key, value ) => {
+			dispatch( 'core/editor' ).editPost( { meta: { [ key ]: value } } );
+		};
+		return { insertBlocks, onMetaFieldChange, replaceBlocks };
 	} ),
 ] )( NewsletterEdit );
 
