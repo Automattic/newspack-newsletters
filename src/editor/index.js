@@ -17,7 +17,15 @@ import {
 } from '@wordpress/components';
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+
+/**
+ * Internal dependencies
+ */
 import './style.scss';
+import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
+import { NestedColumnsDetection } from './blocks-validation/nested-columns-detection';
+
+addBlocksValidationFilter();
 
 class NewsletterSidebar extends Component {
 	state = {
@@ -213,12 +221,15 @@ const NewsletterSidebarWithSelect = compose( [
 ] )( NewsletterSidebar );
 
 const PluginDocumentSettingPanelDemo = () => (
-	<PluginDocumentSettingPanel
-		name="newsletters-settings-panel"
-		title={ __( ' Newsletter Settings' ) }
-	>
-		<NewsletterSidebarWithSelect />
-	</PluginDocumentSettingPanel>
+	<Fragment>
+		<NestedColumnsDetection />
+		<PluginDocumentSettingPanel
+			name="newsletters-settings-panel"
+			title={ __( ' Newsletter Settings' ) }
+		>
+			<NewsletterSidebarWithSelect />
+		</PluginDocumentSettingPanel>
+	</Fragment>
 );
 registerPlugin( 'newspack-newsletters', {
 	render: PluginDocumentSettingPanelDemo,

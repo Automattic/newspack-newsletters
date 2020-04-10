@@ -150,9 +150,6 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/list':
 			case 'core/heading':
 			case 'core/quote':
-				// TODO disable/handle/warn for:
-				// - without inline image
-				// - drop cap?
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
@@ -170,9 +167,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Image block.
 			 */
 			case 'core/image':
-				// TODO disable/handle/warn for:
-				// - align right, align left.
-
 				// Parse block content.
 				$dom = new DomDocument();
 				@$dom->loadHTML( $inner_html ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -224,11 +218,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Buttons block.
 			 */
 			case 'core/buttons':
-				// TODO disable/handle/warn for:
-				// - layouts.
-				// - align right, align left (it will always be center aligned, in columns. mjml does not handle one next to another).
-				// - gradients.
-
 				foreach ( $inner_blocks as $button_block ) {
 					// Parse block content.
 					$dom = new DomDocument();
@@ -250,6 +239,8 @@ final class Newspack_Newsletters_Renderer {
 					);
 					if ( $is_outlined ) {
 						$default_button_attrs['background-color'] = 'transparent';
+					} else {
+						$default_button_attrs['background-color'] = '#32373c';
 					}
 					$button_attrs = array_merge(
 						$default_button_attrs,
@@ -270,8 +261,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Separator block.
 			 */
 			case 'core/separator':
-				// TODO disable/handle/warn for:
-				// - dots style - it wont be supported.
 				$is_style_default   = 'is-style-default' == $attrs['className'];
 				$divider_attrs      = array_merge(
 					array(
@@ -292,10 +281,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Social links block.
 			 */
 			case 'core/social-links':
-				// TODO disable/handle/warn for:
-				// - styles. Pill could be supported, though.
-				// - align right, align left (it will always be center aligned, in columns. mjml does not handle one next to another).
-
 				$social_icons = array(
 					'wordpress' => array(
 						'color' => '#3499cd',
@@ -359,15 +344,10 @@ final class Newspack_Newsletters_Renderer {
 			 */
 			case 'core/column':
 				// TODO disable/handle/warn for:
-				// - alignments. Middle/center will not work in mjml, top and bottom are looking slightly different in G editor and MJML.
 				// - nested colums. Not allowed in MJML.
 
 				if ( isset( $attrs['verticalAlignment'] ) ) {
-					if ( 'center' == $attrs['verticalAlignment'] ) {
-						$column_attrs['vertical-align'] = 'middle';
-					} else {
-						$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
-					}
+					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
 				}
 				if ( isset( $attrs['width'] ) ) {
 					$column_attrs['width'] = $attrs['width'] . '%';
