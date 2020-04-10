@@ -406,20 +406,31 @@ final class Newspack_Newsletters_Renderer {
 					// Pass attributes from column down to children.
 					$markup .= self::render_mjml_component( $block, true, array_merge( $default_attrs_processed, $attrs ) );
 				}
+				$section_attrs['padding-left']  = '16px';
+				$section_attrs['padding-right'] = '16px';
 
 				$block_mjml_markup = $markup;
 				break;
 		}
 
-		if ( ! $is_in_column && 'core/columns' != $block_name && 'core/column' != $block_name && 'core/buttons' != $block_name ) {
-			$column_attrs['width'] = '100%';
-			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
-		}
-		if ( $is_in_column ) {
-			// For a nested block, render without a wrapping section.
-			return $block_mjml_markup;
+		// Treat a group block as a series of MJML sections with shared attributes.
+		if ( 'core/group' == $block_name ) {
+			$markup = '';
+			foreach ( $inner_blocks as $group_inner_block ) {
+				$markup .= self::render_mjml_component( $group_inner_block, false, array_merge( $default_attrs_processed, $attrs ) );
+			}
+			return $markup;
 		} else {
-			return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
+			if ( ! $is_in_column && 'core/columns' != $block_name && 'core/column' != $block_name && 'core/buttons' != $block_name ) {
+				$column_attrs['width'] = '100%';
+				$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
+			}
+			if ( $is_in_column ) {
+				// For a nested block, render without a wrapping section.
+				return $block_mjml_markup;
+			} else {
+				return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
+			}
 		}
 	}
 
@@ -434,15 +445,6 @@ final class Newspack_Newsletters_Renderer {
 		$blocks = parse_blocks( $post->post_content );
 		$body   = '';
 		foreach ( $blocks as $block ) {
-			// Treat a group block as a series of MJML sections with shared attributes.
-			if ( 'core/group' == $block['blockName'] ) {
-				foreach ( $block['innerBlocks'] as $group_inner_block ) {
-					$block_content = self::render_mjml_component( $group_inner_block, false, $block['attrs'] );
-					if ( ! empty( $block_content ) ) {
-						$body .= $block_content;
-					}
-				}
-			}
 			$block_content = self::render_mjml_component( $block );
 			if ( ! empty( $block_content ) ) {
 				$body .= $block_content;
