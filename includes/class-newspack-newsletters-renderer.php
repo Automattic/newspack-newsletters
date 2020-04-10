@@ -122,9 +122,10 @@ final class Newspack_Newsletters_Renderer {
 	 *
 	 * @param WP_Block $block The block.
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
+	 * @param array    $default_attrs Default attributes for a component.
 	 * @return string MJML component.
 	 */
-	private static function render_mjml_component( $block, $is_in_column = false ) {
+	private static function render_mjml_component( $block, $is_in_column = false, $default_attrs = [] ) {
 		$block_name   = $block['blockName'];
 		$attrs        = $block['attrs'];
 		$inner_blocks = $block['innerBlocks'];
@@ -134,12 +135,27 @@ final class Newspack_Newsletters_Renderer {
 			return '';
 		}
 
-		$block_mjml_markup = '';
-		$section_attrs     = array(
-			'padding' => '0',
+		$block_mjml_markup       = '';
+		$default_attrs_processed = array_merge(
+			$default_attrs,
+			self::get_colors( $default_attrs )
 		);
-		$column_attrs      = array(
-			'padding' => '10px 16px',
+
+		$section_attrs = array_merge(
+			$default_attrs_processed,
+			array(
+				'padding' => '0',
+			)
+		);
+		if ( isset( $default_attrs_processed['align'] ) && 'full' == $default_attrs_processed['align'] ) {
+			$section_attrs['full-width'] = 'full-width';
+		}
+
+		$column_attrs = array_merge(
+			$default_attrs_processed,
+			array(
+				'padding' => '10px 16px',
+			)
 		);
 
 		switch ( $block_name ) {
@@ -154,6 +170,7 @@ final class Newspack_Newsletters_Renderer {
 				// - without inline image
 				// - drop cap?
 				$text_attrs = array_merge(
+					$default_attrs_processed,
 					array(
 						'padding'     => '0',
 						'align'       => isset( $attrs['align'] ) ? $attrs['align'] : false,
@@ -375,7 +392,7 @@ final class Newspack_Newsletters_Renderer {
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true );
+					$markup .= self::render_mjml_component( $block, true, $default_attrs_processed );
 				}
 				$block_mjml_markup = $markup . '</mj-column>';
 				break;
@@ -386,7 +403,8 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/columns':
 				$markup = '';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true );
+					// Pass attributes from column down to children.
+					$markup .= self::render_mjml_component( $block, true, array_merge( $default_attrs_processed, $attrs ) );
 				}
 
 				$block_mjml_markup = $markup;
@@ -416,6 +434,15 @@ final class Newspack_Newsletters_Renderer {
 		$blocks = parse_blocks( $post->post_content );
 		$body   = '';
 		foreach ( $blocks as $block ) {
+			// Treat a group block as a series of MJML sections with shared attributes.
+			if ( 'core/group' == $block['blockName'] ) {
+				foreach ( $block['innerBlocks'] as $group_inner_block ) {
+					$block_content = self::render_mjml_component( $group_inner_block, false, $block['attrs'] );
+					if ( ! empty( $block_content ) ) {
+						$body .= $block_content;
+					}
+				}
+			}
 			$block_content = self::render_mjml_component( $block );
 			if ( ! empty( $block_content ) ) {
 				$body .= $block_content;

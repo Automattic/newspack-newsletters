@@ -96,6 +96,7 @@ final class Newspack_Newsletters {
 			return $allowed_block_types;
 		}
 		return array(
+			'core/group',
 			'core/paragraph',
 			'core/heading',
 			'core/column',
