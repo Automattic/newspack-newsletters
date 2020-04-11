@@ -63,10 +63,9 @@ final class Newspack_Newsletters_Renderer {
 	 * Get colors based on block attributes.
 	 *
 	 * @param array $block_attrs Block attributes.
-	 * @param bool  $set_container_bg_color Whether to set container color.
 	 * @return array Array of color attributes for MJML component.
 	 */
-	private static function get_colors( $block_attrs, $set_container_bg_color = true ) {
+	private static function get_colors( $block_attrs ) {
 		$colors = array();
 		// Gutenberg's default color palette.
 		// https://github.com/WordPress/gutenberg/blob/359858da0675943d8a759a0a7c03e7b3846536f5/packages/block-editor/src/store/defaults.js#L30-L85 .
@@ -93,16 +92,10 @@ final class Newspack_Newsletters_Renderer {
 			$colors['color'] = $block_attrs['customTextColor'];
 		}
 		if ( isset( $block_attrs['backgroundColor'], $colors_palette[ $block_attrs['backgroundColor'] ] ) ) {
-			if ( $set_container_bg_color ) {
-				$colors['container-background-color'] = $colors_palette[ $block_attrs['backgroundColor'] ];
-			}
 			$colors['background-color'] = $colors_palette[ $block_attrs['backgroundColor'] ];
 		}
 		// customBackgroundColor is set inline, but not on mjml wrapper element.
 		if ( isset( $block_attrs['customBackgroundColor'] ) ) {
-			if ( $set_container_bg_color ) {
-				$colors['container-background-color'] = $block_attrs['customBackgroundColor'];
-			}
 			$colors['background-color'] = $block_attrs['customBackgroundColor'];
 		}
 
@@ -148,6 +141,7 @@ final class Newspack_Newsletters_Renderer {
 
 		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
 			$attrs['full-width'] = 'full-width';
+			unset( $attrs['align'] );
 		}
 		return $attrs;
 	}
@@ -209,6 +203,12 @@ final class Newspack_Newsletters_Renderer {
 					),
 					$attrs
 				);
+
+				// Only mj-text has to use container-background-color attr for background color.
+				if ( isset( $text_attrs['background-color'] ) ) {
+					$text_attrs['container-background-color'] = $text_attrs['background-color'];
+					unset( $text_attrs['background-color'] );
+				}
 
 				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
 				break;
@@ -300,7 +300,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 					$button_attrs = array_merge(
 						$default_button_attrs,
-						self::get_colors( $attrs, false )
+						self::get_colors( $attrs )
 					);
 
 					if ( $is_outlined ) {
@@ -461,7 +461,7 @@ final class Newspack_Newsletters_Renderer {
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
 		if ( $is_in_column || 'core/group' == $block_name ) {
-			// For a nested block, render without a wrapping section.
+			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {
 			return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
