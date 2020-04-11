@@ -15,6 +15,14 @@ const handleSideAlignment = ( warnings, props ) => {
 const getWarnings = props => {
 	let warnings = [];
 	switch ( props.name ) {
+		case 'core/columns':
+			if ( props.attributes.align === 'wide' ) {
+				warnings.push( __( 'Wide alignment', 'newspack-newsletters' ) );
+			}
+			if ( props.attributes.align === 'full' ) {
+				warnings.push( __( 'Full alignment (group can be used)', 'newspack-newsletters' ) );
+			}
+			break;
 		case 'core/column':
 			if ( props.attributes.__nestedColumnWarning ) {
 				warnings.push( __( 'Nested columns', 'newspack-newsletters' ) );
