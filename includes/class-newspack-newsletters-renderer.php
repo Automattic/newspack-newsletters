@@ -319,11 +319,15 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/separator':
 				// TODO disable/handle/warn for:
 				// - dots style - it wont be supported.
-				$is_style_default   = 'is-style-default' == $attrs['className'];
+				$is_style_default = true;
+				$divider_attrs    = [];
+				if ( isset( $attrs['className'] ) ) {
+					$is_style_default           = 'is-style-default' == $attrs['className'];
+					$divider_attrs['css-class'] = $attrs['className'];
+				}
 				$divider_attrs      = array_merge(
 					array(
 						'padding'      => '0',
-						'css-class'    => $attrs['className'],
 						'border-width' => $is_style_default ? '2px' : '1px',
 						'width'        => $is_style_default ? '100px' : '100%',
 						// Default color - will be replaced by get_colors if there are colors set.
