@@ -86,14 +86,14 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		// For text.
-		if ( isset( $block_attrs['textColor'] ) ) {
+		if ( isset( $block_attrs['textColor'], $colors_palette[ $block_attrs['textColor'] ] ) ) {
 			$colors['color'] = $colors_palette[ $block_attrs['textColor'] ];
 		}
 		// customTextColor is set inline, but it's passed here for consistency.
 		if ( isset( $block_attrs['customTextColor'] ) ) {
 			$colors['color'] = $block_attrs['customTextColor'];
 		}
-		if ( isset( $block_attrs['backgroundColor'] ) ) {
+		if ( isset( $block_attrs['backgroundColor'], $colors_palette[ $block_attrs['backgroundColor'] ] ) ) {
 			if ( $set_container_bg_color ) {
 				$colors['container-background-color'] = $colors_palette[ $block_attrs['backgroundColor'] ];
 			}
@@ -108,13 +108,41 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		// For separators.
-		if ( isset( $block_attrs['color'] ) ) {
+		if ( isset( $block_attrs['color'], $colors_palette[ $block_attrs['color'] ] ) ) {
 			$colors['border-color'] = $colors_palette[ $block_attrs['color'] ];
 		}
 		if ( isset( $block_attrs['customColor'] ) ) {
 			$colors['border-color'] = $block_attrs['customColor'];
 		}
 		return $colors;
+	}
+
+	/**
+	 * Add color attributes and a padding, if component has a background color.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return array MJML component attributes.
+	 */
+	private static function process_attributes( $attrs ) {
+		$attrs = array_merge(
+			$attrs,
+			self::get_colors( $attrs )
+		);
+
+		// Remove block-only attributes.
+		array_map(
+			function ( $key ) use ( &$attrs ) {
+				if ( isset( $attrs[ $key ] ) ) {
+					unset( $attrs[ $key ] );
+				}
+			},
+			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize' ]
+		);
+
+		if ( isset( $attrs['background-color'] ) ) {
+			$attrs['padding'] = '16px';
+		}
+		return $attrs;
 	}
 
 	/**
@@ -136,11 +164,9 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		$block_mjml_markup       = '';
-		$default_attrs_processed = array_merge(
-			$default_attrs,
-			self::get_colors( $default_attrs )
-		);
+		$default_attrs_processed = self::process_attributes( $default_attrs );
 
+		// Default attributes for a section.
 		$section_attrs = array_merge(
 			$default_attrs_processed,
 			array(
@@ -151,11 +177,12 @@ final class Newspack_Newsletters_Renderer {
 			$section_attrs['full-width'] = 'full-width';
 		}
 
+		// Default attributes for a column.
 		$column_attrs = array_merge(
-			$default_attrs_processed,
 			array(
 				'padding' => '10px 16px',
-			)
+			),
+			$default_attrs_processed
 		);
 
 		switch ( $block_name ) {
@@ -170,14 +197,13 @@ final class Newspack_Newsletters_Renderer {
 				// - without inline image
 				// - drop cap?
 				$text_attrs = array_merge(
-					$default_attrs_processed,
 					array(
 						'padding'     => '0',
-						'align'       => isset( $attrs['align'] ) ? $attrs['align'] : false,
 						'font-size'   => self::get_font_size( $attrs ),
 						'line-height' => '1.8',
 					),
-					self::get_colors( $attrs )
+					$default_attrs_processed,
+					self::process_attributes( $attrs )
 				);
 
 				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';

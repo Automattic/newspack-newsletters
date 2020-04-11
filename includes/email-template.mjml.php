@@ -13,7 +13,6 @@
     <mj-title><?php echo $title; ?></mj-title>
     <mj-style>
       /* Paragraph */
-      p.has-background { padding: 20px 30px !important; }
       p {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
