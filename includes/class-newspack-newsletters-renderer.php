@@ -57,7 +57,6 @@ final class Newspack_Newsletters_Renderer {
 			);
 			return $sizes[ $block_attrs['fontSize'] ];
 		}
-		return '16px';
 	}
 
 	/**
@@ -124,10 +123,14 @@ final class Newspack_Newsletters_Renderer {
 	 * @return array MJML component attributes.
 	 */
 	private static function process_attributes( $attrs ) {
-		$attrs = array_merge(
+		$attrs     = array_merge(
 			$attrs,
 			self::get_colors( $attrs )
 		);
+		$font_size = self::get_font_size( $attrs );
+		if ( isset( $font_size ) ) {
+			$attrs['font-size'] = $font_size;
+		}
 
 		// Remove block-only attributes.
 		array_map(
@@ -142,18 +145,24 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $attrs['background-color'] ) ) {
 			$attrs['padding'] = '16px';
 		}
+
+		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
+			$attrs['full-width'] = 'full-width';
+		}
 		return $attrs;
 	}
 
 	/**
-	 * Render MJML component for a Gutenberg block.
+	 * Convert a Gutenberg block to an MJML component.
+	 * MJML component will be put in an mj-column in an mj-section for consistent layout,
+	 * unless it's a group or a columns block.
 	 *
 	 * @param WP_Block $block The block.
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
-	 * @param array    $default_attrs Default attributes for a component.
+	 * @param bool     $is_in_group Whether the component is a child of a group component.
 	 * @return string MJML component.
 	 */
-	private static function render_mjml_component( $block, $is_in_column = false, $default_attrs = [] ) {
+	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false ) {
 		$block_name   = $block['blockName'];
 		$attrs        = $block['attrs'];
 		$inner_blocks = $block['innerBlocks'];
@@ -163,26 +172,22 @@ final class Newspack_Newsletters_Renderer {
 			return '';
 		}
 
-		$block_mjml_markup       = '';
-		$default_attrs_processed = self::process_attributes( $default_attrs );
+		$block_mjml_markup = '';
+		$attrs             = self::process_attributes( $attrs );
 
-		// Default attributes for a section.
+		// Default attributes for the section which will envelop the mj-column.
 		$section_attrs = array_merge(
-			$default_attrs_processed,
+			$attrs,
 			array(
 				'padding' => '0',
 			)
 		);
-		if ( isset( $default_attrs_processed['align'] ) && 'full' == $default_attrs_processed['align'] ) {
-			$section_attrs['full-width'] = 'full-width';
-		}
 
-		// Default attributes for a column.
+		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
 				'padding' => '10px 16px',
-			),
-			$default_attrs_processed
+			)
 		);
 
 		switch ( $block_name ) {
@@ -199,11 +204,10 @@ final class Newspack_Newsletters_Renderer {
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
-						'font-size'   => self::get_font_size( $attrs ),
 						'line-height' => '1.8',
+						'font-size'   => '16px',
 					),
-					$default_attrs_processed,
-					self::process_attributes( $attrs )
+					$attrs
 				);
 
 				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
@@ -418,7 +422,7 @@ final class Newspack_Newsletters_Renderer {
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true, $default_attrs_processed );
+					$markup .= self::render_mjml_component( $block, true );
 				}
 				$block_mjml_markup = $markup . '</mj-column>';
 				break;
@@ -429,34 +433,38 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/columns':
 				$markup = '';
 				foreach ( $inner_blocks as $block ) {
-					// Pass attributes from column down to children.
-					$markup .= self::render_mjml_component( $block, true, array_merge( $default_attrs_processed, $attrs ) );
+					$markup .= self::render_mjml_component( $block, true );
 				}
-				$section_attrs['padding-left']  = '16px';
-				$section_attrs['padding-right'] = '16px';
-
 				$block_mjml_markup = $markup;
+				break;
+
+			/**
+			 * Group block.
+			 */
+			case 'core/group':
+				$markup = '<mj-wrapper ' . self::array_to_attributes( $attrs ) . '>';
+				foreach ( $inner_blocks as $block ) {
+					$markup .= self::render_mjml_component( $block, false, true );
+				}
+				$block_mjml_markup = $markup . '</mj-wrapper>';
 				break;
 		}
 
-		// Treat a group block as a series of MJML sections with shared attributes.
-		if ( 'core/group' == $block_name ) {
-			$markup = '';
-			foreach ( $inner_blocks as $group_inner_block ) {
-				$markup .= self::render_mjml_component( $group_inner_block, false, array_merge( $default_attrs_processed, $attrs ) );
-			}
-			return $markup;
+		if (
+			! $is_in_column &&
+			'core/group' != $block_name &&
+			'core/columns' != $block_name &&
+			'core/column' != $block_name &&
+			'core/buttons' != $block_name
+		) {
+			$column_attrs['width'] = '100%';
+			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
+		}
+		if ( $is_in_column || 'core/group' == $block_name ) {
+			// For a nested block, render without a wrapping section.
+			return $block_mjml_markup;
 		} else {
-			if ( ! $is_in_column && 'core/columns' != $block_name && 'core/column' != $block_name && 'core/buttons' != $block_name ) {
-				$column_attrs['width'] = '100%';
-				$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
-			}
-			if ( $is_in_column ) {
-				// For a nested block, render without a wrapping section.
-				return $block_mjml_markup;
-			} else {
-				return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
-			}
+			return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
 		}
 	}
 
