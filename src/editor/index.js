@@ -241,7 +241,12 @@ domReady( () => {
 
 addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( settings, name ) => {
 	/* Remove left/right alignment options wherever possible */
-	if ( 'core/paragraph' === name || 'core/social-links' === name || 'core/buttons' === name ) {
+	if (
+		'core/paragraph' === name ||
+		'core/social-links' === name ||
+		'core/buttons' === name ||
+		'core/columns' === name
+	) {
 		settings.supports = { ...settings.supports, align: [] };
 	}
 	return settings;
