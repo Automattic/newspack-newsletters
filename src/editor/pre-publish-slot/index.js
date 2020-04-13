@@ -18,12 +18,12 @@ export default compose( [
 	} ),
 ] )( props => {
 	const [ campaign, setCampaign ] = useState();
-	useEffect( () => {
+	useEffect(() => {
 		const { postId } = props;
 		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ postId }` } ).then( result =>
 			setCampaign( result.campaign )
 		);
-	} );
+	}, []);
 	const { recipients, settings, status } = campaign || {};
 	const { list_id: listId } = recipients || {};
 	const { from_name: senderName, reply_to: senderEmail } = settings || {};
