@@ -91,6 +91,8 @@ class Sidebar extends Component {
 			lists: result.lists.lists,
 			hasResults: true,
 			inFlight: false,
+			senderName: result.campaign.settings.from_name,
+			senderEmail: result.campaign.settings.reply_to,
 		} );
 	};
 
@@ -183,13 +185,6 @@ class Sidebar extends Component {
 					value={ senderEmail }
 					onChange={ value => this.setState( { senderEmail: value } ) }
 				/>
-				{ list_id && (
-					<div>
-						<Button isPrimary onClick={ () => this.sendMailchimpCampaign() } disabled={ inFlight }>
-							{ __( 'Send Campaign', 'newspack-newsletters' ) }
-						</Button>
-					</div>
-				) }
 				{ long_archive_url && (
 					<div>
 						<ExternalLink href={ long_archive_url }>
