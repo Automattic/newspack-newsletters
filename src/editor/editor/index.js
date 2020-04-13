@@ -16,20 +16,19 @@ export default compose( [
 		return { postId: getCurrentPostId() };
 	} ),
 ] )( props => {
-	const [ listId, setListId ] = useState();
+	const [ campaign, setCampaign ] = useState();
 	useEffect( () => {
-		if ( listId ) {
-			props.unlockPostSaving( 'newspack-newsletters-post-lock' );
-		} else {
+		const { recipients, status } = campaign || {};
+		const { list_id: listId } = recipients || {};
+		if ( 'sent' === status || 'sending' === status || ! listId ) {
 			props.lockPostSaving( 'newspack-newsletters-post-lock' );
+		} else {
+			props.unlockPostSaving( 'newspack-newsletters-post-lock' );
 		}
 		const { postId } = props;
-		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ postId }` } ).then( result => {
-			const { campaign } = result;
-			const { recipients } = campaign || {};
-			const { list_id } = recipients;
-			setListId( list_id );
-		} );
+		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ postId }` } ).then( result =>
+			setCampaign( result.campaign )
+		);
 	} );
 	return null;
 } );
