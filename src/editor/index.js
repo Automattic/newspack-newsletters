@@ -1,14 +1,19 @@
 /**
  * WordPress dependencies
  */
-import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+import domReady from '@wordpress/dom-ready';
+import { unregisterBlockStyle } from '@wordpress/blocks';
+import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
 import { __ } from '@wordpress/i18n';
+import { addFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
 
 /**
  * Internal dependencies
  */
 import Sidebar from './sidebar/';
+import Editor from './editor/';
+import PrePublishSlot from './pre-publish-slot';
 
 registerPlugin( 'newspack-newsletters-sidebar', {
 	render: () => (
@@ -40,4 +45,29 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 		settings.supports = { ...settings.supports, align: [] };
 	}
 	return settings;
+} );
+
+registerPlugin( 'newspack-newsletters-sidebar', {
+	render: () => (
+		<PluginDocumentSettingPanel
+			name="newsletters-settings-panel"
+			title={ __( ' Newsletter Settings', 'newspack-newsletters' ) }
+		>
+			<Sidebar />
+		</PluginDocumentSettingPanel>
+	),
+	icon: null,
+} );
+
+registerPlugin( 'newspack-newsletters-pre-publish', {
+	render: () => (
+		<PluginPrePublishPanel>
+			<PrePublishSlot />
+		</PluginPrePublishPanel>
+	),
+	icon: null,
+} );
+
+registerPlugin( 'newspack-newsletters-edit', {
+	render: Editor,
 } );
