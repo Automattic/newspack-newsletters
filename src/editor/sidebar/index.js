@@ -27,6 +27,7 @@ class Sidebar extends Component {
 		testEmail: '',
 		senderEmail: '',
 		senderName: '',
+		senderDirty: false,
 	};
 	componentDidMount = () => {
 		this.retrieveMailchimp();
@@ -85,6 +86,19 @@ class Sidebar extends Component {
 		};
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
+	updateSender = ( senderName, senderEmail ) => {
+		this.setState( { inFlight: true } );
+		const { postId } = this.props;
+		const params = {
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/settings`,
+			data: {
+				from_name: senderName,
+				reply_to: senderEmail,
+			},
+			method: 'POST',
+		};
+		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+	};
 	setStateFromAPIResponse = result => {
 		this.setState( {
 			campaign: result.campaign,
@@ -93,6 +107,7 @@ class Sidebar extends Component {
 			inFlight: false,
 			senderName: result.campaign.settings.from_name,
 			senderEmail: result.campaign.settings.reply_to,
+			senderDirty: false,
 		} );
 	};
 
@@ -109,6 +124,7 @@ class Sidebar extends Component {
 			testEmail,
 			senderName,
 			senderEmail,
+			senderDirty,
 		} = this.state;
 		if ( ! hasResults ) {
 			return [ __( 'Loading Mailchimp data', 'newspack-newsletters' ), <Spinner key="spinner" /> ];
@@ -178,13 +194,24 @@ class Sidebar extends Component {
 				<TextControl
 					label={ __( 'Sender name', 'newspack-newsletters' ) }
 					value={ senderName }
-					onChange={ value => this.setState( { senderName: value } ) }
+					disabled={ inFlight }
+					onChange={ value => this.setState( { senderName: value, senderDirty: true } ) }
 				/>
 				<TextControl
 					label={ __( 'Sender email', 'newspack-newsletters' ) }
 					value={ senderEmail }
-					onChange={ value => this.setState( { senderEmail: value } ) }
+					disabled={ inFlight }
+					onChange={ value => this.setState( { senderEmail: value, senderDirty: true } ) }
 				/>
+				{ senderDirty && (
+					<Button
+						isPrimary
+						onClick={ () => this.updateSender( senderName, senderEmail ) }
+						disabled={ inFlight }
+					>
+						{ __( 'Update Sender', 'newspack-newsletters' ) }
+					</Button>
+				) }
 				{ long_archive_url && (
 					<div>
 						<ExternalLink href={ long_archive_url }>

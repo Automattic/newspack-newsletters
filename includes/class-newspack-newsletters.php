@@ -190,6 +190,66 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'mailchimp/(?P<id>[\a-z]+)/settings',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_campaign_settings' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'id'        => [
+						'sanitize_callback' => 'absint',
+					],
+					'from_name' => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'reply_to'  => [
+						'sanitize_callback' => 'sanitize_email',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Update Campaign settings.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_campaign_settings( $request ) {
+		$id        = $request['id'];
+		$from_name = $request['from_name'];
+		$reply_to  = $request['reply_to'];
+
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			);
+		}
+
+		$mc      = new Mailchimp( self::mailchimp_api_key() );
+		$payload = [
+			'settings' => [
+				'from_name' => $from_name,
+				'reply_to'  => $reply_to,
+			],
+		];
+		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+
+		$data           = self::retrieve_data( $id );
+		$data['result'] = $result;
+
+		return \rest_ensure_response( $data );
 	}
 
 	/**
