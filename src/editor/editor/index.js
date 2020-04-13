@@ -23,12 +23,23 @@ export default compose( [
 ] )( props => {
 	const [ campaign, setCampaign ] = useState();
 	useEffect( () => {
-		const { recipients, status } = campaign || {};
+		const { recipients, settings, status } = campaign || {};
 		const { list_id: listId } = recipients || {};
-		if ( 'sent' === status || 'sending' === status || ! listId ) {
-			props.lockPostSaving( 'newspack-newsletters-post-lock' );
-		} else {
+		const { from_name: senderName, reply_to: senderEmail } = settings || {};
+		let canPublish = true;
+		if ( 'sent' === status || 'sending' === status ) {
+			canPublish = false;
+		}
+		if ( ! listId ) {
+			canPublish = false;
+		}
+		if ( ! senderName || ! senderName.length || ! senderEmail || ! senderEmail.length ) {
+			canPublish = false;
+		}
+		if ( canPublish ) {
 			props.unlockPostSaving( 'newspack-newsletters-post-lock' );
+		} else {
+			props.lockPostSaving( 'newspack-newsletters-post-lock' );
 		}
 		const { postId } = props;
 		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ postId }` } ).then( result =>
