@@ -237,12 +237,17 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc      = new Mailchimp( self::mailchimp_api_key() );
+		$mc = new Mailchimp( self::mailchimp_api_key() );
+
+		$settings = [];
+		if ( $from_name ) {
+			$settings['from_name'] = $from_name;
+		}
+		if ( $reply_to ) {
+			$settings['reply_to'] = $reply_to;
+		}
 		$payload = [
-			'settings' => [
-				'from_name' => $from_name,
-				'reply_to'  => $reply_to,
-			],
+			'settings' => $settings,
 		];
 		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 
