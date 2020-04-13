@@ -6,6 +6,11 @@ import apiFetch from '@wordpress/api-fetch';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
 
+/**
+ * Internal dependencies
+ */
+import './style.scss';
+
 export default compose( [
 	withDispatch( dispatch => {
 		const { lockPostSaving, unlockPostSaving } = dispatch( 'core/editor' );
