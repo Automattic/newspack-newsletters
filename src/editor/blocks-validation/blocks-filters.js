@@ -15,14 +15,6 @@ const handleSideAlignment = ( warnings, props ) => {
 const getWarnings = props => {
 	let warnings = [];
 	switch ( props.name ) {
-		case 'core/columns':
-			if ( props.attributes.align === 'wide' ) {
-				warnings.push( __( 'Wide alignment', 'newspack-newsletters' ) );
-			}
-			if ( props.attributes.align === 'full' ) {
-				warnings.push( __( 'Full alignment (group can be used)', 'newspack-newsletters' ) );
-			}
-			break;
 		case 'core/column':
 			if ( props.attributes.__nestedColumnWarning ) {
 				warnings.push( __( 'Nested columns', 'newspack-newsletters' ) );
@@ -30,32 +22,6 @@ const getWarnings = props => {
 			if ( props.attributes.verticalAlignment === 'center' ) {
 				warnings.push( __( 'Middle alignment', 'newspack-newsletters' ) );
 			}
-			break;
-
-		case 'core/social-links':
-			if ( props.attributes.className === 'is-style-logos-only' ) {
-				warnings.push( __( 'Logos only style', 'newspack-newsletters' ) );
-			}
-			if ( props.attributes.className === 'is-style-pill-shape' ) {
-				warnings.push( __( 'Pill shape style', 'newspack-newsletters' ) );
-			}
-			warnings = handleSideAlignment( warnings, props );
-			break;
-
-		case 'core/separator':
-			if ( props.attributes.className === 'is-style-dots' ) {
-				warnings.push( __( 'Dots style', 'newspack-newsletters' ) );
-			}
-			break;
-
-		case 'core/button':
-			if ( props.attributes.gradient ) {
-				warnings.push( __( 'Gradient', 'newspack-newsletters' ) );
-			}
-			break;
-
-		case 'core/buttons':
-			warnings = handleSideAlignment( warnings, props );
 			break;
 
 		case 'core/image':
