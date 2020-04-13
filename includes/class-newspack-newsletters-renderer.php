@@ -273,8 +273,6 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/buttons':
 				// TODO disable/handle/warn for:
 				// - layouts.
-				// - align right, align left (it will always be center aligned, in columns. mjml does not handle one next to another).
-				// - gradients.
 
 				foreach ( $inner_blocks as $button_block ) {
 					// Parse block content.
@@ -317,14 +315,7 @@ final class Newspack_Newsletters_Renderer {
 			 * Separator block.
 			 */
 			case 'core/separator':
-				// TODO disable/handle/warn for:
-				// - dots style - it wont be supported.
-				$is_style_default = true;
-				$divider_attrs    = [];
-				if ( isset( $attrs['className'] ) ) {
-					$is_style_default           = 'is-style-default' == $attrs['className'];
-					$divider_attrs['css-class'] = $attrs['className'];
-				}
+				$is_style_default   = true;
 				$divider_attrs      = array_merge(
 					array(
 						'padding'      => '0',
@@ -343,10 +334,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Social links block.
 			 */
 			case 'core/social-links':
-				// TODO disable/handle/warn for:
-				// - styles. Pill could be supported, though.
-				// - align right, align left (it will always be center aligned, in columns. mjml does not handle one next to another).
-
 				$social_icons = array(
 					'wordpress' => array(
 						'color' => '#3499cd',
