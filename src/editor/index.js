@@ -1,11 +1,8 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-import { withSelect, subscribe } from '@wordpress/data';
-import { compose } from '@wordpress/compose';
-import { Component, Fragment } from '@wordpress/element';
+import { unregisterBlockStyle } from '@wordpress/blocks';
 import {
 	Button,
 	ExternalLink,
@@ -15,8 +12,14 @@ import {
 	Spinner,
 	TextControl,
 } from '@wordpress/components';
-import { registerPlugin } from '@wordpress/plugins';
+import { compose } from '@wordpress/compose';
+import { withSelect, subscribe } from '@wordpress/data';
+import domReady from '@wordpress/dom-ready';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+import { Component, Fragment } from '@wordpress/element';
+import { addFilter } from '@wordpress/hooks';
+import { __ } from '@wordpress/i18n';
+import { registerPlugin } from '@wordpress/plugins';
 
 /**
  * Internal dependencies
@@ -234,4 +237,24 @@ const PluginDocumentSettingPanelDemo = () => (
 registerPlugin( 'newspack-newsletters', {
 	render: PluginDocumentSettingPanelDemo,
 	icon: null,
+} );
+
+/* Unregister core block styles that are unsupported in emails */
+domReady( () => {
+	unregisterBlockStyle( 'core/separator', 'dots' );
+	unregisterBlockStyle( 'core/social-links', 'logos-only' );
+	unregisterBlockStyle( 'core/social-links', 'pill-shape' );
+} );
+
+addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( settings, name ) => {
+	/* Remove left/right alignment options wherever possible */
+	if (
+		'core/paragraph' === name ||
+		'core/social-links' === name ||
+		'core/buttons' === name ||
+		'core/columns' === name
+	) {
+		settings.supports = { ...settings.supports, align: [] };
+	}
+	return settings;
 } );

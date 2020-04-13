@@ -45,6 +45,7 @@ final class Newspack_Newsletters {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'newsletter_published' ], 10, 2 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
@@ -96,6 +97,7 @@ final class Newspack_Newsletters {
 			return $allowed_block_types;
 		}
 		return array(
+			'core/group',
 			'core/paragraph',
 			'core/heading',
 			'core/column',
@@ -444,6 +446,18 @@ final class Newspack_Newsletters {
 		];
 
 		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
+	}
+
+	/**
+	 * Disable gradients in Newsletter CPT.
+	 */
+	public static function disable_gradients() {
+		$screen = get_current_screen();
+		if ( ! $screen || self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type ) {
+			return;
+		}
+		add_theme_support( 'editor-gradient-presets', array() );
+		add_theme_support( 'disable-custom-gradients' );
 	}
 }
 Newspack_Newsletters::instance();

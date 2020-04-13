@@ -57,17 +57,15 @@ final class Newspack_Newsletters_Renderer {
 			);
 			return $sizes[ $block_attrs['fontSize'] ];
 		}
-		return '16px';
 	}
 
 	/**
 	 * Get colors based on block attributes.
 	 *
 	 * @param array $block_attrs Block attributes.
-	 * @param bool  $set_container_bg_color Whether to set container color.
 	 * @return array Array of color attributes for MJML component.
 	 */
-	private static function get_colors( $block_attrs, $set_container_bg_color = true ) {
+	private static function get_colors( $block_attrs ) {
 		$colors = array();
 		// Gutenberg's default color palette.
 		// https://github.com/WordPress/gutenberg/blob/359858da0675943d8a759a0a7c03e7b3846536f5/packages/block-editor/src/store/defaults.js#L30-L85 .
@@ -86,29 +84,23 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		// For text.
-		if ( isset( $block_attrs['textColor'] ) ) {
+		if ( isset( $block_attrs['textColor'], $colors_palette[ $block_attrs['textColor'] ] ) ) {
 			$colors['color'] = $colors_palette[ $block_attrs['textColor'] ];
 		}
 		// customTextColor is set inline, but it's passed here for consistency.
 		if ( isset( $block_attrs['customTextColor'] ) ) {
 			$colors['color'] = $block_attrs['customTextColor'];
 		}
-		if ( isset( $block_attrs['backgroundColor'] ) ) {
-			if ( $set_container_bg_color ) {
-				$colors['container-background-color'] = $colors_palette[ $block_attrs['backgroundColor'] ];
-			}
+		if ( isset( $block_attrs['backgroundColor'], $colors_palette[ $block_attrs['backgroundColor'] ] ) ) {
 			$colors['background-color'] = $colors_palette[ $block_attrs['backgroundColor'] ];
 		}
 		// customBackgroundColor is set inline, but not on mjml wrapper element.
 		if ( isset( $block_attrs['customBackgroundColor'] ) ) {
-			if ( $set_container_bg_color ) {
-				$colors['container-background-color'] = $block_attrs['customBackgroundColor'];
-			}
 			$colors['background-color'] = $block_attrs['customBackgroundColor'];
 		}
 
 		// For separators.
-		if ( isset( $block_attrs['color'] ) ) {
+		if ( isset( $block_attrs['color'], $colors_palette[ $block_attrs['color'] ] ) ) {
 			$colors['border-color'] = $colors_palette[ $block_attrs['color'] ];
 		}
 		if ( isset( $block_attrs['customColor'] ) ) {
@@ -118,13 +110,53 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
-	 * Render MJML component for a Gutenberg block.
+	 * Add color attributes and a padding, if component has a background color.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return array MJML component attributes.
+	 */
+	private static function process_attributes( $attrs ) {
+		$attrs     = array_merge(
+			$attrs,
+			self::get_colors( $attrs )
+		);
+		$font_size = self::get_font_size( $attrs );
+		if ( isset( $font_size ) ) {
+			$attrs['font-size'] = $font_size;
+		}
+
+		// Remove block-only attributes.
+		array_map(
+			function ( $key ) use ( &$attrs ) {
+				if ( isset( $attrs[ $key ] ) ) {
+					unset( $attrs[ $key ] );
+				}
+			},
+			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize' ]
+		);
+
+		if ( isset( $attrs['background-color'] ) ) {
+			$attrs['padding'] = '16px';
+		}
+
+		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
+			$attrs['full-width'] = 'full-width';
+			unset( $attrs['align'] );
+		}
+		return $attrs;
+	}
+
+	/**
+	 * Convert a Gutenberg block to an MJML component.
+	 * MJML component will be put in an mj-column in an mj-section for consistent layout,
+	 * unless it's a group or a columns block.
 	 *
 	 * @param WP_Block $block The block.
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
+	 * @param bool     $is_in_group Whether the component is a child of a group component.
 	 * @return string MJML component.
 	 */
-	private static function render_mjml_component( $block, $is_in_column = false ) {
+	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false ) {
 		$block_name   = $block['blockName'];
 		$attrs        = $block['attrs'];
 		$inner_blocks = $block['innerBlocks'];
@@ -135,11 +167,21 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		$block_mjml_markup = '';
-		$section_attrs     = array(
-			'padding' => '0',
+		$attrs             = self::process_attributes( $attrs );
+
+		// Default attributes for the section which will envelop the mj-column.
+		$section_attrs = array_merge(
+			$attrs,
+			array(
+				'padding' => '0',
+			)
 		);
-		$column_attrs      = array(
-			'padding' => '10px 16px',
+
+		// Default attributes for the column which will envelop the component.
+		$column_attrs = array_merge(
+			array(
+				'padding' => '10px 16px',
+			)
 		);
 
 		switch ( $block_name ) {
@@ -153,12 +195,17 @@ final class Newspack_Newsletters_Renderer {
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
-						'align'       => isset( $attrs['align'] ) ? $attrs['align'] : false,
-						'font-size'   => self::get_font_size( $attrs ),
 						'line-height' => '1.8',
+						'font-size'   => '16px',
 					),
-					self::get_colors( $attrs )
+					$attrs
 				);
+
+				// Only mj-text has to use container-background-color attr for background color.
+				if ( isset( $text_attrs['background-color'] ) ) {
+					$text_attrs['container-background-color'] = $text_attrs['background-color'];
+					unset( $text_attrs['background-color'] );
+				}
 
 				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
 				break;
@@ -244,7 +291,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 					$button_attrs = array_merge(
 						$default_button_attrs,
-						self::get_colors( $attrs, false )
+						self::get_colors( $attrs )
 					);
 
 					if ( $is_outlined ) {
@@ -265,7 +312,6 @@ final class Newspack_Newsletters_Renderer {
 				$divider_attrs      = array_merge(
 					array(
 						'padding'      => '0',
-						'css-class'    => $attrs['className'],
 						'border-width' => $is_style_default ? '2px' : '1px',
 						'width'        => $is_style_default ? '100px' : '100%',
 						// Default color - will be replaced by get_colors if there are colors set.
@@ -368,17 +414,33 @@ final class Newspack_Newsletters_Renderer {
 				foreach ( $inner_blocks as $block ) {
 					$markup .= self::render_mjml_component( $block, true );
 				}
-
 				$block_mjml_markup = $markup;
+				break;
+
+			/**
+			 * Group block.
+			 */
+			case 'core/group':
+				$markup = '<mj-wrapper ' . self::array_to_attributes( $attrs ) . '>';
+				foreach ( $inner_blocks as $block ) {
+					$markup .= self::render_mjml_component( $block, false, true );
+				}
+				$block_mjml_markup = $markup . '</mj-wrapper>';
 				break;
 		}
 
-		if ( ! $is_in_column && 'core/columns' != $block_name && 'core/column' != $block_name && 'core/buttons' != $block_name ) {
+		if (
+			! $is_in_column &&
+			'core/group' != $block_name &&
+			'core/columns' != $block_name &&
+			'core/column' != $block_name &&
+			'core/buttons' != $block_name
+		) {
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
-		if ( $is_in_column ) {
-			// For a nested block, render without a wrapping section.
+		if ( $is_in_column || 'core/group' == $block_name ) {
+			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {
 			return '<mj-section ' . self::array_to_attributes( $section_attrs ) . '>' . $block_mjml_markup . '</mj-section>';
