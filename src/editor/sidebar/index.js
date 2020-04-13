@@ -127,7 +127,10 @@ class Sidebar extends Component {
 			senderDirty,
 		} = this.state;
 		if ( ! hasResults ) {
-			return [ __( 'Loading Mailchimp data', 'newspack-newsletters' ), <Spinner key="spinner" /> ];
+			return [
+				__( 'Retrieving Mailchimp data', 'newspack-newsletters' ),
+				<Spinner key="spinner" />,
+			];
 		}
 		const { recipients, status, long_archive_url } = campaign || {};
 		const { list_id } = recipients || {};
