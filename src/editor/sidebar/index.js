@@ -3,7 +3,8 @@
  */
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-import { withSelect, subscribe } from '@wordpress/data';
+import { compose } from '@wordpress/compose';
+import { withSelect, withDispatch, subscribe } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
 import {
 	Button,
@@ -14,6 +15,11 @@ import {
 	Spinner,
 	TextControl,
 } from '@wordpress/components';
+
+/**
+ * Internal dependencies
+ */
+import { getEditPostPayload } from '../utils';
 import './style.scss';
 
 class Sidebar extends Component {
@@ -63,20 +69,6 @@ class Sidebar extends Component {
 		};
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
-	sendMailchimpCampaign = () => {
-		const { senderEmail, senderName } = this.state;
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
-		const params = {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/send`,
-			data: {
-				sender_email: senderEmail,
-				sender_name: senderName,
-			},
-			method: 'POST',
-		};
-		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
-	};
 	setList = listId => {
 		this.setState( { inFlight: true } );
 		const { postId } = this.props;
@@ -100,6 +92,8 @@ class Sidebar extends Component {
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
 	setStateFromAPIResponse = result => {
+		this.props.editPost( getEditPostPayload( result.campaign ) );
+
 		this.setState( {
 			campaign: result.campaign,
 			lists: result.lists.lists,
@@ -227,7 +221,13 @@ class Sidebar extends Component {
 	}
 }
 
-export default withSelect( select => {
-	const { getCurrentPostId, isPublishingPost, isSavingPost } = select( 'core/editor' );
-	return { postId: getCurrentPostId(), isPublishingPost, isSavingPost };
-} )( Sidebar );
+export default compose( [
+	withSelect( select => {
+		const { getCurrentPostId, isPublishingPost, isSavingPost } = select( 'core/editor' );
+		return { postId: getCurrentPostId(), isPublishingPost, isSavingPost };
+	} ),
+	withDispatch( dispatch => {
+		const { editPost } = dispatch( 'core/editor' );
+		return { editPost };
+	} ),
+] )( Sidebar );

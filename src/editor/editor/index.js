@@ -4,47 +4,46 @@
 import { compose } from '@wordpress/compose';
 import apiFetch from '@wordpress/api-fetch';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
+import { getEditPostPayload } from '../utils';
 import './style.scss';
 
 export default compose( [
 	withDispatch( dispatch => {
-		const { lockPostSaving, unlockPostSaving } = dispatch( 'core/editor' );
-		return { lockPostSaving, unlockPostSaving };
+		const { lockPostSaving, unlockPostSaving, editPost } = dispatch( 'core/editor' );
+		return { lockPostSaving, unlockPostSaving, editPost };
 	} ),
 	withSelect( select => {
-		const { getCurrentPostId } = select( 'core/editor' );
-		return { postId: getCurrentPostId() };
+		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			postId: getCurrentPostId(),
+			isReady: Boolean( meta.is_ready_to_send ),
+			activeSidebarName: getActiveGeneralSidebarName(),
+		};
 	} ),
 ] )( props => {
-	const [ campaign, setCampaign ] = useState();
 	useEffect(() => {
-		const { recipients, settings, status } = campaign || {};
-		const { list_id: listId } = recipients || {};
-		const { from_name: senderName, reply_to: senderEmail } = settings || {};
-		let canPublish = true;
-		if ( 'sent' === status || 'sending' === status ) {
-			canPublish = false;
+		// Fetch initially if the sidebar is be hidden.
+		if ( props.activeSidebarName !== 'edit-post/document' ) {
+			apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
+				props.editPost( getEditPostPayload( result.campaign ) );
+			} );
 		}
-		if ( ! listId ) {
-			canPublish = false;
-		}
-		if ( ! senderName || ! senderName.length || ! senderEmail || ! senderEmail.length ) {
-			canPublish = false;
-		}
-		if ( canPublish ) {
+	}, []);
+
+	useEffect(() => {
+		if ( props.isReady ) {
 			props.unlockPostSaving( 'newspack-newsletters-post-lock' );
 		} else {
 			props.lockPostSaving( 'newspack-newsletters-post-lock' );
 		}
-		const { postId } = props;
-		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ postId }` } ).then( result =>
-			setCampaign( result.campaign )
-		);
-	}, []);
+	}, [ props.isReady ]);
+
 	return null;
 } );
