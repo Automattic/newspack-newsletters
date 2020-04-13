@@ -15,18 +15,6 @@ import Sidebar from './sidebar/';
 import Editor from './editor/';
 import PrePublishSlot from './pre-publish-slot';
 
-registerPlugin( 'newspack-newsletters-sidebar', {
-	render: () => (
-		<PluginDocumentSettingPanel
-			name="newsletters-settings-panel"
-			title={ __( ' Newsletter Settings', 'newspack-newsletters' ) }
-		>
-			<Sidebar />
-		</PluginDocumentSettingPanel>
-	),
-	icon: null,
-} );
-
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
 	unregisterBlockStyle( 'core/separator', 'dots' );
