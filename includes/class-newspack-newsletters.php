@@ -83,6 +83,7 @@ final class Newspack_Newsletters {
 			}
 		}
 
+		remove_editor_styles();
 		remove_theme_support( 'editor-color-palette' );
 	}
 
