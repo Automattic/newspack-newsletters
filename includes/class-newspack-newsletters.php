@@ -47,7 +47,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_to_mailchimp' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 2 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
@@ -465,7 +465,7 @@ final class Newspack_Newsletters {
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
 	 */
-	public static function send_to_mailchimp( $id, $post ) {
+	public static function sync_with_mailchimp( $id, $post ) {
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
 			return;
