@@ -23,7 +23,7 @@ export default compose( [
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			postId: getCurrentPostId(),
-			isReady: Boolean( meta.is_ready_to_send ),
+			isReady: ( meta.campaign_validation_errors || [] ).length === 0,
 			activeSidebarName: getActiveGeneralSidebarName(),
 		};
 	} ),

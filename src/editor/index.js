@@ -3,7 +3,7 @@
  */
 import domReady from '@wordpress/dom-ready';
 import { unregisterBlockStyle } from '@wordpress/blocks';
-import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
 import { __ } from '@wordpress/i18n';
 import { addFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
@@ -13,6 +13,7 @@ import { registerPlugin } from '@wordpress/plugins';
  */
 import Sidebar from './sidebar/';
 import Editor from './editor/';
+import PrePublishSlot from './pre-publish-slot';
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
@@ -42,6 +43,15 @@ registerPlugin( 'newspack-newsletters-sidebar', {
 		>
 			<Sidebar />
 		</PluginDocumentSettingPanel>
+	),
+	icon: null,
+} );
+
+registerPlugin( 'newspack-newsletters-pre-publish', {
+	render: () => (
+		<PluginPrePublishPanel>
+			<PrePublishSlot />
+		</PluginPrePublishPanel>
 	),
 	icon: null,
 } );

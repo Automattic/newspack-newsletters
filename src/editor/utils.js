@@ -1,24 +1,36 @@
+/**
+ * WordPress dependencies
+ */
+import { __ } from '@wordpress/i18n';
+
 const validateCampaign = campaign => {
 	const { recipients, settings, status } = campaign || {};
 	const { list_id: listId } = recipients || {};
 	const { from_name: senderName, reply_to: senderEmail } = settings || {};
-	let canPublish = true;
+
+	const messages = [];
 	if ( 'sent' === status || 'sending' === status ) {
-		canPublish = false;
+		messages.push( __( 'Newsletter has already been sent', 'newspack-newsletters' ) );
 	}
 	if ( ! listId ) {
-		canPublish = false;
+		messages.push(
+			__( 'A Mailchimp list must be selected before publishing.', 'newspack-newsletters' )
+		);
 	}
-	if ( ! senderName || ! senderName.length || ! senderEmail || ! senderEmail.length ) {
-		canPublish = false;
+	if ( ! senderName || senderName.length < 1 ) {
+		messages.push( __( 'Sender name must be set.', 'newspack-newsletters' ) );
 	}
-	return canPublish;
+	if ( ! senderEmail || senderEmail.length < 1 ) {
+		messages.push( __( 'Sender email must be set.', 'newspack-newsletters' ) );
+	}
+
+	return messages;
 };
 
 export const getEditPostPayload = campaign => ( {
 	meta: {
 		// This meta field does not have to be registered on the back end,
 		// as it is not used there.
-		is_ready_to_send: validateCampaign( campaign ),
+		campaign_validation_errors: validateCampaign( campaign ),
 	},
 } );
