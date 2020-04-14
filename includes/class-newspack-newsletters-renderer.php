@@ -508,11 +508,10 @@ final class Newspack_Newsletters_Renderer {
 					'headers' => array(
 						'Authorization' => 'Basic ' . base64_encode( $mjml_creds ),
 					),
+					'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 				)
 			);
-
-			$email_html = json_decode( $request['body'] )->html;
-			return $email_html;
+			return is_wp_error( $request ) ? $request : json_decode( $request['body'] )->html;
 		}
 	}
 }
