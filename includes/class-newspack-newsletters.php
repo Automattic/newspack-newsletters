@@ -331,17 +331,6 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
-		\register_meta(
-			'post',
-			'is_ready',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
-				'type'           => 'boolean',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
