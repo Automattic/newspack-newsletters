@@ -472,8 +472,8 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string API key and API secret as a key:secret string.
 	 */
 	public static function mjml_api_credentials() {
-		$key    = ( defined( 'NEWSPACK_MJML_API_KEY' ) && NEWSPACK_MJML_API_KEY ) ? NEWSPACK_MJML_API_KEY : false;
-		$secret = ( defined( 'NEWSPACK_MJML_API_SECRET' ) && NEWSPACK_MJML_API_SECRET ) ? NEWSPACK_MJML_API_SECRET : false;
+		$key    = get_option( 'newspack_newsletters_mjml_api_key', false );
+		$secret = get_option( 'newspack_newsletters_mjml_api_secret', false );
 		if ( isset( $key, $secret ) ) {
 			return "$key:$secret";
 		}
