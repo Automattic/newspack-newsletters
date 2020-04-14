@@ -23,7 +23,9 @@ export default compose( [
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			postId: getCurrentPostId(),
-			isReady: ( meta.campaign_validation_errors || [] ).length === 0,
+			isReady: meta.campaign_validation_errors
+				? meta.campaign_validation_errors.length === 0
+				: false,
 			activeSidebarName: getActiveGeneralSidebarName(),
 		};
 	} ),
