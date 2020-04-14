@@ -96,11 +96,14 @@
     "@wordpress/components": "^9.3.0",
     "@wordpress/compose": "^3.12.0",
     "@wordpress/data": "^4.15.0",
+    "@wordpress/dom-ready": "^2.8.0",
     "@wordpress/edit-post": "^3.14.0",
     "@wordpress/element": "^2.12.0",
+    "@wordpress/hooks": "^2.7.0",
     "@wordpress/i18n": "^3.10.0",
     "@wordpress/keycodes": "^2.10.0",
     "@wordpress/plugins": "^2.13.0",
+    "lodash": "^4.17.15",
     "webpack": "^4.42.1"
   },
   "devDependencies": {

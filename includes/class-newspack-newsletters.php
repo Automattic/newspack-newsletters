@@ -45,9 +45,13 @@ final class Newspack_Newsletters {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'newsletter_published' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 2 );
+		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
+		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
+		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 	}
 
 	/**
@@ -84,6 +88,31 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Restrict block types for Newsletter CPT.
+	 *
+	 * @param array   $allowed_block_types default block types.
+	 * @param WP_Post $post the post to consider.
+	 */
+	public static function newsletters_allowed_block_types( $allowed_block_types, $post ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+			return $allowed_block_types;
+		}
+		return array(
+			'core/group',
+			'core/paragraph',
+			'core/heading',
+			'core/column',
+			'core/columns',
+			'core/buttons',
+			'core/image',
+			'core/separator',
+			'core/list',
+			'core/quote',
+			'core/social-links',
+		);
+	}
+
+	/**
 	 * Load up common JS/CSS for wizards.
 	 */
 	public static function enqueue_block_editor_assets() {
@@ -108,12 +137,14 @@ final class Newspack_Newsletters {
 			]
 		);
 
-		\wp_enqueue_style(
+		wp_register_style(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.css', __FILE__ ),
-			null,
+			[],
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.css' )
 		);
+		wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
+		wp_enqueue_style( 'newspack-newsletters' );
 	}
 
 	/**
@@ -153,26 +184,6 @@ final class Newspack_Newsletters {
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1/',
-			'mailchimp/(?P<id>[\a-z]+)/send',
-			[
-				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_send_mailchimp_campaign' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
-				'args'                => [
-					'id'           => [
-						'sanitize_callback' => 'absint',
-					],
-					'sender_email' => [
-						'sanitize_callback' => 'sanitize_email',
-					],
-					'sender_name'  => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
-			]
-		);
-		\register_rest_route(
-			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)/list/(?P<list_id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -188,6 +199,71 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'mailchimp/(?P<id>[\a-z]+)/settings',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_campaign_settings' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'id'        => [
+						'sanitize_callback' => 'absint',
+					],
+					'from_name' => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'reply_to'  => [
+						'sanitize_callback' => 'sanitize_email',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Update Campaign settings.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_campaign_settings( $request ) {
+		$id        = $request['id'];
+		$from_name = $request['from_name'];
+		$reply_to  = $request['reply_to'];
+
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			);
+		}
+
+		$mc = new Mailchimp( self::mailchimp_api_key() );
+
+		$settings = [];
+		if ( $from_name ) {
+			$settings['from_name'] = $from_name;
+		}
+		if ( $reply_to ) {
+			$settings['reply_to'] = $reply_to;
+		}
+		$payload = [
+			'settings' => $settings,
+		];
+		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+
+		$data           = self::retrieve_data( $id );
+		$data['result'] = $result;
+
+		return \rest_ensure_response( $data );
 	}
 
 	/**
@@ -404,12 +480,12 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Callback for CPT publishing. Will sync with Mailchimp.
+	 * Callback for CPT save. Will sync with Mailchimp.
 	 *
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
 	 */
-	public static function newsletter_published( $id, $post ) {
+	public static function sync_with_mailchimp( $id, $post ) {
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
 			return;
@@ -430,14 +506,9 @@ final class Newspack_Newsletters {
 		$campaign_id = $campaign['id'];
 		update_post_meta( $id, 'mc_campaign_id', $campaign_id );
 
-		$blocks = parse_blocks( $post->post_content );
-		$body   = sprintf( '<h1>%s</h1>', $post->post_title );
-		foreach ( $blocks as $block ) {
-			$body .= render_block( $block );
-		}
-
+		$renderer        = new Newspack_Newsletters_Renderer();
 		$content_payload = [
-			'html' => $body,
+			'html' => $renderer->render_html_email( $post ),
 		];
 
 		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
@@ -450,6 +521,49 @@ final class Newspack_Newsletters {
 	 */
 	public static function get_newsletter_templates() {
 		return apply_filters( 'newspack_newsletters_templates', [] );
+	}
+
+	/**
+	 * Disable gradients in Newsletter CPT.
+	 */
+	public static function disable_gradients() {
+		$screen = get_current_screen();
+		if ( ! $screen || self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type ) {
+			return;
+		}
+		add_theme_support( 'editor-gradient-presets', array() );
+		add_theme_support( 'disable-custom-gradients' );
+	}
+
+	/**
+	 * Callback for CPT publish. Sends the campaign.
+	 *
+	 * @param string  $id post ID.
+	 * @param WP_Post $post the post.
+	 */
+	public static function send_campaign( $id, $post ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			);
+		}
+
+		$mc = new Mailchimp( self::mailchimp_api_key() );
+
+		$payload = [
+			'send_type' => 'html',
+		];
+		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
 	}
 }
 Newspack_Newsletters::instance();

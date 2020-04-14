@@ -1,0 +1,36 @@
+// TODO hide title after it's not required in MC initial call
+.editor-post-title {
+	// display: none;
+}
+
+.wp-block {
+	max-width: 568px;
+}
+
+.block-editor-block-list__layout {
+	*:not( code ) {
+		font-family: Ubuntu, Helvetica, Arial, sans-serif !important;
+	}
+
+	code {
+		background: none;
+		color: inherit;
+	}
+}
+
+.wp-block-buttons .block-editor-block-list__layout {
+	display: flex;
+	justify-content: space-between;
+}
+
+.newspack-newsletters {
+	&__editor-block {
+		&__warning {
+			display: block;
+			color: #191e23;
+			ul {
+				margin: 0 !important;
+			}
+		}
+	}
+}
