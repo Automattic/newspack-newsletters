@@ -1,17 +1,20 @@
 /**
  * WordPress dependencies
  */
-import domReady from '@wordpress/dom-ready';
-import { unregisterBlockStyle } from '@wordpress/blocks';
-import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
-import { Fragment } from '@wordpress/element';
+import { parse, unregisterBlockStyle } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
+import { withSelect, withDispatch } from '@wordpress/data';
+import { compose } from '@wordpress/compose';
+import { Fragment, useState } from '@wordpress/element';
+import domReady from '@wordpress/dom-ready';
+import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
 import { addFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
 
 /**
  * Internal dependencies
  */
+import TemplateModal from '../components/template-modal';
 import Sidebar from './sidebar/';
 import Editor from './editor/';
 import PrePublishSlot from './pre-publish-slot';
@@ -41,8 +44,42 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	return settings;
 } );
 
-registerPlugin( 'newspack-newsletters-sidebar', {
-	render: () => (
+const NewsletterEdit = ( {
+	getBlocks,
+	insertBlocks,
+	replaceBlocks,
+	isEditedPostNew,
+	savePost,
+} ) => {
+	const templates =
+		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
+
+	const [ selectedTemplate, setSelectedTemplate ] = useState( 0 );
+	const [ insertedTemplate, setInserted ] = useState( null );
+
+	const handleTemplateInsertion = templateIndex => {
+		const template = templates[ templateIndex ];
+		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
+		if ( clientIds && clientIds.length ) {
+			replaceBlocks( clientIds, parse( template.content ) );
+		} else {
+			insertBlocks( parse( template.content ) );
+		}
+		setInserted( templateIndex );
+		setTimeout( savePost, 1 );
+	};
+
+	const isDisplayingTemplateModal =
+		isEditedPostNew && templates && templates.length && insertedTemplate === null;
+
+	return isDisplayingTemplateModal ? (
+		<TemplateModal
+			templates={ templates }
+			onInsertTemplate={ handleTemplateInsertion }
+			onSelectTemplate={ setSelectedTemplate }
+			selectedTemplate={ selectedTemplate }
+		/>
+	) : (
 		<Fragment>
 			<NestedColumnsDetection />
 			<PluginDocumentSettingPanel
@@ -52,7 +89,27 @@ registerPlugin( 'newspack-newsletters-sidebar', {
 				<Sidebar />
 			</PluginDocumentSettingPanel>
 		</Fragment>
-	),
+	);
+};
+
+const NewsletterEditWithSelect = compose( [
+	withSelect( select => {
+		const { isEditedPostNew } = select( 'core/editor' );
+		const { getBlocks } = select( 'core/block-editor' );
+		return {
+			isEditedPostNew: isEditedPostNew(),
+			getBlocks,
+		};
+	} ),
+	withDispatch( dispatch => {
+		const { savePost } = dispatch( 'core/editor' );
+		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
+		return { savePost, insertBlocks, replaceBlocks };
+	} ),
+] )( NewsletterEdit );
+
+registerPlugin( 'newspack-newsletters-sidebar', {
+	render: NewsletterEditWithSelect,
 	icon: null,
 } );
 

@@ -47,7 +47,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
@@ -128,6 +128,15 @@ final class Newspack_Newsletters {
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.js' ),
 			true
 		);
+
+		wp_localize_script(
+			'newspack-newsletters',
+			'newspack_newsletters_data',
+			[
+				'templates' => self::get_newsletter_templates(),
+			]
+		);
+
 		wp_register_style(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.css', __FILE__ ),
@@ -464,13 +473,13 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
+	 * @param boolean $update whether it's an update.
 	 */
-	public static function sync_with_mailchimp( $id, $post ) {
+	public static function sync_with_mailchimp( $id, $post, $update ) {
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
 			return;
 		}
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
 
 		$mc      = new Mailchimp( $api_key );
 		$payload = [
@@ -482,16 +491,31 @@ final class Newspack_Newsletters {
 			],
 		];
 
-		$campaign    = $mc_campaign_id ? $mc->patch( "campaigns/$mc_campaign_id", $payload ) : $mc->post( 'campaigns', $payload );
-		$campaign_id = $campaign['id'];
-		update_post_meta( $id, 'mc_campaign_id', $campaign_id );
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+
+		if ( $update && $mc_campaign_id ) {
+			$mc->patch( "campaigns/$mc_campaign_id", $payload );
+		} else {
+			$campaign       = $mc->post( 'campaigns', $payload );
+			$mc_campaign_id = $campaign['id'];
+			update_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+		}
 
 		$renderer        = new Newspack_Newsletters_Renderer();
 		$content_payload = [
 			'html' => $renderer->render_html_email( $post ),
 		];
 
-		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
+		$result = $mc->put( "campaigns/$mc_campaign_id/content", $content_payload );
+	}
+
+	/**
+	 * Get newsletter templates.
+	 *
+	 * @return array Array of templates.
+	 */
+	public static function get_newsletter_templates() {
+		return apply_filters( 'newspack_newsletters_templates', [] );
 	}
 
 	/**
@@ -535,6 +559,50 @@ final class Newspack_Newsletters {
 			'send_type' => 'html',
 		];
 		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
+	}
+
+	/**
+	 * Token replacement for newsletter templates.
+	 *
+	 * @param string $content Template content.
+	 * @param array  $extra Associative array of additional tokens to replace.
+	 * @return string Content.
+	 */
+	public static function template_token_replacement( $content, $extra = [] ) {
+		$sitename       = get_bloginfo( 'name' );
+		$custom_logo_id = get_theme_mod( 'custom_logo' );
+		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'thumbnail' )[0] : null;
+
+		$sitename_block = sprintf(
+			'<!-- wp:heading {"align":"center","level":1} --><h1 class="has-text-align-center">%s</h1><!-- /wp:heading -->',
+			$sitename
+		);
+
+		$logo_block = $logo ? sprintf(
+			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"thumbnail"} --><figure class="wp-block-image aligncenter size-thumbnail"><img src="%s" alt="%s" class="wp-image-%s" /></figure><!-- /wp:image -->',
+			$custom_logo_id,
+			$logo,
+			$sitename,
+			$custom_logo_id
+		) : null;
+
+		$search  = array_merge(
+			[
+				'__SITENAME__',
+				'__LOGO__',
+				'__LOGO_OR_SITENAME__',
+			],
+			array_keys( $extra )
+		);
+		$replace = array_merge(
+			[
+				$sitename,
+				$logo,
+				$logo ? $logo_block : $sitename_block,
+			],
+			array_values( $extra )
+		);
+		return str_replace( $search, $replace, $content );
 	}
 }
 Newspack_Newsletters::instance();

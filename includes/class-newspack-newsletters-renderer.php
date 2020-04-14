@@ -235,6 +235,13 @@ final class Newspack_Newsletters_Renderer {
 					if ( 'thumbnail' == $attrs['sizeSlug'] ) {
 						$img_attrs['width'] = '150px';
 					}
+				} elseif ( isset( $attrs['className'] ) ) {
+					if ( 'size-medium' == $attrs['className'] ) {
+						$img_attrs['width'] = '300px';
+					}
+					if ( 'size-thumbnail' == $attrs['className'] ) {
+						$img_attrs['width'] = '150px';
+					}
 				}
 				if ( isset( $attrs['width'] ) ) {
 					$img_attrs['width'] = $attrs['width'] . 'px';
