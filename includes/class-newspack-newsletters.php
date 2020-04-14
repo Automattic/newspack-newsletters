@@ -560,5 +560,48 @@ final class Newspack_Newsletters {
 		];
 		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
 	}
+
+	/**
+	 * Token replacement for newsletter templates.
+	 *
+	 * @param string $content Template content.
+	 * @param array  $extra Associative array of additional tokens to replace.
+	 * @return string Content.
+	 */
+	public static function template_token_replacement( $content, $extra = [] ) {
+		$sitename       = get_bloginfo( 'name' );
+		$custom_logo_id = get_theme_mod( 'custom_logo' );
+		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'full' )[0] : null;
+
+		$sitename_block = sprintf(
+			'<!-- wp:heading {\"align\":\"center\",\"level\":1} -->\n<h1 class=\"has-text-align-center\">%s</h1>\n<!-- /wp:heading -->',
+			$sitename
+		);
+
+		$logo_block = $logo ? sprintf(
+			'<!-- wp:image {\"align\":\"center\",\"id\":%s,\"sizeSlug\":\"large\"} --><figure class=\"wp-block-image aligncenter size-large\"><img src=\"%s\" alt=\"%s\" /></figure><!-- /wp:image -->',
+			$custom_logo_id,
+			$sitename,
+			$logo
+		) : null;
+
+		$search  = array_merge(
+			[
+				'__SITENAME__',
+				'__LOGO__',
+				'__LOGO_OR_SITENAME__',
+			],
+			array_keys( $extra )
+		);
+		$replace = array_merge(
+			[
+				$sitename,
+				$logo,
+				$logo ? $logo_block : $sitename_block,
+			],
+			array_values( $extra )
+		);
+		return str_replace( $search, $replace, $content );
+	}
 }
 Newspack_Newsletters::instance();
