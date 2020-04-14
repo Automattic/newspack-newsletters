@@ -389,9 +389,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Single Column block.
 			 */
 			case 'core/column':
-				// TODO disable/handle/warn for:
-				// - nested colums. Not allowed in MJML.
-
 				if ( isset( $attrs['verticalAlignment'] ) ) {
 					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
 				}
