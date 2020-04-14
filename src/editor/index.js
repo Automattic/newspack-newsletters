@@ -4,6 +4,7 @@
 import domReady from '@wordpress/dom-ready';
 import { unregisterBlockStyle } from '@wordpress/blocks';
 import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
+import { Fragment } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { addFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
@@ -14,6 +15,11 @@ import { registerPlugin } from '@wordpress/plugins';
 import Sidebar from './sidebar/';
 import Editor from './editor/';
 import PrePublishSlot from './pre-publish-slot';
+
+import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
+import { NestedColumnsDetection } from './blocks-validation/nested-columns-detection';
+
+addBlocksValidationFilter();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
@@ -37,12 +43,15 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 
 registerPlugin( 'newspack-newsletters-sidebar', {
 	render: () => (
-		<PluginDocumentSettingPanel
-			name="newsletters-settings-panel"
-			title={ __( ' Newsletter Settings', 'newspack-newsletters' ) }
-		>
-			<Sidebar />
-		</PluginDocumentSettingPanel>
+		<Fragment>
+			<NestedColumnsDetection />
+			<PluginDocumentSettingPanel
+				name="newsletters-settings-panel"
+				title={ __( ' Newsletter Settings', 'newspack-newsletters' ) }
+			>
+				<Sidebar />
+			</PluginDocumentSettingPanel>
+		</Fragment>
 	),
 	icon: null,
 } );
