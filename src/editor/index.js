@@ -20,7 +20,7 @@ import Editor from './editor/';
 import PrePublishSlot from './pre-publish-slot';
 
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
-import { NestedColumnsDetection } from './blocks-validation/nested-columns-detection';
+import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 
 addBlocksValidationFilter();
 
