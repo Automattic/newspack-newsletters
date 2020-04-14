@@ -44,7 +44,13 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	return settings;
 } );
 
-const NewsletterEdit = props => {
+const NewsletterEdit = ( {
+	getBlocks,
+	insertBlocks,
+	replaceBlocks,
+	isEditedPostNew,
+	savePost,
+} ) => {
 	const templates =
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
 
@@ -53,7 +59,6 @@ const NewsletterEdit = props => {
 
 	const handleTemplateInsertion = templateIndex => {
 		const template = templates[ templateIndex ];
-		const { getBlocks, insertBlocks, replaceBlocks } = props;
 		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
 		if ( clientIds && clientIds.length ) {
 			replaceBlocks( clientIds, parse( template.content ) );
@@ -61,10 +66,11 @@ const NewsletterEdit = props => {
 			insertBlocks( parse( template.content ) );
 		}
 		setInserted( templateIndex );
+		setTimeout( savePost, 1 );
 	};
 
 	const isDisplayingTemplateModal =
-		props.isEditedPostNew && templates && templates.length && insertedTemplate === null;
+		isEditedPostNew && templates && templates.length && insertedTemplate === null;
 
 	return isDisplayingTemplateModal ? (
 		<TemplateModal
@@ -96,8 +102,9 @@ const NewsletterEditWithSelect = compose( [
 		};
 	} ),
 	withDispatch( dispatch => {
+		const { savePost } = dispatch( 'core/editor' );
 		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
-		return { insertBlocks, replaceBlocks };
+		return { savePost, insertBlocks, replaceBlocks };
 	} ),
 ] )( NewsletterEdit );
 

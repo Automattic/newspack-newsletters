@@ -47,7 +47,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
@@ -473,13 +473,13 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
+	 * @param boolean $update whether it's an update.
 	 */
-	public static function sync_with_mailchimp( $id, $post ) {
+	public static function sync_with_mailchimp( $id, $post, $update ) {
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
 			return;
 		}
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
 
 		$mc      = new Mailchimp( $api_key );
 		$payload = [
@@ -491,16 +491,22 @@ final class Newspack_Newsletters {
 			],
 		];
 
-		$campaign    = $mc_campaign_id ? $mc->patch( "campaigns/$mc_campaign_id", $payload ) : $mc->post( 'campaigns', $payload );
-		$campaign_id = $campaign['id'];
-		update_post_meta( $id, 'mc_campaign_id', $campaign_id );
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+
+		if ( $update && $mc_campaign_id ) {
+			$mc->patch( "campaigns/$mc_campaign_id", $payload );
+		} else {
+			$campaign       = $mc->post( 'campaigns', $payload );
+			$mc_campaign_id = $campaign['id'];
+			update_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+		}
 
 		$renderer        = new Newspack_Newsletters_Renderer();
 		$content_payload = [
 			'html' => $renderer->render_html_email( $post ),
 		];
 
-		$result = $mc->put( "campaigns/$campaign_id/content", $content_payload );
+		$result = $mc->put( "campaigns/$mc_campaign_id/content", $content_payload );
 	}
 
 	/**
