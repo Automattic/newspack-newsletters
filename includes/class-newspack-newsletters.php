@@ -571,7 +571,7 @@ final class Newspack_Newsletters {
 	public static function template_token_replacement( $content, $extra = [] ) {
 		$sitename       = get_bloginfo( 'name' );
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'full' )[0] : null;
+		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'thumbnail' )[0] : null;
 
 		$sitename_block = sprintf(
 			'<!-- wp:heading {"align":"center","level":1} --><h1 class="has-text-align-center">%s</h1><!-- /wp:heading -->',
@@ -579,7 +579,7 @@ final class Newspack_Newsletters {
 		);
 
 		$logo_block = $logo ? sprintf(
-			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"large"} --><figure class="wp-block-image aligncenter size-large"><img src="%s" alt="%s" /></figure><!-- /wp:image -->',
+			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"thumbnail"} --><figure class="wp-block-image aligncenter"><img src="%s" alt="%s" class="wp-image-150"/></figure><!-- /wp:image -->',
 			$custom_logo_id,
 			$logo,
 			$sitename
