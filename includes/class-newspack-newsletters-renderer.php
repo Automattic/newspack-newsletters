@@ -308,7 +308,7 @@ final class Newspack_Newsletters_Renderer {
 			 * Separator block.
 			 */
 			case 'core/separator':
-				$is_style_default   = 'is-style-default' == $attrs['className'];
+				$is_style_default   = isset( $attrs['className'] ) ? 'is-style-default' == $attrs['className'] : true;
 				$divider_attrs      = array_merge(
 					array(
 						'padding'      => '0',
