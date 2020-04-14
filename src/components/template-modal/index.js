@@ -68,13 +68,9 @@ class TemplateModal extends Component {
 					</div>
 
 					<div className="newspack-newsletters-modal__preview">
-						{ blockPreview && blockPreview.length > 0 && (
+						{ blockPreview && blockPreview.length > 0 ? (
 							<BlockPreview blocks={ blockPreview } viewportWidth={ 810 } />
-						) }
-						{ blockPreview && 0 === blockPreview.length && (
-							<p>{ __( 'Blank layout.', 'newspack-newsletters' ) }</p>
-						) }
-						{ ! blockPreview && (
+						) : (
 							<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 						) }
 					</div>
