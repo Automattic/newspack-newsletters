@@ -579,7 +579,7 @@ final class Newspack_Newsletters {
 		);
 
 		$logo_block = $logo ? sprintf(
-			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"thumbnail"} --><figure class="wp-block-image aligncenter"><img src="%s" alt="%s" class="wp-image-%s" /></figure><!-- /wp:image -->',
+			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"thumbnail"} --><figure class="wp-block-image aligncenter size-thumbnail"><img src="%s" alt="%s" class="wp-image-%s" /></figure><!-- /wp:image -->',
 			$custom_logo_id,
 			$logo,
 			$sitename,
