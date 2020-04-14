@@ -20,6 +20,28 @@ class Newspack_Newsletters_Settings {
 	}
 
 	/**
+	 * Retreives list of settings.
+	 *
+	 * @return array Settings list.
+	 */
+	public static function get_settings_list() {
+		return array(
+			array(
+				'description' => __( 'Mailchimp API Key', 'newspack' ),
+				'key'         => 'newspack_newsletters_mailchimp_api_key',
+			),
+			array(
+				'description' => __( 'MJML API Key', 'newspack' ),
+				'key'         => 'newspack_newsletters_mjml_api_key',
+			),
+			array(
+				'description' => __( 'MJML API Secret', 'newspack' ),
+				'key'         => 'newspack_newsletters_mjml_api_secret',
+			),
+		);
+	}
+
+	/**
 	 * Add options page
 	 */
 	public static function add_plugin_page() {
@@ -36,7 +58,6 @@ class Newspack_Newsletters_Settings {
 	 * Options page callback
 	 */
 	public static function create_admin_page() {
-		$newspack_newsletters_mailchimp_api_key = get_option( 'newspack_newsletters_mailchimp_api_key' );
 		?>
 		<div class="wrap">
 			<h1>Newspack Newsletters Settings</h1>
@@ -55,33 +76,40 @@ class Newspack_Newsletters_Settings {
 	 * Register and add settings
 	 */
 	public static function page_init() {
-		register_setting(
-			'newspack_newsletters_options_group',
-			'newspack_newsletters_mailchimp_api_key'
-		);
 		add_settings_section(
 			'newspack_newsletters_options_group',
 			'Newspack Newsletters Custom Settings',
 			null,
 			'newspack-newsletters-settings-admin'
 		);
-		add_settings_field(
-			'newspack_newsletters_mailchimp_api_key',
-			__( 'Mailchimp API Key', 'newspack' ),
-			[ __CLASS__, 'newspack_newsletters_mailchimp_api_key_callback' ],
-			'newspack-newsletters-settings-admin',
-			'newspack_newsletters_options_group'
-		);
+		foreach ( self::get_settings_list() as $setting ) {
+			register_setting(
+				'newspack_newsletters_options_group',
+				$setting['key']
+			);
+			add_settings_field(
+				$setting['key'],
+				$setting['description'],
+				[ __CLASS__, 'newspack_newsletters_settings_callback' ],
+				'newspack-newsletters-settings-admin',
+				'newspack_newsletters_options_group',
+				$setting['key']
+			);
+		};
 	}
 
 	/**
-	 * Render Mailchimp API  field.
+	 * Render settings fields.
+	 *
+	 * @param string $key Setting key.
 	 */
-	public static function newspack_newsletters_mailchimp_api_key_callback() {
-		$newspack_newsletters_mailchimp_api_key = get_option( 'newspack_newsletters_mailchimp_api_key', false );
+	public static function newspack_newsletters_settings_callback( $key ) {
+		$value = get_option( $key, false );
 		printf(
-			'<input type="text" id="newspack_newsletters_mailchimp_api_key" name="newspack_newsletters_mailchimp_api_key" value="%s" />',
-			esc_attr( $newspack_newsletters_mailchimp_api_key )
+			'<input type="text" id="%s" name="%s" value="%s" class="widefat" />',
+			esc_attr( $key ),
+			esc_attr( $key ),
+			esc_attr( $value )
 		);
 	}
 }
