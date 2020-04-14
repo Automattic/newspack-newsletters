@@ -574,15 +574,15 @@ final class Newspack_Newsletters {
 		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'full' )[0] : null;
 
 		$sitename_block = sprintf(
-			'<!-- wp:heading {\"align\":\"center\",\"level\":1} -->\n<h1 class=\"has-text-align-center\">%s</h1>\n<!-- /wp:heading -->',
+			'<!-- wp:heading {"align":"center","level":1} --><h1 class="has-text-align-center">%s</h1><!-- /wp:heading -->',
 			$sitename
 		);
 
 		$logo_block = $logo ? sprintf(
-			'<!-- wp:image {\"align\":\"center\",\"id\":%s,\"sizeSlug\":\"large\"} --><figure class=\"wp-block-image aligncenter size-large\"><img src=\"%s\" alt=\"%s\" /></figure><!-- /wp:image -->',
+			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"large"} --><figure class="wp-block-image aligncenter size-large"><img src="%s" alt="%s" /></figure><!-- /wp:image -->',
 			$custom_logo_id,
-			$sitename,
-			$logo
+			$logo,
+			$sitename
 		) : null;
 
 		$search  = array_merge(
