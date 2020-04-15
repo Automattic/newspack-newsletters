@@ -109,6 +109,7 @@ class Sidebar extends Component {
 	 * Render
 	 */
 	render() {
+		const { editPost, title } = this.props;
 		const {
 			campaign,
 			hasResults,
@@ -171,7 +172,6 @@ class Sidebar extends Component {
 						</Button>
 					</Modal>
 				) }
-
 				<SelectControl
 					label={ __( 'Mailchimp Lists', 'newspack-newsletters' ) }
 					value={ list_id }
@@ -187,6 +187,12 @@ class Sidebar extends Component {
 					] }
 					onChange={ value => this.setList( value ) }
 					disabled={ inFlight }
+				/>
+				<TextControl
+					label={ __( 'Subject', 'newspack-newsletters' ) }
+					value={ title }
+					disabled={ inFlight }
+					onChange={ value => editPost( { title: value } ) }
 				/>
 				<TextControl
 					label={ __( 'Sender name', 'newspack-newsletters' ) }
@@ -223,8 +229,15 @@ class Sidebar extends Component {
 
 export default compose( [
 	withSelect( select => {
-		const { getCurrentPostId, isPublishingPost, isSavingPost } = select( 'core/editor' );
-		return { postId: getCurrentPostId(), isPublishingPost, isSavingPost };
+		const { getEditedPostAttribute, getCurrentPostId, isPublishingPost, isSavingPost } = select(
+			'core/editor'
+		);
+		return {
+			title: getEditedPostAttribute( 'title' ),
+			postId: getCurrentPostId(),
+			isPublishingPost,
+			isSavingPost,
+		};
 	} ),
 	withDispatch( dispatch => {
 		const { editPost } = dispatch( 'core/editor' );

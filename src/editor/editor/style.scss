@@ -2,3 +2,8 @@
 .editor-post-preview__dropdown {
 	display: none;
 }
+
+// TODO hide title after it's not required in MC initial call
+.editor-post-title {
+	display: none;
+}
