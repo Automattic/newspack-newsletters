@@ -10,7 +10,7 @@ const validateCampaign = campaign => {
 
 	const messages = [];
 	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent', 'newspack-newsletters' ) );
+		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}
 	if ( ! listId ) {
 		messages.push(

@@ -53,11 +53,12 @@ const withUnsupportedFeaturesNotices = createHigherOrderComponent( BlockListBloc
 						'These features will not be displayed correctly in an email, please remove them:',
 						'newspack-newsletters'
 					) }
-					<ul>
-						{ warnings.map( ( warning, i ) => (
-							<li key={ i }>{ warning }</li>
-						) ) }
-					</ul>
+					{ warnings.map( ( warning, i ) => (
+						<strong key={ i }>
+							<br />
+							{ warning }
+						</strong>
+					) ) }
 				</div>
 				<BlockListBlock { ...props } />
 			</div>

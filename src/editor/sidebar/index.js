@@ -122,29 +122,83 @@ class Sidebar extends Component {
 			senderDirty,
 		} = this.state;
 		if ( ! hasResults ) {
-			return [
-				__( 'Retrieving Mailchimp data', 'newspack-newsletters' ),
-				<Spinner key="spinner" />,
-			];
+			return (
+				<div className="newspack-newsletters__loading-data">
+					{ __( 'Retrieving Mailchimp data...', 'newspack-newsletters' ) }
+					<Spinner key="spinner" />
+				</div>
+			);
 		}
 		const { recipients, status, long_archive_url } = campaign || {};
 		const { list_id } = recipients || {};
 		if ( ! status ) {
 			return (
 				<Notice status="info" isDismissible={ false }>
-					<p>{ __( 'Publish to sync to Mailchimp', 'newspack-newsletters' ) }</p>
+					{ __( 'Publish to sync to Mailchimp.', 'newspack-newsletters' ) }
 				</Notice>
 			);
 		}
 		if ( 'sent' === status || 'sending' === status ) {
 			return (
-				<Notice status="info" isDismissible={ false }>
-					<p>{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }</p>
+				<Notice status="success" isDismissible={ false }>
+					{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
 				</Notice>
 			);
 		}
 		return (
 			<Fragment>
+				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
+				<TextControl
+					label={ __( 'Name', 'newspack-newsletters' ) }
+					className="newspack-newsletters__name-textcontrol"
+					value={ senderName }
+					disabled={ inFlight }
+					onChange={ value => this.setState( { senderName: value, senderDirty: true } ) }
+				/>
+				<TextControl
+					label={ __( 'Email', 'newspack-newsletters' ) }
+					className="newspack-newsletters__email-textcontrol"
+					value={ senderEmail }
+					type="email"
+					disabled={ inFlight }
+					onChange={ value => this.setState( { senderEmail: value, senderDirty: true } ) }
+				/>
+				{ senderDirty && (
+					<Button
+						isLink
+						onClick={ () => this.updateSender( senderName, senderEmail ) }
+						disabled={ inFlight }
+					>
+						{ __( 'Update Sender', 'newspack-newsletters' ) }
+					</Button>
+				) }
+				<hr />
+				<SelectControl
+					label={ __( 'To', 'newspack-newsletters' ) }
+					className="newspack-newsletters__to-selectcontrol"
+					value={ list_id }
+					options={ [
+						{
+							value: null,
+							label: __( '-- Select a list --', 'newspack-newsletters' ),
+						},
+						...lists.map( ( { id, name } ) => ( {
+							value: id,
+							label: name,
+						} ) ),
+					] }
+					onChange={ value => this.setList( value ) }
+					disabled={ inFlight }
+				/>
+				<hr />
+				<TextControl
+					label={ __( 'Subject', 'newspack-newsletters' ) }
+					className="newspack-newsletters__subject-textcontrol"
+					value={ title }
+					disabled={ inFlight }
+					onChange={ value => editPost( { title: value } ) }
+				/>
+				<hr />
 				<Button
 					isPrimary
 					onClick={ () => this.setState( { showTestModal: true } ) }
@@ -156,10 +210,12 @@ class Sidebar extends Component {
 					<Modal
 						title={ __( 'Send Test Email', 'newspack-newsletters' ) }
 						onRequestClose={ () => this.setState( { showTestModal: false } ) }
+						className="newspack-newsletters__send-test"
 					>
 						<TextControl
 							label={ __( 'Send to this email', 'newspack-newsletters' ) }
 							value={ testEmail }
+							type="email"
 							onChange={ value => this.setState( { testEmail: value } ) }
 						/>
 						<Button
@@ -168,59 +224,20 @@ class Sidebar extends Component {
 								this.setState( { showTestModal: false }, () => this.sendMailchimpTest() )
 							}
 						>
-							{ __( 'Send', 'newspack-newsletters' ) }
+							{ __( 'Send Test', 'newspack-newsletters' ) }
+						</Button>
+						<Button isTertiary onClick={ () => this.setState( { showTestModal: false } ) }>
+							{ __( 'Cancel', 'newspack-newsletters' ) }
 						</Button>
 					</Modal>
 				) }
-				<SelectControl
-					label={ __( 'Mailchimp Lists', 'newspack-newsletters' ) }
-					value={ list_id }
-					options={ [
-						{
-							value: null,
-							label: __( '-- Select A List --', 'newspack-newsletters' ),
-						},
-						...lists.map( ( { id, name } ) => ( {
-							value: id,
-							label: name,
-						} ) ),
-					] }
-					onChange={ value => this.setList( value ) }
-					disabled={ inFlight }
-				/>
-				<TextControl
-					label={ __( 'Subject', 'newspack-newsletters' ) }
-					value={ title }
-					disabled={ inFlight }
-					onChange={ value => editPost( { title: value } ) }
-				/>
-				<TextControl
-					label={ __( 'Sender name', 'newspack-newsletters' ) }
-					value={ senderName }
-					disabled={ inFlight }
-					onChange={ value => this.setState( { senderName: value, senderDirty: true } ) }
-				/>
-				<TextControl
-					label={ __( 'Sender email', 'newspack-newsletters' ) }
-					value={ senderEmail }
-					disabled={ inFlight }
-					onChange={ value => this.setState( { senderEmail: value, senderDirty: true } ) }
-				/>
-				{ senderDirty && (
-					<Button
-						isPrimary
-						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight }
-					>
-						{ __( 'Update Sender', 'newspack-newsletters' ) }
-					</Button>
-				) }
 				{ long_archive_url && (
-					<div>
+					<Fragment>
+						<hr />
 						<ExternalLink href={ long_archive_url }>
 							{ __( 'View on Mailchimp', 'newspack-newsletters' ) }
 						</ExternalLink>
-					</div>
+					</Fragment>
 				) }
 			</Fragment>
 		);
