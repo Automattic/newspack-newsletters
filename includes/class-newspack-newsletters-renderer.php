@@ -337,27 +337,27 @@ final class Newspack_Newsletters_Renderer {
 				$social_icons = array(
 					'wordpress' => array(
 						'color' => '#3499cd',
-						'icon'  => 'wordpress.svg',
+						'icon'  => 'wordpress.png',
 					),
 					'facebook'  => array(
 						'color' => '#1977f2',
-						'icon'  => 'facebook.svg',
+						'icon'  => 'facebook.png',
 					),
 					'twitter'   => array(
 						'color' => '#21a1f3',
-						'icon'  => 'twitter.svg',
+						'icon'  => 'twitter.png',
 					),
 					'instagram' => array(
 						'color' => '#f00075',
-						'icon'  => 'instagram.svg',
+						'icon'  => 'instagram.png',
 					),
 					'linkedin'  => array(
 						'color' => '#0577b5',
-						'icon'  => 'linkedin.svg',
+						'icon'  => 'linkedin.png',
 					),
 					'youtube'   => array(
 						'color' => '#ff0100',
-						'icon'  => 'youtube.svg',
+						'icon'  => 'youtube.png',
 					),
 				);
 
