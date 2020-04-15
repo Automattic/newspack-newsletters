@@ -122,24 +122,26 @@ class Sidebar extends Component {
 			senderDirty,
 		} = this.state;
 		if ( ! hasResults ) {
-			return [
-				__( 'Retrieving Mailchimp data', 'newspack-newsletters' ),
-				<Spinner key="spinner" />,
-			];
+			return (
+				<div className="newspack-newsletters__loading-data">
+					{ __( 'Retrieving Mailchimp data...', 'newspack-newsletters' ) }
+					<Spinner key="spinner" />
+				</div>
+			);
 		}
 		const { recipients, status, long_archive_url } = campaign || {};
 		const { list_id } = recipients || {};
 		if ( ! status ) {
 			return (
 				<Notice status="info" isDismissible={ false }>
-					<p>{ __( 'Publish to sync to Mailchimp', 'newspack-newsletters' ) }</p>
+					{ __( 'Publish to sync to Mailchimp.', 'newspack-newsletters' ) }
 				</Notice>
 			);
 		}
 		if ( 'sent' === status || 'sending' === status ) {
 			return (
-				<Notice status="info" isDismissible={ false }>
-					<p>{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }</p>
+				<Notice status="success" isDismissible={ false }>
+					{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
 				</Notice>
 			);
 		}
@@ -173,12 +175,12 @@ class Sidebar extends Component {
 					</Modal>
 				) }
 				<SelectControl
-					label={ __( 'Mailchimp Lists', 'newspack-newsletters' ) }
+					label={ __( 'Mailchimp list', 'newspack-newsletters' ) }
 					value={ list_id }
 					options={ [
 						{
 							value: null,
-							label: __( '-- Select A List --', 'newspack-newsletters' ),
+							label: __( '-- Select a list --', 'newspack-newsletters' ),
 						},
 						...lists.map( ( { id, name } ) => ( {
 							value: id,
@@ -208,19 +210,52 @@ class Sidebar extends Component {
 				/>
 				{ senderDirty && (
 					<Button
-						isPrimary
+						isLink
 						onClick={ () => this.updateSender( senderName, senderEmail ) }
 						disabled={ inFlight }
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
 				) }
+				<hr />
+				<Button
+					isPrimary
+					onClick={ () => this.setState( { showTestModal: true } ) }
+					disabled={ inFlight }
+				>
+					{ __( 'Send Test', 'newspack-newsletters' ) }
+				</Button>
+				{ showTestModal && (
+					<Modal
+						title={ __( 'Send Test Email', 'newspack-newsletters' ) }
+						onRequestClose={ () => this.setState( { showTestModal: false } ) }
+						className="newspack-newsletters__send-test"
+					>
+						<TextControl
+							label={ __( 'Send to this email', 'newspack-newsletters' ) }
+							value={ testEmail }
+							onChange={ value => this.setState( { testEmail: value } ) }
+						/>
+						<Button
+							isPrimary
+							onClick={ () =>
+								this.setState( { showTestModal: false }, () => this.sendMailchimpTest() )
+							}
+						>
+							{ __( 'Send Test', 'newspack-newsletters' ) }
+						</Button>
+						<Button isTertiary onClick={ () => this.setState( { showTestModal: false } ) }>
+							{ __( 'Cancel', 'newspack-newsletters' ) }
+						</Button>
+					</Modal>
+				) }
 				{ long_archive_url && (
-					<div>
+					<Fragment>
+						<hr />
 						<ExternalLink href={ long_archive_url }>
 							{ __( 'View on Mailchimp', 'newspack-newsletters' ) }
 						</ExternalLink>
-					</div>
+					</Fragment>
 				) }
 			</Fragment>
 		);

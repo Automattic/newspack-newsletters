@@ -28,4 +28,25 @@
 			}
 		}
 	}
+
+	&__loading-data {
+		align-items: center;
+		display: flex;
+
+		.components-spinner {
+			margin-top: 0;
+		}
+	}
+
+	&__send-test {
+		.components-button + .components-button {
+			margin-left: 12px;
+		}
+	}
+}
+
+.editor-post-publish-panel__prepublish {
+	.components-notice {
+		margin: 0;
+	}
 }

@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { Notice } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 const validateCampaign = campaign => {
@@ -10,18 +11,32 @@ const validateCampaign = campaign => {
 
 	const messages = [];
 	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent', 'newspack-newsletters' ) );
+		messages.push(
+			<Notice status="error" isDismissible={ false }>
+				{ __( 'Newsletter has already been sent.', 'newspack-newsletters' ) }
+			</Notice>
+		);
 	}
 	if ( ! listId ) {
 		messages.push(
-			__( 'A Mailchimp list must be selected before publishing.', 'newspack-newsletters' )
+			<Notice status="error" isDismissible={ false }>
+				{ __( 'A Mailchimp list must be selected before publishing.', 'newspack-newsletters' ) }
+			</Notice>
 		);
 	}
 	if ( ! senderName || senderName.length < 1 ) {
-		messages.push( __( 'Sender name must be set.', 'newspack-newsletters' ) );
+		messages.push(
+			<Notice status="error" isDismissible={ false }>
+				{ __( 'Sender name must be set.', 'newspack-newsletters' ) }
+			</Notice>
+		);
 	}
 	if ( ! senderEmail || senderEmail.length < 1 ) {
-		messages.push( __( 'Sender email must be set.', 'newspack-newsletters' ) );
+		messages.push(
+			<Notice status="error" isDismissible={ false }>
+				{ __( 'Sender email must be set.', 'newspack-newsletters' ) }
+			</Notice>
+		);
 	}
 
 	return messages;
