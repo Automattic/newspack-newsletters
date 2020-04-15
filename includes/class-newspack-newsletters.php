@@ -383,52 +383,6 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Send the Mailchimp campaign.
-	 *
-	 * @param WP_REST_Request $request API request object.
-	 */
-	public static function api_send_mailchimp_campaign( $request ) {
-		$id           = $request['id'];
-		$sender_name  = $request['sender_name'];
-		$sender_email = $request['sender_email'];
-		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
-			return new WP_Error(
-				'newspack_newsletters_incorrect_post_type',
-				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
-			);
-		}
-
-
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
-
-		$mc = new Mailchimp( self::mailchimp_api_key() );
-
-		$payload = [
-			'settings' => [
-				'from_name' => $sender_name,
-				'reply_to'  => $sender_email,
-			],
-		];
-		$mc->patch( "campaigns/$mc_campaign_id", $payload );
-
-		$payload = [
-			'send_type' => 'html',
-		];
-		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
-
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
-	}
-
-	/**
 	 * Get Mailchimp data.
 	 *
 	 * @param string $id post ID.
