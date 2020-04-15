@@ -422,6 +422,17 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
+			 * Newspack Newsletters Latest posts block template.
+			 */
+			case 'newspack-newsletters/latest-posts':
+				$markup = '';
+				foreach ( $inner_blocks as $block ) {
+					$markup .= self::render_mjml_component( $block );
+				}
+				$block_mjml_markup = $markup;
+				break;
+
+			/**
 			 * Group block.
 			 */
 			case 'core/group':
@@ -433,17 +444,21 @@ final class Newspack_Newsletters_Renderer {
 				break;
 		}
 
+		$is_latest_posts_block = 'newspack-newsletters/latest-posts' == $block_name;
+		$is_group_block        = 'core/group' == $block_name;
+
 		if (
 			! $is_in_column &&
-			'core/group' != $block_name &&
+			! $is_group_block &&
 			'core/columns' != $block_name &&
 			'core/column' != $block_name &&
-			'core/buttons' != $block_name
+			'core/buttons' != $block_name &&
+			! $is_latest_posts_block
 		) {
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
-		if ( $is_in_column || 'core/group' == $block_name ) {
+		if ( $is_in_column || $is_group_block || $is_latest_posts_block ) {
 			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {
