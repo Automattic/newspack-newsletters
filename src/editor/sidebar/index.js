@@ -93,16 +93,52 @@ class Sidebar extends Component {
 	};
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result.campaign ) );
-
 		this.setState( {
 			campaign: result.campaign,
 			lists: result.lists.lists,
+			interestCategories: result.interest_categories,
 			hasResults: true,
 			inFlight: false,
 			senderName: result.campaign.settings.from_name,
 			senderEmail: result.campaign.settings.reply_to,
 			senderDirty: false,
 		} );
+	};
+
+	interestCategories = () => {
+		const { inFlight, interestCategories } = this.state;
+		if (
+			! interestCategories ||
+			! interestCategories.categories ||
+			! interestCategories.categories.length
+		) {
+			return;
+		}
+		const options = interestCategories.categories.reduce( ( accumulator, item ) => {
+			const { title, interests } = item;
+			accumulator.push( {
+				label: title,
+				value: null,
+			} );
+			if ( interests && interests.interests && interests.interests.length ) {
+				interests.interests.forEach( interest => {
+					accumulator.push( {
+						label: '- ' + interest.name,
+						value: interest.id,
+					} );
+				} );
+			}
+			return accumulator;
+		}, [] );
+		return (
+			<SelectControl
+				label={ __( 'Interests', 'newspack-newsletters' ) }
+				value={ '' }
+				options={ options }
+				onChange={ () => null }
+				disabled={ inFlight }
+			/>
+		);
 	};
 
 	/**
@@ -190,6 +226,7 @@ class Sidebar extends Component {
 					onChange={ value => this.setList( value ) }
 					disabled={ inFlight }
 				/>
+				{ this.interestCategories() }
 				<hr />
 				<TextControl
 					label={ __( 'Subject', 'newspack-newsletters' ) }
