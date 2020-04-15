@@ -147,8 +147,35 @@ class Sidebar extends Component {
 		}
 		return (
 			<Fragment>
+				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
+				<TextControl
+					label={ __( 'Name', 'newspack-newsletters' ) }
+					className="newspack-newsletters__name-textcontrol"
+					value={ senderName }
+					disabled={ inFlight }
+					onChange={ value => this.setState( { senderName: value, senderDirty: true } ) }
+				/>
+				<TextControl
+					label={ __( 'Email', 'newspack-newsletters' ) }
+					className="newspack-newsletters__email-textcontrol"
+					value={ senderEmail }
+					type="email"
+					disabled={ inFlight }
+					onChange={ value => this.setState( { senderEmail: value, senderDirty: true } ) }
+				/>
+				{ senderDirty && (
+					<Button
+						isLink
+						onClick={ () => this.updateSender( senderName, senderEmail ) }
+						disabled={ inFlight }
+					>
+						{ __( 'Update Sender', 'newspack-newsletters' ) }
+					</Button>
+				) }
+				<hr />
 				<SelectControl
-					label={ __( 'Mailchimp list', 'newspack-newsletters' ) }
+					label={ __( 'To', 'newspack-newsletters' ) }
+					className="newspack-newsletters__to-selectcontrol"
 					value={ list_id }
 					options={ [
 						{
@@ -163,33 +190,14 @@ class Sidebar extends Component {
 					onChange={ value => this.setList( value ) }
 					disabled={ inFlight }
 				/>
+				<hr />
 				<TextControl
 					label={ __( 'Subject', 'newspack-newsletters' ) }
+					className="newspack-newsletters__subject-textcontrol"
 					value={ title }
 					disabled={ inFlight }
 					onChange={ value => editPost( { title: value } ) }
 				/>
-				<TextControl
-					label={ __( 'Sender name', 'newspack-newsletters' ) }
-					value={ senderName }
-					disabled={ inFlight }
-					onChange={ value => this.setState( { senderName: value, senderDirty: true } ) }
-				/>
-				<TextControl
-					label={ __( 'Sender email', 'newspack-newsletters' ) }
-					value={ senderEmail }
-					disabled={ inFlight }
-					onChange={ value => this.setState( { senderEmail: value, senderDirty: true } ) }
-				/>
-				{ senderDirty && (
-					<Button
-						isLink
-						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight }
-					>
-						{ __( 'Update Sender', 'newspack-newsletters' ) }
-					</Button>
-				) }
 				<hr />
 				<Button
 					isPrimary
@@ -207,6 +215,7 @@ class Sidebar extends Component {
 						<TextControl
 							label={ __( 'Send to this email', 'newspack-newsletters' ) }
 							value={ testEmail }
+							type="email"
 							onChange={ value => this.setState( { testEmail: value } ) }
 						/>
 						<Button
