@@ -48,7 +48,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 3 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
@@ -430,10 +430,23 @@ final class Newspack_Newsletters {
 	 * @param WP_Post $post the post.
 	 * @param boolean $update whether it's an update.
 	 */
-	public static function sync_with_mailchimp( $id, $post, $update ) {
+	public static function save_post( $id, $post, $update ) {
+		self::sync_with_mailchimp( $post, $update );
+	}
+
+	/**
+	 * Synchronize CPT with Mailchimp campaign.
+	 *
+	 * @param WP_Post $post the post.
+	 * @param boolean $update whether it's an update.
+	 */
+	public static function sync_with_mailchimp( $post, $update = false ) {
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
-			return;
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'No Mailchimp API key available.', 'newspack-newsletters' )
+			);
 		}
 
 		$mc      = new Mailchimp( $api_key );
@@ -446,14 +459,22 @@ final class Newspack_Newsletters {
 			],
 		];
 
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		$mc_campaign_id = null;
+		$campaign       = null;
 
-		if ( $update && $mc_campaign_id ) {
-			$mc->patch( "campaigns/$mc_campaign_id", $payload );
+		if ( $update ) {
+			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
+			if ( ! $mc_campaign_id ) {
+				return new WP_Error(
+					'newspack_newsletters_incorrect_post_type',
+					__( 'Mailchimp Campaign ID not found.', 'newspack-newsletters' )
+				);
+			}
+			$campaign_result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 		} else {
-			$campaign       = $mc->post( 'campaigns', $payload );
-			$mc_campaign_id = $campaign['id'];
-			update_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+			$campaign_result = $mc->post( 'campaigns', $payload );
+			$mc_campaign_id  = $campaign_result['id'];
+			update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
 		}
 
 		$renderer        = new Newspack_Newsletters_Renderer();
@@ -461,7 +482,11 @@ final class Newspack_Newsletters {
 			'html' => $renderer->render_html_email( $post ),
 		];
 
-		$result = $mc->put( "campaigns/$mc_campaign_id/content", $content_payload );
+		$content_result = $mc->put( "campaigns/$mc_campaign_id/content", $content_payload );
+		return [
+			'campaign_result' => $campaign_result,
+			'content_result'  => $content_result,
+		];
 	}
 
 	/**
