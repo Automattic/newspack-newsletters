@@ -147,33 +147,6 @@ class Sidebar extends Component {
 		}
 		return (
 			<Fragment>
-				<Button
-					isPrimary
-					onClick={ () => this.setState( { showTestModal: true } ) }
-					disabled={ inFlight }
-				>
-					{ __( 'Send Test', 'newspack-newsletters' ) }
-				</Button>
-				{ showTestModal && (
-					<Modal
-						title={ __( 'Send Test Email', 'newspack-newsletters' ) }
-						onRequestClose={ () => this.setState( { showTestModal: false } ) }
-					>
-						<TextControl
-							label={ __( 'Send to this email', 'newspack-newsletters' ) }
-							value={ testEmail }
-							onChange={ value => this.setState( { testEmail: value } ) }
-						/>
-						<Button
-							isPrimary
-							onClick={ () =>
-								this.setState( { showTestModal: false }, () => this.sendMailchimpTest() )
-							}
-						>
-							{ __( 'Send', 'newspack-newsletters' ) }
-						</Button>
-					</Modal>
-				) }
 				<SelectControl
 					label={ __( 'Mailchimp list', 'newspack-newsletters' ) }
 					value={ list_id }
