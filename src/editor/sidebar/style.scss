@@ -54,6 +54,14 @@
 			margin-left: 12px;
 		}
 	}
+
+	&__pre-publish-errors {
+		margin: 0;
+
+		> li:last-child {
+			margin-bottom: 0;
+		}
+	}
 }
 
 .editor-post-publish-panel__prepublish {
