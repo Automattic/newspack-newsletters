@@ -47,6 +47,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
+		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'sync_with_mailchimp' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
@@ -603,6 +604,20 @@ final class Newspack_Newsletters {
 			array_values( $extra )
 		);
 		return str_replace( $search, $replace, $content );
+	}
+
+	/**
+	 * Set initial title of newsletter.
+	 *
+	 * @param string  $post_title Post title.
+	 * @param WP_Post $post Post.
+	 * @return string Title.
+	 */
+	public static function default_title( $post_title, $post ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post ) ) {
+			$post_title = gmdate( get_option( 'date_format' ) );
+		}
+		return $post_title;
 	}
 }
 Newspack_Newsletters::instance();
