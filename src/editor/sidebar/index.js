@@ -226,7 +226,7 @@ class Sidebar extends Component {
 						>
 							{ __( 'Send Test', 'newspack-newsletters' ) }
 						</Button>
-						<Button isTertiary onClick={ () => this.setState( { showTestModal: false } ) }>
+						<Button isSecondary onClick={ () => this.setState( { showTestModal: false } ) }>
 							{ __( 'Cancel', 'newspack-newsletters' ) }
 						</Button>
 					</Modal>
