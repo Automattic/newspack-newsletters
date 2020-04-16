@@ -48,7 +48,7 @@ const NewsletterEdit = ( {
 	getBlocks,
 	insertBlocks,
 	replaceBlocks,
-	isEditedPostNew,
+	isEditedPostEmpty,
 	savePost,
 } ) => {
 	const templates =
@@ -70,7 +70,7 @@ const NewsletterEdit = ( {
 	};
 
 	const isDisplayingTemplateModal =
-		isEditedPostNew && templates && templates.length && insertedTemplate === null;
+		isEditedPostEmpty && templates && templates.length && insertedTemplate === null;
 
 	return isDisplayingTemplateModal ? (
 		<TemplateModal
@@ -94,10 +94,10 @@ const NewsletterEdit = ( {
 
 const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
-		const { isEditedPostNew } = select( 'core/editor' );
+		const { isEditedPostEmpty } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		return {
-			isEditedPostNew: isEditedPostNew(),
+			isEditedPostEmpty: isEditedPostEmpty(),
 			getBlocks,
 		};
 	} ),
