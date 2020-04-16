@@ -432,6 +432,10 @@ final class Newspack_Newsletters {
 	 * @param boolean $update whether it's an update.
 	 */
 	public static function save_post( $id, $post, $update ) {
+		$status = get_post_status( $id );
+		if ( 'trash' === $status ) {
+			return;
+		}
 		self::sync_with_mailchimp( $post, $update );
 	}
 
@@ -455,7 +459,8 @@ final class Newspack_Newsletters {
 		if ( $campaign ) {
 			$status = $campaign['status'];
 			if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
-				$mc->delete( "campaigns/$mc_campaign_id" );
+				$result = $mc->delete( "campaigns/$mc_campaign_id" );
+				delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
 			}
 		}
 	}
@@ -488,14 +493,8 @@ final class Newspack_Newsletters {
 		$mc_campaign_id = null;
 		$campaign       = null;
 
-		if ( $update ) {
-			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
-			if ( ! $mc_campaign_id ) {
-				return new WP_Error(
-					'newspack_newsletters_incorrect_post_type',
-					__( 'Mailchimp Campaign ID not found.', 'newspack-newsletters' )
-				);
-			}
+		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
+		if ( $mc_campaign_id ) {
 			$campaign_result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 		} else {
 			$campaign_result = $mc->post( 'campaigns', $payload );
