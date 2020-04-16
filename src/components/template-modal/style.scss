@@ -44,7 +44,10 @@
 	}
 
 	&__content {
-		height: calc( 100% - 24px - 60px );
+		background: $light-gray-200;
+		height: calc( 100% - 36px );
+		margin: -24px;
+		padding: 24px;
 
 		@media only screen and ( min-width: 600px ) {
 			display: grid;
@@ -96,12 +99,17 @@
 				padding: 0 0 100%;
 				position: relative;
 				width: 100%;
+
+				.block-editor-block-preview__container {
+					position: absolute;
+				}
 			}
 		}
 	}
 
 	&__preview {
 		align-items: center;
+		background: white;
 		border: 1px solid $light-gray-500;
 		border-radius: 2px;
 		display: none;
