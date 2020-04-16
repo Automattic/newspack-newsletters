@@ -49,6 +49,12 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
 				/>
 			) }
 
+			<ToggleControl
+				label={ __( 'Display date' ) }
+				checked={ attributes.displayPostDate }
+				onChange={ value => setAttributes( { displayPostDate: value } ) }
+			/>
+
 			<Button isPrimary onClick={ () => setAttributes( { isReady: true } ) }>
 				{ __( 'Insert', 'newspack-newsletters' ) }
 			</Button>
@@ -102,6 +108,10 @@ export default () => {
 			excerptLength: {
 				type: 'number',
 				default: 42,
+			},
+			displayPostDate: {
+				type: 'boolean',
+				default: false,
 			},
 		},
 		save: () => <InnerBlocks.Content />,
