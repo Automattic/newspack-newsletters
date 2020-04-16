@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isUndefined, pickBy, flatten } from 'lodash';
+import { isUndefined, pickBy, get } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -22,8 +22,12 @@ import icon from './icon';
 import { getBlocksTemplate } from './utils';
 import QueryControlsSettings from './query-controls';
 
+const createBlockWithInnerBlocks = ( [ name, blockAttributes, innerBlocks = [] ] ) =>
+	createBlock( name, blockAttributes, innerBlocks.map( createBlockWithInnerBlocks ) );
+
 const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
-	const templateBlocks = flatten( getBlocksTemplate( latestPosts, attributes ) );
+	const templateBlocks = getBlocksTemplate( latestPosts, attributes );
+
 	return attributes.isReady ? (
 		<InnerBlocks template={ templateBlocks } />
 	) : (
@@ -49,6 +53,11 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
 						checked={ attributes.displayPostDate }
 						onChange={ value => setAttributes( { displayPostDate: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Display featured image', 'newspack-newsletters' ) }
+						checked={ attributes.displayFeaturedImage }
+						onChange={ value => setAttributes( { displayFeaturedImage: value } ) }
+					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
@@ -59,7 +68,7 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
 					{ __( 'Insert', 'newspack-newsletters' ) }
 				</Button>
 				<div className="newspack-latest-posts__preview">
-					<BlockPreview blocks={ templateBlocks.map( template => createBlock( ...template ) ) } />
+					<BlockPreview blocks={ templateBlocks.map( createBlockWithInnerBlocks ) } />
 				</div>
 			</div>
 		</Fragment>
@@ -69,7 +78,7 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
 const LatestPostsBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
 		const { postsToShow, order, orderBy, categories } = props.attributes;
-		const { getEntityRecords } = select( 'core' );
+		const { getEntityRecords, getMedia } = select( 'core' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
 		const latestPostsQuery = pickBy(
 			{
@@ -81,8 +90,20 @@ const LatestPostsBlockWithSelect = compose( [
 			value => ! isUndefined( value )
 		);
 
+		const posts = getEntityRecords( 'postType', 'post', latestPostsQuery ) || [];
+
 		return {
-			latestPosts: getEntityRecords( 'postType', 'post', latestPostsQuery ) || [],
+			latestPosts: posts.map( post => {
+				if ( post.featured_media ) {
+					const image = getMedia( post.featured_media );
+					let url = get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null );
+					if ( ! url ) {
+						url = get( image, 'source_url', null );
+					}
+					return { ...post, featuredImageSourceUrl: url };
+				}
+				return post;
+			} ),
 		};
 	} ),
 ] )( LatestPostsBlock );
@@ -111,6 +132,10 @@ export default () => {
 				default: 42,
 			},
 			displayPostDate: {
+				type: 'boolean',
+				default: false,
+			},
+			displayFeaturedImage: {
 				type: 'boolean',
 				default: false,
 			},
