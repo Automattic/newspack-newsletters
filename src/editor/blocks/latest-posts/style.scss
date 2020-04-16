@@ -5,10 +5,15 @@
 		border: 1px solid #909090;
 		margin-top: 20px;
 	}
-}
 
-.wp-block-column {
-	figure {
-		margin-top: 0 !important;
+	.wp-block-column {
+		figure {
+			margin-top: 0 !important;
+		}
+	}
+
+	// For some reason it's `absolute` in Gutenberg 7.8.1
+	.block-editor-block-preview__content {
+		position: relative;
 	}
 }

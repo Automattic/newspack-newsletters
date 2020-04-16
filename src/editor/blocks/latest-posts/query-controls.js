@@ -70,6 +70,8 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 			categorySuggestions={ categorySuggestions }
 			onCategoryChange={ selectCategories }
 			selectedCategories={ attributes.categories }
+			// Support for legacy Gutenberg version.
+			categoriesList={ [] }
 			minItems={ 1 }
 			maxItems={ 10 }
 		/>
