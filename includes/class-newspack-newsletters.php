@@ -331,13 +331,20 @@ final class Newspack_Newsletters {
 	public static function api_set_mailchimp_interest( $request ) {
 		$id          = $request['id'];
 		$exploded    = explode( ':', $request['interest_id'] );
-		$field       = $exploded[0];
-		$interest_id = $exploded[1];
+		$field       = count( $exploded ) ? $exploded[0] : null;
+		$interest_id = count( $exploded ) > 1 ? $exploded[1] : null;
 
 		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
 			return new WP_Error(
 				'newspack_newsletters_incorrect_post_type',
 				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		if ( 'no_interests' !== $request['interest_id'] && ( ! $field || ! $interest_id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Invalid Mailchimp Interest .', 'newspack-newsletters' )
 			);
 		}
 
@@ -360,19 +367,21 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$segment_opts = [
-			'match'      => 'any',
-			'conditions' => [
-				[
-					'condition_type' => 'Interests',
-					'field'          => $field,
-					'op'             => 'interestcontains',
-					'value'          => [
-						$interest_id,
+		$segment_opts = ( 'no_interests' === $request['interest_id'] ) ?
+			(object) [] :
+			[
+				'match'      => 'any',
+				'conditions' => [
+					[
+						'condition_type' => 'Interests',
+						'field'          => $field,
+						'op'             => 'interestcontains',
+						'value'          => [
+							$interest_id,
+						],
 					],
 				],
-			],
-		];
+			];
 
 		$payload = [
 			'recipients' => [

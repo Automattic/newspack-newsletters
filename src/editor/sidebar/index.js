@@ -84,6 +84,9 @@ class Sidebar extends Component {
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
 	setInterest = interestId => {
+		if ( ! interestId || 'interest_group' === interestId ) {
+			return;
+		}
 		this.setState( { inFlight: true } );
 		const { postId } = this.props;
 		const params = {
@@ -132,7 +135,7 @@ class Sidebar extends Component {
 			const { title, interests, id } = item;
 			accumulator.push( {
 				label: title,
-				value: interest_id,
+				value: 'interest_group',
 			} );
 			if ( interests && interests.interests && interests.interests.length ) {
 				interests.interests.forEach( interest => {
@@ -151,7 +154,13 @@ class Sidebar extends Component {
 			<SelectControl
 				label={ __( 'Interests', 'newspack-newsletters' ) }
 				value={ interestValue }
-				options={ options }
+				options={ [
+					{
+						label: __( '-- No Interest Selected --', 'newspack-newsletters' ),
+						value: 'no_interests',
+					},
+					...options,
+				] }
 				onChange={ value => this.setInterest( value ) }
 				disabled={ inFlight }
 			/>
