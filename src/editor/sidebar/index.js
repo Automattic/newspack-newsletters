@@ -17,6 +17,11 @@ import {
 } from '@wordpress/components';
 
 /**
+ * External dependencies
+ */
+import { get } from 'lodash';
+
+/**
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
@@ -78,6 +83,15 @@ class Sidebar extends Component {
 		};
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
+	setInterest = interestId => {
+		this.setState( { inFlight: true } );
+		const { postId } = this.props;
+		const params = {
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
+			method: 'POST',
+		};
+		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+	};
 	updateSender = ( senderName, senderEmail ) => {
 		this.setState( { inFlight: true } );
 		const { postId } = this.props;
@@ -106,7 +120,7 @@ class Sidebar extends Component {
 	};
 
 	interestCategories = () => {
-		const { inFlight, interestCategories } = this.state;
+		const { campaign, inFlight, interestCategories } = this.state;
 		if (
 			! interestCategories ||
 			! interestCategories.categories ||
@@ -115,27 +129,30 @@ class Sidebar extends Component {
 			return;
 		}
 		const options = interestCategories.categories.reduce( ( accumulator, item ) => {
-			const { title, interests } = item;
+			const { title, interests, id } = item;
 			accumulator.push( {
 				label: title,
-				value: null,
+				value: interest_id,
 			} );
 			if ( interests && interests.interests && interests.interests.length ) {
 				interests.interests.forEach( interest => {
 					accumulator.push( {
 						label: '- ' + interest.name,
-						value: interest.id,
+						value: 'interests-' + id + ':' + interest.id,
 					} );
 				} );
 			}
 			return accumulator;
 		}, [] );
+		const field = get( campaign, 'recipients.segment_opts.conditions.[0].field' );
+		const interest_id = get( campaign, 'recipients.segment_opts.conditions.[0].value.[0]' );
+		const interestValue = field && interest_id ? field + ':' + interest_id : 0;
 		return (
 			<SelectControl
 				label={ __( 'Interests', 'newspack-newsletters' ) }
-				value={ '' }
+				value={ interestValue }
 				options={ options }
-				onChange={ () => null }
+				onChange={ value => this.setInterest( value ) }
 				disabled={ inFlight }
 			/>
 		);
