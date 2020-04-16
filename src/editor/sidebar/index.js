@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { WebPreview } from 'newspack-components';
+
+/**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
@@ -6,15 +11,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch, subscribe } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
-import {
-	Button,
-	ExternalLink,
-	Modal,
-	Notice,
-	SelectControl,
-	Spinner,
-	TextControl,
-} from '@wordpress/components';
+import { Button, Modal, Notice, SelectControl, Spinner, TextControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -234,9 +231,14 @@ class Sidebar extends Component {
 				{ long_archive_url && (
 					<Fragment>
 						<hr />
-						<ExternalLink href={ long_archive_url }>
-							{ __( 'View on Mailchimp', 'newspack-newsletters' ) }
-						</ExternalLink>
+						<WebPreview
+							url={ long_archive_url }
+							renderButton={ ( { showPreview } ) => (
+								<Button isPrimary onClick={ showPreview }>
+									{ __( 'Preview', 'newspack-newsletters' ) }
+								</Button>
+							) }
+						/>
 					</Fragment>
 				) }
 			</Fragment>
