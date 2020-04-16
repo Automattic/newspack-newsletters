@@ -133,11 +133,11 @@ export default () => {
 			},
 			displayPostDate: {
 				type: 'boolean',
-				default: false,
+				default: true,
 			},
 			displayFeaturedImage: {
 				type: 'boolean',
-				default: false,
+				default: true,
 			},
 		},
 		save: () => <InnerBlocks.Content />,
