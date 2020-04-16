@@ -50,6 +50,7 @@ final class Newspack_Newsletters {
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
+		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
@@ -432,6 +433,31 @@ final class Newspack_Newsletters {
 	 */
 	public static function save_post( $id, $post, $update ) {
 		self::sync_with_mailchimp( $post, $update );
+	}
+
+	/**
+	 * Callback for CPT trashing. Will delete corresponding campaign on Mailchimp.
+	 *
+	 * @param string $id post ID.
+	 */
+	public static function trash_post( $id ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return;
+		}
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return;
+		}
+
+		$api_key  = self::mailchimp_api_key();
+		$mc       = new Mailchimp( $api_key );
+		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
+		if ( $campaign ) {
+			$status = $campaign['status'];
+			if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
+				$mc->delete( "campaigns/$mc_campaign_id" );
+			}
+		}
 	}
 
 	/**
