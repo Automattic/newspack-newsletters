@@ -152,11 +152,11 @@ class Sidebar extends Component {
 		const interestValue = field && interest_id ? field + ':' + interest_id : 0;
 		return (
 			<SelectControl
-				label={ __( 'Interests', 'newspack-newsletters' ) }
+				label={ __( 'Groups', 'newspack-newsletters' ) }
 				value={ interestValue }
 				options={ [
 					{
-						label: __( '-- No Interest Selected --', 'newspack-newsletters' ),
+						label: __( '-- Select a group --', 'newspack-newsletters' ),
 						value: 'no_interests',
 					},
 					...options,
