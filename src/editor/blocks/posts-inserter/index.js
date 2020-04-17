@@ -25,8 +25,8 @@ import QueryControlsSettings from './query-controls';
 const createBlockWithInnerBlocks = ( [ name, blockAttributes, innerBlocks = [] ] ) =>
 	createBlock( name, blockAttributes, innerBlocks.map( createBlockWithInnerBlocks ) );
 
-const LatestPostsBlock = ( { setAttributes, attributes, latestPosts, replaceBlocks } ) => {
-	const templateBlocks = getBlocksTemplate( latestPosts, attributes ).map(
+const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlocks } ) => {
+	const templateBlocks = getBlocksTemplate( postList, attributes ).map(
 		createBlockWithInnerBlocks
 	);
 
@@ -69,12 +69,12 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts, replaceBloc
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
 				</PanelBody>
 			</InspectorControls>
-			<div className="newspack-latest-posts">
-				<div className="newspack-latest-posts__header">
+			<div className="newspack-posts-inserter">
+				<div className="newspack-posts-inserter__header">
 					{ Icon }
-					<span>{ __( 'Latest Posts', 'newspack-newsletters' ) }</span>
+					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
-				<div className="newspack-latest-posts__preview">
+				<div className="newspack-posts-inserter__preview">
 					<BlockPreview blocks={ templateBlocks } />
 				</div>
 				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
@@ -85,13 +85,13 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts, replaceBloc
 	);
 };
 
-const LatestPostsBlockWithSelect = compose( [
+const PostsInserterBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
 		const { postsToShow, order, orderBy, categories } = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
-		const latestPostsQuery = pickBy(
+		const postListQuery = pickBy(
 			{
 				categories: catIds,
 				order,
@@ -101,11 +101,11 @@ const LatestPostsBlockWithSelect = compose( [
 			value => ! isUndefined( value )
 		);
 
-		const posts = getEntityRecords( 'postType', 'post', latestPostsQuery ) || [];
+		const posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
 
 		return {
 			selectedBlock: getSelectedBlock(),
-			latestPosts: posts.map( post => {
+			postList: posts.map( post => {
 				if ( post.featured_media ) {
 					const image = getMedia( post.featured_media );
 					let url = get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null );
@@ -126,14 +126,14 @@ const LatestPostsBlockWithSelect = compose( [
 			},
 		};
 	} ),
-] )( LatestPostsBlock );
+] )( PostsInserterBlock );
 
 export default () => {
-	registerBlockType( 'newspack-newsletters/latest-posts', {
-		title: 'Latest Posts',
+	registerBlockType( 'newspack-newsletters/posts-inserter', {
+		title: 'Posts Inserter',
 		category: 'widgets',
 		icon: Icon,
-		edit: LatestPostsBlockWithSelect,
+		edit: PostsInserterBlockWithSelect,
 		attributes: {
 			areBlocksInserted: {
 				type: 'boolean',

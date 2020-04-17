@@ -110,7 +110,7 @@ final class Newspack_Newsletters {
 			'core/list',
 			'core/quote',
 			'core/social-links',
-			'newspack-newsletters/latest-posts',
+			'newspack-newsletters/posts-inserter',
 		);
 	}
 

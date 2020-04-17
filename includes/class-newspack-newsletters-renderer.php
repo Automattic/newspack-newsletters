@@ -424,7 +424,7 @@ final class Newspack_Newsletters_Renderer {
 			/**
 			 * Newspack Newsletters Latest posts block template.
 			 */
-			case 'newspack-newsletters/latest-posts':
+			case 'newspack-newsletters/posts-inserter':
 				$markup = '';
 				foreach ( $inner_blocks as $block ) {
 					$markup .= self::render_mjml_component( $block );
@@ -444,8 +444,8 @@ final class Newspack_Newsletters_Renderer {
 				break;
 		}
 
-		$is_latest_posts_block = 'newspack-newsletters/latest-posts' == $block_name;
-		$is_group_block        = 'core/group' == $block_name;
+		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
+		$is_group_block          = 'core/group' == $block_name;
 
 		if (
 			! $is_in_column &&
@@ -453,12 +453,12 @@ final class Newspack_Newsletters_Renderer {
 			'core/columns' != $block_name &&
 			'core/column' != $block_name &&
 			'core/buttons' != $block_name &&
-			! $is_latest_posts_block
+			! $is_posts_inserter_block
 		) {
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
-		if ( $is_in_column || $is_group_block || $is_latest_posts_block ) {
+		if ( $is_in_column || $is_group_block || $is_posts_inserter_block ) {
 			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {

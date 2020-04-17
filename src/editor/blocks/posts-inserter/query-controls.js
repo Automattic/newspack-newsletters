@@ -11,8 +11,8 @@ import { addQueryArgs } from '@wordpress/url';
 import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 
-// NOTE: Mostly copied from Gutenberg's Latest Posts block.
-// https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/latest-posts/edit.js
+// NOTE: Mostly copied from Gutenberg's Posts Inserter block.
+// https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/posts-inserter/edit.js
 const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 	const [ categoriesList, setCategoriesList ] = useState( [] );
 

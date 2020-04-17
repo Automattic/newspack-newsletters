@@ -18,12 +18,12 @@ import TemplateModal from '../components/template-modal';
 import Sidebar from './sidebar/';
 import Editor from './editor/';
 import PrePublishSlot from './pre-publish-slot';
-import registerLatestPostsBlock from './blocks/latest-posts';
+import registerPostsInserterBlock from './blocks/posts-inserter';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 
 addBlocksValidationFilter();
-registerLatestPostsBlock();
+registerPostsInserterBlock();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
