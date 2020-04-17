@@ -84,9 +84,6 @@ class Sidebar extends Component {
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
 	setInterest = interestId => {
-		if ( ! interestId || 'interest_group' === interestId ) {
-			return;
-		}
 		this.setState( { inFlight: true } );
 		const { postId } = this.props;
 		const params = {
@@ -135,13 +132,18 @@ class Sidebar extends Component {
 			const { title, interests, id } = item;
 			accumulator.push( {
 				label: title,
-				value: 'interest_group',
+				disabled: true,
 			} );
 			if ( interests && interests.interests && interests.interests.length ) {
 				interests.interests.forEach( interest => {
+					const isDisabled = parseInt( interest.subscriber_count ) === 0;
 					accumulator.push( {
-						label: '- ' + interest.name,
+						label:
+							'- ' +
+							interest.name +
+							( isDisabled ? __( ' (no subscribers)', 'newspack-newsletters' ) : '' ),
 						value: 'interests-' + id + ':' + interest.id,
+						disabled: isDisabled,
 					} );
 				} );
 			}
