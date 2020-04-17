@@ -48,8 +48,9 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 2 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
+		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
@@ -429,19 +430,47 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
-	 * @param boolean $update whether it's an update.
 	 */
-	public static function save_post( $id, $post, $update ) {
-		self::sync_with_mailchimp( $post, $update );
+	public static function save_post( $id, $post ) {
+		$status = get_post_status( $id );
+		if ( 'trash' === $status ) {
+			return;
+		}
+		self::sync_with_mailchimp( $post );
+	}
+
+	/**
+	 * Callback for CPT trashing. Will delete corresponding campaign on Mailchimp.
+	 *
+	 * @param string $id post ID.
+	 */
+	public static function trash_post( $id ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return;
+		}
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return;
+		}
+
+		$api_key  = self::mailchimp_api_key();
+		$mc       = new Mailchimp( $api_key );
+		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
+		if ( $campaign ) {
+			$status = $campaign['status'];
+			if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
+				$result = $mc->delete( "campaigns/$mc_campaign_id" );
+				delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+			}
+		}
 	}
 
 	/**
 	 * Synchronize CPT with Mailchimp campaign.
 	 *
 	 * @param WP_Post $post the post.
-	 * @param boolean $update whether it's an update.
 	 */
-	public static function sync_with_mailchimp( $post, $update = false ) {
+	public static function sync_with_mailchimp( $post ) {
 		$api_key = self::mailchimp_api_key();
 		if ( ! $api_key ) {
 			return new WP_Error(
@@ -461,16 +490,9 @@ final class Newspack_Newsletters {
 		];
 
 		$mc_campaign_id = null;
-		$campaign       = null;
 
-		if ( $update ) {
-			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
-			if ( ! $mc_campaign_id ) {
-				return new WP_Error(
-					'newspack_newsletters_incorrect_post_type',
-					__( 'Mailchimp Campaign ID not found.', 'newspack-newsletters' )
-				);
-			}
+		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
+		if ( $mc_campaign_id ) {
 			$campaign_result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 		} else {
 			$campaign_result = $mc->post( 'campaigns', $payload );
@@ -525,7 +547,7 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$sync_result = self::sync_with_mailchimp( $post, true );
+		$sync_result = self::sync_with_mailchimp( $post );
 
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
