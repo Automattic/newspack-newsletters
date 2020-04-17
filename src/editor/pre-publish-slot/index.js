@@ -11,7 +11,7 @@ const PrePublishSlot = withSelect( select => {
 	const { getEditedPostAttribute } = select( 'core/editor' );
 	const meta = getEditedPostAttribute( 'meta' );
 	return {
-		validationErrors: meta.campaign_validation_errors || [],
+		validationErrors: meta.campaignValidationErrors || [],
 	};
 } )( ( { validationErrors } ) => {
 	if ( validationErrors.length ) {
