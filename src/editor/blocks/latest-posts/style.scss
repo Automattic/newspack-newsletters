@@ -1,9 +1,20 @@
 .newspack-latest-posts {
 	padding: 20px;
-	border: 1px solid #909090;
+	border: 1px solid #1e1e1e;
+	&__header {
+		display: flex;
+		align-items: center;
+		span {
+			padding-left: 10px;
+		}
+	}
 	&__preview {
-		border: 1px solid #909090;
+		border-top: 1px solid #1e1e1e;
+		border-bottom: 1px solid #1e1e1e;
 		margin-top: 20px;
+		margin-bottom: 20px;
+		max-height: 400px;
+		overflow: scroll;
 	}
 
 	.wp-block-column {

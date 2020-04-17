@@ -18,7 +18,7 @@ import { Fragment, useEffect } from '@wordpress/element';
  * Internal dependencies
  */
 import './style.scss';
-import icon from './icon';
+import Icon from './icon';
 import { getBlocksTemplate } from './utils';
 import QueryControlsSettings from './query-controls';
 
@@ -70,12 +70,16 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts, replaceBloc
 				</PanelBody>
 			</InspectorControls>
 			<div className="newspack-latest-posts">
-				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
-					{ __( 'Insert', 'newspack-newsletters' ) }
-				</Button>
+				<div className="newspack-latest-posts__header">
+					{ Icon }
+					<span>{ __( 'Latest Posts', 'newspack-newsletters' ) }</span>
+				</div>
 				<div className="newspack-latest-posts__preview">
 					<BlockPreview blocks={ templateBlocks } />
 				</div>
+				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
+					{ __( 'Insert posts', 'newspack-newsletters' ) }
+				</Button>
 			</div>
 		</Fragment>
 	);
@@ -128,7 +132,7 @@ export default () => {
 	registerBlockType( 'newspack-newsletters/latest-posts', {
 		title: 'Latest Posts',
 		category: 'widgets',
-		icon,
+		icon: Icon,
 		edit: LatestPostsBlockWithSelect,
 		attributes: {
 			areBlocksInserted: {
