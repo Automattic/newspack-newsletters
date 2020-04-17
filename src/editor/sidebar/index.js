@@ -17,6 +17,11 @@ import {
 } from '@wordpress/components';
 
 /**
+ * External dependencies
+ */
+import { get } from 'lodash';
+
+/**
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
@@ -78,6 +83,15 @@ class Sidebar extends Component {
 		};
 		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
+	setInterest = interestId => {
+		this.setState( { inFlight: true } );
+		const { postId } = this.props;
+		const params = {
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
+			method: 'POST',
+		};
+		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+	};
 	updateSender = ( senderName, senderEmail ) => {
 		this.setState( { inFlight: true } );
 		const { postId } = this.props;
@@ -93,16 +107,66 @@ class Sidebar extends Component {
 	};
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result.campaign ) );
-
 		this.setState( {
 			campaign: result.campaign,
 			lists: result.lists.lists,
+			interestCategories: result.interest_categories,
 			hasResults: true,
 			inFlight: false,
 			senderName: result.campaign.settings.from_name,
 			senderEmail: result.campaign.settings.reply_to,
 			senderDirty: false,
 		} );
+	};
+
+	interestCategories = () => {
+		const { campaign, inFlight, interestCategories } = this.state;
+		if (
+			! interestCategories ||
+			! interestCategories.categories ||
+			! interestCategories.categories.length
+		) {
+			return;
+		}
+		const options = interestCategories.categories.reduce( ( accumulator, item ) => {
+			const { title, interests, id } = item;
+			accumulator.push( {
+				label: title,
+				disabled: true,
+			} );
+			if ( interests && interests.interests && interests.interests.length ) {
+				interests.interests.forEach( interest => {
+					const isDisabled = parseInt( interest.subscriber_count ) === 0;
+					accumulator.push( {
+						label:
+							'- ' +
+							interest.name +
+							( isDisabled ? __( ' (no subscribers)', 'newspack-newsletters' ) : '' ),
+						value: 'interests-' + id + ':' + interest.id,
+						disabled: isDisabled,
+					} );
+				} );
+			}
+			return accumulator;
+		}, [] );
+		const field = get( campaign, 'recipients.segment_opts.conditions.[0].field' );
+		const interest_id = get( campaign, 'recipients.segment_opts.conditions.[0].value.[0]' );
+		const interestValue = field && interest_id ? field + ':' + interest_id : 0;
+		return (
+			<SelectControl
+				label={ __( 'Groups', 'newspack-newsletters' ) }
+				value={ interestValue }
+				options={ [
+					{
+						label: __( '-- Select a group --', 'newspack-newsletters' ),
+						value: 'no_interests',
+					},
+					...options,
+				] }
+				onChange={ value => this.setInterest( value ) }
+				disabled={ inFlight }
+			/>
+		);
 	};
 
 	/**
@@ -172,6 +236,7 @@ class Sidebar extends Component {
 					onChange={ value => this.setList( value ) }
 					disabled={ inFlight }
 				/>
+				{ this.interestCategories() }
 				<hr />
 				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
 				<TextControl

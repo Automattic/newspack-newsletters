@@ -203,6 +203,23 @@ final class Newspack_Newsletters {
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1/',
+			'mailchimp/(?P<id>[\a-z]+)/interest/(?P<interest_id>[\a-z]+)',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_mailchimp_interest' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'id'          => [
+						'sanitize_callback' => 'absint',
+					],
+					'interest_id' => [
+						'sanitize_callback' => 'esc_attr',
+					],
+				],
+			]
+		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)/settings',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -308,6 +325,81 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Set Mailchimp Interest.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_mailchimp_interest( $request ) {
+		$id          = $request['id'];
+		$exploded    = explode( ':', $request['interest_id'] );
+		$field       = count( $exploded ) ? $exploded[0] : null;
+		$interest_id = count( $exploded ) > 1 ? $exploded[1] : null;
+
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		if ( 'no_interests' !== $request['interest_id'] && ( ! $field || ! $interest_id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Invalid Mailchimp Interest .', 'newspack-newsletters' )
+			);
+		}
+
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			);
+		}
+
+		$mc       = new Mailchimp( self::mailchimp_api_key() );
+		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
+		$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+
+		if ( ! $list_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp list ID not found.', 'newspack-newsletters' )
+			);
+		}
+
+		$segment_opts = ( 'no_interests' === $request['interest_id'] ) ?
+			(object) [] :
+			[
+				'match'      => 'any',
+				'conditions' => [
+					[
+						'condition_type' => 'Interests',
+						'field'          => $field,
+						'op'             => 'interestcontains',
+						'value'          => [
+							$interest_id,
+						],
+					],
+				],
+			];
+
+		$payload = [
+			'recipients' => [
+				'list_id'      => $list_id,
+				'segment_opts' => $segment_opts,
+			],
+		];
+
+		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+
+		$data           = self::retrieve_data( $id );
+		$data['result'] = $result;
+
+		return \rest_ensure_response( $data );
+	}
+
+	/**
 	 * Register custom fields.
 	 */
 	public static function register_meta() {
@@ -390,12 +482,23 @@ final class Newspack_Newsletters {
 	 * @param string $id post ID.
 	 */
 	public static function retrieve_data( $id ) {
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		$mc             = new Mailchimp( self::mailchimp_api_key() );
+		$mc_campaign_id      = get_post_meta( $id, 'mc_campaign_id', true );
+		$mc                  = new Mailchimp( self::mailchimp_api_key() );
+		$campaign            = $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null;
+		$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+		$interest_categories = $list_id ? $mc->get( "lists/$list_id/interest-categories" ) : null;
+		if ( $interest_categories && count( $interest_categories['categories'] ) ) {
+			foreach ( $interest_categories['categories'] as &$category ) {
+				$category_id           = $category['id'];
+				$category['interests'] = $mc->get( "lists/$list_id/interest-categories/$category_id/interests" );
+			}
+		}
+
 		return [
-			'lists'       => $mc->get( 'lists' ),
-			'campaign'    => $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null,
-			'campaign_id' => $mc_campaign_id,
+			'lists'               => $mc->get( 'lists' ),
+			'campaign'            => $campaign,
+			'campaign_id'         => $mc_campaign_id,
+			'interest_categories' => $interest_categories,
 		];
 	}
 
