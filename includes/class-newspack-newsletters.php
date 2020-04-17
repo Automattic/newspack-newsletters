@@ -178,7 +178,7 @@ final class Newspack_Newsletters {
 						'sanitize_callback' => 'absint',
 					],
 					'test_email' => [
-						'sanitize_callback' => 'sanitize_email',
+						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
 			]
@@ -357,8 +357,6 @@ final class Newspack_Newsletters {
 				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
 			);
 		}
-
-
 		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
 		if ( ! $mc_campaign_id ) {
 			return new WP_Error(
@@ -367,11 +365,14 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc      = new Mailchimp( self::mailchimp_api_key() );
+		$mc = new Mailchimp( self::mailchimp_api_key() );
+
+		$test_emails = explode( ',', $test_email );
+		foreach ( $test_emails as &$email ) {
+			$email = sanitize_email( trim( $email ) );
+		}
 		$payload = [
-			'test_emails' => [
-				$test_email,
-			],
+			'test_emails' => $test_emails,
 			'send_type'   => 'html',
 		];
 		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload );
