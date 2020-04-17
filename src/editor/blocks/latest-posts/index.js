@@ -8,11 +8,11 @@ import { isUndefined, pickBy, get } from 'lodash';
  */
 import { registerBlockType, createBlock } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
-import { withSelect } from '@wordpress/data';
+import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { RangeControl, Button, ToggleControl, PanelBody } from '@wordpress/components';
 import { InnerBlocks, BlockPreview, InspectorControls } from '@wordpress/block-editor';
-import { Fragment } from '@wordpress/element';
+import { Fragment, useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -25,12 +25,18 @@ import QueryControlsSettings from './query-controls';
 const createBlockWithInnerBlocks = ( [ name, blockAttributes, innerBlocks = [] ] ) =>
 	createBlock( name, blockAttributes, innerBlocks.map( createBlockWithInnerBlocks ) );
 
-const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
-	const templateBlocks = getBlocksTemplate( latestPosts, attributes );
+const LatestPostsBlock = ( { setAttributes, attributes, latestPosts, replaceBlocks } ) => {
+	const templateBlocks = getBlocksTemplate( latestPosts, attributes ).map(
+		createBlockWithInnerBlocks
+	);
 
-	return attributes.isReady ? (
-		<InnerBlocks template={ templateBlocks } />
-	) : (
+	useEffect(() => {
+		if ( attributes.areBlocksInserted ) {
+			replaceBlocks( templateBlocks );
+		}
+	}, [ attributes.areBlocksInserted ]);
+
+	return attributes.areBlocksInserted ? null : (
 		<Fragment>
 			<InspectorControls>
 				<PanelBody title={ __( 'Post content settings', 'newspack-newsletters' ) }>
@@ -64,11 +70,11 @@ const LatestPostsBlock = ( { setAttributes, attributes, latestPosts } ) => {
 				</PanelBody>
 			</InspectorControls>
 			<div className="newspack-latest-posts">
-				<Button isPrimary onClick={ () => setAttributes( { isReady: true } ) }>
+				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 					{ __( 'Insert', 'newspack-newsletters' ) }
 				</Button>
 				<div className="newspack-latest-posts__preview">
-					<BlockPreview blocks={ templateBlocks.map( createBlockWithInnerBlocks ) } />
+					<BlockPreview blocks={ templateBlocks } />
 				</div>
 			</div>
 		</Fragment>
@@ -79,6 +85,7 @@ const LatestPostsBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
 		const { postsToShow, order, orderBy, categories } = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
+		const { getSelectedBlock } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
 		const latestPostsQuery = pickBy(
 			{
@@ -93,6 +100,7 @@ const LatestPostsBlockWithSelect = compose( [
 		const posts = getEntityRecords( 'postType', 'post', latestPostsQuery ) || [];
 
 		return {
+			selectedBlock: getSelectedBlock(),
 			latestPosts: posts.map( post => {
 				if ( post.featured_media ) {
 					const image = getMedia( post.featured_media );
@@ -106,6 +114,14 @@ const LatestPostsBlockWithSelect = compose( [
 			} ),
 		};
 	} ),
+	withDispatch( ( dispatch, props ) => {
+		const { replaceBlocks } = dispatch( 'core/block-editor' );
+		return {
+			replaceBlocks: blocks => {
+				replaceBlocks( props.selectedBlock.clientId, blocks );
+			},
+		};
+	} ),
 ] )( LatestPostsBlock );
 
 export default () => {
@@ -115,7 +131,7 @@ export default () => {
 		icon,
 		edit: LatestPostsBlockWithSelect,
 		attributes: {
-			isReady: {
+			areBlocksInserted: {
 				type: 'boolean',
 				default: false,
 			},
