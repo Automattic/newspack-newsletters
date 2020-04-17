@@ -7,7 +7,7 @@ import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
-import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
+import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
 import { addFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
 
@@ -16,13 +16,16 @@ import { registerPlugin } from '@wordpress/plugins';
  */
 import TemplateModal from '../components/template-modal';
 import Sidebar from './sidebar/';
-import Editor from './editor/';
-import PrePublishSlot from './pre-publish-slot';
-
+import registerEditorPlugin from './editor/';
+import registerPrePublishSlot from './pre-publish-slot';
+import registerPostStatusSlot from './post-status-slot';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 
 addBlocksValidationFilter();
+registerPrePublishSlot();
+registerPostStatusSlot();
+registerEditorPlugin();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
@@ -111,17 +114,4 @@ const NewsletterEditWithSelect = compose( [
 registerPlugin( 'newspack-newsletters-sidebar', {
 	render: NewsletterEditWithSelect,
 	icon: null,
-} );
-
-registerPlugin( 'newspack-newsletters-pre-publish', {
-	render: () => (
-		<PluginPrePublishPanel>
-			<PrePublishSlot />
-		</PluginPrePublishPanel>
-	),
-	icon: null,
-} );
-
-registerPlugin( 'newspack-newsletters-edit', {
-	render: Editor,
 } );

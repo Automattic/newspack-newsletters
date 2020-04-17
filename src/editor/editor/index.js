@@ -5,6 +5,7 @@ import { compose } from '@wordpress/compose';
 import apiFetch from '@wordpress/api-fetch';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
+import { registerPlugin } from '@wordpress/plugins';
 
 /**
  * Internal dependencies
@@ -12,7 +13,7 @@ import { useEffect } from '@wordpress/element';
 import { getEditPostPayload } from '../utils';
 import './style.scss';
 
-export default compose( [
+const Editor = compose( [
 	withDispatch( dispatch => {
 		const { lockPostSaving, unlockPostSaving, editPost } = dispatch( 'core/editor' );
 		return { lockPostSaving, unlockPostSaving, editPost };
@@ -49,3 +50,9 @@ export default compose( [
 
 	return null;
 } );
+
+export default () => {
+	registerPlugin( 'newspack-newsletters-edit', {
+		render: Editor,
+	} );
+};

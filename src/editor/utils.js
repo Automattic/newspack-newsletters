@@ -29,8 +29,9 @@ const validateCampaign = campaign => {
 
 export const getEditPostPayload = campaign => ( {
 	meta: {
-		// This meta field does not have to be registered on the back end,
-		// as it is not used there.
+		// This meta fields do not have to be registered on the back end,
+		// as they are not used there.
 		campaign_validation_errors: validateCampaign( campaign ),
+		campaign,
 	},
 } );

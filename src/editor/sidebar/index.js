@@ -1,9 +1,4 @@
 /**
- * External dependencies
- */
-import { WebPreview } from 'newspack-components';
-
-/**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
@@ -21,7 +16,6 @@ import './style.scss';
 
 class Sidebar extends Component {
 	state = {
-		campaign: {},
 		lists: [],
 		hasResults: false,
 		inFlight: false,
@@ -92,7 +86,6 @@ class Sidebar extends Component {
 		this.props.editPost( getEditPostPayload( result.campaign ) );
 
 		this.setState( {
-			campaign: result.campaign,
 			lists: result.lists.lists,
 			hasResults: true,
 			inFlight: false,
@@ -106,9 +99,8 @@ class Sidebar extends Component {
 	 * Render
 	 */
 	render() {
-		const { editPost, title } = this.props;
+		const { campaign, editPost, title } = this.props;
 		const {
-			campaign,
 			hasResults,
 			inFlight,
 			lists,
@@ -126,7 +118,7 @@ class Sidebar extends Component {
 				</div>
 			);
 		}
-		const { recipients, status, long_archive_url } = campaign || {};
+		const { recipients, status } = campaign || {};
 		const { list_id } = recipients || {};
 		if ( ! status ) {
 			return (
@@ -228,19 +220,6 @@ class Sidebar extends Component {
 						</Button>
 					</Modal>
 				) }
-				{ long_archive_url && (
-					<Fragment>
-						<hr />
-						<WebPreview
-							url={ long_archive_url }
-							renderButton={ ( { showPreview } ) => (
-								<Button isPrimary onClick={ showPreview }>
-									{ __( 'Preview', 'newspack-newsletters' ) }
-								</Button>
-							) }
-						/>
-					</Fragment>
-				) }
 			</Fragment>
 		);
 	}
@@ -251,8 +230,10 @@ export default compose( [
 		const { getEditedPostAttribute, getCurrentPostId, isPublishingPost, isSavingPost } = select(
 			'core/editor'
 		);
+		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			title: getEditedPostAttribute( 'title' ),
+			campaign: meta.campaign,
 			postId: getCurrentPostId(),
 			isPublishingPost,
 			isSavingPost,

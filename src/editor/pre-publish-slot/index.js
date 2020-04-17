@@ -4,8 +4,10 @@
 import { Notice } from '@wordpress/components';
 import { withSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { registerPlugin } from '@wordpress/plugins';
+import { PluginPrePublishPanel } from '@wordpress/edit-post';
 
-export default withSelect( select => {
+const PrePublishSlot = withSelect( select => {
 	const { getEditedPostAttribute } = select( 'core/editor' );
 	const meta = getEditedPostAttribute( 'meta' );
 	return {
@@ -31,3 +33,14 @@ export default withSelect( select => {
 		</Notice>
 	);
 } );
+
+export default () => {
+	registerPlugin( 'newspack-newsletters-pre-publish', {
+		render: () => (
+			<PluginPrePublishPanel>
+				<PrePublishSlot />
+			</PluginPrePublishPanel>
+		),
+		icon: null,
+	} );
+};
