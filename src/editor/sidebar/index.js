@@ -16,7 +16,7 @@ import { get } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
+import { getEditPostPayload, hasValidEmail } from '../utils';
 import './style.scss';
 
 class Sidebar extends Component {
@@ -212,7 +212,7 @@ class Sidebar extends Component {
 					<Button
 						isLink
 						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight }
+						disabled={ inFlight || senderEmail.length ? ! hasValidEmail( senderEmail ) : false }
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
@@ -239,6 +239,7 @@ class Sidebar extends Component {
 						/>
 						<Button
 							isPrimary
+							disabled={ ! hasValidEmail( testEmail ) }
 							onClick={ () =>
 								this.setState( { showTestModal: false }, () => this.sendMailchimpTest() )
 							}
