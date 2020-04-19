@@ -45,9 +45,10 @@ class Newspack_Newsletters_Settings {
 	 * Add options page
 	 */
 	public static function add_plugin_page() {
-		add_options_page(
-			__( 'Newspack Newsletters Settings', 'newspack-newsletters' ),
-			__( 'Newspack Newsletters', 'newspack-newsletters' ),
+		add_submenu_page( 
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			__( 'Newspack Newsletters Settings', 'newspack-newsletters' ), 
+			__( 'Settings', 'newspack-newsletters' ), 
 			'manage_options',
 			'newspack-newsletters-settings-admin',
 			[ __CLASS__, 'create_admin_page' ]
