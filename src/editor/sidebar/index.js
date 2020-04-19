@@ -209,6 +209,7 @@ class Sidebar extends Component {
 				</Notice>
 			);
 		}
+		const { web_id: listWebId } = lists.find( ( { id } ) => list_id === id );
 		return (
 			<Fragment>
 				<TextControl
@@ -236,6 +237,11 @@ class Sidebar extends Component {
 					onChange={ value => this.setList( value ) }
 					disabled={ inFlight }
 				/>
+				{ listWebId && (
+					<ExternalLink href={ `https://us7.admin.mailchimp.com/lists/members/?id=${ listWebId }` }>
+						{ __( 'Manage list', 'newspack-newsletters' ) }
+					</ExternalLink>
+				) }
 				{ this.interestCategories() }
 				<hr />
 				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
