@@ -59,8 +59,10 @@ const NewsletterEdit = ( {
 	const templates =
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
 
-	const [ selectedTemplate, setSelectedTemplate ] = useState( 0 );
 	const [ insertedTemplate, setInserted ] = useState( null );
+	const [ hasKeys, setHasKeys ] = useState(
+		window && window.newspack_newsletters_data && window.newspack_newsletters_data.has_keys
+	);
 
 	const handleTemplateInsertion = templateIndex => {
 		const template = templates[ templateIndex ];
@@ -73,16 +75,16 @@ const NewsletterEdit = ( {
 		setInserted( templateIndex );
 		setTimeout( savePost, 1 );
 	};
-
 	const isDisplayingTemplateModal =
-		isEditedPostEmpty && templates && templates.length && insertedTemplate === null;
+		! hasKeys ||
+		( isEditedPostEmpty && templates && templates.length && insertedTemplate === null );
 
 	return isDisplayingTemplateModal ? (
 		<TemplateModal
 			templates={ templates }
 			onInsertTemplate={ handleTemplateInsertion }
-			onSelectTemplate={ setSelectedTemplate }
-			selectedTemplate={ selectedTemplate }
+			hasKeys={ hasKeys }
+			onSetupStatus={ status => setHasKeys( status ) }
 		/>
 	) : (
 		<Fragment>
