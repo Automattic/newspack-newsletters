@@ -52,6 +52,17 @@ final class Newspack_Newsletters {
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
+
+		$needs_nag = 
+			is_admin() && 
+			( ! self::mailchimp_api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) && 
+			! get_option( 'newspack_newsletters_activation_nag_viewed', false );
+
+		if ( $needs_nag ) {
+			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
+			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
+			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
+		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 	}
@@ -728,6 +739,65 @@ final class Newspack_Newsletters {
 			$post_title = gmdate( get_option( 'date_format' ) );
 		}
 		return $post_title;
+	}
+
+	/**
+	 * Activation Nag 
+	 */
+
+	/**
+	 * Add admin notice if API keys are unset.
+	 */
+	public static function activation_nag() {
+		$screen = get_current_screen();
+		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || 'newspack_nl_cpt' === $screen->post_type ) {
+			return;
+		}
+		$url = admin_url( '/options-general.php?page=newspack-newsletters-settings-admin' );
+		?>
+		<div class="notice notice-info is-dismissible newspack-newsletters-notification-nag">
+			<p>
+				<?php
+					echo wp_kses_post( 
+						sprintf( 
+							// translators: urge users to input their API keys on settings page. 
+							__( 'Thank you for activating Newspack Newsletters. Please <a href="%s">head to settings</a> to set up your API keys.', 'newspack-newsletters' ), 
+							$url
+						)
+					);
+				?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Enqueue script to handle activation nag dismissal.
+	 */
+	public static function activation_nag_dismissal_script() {
+		$script = 'newspack-newsletters-activation_nag_dismissal';
+		wp_register_script( 
+			$script, 
+			plugins_url( '../dist/admin.js', __FILE__ ),
+			[ 'jquery' ],
+			'1.0',
+			false
+		);
+		wp_localize_script(
+			$script, 
+			'newspack_newsletters_activation_nag_dismissal_params',
+			[
+				'ajaxurl' => get_admin_url() . 'admin-ajax.php', 
+			]
+		);
+		wp_enqueue_script( $script );
+	}
+
+	/**
+	 * AJAX callback after nag has been dismissed.
+	 */
+	public static function activation_nag_dismissal_ajax() {
+		update_option( 'newspack_newsletters_activation_nag_viewed', true );
 	}
 }
 Newspack_Newsletters::instance();
