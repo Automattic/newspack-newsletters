@@ -42,7 +42,7 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'admin_init', [ __CLASS__, 'remove_other_editor_modifications' ] );
+		add_action( 'the_post', [ __CLASS__, 'remove_other_editor_modifications' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
@@ -59,17 +59,7 @@ final class Newspack_Newsletters {
 	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
 	 */
 	public static function remove_other_editor_modifications() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$post = isset( $_GET['post'] ) ? sanitize_text_field( $_GET['post'] ) : false;
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : false;
-		if ( ! $post && ! $post_type ) {
-			return;
-		}
-		if ( $post ) {
-			$post_type = get_post_type( $post );
-		}
-		if ( $post_type && self::NEWSPACK_NEWSLETTERS_CPT != $post_type ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
 			return;
 		}
 
