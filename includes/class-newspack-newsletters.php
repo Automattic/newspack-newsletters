@@ -583,12 +583,19 @@ final class Newspack_Newsletters {
 		if ( is_wp_error( $campaign ) ) {
 			return $campaign;
 		}
+
 		$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
-		$interest_categories = $list_id ? $mc->get( "lists/$list_id/interest-categories" ) : null;
-		if ( $interest_categories && count( $interest_categories['categories'] ) ) {
-			foreach ( $interest_categories['categories'] as &$category ) {
-				$category_id           = $category['id'];
-				$category['interests'] = $mc->get( "lists/$list_id/interest-categories/$category_id/interests" );
+		$interest_categories = null;
+		if ( $list_id ) {
+			$interest_categories = self::handle_mailchimp_response( $mc->get( "lists/$list_id/interest-categories" ) );
+			if ( is_wp_error( $interest_categories ) ) {
+				return $interest_categories;
+			}
+			if ( $interest_categories && count( $interest_categories['categories'] ) ) {
+				foreach ( $interest_categories['categories'] as &$category ) {
+					$category_id           = $category['id'];
+					$category['interests'] = $mc->get( "lists/$list_id/interest-categories/$category_id/interests" );
+				}
 			}
 		}
 
