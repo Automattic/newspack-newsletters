@@ -556,8 +556,8 @@ final class Newspack_Newsletters {
 	 * @param string $id post ID.
 	 */
 	public static function retrieve_data( $id ) {
-		$sync_error_message    = get_transient( 'newsletters_mc_error_' . $id . '_sync' );
-		$publish_error_message = get_transient( 'newsletters_mc_error_' . $id . '_publish' );
+		$sync_error_message    = get_transient( 'newsletters_fatal_error_' . $id . '_sync' );
+		$publish_error_message = get_transient( 'newsletters_fatal_error_' . $id . '_publish' );
 		if ( $publish_error_message || $sync_error_message ) {
 			$error_title = $publish_error_message ? __(
 				'There was an error when publishing the campaign',
@@ -567,7 +567,7 @@ final class Newspack_Newsletters {
 				'newspack-newsletters'
 			);
 			return new \WP_Error(
-				'newspack_newsletters_mailchimp_error_fatal',
+				'newspack_newsletters_error_fatal',
 				$error_title,
 				array(
 					'title'  => $error_title,
@@ -653,7 +653,7 @@ final class Newspack_Newsletters {
 			$error = $result->get_error_message();
 		}
 		// post meta was not suitable, as it was cached, and the feedback has to be immediate.
-		set_transient( 'newsletters_mc_error_' . $id . '_' . $error_type, $error );
+		set_transient( 'newsletters_fatal_error_' . $id . '_' . $error_type, $error );
 	}
 
 	/**
