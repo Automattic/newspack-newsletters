@@ -13,7 +13,7 @@ import {
 	SelectControl,
 	Spinner,
 	TextControl,
-	ExternalLink
+	ExternalLink,
 } from '@wordpress/components';
 
 /**
