@@ -384,8 +384,11 @@ final class Newspack_Newsletters {
 		if ( is_wp_error( $mc ) ) {
 			return $mc;
 		}
-		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
-		$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+		$campaign = self::handle_mailchimp_response( $mc->get( "campaigns/$mc_campaign_id" ) );
+		if ( is_wp_error( $campaign ) ) {
+			return $campaign;
+		}
+		$list_id = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
 		if ( ! $list_id ) {
 			return new WP_Error(
@@ -417,8 +420,10 @@ final class Newspack_Newsletters {
 			],
 		];
 
-		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
-
+		$result = self::handle_mailchimp_response( $mc->patch( "campaigns/$mc_campaign_id", $payload ) );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
 		$data           = self::retrieve_data( $id );
 		$data['result'] = $result;
 
@@ -652,11 +657,17 @@ final class Newspack_Newsletters {
 		if ( is_wp_error( $mc ) ) {
 			return $mc;
 		}
-		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
+		$campaign = self::handle_mailchimp_response( $mc->get( "campaigns/$mc_campaign_id" ) );
+		if ( is_wp_error( $campaign ) ) {
+			return $campaign;
+		}
 		if ( $campaign ) {
 			$status = $campaign['status'];
 			if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
-				$result = $mc->delete( "campaigns/$mc_campaign_id" );
+				$result = self::handle_mailchimp_response( $mc->delete( "campaigns/$mc_campaign_id" ) );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
 				delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
 			}
 		}
@@ -683,10 +694,16 @@ final class Newspack_Newsletters {
 
 		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 		if ( $mc_campaign_id ) {
-			$campaign_result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+			$campaign_result = self::handle_mailchimp_response( $mc->patch( "campaigns/$mc_campaign_id", $payload ) );
+			if ( is_wp_error( $campaign_result ) ) {
+				return $campaign_result;
+			}
 		} else {
-			$campaign_result = $mc->post( 'campaigns', $payload );
-			$mc_campaign_id  = $campaign_result['id'];
+			$campaign_result = self::handle_mailchimp_response( $mc->post( 'campaigns', $payload ) );
+			if ( is_wp_error( $campaign_result ) ) {
+				return $campaign_result;
+			}
+			$mc_campaign_id = $campaign_result['id'];
 			update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
 		}
 
@@ -695,7 +712,10 @@ final class Newspack_Newsletters {
 			'html' => $renderer->render_html_email( $post ),
 		];
 
-		$content_result = $mc->put( "campaigns/$mc_campaign_id/content", $content_payload );
+		$content_result = self::handle_mailchimp_response( $mc->put( "campaigns/$mc_campaign_id/content", $content_payload ) );
+		if ( is_wp_error( $content_result ) ) {
+			return $content_result;
+		}
 		return [
 			'campaign_result' => $campaign_result,
 			'content_result'  => $content_result,
