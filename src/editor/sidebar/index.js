@@ -9,6 +9,11 @@ import { Component, Fragment } from '@wordpress/element';
 import { Button, Modal, Notice, SelectControl, Spinner, TextControl } from '@wordpress/components';
 
 /**
+ * External dependencies
+ */
+import { get } from 'lodash';
+
+/**
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
@@ -45,6 +50,15 @@ class Sidebar extends Component {
 		};
 		apiFetch( params ).then( this.setStateFromAPIResponse );
 	};
+	setInterest = interestId => {
+		this.setState( { inFlight: true } );
+		const { postId } = this.props;
+		const params = {
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
+			method: 'POST',
+		};
+		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+	};
 	updateSender = ( senderName, senderEmail ) => {
 		this.setState( { inFlight: true } );
 		const { postId } = this.props;
@@ -67,6 +81,56 @@ class Sidebar extends Component {
 			senderEmail: result.campaign.settings.reply_to,
 			senderDirty: false,
 		} );
+	};
+
+	interestCategories = () => {
+		const { campaign, inFlight, interestCategories } = this.state;
+		if (
+			! interestCategories ||
+			! interestCategories.categories ||
+			! interestCategories.categories.length
+		) {
+			return;
+		}
+		const options = interestCategories.categories.reduce( ( accumulator, item ) => {
+			const { title, interests, id } = item;
+			accumulator.push( {
+				label: title,
+				disabled: true,
+			} );
+			if ( interests && interests.interests && interests.interests.length ) {
+				interests.interests.forEach( interest => {
+					const isDisabled = parseInt( interest.subscriber_count ) === 0;
+					accumulator.push( {
+						label:
+							'- ' +
+							interest.name +
+							( isDisabled ? __( ' (no subscribers)', 'newspack-newsletters' ) : '' ),
+						value: 'interests-' + id + ':' + interest.id,
+						disabled: isDisabled,
+					} );
+				} );
+			}
+			return accumulator;
+		}, [] );
+		const field = get( campaign, 'recipients.segment_opts.conditions.[0].field' );
+		const interest_id = get( campaign, 'recipients.segment_opts.conditions.[0].value.[0]' );
+		const interestValue = field && interest_id ? field + ':' + interest_id : 0;
+		return (
+			<SelectControl
+				label={ __( 'Groups', 'newspack-newsletters' ) }
+				value={ interestValue }
+				options={ [
+					{
+						label: __( '-- Select a group --', 'newspack-newsletters' ),
+						value: 'no_interests',
+					},
+					...options,
+				] }
+				onChange={ value => this.setInterest( value ) }
+				disabled={ inFlight }
+			/>
+		);
 	};
 
 	/**
@@ -101,6 +165,33 @@ class Sidebar extends Component {
 		}
 		return (
 			<Fragment>
+				<TextControl
+					label={ __( 'Subject', 'newspack-newsletters' ) }
+					className="newspack-newsletters__subject-textcontrol"
+					value={ title }
+					disabled={ inFlight }
+					onChange={ value => editPost( { title: value } ) }
+				/>
+				<hr />
+				<SelectControl
+					label={ __( 'To', 'newspack-newsletters' ) }
+					className="newspack-newsletters__to-selectcontrol"
+					value={ list_id }
+					options={ [
+						{
+							value: null,
+							label: __( '-- Select a list --', 'newspack-newsletters' ),
+						},
+						...lists.map( ( { id, name } ) => ( {
+							value: id,
+							label: name,
+						} ) ),
+					] }
+					onChange={ value => this.setList( value ) }
+					disabled={ inFlight }
+				/>
+				{ this.interestCategories() }
+				<hr />
 				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
 				<TextControl
 					label={ __( 'Name', 'newspack-newsletters' ) }
@@ -127,47 +218,21 @@ class Sidebar extends Component {
 					</Button>
 				) }
 				<hr />
-				<SelectControl
-					label={ __( 'To', 'newspack-newsletters' ) }
-					className="newspack-newsletters__to-selectcontrol"
-					value={ list_id }
-					options={ [
-						{
-							value: null,
-							label: __( '-- Select a list --', 'newspack-newsletters' ),
-						},
-						...lists.map( ( { id, name } ) => ( {
-							value: id,
-							label: name,
-						} ) ),
-					] }
-					onChange={ value => this.setList( value ) }
-					disabled={ inFlight }
-				/>
-				<hr />
-				<TextControl
-					label={ __( 'Subject', 'newspack-newsletters' ) }
-					className="newspack-newsletters__subject-textcontrol"
-					value={ title }
-					disabled={ inFlight }
-					onChange={ value => editPost( { title: value } ) }
-				/>
-				<hr />
 				<Button
-					isPrimary
+					isSecondary
 					onClick={ () => this.setState( { showTestModal: true } ) }
 					disabled={ inFlight }
 				>
-					{ __( 'Send Test', 'newspack-newsletters' ) }
+					{ __( 'Send a Test Email', 'newspack-newsletters' ) }
 				</Button>
 				{ showTestModal && (
 					<Modal
-						title={ __( 'Send Test Email', 'newspack-newsletters' ) }
+						title={ __( 'Send a Test Email', 'newspack-newsletters' ) }
 						onRequestClose={ () => this.setState( { showTestModal: false } ) }
 						className="newspack-newsletters__send-test"
 					>
 						<TextControl
-							label={ __( 'Send to this email', 'newspack-newsletters' ) }
+							label={ __( 'Send a test to', 'newspack-newsletters' ) }
 							value={ testEmail }
 							type="email"
 							onChange={ value => this.setState( { testEmail: value } ) }
@@ -180,7 +245,7 @@ class Sidebar extends Component {
 						>
 							{ __( 'Send Test', 'newspack-newsletters' ) }
 						</Button>
-						<Button isTertiary onClick={ () => this.setState( { showTestModal: false } ) }>
+						<Button isSecondary onClick={ () => this.setState( { showTestModal: false } ) }>
 							{ __( 'Cancel', 'newspack-newsletters' ) }
 						</Button>
 					</Modal>

@@ -31,7 +31,8 @@
       h4 { font-size: 1.45em; }
       h5 { font-size: 1.2em; }
       h6 { font-size: 1em; }
-      h1, h2, h3, h4, h5, h6 {margin: 0 !important;}
+      h1, h2, h3, h4, h5, h6 { line-height: 1.2; margin-top: 0; margin-bottom: 0.5em; }
+      h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { text-decoration: none; color: inherit; }
 
       /* Quote */
       .wp-block-quote {

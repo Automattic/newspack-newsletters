@@ -19,6 +19,7 @@ import Sidebar from './sidebar/';
 import registerEditorPlugin from './editor/';
 import registerPrePublishSlot from './pre-publish-slot';
 import registerPostStatusSlot from './post-status-slot';
+import registerPostsInserterBlock from './blocks/posts-inserter';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 
@@ -26,6 +27,7 @@ addBlocksValidationFilter();
 registerPrePublishSlot();
 registerPostStatusSlot();
 registerEditorPlugin();
+registerPostsInserterBlock();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
@@ -51,7 +53,7 @@ const NewsletterEdit = ( {
 	getBlocks,
 	insertBlocks,
 	replaceBlocks,
-	isEditedPostNew,
+	isEditedPostEmpty,
 	savePost,
 } ) => {
 	const templates =
@@ -73,7 +75,7 @@ const NewsletterEdit = ( {
 	};
 
 	const isDisplayingTemplateModal =
-		isEditedPostNew && templates && templates.length && insertedTemplate === null;
+		isEditedPostEmpty && templates && templates.length && insertedTemplate === null;
 
 	return isDisplayingTemplateModal ? (
 		<TemplateModal
@@ -97,10 +99,10 @@ const NewsletterEdit = ( {
 
 const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
-		const { isEditedPostNew } = select( 'core/editor' );
+		const { isEditedPostEmpty } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		return {
-			isEditedPostNew: isEditedPostNew(),
+			isEditedPostEmpty: isEditedPostEmpty(),
 			getBlocks,
 		};
 	} ),
