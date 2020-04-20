@@ -42,6 +42,7 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
+		add_action( 'the_post', [ __CLASS__, 'remove_other_editor_modifications' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
@@ -65,6 +66,30 @@ final class Newspack_Newsletters {
 		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
+	}
+
+	/**
+	 * Remove all editor enqueued assets besides this plugins'.
+	 * This is to prevent theme styles being loaded in the editor.
+	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
+	 */
+	public static function remove_other_editor_modifications() {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
+			return;
+		}
+
+		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
+		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
+			$action_handlers = array_keys( $filter );
+			foreach ( $action_handlers as $handler ) {
+				if ( __CLASS__ . '::enqueue_block_editor_assets' != $handler ) {
+					remove_action( 'enqueue_block_editor_assets', $handler, $index );
+				}
+			}
+		}
+
+		remove_editor_styles();
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
