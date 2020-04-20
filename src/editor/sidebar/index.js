@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
@@ -25,6 +24,7 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
+import withAPIReponseHandling from '../with-api-reponse-handling';
 import './style.scss';
 
 class Sidebar extends Component {
@@ -36,6 +36,14 @@ class Sidebar extends Component {
 		senderName: '',
 		senderDirty: false,
 	};
+	componentDidUpdate( prevProps ) {
+		if ( ! prevProps.campaign && this.props.campaign ) {
+			this.setState( {
+				senderName: this.props.campaign.settings.from_name,
+				senderEmail: this.props.campaign.settings.reply_to,
+			} );
+		}
+	}
 	sendMailchimpTest = () => {
 		const { testEmail } = this.state;
 		this.setState( { inFlight: true } );
@@ -47,29 +55,38 @@ class Sidebar extends Component {
 			},
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+
+		this.props
+			.fetchAPIData( params, {
+				successMessage: __( 'Test email has been sent.', 'newspack-newsletters' ),
+			} )
+			.then( this.setStateFromAPIResponse );
 	};
 	setList = listId => {
 		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		fetchAPIData( params, {
+			successMessage: __( 'List updated.', 'newspack-newsletters' ),
+		} ).then( this.setStateFromAPIResponse );
 	};
 	setInterest = interestId => {
 		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
 			method: 'POST',
 		};
-		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+		fetchAPIData( params, {
+			successMessage: __( 'Interest updated.', 'newspack-newsletters' ),
+		} ).then( this.setStateFromAPIResponse );
 	};
 	updateSender = ( senderName, senderEmail ) => {
 		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/settings`,
 			data: {
@@ -78,7 +95,9 @@ class Sidebar extends Component {
 			},
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		fetchAPIData( params, {
+			successMessage: __( 'Sender updated.', 'newspack-newsletters' ),
+		} ).then( this.setStateFromAPIResponse );
 	};
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result ) );
@@ -272,6 +291,7 @@ class Sidebar extends Component {
 }
 
 export default compose( [
+	withAPIReponseHandling(),
 	withSelect( select => {
 		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );

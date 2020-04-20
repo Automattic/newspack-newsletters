@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
-import apiFetch from '@wordpress/api-fetch';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import { registerPlugin } from '@wordpress/plugins';
@@ -11,19 +10,19 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
+import withAPIReponseHandling from '../with-api-reponse-handling';
 import './style.scss';
 
 const Editor = compose( [
+	withAPIReponseHandling(),
 	withSelect( select => {
 		const { getCurrentPostId, getEditedPostAttribute, isPublishingPost, isSavingPost } = select(
 			'core/editor'
 		);
-		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			postId: getCurrentPostId(),
 			isReady: meta.campaignValidationErrors ? meta.campaignValidationErrors.length === 0 : false,
-			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
 		};
 	} ),
@@ -34,9 +33,11 @@ const Editor = compose( [
 ] )( props => {
 	// Fetch campaign data.
 	useEffect(() => {
-		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
-			props.editPost( getEditPostPayload( result ) );
-		} );
+		props
+			.fetchAPIData( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } )
+			.then( response => {
+				props.editPost( getEditPostPayload( response ) );
+			} );
 	}, [ props.isPublishingOrSavingPost ]);
 
 	// Lock or unlock post publishing.
