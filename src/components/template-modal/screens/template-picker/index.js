@@ -42,7 +42,7 @@ export default ( { onInsertTemplate, templates } ) => {
 								aria-label={ title }
 							>
 								<div className="block-editor-patterns__item-preview">
-									<BlockPreview blocks={ parse( content ) } viewportWidth={ 810 } />
+									<BlockPreview blocks={ parse( content ) } viewportWidth={ 568 } />
 								</div>
 								<div className="block-editor-patterns__item-title">{ title }</div>
 							</div>
@@ -52,7 +52,7 @@ export default ( { onInsertTemplate, templates } ) => {
 
 				<div className="newspack-newsletters-modal__preview">
 					{ blockPreview && blockPreview.length > 0 ? (
-						<BlockPreview blocks={ blockPreview } viewportWidth={ 810 } />
+						<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
 					) : (
 						<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 					) }

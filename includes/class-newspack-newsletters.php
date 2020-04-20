@@ -54,9 +54,9 @@ final class Newspack_Newsletters {
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 
-		$needs_nag = 
-			is_admin() && 
-			( ! self::mailchimp_api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) && 
+		$needs_nag =
+			is_admin() &&
+			( ! self::mailchimp_api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) &&
 			! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 
 		if ( $needs_nag ) {
@@ -892,7 +892,7 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Activation Nag 
+	 * Activation Nag
 	 */
 
 	/**
@@ -908,10 +908,10 @@ final class Newspack_Newsletters {
 		<div class="notice notice-info is-dismissible newspack-newsletters-notification-nag">
 			<p>
 				<?php
-					echo wp_kses_post( 
-						sprintf( 
-							// translators: urge users to input their API keys on settings page. 
-							__( 'Thank you for activating Newspack Newsletters. Please <a href="%s">head to settings</a> to set up your API keys.', 'newspack-newsletters' ), 
+					echo wp_kses_post(
+						sprintf(
+							// translators: urge users to input their API keys on settings page.
+							__( 'Thank you for activating Newspack Newsletters. Please <a href="%s">head to settings</a> to set up your API keys.', 'newspack-newsletters' ),
 							$url
 						)
 					);
@@ -926,18 +926,18 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag_dismissal_script() {
 		$script = 'newspack-newsletters-activation_nag_dismissal';
-		wp_register_script( 
-			$script, 
+		wp_register_script(
+			$script,
 			plugins_url( '../dist/admin.js', __FILE__ ),
 			[ 'jquery' ],
 			'1.0',
 			false
 		);
 		wp_localize_script(
-			$script, 
+			$script,
 			'newspack_newsletters_activation_nag_dismissal_params',
 			[
-				'ajaxurl' => get_admin_url() . 'admin-ajax.php', 
+				'ajaxurl' => get_admin_url() . 'admin-ajax.php',
 			]
 		);
 		wp_enqueue_script( $script );
