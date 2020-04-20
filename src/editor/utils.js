@@ -29,7 +29,7 @@ const validateCampaign = campaign => {
 
 export const getEditPostPayload = ( { campaign, lists } ) => ( {
 	meta: {
-		// This meta fields do not have to be registered on the back end,
+		// These meta fields do not have to be registered on the back end,
 		// as they are not used there.
 		campaignValidationErrors: validateCampaign( campaign ),
 		campaign,
