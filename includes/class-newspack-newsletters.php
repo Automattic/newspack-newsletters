@@ -296,7 +296,10 @@ final class Newspack_Newsletters {
 
 		$mc_campaign_id = self::get_campaign_id( $id );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 
 		$settings = [];
 		if ( $from_name ) {
@@ -331,7 +334,10 @@ final class Newspack_Newsletters {
 
 		$mc_campaign_id = self::get_campaign_id( $id );
 
-		$mc      = new Mailchimp( self::mailchimp_api_key() );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 		$payload = [
 			'recipients' => [
 				'list_id' => $list_id,
@@ -374,7 +380,10 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc       = new Mailchimp( self::mailchimp_api_key() );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
 		$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
@@ -455,6 +464,27 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Get Mailchimp handler instance.
+	 */
+	public static function api_mailchimp_instance() {
+		$api_key = self::mailchimp_api_key();
+		if ( ! $api_key ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'No Mailchimp API key available.', 'newspack-newsletters' )
+			);
+		}
+		try {
+			return new Mailchimp( $api_key );
+		} catch ( \Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
+	 * Get Mailchimp campaign ID from post meta.
 	 *
 	 * @param string $id post ID.
 	 */
@@ -509,7 +539,10 @@ final class Newspack_Newsletters {
 		}
 		$mc_campaign_id = self::get_campaign_id( $id );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 
 		$test_emails = explode( ',', $test_email );
 		foreach ( $test_emails as &$email ) {
@@ -533,7 +566,10 @@ final class Newspack_Newsletters {
 		if ( is_wp_error( $mc_campaign_id ) ) {
 			return $mc_campaign_id;
 		}
-		$mc    = new Mailchimp( self::mailchimp_api_key() );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 		$lists = self::handle_mailchimp_response( $mc->get( 'lists' ) );
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
@@ -612,8 +648,10 @@ final class Newspack_Newsletters {
 			return;
 		}
 
-		$api_key  = self::mailchimp_api_key();
-		$mc       = new Mailchimp( $api_key );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
 		if ( $campaign ) {
 			$status = $campaign['status'];
@@ -630,15 +668,10 @@ final class Newspack_Newsletters {
 	 * @param WP_Post $post the post.
 	 */
 	public static function sync_with_mailchimp( $post ) {
-		$api_key = self::mailchimp_api_key();
-		if ( ! $api_key ) {
-			return new WP_Error(
-				'newspack_newsletters_incorrect_post_type',
-				__( 'No Mailchimp API key available.', 'newspack-newsletters' )
-			);
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
 		}
-
-		$mc      = new Mailchimp( $api_key );
 		$payload = [
 			'type'         => 'regular',
 			'content_type' => 'template',
@@ -712,7 +745,10 @@ final class Newspack_Newsletters {
 
 		$mc_campaign_id = self::get_campaign_id( $id );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+		$mc = self::api_mailchimp_instance();
+		if ( is_wp_error( $mc ) ) {
+			return $mc;
+		}
 
 		$payload = [
 			'send_type' => 'html',
