@@ -27,10 +27,12 @@ const validateCampaign = campaign => {
 	return messages;
 };
 
-export const getEditPostPayload = campaign => ( {
+export const getEditPostPayload = ( { campaign, lists } ) => ( {
 	meta: {
-		// This meta field does not have to be registered on the back end,
-		// as it is not used there.
-		campaign_validation_errors: validateCampaign( campaign ),
+		// These meta fields do not have to be registered on the back end,
+		// as they are not used there.
+		campaignValidationErrors: validateCampaign( campaign ),
+		campaign,
+		lists,
 	},
 } );
