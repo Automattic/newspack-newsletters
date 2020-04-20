@@ -105,6 +105,7 @@
     "@wordpress/keycodes": "^2.10.0",
     "@wordpress/plugins": "^2.13.0",
     "@wordpress/url": "^2.13.0",
+    "classnames": "^2.2.6",
     "lodash": "^4.17.15",
     "newspack-components": "^1.1.0",
     "webpack": "^4.42.1"

@@ -7,6 +7,11 @@ import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { ENTER } from '@wordpress/keycodes';
 
+/**
+ * External dependencies
+ */
+import classNames from 'classnames';
+
 export default ( { onSetupStatus } ) => {
 	const [ keys, setKeys ] = useState( {} );
 	const [ inFlight, setInFlight ] = useState( false );
@@ -52,9 +57,14 @@ export default ( { onSetupStatus } ) => {
 	} = keys;
 	const canSubmit =
 		mailchimpAPIKey.length > 0 && mjmlApplicationId.length > 0 && mjmlAPISecret.length > 0;
+	const classes = classNames(
+		'newspack-newsletters-modal__content',
+		'newspack-newsletters-modal__settings',
+		inFlight && 'newspack-newsletters-modal__in-flight'
+	);
 	return (
 		<Fragment>
-			<div className="newspack-newsletters-modal__content newspack-newsletters-modal__settings">
+			<div className={ classes }>
 				<div className="newspack-newsletters-modal__settings-wrapper">
 					<h4>{ __( 'Enter your Mailchimp API key', 'newspack-newsletters' ) }</h4>
 					<TextControl
