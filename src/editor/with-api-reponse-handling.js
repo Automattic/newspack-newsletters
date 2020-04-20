@@ -5,6 +5,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { withDispatch } from '@wordpress/data';
 import { createHigherOrderComponent } from '@wordpress/compose';
+import { useState } from '@wordpress/element';
 
 const withNoticesActions = withDispatch( dispatch => {
 	const { createSuccessNotice, createErrorNotice } = dispatch( 'core/notices' );
@@ -15,7 +16,9 @@ export default () =>
 	createHigherOrderComponent(
 		OriginalComponent =>
 			withNoticesActions( ( { createSuccessNotice, createErrorNotice, ...props } ) => {
+				const [ inFlight, setInFlight ] = useState( false );
 				const fetchAPIData = ( apiRequest, { successMessage } = {} ) => {
+					setInFlight( true );
 					return new Promise( ( resolve, reject ) => {
 						apiFetch( apiRequest )
 							.then( response => {
@@ -23,6 +26,7 @@ export default () =>
 								if ( successMessage ) {
 									createSuccessNotice( successMessage );
 								}
+								setInFlight( false );
 							} )
 							.catch( error => {
 								const hasTitleAndDetail = error.data && error.data.detail && error.data.title;
@@ -44,11 +48,14 @@ export default () =>
 								}
 								createErrorNotice( errorMessage );
 								reject( errorMessage );
+								setInFlight( false );
 							} );
 					} );
 				};
 
-				return <OriginalComponent { ...props } fetchAPIData={ fetchAPIData } />;
+				return (
+					<OriginalComponent { ...props } fetchAPIData={ fetchAPIData } inFlight={ inFlight } />
+				);
 			} ),
 		'newspack-newsletters-with-api-response'
 	);

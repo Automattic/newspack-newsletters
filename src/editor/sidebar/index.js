@@ -29,7 +29,6 @@ import './style.scss';
 
 class Sidebar extends Component {
 	state = {
-		inFlight: false,
 		showTestModal: false,
 		testEmail: '',
 		senderEmail: '',
@@ -46,8 +45,7 @@ class Sidebar extends Component {
 	}
 	sendMailchimpTest = () => {
 		const { testEmail } = this.state;
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/test`,
 			data: {
@@ -56,14 +54,11 @@ class Sidebar extends Component {
 			method: 'POST',
 		};
 
-		this.props
-			.fetchAPIData( params, {
-				successMessage: __( 'Test email has been sent.', 'newspack-newsletters' ),
-			} )
-			.then( this.setStateFromAPIResponse );
+		fetchAPIData( params, {
+			successMessage: __( 'Test email has been sent.', 'newspack-newsletters' ),
+		} ).then( this.setStateFromAPIResponse );
 	};
 	setList = listId => {
-		this.setState( { inFlight: true } );
 		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
@@ -72,7 +67,6 @@ class Sidebar extends Component {
 		fetchAPIData( params ).then( this.setStateFromAPIResponse );
 	};
 	setInterest = interestId => {
-		this.setState( { inFlight: true } );
 		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
@@ -81,7 +75,6 @@ class Sidebar extends Component {
 		fetchAPIData( params ).then( this.setStateFromAPIResponse );
 	};
 	updateSender = ( senderName, senderEmail ) => {
-		this.setState( { inFlight: true } );
 		const { postId, fetchAPIData } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/settings`,
@@ -97,7 +90,6 @@ class Sidebar extends Component {
 		this.props.editPost( getEditPostPayload( result ) );
 
 		this.setState( {
-			inFlight: false,
 			senderName: result.campaign.settings.from_name,
 			senderEmail: result.campaign.settings.reply_to,
 			senderDirty: false,
@@ -105,7 +97,7 @@ class Sidebar extends Component {
 	};
 
 	interestCategories = () => {
-		const { campaign, inFlight, interestCategories } = this.state;
+		const { campaign, interestCategories } = this.state;
 		if (
 			! interestCategories ||
 			! interestCategories.categories ||
@@ -149,7 +141,7 @@ class Sidebar extends Component {
 					...options,
 				] }
 				onChange={ value => this.setInterest( value ) }
-				disabled={ inFlight }
+				disabled={ this.props.inFlight }
 			/>
 		);
 	};
@@ -158,8 +150,8 @@ class Sidebar extends Component {
 	 * Render
 	 */
 	render() {
-		const { campaign, lists, editPost, title } = this.props;
-		const { inFlight, showTestModal, testEmail, senderName, senderEmail, senderDirty } = this.state;
+		const { campaign, lists, editPost, title, inFlight } = this.props;
+		const { showTestModal, testEmail, senderName, senderEmail, senderDirty } = this.state;
 		if ( ! campaign ) {
 			return (
 				<div className="newspack-newsletters__loading-data">
