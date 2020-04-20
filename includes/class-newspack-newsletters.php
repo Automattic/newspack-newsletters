@@ -495,7 +495,7 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Process Mailchimp API response. If the response has an error,
-	 * will return WordPress error. Otherwise:
+	 * will return a WordPress error. Otherwise:
 	 * - if post ID is provided, will return campaign data for that post.
 	 * - if not, will return the input response.
 	 *
