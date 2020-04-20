@@ -559,11 +559,19 @@ final class Newspack_Newsletters {
 		$sync_error_message    = get_transient( 'newsletters_mc_error_' . $id . '_sync' );
 		$publish_error_message = get_transient( 'newsletters_mc_error_' . $id . '_publish' );
 		if ( $publish_error_message || $sync_error_message ) {
+			$error_title = $publish_error_message ? __(
+				'There was an error when publishing the campaign',
+				'newspack-newsletters'
+			) : __(
+				'There was an error when synchronizing with Mailchimp',
+				'newspack-newsletters'
+			);
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_error_fatal',
-				$publish_error_message ? $publish_error_message : $sync_error_message,
+				$error_title,
 				array(
-					'type' => $publish_error_message ? 'publish' : 'sync',
+					'title'  => $error_title,
+					'detail' => $publish_error_message ? $publish_error_message : $sync_error_message,
 				)
 			);
 		}
