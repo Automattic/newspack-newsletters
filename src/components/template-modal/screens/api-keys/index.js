@@ -10,7 +10,7 @@ import { ENTER } from '@wordpress/keycodes';
 /**
  * External dependencies
  */
-import classNames from 'classnames';
+import classnames from 'classnames';
 
 export default ( { onSetupStatus } ) => {
 	const [ keys, setKeys ] = useState( {} );
@@ -57,7 +57,7 @@ export default ( { onSetupStatus } ) => {
 	} = keys;
 	const canSubmit =
 		mailchimpAPIKey.length > 0 && mjmlApplicationId.length > 0 && mjmlAPISecret.length > 0;
-	const classes = classNames(
+	const classes = classnames(
 		'newspack-newsletters-modal__content',
 		'newspack-newsletters-modal__settings',
 		inFlight && 'newspack-newsletters-modal__in-flight'
