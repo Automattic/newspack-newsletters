@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { Button, ExternalLink, TextControl } from '@wordpress/components';
+import { Button, ExternalLink, Spinner, TextControl } from '@wordpress/components';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { ENTER } from '@wordpress/keycodes';
@@ -66,6 +66,7 @@ export default ( { onSetupStatus } ) => {
 		<Fragment>
 			<div className={ classes }>
 				<div className="newspack-newsletters-modal__settings-wrapper">
+					{ inFlight && <Spinner /> }
 					<h4>{ __( 'Enter your Mailchimp API key', 'newspack-newsletters' ) }</h4>
 					<TextControl
 						label={ __( 'Mailchimp API key', 'newspack-newsletters' ) }
