@@ -219,7 +219,6 @@ class Sidebar extends Component {
 					disabled={ inFlight }
 					onChange={ value => editPost( { title: value } ) }
 				/>
-				<hr />
 				<SelectControl
 					label={ __( 'To', 'newspack-newsletters' ) }
 					className="newspack-newsletters__to-selectcontrol"
@@ -238,12 +237,15 @@ class Sidebar extends Component {
 					disabled={ inFlight }
 				/>
 				{ listWebId && (
-					<ExternalLink href={ `https://us7.admin.mailchimp.com/lists/members/?id=${ listWebId }` }>
-						{ __( 'Manage list', 'newspack-newsletters' ) }
-					</ExternalLink>
+					<p>
+						<ExternalLink
+							href={ `https://us7.admin.mailchimp.com/lists/members/?id=${ listWebId }` }
+						>
+							{ __( 'Manage list', 'newspack-newsletters' ) }
+						</ExternalLink>
+					</p>
 				) }
 				{ this.interestCategories() }
-				<hr />
 				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
 				<TextControl
 					label={ __( 'Name', 'newspack-newsletters' ) }
