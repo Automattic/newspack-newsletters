@@ -556,6 +556,17 @@ final class Newspack_Newsletters {
 	 * @param string $id post ID.
 	 */
 	public static function retrieve_data( $id ) {
+		$sync_error_message    = get_transient( 'newsletters_mc_error_' . $id . '_sync' );
+		$publish_error_message = get_transient( 'newsletters_mc_error_' . $id . '_publish' );
+		if ( $publish_error_message || $sync_error_message ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_error_fatal',
+				$publish_error_message ? $publish_error_message : $sync_error_message,
+				array(
+					'type' => $publish_error_message ? 'publish' : 'sync',
+				)
+			);
+		}
 		$mc_campaign_id = self::get_campaign_id( $id );
 		if ( is_wp_error( $mc_campaign_id ) ) {
 			return $mc_campaign_id;
@@ -622,6 +633,22 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Set a persistent error message for CPT.
+	 *
+	 * @param object|WP_Error $result A result which might be an error.
+	 * @param string          $id post ID.
+	 * @param string          $error_type Type of error.
+	 */
+	public static function handle_persistent_error( $result, $id, $error_type ) {
+		$error = null;
+		if ( is_wp_error( $result ) ) {
+			$error = $result->get_error_message();
+		}
+		// post meta was not suitable, as it was cached, and the feedback has to be immediate.
+		set_transient( 'newsletters_mc_error_' . $id . '_' . $error_type, $error );
+	}
+
+	/**
 	 * Callback for CPT save. Will sync with Mailchimp.
 	 *
 	 * @param string  $id post ID.
@@ -632,7 +659,9 @@ final class Newspack_Newsletters {
 		if ( 'trash' === $status ) {
 			return;
 		}
-		self::sync_with_mailchimp( $post );
+
+		$sync_result = self::sync_with_mailchimp( $post );
+		self::handle_persistent_error( $sync_result, $id, 'sync' );
 	}
 
 	/**
@@ -754,7 +783,6 @@ final class Newspack_Newsletters {
 		}
 
 		$sync_result = self::sync_with_mailchimp( $post );
-
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
 		}
@@ -769,7 +797,8 @@ final class Newspack_Newsletters {
 		$payload = [
 			'send_type' => 'html',
 		];
-		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
+		$result  = self::handle_mailchimp_response( $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload ) );
+		self::handle_persistent_error( $result, $id, 'publish' );
 	}
 
 	/**

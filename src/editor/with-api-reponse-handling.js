@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { withDispatch } from '@wordpress/data';
 import { createHigherOrderComponent } from '@wordpress/compose';
@@ -25,9 +26,22 @@ export default () =>
 							} )
 							.catch( error => {
 								const hasTitleAndDetail = error.data && error.data.detail && error.data.title;
-								const errorMessage = hasTitleAndDetail
+								let errorMessage = hasTitleAndDetail
 									? `${ error.data.title }: ${ error.data.detail }`
 									: error.message;
+								if ( error.code === 'newspack_newsletters_mailchimp_error_fatal' ) {
+									const label =
+										error.data.type === 'publish'
+											? __(
+													'There was an error when publishing the campaign',
+													'newspack-newsletters'
+											  )
+											: __(
+													'There was an error when synchronizing with Mailchimp',
+													'newspack-newsletters'
+											  );
+									errorMessage = `${ label }: ${ errorMessage }`;
+								}
 								createErrorNotice( errorMessage );
 								reject( errorMessage );
 							} );
