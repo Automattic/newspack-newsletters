@@ -1,0 +1,30 @@
+.newspack-posts-inserter {
+	padding: 20px;
+	border: 1px solid #1e1e1e;
+	&__header {
+		display: flex;
+		align-items: center;
+		span {
+			padding-left: 10px;
+		}
+	}
+	&__preview {
+		border-top: 1px solid #1e1e1e;
+		border-bottom: 1px solid #1e1e1e;
+		margin-top: 20px;
+		margin-bottom: 20px;
+		max-height: 400px;
+		overflow: scroll;
+	}
+
+	.wp-block-column {
+		figure {
+			margin-top: 0 !important;
+		}
+	}
+
+	// For some reason it's `absolute` in Gutenberg 7.8.1
+	.block-editor-block-preview__content {
+		position: relative;
+	}
+}
