@@ -8,12 +8,12 @@ import { withSelect, withDispatch } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
 import {
 	Button,
+	ExternalLink,
 	Modal,
 	Notice,
 	SelectControl,
 	Spinner,
 	TextControl,
-	ExternalLink,
 } from '@wordpress/components';
 
 /**

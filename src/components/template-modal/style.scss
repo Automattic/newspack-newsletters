@@ -4,23 +4,27 @@
 	&__screen-overlay {
 		animation: none;
 		background: white;
-		margin-top: 46px;
+		top: 46px;
 
 		@media only screen and ( min-width: 783px ) {
-			margin-left: 36px;
-			margin-top: 32px;
+			left: 36px;
+			top: 32px;
 
 			// Fullscreen mode
 			.is-fullscreen-mode & {
-				margin-left: 0;
-				margin-top: 0;
+				left: 60px;
+				top: 0;
+
+				.components-modal__header {
+					height: 61px;
+				}
 			}
 		}
 
 		@media only screen and ( min-width: 961px ) {
 			// Not folded sidebar
 			body:not( .folded ):not( .is-fullscreen-mode ) & {
-				margin-left: 160px;
+				left: 160px;
 			}
 		}
 	}
@@ -56,11 +60,77 @@
 			grid-template-rows: 1fr;
 		}
 
+		@media only screen and ( min-width: 783px ) {
+			// Fullscreen mode
+			.is-fullscreen-mode & {
+				bottom: 0;
+				height: auto;
+				left: 0;
+				margin: 0;
+				position: fixed;
+				right: 0;
+				top: 61px;
+			}
+		}
+
 		+ .is-primary {
 			position: absolute;
 			right: 24px;
 			top: 12px;
 			z-index: 11;
+		}
+	}
+
+	&__settings {
+		align-items: flex-start;
+		display: flex;
+		justify-content: center;
+
+		@media only screen and ( min-width: 600px ) {
+			display: flex;
+		}
+
+		&-wrapper {
+			flex: 0 0 100%;
+			position: relative;
+
+			@media only screen and ( min-width: 600px ) {
+				margin-left: auto;
+				margin-right: auto;
+				max-width: 600px;
+			}
+		}
+
+		h4:first-of-type {
+			margin-top: 0;
+		}
+
+		.components-spinner {
+			left: 50%;
+			margin: -9px 0 0 -9px;
+			margin-left: -9px;
+			position: absolute;
+			top: 50%;
+		}
+
+		.error {
+			color: $alert-red;
+		}
+
+		.components-base-control {
+			&.has-error {
+				input[type='text'] {
+					border-color: $alert-red;
+				}
+			}
+		}
+	}
+
+	&__in-flight {
+		pointer-events: none;
+
+		> div > *:not( .components-spinner ) {
+			opacity: 0.3;
 		}
 	}
 
