@@ -11,3 +11,11 @@
 	margin-left: auto !important;
 	margin-right: auto !important;
 }
+
+.wp-block-column {
+	> :first-child {
+		> .wp-block-image {
+			margin-top: 0;
+		}
+	}
+}
