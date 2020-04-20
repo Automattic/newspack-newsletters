@@ -52,14 +52,11 @@ export default ( { onSetupStatus } ) => {
 	} = keys;
 	return (
 		<Fragment>
-			<div className="newspack-newsletters-modal__content">
-				<div>
+			<div className="newspack-newsletters-modal__content newspack-newsletters-modal__settings">
+				<div className="newspack-newsletters-modal__settings-wrapper">
 					<h4>{ __( 'Enter your Mailchimp API key', 'newspack-newsletters' ) }</h4>
-					{ errors.newspack_newsletters_invalid_keys_mailchimp && (
-						<p className="error">{ errors.newspack_newsletters_invalid_keys_mailchimp }</p>
-					) }
 					<TextControl
-						label={ __( 'Mailchimp API Key', 'newspack-newsletters' ) }
+						label={ __( 'Mailchimp API key', 'newspack-newsletters' ) }
 						value={ mailchimpAPIKey }
 						onChange={ value => setKeys( { ...keys, mailchimp_api_key: value } ) }
 						disabled={ inFlight }
@@ -69,17 +66,25 @@ export default ( { onSetupStatus } ) => {
 								commitSettings();
 							}
 						} }
+						className={ errors.newspack_newsletters_invalid_keys_mailchimp && 'has-error' }
 					/>
-					{ inFlight && <Spinner /> }
-					<ExternalLink href="https://mailchimp.com/help/about-api-keys/">
-						{ __( 'About Mailchimp API keys', 'newspack-newsletters' ) }
-					</ExternalLink>
-					<h4>{ __( 'Enter your MJML API keys', 'newspack-newsletters' ) }</h4>
-					{ errors.newspack_newsletters_invalid_keys_mjml && (
-						<p className="error">{ errors.newspack_newsletters_invalid_keys_mjml }</p>
+					{ errors.newspack_newsletters_invalid_keys_mailchimp && (
+						<p className="error">{ errors.newspack_newsletters_invalid_keys_mailchimp }</p>
 					) }
+					{ inFlight && <Spinner /> }
+					<p>
+						<ExternalLink href="https://us1.admin.mailchimp.com/account/api/">
+							{ __( 'Generate Mailchimp API key', 'newspack-newsletters' ) }
+						</ExternalLink>
+						<span className="separator"> | </span>
+						<ExternalLink href="https://mailchimp.com/help/about-api-keys/">
+							{ __( 'About Mailchimp API keys', 'newspack-newsletters' ) }
+						</ExternalLink>
+					</p>
+					<hr />
+					<h4>{ __( 'Enter your MJML API keys', 'newspack-newsletters' ) }</h4>
 					<TextControl
-						label={ __( 'MJML Application ID', 'newspack-newsletters' ) }
+						label={ __( 'MJML application ID', 'newspack-newsletters' ) }
 						value={ mjmlApplicationId }
 						onChange={ value => setKeys( { ...keys, mjml_api_key: value } ) }
 						disabled={ inFlight }
@@ -89,10 +94,10 @@ export default ( { onSetupStatus } ) => {
 								commitSettings();
 							}
 						} }
+						className={ errors.newspack_newsletters_invalid_keys_mjml && 'has-error' }
 					/>
-					{ inFlight && <Spinner /> }
 					<TextControl
-						label={ __( 'MJML Secret Key', 'newspack-newsletters' ) }
+						label={ __( 'MJML secret key', 'newspack-newsletters' ) }
 						value={ mjmlAPISecret }
 						onChange={ value => setKeys( { ...keys, mjml_api_secret: value } ) }
 						disabled={ inFlight }
@@ -102,15 +107,21 @@ export default ( { onSetupStatus } ) => {
 								commitSettings();
 							}
 						} }
+						className={ errors.newspack_newsletters_invalid_keys_mjml && 'has-error' }
 					/>
+					{ errors.newspack_newsletters_invalid_keys_mjml && (
+						<p className="error">{ errors.newspack_newsletters_invalid_keys_mjml }</p>
+					) }
 					{ inFlight && <Spinner /> }
-					<ExternalLink href="https://mjml.io/api">
-						{ __( 'Request MJML API keys', 'newspack-newsletters' ) }
-					</ExternalLink>
+					<p>
+						<ExternalLink href="https://mjml.io/api">
+							{ __( 'Request MJML API keys', 'newspack-newsletters' ) }
+						</ExternalLink>
+					</p>
 				</div>
 			</div>
 			<Button isPrimary onClick={ commitSettings }>
-				{ __( 'Save Settings', 'newspack-newsletter' ) }
+				{ __( 'Save settings', 'newspack-newsletter' ) }
 			</Button>
 		</Fragment>
 	);

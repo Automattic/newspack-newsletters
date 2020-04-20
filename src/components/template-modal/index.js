@@ -25,8 +25,8 @@ export default ( { hasKeys, onInsertTemplate, onSetupStatus, templates } ) => {
 			shouldCloseOnEsc={ false }
 			title={
 				hasKeys
-					? __( 'Select a layout', 'newspack-newsletters' )
-					: __( 'Set up', 'newspack-newsletters' )
+					? __( 'Select a layout for your newsletter', 'newspack-newsletters' )
+					: __( 'Configure the newsletters', 'newspack-newsletters' )
 			}
 		>
 			{ hasKeys ? (

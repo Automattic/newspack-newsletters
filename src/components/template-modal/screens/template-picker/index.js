@@ -4,7 +4,7 @@
 import { parse } from '@wordpress/blocks';
 import { Fragment, useState } from '@wordpress/element';
 import { Button } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
 import { ENTER, SPACE } from '@wordpress/keycodes';
 
@@ -60,10 +60,9 @@ export default ( { onInsertTemplate, templates } ) => {
 			</div>
 			{ selectedTemplate !== null && (
 				<Button isPrimary onClick={ () => onInsertTemplate( selectedTemplate ) }>
-					{ sprintf(
-						__( 'Use %s layout', 'newspack-newsletter' ),
-						templates[ selectedTemplate ].title
-					) }
+					{ blockPreview && blockPreview.length > 0
+						? __( 'Use this layout', 'newspack-newsletters' )
+						: __( 'Use blank layout', 'newspack-newsletters' ) }
 				</Button>
 			) }
 		</Fragment>

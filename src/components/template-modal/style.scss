@@ -62,8 +62,36 @@
 			top: 12px;
 			z-index: 11;
 		}
+	}
+
+	&__settings {
+		@media only screen and ( min-width: 600px ) {
+			display: block;
+
+			&-wrapper {
+				max-width: 600px;
+				width: 66.66%;
+			}
+		}
+
+		h4:first-of-type {
+			margin-top: 0;
+		}
+
+		.components-spinner {
+			margin: 0;
+		}
+
 		.error {
-			color: red;
+			color: $alert-red;
+		}
+
+		.components-base-control {
+			&.has-error {
+				input[type='text'] {
+					border-color: $alert-red;
+				}
+			}
 		}
 	}
 
