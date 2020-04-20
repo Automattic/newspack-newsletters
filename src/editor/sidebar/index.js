@@ -6,7 +6,15 @@ import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
-import { Button, Modal, Notice, SelectControl, Spinner, TextControl } from '@wordpress/components';
+import {
+	Button,
+	ExternalLink,
+	Modal,
+	Notice,
+	SelectControl,
+	Spinner,
+	TextControl,
+} from '@wordpress/components';
 
 /**
  * External dependencies
