@@ -294,13 +294,7 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
+		$mc_campaign_id = self::get_campaign_id( $id );
 
 		$mc = new Mailchimp( self::mailchimp_api_key() );
 
@@ -335,13 +329,7 @@ final class Newspack_Newsletters {
 		}
 
 
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
+		$mc_campaign_id = self::get_campaign_id( $id );
 
 		$mc      = new Mailchimp( self::mailchimp_api_key() );
 		$payload = [
@@ -466,6 +454,22 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Get Mailchimp handler instance.
+	 *
+	 * @param string $id post ID.
+	 */
+	public static function get_campaign_id( $id ) {
+		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			);
+		}
+		return $mc_campaign_id;
+	}
+
+	/**
 	 * Process Mailchimp API response. If the response has an error,
 	 * will return WordPress error. Otherwise:
 	 * - if post ID is provided, will return campaign data for that post.
@@ -503,13 +507,7 @@ final class Newspack_Newsletters {
 				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
 			);
 		}
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
+		$mc_campaign_id = self::get_campaign_id( $id );
 
 		$mc = new Mailchimp( self::mailchimp_api_key() );
 
@@ -712,13 +710,7 @@ final class Newspack_Newsletters {
 			return $sync_result;
 		}
 
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
+		$mc_campaign_id = self::get_campaign_id( $id );
 
 		$mc = new Mailchimp( self::mailchimp_api_key() );
 
