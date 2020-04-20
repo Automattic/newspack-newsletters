@@ -69,9 +69,7 @@ class Sidebar extends Component {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
 			method: 'POST',
 		};
-		fetchAPIData( params, {
-			successMessage: __( 'List updated.', 'newspack-newsletters' ),
-		} ).then( this.setStateFromAPIResponse );
+		fetchAPIData( params ).then( this.setStateFromAPIResponse );
 	};
 	setInterest = interestId => {
 		this.setState( { inFlight: true } );
@@ -80,9 +78,7 @@ class Sidebar extends Component {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
 			method: 'POST',
 		};
-		fetchAPIData( params, {
-			successMessage: __( 'Interest updated.', 'newspack-newsletters' ),
-		} ).then( this.setStateFromAPIResponse );
+		fetchAPIData( params ).then( this.setStateFromAPIResponse );
 	};
 	updateSender = ( senderName, senderEmail ) => {
 		this.setState( { inFlight: true } );
@@ -95,9 +91,7 @@ class Sidebar extends Component {
 			},
 			method: 'POST',
 		};
-		fetchAPIData( params, {
-			successMessage: __( 'Sender updated.', 'newspack-newsletters' ),
-		} ).then( this.setStateFromAPIResponse );
+		fetchAPIData( params ).then( this.setStateFromAPIResponse );
 	};
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result ) );
