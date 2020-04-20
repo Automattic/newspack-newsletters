@@ -445,17 +445,6 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
-		\register_meta(
-			'post',
-			'mc_list_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
@@ -622,7 +611,7 @@ final class Newspack_Newsletters {
 	public static function api_permissions_check( $request ) {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return new \WP_Error(
-				'newspack_rest_forbidden',
+				'newspack_newsletters_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack' ),
 				[
 					'status' => 403,
