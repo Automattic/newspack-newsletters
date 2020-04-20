@@ -209,7 +209,7 @@ class Sidebar extends Component {
 				</Notice>
 			);
 		}
-		const { web_id: listWebId } = lists.find( ( { id } ) => list_id === id );
+		const { web_id: listWebId } = list_id && lists.find( ( { id } ) => list_id === id );
 		return (
 			<Fragment>
 				<TextControl
