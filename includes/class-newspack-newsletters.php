@@ -314,12 +314,8 @@ final class Newspack_Newsletters {
 		$payload = [
 			'settings' => $settings,
 		];
-		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
+		return self::handle_mailchimp_response( $mc->patch( "campaigns/$mc_campaign_id", $payload ), $id );
 	}
 
 	/**
@@ -353,12 +349,8 @@ final class Newspack_Newsletters {
 				'list_id' => $list_id,
 			],
 		];
-		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
+		return self::handle_mailchimp_response( $mc->patch( "campaigns/$mc_campaign_id", $payload ), $id );
 	}
 
 	/**
@@ -474,6 +466,30 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Process Mailchimp API response. If the response has an error,
+	 * will return WordPress error. Otherwise:
+	 * - if post ID is provided, will return campaign data for that post.
+	 * - if not, will return the input response.
+	 *
+	 * @param object $result Mailchimp API response.
+	 * @param string $id post ID.
+	 */
+	public static function handle_mailchimp_response( $result, $id = false ) {
+		if ( isset( $result['status'] ) && intval( $result['status'] ) >= 400 ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$result['title'],
+				$result
+			);
+		}
+		if ( $id ) {
+			$data = self::retrieve_data( $id );
+			return \rest_ensure_response( $data );
+		}
+		return $result;
+	}
+
+	/**
 	 * Send a test email via Mailchimp.
 	 *
 	 * @param WP_REST_Request $request API request object.
@@ -505,12 +521,8 @@ final class Newspack_Newsletters {
 			'test_emails' => $test_emails,
 			'send_type'   => 'html',
 		];
-		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload );
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
+		return self::handle_mailchimp_response( $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload ), $id );
 	}
 
 	/**
@@ -519,9 +531,19 @@ final class Newspack_Newsletters {
 	 * @param string $id post ID.
 	 */
 	public static function retrieve_data( $id ) {
-		$mc_campaign_id      = get_post_meta( $id, 'mc_campaign_id', true );
-		$mc                  = new Mailchimp( self::mailchimp_api_key() );
-		$campaign            = $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null;
+		$mc_campaign_id = self::get_campaign_id( $id );
+		if ( is_wp_error( $mc_campaign_id ) ) {
+			return $mc_campaign_id;
+		}
+		$mc    = new Mailchimp( self::mailchimp_api_key() );
+		$lists = self::handle_mailchimp_response( $mc->get( 'lists' ) );
+		if ( is_wp_error( $lists ) ) {
+			return $lists;
+		}
+		$campaign = self::handle_mailchimp_response( $mc->get( "campaigns/$mc_campaign_id" ) );
+		if ( is_wp_error( $campaign ) ) {
+			return $campaign;
+		}
 		$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 		$interest_categories = $list_id ? $mc->get( "lists/$list_id/interest-categories" ) : null;
 		if ( $interest_categories && count( $interest_categories['categories'] ) ) {
@@ -532,9 +554,8 @@ final class Newspack_Newsletters {
 		}
 
 		return [
-			'lists'               => $mc->get( 'lists' ),
+			'lists'               => $lists,
 			'campaign'            => $campaign,
-			'campaign_id'         => $mc_campaign_id,
 			'interest_categories' => $interest_categories,
 		];
 	}
@@ -628,8 +649,6 @@ final class Newspack_Newsletters {
 				'title'        => $post->post_title,
 			],
 		];
-
-		$mc_campaign_id = null;
 
 		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 		if ( $mc_campaign_id ) {
