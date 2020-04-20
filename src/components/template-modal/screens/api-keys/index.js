@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { Button, ExternalLink, Spinner, TextControl } from '@wordpress/components';
+import { Button, ExternalLink, TextControl } from '@wordpress/components';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { ENTER } from '@wordpress/keycodes';
@@ -50,6 +50,8 @@ export default ( { onSetupStatus } ) => {
 		mjml_api_key: mjmlApplicationId = '',
 		mjml_api_secret: mjmlAPISecret = '',
 	} = keys;
+	const canSubmit =
+		mailchimpAPIKey.length > 0 && mjmlApplicationId.length > 0 && mjmlAPISecret.length > 0;
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content newspack-newsletters-modal__settings">
@@ -61,7 +63,7 @@ export default ( { onSetupStatus } ) => {
 						onChange={ value => setKeys( { ...keys, mailchimp_api_key: value } ) }
 						disabled={ inFlight }
 						onKeyDown={ event => {
-							if ( ENTER === event.keyCode ) {
+							if ( canSubmit && ENTER === event.keyCode ) {
 								event.preventDefault();
 								commitSettings();
 							}
@@ -71,7 +73,6 @@ export default ( { onSetupStatus } ) => {
 					{ errors.newspack_newsletters_invalid_keys_mailchimp && (
 						<p className="error">{ errors.newspack_newsletters_invalid_keys_mailchimp }</p>
 					) }
-					{ inFlight && <Spinner /> }
 					<p>
 						<ExternalLink href="https://us1.admin.mailchimp.com/account/api/">
 							{ __( 'Generate Mailchimp API key', 'newspack-newsletters' ) }
@@ -89,7 +90,7 @@ export default ( { onSetupStatus } ) => {
 						onChange={ value => setKeys( { ...keys, mjml_api_key: value } ) }
 						disabled={ inFlight }
 						onKeyDown={ event => {
-							if ( ENTER === event.keyCode ) {
+							if ( canSubmit && ENTER === event.keyCode ) {
 								event.preventDefault();
 								commitSettings();
 							}
@@ -102,7 +103,7 @@ export default ( { onSetupStatus } ) => {
 						onChange={ value => setKeys( { ...keys, mjml_api_secret: value } ) }
 						disabled={ inFlight }
 						onKeyDown={ event => {
-							if ( ENTER === event.keyCode ) {
+							if ( canSubmit && ENTER === event.keyCode ) {
 								event.preventDefault();
 								commitSettings();
 							}
@@ -112,7 +113,6 @@ export default ( { onSetupStatus } ) => {
 					{ errors.newspack_newsletters_invalid_keys_mjml && (
 						<p className="error">{ errors.newspack_newsletters_invalid_keys_mjml }</p>
 					) }
-					{ inFlight && <Spinner /> }
 					<p>
 						<ExternalLink href="https://mjml.io/api">
 							{ __( 'Request MJML API keys', 'newspack-newsletters' ) }
@@ -120,7 +120,7 @@ export default ( { onSetupStatus } ) => {
 					</p>
 				</div>
 			</div>
-			<Button isPrimary onClick={ commitSettings }>
+			<Button isPrimary onClick={ commitSettings } disabled={ inFlight || ! canSubmit }>
 				{ __( 'Save settings', 'newspack-newsletter' ) }
 			</Button>
 		</Fragment>
