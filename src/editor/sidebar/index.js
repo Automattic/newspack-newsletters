@@ -201,9 +201,7 @@ class Sidebar extends Component {
 				/>
 				{ listWebId && (
 					<p>
-						<ExternalLink
-							href={ `https://us7.admin.mailchimp.com/lists/members/?id=${ listWebId }` }
-						>
+						<ExternalLink href={ `https://admin.mailchimp.com/lists/members/?id=${ listWebId }` }>
 							{ __( 'Manage list', 'newspack-newsletters' ) }
 						</ExternalLink>
 					</p>
