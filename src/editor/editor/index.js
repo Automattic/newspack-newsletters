@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
-import apiFetch from '@wordpress/api-fetch';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import { registerPlugin } from '@wordpress/plugins';
@@ -11,9 +10,11 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
+import withNewsletterApi from '../../components/with-newsletter-api';
 import './style.scss';
 
 const Editor = compose( [
+	withNewsletterApi(),
 	withSelect( select => {
 		const {
 			getCurrentPostId,
@@ -40,9 +41,13 @@ const Editor = compose( [
 	// Fetch campaign data.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
-			apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
-				props.editPost( getEditPostPayload( result ) );
-			} );
+			props
+				.apiFetchWithErrorHandling( {
+					path: `/newspack-newsletters/v1/mailchimp/${ props.postId }`,
+				} )
+				.then( result => {
+					props.editPost( getEditPostPayload( result ) );
+				} );
 		}
 	}, [ props.isPublishingOrSavingPost ]);
 
