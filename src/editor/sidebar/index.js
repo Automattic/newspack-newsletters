@@ -92,7 +92,8 @@ class Sidebar extends Component {
 	};
 
 	interestCategories = () => {
-		const { campaign, inFlight, interestCategories } = this.state;
+		const { campaign, interestCategories } = this.props;
+		const { inFlight } = this.state;
 		if (
 			! interestCategories ||
 			! interestCategories.categories ||
@@ -278,6 +279,7 @@ export default compose( [
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			campaign: meta.campaign,
+			interestCategories: meta.interestCategories,
 			lists: meta.lists ? meta.lists.lists : [],
 			postId: getCurrentPostId(),
 		};
