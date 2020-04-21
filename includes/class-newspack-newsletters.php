@@ -136,6 +136,7 @@ final class Newspack_Newsletters {
 			return $allowed_block_types;
 		}
 		return array(
+			'core/spacer',
 			'core/block',
 			'core/group',
 			'core/paragraph',
@@ -321,7 +322,7 @@ final class Newspack_Newsletters {
 		$mailchimp_api_key = self::mailchimp_api_key();
 		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
 		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
-		
+
 		$keys = [
 			'mailchimp_api_key' => $mailchimp_api_key,
 			'mjml_api_key'      => $mjml_api_key,
@@ -345,8 +346,8 @@ final class Newspack_Newsletters {
 		$errors = [];
 
 		if ( empty( $mailchimp_api_key ) ) {
-			$wp_error->add( 
-				'newspack_newsletters_invalid_keys_mailchimp', 
+			$wp_error->add(
+				'newspack_newsletters_invalid_keys_mailchimp',
 				__( 'Please input a Mailchimp API key.', 'newspack-newsletters' )
 			);
 		} else {
@@ -359,16 +360,16 @@ final class Newspack_Newsletters {
 			if ( $ping ) {
 				update_option( 'newspack_newsletters_mailchimp_api_key', $mailchimp_api_key );
 			} else {
-				$wp_error->add( 
-					'newspack_newsletters_invalid_keys_mailchimp', 
+				$wp_error->add(
+					'newspack_newsletters_invalid_keys_mailchimp',
 					__( 'Please input a valid Mailchimp API key.', 'newspack-newsletters' )
 				);
 			}
 		}
 
 		if ( empty( $mjml_api_key ) || empty( $mjml_api_secret ) ) {
-			$wp_error->add( 
-				'newspack_newsletters_invalid_keys_mjml', 
+			$wp_error->add(
+				'newspack_newsletters_invalid_keys_mjml',
 				__( 'Please input MJML application ID and secret key.', 'newspack-newsletters' )
 			);
 		} else {
@@ -392,8 +393,8 @@ final class Newspack_Newsletters {
 				update_option( 'newspack_newsletters_mjml_api_key', $mjml_api_key );
 				update_option( 'newspack_newsletters_mjml_api_secret', $mjml_api_secret );
 			} else {
-				$wp_error->add( 
-					'newspack_newsletters_invalid_keys_mjml', 
+				$wp_error->add(
+					'newspack_newsletters_invalid_keys_mjml',
 					__( 'Please input valid MJML application ID and secret key.', 'newspack-newsletters' )
 				);
 			}
