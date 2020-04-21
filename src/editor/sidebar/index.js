@@ -24,7 +24,7 @@ import { get } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
+import { getEditPostPayload, handleErrors } from '../utils';
 import './style.scss';
 
 class Sidebar extends Component {
@@ -47,7 +47,9 @@ class Sidebar extends Component {
 			},
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		apiFetch( params )
+			.then( this.setStateFromAPIResponse )
+			.catch( handleErrors );
 	};
 	setList = listId => {
 		this.setState( { inFlight: true } );
@@ -56,7 +58,9 @@ class Sidebar extends Component {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		apiFetch( params )
+			.then( this.setStateFromAPIResponse )
+			.catch( handleErrors );
 	};
 	setInterest = interestId => {
 		this.setState( { inFlight: true } );
@@ -65,7 +69,9 @@ class Sidebar extends Component {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
 			method: 'POST',
 		};
-		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+		apiFetch( params )
+			.then( result => this.setStateFromAPIResponse( result ) )
+			.catch( handleErrors );
 	};
 	updateSender = ( senderName, senderEmail ) => {
 		this.setState( { inFlight: true } );
@@ -78,7 +84,9 @@ class Sidebar extends Component {
 			},
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		apiFetch( params )
+			.then( this.setStateFromAPIResponse )
+			.catch( handleErrors );
 	};
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result ) );

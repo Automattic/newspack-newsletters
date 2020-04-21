@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { dispatch, select } from '@wordpress/data';
 
 const validateCampaign = campaign => {
 	const { recipients, settings, status } = campaign || {};
@@ -36,3 +37,10 @@ export const getEditPostPayload = ( { campaign, lists } ) => ( {
 		lists,
 	},
 } );
+
+export const handleErrors = error => {
+	const { createNotice, removeNotice } = dispatch( 'core/notices' );
+	const { getNotices } = select( 'core/notices' );
+	getNotices().forEach( notice => removeNotice( notice.id ) );
+	createNotice( 'error', error.message );
+};

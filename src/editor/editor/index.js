@@ -10,7 +10,7 @@ import { registerPlugin } from '@wordpress/plugins';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
+import { getEditPostPayload, handleErrors } from '../utils';
 import './style.scss';
 
 const Editor = compose( [
@@ -34,9 +34,11 @@ const Editor = compose( [
 ] )( props => {
 	// Fetch campaign data.
 	useEffect(() => {
-		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
-			props.editPost( getEditPostPayload( result ) );
-		} );
+		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } )
+			.then( result => {
+				props.editPost( getEditPostPayload( result ) );
+			} )
+			.catch( handleErrors );
 	}, [ props.isPublishingOrSavingPost ]);
 
 	// Lock or unlock post publishing.
