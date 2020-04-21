@@ -341,6 +341,14 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
+			 * Spacer block.
+			 */
+			case 'core/spacer':
+				$attrs['height']    = $attrs['height'] . 'px';
+				$block_mjml_markup .= '<mj-spacer ' . self::array_to_attributes( $attrs ) . '/>';
+				break;
+
+			/**
 			 * Social links block.
 			 */
 			case 'core/social-links':

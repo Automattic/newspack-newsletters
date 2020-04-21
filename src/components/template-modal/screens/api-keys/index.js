@@ -6,11 +6,14 @@ import { Button, ExternalLink, Spinner, TextControl } from '@wordpress/component
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { ENTER } from '@wordpress/keycodes';
+import { dispatch } from '@wordpress/data';
 
 /**
  * External dependencies
  */
 import classnames from 'classnames';
+
+const { lockPostAutosaving, unlockPostAutosaving, savePost } = dispatch( 'core/editor' );
 
 export default ( { onSetupStatus } ) => {
 	const [ keys, setKeys ] = useState( {} );
@@ -25,9 +28,12 @@ export default ( { onSetupStatus } ) => {
 			data: keys,
 		} )
 			.then( results => {
-				setInFlight( false );
-				setKeys( results );
-				onSetupStatus( results.status );
+				unlockPostAutosaving( 'newsletters-modal-is-open-lock' );
+				savePost().then( () => {
+					setInFlight( false );
+					setKeys( results );
+					onSetupStatus( results.status );
+				} );
 			} )
 			.catch( handleErrors );
 	};
@@ -40,6 +46,7 @@ export default ( { onSetupStatus } ) => {
 		setInFlight( false );
 	};
 	useEffect(() => {
+		lockPostAutosaving( 'newsletters-modal-is-open-lock' );
 		setInFlight( true );
 		apiFetch( { path: `/newspack-newsletters/v1/keys` } )
 			.then( results => {
