@@ -163,9 +163,10 @@ final class Newspack_Newsletters_Renderer {
 	 * @param WP_Block $block The block.
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
 	 * @param bool     $is_in_group Whether the component is a child of a group component.
+	 * @param array    $default_attrs Default attributes for the component.
 	 * @return string MJML component.
 	 */
-	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false ) {
+	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [] ) {
 		$block_name   = $block['blockName'];
 		$attrs        = $block['attrs'];
 		$inner_blocks = $block['innerBlocks'];
@@ -176,7 +177,7 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		$block_mjml_markup = '';
-		$attrs             = self::process_attributes( $attrs );
+		$attrs             = self::process_attributes( array_merge( $default_attrs, $attrs ) );
 
 		// Default attributes for the section which will envelop the mj-column.
 		$section_attrs = array_merge(
@@ -414,7 +415,7 @@ final class Newspack_Newsletters_Renderer {
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true );
+					$markup .= self::render_mjml_component( $block, true, false, $default_attrs );
 				}
 				$block_mjml_markup = $markup . '</mj-column>';
 				break;
@@ -423,9 +424,12 @@ final class Newspack_Newsletters_Renderer {
 			 * Columns block.
 			 */
 			case 'core/columns':
+				if ( isset( $attrs['color'] ) ) {
+					$default_attrs['color'] = $attrs['color'];
+				}
 				$markup = '';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true );
+					$markup .= self::render_mjml_component( $block, true, false, $default_attrs );
 				}
 				$block_mjml_markup = $markup;
 				break;
@@ -445,9 +449,14 @@ final class Newspack_Newsletters_Renderer {
 			 * Group block.
 			 */
 			case 'core/group':
+				// There's no color attribute on mj-wrapper, so it has to be passed to children.
+				// https://github.com/mjmlio/mjml/issues/1881 .
+				if ( isset( $attrs['color'] ) ) {
+					$default_attrs['color'] = $attrs['color'];
+				}
 				$markup = '<mj-wrapper ' . self::array_to_attributes( $attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, false, true );
+					$markup .= self::render_mjml_component( $block, false, true, $default_attrs );
 				}
 				$block_mjml_markup = $markup . '</mj-wrapper>';
 				break;
