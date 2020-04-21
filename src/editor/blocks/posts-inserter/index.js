@@ -145,15 +145,15 @@ export default () => {
 			},
 			displayPostExcerpt: {
 				type: 'boolean',
-				default: false,
+				default: true,
 			},
 			excerptLength: {
 				type: 'number',
-				default: 42,
+				default: 15,
 			},
 			displayPostDate: {
 				type: 'boolean',
-				default: true,
+				default: false,
 			},
 			displayFeaturedImage: {
 				type: 'boolean',

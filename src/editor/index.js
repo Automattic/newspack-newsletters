@@ -91,7 +91,7 @@ const NewsletterEdit = ( {
 			<NestedColumnsDetection />
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
-				title={ __( ' Newsletter Settings', 'newspack-newsletters' ) }
+				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar />
 			</PluginDocumentSettingPanel>
