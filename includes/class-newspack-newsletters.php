@@ -629,23 +629,39 @@ final class Newspack_Newsletters {
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
+		try {
+			$mc = new Mailchimp( self::mailchimp_api_key() );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+			$test_emails = explode( ',', $test_email );
+			foreach ( $test_emails as &$email ) {
+				$email = sanitize_email( trim( $email ) );
+			}
+			$payload = [
+				'test_emails' => $test_emails,
+				'send_type'   => 'html',
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->post(
+					"campaigns/$mc_campaign_id/actions/test",
+					$payload
+				)
+			);
 
-		$test_emails = explode( ',', $test_email );
-		foreach ( $test_emails as &$email ) {
-			$email = sanitize_email( trim( $email ) );
+			$data            = self::retrieve_data( $id );
+			$data['result']  = $result;
+			$data['message'] = sprintf(
+				// translators: Message after successful test email.
+				__( 'Mailchimp test sent successfully to %s.', 'newspack-newsletters' ),
+				implode( ' ', $test_emails )
+			);
+
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
 		}
-		$payload = [
-			'test_emails' => $test_emails,
-			'send_type'   => 'html',
-		];
-		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload );
-
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
 	}
 
 	/**
@@ -961,6 +977,44 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag_dismissal_ajax() {
 		update_option( 'newspack_newsletters_activation_nag_viewed', true );
+	}
+
+	/**
+	 * Throw an Exception if Mailchimp response indicates an error.
+	 *
+	 * @param object $result Result of the Mailchimp operation.
+	 * @param string $preferred_error Preset error to use instead of Mailchimp errors.
+	 * @throws Exception Error message.
+	 */
+	public static function validate_mailchimp_operation( $result, $preferred_error = null ) {
+		if ( ! $result ) {
+			if ( $preferred_error ) {
+				throw new Exception( $preferred_error );
+			} else {
+				throw new Exception( __( 'A Mailchimp error has occurred.', 'newspack-newsletters' ) );
+			}
+		}
+		if ( ! empty( $result['status'] ) && in_array( $result['status'], [ 400, 404 ] ) ) {
+			if ( $preferred_error ) {
+				throw new Exception( $preferred_error );
+			}
+			$messages = [];
+			if ( ! empty( $result['errors'] ) ) {
+				foreach ( $result['errors'] as $error ) {
+					if ( ! empty( $error['message'] ) ) {
+						$messages[] = $error['message'];
+					}
+				}
+			}
+			if ( ! count( $messages ) && ! empty( $result['detail'] ) ) {
+				$messages[] = $result['detail'];
+			}
+			if ( ! count( $messages ) ) {
+				$message[] = __( 'A Mailchimp error has occurred.', 'newspack-newsletters' );
+			}
+			throw new Exception( implode( ' ', $messages ) );
+		}
+		return $result;
 	}
 }
 Newspack_Newsletters::instance();
