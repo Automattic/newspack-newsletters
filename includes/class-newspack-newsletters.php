@@ -49,7 +49,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'handle_post_save' ], 10, 2 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
@@ -271,6 +271,20 @@ final class Newspack_Newsletters {
 					],
 					'reply_to'  => [
 						'sanitize_callback' => 'sanitize_email',
+					],
+				],
+			]
+		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'resync/(?P<id>[\a-z]+)',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_resync' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'id' => [
+						'sanitize_callback' => 'absint',
 					],
 				],
 			]
@@ -570,8 +584,9 @@ final class Newspack_Newsletters {
 				'newspack_newsletters_error_fatal',
 				$error_title,
 				array(
-					'title'  => $error_title,
-					'detail' => $publish_error_message ? $publish_error_message : $sync_error_message,
+					'title'   => $error_title,
+					'detail'  => $publish_error_message ? $publish_error_message : $sync_error_message,
+					'post_id' => $id,
 				)
 			);
 		}
@@ -612,6 +627,29 @@ final class Newspack_Newsletters {
 			'campaign'            => $campaign,
 			'interest_categories' => $interest_categories,
 		];
+	}
+
+	/**
+	 * Re-sync after a fatal error.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_resync( $request ) {
+		$id = $request['id'];
+
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		delete_transient( 'newsletters_fatal_error_' . $id . '_sync' );
+		delete_transient( 'newsletters_fatal_error_' . $id . '_publish' );
+
+		self::handle_post_save( $id, get_post( $id ) );
+
+		return \rest_ensure_response( self::retrieve_data( $id ) );
 	}
 
 	/**
@@ -662,7 +700,7 @@ final class Newspack_Newsletters {
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
 	 */
-	public static function save_post( $id, $post ) {
+	public static function handle_post_save( $id, $post ) {
 		$status = get_post_status( $id );
 		if ( 'trash' === $status ) {
 			return;
