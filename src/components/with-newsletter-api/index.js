@@ -19,14 +19,16 @@ export default () =>
 						.then( response => {
 							const { message } = response;
 							if ( message ) {
+								getNotices().forEach( notice => removeNotice( notice.id ) );
 								createSuccessNotice( message );
 							}
 							setInFlight( false );
 							resolve( response );
 						} )
 						.catch( error => {
+							const { message } = error;
 							getNotices().forEach( notice => removeNotice( notice.id ) );
-							createErrorNotice( error );
+							createErrorNotice( message );
 							setInFlight( false );
 							reject( error );
 						} );
