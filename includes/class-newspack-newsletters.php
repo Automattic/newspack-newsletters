@@ -136,6 +136,7 @@ final class Newspack_Newsletters {
 			return $allowed_block_types;
 		}
 		return array(
+			'core/spacer',
 			'core/block',
 			'core/group',
 			'core/paragraph',
