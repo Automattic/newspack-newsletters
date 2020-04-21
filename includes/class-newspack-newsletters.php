@@ -324,9 +324,9 @@ final class Newspack_Newsletters {
 		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
 
 		$keys = [
-			'mailchimp_api_key' => $mailchimp_api_key,
-			'mjml_api_key'      => $mjml_api_key,
-			'mjml_api_secret'   => $mjml_api_secret,
+			'mailchimp_api_key' => $mailchimp_api_key ? $mailchimp_api_key : '',
+			'mjml_api_key'      => $mjml_api_key ? $mjml_api_key : '',
+			'mjml_api_secret'   => $mjml_api_secret ? $mjml_api_secret : '',
 			'status'            => ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret ),
 		];
 		return \rest_ensure_response( $keys );
@@ -342,8 +342,6 @@ final class Newspack_Newsletters {
 		$mjml_api_key      = $request['mjml_api_key'];
 		$mjml_api_secret   = $request['mjml_api_secret'];
 		$wp_error          = new WP_Error();
-
-		$errors = [];
 
 		if ( empty( $mailchimp_api_key ) ) {
 			$wp_error->add(
@@ -754,8 +752,6 @@ final class Newspack_Newsletters {
 				'title'        => $post->post_title,
 			],
 		];
-
-		$mc_campaign_id = null;
 
 		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 		if ( $mc_campaign_id ) {

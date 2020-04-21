@@ -15,12 +15,17 @@ import './style.scss';
 
 const Editor = compose( [
 	withSelect( select => {
-		const { getCurrentPostId, getEditedPostAttribute, isPublishingPost, isSavingPost } = select(
-			'core/editor'
-		);
+		const {
+			getCurrentPostId,
+			getEditedPostAttribute,
+			isPublishingPost,
+			isSavingPost,
+			isCleanNewPost,
+		} = select( 'core/editor' );
 		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
+			isCleanNewPost: isCleanNewPost(),
 			postId: getCurrentPostId(),
 			isReady: meta.campaignValidationErrors ? meta.campaignValidationErrors.length === 0 : false,
 			activeSidebarName: getActiveGeneralSidebarName(),
@@ -34,9 +39,11 @@ const Editor = compose( [
 ] )( props => {
 	// Fetch campaign data.
 	useEffect(() => {
-		apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
-			props.editPost( getEditPostPayload( result ) );
-		} );
+		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
+			apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
+				props.editPost( getEditPostPayload( result ) );
+			} );
+		}
 	}, [ props.isPublishingOrSavingPost ]);
 
 	// Lock or unlock post publishing.
