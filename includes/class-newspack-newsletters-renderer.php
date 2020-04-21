@@ -125,6 +125,15 @@ final class Newspack_Newsletters_Renderer {
 			$attrs['font-size'] = $font_size;
 		}
 
+		if ( isset( $attrs['style'] ) ) {
+			if ( isset( $attrs['style']['color']['background'] ) ) {
+				$attrs['background-color'] = $attrs['style']['color']['background'];
+			}
+			if ( isset( $attrs['style']['color']['text'] ) ) {
+				$attrs['color'] = $attrs['style']['color']['text'];
+			}
+		}
+
 		// Remove block-only attributes.
 		array_map(
 			function ( $key ) use ( &$attrs ) {
@@ -132,7 +141,7 @@ final class Newspack_Newsletters_Renderer {
 					unset( $attrs[ $key ] );
 				}
 			},
-			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize' ]
+			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize', 'backgroundColor', 'style' ]
 		);
 
 		if ( isset( $attrs['background-color'] ) ) {
