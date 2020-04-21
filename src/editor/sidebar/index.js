@@ -49,7 +49,10 @@ class Sidebar extends Component {
 		};
 		apiFetch( params )
 			.then( this.setStateFromAPIResponse )
-			.catch( handleErrors );
+			.catch( error => {
+				handleErrors( error );
+				this.setState( { inFlight: false } );
+			} );
 	};
 	setList = listId => {
 		this.setState( { inFlight: true } );
@@ -179,7 +182,8 @@ class Sidebar extends Component {
 				</Notice>
 			);
 		}
-		const { web_id: listWebId } = list_id && lists.find( ( { id } ) => list_id === id );
+		const currentList = list_id && lists.find( ( { id } ) => list_id === id );
+		const { web_id: listWebId } = currentList || {};
 		return (
 			<Fragment>
 				<TextControl
