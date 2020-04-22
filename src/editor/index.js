@@ -15,6 +15,7 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import TemplateModal from '../components/template-modal';
+import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
 import registerEditorPlugin from './editor/';
@@ -54,13 +55,13 @@ const NewsletterEdit = ( {
 	getBlocks,
 	insertBlocks,
 	replaceBlocks,
-	isEditedPostEmpty,
 	savePost,
+	setTemplateIDMeta,
+	templateId,
 } ) => {
 	const templates =
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
 
-	const [ insertedTemplate, setInserted ] = useState( null );
 	const [ hasKeys, setHasKeys ] = useState(
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.has_keys
 	);
@@ -73,12 +74,10 @@ const NewsletterEdit = ( {
 		} else {
 			insertBlocks( parse( template.content ) );
 		}
-		setInserted( templateIndex );
+		setTemplateIDMeta( templateIndex );
 		setTimeout( savePost, 1 );
 	};
-	const isDisplayingTemplateModal =
-		! hasKeys ||
-		( isEditedPostEmpty && templates && templates.length && insertedTemplate === null );
+	const isDisplayingTemplateModal = ! hasKeys || -1 === templateId;
 
 	return isDisplayingTemplateModal ? (
 		<TemplateModal
@@ -97,6 +96,12 @@ const NewsletterEdit = ( {
 				<Sidebar />
 			</PluginDocumentSettingPanel>
 			<PluginDocumentSettingPanel
+				name="newsletters-layout-panel"
+				title={ __( 'Layout', 'newspack-newsletters' ) }
+			>
+				<Layout templates={ templates } />
+			</PluginDocumentSettingPanel>
+			<PluginDocumentSettingPanel
 				name="newsletters-testing-panel"
 				title={ __( 'Testing', 'newspack-newsletters' ) }
 			>
@@ -108,17 +113,25 @@ const NewsletterEdit = ( {
 
 const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
-		const { isEditedPostEmpty } = select( 'core/editor' );
+		const { getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		const { template_id: templateId } = meta;
 		const { getBlocks } = select( 'core/block-editor' );
 		return {
-			isEditedPostEmpty: isEditedPostEmpty(),
 			getBlocks,
+			templateId,
 		};
 	} ),
 	withDispatch( dispatch => {
 		const { savePost } = dispatch( 'core/editor' );
 		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
-		return { savePost, insertBlocks, replaceBlocks };
+		return {
+			savePost,
+			insertBlocks,
+			replaceBlocks,
+			setTemplateIDMeta: templateId =>
+				dispatch( 'core/editor' ).editPost( { meta: { template_id: templateId } } ),
+		};
 	} ),
 ] )( NewsletterEdit );
 
