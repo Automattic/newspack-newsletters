@@ -136,13 +136,6 @@ class Sidebar extends Component {
 		}
 		const { recipients, status } = campaign || {};
 		const { list_id } = recipients || {};
-		if ( ! status ) {
-			return (
-				<Notice status="info" isDismissible={ false }>
-					{ __( 'Publish to sync to Mailchimp.', 'newspack-newsletters' ) }
-				</Notice>
-			);
-		}
 		if ( 'sent' === status || 'sending' === status ) {
 			return (
 				<Notice status="success" isDismissible={ false }>
