@@ -49,7 +49,7 @@ final class Newspack_Newsletters {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
@@ -66,6 +66,45 @@ final class Newspack_Newsletters {
 		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
+	}
+
+	/**
+	 * Register custom fields.
+	 */
+	public static function register_meta() {
+		\register_meta(
+			'post',
+			'mc_campaign_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'mc_list_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'template_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'integer',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -561,34 +600,6 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Register custom fields.
-	 */
-	public static function register_meta() {
-		\register_meta(
-			'post',
-			'mc_campaign_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'mc_list_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-	}
-
-	/**
 	 * Get Mailchimp data.
 	 *
 	 * @param WP_REST_Request $request API request object.
@@ -618,23 +629,39 @@ final class Newspack_Newsletters {
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
+		try {
+			$mc = new Mailchimp( self::mailchimp_api_key() );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+			$test_emails = explode( ',', $test_email );
+			foreach ( $test_emails as &$email ) {
+				$email = sanitize_email( trim( $email ) );
+			}
+			$payload = [
+				'test_emails' => $test_emails,
+				'send_type'   => 'html',
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->post(
+					"campaigns/$mc_campaign_id/actions/test",
+					$payload
+				)
+			);
 
-		$test_emails = explode( ',', $test_email );
-		foreach ( $test_emails as &$email ) {
-			$email = sanitize_email( trim( $email ) );
+			$data            = self::retrieve_data( $id );
+			$data['result']  = $result;
+			$data['message'] = sprintf(
+				// translators: Message after successful test email.
+				__( 'Mailchimp test sent successfully to %s.', 'newspack-newsletters' ),
+				implode( ' ', $test_emails )
+			);
+
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
 		}
-		$payload = [
-			'test_emails' => $test_emails,
-			'send_type'   => 'html',
-		];
-		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/test", $payload );
-
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
 	}
 
 	/**
@@ -694,8 +721,12 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
+	 * @param boolean $update Is this an update of the post.
 	 */
-	public static function save_post( $id, $post ) {
+	public static function save_post( $id, $post, $update ) {
+		if ( ! $update ) {
+			update_post_meta( $id, 'template_id', -1 );
+		}
 		$status = get_post_status( $id );
 		if ( 'trash' === $status ) {
 			return;
@@ -946,6 +977,44 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag_dismissal_ajax() {
 		update_option( 'newspack_newsletters_activation_nag_viewed', true );
+	}
+
+	/**
+	 * Throw an Exception if Mailchimp response indicates an error.
+	 *
+	 * @param object $result Result of the Mailchimp operation.
+	 * @param string $preferred_error Preset error to use instead of Mailchimp errors.
+	 * @throws Exception Error message.
+	 */
+	public static function validate_mailchimp_operation( $result, $preferred_error = null ) {
+		if ( ! $result ) {
+			if ( $preferred_error ) {
+				throw new Exception( $preferred_error );
+			} else {
+				throw new Exception( __( 'A Mailchimp error has occurred.', 'newspack-newsletters' ) );
+			}
+		}
+		if ( ! empty( $result['status'] ) && in_array( $result['status'], [ 400, 404 ] ) ) {
+			if ( $preferred_error ) {
+				throw new Exception( $preferred_error );
+			}
+			$messages = [];
+			if ( ! empty( $result['errors'] ) ) {
+				foreach ( $result['errors'] as $error ) {
+					if ( ! empty( $error['message'] ) ) {
+						$messages[] = $error['message'];
+					}
+				}
+			}
+			if ( ! count( $messages ) && ! empty( $result['detail'] ) ) {
+				$messages[] = $result['detail'];
+			}
+			if ( ! count( $messages ) ) {
+				$message[] = __( 'A Mailchimp error has occurred.', 'newspack-newsletters' );
+			}
+			throw new Exception( implode( ' ', $messages ) );
+		}
+		return $result;
 	}
 }
 Newspack_Newsletters::instance();

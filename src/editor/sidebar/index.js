@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
@@ -23,37 +22,34 @@ import { get } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
+import { getEditPostPayload, hasValidEmail } from '../utils';
+import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
 class Sidebar extends Component {
 	state = {
-		inFlight: false,
 		senderEmail: '',
 		senderName: '',
 		senderDirty: false,
 	};
 	setList = listId => {
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { apiFetchWithErrorHandling, postId } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		apiFetchWithErrorHandling( params ).then( this.setStateFromAPIResponse );
 	};
 	setInterest = interestId => {
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { apiFetchWithErrorHandling, postId } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/interest/${ interestId }`,
 			method: 'POST',
 		};
-		apiFetch( params ).then( result => this.setStateFromAPIResponse( result ) );
+		apiFetchWithErrorHandling( params ).then( result => this.setStateFromAPIResponse( result ) );
 	};
 	updateSender = ( senderName, senderEmail ) => {
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
+		const { apiFetchWithErrorHandling, postId } = this.props;
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/settings`,
 			data: {
@@ -62,22 +58,20 @@ class Sidebar extends Component {
 			},
 			method: 'POST',
 		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
+		apiFetchWithErrorHandling( params ).then( this.setStateFromAPIResponse );
 	};
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result ) );
 
 		this.setState( {
-			inFlight: false,
-			senderName: result.campaign.settings.from_name,
-			senderEmail: result.campaign.settings.reply_to,
+			senderName: result.campaign.settings.from_name || '',
+			senderEmail: result.campaign.settings.reply_to || '',
 			senderDirty: false,
 		} );
 	};
 
 	interestCategories = () => {
-		const { campaign, interestCategories } = this.props;
-		const { inFlight } = this.state;
+		const { campaign, inFlight, interestCategories } = this.props;
 		if (
 			! interestCategories ||
 			! interestCategories.categories ||
@@ -130,8 +124,8 @@ class Sidebar extends Component {
 	 * Render
 	 */
 	render() {
-		const { campaign, lists, editPost, title } = this.props;
-		const { inFlight, senderName, senderEmail, senderDirty } = this.state;
+		const { campaign, inFlight, lists, editPost, title } = this.props;
+		const { senderName, senderEmail, senderDirty } = this.state;
 		if ( ! campaign ) {
 			return (
 				<div className="newspack-newsletters__loading-data">
@@ -142,13 +136,6 @@ class Sidebar extends Component {
 		}
 		const { recipients, status } = campaign || {};
 		const { list_id } = recipients || {};
-		if ( ! status ) {
-			return (
-				<Notice status="info" isDismissible={ false }>
-					{ __( 'Publish to sync to Mailchimp.', 'newspack-newsletters' ) }
-				</Notice>
-			);
-		}
 		if ( 'sent' === status || 'sending' === status ) {
 			return (
 				<Notice status="success" isDismissible={ false }>
@@ -185,9 +172,7 @@ class Sidebar extends Component {
 				/>
 				{ listWebId && (
 					<p>
-						<ExternalLink
-							href={ `https://us7.admin.mailchimp.com/lists/members/?id=${ listWebId }` }
-						>
+						<ExternalLink href={ `https://admin.mailchimp.com/lists/members/?id=${ listWebId }` }>
 							{ __( 'Manage list', 'newspack-newsletters' ) }
 						</ExternalLink>
 					</p>
@@ -213,7 +198,7 @@ class Sidebar extends Component {
 					<Button
 						isLink
 						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight }
+						disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
@@ -224,6 +209,7 @@ class Sidebar extends Component {
 }
 
 export default compose( [
+	withApiHandler(),
 	withSelect( select => {
 		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );

@@ -7,6 +7,7 @@ import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
 import { Button, TextControl } from '@wordpress/components';
+import { hasValidEmail } from '../utils';
 
 export default compose( [
 	withSelect( select => {
@@ -43,7 +44,11 @@ export default compose( [
 				onChange={ setTestEmail }
 				help={ __( 'Use commas to separate multiple emails.', 'newspack-newsletters' ) }
 			/>
-			<Button isPrimary onClick={ sendMailchimpTest } disabled={ testEmail.length < 1 || inFlight }>
+			<Button
+				isPrimary
+				onClick={ sendMailchimpTest }
+				disabled={ inFlight || ! hasValidEmail( testEmail ) }
+			>
 				{ __( 'Send a Test Email', 'newspack-newsletters' ) }
 			</Button>
 		</Fragment>
