@@ -22,7 +22,7 @@ import { get } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
+import { getEditPostPayload, hasValidEmail } from '../utils';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
@@ -141,13 +141,6 @@ class Sidebar extends Component {
 		}
 		const { recipients, status } = campaign || {};
 		const { list_id } = recipients || {};
-		if ( ! status ) {
-			return (
-				<Notice status="info" isDismissible={ false }>
-					{ __( 'Publish to sync to Mailchimp.', 'newspack-newsletters' ) }
-				</Notice>
-			);
-		}
 		if ( 'sent' === status || 'sending' === status ) {
 			return (
 				<Notice status="success" isDismissible={ false }>
@@ -216,7 +209,7 @@ class Sidebar extends Component {
 					<Button
 						isLink
 						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight }
+						disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
