@@ -28,10 +28,19 @@ import './style.scss';
 
 class Sidebar extends Component {
 	state = {
-		senderEmail: '',
-		senderName: '',
 		senderDirty: false,
 	};
+	componentDidUpdate( prevProps ) {
+		if ( ! prevProps.campaign && this.props.campaign ) {
+			this.props.editPost( {
+				meta: {
+					senderName: this.props.campaign.settings.from_name,
+					senderEmail: this.props.campaign.settings.reply_to,
+				},
+			} );
+		}
+	}
+
 	setList = listId => {
 		const { apiFetchWithErrorHandling, postId } = this.props;
 		const params = {
@@ -63,11 +72,7 @@ class Sidebar extends Component {
 	setStateFromAPIResponse = result => {
 		this.props.editPost( getEditPostPayload( result ) );
 
-		this.setState( {
-			senderName: result.campaign.settings.from_name || '',
-			senderEmail: result.campaign.settings.reply_to || '',
-			senderDirty: false,
-		} );
+		this.setState( { senderDirty: false } );
 	};
 
 	interestCategories = () => {
@@ -124,8 +129,8 @@ class Sidebar extends Component {
 	 * Render
 	 */
 	render() {
-		const { campaign, inFlight, lists, editPost, title } = this.props;
-		const { senderName, senderEmail, senderDirty } = this.state;
+		const { inFlight, campaign, lists, editPost, title, senderName, senderEmail } = this.props;
+		const { senderDirty } = this.state;
 		if ( ! campaign ) {
 			return (
 				<div className="newspack-newsletters__loading-data">
@@ -184,7 +189,10 @@ class Sidebar extends Component {
 					className="newspack-newsletters__name-textcontrol"
 					value={ senderName }
 					disabled={ inFlight }
-					onChange={ value => this.setState( { senderName: value, senderDirty: true } ) }
+					onChange={ value => {
+						editPost( { meta: { senderName: value } } );
+						this.setState( { senderDirty: true } );
+					} }
 				/>
 				<TextControl
 					label={ __( 'Email', 'newspack-newsletters' ) }
@@ -192,7 +200,10 @@ class Sidebar extends Component {
 					value={ senderEmail }
 					type="email"
 					disabled={ inFlight }
-					onChange={ value => this.setState( { senderEmail: value, senderDirty: true } ) }
+					onChange={ value => {
+						editPost( { meta: { senderEmail: value } } );
+						this.setState( { senderDirty: true } );
+					} }
 				/>
 				{ senderDirty && (
 					<Button
@@ -219,6 +230,8 @@ export default compose( [
 			interestCategories: meta.interestCategories,
 			lists: meta.lists ? meta.lists.lists : [],
 			postId: getCurrentPostId(),
+			senderEmail: meta.senderEmail,
+			senderName: meta.senderName,
 		};
 	} ),
 	withDispatch( dispatch => {
