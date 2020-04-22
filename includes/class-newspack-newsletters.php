@@ -510,18 +510,27 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc      = new Mailchimp( self::mailchimp_api_key() );
-		$payload = [
-			'recipients' => [
-				'list_id' => $list_id,
-			],
-		];
-		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+		try {
+			$mc      = new Mailchimp( self::mailchimp_api_key() );
+			$payload = [
+				'recipients' => [
+					'list_id' => $list_id,
+				],
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->patch( "campaigns/$mc_campaign_id", $payload )
+			);
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
+			$data           = self::retrieve_data( $id );
+			$data['result'] = $result;
 
-		return \rest_ensure_response( $data );
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 	}
 
 	/**
@@ -556,47 +565,57 @@ final class Newspack_Newsletters {
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
-
-		$mc       = new Mailchimp( self::mailchimp_api_key() );
-		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
-		$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
-
-		if ( ! $list_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp list ID not found.', 'newspack-newsletters' )
+		try {
+			$mc       = new Mailchimp( self::mailchimp_api_key() );
+			$campaign = self::validate_mailchimp_operation(
+				$mc->get( "campaigns/$mc_campaign_id" )
 			);
-		}
+			$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
-		$segment_opts = ( 'no_interests' === $request['interest_id'] ) ?
-			(object) [] :
-			[
-				'match'      => 'any',
-				'conditions' => [
-					[
-						'condition_type' => 'Interests',
-						'field'          => $field,
-						'op'             => 'interestcontains',
-						'value'          => [
-							$interest_id,
+			if ( ! $list_id ) {
+				return new WP_Error(
+					'newspack_newsletters_no_campaign_id',
+					__( 'Mailchimp list ID not found.', 'newspack-newsletters' )
+				);
+			}
+
+			$segment_opts = ( 'no_interests' === $request['interest_id'] ) ?
+				(object) [] :
+				[
+					'match'      => 'any',
+					'conditions' => [
+						[
+							'condition_type' => 'Interests',
+							'field'          => $field,
+							'op'             => 'interestcontains',
+							'value'          => [
+								$interest_id,
+							],
 						],
 					],
+				];
+
+			$payload = [
+				'recipients' => [
+					'list_id'      => $list_id,
+					'segment_opts' => $segment_opts,
 				],
 			];
 
-		$payload = [
-			'recipients' => [
-				'list_id'      => $list_id,
-				'segment_opts' => $segment_opts,
-			],
-		];
+			$result = self::validate_mailchimp_operation(
+				$mc->patch( "campaigns/$mc_campaign_id", $payload )
+			);
 
-		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+			$data           = self::retrieve_data( $id );
+			$data['result'] = $result;
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 	}
 
 	/**
