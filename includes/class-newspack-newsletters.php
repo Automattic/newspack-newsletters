@@ -705,7 +705,7 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string  $id post ID.
 	 * @param WP_Post $post the post.
-	 * @param boolean $update Is this the initial save of the post.
+	 * @param boolean $update Is this an update of the post.
 	 */
 	public static function save_post( $id, $post, $update ) {
 		if ( ! $update ) {
