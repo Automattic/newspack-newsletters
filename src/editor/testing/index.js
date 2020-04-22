@@ -6,6 +6,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { withSelect } from '@wordpress/data';
 import { Fragment, useState } from '@wordpress/element';
 import { Button, TextControl } from '@wordpress/components';
+import { hasValidEmail } from '../utils';
 
 export default withSelect( select => {
 	const { getCurrentPostId } = select( 'core/editor' );
@@ -33,7 +34,11 @@ export default withSelect( select => {
 				onChange={ setTestEmail }
 				help={ __( 'Use commas to separate multiple emails.', 'newspack-newsletters' ) }
 			/>
-			<Button isPrimary onClick={ sendMailchimpTest } disabled={ testEmail.length < 1 || inFlight }>
+			<Button
+				isPrimary
+				onClick={ sendMailchimpTest }
+				disabled={ inFlight || ! hasValidEmail( testEmail ) }
+			>
 				{ __( 'Send a Test Email', 'newspack-newsletters' ) }
 			</Button>
 		</Fragment>
