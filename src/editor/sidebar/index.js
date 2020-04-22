@@ -9,7 +9,6 @@ import { Component, Fragment } from '@wordpress/element';
 import {
 	Button,
 	ExternalLink,
-	Modal,
 	Notice,
 	SelectControl,
 	Spinner,
@@ -30,24 +29,9 @@ import './style.scss';
 class Sidebar extends Component {
 	state = {
 		inFlight: false,
-		showTestModal: false,
-		testEmail: '',
 		senderEmail: '',
 		senderName: '',
 		senderDirty: false,
-	};
-	sendMailchimpTest = () => {
-		const { testEmail } = this.state;
-		this.setState( { inFlight: true } );
-		const { postId } = this.props;
-		const params = {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/test`,
-			data: {
-				test_email: testEmail,
-			},
-			method: 'POST',
-		};
-		apiFetch( params ).then( this.setStateFromAPIResponse );
 	};
 	setList = listId => {
 		this.setState( { inFlight: true } );
@@ -147,7 +131,7 @@ class Sidebar extends Component {
 	 */
 	render() {
 		const { campaign, lists, editPost, title } = this.props;
-		const { inFlight, showTestModal, testEmail, senderName, senderEmail, senderDirty } = this.state;
+		const { inFlight, senderName, senderEmail, senderDirty } = this.state;
 		if ( ! campaign ) {
 			return (
 				<div className="newspack-newsletters__loading-data">
@@ -233,39 +217,6 @@ class Sidebar extends Component {
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
-				) }
-				<hr />
-				<Button
-					isSecondary
-					onClick={ () => this.setState( { showTestModal: true } ) }
-					disabled={ inFlight }
-				>
-					{ __( 'Send a Test Email', 'newspack-newsletters' ) }
-				</Button>
-				{ showTestModal && (
-					<Modal
-						title={ __( 'Send a Test Email', 'newspack-newsletters' ) }
-						onRequestClose={ () => this.setState( { showTestModal: false } ) }
-						className="newspack-newsletters__send-test"
-					>
-						<TextControl
-							label={ __( 'Send a test to', 'newspack-newsletters' ) }
-							value={ testEmail }
-							type="email"
-							onChange={ value => this.setState( { testEmail: value } ) }
-						/>
-						<Button
-							isPrimary
-							onClick={ () =>
-								this.setState( { showTestModal: false }, () => this.sendMailchimpTest() )
-							}
-						>
-							{ __( 'Send Test', 'newspack-newsletters' ) }
-						</Button>
-						<Button isSecondary onClick={ () => this.setState( { showTestModal: false } ) }>
-							{ __( 'Cancel', 'newspack-newsletters' ) }
-						</Button>
-					</Modal>
 				) }
 			</Fragment>
 		);
