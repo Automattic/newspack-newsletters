@@ -103,7 +103,7 @@ const NewsletterEdit = ( {
 			</PluginDocumentSettingPanel>
 			<PluginDocumentSettingPanel
 				name="newsletters-layout-panel"
-				title={ __( 'Newsletter Layout', 'newspack-newsletters' ) }
+				title={ __( 'Layout', 'newspack-newsletters' ) }
 			>
 				<Layout templates={ templates } />
 			</PluginDocumentSettingPanel>

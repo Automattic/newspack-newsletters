@@ -1,7 +1,28 @@
-.layout-panel-preview {
-	border: 1px solid black;
-	padding: 1em;
-	overflow: hidden;
-	height: 300px;
-	margin-bottom: 1em;
+.newspack-newsletters__layout-panel {
+	&-preview {
+		background: transparent;
+		padding: 0;
+		pointer-events: none;
+
+		.block-editor-patterns {
+			&__item-preview {
+				overflow: hidden;
+				padding: 0 0 100%;
+				position: relative;
+				width: 100%;
+
+				.block-editor-block-preview__container {
+					position: absolute;
+				}
+			}
+		}
+	}
+
+	&-modal {
+		max-width: 360px;
+
+		.components-button + .components-button {
+			margin-left: 12px;
+		}
+	}
 }

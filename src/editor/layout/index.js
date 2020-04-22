@@ -34,19 +34,20 @@ export default compose( [
 	const blockPreview = content ? parse( content ) : null;
 	return (
 		<Fragment>
-			<div className="layout-panel-preview">
-				{ blockPreview && blockPreview.length > 0 ? (
-					<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
-				) : (
-					<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
-				) }
+			<div className="block-editor-patterns newspack-newsletters__layout-panel-preview">
+				<div className="block-editor-patterns__item">
+					<div className="block-editor-patterns__item-preview">
+						<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+					</div>
+					<div className="block-editor-patterns__item-title">{ title }</div>
+				</div>
 			</div>
-			<h2>{ title }</h2>
 			<Button isPrimary onClick={ () => setWarningModalVisible( true ) }>
 				{ __( 'Change Layout', 'newspack-newsletters' ) }
 			</Button>
 			{ warningModalVisible && (
 				<Modal
+					className="newspack-newsletters__layout-panel-modal"
 					title={ __( 'Overwrite newsletter content?', 'newspack-newsletters' ) }
 					onRequestClose={ () => setWarningModalVisible( false ) }
 				>
