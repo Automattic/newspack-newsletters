@@ -75,7 +75,7 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
 				<div className="newspack-posts-inserter__preview">
-					<BlockPreview blocks={ templateBlocks } />
+					<BlockPreview blocks={ templateBlocks } viewportWidth={ 566 } />
 				</div>
 				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 					{ __( 'Insert posts', 'newspack-newsletters' ) }
@@ -145,15 +145,15 @@ export default () => {
 			},
 			displayPostExcerpt: {
 				type: 'boolean',
-				default: false,
+				default: true,
 			},
 			excerptLength: {
 				type: 'number',
-				default: 42,
+				default: 15,
 			},
 			displayPostDate: {
 				type: 'boolean',
-				default: true,
+				default: false,
 			},
 			displayFeaturedImage: {
 				type: 'boolean',

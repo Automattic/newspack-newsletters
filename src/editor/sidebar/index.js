@@ -6,7 +6,15 @@ import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Component, Fragment } from '@wordpress/element';
-import { Button, Modal, Notice, SelectControl, Spinner, TextControl } from '@wordpress/components';
+import {
+	Button,
+	ExternalLink,
+	Modal,
+	Notice,
+	SelectControl,
+	Spinner,
+	TextControl,
+} from '@wordpress/components';
 
 /**
  * External dependencies
@@ -84,7 +92,8 @@ class Sidebar extends Component {
 	};
 
 	interestCategories = () => {
-		const { campaign, inFlight, interestCategories } = this.state;
+		const { campaign, interestCategories } = this.props;
+		const { inFlight } = this.state;
 		if (
 			! interestCategories ||
 			! interestCategories.categories ||
@@ -163,6 +172,7 @@ class Sidebar extends Component {
 				</Notice>
 			);
 		}
+		const { web_id: listWebId } = list_id && lists.find( ( { id } ) => list_id === id );
 		return (
 			<Fragment>
 				<TextControl
@@ -172,7 +182,6 @@ class Sidebar extends Component {
 					disabled={ inFlight }
 					onChange={ value => editPost( { title: value } ) }
 				/>
-				<hr />
 				<SelectControl
 					label={ __( 'To', 'newspack-newsletters' ) }
 					className="newspack-newsletters__to-selectcontrol"
@@ -190,8 +199,16 @@ class Sidebar extends Component {
 					onChange={ value => this.setList( value ) }
 					disabled={ inFlight }
 				/>
+				{ listWebId && (
+					<p>
+						<ExternalLink
+							href={ `https://us7.admin.mailchimp.com/lists/members/?id=${ listWebId }` }
+						>
+							{ __( 'Manage list', 'newspack-newsletters' ) }
+						</ExternalLink>
+					</p>
+				) }
 				{ this.interestCategories() }
-				<hr />
 				<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
 				<TextControl
 					label={ __( 'Name', 'newspack-newsletters' ) }
@@ -263,6 +280,7 @@ export default compose( [
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			campaign: meta.campaign,
+			interestCategories: meta.interestCategories,
 			lists: meta.lists ? meta.lists.lists : [],
 			postId: getCurrentPostId(),
 		};

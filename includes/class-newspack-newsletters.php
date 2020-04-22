@@ -42,6 +42,7 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
+		add_action( 'the_post', [ __CLASS__, 'remove_other_editor_modifications' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
@@ -52,8 +53,43 @@ final class Newspack_Newsletters {
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
+
+		$needs_nag =
+			is_admin() &&
+			( ! self::mailchimp_api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) &&
+			! get_option( 'newspack_newsletters_activation_nag_viewed', false );
+
+		if ( $needs_nag ) {
+			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
+			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
+			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
+		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
+	}
+
+	/**
+	 * Remove all editor enqueued assets besides this plugins'.
+	 * This is to prevent theme styles being loaded in the editor.
+	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
+	 */
+	public static function remove_other_editor_modifications() {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
+			return;
+		}
+
+		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
+		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
+			$action_handlers = array_keys( $filter );
+			foreach ( $action_handlers as $handler ) {
+				if ( __CLASS__ . '::enqueue_block_editor_assets' != $handler ) {
+					remove_action( 'enqueue_block_editor_assets', $handler, $index );
+				}
+			}
+		}
+
+		remove_editor_styles();
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
@@ -100,6 +136,8 @@ final class Newspack_Newsletters {
 			return $allowed_block_types;
 		}
 		return array(
+			'core/spacer',
+			'core/block',
 			'core/group',
 			'core/paragraph',
 			'core/heading',
@@ -124,6 +162,12 @@ final class Newspack_Newsletters {
 			return;
 		}
 
+		$mailchimp_api_key = self::mailchimp_api_key();
+		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
+		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
+
+		$has_keys = ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret );
+
 		\wp_enqueue_script(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.js', __FILE__ ),
@@ -137,6 +181,7 @@ final class Newspack_Newsletters {
 			'newspack_newsletters_data',
 			[
 				'templates' => self::get_newsletter_templates(),
+				'has_keys'  => $has_keys,
 			]
 		);
 
@@ -239,6 +284,121 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'keys',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_keys' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+			]
+		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'keys',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_keys' ],
+				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'args'                => [
+					'mailchimp_api_key'   => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'mjml_application_id' => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'mjml_api_secret'     => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Retrieve API keys.
+	 */
+	public static function api_get_keys() {
+		$mailchimp_api_key = self::mailchimp_api_key();
+		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
+		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
+
+		$keys = [
+			'mailchimp_api_key' => $mailchimp_api_key ? $mailchimp_api_key : '',
+			'mjml_api_key'      => $mjml_api_key ? $mjml_api_key : '',
+			'mjml_api_secret'   => $mjml_api_secret ? $mjml_api_secret : '',
+			'status'            => ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret ),
+		];
+		return \rest_ensure_response( $keys );
+	}
+
+	/**
+	 * Set API keys.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_keys( $request ) {
+		$mailchimp_api_key = $request['mailchimp_api_key'];
+		$mjml_api_key      = $request['mjml_api_key'];
+		$mjml_api_secret   = $request['mjml_api_secret'];
+		$wp_error          = new WP_Error();
+
+		if ( empty( $mailchimp_api_key ) ) {
+			$wp_error->add(
+				'newspack_newsletters_invalid_keys_mailchimp',
+				__( 'Please input a Mailchimp API key.', 'newspack-newsletters' )
+			);
+		} else {
+			try {
+				$mc   = new Mailchimp( $mailchimp_api_key );
+				$ping = $mc->get( 'ping' );
+			} catch ( Exception $e ) {
+				$ping = null;
+			}
+			if ( $ping ) {
+				update_option( 'newspack_newsletters_mailchimp_api_key', $mailchimp_api_key );
+			} else {
+				$wp_error->add(
+					'newspack_newsletters_invalid_keys_mailchimp',
+					__( 'Please input a valid Mailchimp API key.', 'newspack-newsletters' )
+				);
+			}
+		}
+
+		if ( empty( $mjml_api_key ) || empty( $mjml_api_secret ) ) {
+			$wp_error->add(
+				'newspack_newsletters_invalid_keys_mjml',
+				__( 'Please input MJML application ID and secret key.', 'newspack-newsletters' )
+			);
+		} else {
+			$credentials = "$mjml_api_key:$mjml_api_secret";
+			$url         = 'https://api.mjml.io/v1/render';
+			$mjml_test   = wp_remote_post(
+				$url,
+				[
+					'body'    => wp_json_encode(
+						[
+							'mjml' => '<h1>test</h1>',
+						]
+					),
+					'headers' => array(
+						'Authorization' => 'Basic ' . base64_encode( $credentials ),
+					),
+					'timeout' => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+				]
+			);
+			if ( 200 === $mjml_test['response']['code'] ) {
+				update_option( 'newspack_newsletters_mjml_api_key', $mjml_api_key );
+				update_option( 'newspack_newsletters_mjml_api_secret', $mjml_api_secret );
+			} else {
+				$wp_error->add(
+					'newspack_newsletters_invalid_keys_mjml',
+					__( 'Please input valid MJML application ID and secret key.', 'newspack-newsletters' )
+				);
+			}
+		}
+
+		return $wp_error->has_errors() ? $wp_error : self::api_get_keys();
 	}
 
 	/**
@@ -593,8 +753,6 @@ final class Newspack_Newsletters {
 			],
 		];
 
-		$mc_campaign_id = null;
-
 		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 		if ( $mc_campaign_id ) {
 			$campaign_result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
@@ -729,6 +887,65 @@ final class Newspack_Newsletters {
 			$post_title = gmdate( get_option( 'date_format' ) );
 		}
 		return $post_title;
+	}
+
+	/**
+	 * Activation Nag
+	 */
+
+	/**
+	 * Add admin notice if API keys are unset.
+	 */
+	public static function activation_nag() {
+		$screen = get_current_screen();
+		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || 'newspack_nl_cpt' === $screen->post_type ) {
+			return;
+		}
+		$url = admin_url( '/options-general.php?page=newspack-newsletters-settings-admin' );
+		?>
+		<div class="notice notice-info is-dismissible newspack-newsletters-notification-nag">
+			<p>
+				<?php
+					echo wp_kses_post(
+						sprintf(
+							// translators: urge users to input their API keys on settings page.
+							__( 'Thank you for activating Newspack Newsletters. Please <a href="%s">head to settings</a> to set up your API keys.', 'newspack-newsletters' ),
+							$url
+						)
+					);
+				?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Enqueue script to handle activation nag dismissal.
+	 */
+	public static function activation_nag_dismissal_script() {
+		$script = 'newspack-newsletters-activation_nag_dismissal';
+		wp_register_script(
+			$script,
+			plugins_url( '../dist/admin.js', __FILE__ ),
+			[ 'jquery' ],
+			'1.0',
+			false
+		);
+		wp_localize_script(
+			$script,
+			'newspack_newsletters_activation_nag_dismissal_params',
+			[
+				'ajaxurl' => get_admin_url() . 'admin-ajax.php',
+			]
+		);
+		wp_enqueue_script( $script );
+	}
+
+	/**
+	 * AJAX callback after nag has been dismissed.
+	 */
+	public static function activation_nag_dismissal_ajax() {
+		update_option( 'newspack_newsletters_activation_nag_viewed', true );
 	}
 }
 Newspack_Newsletters::instance();

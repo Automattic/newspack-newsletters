@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Newsletters Settubgs Page
+ * Newspack Newsletters Settings Page
  *
  * @package Newspack
  */
@@ -45,9 +45,10 @@ class Newspack_Newsletters_Settings {
 	 * Add options page
 	 */
 	public static function add_plugin_page() {
-		add_options_page(
-			__( 'Newspack Newsletters Settings', 'newspack-newsletters' ),
-			__( 'Newspack Newsletters', 'newspack-newsletters' ),
+		add_submenu_page(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			__( 'Newsletters Settings', 'newspack-newsletters' ),
+			__( 'Settings', 'newspack-newsletters' ),
 			'manage_options',
 			'newspack-newsletters-settings-admin',
 			[ __CLASS__, 'create_admin_page' ]
@@ -60,7 +61,7 @@ class Newspack_Newsletters_Settings {
 	public static function create_admin_page() {
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Newspack Newsletters Settings', 'newspack-newsletters' ); ?></h1>
+			<h1><?php esc_html_e( 'Newsletters Settings', 'newspack-newsletters' ); ?></h1>
 			<form method="post" action="options.php">
 			<?php
 				settings_fields( 'newspack_newsletters_options_group' );
