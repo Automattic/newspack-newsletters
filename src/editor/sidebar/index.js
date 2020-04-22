@@ -209,7 +209,10 @@ class Sidebar extends Component {
 					<Button
 						isLink
 						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
+						disabled={
+							inFlight ||
+							( senderEmail && senderEmail.length ? ! hasValidEmail( senderEmail ) : false )
+						}
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
