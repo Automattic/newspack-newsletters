@@ -172,7 +172,7 @@ final class Newspack_Newsletters_Renderer {
 		$inner_blocks = $block['innerBlocks'];
 		$inner_html   = $block['innerHTML'];
 
-		if ( empty( $block_name ) || empty( $inner_html ) ) {
+		if ( ! isset( $attrs['innerBlocksToInsert'] ) && ( empty( $block_name ) || empty( $inner_html ) ) ) {
 			return '';
 		}
 
@@ -443,11 +443,11 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
-			 * Newspack Newsletters Latest posts block template.
+			 * Newspack Newsletters Posts Inserter block template.
 			 */
 			case 'newspack-newsletters/posts-inserter':
 				$markup = '';
-				foreach ( $inner_blocks as $block ) {
+				foreach ( $attrs['innerBlocksToInsert'] as $block ) {
 					$markup .= self::render_mjml_component( $block );
 				}
 				$block_mjml_markup = $markup;

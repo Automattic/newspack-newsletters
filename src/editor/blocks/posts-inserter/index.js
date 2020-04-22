@@ -1,12 +1,12 @@
 /**
  * External dependencies
  */
-import { isUndefined, pickBy, get } from 'lodash';
+import { isUndefined, pickBy, get, omit } from 'lodash';
 
 /**
  * WordPress dependencies
  */
-import { registerBlockType, createBlock } from '@wordpress/blocks';
+import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
@@ -19,16 +19,17 @@ import { Fragment, useEffect } from '@wordpress/element';
  */
 import './style.scss';
 import Icon from './icon';
-import { getBlocksTemplate } from './utils';
+import { getTemplateBlocksMemoized, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 
-const createBlockWithInnerBlocks = ( [ name, blockAttributes, innerBlocks = [] ] ) =>
-	createBlock( name, blockAttributes, innerBlocks.map( createBlockWithInnerBlocks ) );
-
 const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlocks } ) => {
-	const templateBlocks = getBlocksTemplate( postList, attributes ).map(
-		createBlockWithInnerBlocks
+	const templateBlocks = getTemplateBlocksMemoized(
+		postList,
+		omit( attributes, 'innerBlocksToInsert' )
 	);
+	useEffect(() => {
+		setAttributes( { innerBlocksToInsert: templateBlocks.map( convertBlockSerializationFormat ) } );
+	}, [ templateBlocks ]);
 
 	useEffect(() => {
 		if ( attributes.areBlocksInserted ) {
@@ -158,6 +159,10 @@ export default () => {
 			displayFeaturedImage: {
 				type: 'boolean',
 				default: true,
+			},
+			innerBlocksToInsert: {
+				type: 'array',
+				default: '',
 			},
 		},
 		save: () => <InnerBlocks.Content />,
