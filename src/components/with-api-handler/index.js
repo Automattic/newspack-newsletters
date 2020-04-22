@@ -42,5 +42,5 @@ export default () =>
 				/>
 			);
 		},
-		'newspack-newsletters-with-api-response'
+		'newspack-newsletters-with-api-handler'
 	);

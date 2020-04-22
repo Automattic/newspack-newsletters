@@ -23,7 +23,7 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
-import withNewsletterApi from '../../components/with-newsletter-api';
+import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
 class Sidebar extends Component {
@@ -216,7 +216,7 @@ class Sidebar extends Component {
 }
 
 export default compose( [
-	withNewsletterApi(),
+	withApiHandler(),
 	withSelect( select => {
 		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );

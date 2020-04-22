@@ -10,11 +10,11 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
-import withNewsletterApi from '../../components/with-newsletter-api';
+import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
 const Editor = compose( [
-	withNewsletterApi(),
+	withApiHandler(),
 	withSelect( select => {
 		const {
 			getCurrentPostId,
