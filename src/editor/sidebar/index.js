@@ -77,8 +77,8 @@ class Sidebar extends Component {
 
 		this.setState( {
 			inFlight: false,
-			senderName: result.campaign.settings.from_name,
-			senderEmail: result.campaign.settings.reply_to,
+			senderName: result.campaign.settings.from_name || '',
+			senderEmail: result.campaign.settings.reply_to || '',
 			senderDirty: false,
 		} );
 	};
