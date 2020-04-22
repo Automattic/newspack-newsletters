@@ -3,18 +3,28 @@
  */
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-import { withSelect } from '@wordpress/data';
+import { withSelect, withDispatch } from '@wordpress/data';
+import { compose } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
 import { Button, TextControl } from '@wordpress/components';
 
-export default withSelect( select => {
-	const { getCurrentPostId } = select( 'core/editor' );
-	return { postId: getCurrentPostId() };
-} )( ( { postId } ) => {
+export default compose( [
+	withSelect( select => {
+		const { getCurrentPostId } = select( 'core/editor' );
+		return { postId: getCurrentPostId() };
+	} ),
+	withDispatch( dispatch => {
+		const { savePost } = dispatch( 'core/editor' );
+		return {
+			savePost,
+		};
+	} ),
+] )( ( { postId, savePost } ) => {
 	const [ inFlight, setInFlight ] = useState( false );
 	const [ testEmail, setTestEmail ] = useState( '' );
-	const sendMailchimpTest = () => {
+	const sendMailchimpTest = async () => {
 		setInFlight( true );
+		await savePost();
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/test`,
 			data: {
