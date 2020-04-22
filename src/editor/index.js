@@ -16,6 +16,7 @@ import { registerPlugin } from '@wordpress/plugins';
  */
 import TemplateModal from '../components/template-modal';
 import Sidebar from './sidebar/';
+import Testing from './testing/';
 import registerEditorPlugin from './editor/';
 import registerPrePublishSlot from './pre-publish-slot';
 import registerPostStatusSlot from './post-status-slot';
@@ -94,6 +95,12 @@ const NewsletterEdit = ( {
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar />
+			</PluginDocumentSettingPanel>
+			<PluginDocumentSettingPanel
+				name="newsletters-testing-panel"
+				title={ __( 'Testing', 'newspack-newsletters' ) }
+			>
+				<Testing />
 			</PluginDocumentSettingPanel>
 		</Fragment>
 	);
