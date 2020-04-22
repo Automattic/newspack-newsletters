@@ -22,7 +22,7 @@ import { get } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
+import { getEditPostPayload, hasValidEmail } from '../utils';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
@@ -64,8 +64,8 @@ class Sidebar extends Component {
 		this.props.editPost( getEditPostPayload( result ) );
 
 		this.setState( {
-			senderName: result.campaign.settings.from_name,
-			senderEmail: result.campaign.settings.reply_to,
+			senderName: result.campaign.settings.from_name || '',
+			senderEmail: result.campaign.settings.reply_to || '',
 			senderDirty: false,
 		} );
 	};
@@ -198,7 +198,7 @@ class Sidebar extends Component {
 					<Button
 						isLink
 						onClick={ () => this.updateSender( senderName, senderEmail ) }
-						disabled={ inFlight }
+						disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
 					>
 						{ __( 'Update Sender', 'newspack-newsletters' ) }
 					</Button>
