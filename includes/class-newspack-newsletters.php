@@ -708,7 +708,13 @@ final class Newspack_Newsletters {
 		}
 
 		try {
-			$mc_campaign_id      = get_post_meta( $id, 'mc_campaign_id', true );
+			$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+			if ( ! $mc_campaign_id ) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_error',
+					__( 'No Mailchimp campaign ID found for this Newsletter', 'newspack-newsletter' )
+				);
+			}
 			$mc                  = new Mailchimp( self::mailchimp_api_key() );
 			$campaign            = $mc_campaign_id ? self::validate_mailchimp_operation( $mc->get( "campaigns/$mc_campaign_id" ) ) : null;
 			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
