@@ -230,8 +230,8 @@ export default compose( [
 			interestCategories: meta.interestCategories,
 			lists: meta.lists ? meta.lists.lists : [],
 			postId: getCurrentPostId(),
-			senderEmail: meta.senderEmail,
-			senderName: meta.senderName,
+			senderEmail: meta.senderEmail || '',
+			senderName: meta.senderName || '',
 		};
 	} ),
 	withDispatch( dispatch => {
