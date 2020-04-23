@@ -34,14 +34,16 @@ export default compose( [
 	const blockPreview = content ? parse( content ) : null;
 	return (
 		<Fragment>
-			<div className="block-editor-patterns newspack-newsletters__layout-panel-preview">
-				<div className="block-editor-patterns__item">
-					<div className="block-editor-patterns__item-preview">
-						<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+			{ templateId > 0 && (
+				<div className="block-editor-patterns newspack-newsletters__layout-panel-preview">
+					<div className="block-editor-patterns__item">
+						<div className="block-editor-patterns__item-preview">
+							<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+						</div>
+						<div className="block-editor-patterns__item-title">{ title }</div>
 					</div>
-					<div className="block-editor-patterns__item-title">{ title }</div>
 				</div>
-			</div>
+			) }
 			<Button isPrimary onClick={ () => setWarningModalVisible( true ) }>
 				{ __( 'Change Layout', 'newspack-newsletters' ) }
 			</Button>
