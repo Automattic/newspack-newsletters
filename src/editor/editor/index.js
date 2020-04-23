@@ -3,7 +3,7 @@
  */
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+import { createPortal, useEffect, useState } from '@wordpress/element';
 import { registerPlugin } from '@wordpress/plugins';
 
 /**
@@ -11,6 +11,7 @@ import { registerPlugin } from '@wordpress/plugins';
  */
 import { getEditPostPayload } from '../utils';
 import withApiHandler from '../../components/with-api-handler';
+import SendButton from '../../components/send-button';
 import './style.scss';
 
 const Editor = compose( [
@@ -38,6 +39,14 @@ const Editor = compose( [
 		return { lockPostSaving, unlockPostSaving, editPost };
 	} ),
 ] )( props => {
+	const [ publishEl ] = useState( document.createElement( 'div' ) );
+	// Create alternate publish button
+	useEffect(() => {
+		const publishButton = document.getElementsByClassName(
+			'editor-post-publish-button__button'
+		)[ 0 ];
+		publishButton.parentNode.insertBefore( publishEl, publishButton );
+	}, []);
 	// Fetch campaign data.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
@@ -60,7 +69,7 @@ const Editor = compose( [
 		}
 	}, [ props.isReady ]);
 
-	return null;
+	return createPortal( <SendButton />, publishEl );
 } );
 
 export default () => {
