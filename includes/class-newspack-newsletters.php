@@ -888,6 +888,11 @@ final class Newspack_Newsletters {
 				update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
 			}
 
+			// Prevent updating content of a sent campaign.
+			if ( ! in_array( $campaign_result['status'], [ 'sent', 'sending' ] ) ) {
+				return;
+			}
+
 			$renderer        = new Newspack_Newsletters_Renderer();
 			$content_payload = [
 				'html' => $renderer->render_html_email( $post ),
