@@ -49,7 +49,7 @@ export default compose( [
 		let label;
 		if ( 'publish' === status ) {
 			label = isSaving
-				? __( 'Sending Newsletter', 'newspack-newsletters' )
+				? __( 'Sending', 'newspack-newsletters' )
 				: __( 'Sent', 'newspack-newsletters' );
 		} else if ( 'future' === status ) {
 			// Scheduled to be sent
@@ -57,7 +57,7 @@ export default compose( [
 		} else if ( isEditedPostBeingScheduled ) {
 			label = __( 'Schedule sending', 'newspack-newsletters' );
 		} else {
-			label = __( 'Send Newsletter', 'newspack-newsletters' );
+			label = __( 'Send', 'newspack-newsletters' );
 		}
 		const onClick = () => {
 			editPost( { status: isEditedPostBeingScheduled ? 'future' : 'publish' } );
