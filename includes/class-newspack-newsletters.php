@@ -707,24 +707,37 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc_campaign_id      = get_post_meta( $id, 'mc_campaign_id', true );
-		$mc                  = new Mailchimp( self::mailchimp_api_key() );
-		$campaign            = $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null;
-		$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
-		$interest_categories = $list_id ? $mc->get( "lists/$list_id/interest-categories" ) : null;
-		if ( $interest_categories && count( $interest_categories['categories'] ) ) {
-			foreach ( $interest_categories['categories'] as &$category ) {
-				$category_id           = $category['id'];
-				$category['interests'] = $mc->get( "lists/$list_id/interest-categories/$category_id/interests" );
+		try {
+			$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+			if ( ! $mc_campaign_id ) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_error',
+					__( 'No Mailchimp campaign ID found for this Newsletter', 'newspack-newsletter' )
+				);
 			}
-		}
+			$mc                  = new Mailchimp( self::mailchimp_api_key() );
+			$campaign            = self::validate_mailchimp_operation( $mc->get( "campaigns/$mc_campaign_id" ) );
+			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+			$interest_categories = $list_id ? self::validate_mailchimp_operation( $mc->get( "lists/$list_id/interest-categories" ) ) : null;
+			if ( $interest_categories && count( $interest_categories['categories'] ) ) {
+				foreach ( $interest_categories['categories'] as &$category ) {
+					$category_id           = $category['id'];
+					$category['interests'] = self::validate_mailchimp_operation( $mc->get( "lists/$list_id/interest-categories/$category_id/interests" ) );
+				}
+			}
 
-		return [
-			'lists'               => $mc->get( 'lists' ),
-			'campaign'            => $campaign,
-			'campaign_id'         => $mc_campaign_id,
-			'interest_categories' => $interest_categories,
-		];
+			return [
+				'lists'               => self::validate_mailchimp_operation( $mc->get( 'lists' ) ),
+				'campaign'            => $campaign,
+				'campaign_id'         => $mc_campaign_id,
+				'interest_categories' => $interest_categories,
+			];
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 	}
 
 	/**
