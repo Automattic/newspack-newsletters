@@ -6,6 +6,11 @@ import { compose } from '@wordpress/compose';
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
+/**
+ * External dependencies
+ */
+import { get } from 'lodash';
+
 export default compose( [
 	withDispatch( dispatch => {
 		const { editPost, savePost } = dispatch( 'core/editor' );
@@ -13,7 +18,9 @@ export default compose( [
 	} ),
 	withSelect( ( select, { forceIsSaving, forceIsDirty } ) => {
 		const {
+			getCurrentPost,
 			getEditedPostAttribute,
+			getEditedPostVisibility,
 			isEditedPostPublishable,
 			isEditedPostSaveable,
 			isSavingPost,
@@ -27,6 +34,8 @@ export default compose( [
 			validationErrors: meta.campaignValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
+			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
+			visibility: getEditedPostVisibility(),
 		};
 	} ),
 ] )(
@@ -39,6 +48,8 @@ export default compose( [
 		status,
 		validationErrors,
 		isEditedPostBeingScheduled,
+		hasPublishAction,
+		visibility,
 	} ) => {
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
@@ -59,8 +70,20 @@ export default compose( [
 		} else {
 			label = __( 'Send', 'newspack-newsletters' );
 		}
+
+		let publishStatus;
+		if ( ! hasPublishAction ) {
+			publishStatus = 'pending';
+		} else if ( visibility === 'private' ) {
+			publishStatus = 'private';
+		} else if ( isEditedPostBeingScheduled ) {
+			publishStatus = 'future';
+		} else {
+			publishStatus = 'publish';
+		}
+
 		const onClick = () => {
-			editPost( { status: isEditedPostBeingScheduled ? 'future' : 'publish' } );
+			editPost( { status: publishStatus } );
 			savePost();
 		};
 
