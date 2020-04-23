@@ -14,7 +14,7 @@ import { registerPlugin } from '@wordpress/plugins';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 
-const StatusInfoPreviewButton = ( { url, savePost } ) => {
+const StatusInfoPreviewButton = ( { emailPreviewURL, savePost } ) => {
 	const [ inFlight, setInFlight ] = useState( false );
 	const handleClick = showPreview => async () => {
 		setInFlight( true );
@@ -25,9 +25,13 @@ const StatusInfoPreviewButton = ( { url, savePost } ) => {
 	return (
 		<PluginPostStatusInfo>
 			<WebPreview
-				url={ url }
+				url={ emailPreviewURL }
 				renderButton={ ( { showPreview } ) => (
-					<Button isPrimary disabled={ inFlight || ! url } onClick={ handleClick( showPreview ) }>
+					<Button
+						isPrimary
+						disabled={ inFlight || ! emailPreviewURL }
+						onClick={ handleClick( showPreview ) }
+					>
 						{ __( 'Preview', 'newspack-newsletters' ) }
 					</Button>
 				) }
@@ -39,8 +43,8 @@ const StatusInfoPreviewButton = ( { url, savePost } ) => {
 const StatusInfoPreviewButtonWithSelect = compose( [
 	withSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
-		const meta = getEditedPostAttribute( 'meta' );
-		return { url: meta.campaign && meta.campaign.long_archive_url };
+		const { emailPreviewURL } = getEditedPostAttribute( 'meta' );
+		return { emailPreviewURL };
 	} ),
 	withDispatch( dispatch => {
 		const { savePost } = dispatch( 'core/editor' );

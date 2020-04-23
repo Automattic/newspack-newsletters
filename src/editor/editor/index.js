@@ -10,6 +10,7 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
+import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import SendButton from '../../components/send-button';
 import './style.scss';
@@ -29,7 +30,9 @@ const Editor = compose( [
 		return {
 			isCleanNewPost: isCleanNewPost(),
 			postId: getCurrentPostId(),
-			isReady: meta.campaignValidationErrors ? meta.campaignValidationErrors.length === 0 : false,
+			isReady: meta.newsletterValidationErrors
+				? meta.newsletterValidationErrors.length === 0
+				: false,
 			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
 		};
@@ -47,13 +50,13 @@ const Editor = compose( [
 		)[ 0 ];
 		publishButton.parentNode.insertBefore( publishEl, publishButton );
 	}, []);
-	// Fetch campaign data.
+	const { getFetchDataConfig } = getServiceProvider();
+
+	// Fetch data from service provider.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
 			props
-				.apiFetchWithErrorHandling( {
-					path: `/newspack-newsletters/v1/mailchimp/${ props.postId }`,
-				} )
+				.apiFetchWithErrorHandling( getFetchDataConfig( { postId: props.postId } ) )
 				.then( result => {
 					props.editPost( getEditPostPayload( result ) );
 				} );

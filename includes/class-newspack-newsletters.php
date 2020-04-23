@@ -219,8 +219,9 @@ final class Newspack_Newsletters {
 			'newspack-newsletters',
 			'newspack_newsletters_data',
 			[
-				'templates' => self::get_newsletter_templates(),
-				'has_keys'  => $has_keys,
+				'templates'        => self::get_newsletter_templates(),
+				'has_keys'         => $has_keys,
+				'service_provider' => 'mailchimp',
 			]
 		);
 
