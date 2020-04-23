@@ -46,6 +46,21 @@
 		top: 0;
 		transform: none;
 		width: 100%;
+
+		.components-modal__header-heading {
+			display: none;
+			font-size: 0.8rem;
+			line-height: 1.25;
+
+			@media only screen and ( min-width: 600px ) {
+				display: block;
+			}
+
+			@media only screen and ( min-width: 783px ) {
+				font-size: 1rem;
+				line-height: 1;
+			}
+		}
 	}
 
 	&__content {
@@ -73,12 +88,21 @@
 				top: 61px;
 			}
 		}
+	}
 
-		+ .is-primary {
-			position: absolute;
-			right: 24px;
-			top: 12px;
-			z-index: 11;
+	&__action-buttons {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		position: absolute;
+		right: 24px;
+		top: 12px;
+		z-index: 11;
+
+		.separator {
+			margin-left: 6px;
+			margin-right: 6px;
 		}
 	}
 

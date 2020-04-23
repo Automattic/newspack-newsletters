@@ -60,12 +60,15 @@ export default ( { onInsertTemplate, templates } ) => {
 					) }
 				</div>
 			</div>
-			<Button isSecondary onClick={ () => onInsertTemplate( 0 ) }>
-				{ __( 'Use empty layout', 'newspack-newsletters' ) }
-			</Button>
-			<Button isPrimary onClick={ () => onInsertTemplate( selectedTemplate ) }>
-				{ __( 'Use this layout', 'newspack-newsletters' ) }
-			</Button>
+			<div className="newspack-newsletters-modal__action-buttons">
+				<Button isSecondary onClick={ () => onInsertTemplate( 0 ) }>
+					{ __( 'Start From Scratch', 'newspack-newsletters' ) }
+				</Button>
+				<span className="separator">{ __( 'or', 'newspack-newsletters' ) }</span>
+				<Button isPrimary onClick={ () => onInsertTemplate( selectedTemplate ) }>
+					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
+				</Button>
+			</div>
 		</Fragment>
 	);
 };
