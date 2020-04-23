@@ -17,6 +17,7 @@ export default compose( [
 			isEditedPostPublishable,
 			isEditedPostSaveable,
 			isSavingPost,
+			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
@@ -25,38 +26,55 @@ export default compose( [
 			isSaving: forceIsSaving || isSavingPost(),
 			validationErrors: meta.campaignValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
+			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 		};
 	} ),
-] )( ( { editPost, isPublishable, isSaveable, isSaving, savePost, status, validationErrors } ) => {
-	const isButtonEnabled =
-		isPublishable &&
-		isSaveable &&
-		validationErrors &&
-		! validationErrors.length &&
-		'publish' !== status;
-	let label;
-	if ( 'publish' === status ) {
-		label = isSaving
-			? __( 'Sending Newsletter', 'newspack-newsletters' )
-			: __( 'Sent', 'newspack-newsletters' );
-	} else {
-		label = __( 'Send Newsletter', 'newspack-newsletters' );
-	}
-	const onClick = () => {
-		editPost( { status: 'publish' } );
-		savePost();
-	};
+] )(
+	( {
+		editPost,
+		isPublishable,
+		isSaveable,
+		isSaving,
+		savePost,
+		status,
+		validationErrors,
+		isEditedPostBeingScheduled,
+	} ) => {
+		const isButtonEnabled =
+			( isPublishable || isEditedPostBeingScheduled ) &&
+			isSaveable &&
+			validationErrors &&
+			! validationErrors.length &&
+			'publish' !== status;
+		let label;
+		if ( 'publish' === status ) {
+			label = isSaving
+				? __( 'Sending Newsletter', 'newspack-newsletters' )
+				: __( 'Sent', 'newspack-newsletters' );
+		} else if ( 'future' === status ) {
+			// Scheduled to be sent
+			label = __( 'Scheduled', 'newspack-newsletters' );
+		} else if ( isEditedPostBeingScheduled ) {
+			label = __( 'Schedule sending', 'newspack-newsletters' );
+		} else {
+			label = __( 'Send Newsletter', 'newspack-newsletters' );
+		}
+		const onClick = () => {
+			editPost( { status: isEditedPostBeingScheduled ? 'future' : 'publish' } );
+			savePost();
+		};
 
-	return (
-		<Button
-			className="editor-post-publish-button"
-			isBusy={ isSaving && 'publish' === status }
-			isPrimary
-			isLarge
-			onClick={ onClick }
-			disabled={ ! isButtonEnabled }
-		>
-			{ label }
-		</Button>
-	);
-} );
+		return (
+			<Button
+				className="editor-post-publish-button"
+				isBusy={ isSaving && 'publish' === status }
+				isPrimary
+				isLarge
+				onClick={ onClick }
+				disabled={ ! isButtonEnabled }
+			>
+				{ label }
+			</Button>
+		);
+	}
+);
