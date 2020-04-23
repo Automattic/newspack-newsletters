@@ -12,6 +12,9 @@ export default () =>
 			const [ inFlight, setInFlight ] = useState( false );
 			const { createSuccessNotice, createErrorNotice, removeNotice } = dispatch( 'core/notices' );
 			const { getNotices } = select( 'core/notices' );
+			const setInFlightForAsync = () => {
+				setInFlight( true );
+			};
 			const apiFetchWithErrorHandling = apiRequest => {
 				setInFlight( true );
 				return new Promise( ( resolve, reject ) => {
@@ -38,6 +41,7 @@ export default () =>
 				<OriginalComponent
 					{ ...props }
 					apiFetchWithErrorHandling={ apiFetchWithErrorHandling }
+					setInFlightForAsync={ setInFlightForAsync }
 					inFlight={ inFlight }
 				/>
 			);

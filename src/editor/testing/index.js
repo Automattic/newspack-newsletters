@@ -2,14 +2,19 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
 import { Button, TextControl } from '@wordpress/components';
 import { hasValidEmail } from '../utils';
 
+/**
+ * Internal dependencies
+ */
+import withApiHandler from '../../components/with-api-handler';
+
 export default compose( [
+	withApiHandler(),
 	withSelect( select => {
 		const { getCurrentPostId } = select( 'core/editor' );
 		return { postId: getCurrentPostId() };
@@ -20,11 +25,10 @@ export default compose( [
 			savePost,
 		};
 	} ),
-] )( ( { postId, savePost } ) => {
-	const [ inFlight, setInFlight ] = useState( false );
+] )( ( { apiFetchWithErrorHandling, inFlight, postId, savePost, setInFlightForAsync } ) => {
 	const [ testEmail, setTestEmail ] = useState( '' );
 	const sendMailchimpTest = async () => {
-		setInFlight( true );
+		setInFlightForAsync();
 		await savePost();
 		const params = {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/test`,
@@ -33,7 +37,7 @@ export default compose( [
 			},
 			method: 'POST',
 		};
-		apiFetch( params ).then( () => setInFlight( false ) );
+		apiFetchWithErrorHandling( params );
 	};
 	return (
 		<Fragment>
