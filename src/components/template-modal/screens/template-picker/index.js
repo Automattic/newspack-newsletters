@@ -9,7 +9,7 @@ import { BlockPreview } from '@wordpress/block-editor';
 import { ENTER, SPACE } from '@wordpress/keycodes';
 
 export default ( { onInsertTemplate, templates } ) => {
-	const [ selectedTemplate, setSelectedTemplate ] = useState( 1 );
+	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
 	const generateBlockPreview = () => {
 		return templates && templates[ selectedTemplate ]
 			? parse( templates[ selectedTemplate ].content )
@@ -65,7 +65,11 @@ export default ( { onInsertTemplate, templates } ) => {
 					{ __( 'Start From Scratch', 'newspack-newsletters' ) }
 				</Button>
 				<span className="separator">{ __( 'or', 'newspack-newsletters' ) }</span>
-				<Button isPrimary onClick={ () => onInsertTemplate( selectedTemplate ) }>
+				<Button
+					isPrimary
+					disabled={ selectedTemplate < 1 }
+					onClick={ () => onInsertTemplate( selectedTemplate ) }
+				>
 					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
 				</Button>
 			</div>
