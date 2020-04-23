@@ -464,25 +464,33 @@ final class Newspack_Newsletters {
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
+		try {
+			$mc = new Mailchimp( self::mailchimp_api_key() );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+			$settings = [];
+			if ( $from_name ) {
+				$settings['from_name'] = $from_name;
+			}
+			if ( $reply_to ) {
+				$settings['reply_to'] = $reply_to;
+			}
+			$payload = [
+				'settings' => $settings,
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->patch( "campaigns/$mc_campaign_id", $payload )
+			);
 
-		$settings = [];
-		if ( $from_name ) {
-			$settings['from_name'] = $from_name;
+			$data           = self::retrieve_data( $id );
+			$data['result'] = $result;
+
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
 		}
-		if ( $reply_to ) {
-			$settings['reply_to'] = $reply_to;
-		}
-		$payload = [
-			'settings' => $settings,
-		];
-		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
-
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
 	}
 
 	/**
