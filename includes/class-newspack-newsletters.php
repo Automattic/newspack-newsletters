@@ -135,6 +135,9 @@ final class Newspack_Newsletters {
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			return;
+		}
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -244,7 +247,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_mailchimp_data' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id' => [
 						'sanitize_callback' => 'absint',
@@ -258,7 +261,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_test_mailchimp_campaign' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',
@@ -275,7 +278,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_mailchimp_list' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'      => [
 						'sanitize_callback' => 'absint',
@@ -292,7 +295,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_mailchimp_interest' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'          => [
 						'sanitize_callback' => 'absint',
@@ -309,7 +312,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_campaign_settings' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'        => [
 						'sanitize_callback' => 'absint',
@@ -329,7 +332,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_keys' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 			]
 		);
 		\register_rest_route(
@@ -338,7 +341,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_keys' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 				'args'                => [
 					'mailchimp_api_key'   => [
 						'sanitize_callback' => 'sanitize_text_field',
@@ -748,13 +751,32 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Check capabilities for using API.
+	 * Check capabilities for using the API for administration tasks.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 * @return bool|WP_Error
 	 */
-	public static function api_permissions_check( $request ) {
+	public static function api_administration_permissions_check( $request ) {
 		if ( ! current_user_can( 'manage_options' ) ) {
+			return new \WP_Error(
+				'newspack_rest_forbidden',
+				esc_html__( 'You cannot use this resource.', 'newspack' ),
+				[
+					'status' => 403,
+				]
+			);
+		}
+		return true;
+	}
+
+	/**
+	 * Check capabilities for using the API for authoring tasks.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 * @return bool|WP_Error
+	 */
+	public static function api_authoring_permissions_check( $request ) {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack' ),
