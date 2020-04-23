@@ -716,7 +716,7 @@ final class Newspack_Newsletters {
 				);
 			}
 			$mc                  = new Mailchimp( self::mailchimp_api_key() );
-			$campaign            = $mc_campaign_id ? self::validate_mailchimp_operation( $mc->get( "campaigns/$mc_campaign_id" ) ) : null;
+			$campaign            = self::validate_mailchimp_operation( $mc->get( "campaigns/$mc_campaign_id" ) );
 			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 			$interest_categories = $list_id ? self::validate_mailchimp_operation( $mc->get( "lists/$list_id/interest-categories" ) ) : null;
 			if ( $interest_categories && count( $interest_categories['categories'] ) ) {
