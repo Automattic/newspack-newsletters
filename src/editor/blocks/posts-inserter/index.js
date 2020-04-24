@@ -10,8 +10,13 @@ import { registerBlockType, createBlock } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { RangeControl, Button, ToggleControl, PanelBody } from '@wordpress/components';
-import { InnerBlocks, BlockPreview, InspectorControls } from '@wordpress/block-editor';
+import { BaseControl, RangeControl, Button, ToggleControl, PanelBody } from '@wordpress/components';
+import {
+	InnerBlocks,
+	BlockPreview,
+	InspectorControls,
+	BlockAlignmentToolbar,
+} from '@wordpress/block-editor';
 import { Fragment, useEffect } from '@wordpress/element';
 
 /**
@@ -64,6 +69,20 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 						checked={ attributes.displayFeaturedImage }
 						onChange={ value => setAttributes( { displayFeaturedImage: value } ) }
 					/>
+
+					{ attributes.displayFeaturedImage && (
+						<BaseControl>
+							<div>
+								<BaseControl.VisualLabel>{ __( 'Image alignment' ) }</BaseControl.VisualLabel>
+							</div>
+							<BlockAlignmentToolbar
+								value={ attributes.featuredImageAlign }
+								onChange={ featuredImageAlign => setAttributes( { featuredImageAlign } ) }
+								controls={ [ 'left', 'center', 'right' ] }
+								isCollapsed={ false }
+							/>
+						</BaseControl>
+					) }
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
@@ -158,6 +177,10 @@ export default () => {
 			displayFeaturedImage: {
 				type: 'boolean',
 				default: true,
+			},
+			featuredImageAlign: {
+				type: 'string',
+				default: 'left',
 			},
 		},
 		save: () => <InnerBlocks.Content />,
