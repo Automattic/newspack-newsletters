@@ -470,6 +470,38 @@ final class Newspack_Newsletters {
 		try {
 			$mc = new Mailchimp( self::mailchimp_api_key() );
 
+			$result = self::validate_mailchimp_operation(
+				$mc->get( 'verified-domains' ),
+				__( 'Error retrieving verified domains from Mailchimp.', 'newspack-newsletters' )
+			);
+
+			$verified_domains = array_filter(
+				array_map(
+					function( $domain ) { 
+						return $domain['verified'] ? strtolower( trim( $domain['domain'] ) ) : null;
+					},
+					$result['domains']
+				),
+				function( $domain ) {
+					return ! empty( $domain );
+				}
+			);
+
+			$explode = explode( '@', $reply_to );
+			$domain  = strtolower( trim( array_pop( $explode ) ) );
+
+			if ( ! in_array( $domain, $verified_domains ) ) {
+				return new WP_Error(
+					'newspack_newsletters_incorrect_post_type',
+					sprintf(
+						// Translators: explanation that current domain is not verified, list of verified options.
+						__( '%1$s is not a verified domain. Verified domains for the linked Mailchimp account are: %2$s.', 'newspack-newsletters' ),
+						$domain,
+						implode( ', ', $verified_domains )
+					)
+				);
+			}
+
 			$settings = [];
 			if ( $from_name ) {
 				$settings['from_name'] = $from_name;
