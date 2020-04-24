@@ -139,11 +139,14 @@ const PostsInserterBlockWithSelect = compose( [
 			postList: posts.map( post => {
 				if ( post.featured_media ) {
 					const image = getMedia( post.featured_media );
-					let url = get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null );
-					if ( ! url ) {
-						url = get( image, 'source_url', null );
-					}
-					return { ...post, featuredImageSourceUrl: url };
+					const fallbackImageURL = get( image, 'source_url', null );
+					const featuredImageMediumURL =
+						get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null ) ||
+						fallbackImageURL;
+					const featuredImageLargeURL =
+						get( image, [ 'media_details', 'sizes', 'large', 'source_url' ], null ) ||
+						fallbackImageURL;
+					return { ...post, featuredImageMediumURL, featuredImageLargeURL };
 				}
 				return post;
 			} ),

@@ -55,9 +55,9 @@ const createBlocksForPost = (
 		const getImageBlock = ( alignCenter = false ) => [
 			'core/image',
 			{
-				url: post.featuredImageSourceUrl,
+				url: alignCenter ? post.featuredImageLargeURL : post.featuredImageMediumURL,
 				linkDestination: post.link,
-				...( alignCenter ? { align: 'center', width: 300 } : {} ),
+				...( alignCenter ? { align: 'center' } : {} ),
 			},
 		];
 		const imageColumnBlock = [ 'core/column', {}, [ getImageBlock() ] ];
