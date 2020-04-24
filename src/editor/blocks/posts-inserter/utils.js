@@ -34,7 +34,13 @@ const getExcerptBlock = ( post, { excerptLength } ) => {
 
 const createBlocksForPost = (
 	post,
-	{ displayPostDate, displayPostExcerpt, excerptLength, displayFeaturedImage }
+	{
+		displayPostDate,
+		displayPostExcerpt,
+		excerptLength,
+		displayFeaturedImage,
+		featuredImageAlignment,
+	}
 ) => {
 	const postContentBlocks = [ getHeadingBlock( post ) ];
 
@@ -46,27 +52,24 @@ const createBlocksForPost = (
 	}
 
 	if ( displayFeaturedImage ) {
-		return [
-			[
-				'core/columns',
-				{},
-				[
-					[
-						'core/column',
-						{},
-						[
-							[
-								'core/image',
-								{
-									url: post.featuredImageSourceUrl,
-								},
-							],
-						],
-					],
-					[ 'core/column', {}, postContentBlocks ],
-				],
-			],
+		const getImageBlock = ( alignCenter = false ) => [
+			'core/image',
+			{
+				url: alignCenter ? post.featuredImageLargeURL : post.featuredImageMediumURL,
+				linkDestination: post.link,
+				...( alignCenter ? { align: 'center' } : {} ),
+			},
 		];
+		const imageColumnBlock = [ 'core/column', {}, [ getImageBlock() ] ];
+		const postContentColumnBlock = [ 'core/column', {}, postContentBlocks ];
+		switch ( featuredImageAlignment ) {
+			case 'left':
+				return [ [ 'core/columns', {}, [ imageColumnBlock, postContentColumnBlock ] ] ];
+			case 'right':
+				return [ [ 'core/columns', {}, [ postContentColumnBlock, imageColumnBlock ] ] ];
+			case 'top':
+				return [ getImageBlock( true ), ...postContentBlocks ];
+		}
 	}
 	return postContentBlocks;
 };
