@@ -50,6 +50,7 @@ const createBlocksForPost = (
 			'core/image',
 			{
 				url: post.featuredImageSourceUrl,
+				linkDestination: post.link,
 				...( alignCenter ? { align: 'center', width: 300 } : {} ),
 			},
 		];
