@@ -152,9 +152,11 @@ export default ( { onSetupStatus } ) => {
 					</p>
 				</div>
 			</div>
-			<Button isPrimary onClick={ commitSettings } disabled={ inFlight || ! canSubmit }>
-				{ __( 'Save settings', 'newspack-newsletter' ) }
-			</Button>
+			<div className="newspack-newsletters-modal__action-buttons">
+				<Button isPrimary onClick={ commitSettings } disabled={ inFlight || ! canSubmit }>
+					{ __( 'Save settings', 'newspack-newsletter' ) }
+				</Button>
+			</div>
 		</Fragment>
 	);
 };
