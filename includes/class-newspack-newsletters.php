@@ -492,7 +492,7 @@ final class Newspack_Newsletters {
 
 			if ( ! in_array( $domain, $verified_domains ) ) {
 				return new WP_Error(
-					'newspack_newsletters_incorrect_post_type',
+					'newspack_newsletters_unverified_sender_domain',
 					sprintf(
 						// Translators: explanation that current domain is not verified, list of verified options.
 						__( '%1$s is not a verified domain. Verified domains for the linked Mailchimp account are: %2$s.', 'newspack-newsletters' ),
