@@ -23,7 +23,7 @@ export default ( { onInsertTemplate, templates } ) => {
 				<div className="newspack-newsletters-modal__patterns">
 					<div className="block-editor-patterns">
 						{ ( templates || [] ).map( ( { title, content }, index ) =>
-							0 === index ? null : (
+							'' === content ? null : (
 								<div
 									key={ index }
 									className={

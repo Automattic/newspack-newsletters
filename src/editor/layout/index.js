@@ -34,7 +34,7 @@ export default compose( [
 	const blockPreview = content ? parse( content ) : null;
 	return (
 		<Fragment>
-			{ templateId > 0 && (
+			{ blockPreview !== null && (
 				<div className="block-editor-patterns newspack-newsletters__layout-panel-preview">
 					<div className="block-editor-patterns__item">
 						<div className="block-editor-patterns__item-preview">
