@@ -34,7 +34,13 @@ const getExcerptBlock = ( post, { excerptLength } ) => {
 
 const createBlocksForPost = (
 	post,
-	{ displayPostDate, displayPostExcerpt, excerptLength, displayFeaturedImage, featuredImageAlign }
+	{
+		displayPostDate,
+		displayPostExcerpt,
+		excerptLength,
+		displayFeaturedImage,
+		featuredImageAlignment,
+	}
 ) => {
 	const postContentBlocks = [ getHeadingBlock( post ) ];
 
@@ -56,12 +62,12 @@ const createBlocksForPost = (
 		];
 		const imageColumnBlock = [ 'core/column', {}, [ getImageBlock() ] ];
 		const postContentColumnBlock = [ 'core/column', {}, postContentBlocks ];
-		switch ( featuredImageAlign ) {
+		switch ( featuredImageAlignment ) {
 			case 'left':
 				return [ [ 'core/columns', {}, [ imageColumnBlock, postContentColumnBlock ] ] ];
 			case 'right':
 				return [ [ 'core/columns', {}, [ postContentColumnBlock, imageColumnBlock ] ] ];
-			case 'center':
+			case 'top':
 				return [ getImageBlock( true ), ...postContentBlocks ];
 		}
 	}

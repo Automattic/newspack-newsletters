@@ -10,12 +10,12 @@ import { registerBlockType, createBlock } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { BaseControl, RangeControl, Button, ToggleControl, PanelBody } from '@wordpress/components';
+import { RangeControl, Button, ToggleControl, PanelBody, Toolbar } from '@wordpress/components';
 import {
 	InnerBlocks,
 	BlockPreview,
 	InspectorControls,
-	BlockAlignmentToolbar,
+	BlockControls,
 } from '@wordpress/block-editor';
 import { Fragment, useEffect } from '@wordpress/element';
 
@@ -40,6 +40,27 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 			replaceBlocks( templateBlocks );
 		}
 	}, [ attributes.areBlocksInserted ]);
+
+	const blockControlsImages = [
+		{
+			icon: 'align-none',
+			title: __( 'Show image on top', 'newspack-blocks' ),
+			isActive: attributes.featuredImageAlignment === 'top',
+			onClick: () => setAttributes( { featuredImageAlignment: 'top' } ),
+		},
+		{
+			icon: 'align-pull-left',
+			title: __( 'Show image on left', 'newspack-blocks' ),
+			isActive: attributes.featuredImageAlignment === 'left',
+			onClick: () => setAttributes( { featuredImageAlignment: 'left' } ),
+		},
+		{
+			icon: 'align-pull-right',
+			title: __( 'Show image on right', 'newspack-blocks' ),
+			isActive: attributes.featuredImageAlignment === 'right',
+			onClick: () => setAttributes( { featuredImageAlignment: 'right' } ),
+		},
+	];
 
 	return attributes.areBlocksInserted ? null : (
 		<Fragment>
@@ -69,25 +90,16 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 						checked={ attributes.displayFeaturedImage }
 						onChange={ value => setAttributes( { displayFeaturedImage: value } ) }
 					/>
-
-					{ attributes.displayFeaturedImage && (
-						<BaseControl>
-							<div>
-								<BaseControl.VisualLabel>{ __( 'Image alignment' ) }</BaseControl.VisualLabel>
-							</div>
-							<BlockAlignmentToolbar
-								value={ attributes.featuredImageAlign }
-								onChange={ featuredImageAlign => setAttributes( { featuredImageAlign } ) }
-								controls={ [ 'left', 'center', 'right' ] }
-								isCollapsed={ false }
-							/>
-						</BaseControl>
-					) }
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
 				</PanelBody>
 			</InspectorControls>
+
+			<BlockControls>
+				{ attributes.displayFeaturedImage && <Toolbar controls={ blockControlsImages } /> }
+			</BlockControls>
+
 			<div className="newspack-posts-inserter">
 				<div className="newspack-posts-inserter__header">
 					{ Icon }
@@ -178,7 +190,7 @@ export default () => {
 				type: 'boolean',
 				default: true,
 			},
-			featuredImageAlign: {
+			featuredImageAlignment: {
 				type: 'string',
 				default: 'left',
 			},
