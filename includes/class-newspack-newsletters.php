@@ -889,7 +889,7 @@ final class Newspack_Newsletters {
 			}
 
 			// Prevent updating content of a sent campaign.
-			if ( ! in_array( $campaign_result['status'], [ 'sent', 'sending' ] ) ) {
+			if ( in_array( $campaign_result['status'], [ 'sent', 'sending' ] ) ) {
 				return;
 			}
 
