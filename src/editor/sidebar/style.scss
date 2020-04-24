@@ -1,3 +1,5 @@
+@import '~@wordpress/base-styles/colors';
+
 .wp-block {
 	max-width: 568px;
 }
@@ -61,6 +63,10 @@
 		> li:last-child {
 			margin-bottom: 0;
 		}
+	}
+
+	&__error input.components-text-control__input {
+		border-color: $alert-red;
 	}
 }
 
