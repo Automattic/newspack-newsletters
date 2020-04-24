@@ -135,6 +135,9 @@ final class Newspack_Newsletters {
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			return;
+		}
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -244,7 +247,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_mailchimp_data' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id' => [
 						'sanitize_callback' => 'absint',
@@ -258,7 +261,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_test_mailchimp_campaign' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',
@@ -275,7 +278,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_mailchimp_list' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'      => [
 						'sanitize_callback' => 'absint',
@@ -292,7 +295,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_mailchimp_interest' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'          => [
 						'sanitize_callback' => 'absint',
@@ -309,7 +312,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_campaign_settings' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'        => [
 						'sanitize_callback' => 'absint',
@@ -329,7 +332,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_keys' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 			]
 		);
 		\register_rest_route(
@@ -338,7 +341,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_keys' ],
-				'permission_callback' => [ __CLASS__, 'api_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 				'args'                => [
 					'mailchimp_api_key'   => [
 						'sanitize_callback' => 'sanitize_text_field',
@@ -464,25 +467,66 @@ final class Newspack_Newsletters {
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
+		try {
+			$mc = new Mailchimp( self::mailchimp_api_key() );
 
-		$mc = new Mailchimp( self::mailchimp_api_key() );
+			$result = self::validate_mailchimp_operation(
+				$mc->get( 'verified-domains' ),
+				__( 'Error retrieving verified domains from Mailchimp.', 'newspack-newsletters' )
+			);
 
-		$settings = [];
-		if ( $from_name ) {
-			$settings['from_name'] = $from_name;
+			$verified_domains = array_filter(
+				array_map(
+					function( $domain ) { 
+						return $domain['verified'] ? strtolower( trim( $domain['domain'] ) ) : null;
+					},
+					$result['domains']
+				),
+				function( $domain ) {
+					return ! empty( $domain );
+				}
+			);
+
+			$explode = explode( '@', $reply_to );
+			$domain  = strtolower( trim( array_pop( $explode ) ) );
+
+			if ( ! in_array( $domain, $verified_domains ) ) {
+				return new WP_Error(
+					'newspack_newsletters_unverified_sender_domain',
+					sprintf(
+						// Translators: explanation that current domain is not verified, list of verified options.
+						__( '%1$s is not a verified domain. Verified domains for the linked Mailchimp account are: %2$s.', 'newspack-newsletters' ),
+						$domain,
+						implode( ', ', $verified_domains )
+					)
+				);
+			}
+
+			$settings = [];
+			if ( $from_name ) {
+				$settings['from_name'] = $from_name;
+			}
+			if ( $reply_to ) {
+				$settings['reply_to'] = $reply_to;
+			}
+			$payload = [
+				'settings' => $settings,
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+				__( 'Error setting sender name and email.', 'newspack_newsletters' )
+			);
+
+			$data           = self::retrieve_data( $id );
+			$data['result'] = $result;
+
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
 		}
-		if ( $reply_to ) {
-			$settings['reply_to'] = $reply_to;
-		}
-		$payload = [
-			'settings' => $settings,
-		];
-		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
-
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
 	}
 
 	/**
@@ -510,18 +554,28 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$mc      = new Mailchimp( self::mailchimp_api_key() );
-		$payload = [
-			'recipients' => [
-				'list_id' => $list_id,
-			],
-		];
-		$result  = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+		try {
+			$mc      = new Mailchimp( self::mailchimp_api_key() );
+			$payload = [
+				'recipients' => [
+					'list_id' => $list_id,
+				],
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+				__( 'Error setting Mailchimp list.', 'newspack_newsletters' )
+			);
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
+			$data           = self::retrieve_data( $id );
+			$data['result'] = $result;
 
-		return \rest_ensure_response( $data );
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 	}
 
 	/**
@@ -556,47 +610,59 @@ final class Newspack_Newsletters {
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
-
-		$mc       = new Mailchimp( self::mailchimp_api_key() );
-		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
-		$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
-
-		if ( ! $list_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp list ID not found.', 'newspack-newsletters' )
+		try {
+			$mc       = new Mailchimp( self::mailchimp_api_key() );
+			$campaign = self::validate_mailchimp_operation(
+				$mc->get( "campaigns/$mc_campaign_id" ),
+				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
-		}
+			$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
-		$segment_opts = ( 'no_interests' === $request['interest_id'] ) ?
-			(object) [] :
-			[
-				'match'      => 'any',
-				'conditions' => [
-					[
-						'condition_type' => 'Interests',
-						'field'          => $field,
-						'op'             => 'interestcontains',
-						'value'          => [
-							$interest_id,
+			if ( ! $list_id ) {
+				return new WP_Error(
+					'newspack_newsletters_no_campaign_id',
+					__( 'Mailchimp list ID not found.', 'newspack-newsletters' )
+				);
+			}
+
+			$segment_opts = ( 'no_interests' === $request['interest_id'] ) ?
+				(object) [] :
+				[
+					'match'      => 'any',
+					'conditions' => [
+						[
+							'condition_type' => 'Interests',
+							'field'          => $field,
+							'op'             => 'interestcontains',
+							'value'          => [
+								$interest_id,
+							],
 						],
 					],
+				];
+
+			$payload = [
+				'recipients' => [
+					'list_id'      => $list_id,
+					'segment_opts' => $segment_opts,
 				],
 			];
 
-		$payload = [
-			'recipients' => [
-				'list_id'      => $list_id,
-				'segment_opts' => $segment_opts,
-			],
-		];
+			$result = self::validate_mailchimp_operation(
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+				__( 'Error updating Mailchimp groups.', 'newspack_newsletters' )
+			);
 
-		$result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
+			$data           = self::retrieve_data( $id );
+			$data['result'] = $result;
 
-		$data           = self::retrieve_data( $id );
-		$data['result'] = $result;
-
-		return \rest_ensure_response( $data );
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 	}
 
 	/**
@@ -644,7 +710,8 @@ final class Newspack_Newsletters {
 				$mc->post(
 					"campaigns/$mc_campaign_id/actions/test",
 					$payload
-				)
+				),
+				__( 'Error sending test email.', 'newspack_newsletters' )
 			);
 
 			$data            = self::retrieve_data( $id );
@@ -670,24 +737,59 @@ final class Newspack_Newsletters {
 	 * @param string $id post ID.
 	 */
 	public static function retrieve_data( $id ) {
-		$mc_campaign_id      = get_post_meta( $id, 'mc_campaign_id', true );
-		$mc                  = new Mailchimp( self::mailchimp_api_key() );
-		$campaign            = $mc_campaign_id ? $mc->get( "campaigns/$mc_campaign_id" ) : null;
-		$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
-		$interest_categories = $list_id ? $mc->get( "lists/$list_id/interest-categories" ) : null;
-		if ( $interest_categories && count( $interest_categories['categories'] ) ) {
-			foreach ( $interest_categories['categories'] as &$category ) {
-				$category_id           = $category['id'];
-				$category['interests'] = $mc->get( "lists/$list_id/interest-categories/$category_id/interests" );
-			}
+		$transient       = sprintf( 'newspack_newsletters_error_%s_%s', $id, get_current_user_id() );
+		$persisted_error = get_transient( $transient );
+		if ( $persisted_error ) {
+			delete_transient( $transient );
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$persisted_error
+			);
 		}
 
-		return [
-			'lists'               => $mc->get( 'lists' ),
-			'campaign'            => $campaign,
-			'campaign_id'         => $mc_campaign_id,
-			'interest_categories' => $interest_categories,
-		];
+		try {
+			$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+			if ( ! $mc_campaign_id ) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_error',
+					__( 'No Mailchimp campaign ID found for this Newsletter', 'newspack-newsletter' )
+				);
+			}
+			$mc                  = new Mailchimp( self::mailchimp_api_key() );
+			$campaign            = self::validate_mailchimp_operation( 
+				$mc->get( "campaigns/$mc_campaign_id" ),
+				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
+			);
+			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+			$interest_categories = $list_id ? self::validate_mailchimp_operation(
+				$mc->get( "lists/$list_id/interest-categories" ),
+				__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
+			) : null;
+			if ( $interest_categories && count( $interest_categories['categories'] ) ) {
+				foreach ( $interest_categories['categories'] as &$category ) {
+					$category_id           = $category['id'];
+					$category['interests'] = self::validate_mailchimp_operation(
+						$mc->get( "lists/$list_id/interest-categories/$category_id/interests" ),
+						__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
+					);
+				}
+			}
+
+			return [
+				'lists'               => self::validate_mailchimp_operation(
+					$mc->get( 'lists' ),
+					__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
+				),
+				'campaign'            => $campaign,
+				'campaign_id'         => $mc_campaign_id,
+				'interest_categories' => $interest_categories,
+			];
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 	}
 
 	/**
@@ -698,13 +800,32 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Check capabilities for using API.
+	 * Check capabilities for using the API for administration tasks.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 * @return bool|WP_Error
 	 */
-	public static function api_permissions_check( $request ) {
+	public static function api_administration_permissions_check( $request ) {
 		if ( ! current_user_can( 'manage_options' ) ) {
+			return new \WP_Error(
+				'newspack_rest_forbidden',
+				esc_html__( 'You cannot use this resource.', 'newspack' ),
+				[
+					'status' => 403,
+				]
+			);
+		}
+		return true;
+	}
+
+	/**
+	 * Check capabilities for using the API for authoring tasks.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 * @return bool|WP_Error
+	 */
+	public static function api_authoring_permissions_check( $request ) {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack' ),
@@ -773,36 +894,55 @@ final class Newspack_Newsletters {
 				__( 'No Mailchimp API key available.', 'newspack-newsletters' )
 			);
 		}
+		try {
+			$mc      = new Mailchimp( $api_key );
+			$payload = [
+				'type'         => 'regular',
+				'content_type' => 'template',
+				'settings'     => [
+					'subject_line' => $post->post_title,
+					'title'        => $post->post_title,
+				],
+			];
 
-		$mc      = new Mailchimp( $api_key );
-		$payload = [
-			'type'         => 'regular',
-			'content_type' => 'template',
-			'settings'     => [
-				'subject_line' => $post->post_title,
-				'title'        => $post->post_title,
-			],
-		];
+			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
+			if ( $mc_campaign_id ) {
+				$campaign_result = self::validate_mailchimp_operation(
+					$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+					__( 'Error updating campaign title.', 'newspack_newsletters' )
+				);
+			} else {
+				$campaign_result = self::validate_mailchimp_operation(
+					$mc->post( 'campaigns', $payload ),
+					__( 'Error setting campaign title.', 'newspack_newsletters' )
+				);
+				$mc_campaign_id  = $campaign_result['id'];
+				update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
+			}
 
-		$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
-		if ( $mc_campaign_id ) {
-			$campaign_result = $mc->patch( "campaigns/$mc_campaign_id", $payload );
-		} else {
-			$campaign_result = $mc->post( 'campaigns', $payload );
-			$mc_campaign_id  = $campaign_result['id'];
-			update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
+			// Prevent updating content of a sent campaign.
+			if ( in_array( $campaign_result['status'], [ 'sent', 'sending' ] ) ) {
+				return;
+			}
+
+			$renderer        = new Newspack_Newsletters_Renderer();
+			$content_payload = [
+				'html' => $renderer->render_html_email( $post ),
+			];
+
+			$content_result = self::validate_mailchimp_operation(
+				$mc->put( "campaigns/$mc_campaign_id/content", $content_payload ),
+				__( 'Error updating campaign content.', 'newspack_newsletters' )
+			);
+			return [
+				'campaign_result' => $campaign_result,
+				'content_result'  => $content_result,
+			];
+		} catch ( Exception $e ) {
+			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
+			set_transient( $transient, $e->getMessage(), 45 );
+			return;
 		}
-
-		$renderer        = new Newspack_Newsletters_Renderer();
-		$content_payload = [
-			'html' => $renderer->render_html_email( $post ),
-		];
-
-		$content_result = $mc->put( "campaigns/$mc_campaign_id/content", $content_payload );
-		return [
-			'campaign_result' => $campaign_result,
-			'content_result'  => $content_result,
-		];
 	}
 
 	/**
@@ -840,26 +980,35 @@ final class Newspack_Newsletters {
 			);
 		}
 
-		$sync_result = self::sync_with_mailchimp( $post );
+		try {
+			$sync_result = self::sync_with_mailchimp( $post );
 
-		if ( is_wp_error( $sync_result ) ) {
-			return $sync_result;
-		}
+			if ( is_wp_error( $sync_result ) ) {
+				return $sync_result;
+			}
 
-		$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			$mc_campaign_id = get_post_meta( $id, 'mc_campaign_id', true );
+			if ( ! $mc_campaign_id ) {
+				return new WP_Error(
+					'newspack_newsletters_no_campaign_id',
+					__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+				);
+			}
+
+			$mc = new Mailchimp( self::mailchimp_api_key() );
+
+			$payload = [
+				'send_type' => 'html',
+			];
+			$result  = self::validate_mailchimp_operation(
+				$mc->post( "campaigns/$mc_campaign_id/actions/send", $payload ),
+				__( 'Error sending campaign.', 'newspack_newsletters' )
 			);
+		} catch ( Exception $e ) {
+			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
+			set_transient( $transient, $e->getMessage(), 45 );
+			return;
 		}
-
-		$mc = new Mailchimp( self::mailchimp_api_key() );
-
-		$payload = [
-			'send_type' => 'html',
-		];
-		$result  = $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload );
 	}
 
 	/**
@@ -995,7 +1144,7 @@ final class Newspack_Newsletters {
 			}
 		}
 		if ( ! empty( $result['status'] ) && in_array( $result['status'], [ 400, 404 ] ) ) {
-			if ( $preferred_error ) {
+			if ( $preferred_error && ! self::debug_mode() ) {
 				throw new Exception( $preferred_error );
 			}
 			$messages = [];
@@ -1015,6 +1164,15 @@ final class Newspack_Newsletters {
 			throw new Exception( implode( ' ', $messages ) );
 		}
 		return $result;
+	}
+
+	/**
+	 * Is wp-config debug flag set.
+	 *
+	 * @return boolean Is debug mode on?
+	 */
+	public static function debug_mode() {
+		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
 }
 Newspack_Newsletters::instance();

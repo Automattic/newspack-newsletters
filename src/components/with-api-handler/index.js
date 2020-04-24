@@ -10,19 +10,24 @@ export default () =>
 	createHigherOrderComponent(
 		OriginalComponent => props => {
 			const [ inFlight, setInFlight ] = useState( false );
+			const [ errors, setErrors ] = useState( {} );
 			const { createSuccessNotice, createErrorNotice, removeNotice } = dispatch( 'core/notices' );
 			const { getNotices } = select( 'core/notices' );
+			const setInFlightForAsync = () => {
+				setInFlight( true );
+			};
 			const apiFetchWithErrorHandling = apiRequest => {
 				setInFlight( true );
 				return new Promise( ( resolve, reject ) => {
 					apiFetch( apiRequest )
 						.then( response => {
 							const { message } = response;
+							getNotices().forEach( notice => removeNotice( notice.id ) );
 							if ( message ) {
-								getNotices().forEach( notice => removeNotice( notice.id ) );
 								createSuccessNotice( message );
 							}
 							setInFlight( false );
+							setErrors( {} );
 							resolve( response );
 						} )
 						.catch( error => {
@@ -30,6 +35,7 @@ export default () =>
 							getNotices().forEach( notice => removeNotice( notice.id ) );
 							createErrorNotice( message );
 							setInFlight( false );
+							setErrors( { [ error.code ]: true } );
 							reject( error );
 						} );
 				} );
@@ -38,6 +44,8 @@ export default () =>
 				<OriginalComponent
 					{ ...props }
 					apiFetchWithErrorHandling={ apiFetchWithErrorHandling }
+					errors={ errors }
+					setInFlightForAsync={ setInFlightForAsync }
 					inFlight={ inFlight }
 				/>
 			);

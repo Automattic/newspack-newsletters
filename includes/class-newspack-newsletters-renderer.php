@@ -172,7 +172,7 @@ final class Newspack_Newsletters_Renderer {
 		$inner_blocks = $block['innerBlocks'];
 		$inner_html   = $block['innerHTML'];
 
-		if ( empty( $block_name ) || empty( $inner_html ) ) {
+		if ( ! isset( $attrs['innerBlocksToInsert'] ) && ( empty( $block_name ) || empty( $inner_html ) ) ) {
 			return '';
 		}
 
@@ -258,6 +258,9 @@ final class Newspack_Newsletters_Renderer {
 				}
 				if ( isset( $attrs['height'] ) ) {
 					$img_attrs['height'] = $attrs['height'] . 'px';
+				}
+				if ( isset( $attrs['linkDestination'] ) ) {
+					$img_attrs['href'] = $attrs['linkDestination'];
 				}
 
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
@@ -443,11 +446,11 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
-			 * Newspack Newsletters Latest posts block template.
+			 * Newspack Newsletters Posts Inserter block template.
 			 */
 			case 'newspack-newsletters/posts-inserter':
 				$markup = '';
-				foreach ( $inner_blocks as $block ) {
+				foreach ( $attrs['innerBlocksToInsert'] as $block ) {
 					$markup .= self::render_mjml_component( $block );
 				}
 				$block_mjml_markup = $markup;
@@ -533,6 +536,7 @@ final class Newspack_Newsletters_Renderer {
 	 *
 	 * @param WP_Post $post The post.
 	 * @return string email-compliant HTML.
+	 * @throws Exception Error message.
 	 */
 	public static function render_html_email( $post ) {
 		$mjml_creds = self::mjml_api_credentials();
@@ -552,6 +556,9 @@ final class Newspack_Newsletters_Renderer {
 					'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 				)
 			);
+			if ( 401 === intval( $request['response']['code'] ) ) {
+				throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
+			}
 			return is_wp_error( $request ) ? $request : json_decode( $request['body'] )->html;
 		}
 	}
