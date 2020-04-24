@@ -1,0 +1,20 @@
+.editor-post-title {
+	display: none;
+}
+
+.components-button.editor-post-publish-button__button.is-primary {
+	display: none;
+}
+
+.wp-block-button {
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+.wp-block-column {
+	> :first-child {
+		> .wp-block-image {
+			margin-top: 0;
+		}
+	}
+}
