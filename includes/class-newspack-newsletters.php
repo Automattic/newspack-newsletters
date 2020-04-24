@@ -481,7 +481,8 @@ final class Newspack_Newsletters {
 				'settings' => $settings,
 			];
 			$result  = self::validate_mailchimp_operation(
-				$mc->patch( "campaigns/$mc_campaign_id", $payload )
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+				__( 'Error setting sender name and email.', 'newspack_newsletters' )
 			);
 
 			$data           = self::retrieve_data( $id );
@@ -529,7 +530,8 @@ final class Newspack_Newsletters {
 				],
 			];
 			$result  = self::validate_mailchimp_operation(
-				$mc->patch( "campaigns/$mc_campaign_id", $payload )
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+				__( 'Error setting Mailchimp list.', 'newspack_newsletters' )
 			);
 
 			$data           = self::retrieve_data( $id );
@@ -579,7 +581,8 @@ final class Newspack_Newsletters {
 		try {
 			$mc       = new Mailchimp( self::mailchimp_api_key() );
 			$campaign = self::validate_mailchimp_operation(
-				$mc->get( "campaigns/$mc_campaign_id" )
+				$mc->get( "campaigns/$mc_campaign_id" ),
+				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
 			$list_id  = isset( $campaign, $campaign['recipients'], $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
@@ -614,7 +617,8 @@ final class Newspack_Newsletters {
 			];
 
 			$result = self::validate_mailchimp_operation(
-				$mc->patch( "campaigns/$mc_campaign_id", $payload )
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+				__( 'Error updating Mailchimp groups.', 'newspack_newsletters' )
 			);
 
 			$data           = self::retrieve_data( $id );
@@ -674,7 +678,8 @@ final class Newspack_Newsletters {
 				$mc->post(
 					"campaigns/$mc_campaign_id/actions/test",
 					$payload
-				)
+				),
+				__( 'Error sending test email.', 'newspack_newsletters' )
 			);
 
 			$data            = self::retrieve_data( $id );
@@ -719,18 +724,30 @@ final class Newspack_Newsletters {
 				);
 			}
 			$mc                  = new Mailchimp( self::mailchimp_api_key() );
-			$campaign            = self::validate_mailchimp_operation( $mc->get( "campaigns/$mc_campaign_id" ) );
+			$campaign            = self::validate_mailchimp_operation( 
+				$mc->get( "campaigns/$mc_campaign_id" ),
+				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
+			);
 			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
-			$interest_categories = $list_id ? self::validate_mailchimp_operation( $mc->get( "lists/$list_id/interest-categories" ) ) : null;
+			$interest_categories = $list_id ? self::validate_mailchimp_operation(
+				$mc->get( "lists/$list_id/interest-categories" ),
+				__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
+			) : null;
 			if ( $interest_categories && count( $interest_categories['categories'] ) ) {
 				foreach ( $interest_categories['categories'] as &$category ) {
 					$category_id           = $category['id'];
-					$category['interests'] = self::validate_mailchimp_operation( $mc->get( "lists/$list_id/interest-categories/$category_id/interests" ) );
+					$category['interests'] = self::validate_mailchimp_operation(
+						$mc->get( "lists/$list_id/interest-categories/$category_id/interests" ),
+						__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
+					);
 				}
 			}
 
 			return [
-				'lists'               => self::validate_mailchimp_operation( $mc->get( 'lists' ) ),
+				'lists'               => self::validate_mailchimp_operation(
+					$mc->get( 'lists' ),
+					__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
+				),
 				'campaign'            => $campaign,
 				'campaign_id'         => $mc_campaign_id,
 				'interest_categories' => $interest_categories,
@@ -858,9 +875,15 @@ final class Newspack_Newsletters {
 
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 			if ( $mc_campaign_id ) {
-				$campaign_result = self::validate_mailchimp_operation( $mc->patch( "campaigns/$mc_campaign_id", $payload ) );
+				$campaign_result = self::validate_mailchimp_operation(
+					$mc->patch( "campaigns/$mc_campaign_id", $payload ),
+					__( 'Error updating campaign title.', 'newspack_newsletters' )
+				);
 			} else {
-				$campaign_result = self::validate_mailchimp_operation( $mc->post( 'campaigns', $payload ) );
+				$campaign_result = self::validate_mailchimp_operation(
+					$mc->post( 'campaigns', $payload ),
+					__( 'Error setting campaign title.', 'newspack_newsletters' )
+				);
 				$mc_campaign_id  = $campaign_result['id'];
 				update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
 			}
@@ -870,7 +893,10 @@ final class Newspack_Newsletters {
 				'html' => $renderer->render_html_email( $post ),
 			];
 
-			$content_result = self::validate_mailchimp_operation( $mc->put( "campaigns/$mc_campaign_id/content", $content_payload ) );
+			$content_result = self::validate_mailchimp_operation(
+				$mc->put( "campaigns/$mc_campaign_id/content", $content_payload ),
+				__( 'Error updating campaign content.', 'newspack_newsletters' )
+			);
 			return [
 				'campaign_result' => $campaign_result,
 				'content_result'  => $content_result,
@@ -937,7 +963,10 @@ final class Newspack_Newsletters {
 			$payload = [
 				'send_type' => 'html',
 			];
-			$result  = self::validate_mailchimp_operation( $mc->post( "campaigns/$mc_campaign_id/actions/send", $payload ) );
+			$result  = self::validate_mailchimp_operation(
+				$mc->post( "campaigns/$mc_campaign_id/actions/send", $payload ),
+				__( 'Error sending campaign.', 'newspack_newsletters' )
+			);
 		} catch ( Exception $e ) {
 			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
 			set_transient( $transient, $e->getMessage(), 45 );
@@ -1078,7 +1107,7 @@ final class Newspack_Newsletters {
 			}
 		}
 		if ( ! empty( $result['status'] ) && in_array( $result['status'], [ 400, 404 ] ) ) {
-			if ( $preferred_error ) {
+			if ( $preferred_error && ! self::debug_mode() ) {
 				throw new Exception( $preferred_error );
 			}
 			$messages = [];
@@ -1098,6 +1127,15 @@ final class Newspack_Newsletters {
 			throw new Exception( implode( ' ', $messages ) );
 		}
 		return $result;
+	}
+
+	/**
+	 * Is wp-config debug flag set.
+	 *
+	 * @return boolean Is debug mode on?
+	 */
+	public static function debug_mode() {
+		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
 }
 Newspack_Newsletters::instance();
