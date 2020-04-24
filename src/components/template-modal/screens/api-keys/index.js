@@ -38,6 +38,20 @@ export default ( { onSetupStatus } ) => {
 			.catch( handleErrors );
 	};
 	const handleErrors = error => {
+		if ( 'newspack_rest_forbidden' === error.code ) {
+			setInFlight( false );
+			setErrors( {
+				newspack_newsletters_invalid_keys_mailchimp: __(
+					'Only administrators can set Mailchimp API keys.',
+					'newspack-newsletters'
+				),
+				newspack_newsletters_invalid_keys_mjml: __(
+					'Only administrators can set MJML credentials.',
+					'newspack-newsletters'
+				),
+			} );
+			return;
+		}
 		const allErrors = { [ error.code ]: error.message };
 		( error.additional_errors || [] ).forEach(
 			additionalError => ( allErrors[ additionalError.code ] = additionalError.message )
