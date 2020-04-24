@@ -45,6 +45,13 @@
 			h6 { font-size: 1em; }
 			h1, h2, h3, h4, h5, h6 { line-height: 1.2; margin-top: 0; margin-bottom: 0.5em; }
 
+			/* List */
+			ul, ol {
+				margin-bottom: 0;
+				margin-top: 0;
+				padding-left: 1.3em;
+			}
+
 			/* Quote */
 			.wp-block-quote {
 				margin: 0 0 28px;
