@@ -259,6 +259,9 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['height'] ) ) {
 					$img_attrs['height'] = $attrs['height'] . 'px';
 				}
+				if ( isset( $attrs['linkDestination'] ) ) {
+					$img_attrs['href'] = $attrs['linkDestination'];
+				}
 
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
@@ -554,7 +557,7 @@ final class Newspack_Newsletters_Renderer {
 				)
 			);
 			if ( 401 === intval( $request['response']['code'] ) ) {
-				throw new Exception( __( 'MJML error.', 'newspack_newsletters' ) );
+				throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
 			}
 			return is_wp_error( $request ) ? $request : json_decode( $request['body'] )->html;
 		}
