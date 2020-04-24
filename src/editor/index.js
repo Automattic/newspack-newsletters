@@ -19,13 +19,11 @@ import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
 import registerEditorPlugin from './editor/';
-import registerPostStatusSlot from './post-status-slot';
 import registerPostsInserterBlock from './blocks/posts-inserter';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 
 addBlocksValidationFilter();
-registerPostStatusSlot();
 registerEditorPlugin();
 registerPostsInserterBlock();
 

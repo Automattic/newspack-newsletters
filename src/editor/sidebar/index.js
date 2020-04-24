@@ -18,6 +18,7 @@ import {
  * External dependencies
  */
 import { get } from 'lodash';
+import classnames from 'classnames';
 
 /**
  * Internal dependencies
@@ -129,7 +130,16 @@ class Sidebar extends Component {
 	 * Render
 	 */
 	render() {
-		const { inFlight, campaign, lists, editPost, title, senderName, senderEmail } = this.props;
+		const {
+			inFlight,
+			campaign,
+			errors,
+			lists,
+			editPost,
+			title,
+			senderName,
+			senderEmail,
+		} = this.props;
 		const { senderDirty } = this.state;
 		if ( ! campaign ) {
 			return (
@@ -148,6 +158,10 @@ class Sidebar extends Component {
 				</Notice>
 			);
 		}
+		const senderEmailClasses = classnames(
+			'newspack-newsletters__email-textcontrol',
+			errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
+		);
 		const { web_id: listWebId } = list_id && lists.find( ( { id } ) => list_id === id );
 		return (
 			<Fragment>
@@ -196,7 +210,7 @@ class Sidebar extends Component {
 				/>
 				<TextControl
 					label={ __( 'Email', 'newspack-newsletters' ) }
-					className="newspack-newsletters__email-textcontrol"
+					className={ senderEmailClasses }
 					value={ senderEmail }
 					type="email"
 					disabled={ inFlight }
