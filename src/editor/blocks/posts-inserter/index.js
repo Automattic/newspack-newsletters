@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isUndefined, pickBy, get, omit } from 'lodash';
+import { values, isUndefined, pickBy, get, omit } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -24,17 +24,15 @@ import { Fragment, useEffect } from '@wordpress/element';
  */
 import './style.scss';
 import Icon from './icon';
-import { getTemplateBlocksMemoized, convertBlockSerializationFormat } from './utils';
+import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 
 const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlocks } ) => {
-	const templateBlocks = getTemplateBlocksMemoized(
-		postList,
-		omit( attributes, 'innerBlocksToInsert' )
-	);
-	useEffect(() => {
+	const templateBlocks = getTemplateBlocks( postList, attributes );
+
+	useEffect( () => {
 		setAttributes( { innerBlocksToInsert: templateBlocks.map( convertBlockSerializationFormat ) } );
-	}, [ templateBlocks ]);
+	}, values( omit( attributes, 'innerBlocksToInsert' ) ) );
 
 	useEffect(() => {
 		if ( attributes.areBlocksInserted ) {

@@ -1,8 +1,7 @@
 /**
  * External dependencies
  */
-import { omit, isEqual } from 'lodash';
-import memoizeOne from 'memoize-one';
+import { omit } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -92,10 +91,8 @@ const createBlockTemplatesForPosts = ( posts, attributes ) =>
 		return [ ...blocks, ...createBlockTemplatesForSinglePost( post, attributes ) ];
 	}, [] );
 
-const getTemplateBlocks = ( postList, attributes ) =>
+export const getTemplateBlocks = ( postList, attributes ) =>
 	createBlockTemplatesForPosts( postList, attributes ).map( createBlockFromTemplate );
-
-export const getTemplateBlocksMemoized = memoizeOne( getTemplateBlocks, isEqual );
 
 /**
  * Converts a block object to a shape processable by the backend,
