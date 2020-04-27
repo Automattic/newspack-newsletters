@@ -17,6 +17,10 @@
 				margin-top: 0 !important;
 				margin-bottom: 0 !important;
 			}
+			.mj-column-has-width p.has-background,
+			.mj-column-per-50 p.has-background {
+				padding: 16px;
+			}
 
 			/* Link */
 			a {

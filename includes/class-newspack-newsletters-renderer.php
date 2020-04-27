@@ -421,7 +421,8 @@ final class Newspack_Newsletters_Renderer {
 					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
 				}
 				if ( isset( $attrs['width'] ) ) {
-					$column_attrs['width'] = $attrs['width'] . '%';
+					$column_attrs['width']     = $attrs['width'] . '%';
+					$column_attrs['css-class'] = 'mj-column-has-width';
 				}
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
