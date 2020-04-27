@@ -43,10 +43,10 @@ final class Newspack_Newsletters {
 	 */
 	public function __construct() {
 		add_action( 'the_post', [ __CLASS__, 'remove_other_editor_modifications' ] );
+		add_action( 'the_post', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
@@ -477,7 +477,7 @@ final class Newspack_Newsletters {
 
 			$verified_domains = array_filter(
 				array_map(
-					function( $domain ) { 
+					function( $domain ) {
 						return $domain['verified'] ? strtolower( trim( $domain['domain'] ) ) : null;
 					},
 					$result['domains']
@@ -756,7 +756,7 @@ final class Newspack_Newsletters {
 				);
 			}
 			$mc                  = new Mailchimp( self::mailchimp_api_key() );
-			$campaign            = self::validate_mailchimp_operation( 
+			$campaign            = self::validate_mailchimp_operation(
 				$mc->get( "campaigns/$mc_campaign_id" ),
 				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
@@ -958,8 +958,7 @@ final class Newspack_Newsletters {
 	 * Disable gradients in Newsletter CPT.
 	 */
 	public static function disable_gradients() {
-		$screen = get_current_screen();
-		if ( ! $screen || self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
 			return;
 		}
 		add_theme_support( 'editor-gradient-presets', array() );

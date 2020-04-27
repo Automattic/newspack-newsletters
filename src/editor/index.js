@@ -44,6 +44,9 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	) {
 		settings.supports = { ...settings.supports, align: [] };
 	}
+	if ( 'core/group' === name ) {
+		settings.supports = { ...settings.supports, align: [ 'full' ] };
+	}
 	return settings;
 } );
 
@@ -92,16 +95,16 @@ const NewsletterEdit = ( {
 				<Sidebar />
 			</PluginDocumentSettingPanel>
 			<PluginDocumentSettingPanel
-				name="newsletters-layout-panel"
-				title={ __( 'Layout', 'newspack-newsletters' ) }
-			>
-				<Layout templates={ templates } />
-			</PluginDocumentSettingPanel>
-			<PluginDocumentSettingPanel
 				name="newsletters-testing-panel"
 				title={ __( 'Testing', 'newspack-newsletters' ) }
 			>
 				<Testing />
+			</PluginDocumentSettingPanel>
+			<PluginDocumentSettingPanel
+				name="newsletters-layout-panel"
+				title={ __( 'Layout', 'newspack-newsletters' ) }
+			>
+				<Layout templates={ templates } />
 			</PluginDocumentSettingPanel>
 		</Fragment>
 	);
