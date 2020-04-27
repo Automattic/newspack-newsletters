@@ -1,3 +1,18 @@
+# [1.0.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2020-04-27)
+
+
+### Bug Fixes
+
+* posts inserter infinite loop ([42508b0](https://github.com/Automattic/newspack-newsletters/commit/42508b06d5f88749e2361342da1bbcdde5c6b57f)), closes [#146](https://github.com/Automattic/newspack-newsletters/issues/146)
+* remove support for background gradients ([#152](https://github.com/Automattic/newspack-newsletters/issues/152)) ([f4b1120](https://github.com/Automattic/newspack-newsletters/commit/f4b112030cacb1b8666d170432d8adc96c7b6ea8))
+* rename list->audience to reflect mailchimp ([7de6266](https://github.com/Automattic/newspack-newsletters/commit/7de6266883b7b61e17c1b9217e70a6b679f736da))
+* **blocks:** remove wide alignment for group block ([216aa9f](https://github.com/Automattic/newspack-newsletters/commit/216aa9f7af886791f8eb83ed5a01c02ad1fee69c)), closes [#153](https://github.com/Automattic/newspack-newsletters/issues/153)
+
+
+### Features
+
+* move testing panel above layout ([d35b2ad](https://github.com/Automattic/newspack-newsletters/commit/d35b2ad41320d0ce086dd2822fc4d4948a07b11b))
+
 # 1.0.0-alpha.1 (2020-04-24)
 
 
