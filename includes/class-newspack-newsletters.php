@@ -43,10 +43,10 @@ final class Newspack_Newsletters {
 	 */
 	public function __construct() {
 		add_action( 'the_post', [ __CLASS__, 'remove_other_editor_modifications' ] );
+		add_action( 'the_post', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
@@ -129,8 +129,6 @@ final class Newspack_Newsletters {
 
 		remove_editor_styles();
 		remove_theme_support( 'editor-color-palette' );
-		add_theme_support( 'editor-gradient-presets', array() );
-		add_theme_support( 'disable-custom-gradients' );
 	}
 
 	/**
