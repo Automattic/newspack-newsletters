@@ -129,6 +129,8 @@ final class Newspack_Newsletters {
 
 		remove_editor_styles();
 		remove_theme_support( 'editor-color-palette' );
+		add_theme_support( 'editor-gradient-presets', array() );
+		add_theme_support( 'disable-custom-gradients' );
 	}
 
 	/**
@@ -477,7 +479,7 @@ final class Newspack_Newsletters {
 
 			$verified_domains = array_filter(
 				array_map(
-					function( $domain ) { 
+					function( $domain ) {
 						return $domain['verified'] ? strtolower( trim( $domain['domain'] ) ) : null;
 					},
 					$result['domains']
@@ -756,7 +758,7 @@ final class Newspack_Newsletters {
 				);
 			}
 			$mc                  = new Mailchimp( self::mailchimp_api_key() );
-			$campaign            = self::validate_mailchimp_operation( 
+			$campaign            = self::validate_mailchimp_operation(
 				$mc->get( "campaigns/$mc_campaign_id" ),
 				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
