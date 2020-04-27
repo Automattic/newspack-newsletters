@@ -958,8 +958,7 @@ final class Newspack_Newsletters {
 	 * Disable gradients in Newsletter CPT.
 	 */
 	public static function disable_gradients() {
-		$screen = get_current_screen();
-		if ( ! $screen || self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
 			return;
 		}
 		add_theme_support( 'editor-gradient-presets', array() );
