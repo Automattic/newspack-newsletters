@@ -29,7 +29,11 @@
   },
   "release": {
     "branches": [
-      "release"
+      "release",
+      {
+        "name": "alpha",
+        "prerelease": "alpha"
+      }
     ],
     "prepare": [
       "@semantic-release/changelog",
@@ -107,7 +111,7 @@
     "@wordpress/url": "^2.13.0",
     "classnames": "^2.2.6",
     "lodash": "^4.17.15",
-    "newspack-components": "^1.1.0",
+    "memoize-one": "^5.1.1",
     "webpack": "^4.42.1"
   },
   "devDependencies": {

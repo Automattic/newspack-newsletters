@@ -1,17 +1,22 @@
 /**
  * External dependencies
  */
-import { isUndefined, pickBy, get } from 'lodash';
+import { isUndefined, pickBy, get, omit } from 'lodash';
 
 /**
  * WordPress dependencies
  */
-import { registerBlockType, createBlock } from '@wordpress/blocks';
+import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { RangeControl, Button, ToggleControl, PanelBody } from '@wordpress/components';
-import { InnerBlocks, BlockPreview, InspectorControls } from '@wordpress/block-editor';
+import { RangeControl, Button, ToggleControl, PanelBody, Toolbar } from '@wordpress/components';
+import {
+	InnerBlocks,
+	BlockPreview,
+	InspectorControls,
+	BlockControls,
+} from '@wordpress/block-editor';
 import { Fragment, useEffect } from '@wordpress/element';
 
 /**
@@ -19,22 +24,44 @@ import { Fragment, useEffect } from '@wordpress/element';
  */
 import './style.scss';
 import Icon from './icon';
-import { getBlocksTemplate } from './utils';
+import { getTemplateBlocksMemoized, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 
-const createBlockWithInnerBlocks = ( [ name, blockAttributes, innerBlocks = [] ] ) =>
-	createBlock( name, blockAttributes, innerBlocks.map( createBlockWithInnerBlocks ) );
-
 const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlocks } ) => {
-	const templateBlocks = getBlocksTemplate( postList, attributes ).map(
-		createBlockWithInnerBlocks
+	const templateBlocks = getTemplateBlocksMemoized(
+		postList,
+		omit( attributes, 'innerBlocksToInsert' )
 	);
+	useEffect(() => {
+		setAttributes( { innerBlocksToInsert: templateBlocks.map( convertBlockSerializationFormat ) } );
+	}, [ templateBlocks ]);
 
 	useEffect(() => {
 		if ( attributes.areBlocksInserted ) {
 			replaceBlocks( templateBlocks );
 		}
 	}, [ attributes.areBlocksInserted ]);
+
+	const blockControlsImages = [
+		{
+			icon: 'align-none',
+			title: __( 'Show image on top', 'newspack-blocks' ),
+			isActive: attributes.featuredImageAlignment === 'top',
+			onClick: () => setAttributes( { featuredImageAlignment: 'top' } ),
+		},
+		{
+			icon: 'align-pull-left',
+			title: __( 'Show image on left', 'newspack-blocks' ),
+			isActive: attributes.featuredImageAlignment === 'left',
+			onClick: () => setAttributes( { featuredImageAlignment: 'left' } ),
+		},
+		{
+			icon: 'align-pull-right',
+			title: __( 'Show image on right', 'newspack-blocks' ),
+			isActive: attributes.featuredImageAlignment === 'right',
+			onClick: () => setAttributes( { featuredImageAlignment: 'right' } ),
+		},
+	];
 
 	return attributes.areBlocksInserted ? null : (
 		<Fragment>
@@ -69,6 +96,11 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
 				</PanelBody>
 			</InspectorControls>
+
+			<BlockControls>
+				{ attributes.displayFeaturedImage && <Toolbar controls={ blockControlsImages } /> }
+			</BlockControls>
+
 			<div className="newspack-posts-inserter">
 				<div className="newspack-posts-inserter__header">
 					{ Icon }
@@ -108,11 +140,14 @@ const PostsInserterBlockWithSelect = compose( [
 			postList: posts.map( post => {
 				if ( post.featured_media ) {
 					const image = getMedia( post.featured_media );
-					let url = get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null );
-					if ( ! url ) {
-						url = get( image, 'source_url', null );
-					}
-					return { ...post, featuredImageSourceUrl: url };
+					const fallbackImageURL = get( image, 'source_url', null );
+					const featuredImageMediumURL =
+						get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null ) ||
+						fallbackImageURL;
+					const featuredImageLargeURL =
+						get( image, [ 'media_details', 'sizes', 'large', 'source_url' ], null ) ||
+						fallbackImageURL;
+					return { ...post, featuredImageMediumURL, featuredImageLargeURL };
 				}
 				return post;
 			} ),
@@ -158,6 +193,14 @@ export default () => {
 			displayFeaturedImage: {
 				type: 'boolean',
 				default: true,
+			},
+			innerBlocksToInsert: {
+				type: 'array',
+				default: '',
+			},
+			featuredImageAlignment: {
+				type: 'string',
+				default: 'left',
 			},
 		},
 		save: () => <InnerBlocks.Content />,
