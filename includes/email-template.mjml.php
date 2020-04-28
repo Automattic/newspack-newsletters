@@ -17,10 +17,6 @@
 				margin-top: 0 !important;
 				margin-bottom: 0 !important;
 			}
-			.mj-column-has-width p.has-background,
-			.mj-column-per-50 p.has-background {
-				padding: 16px;
-			}
 
 			/* Link */
 			a {
@@ -77,6 +73,12 @@
 			/* Social links */
 			.social-element img {
 				border-radius: 0 !important;
+			}
+
+			/* Has Background */
+			.mj-column-has-width .has-background,
+			.mj-column-per-50 .has-background {
+				padding: 16px;
 			}
 		</mj-style>
 	</mj-head>
