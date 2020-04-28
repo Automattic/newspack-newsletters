@@ -60,6 +60,12 @@
 						// last child being block-list-appender
 						margin-bottom: 0;
 					}
+
+					.newspack-posts-inserter {
+						&__preview {
+							margin-bottom: 1em;
+						}
+					}
 				}
 			}
 
