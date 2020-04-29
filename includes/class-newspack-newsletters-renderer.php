@@ -435,6 +435,20 @@ final class Newspack_Newsletters_Renderer {
 			 * Columns block.
 			 */
 			case 'core/columns':
+				// Some columns might have no width set.
+				$widths_sum            = 0;
+				$no_width_cols_indexes = [];
+				foreach ( $inner_blocks as $i => $block ) {
+					if ( isset( $block['attrs']['width'] ) ) {
+						$widths_sum += floatval( $block['attrs']['width'] );
+					} else {
+						array_push( $no_width_cols_indexes, $i );
+					}
+				};
+				foreach ( $no_width_cols_indexes as $no_width_cols_index ) {
+					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes );
+				};
+
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
