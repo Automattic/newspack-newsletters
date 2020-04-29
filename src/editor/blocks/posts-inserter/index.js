@@ -35,6 +35,7 @@ const PostsInserterBlock = ( {
 	postList,
 	replaceBlocks,
 	setHandledPostsIds,
+	removeBlock,
 } ) => {
 	const templateBlocks = getTemplateBlocks( postList, attributes );
 
@@ -52,6 +53,7 @@ const PostsInserterBlock = ( {
 	useEffect(() => {
 		if ( ! attributes.preventDeduplication ) {
 			setHandledPostsIds( ids );
+			return removeBlock;
 		}
 	}, [ ids.join() ]);
 
@@ -174,12 +176,13 @@ const PostsInserterBlockWithSelect = compose( [
 	} ),
 	withDispatch( ( dispatch, props ) => {
 		const { replaceBlocks } = dispatch( 'core/block-editor' );
-		const { setHandledPostsIds } = dispatch( POSTS_INSERTER_STORE_NAME );
+		const { setHandledPostsIds, removeBlock } = dispatch( POSTS_INSERTER_STORE_NAME );
 		return {
 			replaceBlocks: blocks => {
 				replaceBlocks( props.selectedBlock.clientId, blocks );
 			},
 			setHandledPostsIds: ids => setHandledPostsIds( ids, props ),
+			removeBlock: () => removeBlock( props.clientId ),
 		};
 	} ),
 ] )( PostsInserterBlock );

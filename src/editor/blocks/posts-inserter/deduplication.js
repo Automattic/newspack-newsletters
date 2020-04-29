@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { uniq, pick, flatten, values, flatMap, slice } from 'lodash';
+import { uniq, pick, flatten, values, flatMap, slice, without, omit } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -24,6 +24,12 @@ const actions = {
 			type: 'SET_HANDLED_POST_IDS',
 			handledPostIds: ids,
 			props,
+		};
+	},
+	removeBlock( clientId ) {
+		return {
+			type: 'REMOVE_BLOCK',
+			clientId,
 		};
 	},
 };
@@ -49,6 +55,12 @@ registerStore( POSTS_INSERTER_STORE_NAME, {
 						},
 						existingBlockIds
 					),
+				};
+			case 'REMOVE_BLOCK':
+				return {
+					...state,
+					existingBlockIds: without( state.existingBlockIds, action.clientId ),
+					postIdsByBlocks: omit( state.postIdsByBlocks, [ action.clientId ] ),
 				};
 		}
 
