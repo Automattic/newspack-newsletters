@@ -15,7 +15,7 @@ import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
 
 const DEFAULT_STATE = {
 	postIdsByBlocks: {},
-	existingBlockIds: [],
+	existingBlockIdsInOrder: [],
 };
 
 const actions = {
@@ -45,21 +45,21 @@ registerStore( POSTS_INSERTER_STORE_NAME, {
 		switch ( action.type ) {
 			case 'SET_HANDLED_POST_IDS':
 				const { clientId, existingBlocks } = action.props;
-				const existingBlockIds = getAllPostsInserterBlocksIds( existingBlocks );
+				const existingBlockIdsInOrder = getAllPostsInserterBlocksIds( existingBlocks );
 				return {
-					existingBlockIds,
+					existingBlockIdsInOrder,
 					postIdsByBlocks: pick(
 						{
 							...state.postIdsByBlocks,
 							[ clientId ]: action.handledPostIds,
 						},
-						existingBlockIds
+						existingBlockIdsInOrder
 					),
 				};
 			case 'REMOVE_BLOCK':
 				return {
 					...state,
-					existingBlockIds: without( state.existingBlockIds, action.clientId ),
+					existingBlockIdsInOrder: without( state.existingBlockIdsInOrder, action.clientId ),
 					postIdsByBlocks: omit( state.postIdsByBlocks, [ action.clientId ] ),
 				};
 		}
@@ -70,9 +70,9 @@ registerStore( POSTS_INSERTER_STORE_NAME, {
 	actions,
 
 	selectors: {
-		getHandledPostIds( { postIdsByBlocks, existingBlockIds }, blockClientId ) {
-			const blockIndex = existingBlockIds.indexOf( blockClientId );
-			const blocksBeforeIds = slice( existingBlockIds, 0, blockIndex );
+		getHandledPostIds( { postIdsByBlocks, existingBlockIdsInOrder }, blockClientId ) {
+			const blockIndex = existingBlockIdsInOrder.indexOf( blockClientId );
+			const blocksBeforeIds = slice( existingBlockIdsInOrder, 0, blockIndex );
 			return uniq( flatten( values( pick( postIdsByBlocks, blocksBeforeIds ) ) ) );
 		},
 	},
