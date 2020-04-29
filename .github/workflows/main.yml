@@ -11,4 +11,5 @@ jobs:
           APPROVALS: '1'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ADD_LABEL: '[Status] Approved'
-          REMOVE_LABEL: '[Status] Needs Review'
+          # Needs to be URL-encoded, see https://github.com/abinoda/label-when-approved-action/pull/3#discussion_r321882620
+          REMOVE_LABEL: '%5BStatus%5D%20Needs%20Review'
