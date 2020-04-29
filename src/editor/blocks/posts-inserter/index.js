@@ -50,7 +50,9 @@ const PostsInserterBlock = ( {
 
 	const ids = postList.map( post => post.id );
 	useEffect(() => {
-		setHandledPostsIds( ids );
+		if ( ! attributes.preventDeduplication ) {
+			setHandledPostsIds( ids );
+		}
 	}, [ ids.join() ]);
 
 	const blockControlsImages = [

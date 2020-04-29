@@ -13,6 +13,7 @@ import { Button, Modal } from '@wordpress/components';
  * Internal dependencies
  */
 import './style.scss';
+import { setPreventDeduplicationForPostsInserter } from '../blocks/posts-inserter/utils';
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -32,13 +33,17 @@ export default compose( [
 	const currentTemplate = templates && templates[ templateId ] ? templates[ templateId ] : {};
 	const { content, title } = currentTemplate;
 	const blockPreview = content ? parse( content ) : null;
+
 	return (
 		<Fragment>
 			{ blockPreview !== null && (
 				<div className="block-editor-patterns newspack-newsletters__layout-panel-preview">
 					<div className="block-editor-patterns__item">
 						<div className="block-editor-patterns__item-preview">
-							<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+							<BlockPreview
+								blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
+								viewportWidth={ 568 }
+							/>
 						</div>
 						<div className="block-editor-patterns__item-title">{ title }</div>
 					</div>
