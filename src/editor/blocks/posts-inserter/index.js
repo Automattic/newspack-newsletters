@@ -117,21 +117,38 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 
 const PostsInserterBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
-		const { postsToShow, order, orderBy, categories } = props.attributes;
+		const {
+			postsToShow,
+			order,
+			orderBy,
+			categories,
+			isDisplayingSpecificPosts,
+			specificPosts,
+		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
-		const postListQuery = pickBy(
-			{
-				categories: catIds,
-				order,
-				orderby: orderBy,
-				per_page: postsToShow,
-			},
-			value => ! isUndefined( value )
-		);
 
-		const posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		let posts = [];
+
+		if (
+			! isDisplayingSpecificPosts ||
+			( isDisplayingSpecificPosts && specificPosts.length > 0 )
+		) {
+			const postListQuery = isDisplayingSpecificPosts
+				? { include: specificPosts.map( post => post.id ) }
+				: pickBy(
+						{
+							categories: catIds,
+							order,
+							orderby: orderBy,
+							per_page: postsToShow,
+						},
+						value => ! isUndefined( value )
+				  );
+
+			posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		}
 
 		return {
 			selectedBlock: getSelectedBlock(),
@@ -199,6 +216,14 @@ export default () => {
 			featuredImageAlignment: {
 				type: 'string',
 				default: 'left',
+			},
+			isDisplayingSpecificPosts: {
+				type: 'boolean',
+				default: false,
+			},
+			specificPosts: {
+				type: 'array',
+				default: [],
 			},
 		},
 		save: () => <InnerBlocks.Content />,
