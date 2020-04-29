@@ -10,7 +10,7 @@ const validateCampaign = campaign => {
 
 	const messages = [];
 	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent', 'newspack-newsletters' ) );
+		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}
 	if ( ! listId ) {
 		messages.push(
@@ -27,10 +27,25 @@ const validateCampaign = campaign => {
 	return messages;
 };
 
-export const getEditPostPayload = campaign => ( {
+export const getEditPostPayload = ( {
+	campaign,
+	interest_categories: interestCategories,
+	lists,
+} ) => ( {
 	meta: {
-		// This meta field does not have to be registered on the back end,
-		// as it is not used there.
-		campaign_validation_errors: validateCampaign( campaign ),
+		// These meta fields do not have to be registered on the back end,
+		// as they are not used there.
+		campaignValidationErrors: validateCampaign( campaign ),
+		campaign,
+		interestCategories,
+		lists,
 	},
 } );
+
+/**
+ * Test if a string contains valid email addresses.
+ *
+ * @param  {string}  string String to test.
+ * @return {boolean} True if it contains a valid email string.
+ */
+export const hasValidEmail = string => /\S+@\S+/.test( string );

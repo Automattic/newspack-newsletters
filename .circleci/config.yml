@@ -46,6 +46,9 @@ jobs:
     steps:
       - checkout_with_workspace
       - run:
+          name: Install PHP dependencies
+          command: composer install --no-dev --no-scripts
+      - run:
           name: Release new version
           command: npm run release
 
@@ -62,4 +65,6 @@ workflows:
             - build
           filters:
             branches:
-              only: release
+              only: 
+                - release
+                - alpha

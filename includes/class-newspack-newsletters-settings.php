@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Newsletters Settubgs Page
+ * Newspack Newsletters Settings Page
  *
  * @package Newspack
  */
@@ -27,15 +27,15 @@ class Newspack_Newsletters_Settings {
 	public static function get_settings_list() {
 		return array(
 			array(
-				'description' => __( 'Mailchimp API Key', 'newspack' ),
+				'description' => __( 'Mailchimp API Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_mailchimp_api_key',
 			),
 			array(
-				'description' => __( 'MJML API Key', 'newspack' ),
+				'description' => __( 'MJML Application ID', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_mjml_api_key',
 			),
 			array(
-				'description' => __( 'MJML API Secret', 'newspack' ),
+				'description' => __( 'MJML Secret Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_mjml_api_secret',
 			),
 		);
@@ -45,9 +45,10 @@ class Newspack_Newsletters_Settings {
 	 * Add options page
 	 */
 	public static function add_plugin_page() {
-		add_options_page(
-			'Settings Admin',
-			'Newspack Newsletters',
+		add_submenu_page(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			__( 'Newsletters Settings', 'newspack-newsletters' ),
+			__( 'Settings', 'newspack-newsletters' ),
 			'manage_options',
 			'newspack-newsletters-settings-admin',
 			[ __CLASS__, 'create_admin_page' ]
@@ -60,7 +61,7 @@ class Newspack_Newsletters_Settings {
 	public static function create_admin_page() {
 		?>
 		<div class="wrap">
-			<h1>Newspack Newsletters Settings</h1>
+			<h1><?php esc_html_e( 'Newsletters Settings', 'newspack-newsletters' ); ?></h1>
 			<form method="post" action="options.php">
 			<?php
 				settings_fields( 'newspack_newsletters_options_group' );
@@ -78,7 +79,7 @@ class Newspack_Newsletters_Settings {
 	public static function page_init() {
 		add_settings_section(
 			'newspack_newsletters_options_group',
-			'Newspack Newsletters Custom Settings',
+			null,
 			null,
 			'newspack-newsletters-settings-admin'
 		);

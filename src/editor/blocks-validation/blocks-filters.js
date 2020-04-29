@@ -15,6 +15,12 @@ const handleSideAlignment = ( warnings, props ) => {
 const getWarnings = props => {
 	let warnings = [];
 	switch ( props.name ) {
+		case 'core/group':
+			if ( props.attributes.__nestedGroupWarning ) {
+				warnings.push( __( 'Nested group', 'newspack-newsletters' ) );
+			}
+			break;
+
 		case 'core/column':
 			if ( props.attributes.__nestedColumnWarning ) {
 				warnings.push( __( 'Nested columns', 'newspack-newsletters' ) );
@@ -53,11 +59,12 @@ const withUnsupportedFeaturesNotices = createHigherOrderComponent( BlockListBloc
 						'These features will not be displayed correctly in an email, please remove them:',
 						'newspack-newsletters'
 					) }
-					<ul>
-						{ warnings.map( ( warning, i ) => (
-							<li key={ i }>{ warning }</li>
-						) ) }
-					</ul>
+					{ warnings.map( ( warning, i ) => (
+						<strong key={ i }>
+							<br />
+							{ warning }
+						</strong>
+					) ) }
 				</div>
 				<BlockListBlock { ...props } />
 			</div>

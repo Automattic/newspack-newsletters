@@ -125,6 +125,15 @@ final class Newspack_Newsletters_Renderer {
 			$attrs['font-size'] = $font_size;
 		}
 
+		if ( isset( $attrs['style'] ) ) {
+			if ( isset( $attrs['style']['color']['background'] ) ) {
+				$attrs['background-color'] = $attrs['style']['color']['background'];
+			}
+			if ( isset( $attrs['style']['color']['text'] ) ) {
+				$attrs['color'] = $attrs['style']['color']['text'];
+			}
+		}
+
 		// Remove block-only attributes.
 		array_map(
 			function ( $key ) use ( &$attrs ) {
@@ -132,7 +141,7 @@ final class Newspack_Newsletters_Renderer {
 					unset( $attrs[ $key ] );
 				}
 			},
-			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize' ]
+			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize', 'backgroundColor', 'style' ]
 		);
 
 		if ( isset( $attrs['background-color'] ) ) {
@@ -154,20 +163,21 @@ final class Newspack_Newsletters_Renderer {
 	 * @param WP_Block $block The block.
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
 	 * @param bool     $is_in_group Whether the component is a child of a group component.
+	 * @param array    $default_attrs Default attributes for the component.
 	 * @return string MJML component.
 	 */
-	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false ) {
+	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [] ) {
 		$block_name   = $block['blockName'];
 		$attrs        = $block['attrs'];
 		$inner_blocks = $block['innerBlocks'];
 		$inner_html   = $block['innerHTML'];
 
-		if ( empty( $block_name ) || empty( $inner_html ) ) {
+		if ( ! isset( $attrs['innerBlocksToInsert'] ) && ( empty( $block_name ) || empty( $inner_html ) ) ) {
 			return '';
 		}
 
 		$block_mjml_markup = '';
-		$attrs             = self::process_attributes( $attrs );
+		$attrs             = self::process_attributes( array_merge( $default_attrs, $attrs ) );
 
 		// Default attributes for the section which will envelop the mj-column.
 		$section_attrs = array_merge(
@@ -248,6 +258,9 @@ final class Newspack_Newsletters_Renderer {
 				}
 				if ( isset( $attrs['height'] ) ) {
 					$img_attrs['height'] = $attrs['height'] . 'px';
+				}
+				if ( isset( $attrs['linkDestination'] ) ) {
+					$img_attrs['href'] = $attrs['linkDestination'];
 				}
 
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
@@ -331,33 +344,41 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
+			 * Spacer block.
+			 */
+			case 'core/spacer':
+				$attrs['height']    = $attrs['height'] . 'px';
+				$block_mjml_markup .= '<mj-spacer ' . self::array_to_attributes( $attrs ) . '/>';
+				break;
+
+			/**
 			 * Social links block.
 			 */
 			case 'core/social-links':
 				$social_icons = array(
 					'wordpress' => array(
 						'color' => '#3499cd',
-						'icon'  => 'wordpress.svg',
+						'icon'  => 'wordpress.png',
 					),
 					'facebook'  => array(
 						'color' => '#1977f2',
-						'icon'  => 'facebook.svg',
+						'icon'  => 'facebook.png',
 					),
 					'twitter'   => array(
 						'color' => '#21a1f3',
-						'icon'  => 'twitter.svg',
+						'icon'  => 'twitter.png',
 					),
 					'instagram' => array(
 						'color' => '#f00075',
-						'icon'  => 'instagram.svg',
+						'icon'  => 'instagram.png',
 					),
 					'linkedin'  => array(
 						'color' => '#0577b5',
-						'icon'  => 'linkedin.svg',
+						'icon'  => 'linkedin.png',
 					),
 					'youtube'   => array(
 						'color' => '#ff0100',
-						'icon'  => 'youtube.svg',
+						'icon'  => 'youtube.png',
 					),
 				);
 
@@ -405,7 +426,7 @@ final class Newspack_Newsletters_Renderer {
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true );
+					$markup .= self::render_mjml_component( $block, true, false, $default_attrs );
 				}
 				$block_mjml_markup = $markup . '</mj-column>';
 				break;
@@ -414,9 +435,23 @@ final class Newspack_Newsletters_Renderer {
 			 * Columns block.
 			 */
 			case 'core/columns':
+				if ( isset( $attrs['color'] ) ) {
+					$default_attrs['color'] = $attrs['color'];
+				}
 				$markup = '';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true );
+					$markup .= self::render_mjml_component( $block, true, false, $default_attrs );
+				}
+				$block_mjml_markup = $markup;
+				break;
+
+			/**
+			 * Newspack Newsletters Posts Inserter block template.
+			 */
+			case 'newspack-newsletters/posts-inserter':
+				$markup = '';
+				foreach ( $attrs['innerBlocksToInsert'] as $block ) {
+					$markup .= self::render_mjml_component( $block );
 				}
 				$block_mjml_markup = $markup;
 				break;
@@ -425,25 +460,34 @@ final class Newspack_Newsletters_Renderer {
 			 * Group block.
 			 */
 			case 'core/group':
+				// There's no color attribute on mj-wrapper, so it has to be passed to children.
+				// https://github.com/mjmlio/mjml/issues/1881 .
+				if ( isset( $attrs['color'] ) ) {
+					$default_attrs['color'] = $attrs['color'];
+				}
 				$markup = '<mj-wrapper ' . self::array_to_attributes( $attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, false, true );
+					$markup .= self::render_mjml_component( $block, false, true, $default_attrs );
 				}
 				$block_mjml_markup = $markup . '</mj-wrapper>';
 				break;
 		}
 
+		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
+		$is_group_block          = 'core/group' == $block_name;
+
 		if (
 			! $is_in_column &&
-			'core/group' != $block_name &&
+			! $is_group_block &&
 			'core/columns' != $block_name &&
 			'core/column' != $block_name &&
-			'core/buttons' != $block_name
+			'core/buttons' != $block_name &&
+			! $is_posts_inserter_block
 		) {
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
-		if ( $is_in_column || 'core/group' == $block_name ) {
+		if ( $is_in_column || $is_group_block || $is_posts_inserter_block ) {
 			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {
@@ -492,6 +536,7 @@ final class Newspack_Newsletters_Renderer {
 	 *
 	 * @param WP_Post $post The post.
 	 * @return string email-compliant HTML.
+	 * @throws Exception Error message.
 	 */
 	public static function render_html_email( $post ) {
 		$mjml_creds = self::mjml_api_credentials();
@@ -508,11 +553,13 @@ final class Newspack_Newsletters_Renderer {
 					'headers' => array(
 						'Authorization' => 'Basic ' . base64_encode( $mjml_creds ),
 					),
+					'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 				)
 			);
-
-			$email_html = json_decode( $request['body'] )->html;
-			return $email_html;
+			if ( 401 === intval( $request['response']['code'] ) ) {
+				throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
+			}
+			return is_wp_error( $request ) ? $request : json_decode( $request['body'] )->html;
 		}
 	}
 }

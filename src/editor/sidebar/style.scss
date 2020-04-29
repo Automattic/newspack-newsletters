@@ -1,7 +1,4 @@
-// TODO hide title after it's not required in MC initial call
-.editor-post-title {
-	// display: none;
-}
+@import '~@wordpress/base-styles/colors';
 
 .wp-block {
 	max-width: 568px;
@@ -32,5 +29,49 @@
 				margin: 0 !important;
 			}
 		}
+	}
+
+	&__loading-data {
+		align-items: center;
+		display: flex;
+
+		.components-spinner {
+			margin-top: 0;
+		}
+	}
+
+	&__name-textcontrol {
+		margin-top: 8px;
+	}
+
+	&__subject-textcontrol,
+	&__to-selectcontrol {
+		.components-base-control__label {
+			font-weight: 600;
+		}
+	}
+
+	&__send-test {
+		.components-button + .components-button {
+			margin-left: 12px;
+		}
+	}
+
+	&__pre-publish-errors {
+		margin: 0;
+
+		> li:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	&__error input.components-text-control__input {
+		border-color: $alert-red;
+	}
+}
+
+.editor-post-publish-panel__prepublish {
+	.components-notice {
+		margin: 0;
 	}
 }

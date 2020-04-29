@@ -2,43 +2,65 @@
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
-import apiFetch from '@wordpress/api-fetch';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+import { createPortal, useEffect, useState } from '@wordpress/element';
+import { registerPlugin } from '@wordpress/plugins';
 
 /**
  * Internal dependencies
  */
 import { getEditPostPayload } from '../utils';
+import withApiHandler from '../../components/with-api-handler';
+import SendButton from '../../components/send-button';
 import './style.scss';
 
-export default compose( [
+const Editor = compose( [
+	withApiHandler(),
+	withSelect( select => {
+		const {
+			getCurrentPostId,
+			getEditedPostAttribute,
+			isPublishingPost,
+			isSavingPost,
+			isCleanNewPost,
+		} = select( 'core/editor' );
+		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			isCleanNewPost: isCleanNewPost(),
+			postId: getCurrentPostId(),
+			isReady: meta.campaignValidationErrors ? meta.campaignValidationErrors.length === 0 : false,
+			activeSidebarName: getActiveGeneralSidebarName(),
+			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
+		};
+	} ),
 	withDispatch( dispatch => {
 		const { lockPostSaving, unlockPostSaving, editPost } = dispatch( 'core/editor' );
 		return { lockPostSaving, unlockPostSaving, editPost };
 	} ),
-	withSelect( select => {
-		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
-		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
-		const meta = getEditedPostAttribute( 'meta' );
-		return {
-			postId: getCurrentPostId(),
-			isReady: meta.campaign_validation_errors
-				? meta.campaign_validation_errors.length === 0
-				: false,
-			activeSidebarName: getActiveGeneralSidebarName(),
-		};
-	} ),
 ] )( props => {
+	const [ publishEl ] = useState( document.createElement( 'div' ) );
+	// Create alternate publish button
 	useEffect(() => {
-		// Fetch initially if the sidebar is be hidden.
-		if ( props.activeSidebarName !== 'edit-post/document' ) {
-			apiFetch( { path: `/newspack-newsletters/v1/mailchimp/${ props.postId }` } ).then( result => {
-				props.editPost( getEditPostPayload( result.campaign ) );
-			} );
-		}
+		const publishButton = document.getElementsByClassName(
+			'editor-post-publish-button__button'
+		)[ 0 ];
+		publishButton.parentNode.insertBefore( publishEl, publishButton );
 	}, []);
+	// Fetch campaign data.
+	useEffect(() => {
+		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
+			props
+				.apiFetchWithErrorHandling( {
+					path: `/newspack-newsletters/v1/mailchimp/${ props.postId }`,
+				} )
+				.then( result => {
+					props.editPost( getEditPostPayload( result ) );
+				} );
+		}
+	}, [ props.isPublishingOrSavingPost ]);
 
+	// Lock or unlock post publishing.
 	useEffect(() => {
 		if ( props.isReady ) {
 			props.unlockPostSaving( 'newspack-newsletters-post-lock' );
@@ -47,5 +69,11 @@ export default compose( [
 		}
 	}, [ props.isReady ]);
 
-	return null;
+	return createPortal( <SendButton />, publishEl );
 } );
+
+export default () => {
+	registerPlugin( 'newspack-newsletters-edit', {
+		render: Editor,
+	} );
+};

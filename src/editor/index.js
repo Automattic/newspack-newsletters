@@ -7,7 +7,7 @@ import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
-import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
+import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
 import { addFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
 
@@ -15,14 +15,17 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import TemplateModal from '../components/template-modal';
+import Layout from './layout/';
 import Sidebar from './sidebar/';
-import Editor from './editor/';
-import PrePublishSlot from './pre-publish-slot';
-
+import Testing from './testing/';
+import registerEditorPlugin from './editor/';
+import registerPostsInserterBlock from './blocks/posts-inserter';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
-import { NestedColumnsDetection } from './blocks-validation/nested-columns-detection';
+import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 
 addBlocksValidationFilter();
+registerEditorPlugin();
+registerPostsInserterBlock();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
@@ -41,6 +44,9 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	) {
 		settings.supports = { ...settings.supports, align: [] };
 	}
+	if ( 'core/group' === name ) {
+		settings.supports = { ...settings.supports, align: [ 'full' ] };
+	}
 	return settings;
 } );
 
@@ -48,14 +54,16 @@ const NewsletterEdit = ( {
 	getBlocks,
 	insertBlocks,
 	replaceBlocks,
-	isEditedPostNew,
 	savePost,
+	setTemplateIDMeta,
+	templateId,
 } ) => {
 	const templates =
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.templates;
 
-	const [ selectedTemplate, setSelectedTemplate ] = useState( 0 );
-	const [ insertedTemplate, setInserted ] = useState( null );
+	const [ hasKeys, setHasKeys ] = useState(
+		window && window.newspack_newsletters_data && window.newspack_newsletters_data.has_keys
+	);
 
 	const handleTemplateInsertion = templateIndex => {
 		const template = templates[ templateIndex ];
@@ -65,28 +73,38 @@ const NewsletterEdit = ( {
 		} else {
 			insertBlocks( parse( template.content ) );
 		}
-		setInserted( templateIndex );
+		setTemplateIDMeta( templateIndex );
 		setTimeout( savePost, 1 );
 	};
-
-	const isDisplayingTemplateModal =
-		isEditedPostNew && templates && templates.length && insertedTemplate === null;
+	const isDisplayingTemplateModal = ! hasKeys || -1 === templateId;
 
 	return isDisplayingTemplateModal ? (
 		<TemplateModal
 			templates={ templates }
 			onInsertTemplate={ handleTemplateInsertion }
-			onSelectTemplate={ setSelectedTemplate }
-			selectedTemplate={ selectedTemplate }
+			hasKeys={ hasKeys }
+			onSetupStatus={ status => setHasKeys( status ) }
 		/>
 	) : (
 		<Fragment>
 			<NestedColumnsDetection />
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
-				title={ __( ' Newsletter Settings', 'newspack-newsletters' ) }
+				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar />
+			</PluginDocumentSettingPanel>
+			<PluginDocumentSettingPanel
+				name="newsletters-testing-panel"
+				title={ __( 'Testing', 'newspack-newsletters' ) }
+			>
+				<Testing />
+			</PluginDocumentSettingPanel>
+			<PluginDocumentSettingPanel
+				name="newsletters-layout-panel"
+				title={ __( 'Layout', 'newspack-newsletters' ) }
+			>
+				<Layout templates={ templates } />
 			</PluginDocumentSettingPanel>
 		</Fragment>
 	);
@@ -94,34 +112,29 @@ const NewsletterEdit = ( {
 
 const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
-		const { isEditedPostNew } = select( 'core/editor' );
+		const { getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		const { template_id: templateId } = meta;
 		const { getBlocks } = select( 'core/block-editor' );
 		return {
-			isEditedPostNew: isEditedPostNew(),
 			getBlocks,
+			templateId,
 		};
 	} ),
 	withDispatch( dispatch => {
 		const { savePost } = dispatch( 'core/editor' );
 		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
-		return { savePost, insertBlocks, replaceBlocks };
+		return {
+			savePost,
+			insertBlocks,
+			replaceBlocks,
+			setTemplateIDMeta: templateId =>
+				dispatch( 'core/editor' ).editPost( { meta: { template_id: templateId } } ),
+		};
 	} ),
 ] )( NewsletterEdit );
 
 registerPlugin( 'newspack-newsletters-sidebar', {
 	render: NewsletterEditWithSelect,
 	icon: null,
-} );
-
-registerPlugin( 'newspack-newsletters-pre-publish', {
-	render: () => (
-		<PluginPrePublishPanel>
-			<PrePublishSlot />
-		</PluginPrePublishPanel>
-	),
-	icon: null,
-} );
-
-registerPlugin( 'newspack-newsletters-edit', {
-	render: Editor,
 } );
