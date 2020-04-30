@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { values, isUndefined, pickBy, get, omit } from 'lodash';
+import { isUndefined, find, pickBy, get } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -23,22 +23,40 @@ import { Fragment, useEffect } from '@wordpress/element';
  * Internal dependencies
  */
 import './style.scss';
+import './deduplication';
 import Icon from './icon';
 import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
+import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
 
-const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlocks } ) => {
+const PostsInserterBlock = ( {
+	setAttributes,
+	attributes,
+	postList,
+	replaceBlocks,
+	setHandledPostsIds,
+	removeBlock,
+} ) => {
 	const templateBlocks = getTemplateBlocks( postList, attributes );
 
-	useEffect( () => {
-		setAttributes( { innerBlocksToInsert: templateBlocks.map( convertBlockSerializationFormat ) } );
-	}, values( omit( attributes, 'innerBlocksToInsert' ) ) );
+	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
+	useEffect(() => {
+		setAttributes( { innerBlocksToInsert } );
+	}, [ JSON.stringify( innerBlocksToInsert ) ]);
 
 	useEffect(() => {
 		if ( attributes.areBlocksInserted ) {
 			replaceBlocks( templateBlocks );
 		}
 	}, [ attributes.areBlocksInserted ]);
+
+	const ids = postList.map( post => post.id );
+	useEffect(() => {
+		if ( ! attributes.preventDeduplication ) {
+			setHandledPostsIds( ids );
+			return removeBlock;
+		}
+	}, [ ids.join() ]);
 
 	const blockControlsImages = [
 		{
@@ -117,23 +135,51 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 
 const PostsInserterBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
-		const { postsToShow, order, orderBy, categories } = props.attributes;
+		const {
+			postsToShow,
+			order,
+			orderBy,
+			categories,
+			isDisplayingSpecificPosts,
+			specificPosts,
+		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
-		const { getSelectedBlock } = select( 'core/block-editor' );
+		const { getSelectedBlock, getBlocks } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
-		const postListQuery = pickBy(
-			{
-				categories: catIds,
-				order,
-				orderby: orderBy,
-				per_page: postsToShow,
-			},
-			value => ! isUndefined( value )
-		);
 
-		const posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		const { getHandledPostIds } = select( POSTS_INSERTER_STORE_NAME );
+		const exclude = getHandledPostIds( props.clientId );
+
+		let posts = [];
+		const isHandlingSpecificPosts = isDisplayingSpecificPosts && specificPosts.length > 0;
+
+		if ( ! isDisplayingSpecificPosts || isHandlingSpecificPosts ) {
+			const postListQuery = isDisplayingSpecificPosts
+				? { include: specificPosts.map( post => post.id ) }
+				: pickBy(
+						{
+							categories: catIds,
+							order,
+							orderby: orderBy,
+							per_page: postsToShow,
+							exclude,
+						},
+						value => ! isUndefined( value )
+				  );
+
+			posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		}
+
+		// Order posts in the order as they appear in the input
+		if ( isHandlingSpecificPosts ) {
+			posts = specificPosts.reduce( ( all, { id } ) => {
+				const found = find( posts, [ 'id', id ] );
+				return found ? [ ...all, found ] : all;
+			}, [] );
+		}
 
 		return {
+			existingBlocks: getBlocks(),
 			selectedBlock: getSelectedBlock(),
 			postList: posts.map( post => {
 				if ( post.featured_media ) {
@@ -153,16 +199,19 @@ const PostsInserterBlockWithSelect = compose( [
 	} ),
 	withDispatch( ( dispatch, props ) => {
 		const { replaceBlocks } = dispatch( 'core/block-editor' );
+		const { setHandledPostsIds, removeBlock } = dispatch( POSTS_INSERTER_STORE_NAME );
 		return {
 			replaceBlocks: blocks => {
 				replaceBlocks( props.selectedBlock.clientId, blocks );
 			},
+			setHandledPostsIds: ids => setHandledPostsIds( ids, props ),
+			removeBlock: () => removeBlock( props.clientId ),
 		};
 	} ),
 ] )( PostsInserterBlock );
 
 export default () => {
-	registerBlockType( 'newspack-newsletters/posts-inserter', {
+	registerBlockType( POSTS_INSERTER_BLOCK_NAME, {
 		title: 'Posts Inserter',
 		category: 'widgets',
 		icon: Icon,
@@ -199,6 +248,14 @@ export default () => {
 			featuredImageAlignment: {
 				type: 'string',
 				default: 'left',
+			},
+			isDisplayingSpecificPosts: {
+				type: 'boolean',
+				default: false,
+			},
+			specificPosts: {
+				type: 'array',
+				default: [],
 			},
 		},
 		save: () => <InnerBlocks.Content />,
