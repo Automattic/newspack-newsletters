@@ -206,7 +206,7 @@
 				border: 1px solid $light-gray-500;
 				border-radius: 2px;
 				overflow: hidden;
-				padding: 0 0 100%;
+				padding: 0 0 calc( 100% - 2px );
 				position: relative;
 				width: 100%;
 
