@@ -37,13 +37,20 @@
 			}
 
 			/* Heading */
-			h1 { font-size: 2.64em; }
-			h2 { font-size: 2.15em; }
-			h3 { font-size: 1.76em; }
-			h4 { font-size: 1.45em; }
-			h5 { font-size: 1.2em; }
-			h6 { font-size: 1em; }
-			h1, h2, h3, h4, h5, h6 { line-height: 1.2; margin-top: 0; margin-bottom: 0.5em; }
+			h1 { font-size: 2.44em; line-height: 1.4; }
+			h2 { font-size: 1.95em; line-height: 1.4; }
+			h3 { font-size: 1.56em; line-height: 1.4; }
+			h4 { font-size: 1.25em; line-height: 1.5; }
+			h5 { font-size: 1em; line-height: 1.8; }
+			h6 { font-size: 0.8em; line-height: 1.8; }
+			h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 0; }
+
+			/* List */
+			ul, ol {
+				margin-bottom: 0;
+				margin-top: 0;
+				padding-left: 1.3em;
+			}
 
 			/* Quote */
 			.wp-block-quote {
@@ -66,6 +73,12 @@
 			/* Social links */
 			.social-element img {
 				border-radius: 0 !important;
+			}
+
+			/* Has Background */
+			.mj-column-has-width .has-background,
+			.mj-column-per-50 .has-background {
+				padding: 16px;
 			}
 		</mj-style>
 	</mj-head>
