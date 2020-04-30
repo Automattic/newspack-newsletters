@@ -64,7 +64,7 @@
 	}
 
 	&__content {
-		background: $light-gray-200;
+		background: white;
 		height: calc( 100% - 36px );
 		margin: -24px;
 		padding: 24px;
@@ -159,17 +159,16 @@
 		}
 	}
 
-	&__patterns {
+	&__layouts {
 		overflow-y: scroll;
-		padding: 3px;
-		margin: -3px;
-		max-height: calc( 100% + 6px );
+		max-height: 100%;
 
-		.block-editor-patterns {
+		.newspack-newsletters-layouts {
 			display: grid;
 			gap: 16px;
 			grid-template-columns: repeat( 2, 1fr );
 			grid-auto-rows: minmax( min-content, max-content );
+			overflow: hidden;
 			padding: 0;
 
 			@media only screen and ( min-width: 600px ) {
@@ -181,15 +180,31 @@
 			}
 
 			&__item {
+				cursor: pointer;
 				margin: 0;
+				width: 100%;
 
-				&.selected {
-					box-shadow: white 0 0 0 1px inset, $blue-medium-focus 0 0 0 2px;
+				&:hover,
+				&:focus {
+					.newspack-newsletters-layouts__item-preview {
+						border-color: $blue-medium-focus;
+					}
+				}
+
+				&.is-active {
 					pointer-events: none;
+
+					.newspack-newsletters-layouts__item-preview {
+						border-color: currentColor;
+						box-shadow: inset 0 0 0 1px;
+					}
 				}
 			}
 
 			&__item-preview {
+				background: white;
+				border: 1px solid $light-gray-500;
+				border-radius: 2px;
 				overflow: hidden;
 				padding: 0 0 100%;
 				position: relative;
@@ -197,7 +212,18 @@
 
 				.block-editor-block-preview__container {
 					position: absolute;
+					top: 0;
+
+					.block-editor-block-list__layout.is-root-container {
+						padding-left: 28px;
+						padding-right: 28px;
+					}
 				}
+			}
+
+			&__item-label {
+				padding: 4px 2px;
+				text-align: center;
 			}
 		}
 	}
