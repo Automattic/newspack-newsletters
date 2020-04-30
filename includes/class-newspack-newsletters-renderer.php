@@ -145,7 +145,7 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		if ( isset( $attrs['background-color'] ) ) {
-			$attrs['padding'] = '16px';
+			$attrs['padding'] = '0';
 		}
 
 		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
@@ -190,7 +190,7 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
-				'padding' => '10px 16px',
+				'padding' => '16px',
 			)
 		);
 
@@ -421,7 +421,8 @@ final class Newspack_Newsletters_Renderer {
 					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
 				}
 				if ( isset( $attrs['width'] ) ) {
-					$column_attrs['width'] = $attrs['width'] . '%';
+					$column_attrs['width']     = $attrs['width'] . '%';
+					$column_attrs['css-class'] = 'mj-column-has-width';
 				}
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
