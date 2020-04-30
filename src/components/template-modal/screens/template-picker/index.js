@@ -25,16 +25,16 @@ export default ( { onInsertTemplate, templates } ) => {
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
-				<div className="newspack-newsletters-modal__patterns">
-					<div className="block-editor-patterns">
+				<div className="newspack-newsletters-modal__layouts">
+					<div className="newspack-newsletters-layouts">
 						{ ( templates || [] ).map( ( { title, content }, index ) =>
 							'' === content ? null : (
 								<div
 									key={ index }
 									className={
 										selectedTemplate === index
-											? 'selected block-editor-patterns__item'
-											: 'block-editor-patterns__item'
+											? 'newspack-newsletters-layouts__item is-active'
+											: 'newspack-newsletters-layouts__item'
 									}
 									onClick={ () => setSelectedTemplate( index ) }
 									onKeyDown={ event => {
@@ -47,13 +47,13 @@ export default ( { onInsertTemplate, templates } ) => {
 									tabIndex="0"
 									aria-label={ title }
 								>
-									<div className="block-editor-patterns__item-preview">
+									<div className="newspack-newsletters-layouts__item-preview">
 										<BlockPreview
 											blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
 											viewportWidth={ 568 }
 										/>
 									</div>
-									<div className="block-editor-patterns__item-title">{ title }</div>
+									<div className="newspack-newsletters-layouts__item-label">{ title }</div>
 								</div>
 							)
 						) }
