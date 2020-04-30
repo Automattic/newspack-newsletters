@@ -38,7 +38,7 @@ export default compose( [
 				<div className="newspack-newsletters-layouts">
 					<div className="newspack-newsletters-layouts__item">
 						<div className="newspack-newsletters-layouts__item-preview">
-							<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+							<BlockPreview blocks={ blockPreview } viewportWidth={ 560 } />
 						</div>
 						<div className="newspack-newsletters-layouts__item-label">{ title }</div>
 					</div>

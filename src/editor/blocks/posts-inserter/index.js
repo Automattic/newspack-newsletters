@@ -106,7 +106,7 @@ const PostsInserterBlock = ( { setAttributes, attributes, postList, replaceBlock
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
 				<div className="newspack-posts-inserter__preview">
-					<BlockPreview blocks={ templateBlocks } viewportWidth={ 566 } />
+					<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
 				</div>
 				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 					{ __( 'Insert posts', 'newspack-newsletters' ) }
