@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { values, isUndefined, pickBy, get, omit } from 'lodash';
+import { isUndefined, pickBy, get } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -39,9 +39,10 @@ const PostsInserterBlock = ( {
 } ) => {
 	const templateBlocks = getTemplateBlocks( postList, attributes );
 
-	useEffect( () => {
-		setAttributes( { innerBlocksToInsert: templateBlocks.map( convertBlockSerializationFormat ) } );
-	}, values( omit( attributes, 'innerBlocksToInsert' ) ) );
+	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
+	useEffect(() => {
+		setAttributes( { innerBlocksToInsert } );
+	}, [ JSON.stringify( innerBlocksToInsert ) ]);
 
 	useEffect(() => {
 		if ( attributes.areBlocksInserted ) {
