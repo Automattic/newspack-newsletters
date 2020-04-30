@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { values, isUndefined, pickBy, get, omit } from 'lodash';
+import { find, values, isUndefined, pickBy, get, omit } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -130,11 +130,9 @@ const PostsInserterBlockWithSelect = compose( [
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
 
 		let posts = [];
+		const isHandlingSpecificPosts = isDisplayingSpecificPosts && specificPosts.length > 0;
 
-		if (
-			! isDisplayingSpecificPosts ||
-			( isDisplayingSpecificPosts && specificPosts.length > 0 )
-		) {
+		if ( ! isDisplayingSpecificPosts || isHandlingSpecificPosts ) {
 			const postListQuery = isDisplayingSpecificPosts
 				? { include: specificPosts.map( post => post.id ) }
 				: pickBy(
@@ -148,6 +146,14 @@ const PostsInserterBlockWithSelect = compose( [
 				  );
 
 			posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		}
+
+		// Order posts in the order as they appear in the input
+		if ( isHandlingSpecificPosts ) {
+			posts = specificPosts.reduce( ( all, { id } ) => {
+				const found = find( posts, [ 'id', id ] );
+				return found ? [ ...all, found ] : all;
+			}, [] );
 		}
 
 		return {

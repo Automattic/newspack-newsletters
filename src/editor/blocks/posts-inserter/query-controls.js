@@ -96,7 +96,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 		setAttributes( {
 			specificPosts: postTitles.map( encodedTitle => {
 				const [ id, title ] = decodePost( encodedTitle );
-				return { id, title };
+				return { id: parseInt( id ), title };
 			} ),
 		} );
 	};
