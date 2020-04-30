@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isUndefined, pickBy, get } from 'lodash';
+import { isUndefined, find, pickBy, get } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -135,7 +135,14 @@ const PostsInserterBlock = ( {
 
 const PostsInserterBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
-		const { postsToShow, order, orderBy, categories } = props.attributes;
+		const {
+			postsToShow,
+			order,
+			orderBy,
+			categories,
+			isDisplayingSpecificPosts,
+			specificPosts,
+		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
@@ -143,18 +150,33 @@ const PostsInserterBlockWithSelect = compose( [
 		const { getHandledPostIds } = select( POSTS_INSERTER_STORE_NAME );
 		const exclude = getHandledPostIds( props.clientId );
 
-		const postListQuery = pickBy(
-			{
-				categories: catIds,
-				order,
-				orderby: orderBy,
-				per_page: postsToShow,
-				exclude,
-			},
-			value => ! isUndefined( value )
-		);
+		let posts = [];
+		const isHandlingSpecificPosts = isDisplayingSpecificPosts && specificPosts.length > 0;
 
-		const posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		if ( ! isDisplayingSpecificPosts || isHandlingSpecificPosts ) {
+			const postListQuery = isDisplayingSpecificPosts
+				? { include: specificPosts.map( post => post.id ) }
+				: pickBy(
+						{
+							categories: catIds,
+							order,
+							orderby: orderBy,
+							per_page: postsToShow,
+							exclude,
+						},
+						value => ! isUndefined( value )
+				  );
+
+			posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+		}
+
+		// Order posts in the order as they appear in the input
+		if ( isHandlingSpecificPosts ) {
+			posts = specificPosts.reduce( ( all, { id } ) => {
+				const found = find( posts, [ 'id', id ] );
+				return found ? [ ...all, found ] : all;
+			}, [] );
+		}
 
 		return {
 			existingBlocks: getBlocks(),
@@ -226,6 +248,14 @@ export default () => {
 			featuredImageAlignment: {
 				type: 'string',
 				default: 'left',
+			},
+			isDisplayingSpecificPosts: {
+				type: 'boolean',
+				default: false,
+			},
+			specificPosts: {
+				type: 'array',
+				default: [],
 			},
 		},
 		save: () => <InnerBlocks.Content />,
