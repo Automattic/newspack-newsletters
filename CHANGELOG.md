@@ -1,3 +1,17 @@
+# [1.0.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2020-04-30)
+
+
+### Bug Fixes
+
+* newsletter layouts preview thumbnails ([#175](https://github.com/Automattic/newspack-newsletters/issues/175)) ([7280483](https://github.com/Automattic/newspack-newsletters/commit/7280483e792b2ec5502ec8a538a262616b2aa144))
+* posts inserter no-insertion workflow ([#174](https://github.com/Automattic/newspack-newsletters/issues/174)) ([53d8b7c](https://github.com/Automattic/newspack-newsletters/commit/53d8b7cbc93e6939191fb02d79684471f7323502))
+
+
+### Features
+
+* enable selecting specific post ids ([#170](https://github.com/Automattic/newspack-newsletters/issues/170)) ([1781d60](https://github.com/Automattic/newspack-newsletters/commit/1781d60e0415e0a449032c6656a4e098bd705d0e))
+* prevent duplicate posts when multiple Posts Inserter instances ([#167](https://github.com/Automattic/newspack-newsletters/issues/167)) ([bbdbc3e](https://github.com/Automattic/newspack-newsletters/commit/bbdbc3e9820a65121711041dd9913ff16e0142a0)), closes [#147](https://github.com/Automattic/newspack-newsletters/issues/147)
+
 # [1.0.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2020-04-27)
 
 
