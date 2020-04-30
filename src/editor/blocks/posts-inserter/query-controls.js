@@ -31,8 +31,7 @@ const fetchPostSuggestions = search =>
 const SEPARATOR = '--';
 const encodePosts = posts => posts.map( post => [ post.id, post.title ].join( SEPARATOR ) );
 const decodePost = encodedPost => {
-	// eslint-disable-next-line @wordpress/no-unused-vars-before-return, no-unused-vars
-	const match = encodedPost.match( new RegExp( `([\\d]*)${ SEPARATOR }(.*)` ) );
+	const match = encodedPost.match( new RegExp( `^([\\d]*)${ SEPARATOR }(.*)` ) );
 	if ( match ) {
 		return [ match[ 1 ], match[ 2 ] ];
 	}
