@@ -14,6 +14,13 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/vendor/autoload.php';
  */
 final class Newspack_Newsletters_Renderer {
 	/**
+	 * The color palette to be used.
+	 *
+	 * @var Object
+	 */
+	protected static $color_palette = null;
+
+	/**
 	 * Convert a list to HTML attributes.
 	 *
 	 * @param array $attributes Array of attributes.
@@ -67,32 +74,17 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function get_colors( $block_attrs ) {
 		$colors = array();
-		// Gutenberg's default color palette.
-		// https://github.com/WordPress/gutenberg/blob/359858da0675943d8a759a0a7c03e7b3846536f5/packages/block-editor/src/store/defaults.js#L30-L85 .
-		$colors_palette = array(
-			'pale-pink'             => '#f78da7',
-			'vivid-red'             => '#cf2e2e',
-			'luminous-vivid-orange' => '#ff6900',
-			'luminous-vivid-amber'  => '#fcb900',
-			'light-green-cyan'      => '#7bdcb5',
-			'vivid-green-cyan'      => '#00d084',
-			'pale-cyan-blue'        => '#8ed1fc',
-			'vivid-cyan-blue'       => '#0693e3',
-			'very-light-gray'       => '#eeeeee',
-			'cyan-bluish-gray'      => '#abb8c3',
-			'very-dark-gray'        => '#313131',
-		);
 
 		// For text.
-		if ( isset( $block_attrs['textColor'], $colors_palette[ $block_attrs['textColor'] ] ) ) {
-			$colors['color'] = $colors_palette[ $block_attrs['textColor'] ];
+		if ( isset( $block_attrs['textColor'], self::$color_palette[ $block_attrs['textColor'] ] ) ) {
+			$colors['color'] = self::$color_palette[ $block_attrs['textColor'] ];
 		}
 		// customTextColor is set inline, but it's passed here for consistency.
 		if ( isset( $block_attrs['customTextColor'] ) ) {
 			$colors['color'] = $block_attrs['customTextColor'];
 		}
-		if ( isset( $block_attrs['backgroundColor'], $colors_palette[ $block_attrs['backgroundColor'] ] ) ) {
-			$colors['background-color'] = $colors_palette[ $block_attrs['backgroundColor'] ];
+		if ( isset( $block_attrs['backgroundColor'], self::$color_palette[ $block_attrs['backgroundColor'] ] ) ) {
+			$colors['background-color'] = self::$color_palette[ $block_attrs['backgroundColor'] ];
 		}
 		// customBackgroundColor is set inline, but not on mjml wrapper element.
 		if ( isset( $block_attrs['customBackgroundColor'] ) ) {
@@ -100,8 +92,8 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		// For separators.
-		if ( isset( $block_attrs['color'], $colors_palette[ $block_attrs['color'] ] ) ) {
-			$colors['border-color'] = $colors_palette[ $block_attrs['color'] ];
+		if ( isset( $block_attrs['color'], self::$color_palette[ $block_attrs['color'] ] ) ) {
+			$colors['border-color'] = self::$color_palette[ $block_attrs['color'] ];
 		}
 		if ( isset( $block_attrs['customColor'] ) ) {
 			$colors['border-color'] = $block_attrs['customColor'];
@@ -503,9 +495,10 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup.
 	 */
 	private static function render_mjml( $post ) {
-		$title  = $post->post_title;
-		$blocks = parse_blocks( $post->post_content );
-		$body   = '';
+		self::$color_palette = get_post_meta( $post->ID, 'color_palette', true );
+		$title               = $post->post_title;
+		$blocks              = parse_blocks( $post->post_content );
+		$body                = '';
 		foreach ( $blocks as $block ) {
 			$block_content = self::render_mjml_component( $block );
 			if ( ! empty( $block_content ) ) {

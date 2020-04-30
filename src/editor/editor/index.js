@@ -25,13 +25,19 @@ const Editor = compose( [
 			isCleanNewPost,
 		} = select( 'core/editor' );
 		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
+		const { getSettings } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
+
 		return {
 			isCleanNewPost: isCleanNewPost(),
 			postId: getCurrentPostId(),
 			isReady: meta.campaignValidationErrors ? meta.campaignValidationErrors.length === 0 : false,
 			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
+			colorPalette: getSettings().colors.reduce(
+				( colors, { slug, color } ) => ( { ...colors, [ slug ]: color } ),
+				{}
+			),
 		};
 	} ),
 	withDispatch( dispatch => {
@@ -59,6 +65,10 @@ const Editor = compose( [
 				} );
 		}
 	}, [ props.isPublishingOrSavingPost ]);
+
+	useEffect(() => {
+		props.editPost( { meta: { color_palette: props.colorPalette } } );
+	}, []);
 
 	// Lock or unlock post publishing.
 	useEffect(() => {
