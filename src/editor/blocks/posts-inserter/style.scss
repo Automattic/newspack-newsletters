@@ -40,9 +40,18 @@
 			padding-right: 28px;
 		}
 
-		.components-disabled,
-		iframe {
+		.components-disabled {
 			margin-top: 28px;
+		}
+
+		.wp-block-columns {
+			margin-bottom: -80px;
+
+			&:nth-last-of-type( 2 ) {
+				.wp-block-column {
+					margin-bottom: -40px;
+				}
+			}
 		}
 	}
 
