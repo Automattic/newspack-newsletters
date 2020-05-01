@@ -40,11 +40,11 @@
 				}
 
 				.block-editor-block-list__layout {
-					:first-child {
+					:first-child:not( .wp-block-column ) {
 						margin-top: 0;
 					}
 
-					:nth-last-child( 2 ) {
+					:nth-last-child( 2 ):not( .wp-block-column ) {
 						// last child being block-list-appender
 						margin-bottom: 0;
 					}
@@ -64,6 +64,10 @@
 
 		&.wp-block-columns {
 			margin-bottom: -40px;
+
+			+ .wp-block-columns {
+				margin-top: 80px;
+			}
 		}
 
 		&.wp-block-column {
