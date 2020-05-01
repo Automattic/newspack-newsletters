@@ -32,15 +32,12 @@ const validateNewsletter = ( { campaign } ) => {
 	return messages;
 };
 
-const getEmailPreviewURL = ( { campaign } ) => campaign && campaign.long_archive_url;
-
 const getFetchDataConfig = ( { postId } ) => ( {
 	path: `/newspack-newsletters/v1/mailchimp/${ postId }`,
 } );
 
 export default {
 	validateNewsletter,
-	getEmailPreviewURL,
 	getFetchDataConfig,
 	ProviderSidebar,
 };

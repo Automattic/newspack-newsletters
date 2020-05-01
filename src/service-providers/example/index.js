@@ -20,14 +20,6 @@ const validateNewsletter = ( { status } ) => {
 };
 
 /**
- * Get email preview URL from fetched data.
- *
- * @param  {Object} object data fetched using getFetchDataConfig
- * @return {string} The URL of email preview.
- */
-const getEmailPreviewURL = ( { email_preview_url } ) => email_preview_url;
-
-/**
  * Get config used to fetch newsletter data.
  * Should return apiFetch utility config:
  * https://www.npmjs.com/package/@wordpress/api-fetch
@@ -88,7 +80,6 @@ const ProviderSidebar = ( {
 
 export default {
 	validateNewsletter,
-	getEmailPreviewURL,
 	getFetchDataConfig,
 	ProviderSidebar,
 };
