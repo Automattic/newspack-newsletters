@@ -42,17 +42,13 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'the_post', [ __CLASS__, 'remove_other_editor_modifications' ] );
-		add_action( 'the_post', [ __CLASS__, 'disable_gradients' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
-		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 
 		$needs_nag =
 			is_admin() &&
@@ -64,6 +60,7 @@ final class Newspack_Newsletters {
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
 			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
+		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-editor.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 	}
@@ -108,30 +105,6 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Remove all editor enqueued assets besides this plugins'.
-	 * This is to prevent theme styles being loaded in the editor.
-	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
-	 */
-	public static function remove_other_editor_modifications() {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
-			return;
-		}
-
-		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
-		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
-			$action_handlers = array_keys( $filter );
-			foreach ( $action_handlers as $handler ) {
-				if ( __CLASS__ . '::enqueue_block_editor_assets' != $handler ) {
-					remove_action( 'enqueue_block_editor_assets', $handler, $index );
-				}
-			}
-		}
-
-		remove_editor_styles();
-		remove_theme_support( 'editor-color-palette' );
-	}
-
-	/**
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
@@ -165,77 +138,6 @@ final class Newspack_Newsletters {
 			'menu_icon'    => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
-	}
-
-	/**
-	 * Restrict block types for Newsletter CPT.
-	 *
-	 * @param array   $allowed_block_types default block types.
-	 * @param WP_Post $post the post to consider.
-	 */
-	public static function newsletters_allowed_block_types( $allowed_block_types, $post ) {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
-			return $allowed_block_types;
-		}
-		return array(
-			'core/spacer',
-			'core/block',
-			'core/group',
-			'core/paragraph',
-			'core/heading',
-			'core/column',
-			'core/columns',
-			'core/buttons',
-			'core/image',
-			'core/separator',
-			'core/list',
-			'core/quote',
-			'core/social-links',
-			'newspack-newsletters/posts-inserter',
-		);
-	}
-
-	/**
-	 * Load up common JS/CSS for wizards.
-	 */
-	public static function enqueue_block_editor_assets() {
-		$screen = get_current_screen();
-		if ( self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type ) {
-			return;
-		}
-
-		$mailchimp_api_key = self::mailchimp_api_key();
-		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
-		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
-
-		$has_keys = ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret );
-
-		\wp_enqueue_script(
-			'newspack-newsletters',
-			plugins_url( '../dist/editor.js', __FILE__ ),
-			[ 'wp-components' ],
-			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.js' ),
-			true
-		);
-
-		wp_localize_script(
-			'newspack-newsletters',
-			'newspack_newsletters_data',
-			[
-				'templates'        => self::get_newsletter_templates(),
-				'has_keys'         => $has_keys,
-				'service_provider' => 'mailchimp',
-			]
-		);
-
-		wp_register_style(
-			'newspack-newsletters',
-			plugins_url( '../dist/editor.css', __FILE__ ),
-			[],
-			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.css' )
-		);
-		wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
-		wp_enqueue_style( 'newspack-newsletters' );
 	}
 
 	/**
@@ -953,17 +855,6 @@ final class Newspack_Newsletters {
 	 */
 	public static function get_newsletter_templates() {
 		return apply_filters( 'newspack_newsletters_templates', [] );
-	}
-
-	/**
-	 * Disable gradients in Newsletter CPT.
-	 */
-	public static function disable_gradients() {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT != get_post_type() ) {
-			return;
-		}
-		add_theme_support( 'editor-gradient-presets', array() );
-		add_theme_support( 'disable-custom-gradients' );
 	}
 
 	/**
