@@ -64,7 +64,7 @@ export default compose( [
 			</Button>
 			{ warningModalVisible && (
 				<Modal
-					className="newspack-newsletters-layouts__modal"
+					className="newspack-newsletters__modal"
 					title={ __( 'Overwrite newsletter content?', 'newspack-newsletters' ) }
 					onRequestClose={ () => setWarningModalVisible( false ) }
 				>

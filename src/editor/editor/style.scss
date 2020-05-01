@@ -141,3 +141,13 @@
 		}
 	}
 }
+
+.newspack-newsletters {
+	&__modal {
+		max-width: 360px;
+
+		.components-button + .components-button {
+			margin-left: 12px;
+		}
+	}
+}
