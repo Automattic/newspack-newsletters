@@ -137,15 +137,15 @@ export default compose( [
 						<p>
 							{ __( "You're about to send a newsletter to:", 'newspack-newsletters' ) }
 							<br />
-							<b>{ listData.name }</b>
+							<strong>{ listData.name }</strong>
 							<br />
 							{ listData.groupName && (
 								<Fragment>
-									{ __( 'Group:', 'newspack-newsletters' ) } <b>{ listData.groupName }</b>
+									{ __( 'Group:', 'newspack-newsletters' ) } <strong>{ listData.groupName }</strong>
 									<br />
 								</Fragment>
 							) }
-							<b>
+							<strong>
 								{ sprintf(
 									_n(
 										'%d subscriber',
@@ -155,7 +155,7 @@ export default compose( [
 									),
 									listData.subscribers
 								) }
-							</b>
+							</strong>
 						</p>
 						<Button
 							isPrimary
