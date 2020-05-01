@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { sprintf, _n } from '@wordpress/i18n';
 
 /**
  * External dependencies
@@ -31,14 +31,16 @@ export const getListInterestsSettings = ( {
 		} );
 		if ( interests && interests.interests && interests.interests.length ) {
 			interests.interests.forEach( interest => {
-				const isDisabled = parseInt( interest.subscriber_count ) === 0;
+				const subscriberCount = parseInt( interest.subscriber_count );
+				const subscriberCountInfo = sprintf(
+					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
+					subscriberCount
+				);
+
 				accumulator.push( {
-					label:
-						'- ' +
-						interest.name +
-						( isDisabled ? __( ' (no subscribers)', 'newspack-newsletters' ) : '' ),
-					value: 'interests-' + id + ':' + interest.id,
-					disabled: isDisabled,
+					label: `- ${ interest.name } (${ subscriberCountInfo })`,
+					value: `interests-${ id }:${ interest.id }`,
+					disabled: subscriberCount === 0,
 					rawInterest: interest,
 				} );
 			} );
