@@ -50,7 +50,7 @@ export default ( { onInsertTemplate, templates } ) => {
 									<div className="newspack-newsletters-layouts__item-preview">
 										<BlockPreview
 											blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
-											viewportWidth={ 568 }
+											viewportWidth={ 560 }
 										/>
 									</div>
 									<div className="newspack-newsletters-layouts__item-label">{ title }</div>
@@ -62,7 +62,7 @@ export default ( { onInsertTemplate, templates } ) => {
 
 				<div className="newspack-newsletters-modal__preview">
 					{ blockPreview && blockPreview.length > 0 ? (
-						<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+						<BlockPreview blocks={ blockPreview } viewportWidth={ 560 } />
 					) : (
 						<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 					) }

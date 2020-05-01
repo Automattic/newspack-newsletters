@@ -78,7 +78,12 @@
 			/* Has Background */
 			.mj-column-has-width .has-background,
 			.mj-column-per-50 .has-background {
-				padding: 16px;
+				padding: 20px;
+			}
+
+			/* Mailchimp Footer */
+			#canspamBarWrapper {
+				border: 0 !important;
 			}
 		</mj-style>
 	</mj-head>
