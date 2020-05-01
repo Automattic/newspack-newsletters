@@ -105,6 +105,14 @@ final class Newspack_Newsletters_Editor {
 			return;
 		}
 
+		\wp_enqueue_script(
+			'newspack-newsletters',
+			plugins_url( '../dist/editor.js', __FILE__ ),
+			[],
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.js' ),
+			true
+		);
+
 		$mailchimp_api_key = Newspack_Newsletters::mailchimp_api_key();
 		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
 		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
@@ -112,15 +120,15 @@ final class Newspack_Newsletters_Editor {
 		$has_keys = ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret );
 
 		\wp_enqueue_script(
-			'newspack-newsletters',
-			plugins_url( '../dist/editor.js', __FILE__ ),
-			[ 'wp-components' ],
-			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.js' ),
+			'newspack-newsletters-newsletter',
+			plugins_url( '../dist/newsletterEditor.js', __FILE__ ),
+			[],
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.js' ),
 			true
 		);
 
 		wp_localize_script(
-			'newspack-newsletters',
+			'newspack-newsletters-newsletter',
 			'newspack_newsletters_data',
 			[
 				'has_keys'         => $has_keys,
@@ -130,10 +138,19 @@ final class Newspack_Newsletters_Editor {
 		);
 
 		wp_register_style(
+			'newspack-newsletters-newsletters',
+			plugins_url( '../dist/newsletterEditor.css', __FILE__ ),
+			[],
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.css' )
+		);
+		wp_style_add_data( 'newspack-newsletters-newsletters', 'rtl', 'replace' );
+		wp_enqueue_style( 'newspack-newsletters-newsletters' );
+
+		wp_register_style(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/dist/editor.css' )
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.css' )
 		);
 		wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
 		wp_enqueue_style( 'newspack-newsletters' );

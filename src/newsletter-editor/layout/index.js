@@ -13,7 +13,7 @@ import { Button, Modal } from '@wordpress/components';
  * Internal dependencies
  */
 import './style.scss';
-import { setPreventDeduplicationForPostsInserter } from '../blocks/posts-inserter/utils';
+import { setPreventDeduplicationForPostsInserter } from '../../editor/blocks/posts-inserter/utils';
 
 export default compose( [
 	withDispatch( dispatch => {
