@@ -9,6 +9,11 @@ import { omit } from 'lodash';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
 
+/**
+ * Internal dependencies
+ */
+import { POSTS_INSERTER_BLOCK_NAME } from './consts';
+
 const getHeadingBlockTemplate = post => [
 	'core/heading',
 	{ content: `<a href="${ post.link }">${ post.title.rendered }</a>`, level: 3 },
@@ -107,3 +112,18 @@ export const convertBlockSerializationFormat = block => ( {
 	innerHTML: getBlockContent( block ),
 	innerBlocks: block.innerBlocks.map( convertBlockSerializationFormat ),
 } );
+
+// In some cases, the Posts Inserter block should not handle deduplication.
+// Previews might be displayed next to each other or next to a post, which results in multiple block lists.
+// The deduplication store relies on the assumption that a post has a single blocks list, which
+// is not true when there are block previews used.
+export const setPreventDeduplicationForPostsInserter = blocks =>
+	blocks.map( block => {
+		if ( block.name === POSTS_INSERTER_BLOCK_NAME ) {
+			block.attributes.preventDeduplication = true;
+		}
+		if ( block.innerBlocks ) {
+			block.innerBlocks = setPreventDeduplicationForPostsInserter( block.innerBlocks );
+		}
+		return block;
+	} );

@@ -8,6 +8,11 @@ import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
 import { ENTER, SPACE } from '@wordpress/keycodes';
 
+/**
+ * Internal dependencies
+ */
+import { setPreventDeduplicationForPostsInserter } from '../../../../editor/blocks/posts-inserter/utils';
+
 export default ( { onInsertTemplate, templates } ) => {
 	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
 	const generateBlockPreview = () => {
@@ -43,7 +48,10 @@ export default ( { onInsertTemplate, templates } ) => {
 									aria-label={ title }
 								>
 									<div className="newspack-newsletters-layouts__item-preview">
-										<BlockPreview blocks={ parse( content ) } viewportWidth={ 560 } />
+										<BlockPreview
+											blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
+											viewportWidth={ 560 }
+										/>
 									</div>
 									<div className="newspack-newsletters-layouts__item-label">{ title }</div>
 								</div>
