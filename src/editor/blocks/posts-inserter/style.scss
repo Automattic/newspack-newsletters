@@ -60,6 +60,13 @@
 		position: relative;
 	}
 
+	// When in a group
+	.wp-block-group & {
+		.wp-block-columns + .wp-block-columns {
+			margin-top: 40px;
+		}
+	}
+
 	// When in a group with background
 	.wp-block-group.has-background & {
 		.components-button {
@@ -67,8 +74,6 @@
 		}
 
 		.block-editor-block-preview__container {
-			padding-bottom: 40px;
-
 			.block-editor-block-list__layout {
 				&:first-child {
 					margin-top: 40px;
@@ -83,6 +88,13 @@
 					margin-bottom: 0;
 				}
 			}
+		}
+	}
+
+	// When in a full-width group with background
+	.wp-block[data-align='full'] .wp-block-group.has-background & {
+		.block-editor-block-preview__container {
+			padding-bottom: 40px;
 		}
 	}
 }
