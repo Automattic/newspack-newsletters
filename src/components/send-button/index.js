@@ -5,17 +5,19 @@ import { withDispatch, withSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Button, Modal } from '@wordpress/components';
 import { Fragment, useState } from '@wordpress/element';
-import { __, sprintf, _n } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 /**
  * External dependencies
  */
-import { get, find } from 'lodash';
+import { get } from 'lodash';
 
 /**
  * Internal dependencies
  */
-import { getListInterestsSettings } from '../../service-providers/mailchimp/utils';
+import { getServiceProvider } from '../../service-providers';
+
+const { renderPreSendInfo } = getServiceProvider();
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -32,25 +34,7 @@ export default compose( [
 			isSavingPost,
 			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
-		const { newsletterData = {}, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
-		let listData;
-		if ( newsletterData.campaign && newsletterData.lists ) {
-			const list = find( newsletterData.lists.lists, [
-				'id',
-				newsletterData.campaign.recipients.list_id,
-			] );
-			const interestSettings = getListInterestsSettings( newsletterData );
-
-			if ( list ) {
-				listData = { name: list.name, subscribers: parseInt( list.stats.member_count ) };
-				if ( interestSettings && interestSettings.setInterest ) {
-					listData.groupName = interestSettings.setInterest.rawInterest.name;
-					listData.subscribers = parseInt(
-						interestSettings.setInterest.rawInterest.subscriber_count
-					);
-				}
-			}
-		}
+		const { newsletterData, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
 		return {
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
@@ -60,7 +44,7 @@ export default compose( [
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
-			listData,
+			newsletterData,
 		};
 	} ),
 ] )(
@@ -75,10 +59,9 @@ export default compose( [
 		isEditedPostBeingScheduled,
 		hasPublishAction,
 		visibility,
-		listData,
+		newsletterData,
 	} ) => {
 		const isButtonEnabled =
-			listData &&
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			validationErrors &&
@@ -114,7 +97,7 @@ export default compose( [
 			savePost();
 		};
 
-		const [ modalVisible, setModalVisible ] = useState( false );
+		const [ modalVisible, setModalVisible ] = useState( true );
 
 		return (
 			<Fragment>
@@ -134,29 +117,7 @@ export default compose( [
 						title={ __( 'Send your newsletter?', 'newspack-newsletters' ) }
 						onRequestClose={ () => setModalVisible( false ) }
 					>
-						<p>
-							{ __( "You're about to send a newsletter to:", 'newspack-newsletters' ) }
-							<br />
-							<strong>{ listData.name }</strong>
-							<br />
-							{ listData.groupName && (
-								<Fragment>
-									{ __( 'Group:', 'newspack-newsletters' ) } <strong>{ listData.groupName }</strong>
-									<br />
-								</Fragment>
-							) }
-							<strong>
-								{ sprintf(
-									_n(
-										'%d subscriber',
-										'%d subscribers',
-										listData.subscribers,
-										'newspack-newsletters'
-									),
-									listData.subscribers
-								) }
-							</strong>
-						</p>
+						{ renderPreSendInfo( newsletterData ) }
 						<Button
 							isPrimary
 							onClick={ () => {

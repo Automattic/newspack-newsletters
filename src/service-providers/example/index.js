@@ -78,8 +78,22 @@ const ProviderSidebar = ( {
 	);
 };
 
+/**
+ * A function to render additional info in the pre-send confirmation modal.
+ * Can return null if no additional info is to be presented.
+ *
+ * @param {Object} newsletterData the data returned by getFetchDataConfig handler
+ * @return {any} A React component
+ */
+const renderPreSendInfo = ( newsletterData = {} ) => (
+	<p>
+		{ __( 'Sending newsletter to:', 'newspack-newsletters' ) } { newsletterData.listName }
+	</p>
+);
+
 export default {
 	validateNewsletter,
 	getFetchDataConfig,
 	ProviderSidebar,
+	renderPreSendInfo,
 };
