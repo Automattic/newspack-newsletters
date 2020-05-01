@@ -17,13 +17,12 @@ import {
 /**
  * External dependencies
  */
-import { get } from 'lodash';
 import classnames from 'classnames';
 
 /**
  * Internal dependencies
  */
-import { getEditPostPayload, hasValidEmail } from '../utils';
+import { getEditPostPayload, hasValidEmail, getListInterestsSettings } from '../utils';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
@@ -77,51 +76,23 @@ class Sidebar extends Component {
 	};
 
 	interestCategories = () => {
-		const { campaign, inFlight, interestCategories } = this.props;
-		if (
-			! interestCategories ||
-			! interestCategories.categories ||
-			! interestCategories.categories.length
-		) {
+		const interestSettings = getListInterestsSettings( this.props );
+		if ( ! interestSettings ) {
 			return;
 		}
-		const options = interestCategories.categories.reduce( ( accumulator, item ) => {
-			const { title, interests, id } = item;
-			accumulator.push( {
-				label: title,
-				disabled: true,
-			} );
-			if ( interests && interests.interests && interests.interests.length ) {
-				interests.interests.forEach( interest => {
-					const isDisabled = parseInt( interest.subscriber_count ) === 0;
-					accumulator.push( {
-						label:
-							'- ' +
-							interest.name +
-							( isDisabled ? __( ' (no subscribers)', 'newspack-newsletters' ) : '' ),
-						value: 'interests-' + id + ':' + interest.id,
-						disabled: isDisabled,
-					} );
-				} );
-			}
-			return accumulator;
-		}, [] );
-		const field = get( campaign, 'recipients.segment_opts.conditions.[0].field' );
-		const interest_id = get( campaign, 'recipients.segment_opts.conditions.[0].value.[0]' );
-		const interestValue = field && interest_id ? field + ':' + interest_id : 0;
 		return (
 			<SelectControl
 				label={ __( 'Groups', 'newspack-newsletters' ) }
-				value={ interestValue }
+				value={ interestSettings.interestValue }
 				options={ [
 					{
 						label: __( '-- Select a group --', 'newspack-newsletters' ),
 						value: 'no_interests',
 					},
-					...options,
+					...interestSettings.options,
 				] }
 				onChange={ value => this.setInterest( value ) }
-				disabled={ inFlight }
+				disabled={ this.props.inFlight }
 			/>
 		);
 	};

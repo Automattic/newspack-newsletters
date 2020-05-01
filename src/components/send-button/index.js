@@ -3,13 +3,19 @@
  */
 import { withDispatch, withSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { Button } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { Button, Modal } from '@wordpress/components';
+import { Fragment, useState } from '@wordpress/element';
+import { __, sprintf, _n } from '@wordpress/i18n';
 
 /**
  * External dependencies
  */
-import { get } from 'lodash';
+import { get, find } from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import { getListInterestsSettings } from '../../editor/utils';
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -27,6 +33,21 @@ export default compose( [
 			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
+		let listData;
+		if ( meta.campaign && meta.lists ) {
+			const list = find( meta.lists.lists, [ 'id', meta.campaign.recipients.list_id ] );
+			const interestSettings = getListInterestsSettings( meta );
+
+			if ( list ) {
+				listData = { name: list.name, subscribers: parseInt( list.stats.member_count ) };
+				if ( interestSettings && interestSettings.setInterest ) {
+					listData.groupName = interestSettings.setInterest.rawInterest.name;
+					listData.subscribers = parseInt(
+						interestSettings.setInterest.rawInterest.subscriber_count
+					);
+				}
+			}
+		}
 		return {
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
@@ -36,6 +57,7 @@ export default compose( [
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
+			listData,
 		};
 	} ),
 ] )(
@@ -50,8 +72,10 @@ export default compose( [
 		isEditedPostBeingScheduled,
 		hasPublishAction,
 		visibility,
+		listData,
 	} ) => {
 		const isButtonEnabled =
+			listData &&
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			validationErrors &&
@@ -82,22 +106,69 @@ export default compose( [
 			publishStatus = 'publish';
 		}
 
-		const onClick = () => {
+		const triggerCampaignSend = () => {
 			editPost( { status: publishStatus } );
 			savePost();
 		};
 
+		const [ modalVisible, setModalVisible ] = useState( false );
+
 		return (
-			<Button
-				className="editor-post-publish-button"
-				isBusy={ isSaving && 'publish' === status }
-				isPrimary
-				isLarge
-				onClick={ onClick }
-				disabled={ ! isButtonEnabled }
-			>
-				{ label }
-			</Button>
+			<Fragment>
+				<Button
+					className="editor-post-publish-button"
+					isBusy={ isSaving && 'publish' === status }
+					isPrimary
+					isLarge
+					onClick={ () => setModalVisible( true ) }
+					disabled={ ! isButtonEnabled }
+				>
+					{ label }
+				</Button>
+				{ modalVisible && (
+					<Modal
+						className="newspack-newsletters__modal"
+						title={ __( 'Send your newsletter?', 'newspack-newsletters' ) }
+						onRequestClose={ () => setModalVisible( false ) }
+					>
+						<p>
+							{ __( "You're about to send a newsletter to:", 'newspack-newsletters' ) }
+							<br />
+							<b>{ listData.name }</b>
+							<br />
+							{ listData.groupName && (
+								<Fragment>
+									{ __( 'Group:', 'newspack-newsletters' ) } <b>{ listData.groupName }</b>
+									<br />
+								</Fragment>
+							) }
+							<b>
+								{ sprintf(
+									_n(
+										'%d subscriber',
+										'%d subscribers',
+										listData.subscribers,
+										'newspack-newsletters'
+									),
+									listData.subscribers
+								) }
+							</b>
+						</p>
+						<Button
+							isPrimary
+							onClick={ () => {
+								triggerCampaignSend();
+								setModalVisible( false );
+							} }
+						>
+							{ __( 'Send', 'newspack-newsletters' ) }
+						</Button>
+						<Button isSecondary onClick={ () => setModalVisible( false ) }>
+							{ __( 'Cancel', 'newspack-newsletters' ) }
+						</Button>
+					</Modal>
+				) }
+			</Fragment>
 		);
 	}
 );
