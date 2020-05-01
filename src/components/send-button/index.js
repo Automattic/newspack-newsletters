@@ -34,7 +34,7 @@ export default compose( [
 			isSavingPost,
 			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
-		const { newsletterData, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
+		const { newsletterData = {}, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
 		return {
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
@@ -97,7 +97,7 @@ export default compose( [
 			savePost();
 		};
 
-		const [ modalVisible, setModalVisible ] = useState( true );
+		const [ modalVisible, setModalVisible ] = useState( false );
 
 		return (
 			<Fragment>

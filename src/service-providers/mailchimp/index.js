@@ -44,6 +44,9 @@ const getFetchDataConfig = ( { postId } ) => ( {
 } );
 
 const renderPreSendInfo = newsletterData => {
+	if ( ! newsletterData.campaign ) {
+		return null;
+	}
 	let listData;
 	if ( newsletterData.campaign && newsletterData.lists ) {
 		const list = find( newsletterData.lists.lists, [
