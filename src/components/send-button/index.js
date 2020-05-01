@@ -15,7 +15,7 @@ import { get, find } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getListInterestsSettings } from '../../editor/utils';
+import { getListInterestsSettings } from '../../service-providers/mailchimp/utils';
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -32,11 +32,14 @@ export default compose( [
 			isSavingPost,
 			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
-		const meta = getEditedPostAttribute( 'meta' );
+		const { newsletterData = {}, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
 		let listData;
-		if ( meta.campaign && meta.lists ) {
-			const list = find( meta.lists.lists, [ 'id', meta.campaign.recipients.list_id ] );
-			const interestSettings = getListInterestsSettings( meta );
+		if ( newsletterData.campaign && newsletterData.lists ) {
+			const list = find( newsletterData.lists.lists, [
+				'id',
+				newsletterData.campaign.recipients.list_id,
+			] );
+			const interestSettings = getListInterestsSettings( newsletterData );
 
 			if ( list ) {
 				listData = { name: list.name, subscribers: parseInt( list.stats.member_count ) };
@@ -52,7 +55,7 @@ export default compose( [
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
 			isSaving: forceIsSaving || isSavingPost(),
-			validationErrors: meta.campaignValidationErrors,
+			validationErrors: newsletterValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
