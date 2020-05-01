@@ -29,7 +29,11 @@
   },
   "release": {
     "branches": [
-      "release"
+      "release",
+      {
+        "name": "alpha",
+        "prerelease": "alpha"
+      }
     ],
     "prepare": [
       "@semantic-release/changelog",
@@ -101,13 +105,13 @@
     "@wordpress/edit-post": "^3.14.0",
     "@wordpress/element": "^2.12.0",
     "@wordpress/hooks": "^2.7.0",
+    "@wordpress/html-entities": "^2.7.0",
     "@wordpress/i18n": "^3.10.0",
     "@wordpress/keycodes": "^2.10.0",
     "@wordpress/plugins": "^2.13.0",
     "@wordpress/url": "^2.13.0",
     "classnames": "^2.2.6",
     "lodash": "^4.17.15",
-    "newspack-components": "^1.1.0",
     "webpack": "^4.42.1"
   },
   "devDependencies": {

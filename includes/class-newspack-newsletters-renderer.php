@@ -145,13 +145,18 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		if ( isset( $attrs['background-color'] ) ) {
-			$attrs['padding'] = '16px';
+			$attrs['padding'] = '0';
 		}
 
 		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
 			$attrs['full-width'] = 'full-width';
 			unset( $attrs['align'] );
 		}
+
+		if ( isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
+			$attrs['padding'] = '20px 0';
+		}
+
 		return $attrs;
 	}
 
@@ -172,7 +177,7 @@ final class Newspack_Newsletters_Renderer {
 		$inner_blocks = $block['innerBlocks'];
 		$inner_html   = $block['innerHTML'];
 
-		if ( empty( $block_name ) || empty( $inner_html ) ) {
+		if ( ! isset( $attrs['innerBlocksToInsert'] ) && ( empty( $block_name ) || empty( $inner_html ) ) ) {
 			return '';
 		}
 
@@ -190,7 +195,7 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
-				'padding' => '10px 16px',
+				'padding' => '20px',
 			)
 		);
 
@@ -259,6 +264,9 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['height'] ) ) {
 					$img_attrs['height'] = $attrs['height'] . 'px';
 				}
+				if ( isset( $attrs['linkDestination'] ) ) {
+					$img_attrs['href'] = $attrs['linkDestination'];
+				}
 
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
@@ -295,6 +303,8 @@ final class Newspack_Newsletters_Renderer {
 
 					$default_button_attrs = array(
 						'padding'       => '0',
+						'inner-padding' => '12px 24px',
+						'line-height'   => '1.8',
 						'href'          => $anchor->getAttribute( 'href' ),
 						'border-radius' => $border_radius . 'px',
 						'font-size'     => '18px',
@@ -418,7 +428,8 @@ final class Newspack_Newsletters_Renderer {
 					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
 				}
 				if ( isset( $attrs['width'] ) ) {
-					$column_attrs['width'] = $attrs['width'] . '%';
+					$column_attrs['width']     = $attrs['width'] . '%';
+					$column_attrs['css-class'] = 'mj-column-has-width';
 				}
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';
@@ -443,11 +454,11 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
-			 * Newspack Newsletters Latest posts block template.
+			 * Newspack Newsletters Posts Inserter block template.
 			 */
 			case 'newspack-newsletters/posts-inserter':
 				$markup = '';
-				foreach ( $inner_blocks as $block ) {
+				foreach ( $attrs['innerBlocksToInsert'] as $block ) {
 					$markup .= self::render_mjml_component( $block );
 				}
 				$block_mjml_markup = $markup;
@@ -554,7 +565,7 @@ final class Newspack_Newsletters_Renderer {
 				)
 			);
 			if ( 401 === intval( $request['response']['code'] ) ) {
-				throw new Exception( __( 'MJML error.', 'newspack_newsletters' ) );
+				throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
 			}
 			return is_wp_error( $request ) ? $request : json_decode( $request['body'] )->html;
 		}

@@ -8,6 +8,11 @@ import { useState, Fragment } from '@wordpress/element';
 import { Button, TextControl } from '@wordpress/components';
 
 /**
+ * External dependencies
+ */
+import classnames from 'classnames';
+
+/**
  * Internal dependencies
  */
 import { getEditPostPayload, hasValidEmail } from '../utils';
@@ -19,6 +24,7 @@ const { ProviderSidebar } = getServiceProvider();
 
 const Sidebar = ( {
 	inFlight,
+	errors,
 	editPost,
 	title,
 	senderName,
@@ -46,6 +52,11 @@ const Sidebar = ( {
 		/>
 	);
 
+	const senderEmailClasses = classnames(
+		'newspack-newsletters__email-textcontrol',
+		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
+	);
+
 	const renderFrom = ( { handleSenderUpdate } ) => (
 		<Fragment>
 			<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
@@ -61,7 +72,7 @@ const Sidebar = ( {
 			/>
 			<TextControl
 				label={ __( 'Email', 'newspack-newsletters' ) }
-				className="newspack-newsletters__email-textcontrol"
+				className={ senderEmailClasses }
 				value={ senderEmail }
 				type="email"
 				disabled={ inFlight }

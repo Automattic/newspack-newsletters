@@ -1,17 +1,4 @@
-.wp-block {
-	max-width: 568px;
-}
-
-.block-editor-block-list__layout {
-	*:not( code ) {
-		font-family: Ubuntu, Helvetica, Arial, sans-serif !important;
-	}
-
-	code {
-		background: none;
-		color: inherit;
-	}
-}
+@import '~@wordpress/base-styles/colors';
 
 .wp-block-buttons .block-editor-block-list__layout {
 	display: flex;
@@ -62,9 +49,19 @@
 			margin-bottom: 0;
 		}
 	}
+
+	&__error input.components-text-control__input {
+		border-color: $alert-red;
+	}
 }
 
 .editor-post-publish-panel__prepublish {
+	.components-notice {
+		margin: 0;
+	}
+}
+
+.interface-interface-skeleton__sidebar {
 	.components-notice {
 		margin: 0;
 	}

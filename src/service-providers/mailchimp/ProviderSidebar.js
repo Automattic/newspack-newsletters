@@ -135,7 +135,7 @@ const ProviderSidebar = ( {
 				options={ [
 					{
 						value: null,
-						label: __( '-- Select a list --', 'newspack-newsletters' ),
+						label: __( '-- Select an audience --', 'newspack-newsletters' ),
 					},
 					...lists.map( ( { id, name } ) => ( {
 						value: id,
@@ -148,7 +148,7 @@ const ProviderSidebar = ( {
 			{ listWebId && (
 				<p>
 					<ExternalLink href={ `https://admin.mailchimp.com/lists/members/?id=${ listWebId }` }>
-						{ __( 'Manage list', 'newspack-newsletters' ) }
+						{ __( 'Manage audience', 'newspack-newsletters' ) }
 					</ExternalLink>
 				</p>
 			) }
