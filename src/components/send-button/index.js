@@ -31,7 +31,7 @@ export default compose( [
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
 			isSaving: forceIsSaving || isSavingPost(),
-			validationErrors: meta.campaignValidationErrors,
+			validationErrors: meta.newsletterValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
