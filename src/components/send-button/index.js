@@ -3,13 +3,21 @@
  */
 import { withDispatch, withSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { Button } from '@wordpress/components';
+import { Button, Modal } from '@wordpress/components';
+import { Fragment, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * External dependencies
  */
 import { get } from 'lodash';
+
+/**
+ * Internal dependencies
+ */
+import { getServiceProvider } from '../../service-providers';
+
+const { renderPreSendInfo } = getServiceProvider();
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -26,16 +34,17 @@ export default compose( [
 			isSavingPost,
 			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
-		const meta = getEditedPostAttribute( 'meta' );
+		const { newsletterData = {}, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
 		return {
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
 			isSaving: forceIsSaving || isSavingPost(),
-			validationErrors: meta.newsletterValidationErrors,
+			validationErrors: newsletterValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
+			newsletterData,
 		};
 	} ),
 ] )(
@@ -50,6 +59,7 @@ export default compose( [
 		isEditedPostBeingScheduled,
 		hasPublishAction,
 		visibility,
+		newsletterData,
 	} ) => {
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
@@ -82,22 +92,47 @@ export default compose( [
 			publishStatus = 'publish';
 		}
 
-		const onClick = () => {
+		const triggerCampaignSend = () => {
 			editPost( { status: publishStatus } );
 			savePost();
 		};
 
+		const [ modalVisible, setModalVisible ] = useState( false );
+
 		return (
-			<Button
-				className="editor-post-publish-button"
-				isBusy={ isSaving && 'publish' === status }
-				isPrimary
-				isLarge
-				onClick={ onClick }
-				disabled={ ! isButtonEnabled }
-			>
-				{ label }
-			</Button>
+			<Fragment>
+				<Button
+					className="editor-post-publish-button"
+					isBusy={ isSaving && 'publish' === status }
+					isPrimary
+					isLarge
+					onClick={ () => setModalVisible( true ) }
+					disabled={ ! isButtonEnabled }
+				>
+					{ label }
+				</Button>
+				{ modalVisible && (
+					<Modal
+						className="newspack-newsletters__modal"
+						title={ __( 'Send your newsletter?', 'newspack-newsletters' ) }
+						onRequestClose={ () => setModalVisible( false ) }
+					>
+						{ renderPreSendInfo( newsletterData ) }
+						<Button
+							isPrimary
+							onClick={ () => {
+								triggerCampaignSend();
+								setModalVisible( false );
+							} }
+						>
+							{ __( 'Send', 'newspack-newsletters' ) }
+						</Button>
+						<Button isSecondary onClick={ () => setModalVisible( false ) }>
+							{ __( 'Cancel', 'newspack-newsletters' ) }
+						</Button>
+					</Modal>
+				) }
+			</Fragment>
 		);
 	}
 );
