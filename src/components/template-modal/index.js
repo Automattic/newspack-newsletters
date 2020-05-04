@@ -15,7 +15,7 @@ import TemplatePicker from './screens/template-picker';
 import APIKeys from './screens/api-keys';
 import './style.scss';
 
-export default ( { hasKeys, onInsertTemplate, onSetupStatus, templates } ) => {
+export default ( { hasKeys, onSetupStatus } ) => {
 	return (
 		<Modal
 			className="newspack-newsletters-modal__frame"
@@ -29,11 +29,7 @@ export default ( { hasKeys, onInsertTemplate, onSetupStatus, templates } ) => {
 					: __( 'Configure the newsletters', 'newspack-newsletters' )
 			}
 		>
-			{ hasKeys ? (
-				<TemplatePicker templates={ templates } onInsertTemplate={ onInsertTemplate } />
-			) : (
-				<APIKeys onSetupStatus={ onSetupStatus } />
-			) }
+			{ hasKeys ? <TemplatePicker /> : <APIKeys onSetupStatus={ onSetupStatus } /> }
 		</Modal>
 	);
 };

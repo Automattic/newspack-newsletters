@@ -1,8 +1,16 @@
 /**
+ * External dependencies
+ */
+import classnames from 'classnames';
+import { find } from 'lodash';
+
+/**
  * WordPress dependencies
  */
 import { parse } from '@wordpress/blocks';
-import { Fragment, useState } from '@wordpress/element';
+import { Fragment, useMemo, useState } from '@wordpress/element';
+import { compose } from '@wordpress/compose';
+import { withSelect, withDispatch } from '@wordpress/data';
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
@@ -12,35 +20,53 @@ import { ENTER, SPACE } from '@wordpress/keycodes';
  * Internal dependencies
  */
 import { setPreventDeduplicationForPostsInserter } from '../../../../editor/blocks/posts-inserter/utils';
+import { templatesSelector } from '../../../../store/selectors';
+import { BLANK_TEMPLATE_ID } from '../../../../consts';
 
-export default ( { onInsertTemplate, templates } ) => {
-	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
-	const generateBlockPreview = () => {
-		return templates && templates[ selectedTemplate ]
-			? parse( templates[ selectedTemplate ].content )
-			: null;
+const TemplatePicker = ( {
+	getBlocks,
+	insertBlocks,
+	replaceBlocks,
+	savePost,
+	setTemplateIdMeta,
+	templates,
+} ) => {
+	const insertTemplate = templateId => {
+		const { content } = find( templates, { id: templateId } ) || {};
+		const blocksToInsert = content ? parse( content ) : [];
+		const existingBlocksIds = getBlocks().map( ( { clientId } ) => clientId );
+		if ( existingBlocksIds.length ) {
+			replaceBlocks( existingBlocksIds, blocksToInsert );
+		} else {
+			insertBlocks( blocksToInsert );
+		}
+		setTemplateIdMeta( templateId );
+		setTimeout( savePost, 1 );
 	};
-	const blockPreview = generateBlockPreview();
+
+	const [ selectedTemplateId, setSelectedTemplateId ] = useState( null );
+	const templateBlocks = useMemo(() => {
+		const template = selectedTemplateId && find( templates, { id: selectedTemplateId } );
+		return template ? parse( template.content ) : null;
+	}, [ selectedTemplateId, templates.length ]);
 
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__layouts">
 					<div className="newspack-newsletters-layouts">
-						{ ( templates || [] ).map( ( { title, content }, index ) =>
+						{ templates.map( ( { id, title, content } ) =>
 							'' === content ? null : (
 								<div
-									key={ index }
-									className={
-										selectedTemplate === index
-											? 'newspack-newsletters-layouts__item is-active'
-											: 'newspack-newsletters-layouts__item'
-									}
-									onClick={ () => setSelectedTemplate( index ) }
+									key={ id }
+									className={ classnames( 'newspack-newsletters-layouts__item', {
+										'is-active': selectedTemplateId === id,
+									} ) }
+									onClick={ () => setSelectedTemplateId( id ) }
 									onKeyDown={ event => {
 										if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
 											event.preventDefault();
-											setSelectedTemplate( index );
+											setSelectedTemplateId( id );
 										}
 									} }
 									role="button"
@@ -61,22 +87,22 @@ export default ( { onInsertTemplate, templates } ) => {
 				</div>
 
 				<div className="newspack-newsletters-modal__preview">
-					{ blockPreview && blockPreview.length > 0 ? (
-						<BlockPreview blocks={ blockPreview } viewportWidth={ 560 } />
+					{ templateBlocks && templateBlocks.length > 0 ? (
+						<BlockPreview blocks={ templateBlocks } viewportWidth={ 560 } />
 					) : (
 						<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 					) }
 				</div>
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">
-				<Button isSecondary onClick={ () => onInsertTemplate( 0 ) }>
+				<Button isSecondary onClick={ () => insertTemplate( BLANK_TEMPLATE_ID ) }>
 					{ __( 'Start From Scratch', 'newspack-newsletters' ) }
 				</Button>
 				<span className="separator">{ __( 'or', 'newspack-newsletters' ) }</span>
 				<Button
 					isPrimary
-					disabled={ selectedTemplate < 1 }
-					onClick={ () => onInsertTemplate( selectedTemplate ) }
+					disabled={ selectedTemplateId === BLANK_TEMPLATE_ID }
+					onClick={ () => insertTemplate( selectedTemplateId ) }
 				>
 					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
 				</Button>
@@ -84,3 +110,23 @@ export default ( { onInsertTemplate, templates } ) => {
 		</Fragment>
 	);
 };
+
+export default compose( [
+	withSelect( select => {
+		const { getBlocks } = select( 'core/block-editor' );
+		return {
+			getBlocks,
+			templates: templatesSelector( select ),
+		};
+	} ),
+	withDispatch( dispatch => {
+		const { savePost, editPost } = dispatch( 'core/editor' );
+		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
+		return {
+			savePost,
+			insertBlocks,
+			replaceBlocks,
+			setTemplateIdMeta: templateId => editPost( { meta: { template_id: templateId } } ),
+		};
+	} ),
+] )( TemplatePicker );

@@ -12,7 +12,7 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/vendor/autoload.php';
 use \DrewM\MailChimp\MailChimp;
 
 /**
- * Main Newspack Popups Class.
+ * Main Newspack Newsletters Class.
  */
 final class Newspack_Newsletters {
 
@@ -21,7 +21,7 @@ final class Newspack_Newsletters {
 	/**
 	 * The single instance of the class.
 	 *
-	 * @var Newspack_Popups
+	 * @var Newspack_Newsletters
 	 */
 	protected static $instance = null;
 
@@ -61,6 +61,7 @@ final class Newspack_Newsletters {
 			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-editor.php';
+		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-layouts.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 	}
@@ -873,15 +874,6 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Get newsletter templates.
-	 *
-	 * @return array Array of templates.
-	 */
-	public static function get_newsletter_templates() {
-		return apply_filters( 'newspack_newsletters_templates', [] );
-	}
-
-	/**
 	 * Callback for CPT publish. Sends the campaign.
 	 *
 	 * @param string  $id post ID.
@@ -924,50 +916,6 @@ final class Newspack_Newsletters {
 			set_transient( $transient, $e->getMessage(), 45 );
 			return;
 		}
-	}
-
-	/**
-	 * Token replacement for newsletter templates.
-	 *
-	 * @param string $content Template content.
-	 * @param array  $extra Associative array of additional tokens to replace.
-	 * @return string Content.
-	 */
-	public static function template_token_replacement( $content, $extra = [] ) {
-		$sitename       = get_bloginfo( 'name' );
-		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'medium' )[0] : null;
-
-		$sitename_block = sprintf(
-			'<!-- wp:heading {"align":"center","level":1} --><h1 class="has-text-align-center">%s</h1><!-- /wp:heading -->',
-			$sitename
-		);
-
-		$logo_block = $logo ? sprintf(
-			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"medium"} --><figure class="wp-block-image aligncenter size-medium"><img src="%s" alt="%s" class="wp-image-%s" /></figure><!-- /wp:image -->',
-			$custom_logo_id,
-			$logo,
-			$sitename,
-			$custom_logo_id
-		) : null;
-
-		$search  = array_merge(
-			[
-				'__SITENAME__',
-				'__LOGO__',
-				'__LOGO_OR_SITENAME__',
-			],
-			array_keys( $extra )
-		);
-		$replace = array_merge(
-			[
-				$sitename,
-				$logo,
-				$logo ? $logo_block : $sitename_block,
-			],
-			array_values( $extra )
-		);
-		return str_replace( $search, $replace, $content );
 	}
 
 	/**
