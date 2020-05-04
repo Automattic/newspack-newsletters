@@ -145,13 +145,18 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		if ( isset( $attrs['background-color'] ) ) {
-			$attrs['padding'] = '16px';
+			$attrs['padding'] = '0';
 		}
 
 		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
 			$attrs['full-width'] = 'full-width';
 			unset( $attrs['align'] );
 		}
+
+		if ( isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
+			$attrs['padding'] = '20px 0';
+		}
+
 		return $attrs;
 	}
 
@@ -190,7 +195,7 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
-				'padding' => '10px 16px',
+				'padding' => '20px',
 			)
 		);
 
@@ -298,6 +303,8 @@ final class Newspack_Newsletters_Renderer {
 
 					$default_button_attrs = array(
 						'padding'       => '0',
+						'inner-padding' => '12px 24px',
+						'line-height'   => '1.8',
 						'href'          => $anchor->getAttribute( 'href' ),
 						'border-radius' => $border_radius . 'px',
 						'font-size'     => '18px',
@@ -421,7 +428,8 @@ final class Newspack_Newsletters_Renderer {
 					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
 				}
 				if ( isset( $attrs['width'] ) ) {
-					$column_attrs['width'] = $attrs['width'] . '%';
+					$column_attrs['width']     = $attrs['width'] . '%';
+					$column_attrs['css-class'] = 'mj-column-has-width';
 				}
 
 				$markup = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>';

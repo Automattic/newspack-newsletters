@@ -13,34 +13,49 @@ import { Button, Modal } from '@wordpress/components';
  * Internal dependencies
  */
 import './style.scss';
+import { setPreventDeduplicationForPostsInserter } from '../blocks/posts-inserter/utils';
 
 export default compose( [
 	withDispatch( dispatch => {
+		const { replaceBlocks } = dispatch( 'core/block-editor' );
+		const { editPost } = dispatch( 'core/editor' );
 		return {
-			setTemplateIDMeta: templateId =>
-				dispatch( 'core/editor' ).editPost( { meta: { template_id: templateId } } ),
+			replaceBlocks,
+			setTemplateIDMeta: templateId => editPost( { meta: { template_id: templateId } } ),
 		};
 	} ),
 	withSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
+		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		const { template_id: templateId } = meta;
-		return { templateId };
+		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
+		return { templateId, clientIds };
 	} ),
-] )( ( { setTemplateIDMeta, templateId, templates } ) => {
+] )( ( { setTemplateIDMeta, templateId, templates, replaceBlocks, clientIds } ) => {
 	const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 	const currentTemplate = templates && templates[ templateId ] ? templates[ templateId ] : {};
 	const { content, title } = currentTemplate;
 	const blockPreview = content ? parse( content ) : null;
+
+	const clearPost = () => {
+		if ( clientIds && clientIds.length ) {
+			replaceBlocks( clientIds, [] );
+		}
+	};
+
 	return (
 		<Fragment>
 			{ blockPreview !== null && (
-				<div className="block-editor-patterns newspack-newsletters__layout-panel-preview">
-					<div className="block-editor-patterns__item">
-						<div className="block-editor-patterns__item-preview">
-							<BlockPreview blocks={ blockPreview } viewportWidth={ 568 } />
+				<div className="newspack-newsletters-layouts">
+					<div className="newspack-newsletters-layouts__item">
+						<div className="newspack-newsletters-layouts__item-preview">
+							<BlockPreview
+								blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
+								viewportWidth={ 560 }
+							/>
 						</div>
-						<div className="block-editor-patterns__item-title">{ title }</div>
+						<div className="newspack-newsletters-layouts__item-label">{ title }</div>
 					</div>
 				</div>
 			) }
@@ -49,7 +64,7 @@ export default compose( [
 			</Button>
 			{ warningModalVisible && (
 				<Modal
-					className="newspack-newsletters__layout-panel-modal"
+					className="newspack-newsletters__modal"
 					title={ __( 'Overwrite newsletter content?', 'newspack-newsletters' ) }
 					onRequestClose={ () => setWarningModalVisible( false ) }
 				>
@@ -62,6 +77,7 @@ export default compose( [
 					<Button
 						isPrimary
 						onClick={ () => {
+							clearPost();
 							setTemplateIDMeta( -1 );
 							setWarningModalVisible( false );
 						} }

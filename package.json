@@ -105,6 +105,7 @@
     "@wordpress/edit-post": "^3.14.0",
     "@wordpress/element": "^2.12.0",
     "@wordpress/hooks": "^2.7.0",
+    "@wordpress/html-entities": "^2.7.0",
     "@wordpress/i18n": "^3.10.0",
     "@wordpress/keycodes": "^2.10.0",
     "@wordpress/plugins": "^2.13.0",
