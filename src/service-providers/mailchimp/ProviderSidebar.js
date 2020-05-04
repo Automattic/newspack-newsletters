@@ -84,6 +84,8 @@ const ProviderSidebar = ( {
 		);
 	}
 
+	const { status } = campaign || {};
+
 	if ( 'sent' === status || 'sending' === status ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
@@ -92,7 +94,6 @@ const ProviderSidebar = ( {
 		);
 	}
 
-	const { status } = campaign || {};
 	const { list_id } = campaign.recipients || {};
 	const { web_id: listWebId } = list_id && lists.find( ( { id } ) => list_id === id );
 
