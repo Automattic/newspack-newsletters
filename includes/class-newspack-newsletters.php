@@ -102,6 +102,30 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		/**
+		 * The default color palette lives in the editor frontend and is not
+		 * retrievable on the backend. The workaround is to set it as post meta
+		 * so that it's available to the email renderer.
+		 */
+		\register_meta(
+			'post',
+			'color_palette',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => array(
+					'schema' => array(
+						'type'                 => 'object',
+						'properties'           => array(),
+						'additionalProperties' => array(
+							'type' => 'string',
+						),
+					),
+				),
+				'type'           => 'object',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
