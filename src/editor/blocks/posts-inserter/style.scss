@@ -40,14 +40,67 @@
 			padding-right: 28px;
 		}
 
-		.components-disabled,
-		iframe {
+		.components-disabled {
 			margin-top: 28px;
+		}
+
+		.wp-block-columns {
+			margin-bottom: -80px;
+
+			&:nth-last-of-type( 2 ) {
+				.wp-block-column {
+					margin-bottom: -40px;
+				}
+			}
 		}
 	}
 
 	// For some reason it's `absolute` in Gutenberg 7.8.1
 	.block-editor-block-preview__content {
 		position: relative;
+	}
+
+	// When in a group
+	.wp-block-group & {
+		.wp-block-columns + .wp-block-columns {
+			margin-top: 40px;
+		}
+	}
+
+	// When in a group with background
+	.wp-block-group.has-background & {
+		.components-button {
+			margin-top: 1em;
+		}
+
+		.block-editor-block-preview__container {
+			.block-editor-block-list__layout {
+				&:first-child {
+					margin-top: 40px;
+				}
+
+				&.wp-block-columns {
+					margin-top: 40px;
+				}
+
+				&.wp-block-columns,
+				.wp-block-column {
+					margin-bottom: 0;
+				}
+			}
+		}
+	}
+
+	// When in a full-width group with background
+	.wp-block[data-align='full'] .wp-block-group.has-background & {
+		.block-editor-block-preview__container {
+			padding-bottom: 40px;
+		}
+	}
+}
+
+.newspack-newsletters-query-controls {
+	.components-form-token-field__help {
+		display: none;
 	}
 }

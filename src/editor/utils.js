@@ -1,46 +1,19 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { getServiceProvider } from '../service-providers';
 
-const validateCampaign = campaign => {
-	const { recipients, settings, status } = campaign || {};
-	const { list_id: listId } = recipients || {};
-	const { from_name: senderName, reply_to: senderEmail } = settings || {};
-
-	const messages = [];
-	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
-	}
-	if ( ! listId ) {
-		messages.push(
-			__( 'A Mailchimp list must be selected before publishing.', 'newspack-newsletters' )
-		);
-	}
-	if ( ! senderName || senderName.length < 1 ) {
-		messages.push( __( 'Sender name must be set.', 'newspack-newsletters' ) );
-	}
-	if ( ! senderEmail || senderEmail.length < 1 ) {
-		messages.push( __( 'Sender email must be set.', 'newspack-newsletters' ) );
-	}
-
-	return messages;
+export const getEditPostPayload = newsletterData => {
+	const { validateNewsletter } = getServiceProvider();
+	return {
+		meta: {
+			// These meta fields do not have to be registered on the back end,
+			// as they are not used there.
+			newsletterValidationErrors: validateNewsletter( newsletterData ),
+			newsletterData,
+		},
+	};
 };
-
-export const getEditPostPayload = ( {
-	campaign,
-	interest_categories: interestCategories,
-	lists,
-} ) => ( {
-	meta: {
-		// These meta fields do not have to be registered on the back end,
-		// as they are not used there.
-		campaignValidationErrors: validateCampaign( campaign ),
-		campaign,
-		interestCategories,
-		lists,
-	},
-} );
 
 /**
  * Test if a string contains valid email addresses.

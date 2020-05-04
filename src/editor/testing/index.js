@@ -27,7 +27,7 @@ export default compose( [
 	} ),
 ] )( ( { apiFetchWithErrorHandling, inFlight, postId, savePost, setInFlightForAsync } ) => {
 	const [ testEmail, setTestEmail ] = useState( '' );
-	const sendMailchimpTest = async () => {
+	const sendTestEmail = async () => {
 		setInFlightForAsync();
 		await savePost();
 		const params = {
@@ -50,7 +50,7 @@ export default compose( [
 			/>
 			<Button
 				isPrimary
-				onClick={ sendMailchimpTest }
+				onClick={ sendTestEmail }
 				disabled={ inFlight || ! hasValidEmail( testEmail ) }
 			>
 				{ __( 'Send a Test Email', 'newspack-newsletters' ) }

@@ -1,5 +1,5 @@
 .wp-block {
-	max-width: 568px;
+	max-width: 560px;
 }
 
 .editor-post-title {
@@ -15,22 +15,6 @@
 	margin-right: auto !important;
 }
 
-.wp-block-column {
-	padding-bottom: 16px;
-
-	> :first-child {
-		margin-top: 16px !important;
-
-		> .wp-block-image {
-			margin-top: 0;
-		}
-	}
-
-	> * {
-		margin-top: -32px !important;
-	}
-}
-
 .editor-styles-wrapper {
 	.block-editor-block-list__layout {
 		*:not( code ) {
@@ -44,19 +28,23 @@
 	}
 
 	.block-editor-block-list__block {
-		margin-bottom: 32px;
-		margin-top: 32px;
+		margin-bottom: 40px;
+		margin-top: 40px;
 
 		&.wp-block-group {
 			&.has-background {
-				padding: 16px;
+				padding: 20px;
+
+				+ .has-background {
+					margin-top: 20px;
+				}
 
 				.block-editor-block-list__layout {
-					:first-child {
+					:first-child:not( .wp-block-column ) {
 						margin-top: 0;
 					}
 
-					:nth-last-child( 2 ) {
+					:nth-last-child( 2 ):not( .wp-block-column ) {
 						// last child being block-list-appender
 						margin-bottom: 0;
 					}
@@ -70,7 +58,25 @@
 			}
 
 			+ .wp-block-group {
-				margin-top: -16px;
+				margin-top: -20px;
+			}
+		}
+
+		&.wp-block-columns {
+			margin-bottom: -40px;
+
+			+ .wp-block-columns {
+				margin-top: 80px;
+			}
+		}
+
+		&.wp-block-column {
+			&:not( :first-child ) {
+				margin-left: 40px;
+			}
+
+			> * {
+				margin-top: -40px !important;
 			}
 		}
 
@@ -78,8 +84,50 @@
 			padding-right: 0;
 		}
 
+		&[data-type='core/button'] {
+			margin-bottom: 0;
+			margin-top: 0;
+		}
+
+		&[data-type='core/separator'] {
+			margin-bottom: 40px;
+			margin-top: 40px;
+
+			hr {
+				margin: 0;
+			}
+		}
+
 		.block-library-spacer__resize-container {
-			margin-bottom: 16px;
+			margin-bottom: 20px;
+		}
+
+		&.has-background {
+			margin-bottom: -20px;
+			margin-top: -20px;
+
+			+ .has-background,
+			+ [data-align='full'] .wp-block-group.has-background {
+				margin-top: 20px;
+			}
+		}
+	}
+
+	[data-align='full'] {
+		.wp-block-group.has-background {
+			padding-bottom: 40px;
+			padding-top: 40px;
+		}
+
+		+ .has-background,
+		+ [data-align='full'] .wp-block-group.has-background {
+			margin-top: 20px;
+		}
+	}
+
+	[data-align='center'] {
+		figure.wp-block-image:not( .wp-block ) {
+			margin: 40px 0;
 		}
 	}
 
@@ -91,7 +139,17 @@
 	h6,
 	p {
 		&.has-background {
-			padding: 16px;
+			padding: 20px;
+		}
+	}
+}
+
+.newspack-newsletters {
+	&__modal {
+		max-width: 360px;
+
+		.components-button + .components-button {
+			margin-left: 12px;
 		}
 	}
 }
