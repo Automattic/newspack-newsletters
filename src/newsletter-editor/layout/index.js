@@ -29,16 +29,16 @@ export default compose( [
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		const { template_id: templateId } = meta;
-		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
-		return { templateId, clientIds };
+		return { templateId, getBlocks };
 	} ),
-] )( ( { setTemplateIDMeta, templateId, templates, replaceBlocks, clientIds } ) => {
+] )( ( { getBlocks, setTemplateIDMeta, templateId, templates, replaceBlocks } ) => {
 	const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 	const currentTemplate = templates && templates[ templateId ] ? templates[ templateId ] : {};
 	const { content, title } = currentTemplate;
 	const blockPreview = content ? parse( content ) : null;
 
 	const clearPost = () => {
+		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
 		if ( clientIds && clientIds.length ) {
 			replaceBlocks( clientIds, [] );
 		}
