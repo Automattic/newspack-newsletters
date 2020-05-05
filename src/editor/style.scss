@@ -1,0 +1,152 @@
+.wp-block {
+	max-width: 560px;
+}
+
+.wp-block-button {
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+.editor-styles-wrapper {
+	.block-editor-block-list__layout {
+		*:not( code ) {
+			font-family: Ubuntu, Helvetica, Arial, sans-serif !important;
+		}
+
+		code {
+			background: none;
+			color: inherit;
+		}
+	}
+
+	.block-editor-block-list__block {
+		margin-bottom: 40px;
+		margin-top: 40px;
+
+		&.wp-block-group {
+			&.has-background {
+				padding: 20px;
+
+				+ .has-background {
+					margin-top: 20px;
+				}
+
+				.block-editor-block-list__layout {
+					:first-child:not( .wp-block-column ) {
+						margin-top: 0;
+					}
+
+					:nth-last-child( 2 ):not( .wp-block-column ) {
+						// last child being block-list-appender
+						margin-bottom: 0;
+					}
+
+					.newspack-posts-inserter {
+						&__preview {
+							margin-bottom: 1em;
+						}
+					}
+				}
+			}
+
+			+ .wp-block-group {
+				margin-top: -20px;
+			}
+		}
+
+		&.wp-block-columns {
+			margin-bottom: -40px;
+
+			+ .wp-block-columns {
+				margin-top: 80px;
+			}
+		}
+
+		&.wp-block-column {
+			&:not( :first-child ) {
+				margin-left: 40px;
+			}
+
+			> * {
+				margin-top: -40px !important;
+			}
+		}
+
+		&[data-type='core/list'] {
+			padding-right: 0;
+		}
+
+		&[data-type='core/button'] {
+			margin-bottom: 0;
+			margin-top: 0;
+		}
+
+		&[data-type='core/separator'] {
+			margin-bottom: 40px;
+			margin-top: 40px;
+
+			hr {
+				margin: 0;
+			}
+		}
+
+		.block-library-spacer__resize-container {
+			margin-bottom: 20px;
+		}
+
+		&.has-background {
+			margin-bottom: -20px;
+			margin-top: -20px;
+
+			+ .has-background,
+			+ [data-align='full'] .wp-block-group.has-background {
+				margin-top: 20px;
+			}
+		}
+	}
+
+	[data-align='full'] {
+		.wp-block-group.has-background {
+			padding-bottom: 40px;
+			padding-top: 40px;
+		}
+
+		+ .has-background,
+		+ [data-align='full'] .wp-block-group.has-background {
+			margin-top: 20px;
+		}
+	}
+
+	[data-align='center'] {
+		figure.wp-block-image:not( .wp-block ) {
+			margin: 40px 0;
+		}
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	p {
+		&.has-background {
+			padding: 20px;
+		}
+	}
+}
+
+.newspack-newsletters {
+	&__modal {
+		max-width: 360px;
+
+		.components-button + .components-button {
+			margin-left: 12px;
+		}
+	}
+}
+
+.wp-block-buttons .block-editor-block-list__layout {
+	display: flex;
+	justify-content: space-between;
+}

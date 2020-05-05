@@ -1,0 +1,33 @@
+@import '~@wordpress/base-styles/colors';
+
+.newspack-newsletters-layouts {
+	&__item {
+		margin: 0 0 16px;
+		width: 100%;
+	}
+
+	&__item-preview {
+		background: white;
+		border: 1px solid $light-gray-500;
+		border-radius: 2px;
+		overflow: hidden;
+		padding: 0 0 calc( 100% - 2px );
+		position: relative;
+		width: 100%;
+
+		.block-editor-block-preview__container {
+			position: absolute;
+			top: 0;
+
+			.block-editor-block-list__layout.is-root-container {
+				padding-left: 28px;
+				padding-right: 28px;
+			}
+		}
+	}
+
+	&__item-label {
+		padding: 4px 2px;
+		text-align: center;
+	}
+}
