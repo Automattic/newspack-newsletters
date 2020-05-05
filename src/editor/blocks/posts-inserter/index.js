@@ -28,6 +28,7 @@ import Icon from './icon';
 import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
+import { LAYOUT_CPT_SLUG } from '../../../consts';
 
 const PostsInserterBlock = ( {
 	setAttributes,
@@ -37,8 +38,10 @@ const PostsInserterBlock = ( {
 	setHandledPostsIds,
 	setInsertedPostsIds,
 	removeBlock,
+	editedPost,
 } ) => {
 	const templateBlocks = getTemplateBlocks( postList, attributes );
+	const canInsertPosts = editedPost.type !== LAYOUT_CPT_SLUG;
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
 	useEffect(() => {
@@ -128,9 +131,13 @@ const PostsInserterBlock = ( {
 				<div className="newspack-posts-inserter__preview">
 					<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
 				</div>
-				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
-					{ __( 'Insert posts', 'newspack-newsletters' ) }
-				</Button>
+				{ canInsertPosts && (
+					<div className="newspack-posts-inserter__footer">
+						<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
+							{ __( 'Insert posts', 'newspack-newsletters' ) }
+						</Button>
+					</div>
+				) }
 			</div>
 		</Fragment>
 	);
@@ -147,6 +154,7 @@ const PostsInserterBlockWithSelect = compose( [
 			specificPosts,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
+		const { getCurrentPost } = select( 'core/editor' );
 		const { getSelectedBlock, getBlocks } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
 
@@ -182,6 +190,7 @@ const PostsInserterBlockWithSelect = compose( [
 		}
 
 		return {
+			editedPost: getCurrentPost(),
 			existingBlocks: getBlocks(),
 			selectedBlock: getSelectedBlock(),
 			postList: posts.map( post => {
