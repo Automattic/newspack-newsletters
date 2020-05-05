@@ -35,6 +35,7 @@ const PostsInserterBlock = ( {
 	postList,
 	replaceBlocks,
 	setHandledPostsIds,
+	setInsertedPostsIds,
 	removeBlock,
 } ) => {
 	const templateBlocks = getTemplateBlocks( postList, attributes );
@@ -44,19 +45,21 @@ const PostsInserterBlock = ( {
 		setAttributes( { innerBlocksToInsert } );
 	}, [ JSON.stringify( innerBlocksToInsert ) ]);
 
+	const handledPostIds = postList.map( post => post.id );
+
 	useEffect(() => {
 		if ( attributes.areBlocksInserted ) {
 			replaceBlocks( templateBlocks );
+			setInsertedPostsIds( handledPostIds );
 		}
 	}, [ attributes.areBlocksInserted ]);
 
-	const ids = postList.map( post => post.id );
 	useEffect(() => {
 		if ( ! attributes.preventDeduplication ) {
-			setHandledPostsIds( ids );
+			setHandledPostsIds( handledPostIds );
 			return removeBlock;
 		}
-	}, [ ids.join() ]);
+	}, [ handledPostIds.join() ]);
 
 	const blockControlsImages = [
 		{
@@ -199,12 +202,15 @@ const PostsInserterBlockWithSelect = compose( [
 	} ),
 	withDispatch( ( dispatch, props ) => {
 		const { replaceBlocks } = dispatch( 'core/block-editor' );
-		const { setHandledPostsIds, removeBlock } = dispatch( POSTS_INSERTER_STORE_NAME );
+		const { setHandledPostsIds, setInsertedPostsIds, removeBlock } = dispatch(
+			POSTS_INSERTER_STORE_NAME
+		);
 		return {
 			replaceBlocks: blocks => {
 				replaceBlocks( props.selectedBlock.clientId, blocks );
 			},
 			setHandledPostsIds: ids => setHandledPostsIds( ids, props ),
+			setInsertedPostsIds,
 			removeBlock: () => removeBlock( props.clientId ),
 		};
 	} ),
