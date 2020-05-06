@@ -4,19 +4,23 @@
 	border: 1px solid $dark-gray-primary;
 	border-radius: 2px;
 	padding: 1em 0;
+
 	&__header {
 		align-items: center;
 		display: flex;
 		padding: 0 1em;
 		position: relative;
 		z-index: 1;
+
 		svg {
 			margin-right: 1ch;
 		}
+
 		span {
 			font-size: 18pt;
 		}
 	}
+
 	&__preview {
 		border: 0 solid $dark-gray-primary;
 		border-width: 1px 0;
@@ -25,79 +29,25 @@
 		&:empty {
 			border: 0;
 		}
+
+		.block-editor-block-preview {
+			&__container {
+				max-height: 400px;
+				overflow: scroll;
+			}
+
+			&__content {
+				position: relative;
+			}
+		}
 	}
+
 	.components-button {
 		margin: 0 1em;
 	}
-
-	.block-editor-block-preview__container {
-		max-height: 400px;
-		min-height: 158px;
-		overflow: scroll;
-
-		.block-editor-block-list__layout.is-root-container {
-			padding-left: 28px;
-			padding-right: 28px;
-		}
-
-		.components-disabled {
-			margin-top: 28px;
-		}
-
-		.wp-block-columns {
-			margin-bottom: -80px;
-
-			&:nth-last-of-type( 2 ) {
-				.wp-block-column {
-					margin-bottom: -40px;
-				}
-			}
-		}
-	}
-
-	// For some reason it's `absolute` in Gutenberg 7.8.1
-	.block-editor-block-preview__content {
-		position: relative;
-	}
-
-	// When in a group
-	.wp-block-group & {
-		.wp-block-columns + .wp-block-columns {
-			margin-top: 40px;
-		}
-	}
-
-	// When in a group with background
-	.wp-block-group.has-background & {
-		.components-button {
-			margin-top: 1em;
-		}
-
-		.block-editor-block-preview__container {
-			.block-editor-block-list__layout {
-				&:first-child {
-					margin-top: 40px;
-				}
-
-				&.wp-block-columns {
-					margin-top: 40px;
-				}
-
-				&.wp-block-columns,
-				.wp-block-column {
-					margin-bottom: 0;
-				}
-			}
-		}
-	}
-
-	// When in a full-width group with background
-	.wp-block[data-align='full'] .wp-block-group.has-background & {
-		.block-editor-block-preview__container {
-			padding-bottom: 40px;
-		}
-	}
 }
+
+// FormTokenField
 
 .newspack-newsletters-query-controls {
 	.components-form-token-field__help {
