@@ -196,7 +196,19 @@
 
 					.newspack-newsletters-layouts__item-preview {
 						border-color: currentColor;
-						box-shadow: inset 0 0 0 1px;
+						position: relative;
+
+						&::before {
+							border: 1px solid;
+							bottom: 0;
+							content: '';
+							display: block;
+							left: 0;
+							position: absolute;
+							right: 0;
+							top: 0;
+							z-index: 1;
+						}
 					}
 				}
 			}
@@ -215,8 +227,8 @@
 					top: 0;
 
 					.block-editor-block-list__layout.is-root-container {
-						padding-left: 28px;
-						padding-right: 28px;
+						padding-left: 0;
+						padding-right: 0;
 					}
 				}
 			}
@@ -254,6 +266,10 @@
 
 // Posts Inserter - Preview
 .block-editor-block-preview__container {
+	.wp-block[data-type='newspack-newsletters/posts-inserter'] {
+		padding: 0;
+	}
+
 	.newspack-posts-inserter {
 		border: 0;
 		padding: 0;
@@ -270,20 +286,9 @@
 
 		.block-editor-block-preview__container {
 			max-height: 100%;
-			min-height: 0;
 
-			.block-editor-block-list__layout.is-root-container {
-				padding-left: 0;
-				padding-right: 0;
-			}
-
-			.components-disabled {
-				margin-bottom: 40px;
-				margin-top: -40px;
-			}
-
-			.wp-block-columns + .wp-block-columns {
-				margin-top: 40px;
+			.newspack-newsletters-modal__layouts & {
+				position: relative;
 			}
 		}
 	}
