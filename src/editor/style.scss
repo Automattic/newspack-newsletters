@@ -1,14 +1,15 @@
 .wp-block {
-	max-width: 560px;
-}
-
-.wp-block-button {
-	margin-left: auto !important;
-	margin-right: auto !important;
+	max-width: 600px;
+	padding: 20px;
 }
 
 .editor-styles-wrapper {
 	.block-editor-block-list__layout {
+		&.is-root-container {
+			padding-left: 0;
+			padding-right: 0;
+		}
+
 		*:not( code ) {
 			font-family: Ubuntu, Helvetica, Arial, sans-serif !important;
 		}
@@ -17,121 +18,144 @@
 			background: none;
 			color: inherit;
 		}
-	}
 
-	.block-editor-block-list__block {
-		margin-bottom: 40px;
-		margin-top: 40px;
-
-		&.wp-block-group {
-			&.has-background {
-				padding: 20px;
-
-				+ .has-background {
-					margin-top: 20px;
-				}
-
-				.block-editor-block-list__layout {
-					:first-child:not( .wp-block-column ) {
-						margin-top: 0;
-					}
-
-					:nth-last-child( 2 ):not( .wp-block-column ) {
-						// last child being block-list-appender
-						margin-bottom: 0;
-					}
-
-					.newspack-posts-inserter {
-						&__preview {
-							margin-bottom: 1em;
-						}
-					}
-				}
-			}
-
-			+ .wp-block-group {
-				margin-top: -20px;
-			}
-		}
-
-		&.wp-block-columns {
-			margin-bottom: -40px;
-
-			+ .wp-block-columns {
-				margin-top: 80px;
-			}
-		}
-
-		&.wp-block-column {
-			&:not( :first-child ) {
-				margin-left: 40px;
-			}
-
-			> * {
-				margin-top: -40px !important;
-			}
-		}
-
-		&[data-type='core/list'] {
-			padding-right: 0;
-		}
-
-		&[data-type='core/button'] {
+		.block-editor-block-list__block {
 			margin-bottom: 0;
 			margin-top: 0;
 		}
 
-		&[data-type='core/separator'] {
-			margin-bottom: 40px;
-			margin-top: 40px;
+		.wp-block-group {
+			padding-left: 0;
+			padding-right: 0;
 
-			hr {
+			&.has-background {
+				padding-bottom: 0;
+				padding-top: 0;
+			}
+
+			.block-list-appender {
+				margin: 0 20px;
+			}
+		}
+
+		h1,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6,
+		p {
+			&.has-background {
+				padding: 20px;
+			}
+		}
+
+		.wp-block {
+			&[data-type='core/button'] {
+				margin-left: auto !important;
+				margin-right: auto !important;
+				padding: 0;
+			}
+
+			&[data-type='core/list'] {
+				padding: 20px;
+				padding-left: calc( 20px + 1.3em );
+
+				ol,
+				ul {
+					margin-left: 0;
+					margin-right: 0;
+				}
+			}
+
+			&[data-type='core/social-link'] {
+				padding: 0;
+
+				&:not( [contenteditable] ):focus::after {
+					right: 0;
+				}
+			}
+
+			&[data-type='core/separator'] {
+				padding-bottom: 20px;
+				padding-top: 20px;
+
+				hr {
+					margin-bottom: 0;
+					margin-top: 0;
+				}
+			}
+
+			&[data-type='core/spacer'] {
+				.components-resizable-box__container {
+					margin-bottom: 0;
+				}
+			}
+
+			&[data-align='full'] {
+				margin: 0;
+				padding: 0;
+
+				.wp-block-group.has-background {
+					padding-top: 20px;
+					padding-bottom: 20px;
+				}
+			}
+		}
+
+		.wp-social-link {
+			border-radius: 19px;
+			height: 38px;
+			margin: 4px;
+			padding: 7px;
+			width: 38px;
+		}
+
+		.wp-block-quote {
+			margin: 0;
+			padding-left: 20px;
+
+			p {
+				margin: 0 0 20px;
+			}
+
+			&__citation {
+				color: #767676;
+				font-size: inherit;
+				font-style: italic;
+				margin-top: 0;
+			}
+
+			&.is-large,
+			&.is-style-large {
+				padding: 0;
+			}
+		}
+
+		.wp-block-columns {
+			padding: 0;
+
+			.block-list-appender {
 				margin: 0;
 			}
-		}
 
-		.block-library-spacer__resize-container {
-			margin-bottom: 20px;
-		}
-
-		&.has-background {
-			margin-bottom: -20px;
-			margin-top: -20px;
-
-			+ .has-background,
-			+ [data-align='full'] .wp-block-group.has-background {
-				margin-top: 20px;
+			.components-placeholder {
+				margin: 20px;
 			}
 		}
-	}
 
-	[data-align='full'] {
-		.wp-block-group.has-background {
-			padding-bottom: 40px;
-			padding-top: 40px;
-		}
+		.wp-block-column {
+			&:not( :first-child ) {
+				margin-left: 0;
+			}
 
-		+ .has-background,
-		+ [data-align='full'] .wp-block-group.has-background {
-			margin-top: 20px;
-		}
-	}
+			.wp-block {
+				padding: 0;
 
-	[data-align='center'] {
-		figure.wp-block-image:not( .wp-block ) {
-			margin: 40px 0;
-		}
-	}
-
-	h1,
-	h2,
-	h3,
-	h4,
-	h5,
-	h6,
-	p {
-		&.has-background {
-			padding: 20px;
+				&.has-background {
+					padding: 20px;
+				}
+			}
 		}
 	}
 }
