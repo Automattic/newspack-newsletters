@@ -51,6 +51,8 @@
 		}
 
 		.wp-block-buttons {
+			text-align: center;
+
 			.block-list-appender {
 				margin: 0;
 			}
@@ -174,9 +176,4 @@
 			margin-left: 12px;
 		}
 	}
-}
-
-.wp-block-buttons .block-editor-block-list__layout {
-	display: flex;
-	justify-content: space-between;
 }
