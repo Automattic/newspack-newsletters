@@ -385,7 +385,7 @@ final class Newspack_Newsletters_Renderer {
 					'align'         => isset( $attrs['align'] ) && 'center' == $attrs['align'] ? 'center' : 'left',
 					'icon-size'     => '22px',
 					'mode'          => 'horizontal',
-					'padding'       => '5px',
+					'padding'       => '0',
 					'border-radius' => '999px',
 					'icon-padding'  => '8px',
 				);
