@@ -993,10 +993,10 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag() {
 		$screen = get_current_screen();
-		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || 'newspack_nl_cpt' === $screen->post_type ) {
+		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) {
 			return;
 		}
-		$url = admin_url( '/options-general.php?page=newspack-newsletters-settings-admin' );
+		$url = admin_url( 'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-settings-admin' );
 		?>
 		<div class="notice notice-info is-dismissible newspack-newsletters-notification-nag">
 			<p>
