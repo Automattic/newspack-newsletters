@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Automattic/newspack-newsletters/compare/v1.0.0...v1.0.1) (2020-05-07)
+
+
+### Bug Fixes
+
+* **settings:** fix settings url in post-activation nag ([863a16b](https://github.com/Automattic/newspack-newsletters/commit/863a16be3473d13875bcc64db11bb86c41628adb))
+
 # 1.0.0 (2020-05-05)
 
 
