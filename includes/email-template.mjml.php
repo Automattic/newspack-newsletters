@@ -32,8 +32,9 @@
 
 			/* Button */
 			.is-style-outline a {
-				background: none !important;
+				background: #fff !important;
 				border: 2px solid !important;
+				display: block !important;
 			}
 
 			/* Heading */
@@ -54,15 +55,19 @@
 
 			/* Quote */
 			.wp-block-quote {
-				margin: 0 0 28px;
-				padding-left: 1em;
+				border-left: 4px solid #000;
+				margin: 0;
+				padding-left: 20px;
 			}
 			.wp-block-quote cite {
-				color: #6c7781;
-				font-size: 13px;
+				color: #767676;
 			}
-			.wp-block-quote.is-style-default {
-				border-left: 4px solid #000;
+			.wp-block-quote p {
+				padding-bottom: 20px;
+			}
+			.wp-block-quote.is-style-large {
+				border-left: 0;
+				padding-left: 0;
 			}
 			.wp-block-quote.is-style-large p {
 				font-size: 24px;
