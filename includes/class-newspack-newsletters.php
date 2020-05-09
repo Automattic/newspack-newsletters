@@ -796,15 +796,22 @@ final class Newspack_Newsletters {
 			return;
 		}
 
-		$api_key  = self::mailchimp_api_key();
-		$mc       = new Mailchimp( $api_key );
-		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
-		if ( $campaign ) {
-			$status = $campaign['status'];
-			if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
-				$result = $mc->delete( "campaigns/$mc_campaign_id" );
-				delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+		$api_key = self::mailchimp_api_key();
+		if ( ! $api_key ) {
+			return;
+		}
+		try {
+			$mc       = new Mailchimp( $api_key );
+			$campaign = $mc->get( "campaigns/$mc_campaign_id" );
+			if ( $campaign ) {
+				$status = $campaign['status'];
+				if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
+					$result = $mc->delete( "campaigns/$mc_campaign_id" );
+					delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+				}
 			}
+		} catch ( Exception $e ) {
+			return; // Fail silently.
 		}
 	}
 
