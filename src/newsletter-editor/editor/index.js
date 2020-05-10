@@ -31,6 +31,7 @@ const Editor = compose( [
 
 		return {
 			isCleanNewPost: isCleanNewPost(),
+			meta,
 			postId: getCurrentPostId(),
 			isReady: meta.newsletterValidationErrors
 				? meta.newsletterValidationErrors.length === 0
@@ -70,8 +71,10 @@ const Editor = compose( [
 	}, [ props.isPublishingOrSavingPost ]);
 
 	useEffect(() => {
-		props.editPost( { meta: { color_palette: props.colorPalette } } );
-	}, []);
+		if ( props.meta.mc_campaign_id.length > 0 ) {
+			props.editPost( { meta: { color_palette: props.colorPalette } } );
+		}
+	}, [ props.meta.mc_campaign_id ]);
 
 	// Lock or unlock post publishing.
 	useEffect(() => {
