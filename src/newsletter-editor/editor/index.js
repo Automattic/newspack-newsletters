@@ -64,14 +64,12 @@ const Editor = compose( [
 			props
 				.apiFetchWithErrorHandling( getFetchDataConfig( { postId: props.postId } ) )
 				.then( result => {
-					props.editPost( getEditPostPayload( result ) );
+					const postUpdate = getEditPostPayload( result );
+					postUpdate.meta.color_palette = props.colorPalette;
+					props.editPost( postUpdate );
 				} );
 		}
 	}, [ props.isPublishingOrSavingPost ]);
-
-	useEffect(() => {
-		props.editPost( { meta: { color_palette: props.colorPalette } } );
-	}, []);
 
 	// Lock or unlock post publishing.
 	useEffect(() => {
