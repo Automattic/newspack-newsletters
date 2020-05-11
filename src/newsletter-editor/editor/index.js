@@ -31,7 +31,6 @@ const Editor = compose( [
 
 		return {
 			isCleanNewPost: isCleanNewPost(),
-			meta,
 			postId: getCurrentPostId(),
 			isReady: meta.newsletterValidationErrors
 				? meta.newsletterValidationErrors.length === 0
@@ -65,16 +64,12 @@ const Editor = compose( [
 			props
 				.apiFetchWithErrorHandling( getFetchDataConfig( { postId: props.postId } ) )
 				.then( result => {
-					props.editPost( getEditPostPayload( result ) );
+					const postUpdate = getEditPostPayload( result );
+					postUpdate.meta.color_palette = props.colorPalette;
+					props.editPost( postUpdate );
 				} );
 		}
 	}, [ props.isPublishingOrSavingPost ]);
-
-	useEffect(() => {
-		if ( props.meta.mc_campaign_id.length > 0 ) {
-			props.editPost( { meta: { color_palette: props.colorPalette } } );
-		}
-	}, [ props.meta.mc_campaign_id ]);
 
 	// Lock or unlock post publishing.
 	useEffect(() => {
