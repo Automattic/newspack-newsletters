@@ -21,6 +21,20 @@ final class Newspack_Newsletters_Renderer {
 	protected static $color_palette = null;
 
 	/**
+	 * The header font.
+	 *
+	 * @var String
+	 */
+	protected static $font_header = null;
+
+	/**
+	 * The body font.
+	 *
+	 * @var String
+	 */
+	protected static $font_body = null;
+
+	/**
 	 * Convert a list to HTML attributes.
 	 *
 	 * @param array $attributes Array of attributes.
@@ -191,6 +205,8 @@ final class Newspack_Newsletters_Renderer {
 			)
 		);
 
+		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
+
 		switch ( $block_name ) {
 			/**
 			 * Paragraph, List, Heading blocks.
@@ -204,6 +220,7 @@ final class Newspack_Newsletters_Renderer {
 						'padding'     => '0',
 						'line-height' => '1.8',
 						'font-size'   => '16px',
+						'font-family' => $font_family,
 					),
 					$attrs
 				);
@@ -517,6 +534,8 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function render_mjml( $post ) {
 		self::$color_palette = get_post_meta( $post->ID, 'color_palette', true );
+		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
+		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
 		$title               = $post->post_title;
 		$blocks              = parse_blocks( $post->post_content );
 		$body                = '';
