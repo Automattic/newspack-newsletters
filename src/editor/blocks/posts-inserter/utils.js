@@ -37,8 +37,7 @@ const getExcerptBlockTemplate = ( post, { excerptLength } ) => {
 	excerptElement.innerHTML = excerpt;
 	excerpt = excerptElement.textContent || excerptElement.innerText || '';
 
-	const needsEllipsis =
-		excerptLength < excerpt.trim().split( ' ' ).length && post.excerpt.raw === '';
+	const needsEllipsis = excerptLength < excerpt.trim().split( ' ' ).length;
 
 	const postExcerpt = needsEllipsis
 		? `${ excerpt.split( ' ', excerptLength ).join( ' ' ) } […]`
