@@ -103,6 +103,18 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
+				<div className="newspack-newsletters-tabs">
+					{ LAYOUTS_TABS.map( ( { title }, i ) => (
+						<Button
+							key={ i }
+							isSecondary={ i !== activeTabIndex }
+							isPrimary={ i === activeTabIndex }
+							onClick={ () => setActiveTabIndex( i ) }
+						>
+							{ title }
+						</Button>
+					) ) }
+				</div>
 				<div
 					className={ classnames( 'newspack-newsletters-modal__layouts', {
 						'newspack-newsletters-modal__layouts--loading': isFetchingLayouts,
@@ -112,18 +124,6 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 						<Spinner />
 					) : (
 						<Fragment>
-							<div className="newspack-newsletters-tabs">
-								{ LAYOUTS_TABS.map( ( { title }, i ) => (
-									<Button
-										key={ i }
-										isSecondary={ i !== activeTabIndex }
-										isPrimary={ i === activeTabIndex }
-										onClick={ () => setActiveTabIndex( i ) }
-									>
-										{ title }
-									</Button>
-								) ) }
-							</div>
 							<div className="newspack-newsletters-layouts">
 								{ layouts.filter( activeTab.filter ).map( ( props, i ) => (
 									<SingleLayoutPreview
