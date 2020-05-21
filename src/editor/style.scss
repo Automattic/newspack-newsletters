@@ -1,3 +1,8 @@
+:root {
+	--header-font: helvetica, arial, sans-serif;
+	--body-font: helvetica, arial, sans-serif;
+}
+
 .wp-block {
 	max-width: 600px;
 	padding: 20px;
@@ -11,7 +16,20 @@
 		}
 
 		*:not( code ) {
-			font-family: Ubuntu, Helvetica, Arial, sans-serif !important;
+			font-family: var( --body-font );
+		}
+
+		.newspack-posts-inserter__header span {
+			font-family: Ubuntu, helvetica, arial, sans-serif;
+		}
+
+		h1,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6 {
+			font-family: var( --header-font );
 		}
 
 		code {
