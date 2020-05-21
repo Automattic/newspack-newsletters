@@ -23,6 +23,51 @@ import { setPreventDeduplicationForPostsInserter } from '../../../../editor/bloc
 import { BLANK_LAYOUT_ID } from '../../../../utils/consts';
 import { useLayouts } from '../../../../utils/hooks';
 
+const SingleLayoutPreview = ( {
+	selectedLayoutId,
+	setSelectedLayoutId,
+	ID,
+	post_title: title,
+	post_content: content,
+} ) =>
+	'' === content ? null : (
+		<div
+			key={ ID }
+			className={ classnames( 'newspack-newsletters-layouts__item', {
+				'is-active': selectedLayoutId === ID,
+			} ) }
+			onClick={ () => setSelectedLayoutId( ID ) }
+			onKeyDown={ event => {
+				if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
+					event.preventDefault();
+					setSelectedLayoutId( ID );
+				}
+			} }
+			role="button"
+			tabIndex="0"
+			aria-label={ title }
+		>
+			<div className="newspack-newsletters-layouts__item-preview">
+				<BlockPreview
+					blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
+					viewportWidth={ 600 }
+				/>
+			</div>
+			<div className="newspack-newsletters-layouts__item-label">{ title }</div>
+		</div>
+	);
+
+const LAYOUTS_TABS = [
+	{
+		title: __( 'Default layouts', 'newspack-newsletters' ),
+		filter: layout => layout.post_author === undefined,
+	},
+	{
+		title: __( 'My layouts', 'newspack-newsletters' ),
+		filter: layout => layout.post_author !== undefined,
+	},
+];
+
 const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLayoutIdMeta } ) => {
 	const { layouts, isFetchingLayouts } = useLayouts();
 
@@ -52,6 +97,9 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 			<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 		);
 
+	const [ activeTabIndex, setActiveTabIndex ] = useState( 0 );
+	const activeTab = LAYOUTS_TABS[ activeTabIndex ];
+
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
@@ -60,37 +108,34 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 						'newspack-newsletters-modal__layouts--loading': isFetchingLayouts,
 					} ) }
 				>
-					{ isFetchingLayouts && <Spinner /> }
-					<div className="newspack-newsletters-layouts">
-						{ layouts.map( ( { ID, post_title: title, post_content: content } ) =>
-							'' === content ? null : (
-								<div
-									key={ ID }
-									className={ classnames( 'newspack-newsletters-layouts__item', {
-										'is-active': selectedLayoutId === ID,
-									} ) }
-									onClick={ () => setSelectedLayoutId( ID ) }
-									onKeyDown={ event => {
-										if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
-											event.preventDefault();
-											setSelectedLayoutId( ID );
-										}
-									} }
-									role="button"
-									tabIndex="0"
-									aria-label={ title }
-								>
-									<div className="newspack-newsletters-layouts__item-preview">
-										<BlockPreview
-											blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
-											viewportWidth={ 600 }
-										/>
-									</div>
-									<div className="newspack-newsletters-layouts__item-label">{ title }</div>
-								</div>
-							)
-						) }
-					</div>
+					{ isFetchingLayouts ? (
+						<Spinner />
+					) : (
+						<Fragment>
+							<div className="newspack-newsletters-tabs">
+								{ LAYOUTS_TABS.map( ( { title }, i ) => (
+									<Button
+										key={ i }
+										isSecondary={ i !== activeTabIndex }
+										isPrimary={ i === activeTabIndex }
+										onClick={ () => setActiveTabIndex( i ) }
+									>
+										{ title }
+									</Button>
+								) ) }
+							</div>
+							<div className="newspack-newsletters-layouts">
+								{ layouts.filter( activeTab.filter ).map( ( props, i ) => (
+									<SingleLayoutPreview
+										key={ i }
+										selectedLayoutId={ selectedLayoutId }
+										setSelectedLayoutId={ setSelectedLayoutId }
+										{ ...props }
+									/>
+								) ) }
+							</div>
+						</Fragment>
+					) }
 				</div>
 
 				<div className="newspack-newsletters-modal__preview">

@@ -265,6 +265,18 @@
 	}
 }
 
+// Tabs
+.newspack-newsletters-tabs {
+	display: flex;
+	justify-content: space-around;
+	margin: 0 -10px 24px;
+	button {
+		flex: 1;
+		display: block;
+		margin: 0 10px;
+	}
+}
+
 // Posts Inserter - Preview
 .block-editor-block-preview__container {
 	.wp-block[data-type='newspack-newsletters/posts-inserter'] {
