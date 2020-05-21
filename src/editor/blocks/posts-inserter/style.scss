@@ -2,17 +2,13 @@
 
 .newspack-posts-inserter {
 	border: 1px solid $dark-gray-primary;
-	border-bottom: none;
 	border-radius: 2px;
-	&__header,
-	&__footer {
-		border-bottom: 1px solid $dark-gray-primary;
-		padding: 1em;
-	}
+	padding: 1em 0;
 
 	&__header {
 		align-items: center;
 		display: flex;
+		padding: 0 1em;
 		position: relative;
 		z-index: 1;
 
@@ -26,21 +22,23 @@
 	}
 
 	&__preview {
-		border-bottom: 1px solid $dark-gray-primary;
+		border: 0 solid $dark-gray-primary;
+		border-width: 1px 0;
+		margin: 1em 0;
 
 		&:empty {
 			border: 0;
 		}
-	}
 
-	.block-editor-block-preview {
-		&__container {
-			max-height: 400px;
-			overflow: scroll;
-		}
+		.block-editor-block-preview {
+			&__container {
+				max-height: 400px;
+				overflow: scroll;
+			}
 
-		&__content {
-			position: relative;
+			&__content {
+				position: relative;
+			}
 		}
 	}
 
