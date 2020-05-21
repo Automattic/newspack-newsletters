@@ -191,6 +191,7 @@
 				cursor: pointer;
 				margin: 0;
 				width: 100%;
+				text-align: center;
 
 				&:hover,
 				&:focus {
@@ -217,6 +218,14 @@
 							top: 0;
 							z-index: 1;
 						}
+					}
+				}
+
+				button {
+					margin: 0;
+					height: 20px;
+					&.is-destructive {
+						color: $alert-red;
 					}
 				}
 			}

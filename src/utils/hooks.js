@@ -5,6 +5,11 @@ import apiFetch from '@wordpress/api-fetch';
 import { useState, useEffect } from '@wordpress/element';
 
 /**
+ * Internal dependencies
+ */
+import { LAYOUT_CPT_SLUG } from './consts';
+
+/**
  * A React hook that provides tha layouts list,
  * both default and user-defined.
  *
@@ -23,5 +28,14 @@ export const useLayouts = () => {
 		} );
 	}, []);
 
-	return { layouts, isFetchingLayouts: isFetching };
+	const deleteLayoutPost = id => {
+		// Optimistic update
+		setLayouts( layouts.filter( ( { ID } ) => ID !== id ) );
+		apiFetch( {
+			path: `/wp/v2/${ LAYOUT_CPT_SLUG }/${ id }`,
+			method: 'DELETE',
+		} );
+	};
+
+	return { layouts, isFetchingLayouts: isFetching, deleteLayoutPost };
 };

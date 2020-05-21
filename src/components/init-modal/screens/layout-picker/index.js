@@ -21,16 +21,28 @@ import { ENTER, SPACE } from '@wordpress/keycodes';
  */
 import { setPreventDeduplicationForPostsInserter } from '../../../../editor/blocks/posts-inserter/utils';
 import { BLANK_LAYOUT_ID } from '../../../../utils/consts';
+import { isUserDefinedLayout } from '../../../../utils';
 import { useLayouts } from '../../../../utils/hooks';
 
 const SingleLayoutPreview = ( {
+	deleteHandler,
 	selectedLayoutId,
 	setSelectedLayoutId,
 	ID,
 	post_title: title,
 	post_content: content,
-} ) =>
-	'' === content ? null : (
+	...post
+} ) => {
+	const isDeletable = isUserDefinedLayout( post );
+
+	const handleDelete = () => {
+		// eslint-disable-next-line no-alert
+		if ( confirm( __( 'Are you sure you want to delete this layout?', 'newspack-newsletters' ) ) ) {
+			deleteHandler( ID );
+		}
+	};
+
+	return '' === content ? null : (
 		<div
 			key={ ID }
 			className={ classnames( 'newspack-newsletters-layouts__item', {
@@ -54,8 +66,14 @@ const SingleLayoutPreview = ( {
 				/>
 			</div>
 			<div className="newspack-newsletters-layouts__item-label">{ title }</div>
+			{ isDeletable && (
+				<Button isDestructive onClick={ handleDelete }>
+					{ __( 'Delete', 'newspack-newsletters' ) }
+				</Button>
+			) }
 		</div>
 	);
+};
 
 const LAYOUTS_TABS = [
 	{
@@ -64,12 +82,12 @@ const LAYOUTS_TABS = [
 	},
 	{
 		title: __( 'My layouts', 'newspack-newsletters' ),
-		filter: layout => layout.post_author !== undefined,
+		filter: isUserDefinedLayout,
 	},
 ];
 
 const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLayoutIdMeta } ) => {
-	const { layouts, isFetchingLayouts } = useLayouts();
+	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayouts();
 
 	const insertLayout = layoutId => {
 		const { post_content: content } = find( layouts, { ID: layoutId } ) || {};
@@ -99,6 +117,7 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 
 	const [ activeTabIndex, setActiveTabIndex ] = useState( 0 );
 	const activeTab = LAYOUTS_TABS[ activeTabIndex ];
+	const displayedLayouts = layouts.filter( activeTab.filter );
 
 	return (
 		<Fragment>
@@ -123,18 +142,30 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 					{ isFetchingLayouts ? (
 						<Spinner />
 					) : (
-						<Fragment>
-							<div className="newspack-newsletters-layouts">
-								{ layouts.filter( activeTab.filter ).map( ( props, i ) => (
+						<div
+							className={ classnames( {
+								'newspack-newsletters-layouts': displayedLayouts.length > 0,
+							} ) }
+						>
+							{ displayedLayouts.length ? (
+								displayedLayouts.map( layout => (
 									<SingleLayoutPreview
-										key={ i }
+										key={ layout.ID }
 										selectedLayoutId={ selectedLayoutId }
 										setSelectedLayoutId={ setSelectedLayoutId }
-										{ ...props }
+										deleteHandler={ deleteLayoutPost }
+										{ ...layout }
 									/>
-								) ) }
-							</div>
-						</Fragment>
+								) )
+							) : (
+								<span>
+									{ __(
+										'Turn any newsletter to a layout via the "Layout" sidebar menu in the editor.',
+										'newspack-newsletters'
+									) }
+								</span>
+							) }
+						</div>
 					) }
 				</div>
 
