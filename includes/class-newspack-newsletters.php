@@ -94,7 +94,7 @@ final class Newspack_Newsletters {
 		);
 		\register_meta(
 			'post',
-			'template_id',
+			'layout_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => true,
@@ -801,7 +801,7 @@ final class Newspack_Newsletters {
 	 */
 	public static function save_post( $id, $post, $update ) {
 		if ( ! $update ) {
-			update_post_meta( $id, 'template_id', -1 );
+			update_post_meta( $id, 'layout_id', -1 );
 		}
 		$status = get_post_status( $id );
 		if ( 'trash' === $status ) {
