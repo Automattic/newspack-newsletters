@@ -93,7 +93,7 @@ export default compose( [
 							<div className="newspack-newsletters-layouts__item-preview">
 								<BlockPreview
 									blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
-									viewportWidth={ 560 }
+									viewportWidth={ 600 }
 								/>
 							</div>
 							<div className="newspack-newsletters-layouts__item-label">{ title }</div>

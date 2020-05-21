@@ -19,9 +19,34 @@
 			position: absolute;
 			top: 0;
 
-			.block-editor-block-list__layout.is-root-container {
-				padding-left: 28px;
-				padding-right: 28px;
+			.wp-block[data-type='newspack-newsletters/posts-inserter'] {
+				padding: 0;
+			}
+
+			.newspack-posts-inserter {
+				border: 0;
+				padding: 0;
+
+				&__header,
+				.components-button {
+					display: none;
+				}
+
+				&__preview {
+					border: 0;
+					margin: 0;
+				}
+
+				.block-editor-block-preview__container {
+					height: 100% !important;
+					max-height: 100%;
+					position: relative;
+				}
+
+				.block-editor-block-preview__content {
+					transform: scale( 1 ) !important;
+					width: 600px !important;
+				}
 			}
 		}
 	}

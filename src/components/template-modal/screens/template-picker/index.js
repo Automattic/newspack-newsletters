@@ -76,7 +76,7 @@ const TemplatePicker = ( {
 									<div className="newspack-newsletters-layouts__item-preview">
 										<BlockPreview
 											blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
-											viewportWidth={ 560 }
+											viewportWidth={ 600 }
 										/>
 									</div>
 									<div className="newspack-newsletters-layouts__item-label">{ title }</div>
@@ -88,7 +88,7 @@ const TemplatePicker = ( {
 
 				<div className="newspack-newsletters-modal__preview">
 					{ templateBlocks && templateBlocks.length > 0 ? (
-						<BlockPreview blocks={ templateBlocks } viewportWidth={ 560 } />
+						<BlockPreview blocks={ templateBlocks } viewportWidth={ 600 } />
 					) : (
 						<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 					) }
