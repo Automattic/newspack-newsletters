@@ -206,7 +206,7 @@ export default compose( [
 			savePost,
 			insertBlocks,
 			replaceBlocks,
-			setLayoutIdMeta: id => editPost( { meta: { layout_id: id } } ),
+			setLayoutIdMeta: id => editPost( { meta: { template_id: id } } ),
 		};
 	} ),
 ] )( LayoutPicker );

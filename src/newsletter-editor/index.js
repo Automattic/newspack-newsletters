@@ -56,7 +56,7 @@ const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { layoutId: meta.layout_id };
+		return { layoutId: meta.template_id };
 	} ),
 ] )( NewsletterEdit );
 

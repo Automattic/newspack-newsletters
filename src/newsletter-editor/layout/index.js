@@ -30,7 +30,7 @@ export default compose( [
 		const { saveEntityRecord } = dispatch( 'core' );
 		return {
 			replaceBlocks,
-			setLayoutIdMeta: id => editPost( { meta: { layout_id: id } } ),
+			setLayoutIdMeta: id => editPost( { meta: { template_id: id } } ),
 			saveLayout: payload =>
 				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
 					status: 'publish',
@@ -42,7 +42,7 @@ export default compose( [
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const { layout_id: layoutId } = meta;
+		const { template_id: layoutId } = meta;
 		return {
 			layoutId,
 			postTitle: getEditedPostAttribute( 'title' ),
