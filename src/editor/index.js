@@ -13,6 +13,7 @@ import './style.scss';
 import registerPostsInserterBlock from './blocks/posts-inserter';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
+import '../newsletter-editor';
 
 addBlocksValidationFilter();
 registerPostsInserterBlock();

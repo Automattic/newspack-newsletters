@@ -48,7 +48,7 @@ final class Newspack_Newsletters_Editor {
 	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
 	 */
 	public static function strip_editor_modifications() {
-		if ( ! self::is_editing_newsletter_or_layout() ) {
+		if ( ! self::is_editing_newsletter() ) {
 			return;
 		}
 
@@ -75,7 +75,7 @@ final class Newspack_Newsletters_Editor {
 	 * @param WP_Post $post the post to consider.
 	 */
 	public static function newsletters_allowed_block_types( $allowed_block_types, $post ) {
-		if ( ! self::is_editing_newsletter_or_layout() ) {
+		if ( ! self::is_editing_newsletter() ) {
 			return $allowed_block_types;
 		}
 		return array(
@@ -100,9 +100,15 @@ final class Newspack_Newsletters_Editor {
 	 * Load up common JS/CSS for wizards.
 	 */
 	public static function enqueue_block_editor_assets() {
-		if ( ! self::is_editing_newsletter_or_layout() ) {
+		if ( ! self::is_editing_newsletter() ) {
 			return;
 		}
+
+		$mailchimp_api_key = Newspack_Newsletters::mailchimp_api_key();
+		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
+		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
+
+		$has_keys = ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret );
 
 		\wp_enqueue_script(
 			'newspack-newsletters',
@@ -111,40 +117,14 @@ final class Newspack_Newsletters_Editor {
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.js' ),
 			true
 		);
-
-		if ( self::is_editing_newsletter() ) {
-			$mailchimp_api_key = Newspack_Newsletters::mailchimp_api_key();
-			$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
-			$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
-
-			$has_keys = ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret );
-
-			\wp_enqueue_script(
-				'newspack-newsletters-newsletter',
-				plugins_url( '../dist/newsletterEditor.js', __FILE__ ),
-				[],
-				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.js' ),
-				true
-			);
-
-			wp_localize_script(
-				'newspack-newsletters-newsletter',
-				'newspack_newsletters_data',
-				[
-					'has_keys'         => $has_keys,
-					'service_provider' => 'mailchimp',
-				]
-			);
-
-			wp_register_style(
-				'newspack-newsletters-newsletters',
-				plugins_url( '../dist/newsletterEditor.css', __FILE__ ),
-				[],
-				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.css' )
-			);
-			wp_style_add_data( 'newspack-newsletters-newsletters', 'rtl', 'replace' );
-			wp_enqueue_style( 'newspack-newsletters-newsletters' );
-		}
+		wp_localize_script(
+			'newspack-newsletters',
+			'newspack_newsletters_data',
+			[
+				'has_keys'         => $has_keys,
+				'service_provider' => 'mailchimp',
+			]
+		);
 
 		wp_register_style(
 			'newspack-newsletters',
@@ -162,22 +142,6 @@ final class Newspack_Newsletters_Editor {
 	public static function is_editing_newsletter() {
 		$post_type = get_post()->post_type;
 		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === $post_type;
-	}
-
-	/**
-	 * Is editing a newsletter layout?
-	 */
-	public static function is_editing_newsletter_layout() {
-		$post_type = get_post()->post_type;
-		return Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === $post_type;
-	}
-
-	/**
-	 * Determine of the screen should have Newsletter-specific editor modifications.
-	 * In other words, if it's a newsletter or a newsletter layout being edited.
-	 */
-	public static function is_editing_newsletter_or_layout() {
-		return self::is_editing_newsletter() || self::is_editing_newsletter_layout();
 	}
 }
 Newspack_Newsletters_Editor::instance();

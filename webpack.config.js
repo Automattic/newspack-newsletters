@@ -14,7 +14,6 @@ const path = require( 'path' );
  */
 const editor = path.join( __dirname, 'src', 'editor' );
 const admin = path.join( __dirname, 'src', 'admin' );
-const newsletterEditor = path.join( __dirname, 'src', 'newsletter-editor' );
 
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
@@ -22,7 +21,6 @@ const webpackConfig = getBaseWebpackConfig(
 		entry: {
 			editor,
 			admin,
-			newsletterEditor,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
