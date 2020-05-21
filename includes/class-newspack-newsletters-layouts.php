@@ -42,38 +42,6 @@ final class Newspack_Newsletters_Layouts {
 	 */
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_layout_cpt' ] );
-		add_action( 'init', [ __CLASS__, 'register_meta' ] );
-		add_action( 'admin_menu', [ __CLASS__, 'add_layouts_link' ] );
-	}
-
-	/**
-	 * Add options page
-	 */
-	public static function add_layouts_link() {
-		add_submenu_page(
-			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			__( 'Newsletters Layouts', 'newspack-newsletters' ),
-			__( 'Layouts', 'newspack-newsletters' ),
-			'manage_options',
-			'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT
-		);
-	}
-
-	/**
-	 * Register custom fields.
-	 */
-	public static function register_meta() {
-		\register_meta(
-			'post',
-			'newspack_newsletters_is_default_layout',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
-				'show_in_rest'   => true,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
@@ -83,28 +51,9 @@ final class Newspack_Newsletters_Layouts {
 		if ( ! current_user_can( 'edit_others_posts' ) ) {
 			return;
 		}
-		$labels = [
-			'name'               => _x( 'Newsletter Layouts', 'post type general name', 'newspack-newsletters' ),
-			'singular_name'      => _x( 'Newsletter Layout', 'post type singular name', 'newspack-newsletters' ),
-			'menu_name'          => _x( 'Newsletter Layouts', 'admin menu', 'newspack-newsletters' ),
-			'name_admin_bar'     => _x( 'Newsletter Layout', 'add new on admin bar', 'newspack-newsletters' ),
-			'add_new'            => _x( 'Add New Layout', 'popup', 'newspack-newsletters' ),
-			'add_new_item'       => __( 'Add New Newsletter Layout', 'newspack-newsletters' ),
-			'new_item'           => __( 'New Newsletter Layout', 'newspack-newsletters' ),
-			'edit_item'          => __( 'Edit Newsletter Layout', 'newspack-newsletters' ),
-			'view_item'          => __( 'View Newsletter Layout', 'newspack-newsletters' ),
-			'all_items'          => __( 'All Newsletter Layouts', 'newspack-newsletters' ),
-			'search_items'       => __( 'Search Newsletter Layouts', 'newspack-newsletters' ),
-			'parent_item_colon'  => __( 'Parent Newsletter Layouts:', 'newspack-newsletters' ),
-			'not_found'          => __( 'No newsletter layouts found.', 'newspack-newsletters' ),
-			'not_found_in_trash' => __( 'No newsletter layouts found in Trash.', 'newspack-newsletters' ),
-		];
 
 		$cpt_args = [
-			'labels'       => $labels,
 			'public'       => false,
-			'show_in_menu' => false,
-			'show_ui'      => true,
 			'show_in_rest' => true,
 			'supports'     => [ 'editor', 'title', 'custom-fields' ],
 			'taxonomies'   => [],
@@ -157,47 +106,25 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * Insert default layouts.
+	 * Get default layouts.
 	 */
-	public static function insert_default_layout_posts() {
-		$default_layout_posts = get_posts(
-			array(
-				'numberposts' => -1,
-				'post_type'   => self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
-				'meta_key'    => 'newspack_newsletters_is_default_layout',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value'  => 'yes',
-			)
-		);
-
+	public static function get_default_layouts() {
 		$layout_templates_base_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'includes/templates/';
+		$layouts                    = [];
+		// 1-indexed, because 0 is blank template.
+		$layout_id = 1;
 		foreach ( scandir( $layout_templates_base_path ) as $template ) {
 			if ( strpos( $template, '.json' ) !== false ) {
 				$decoded_template  = json_decode( file_get_contents( $layout_templates_base_path . $template, true ) ); //phpcs:ignore
-
-				// If there is no layout with such title, add it.
-				$existing_layout_template_post = array_filter(
-					$default_layout_posts,
-					function ( $e ) use ( $decoded_template ) {
-						return $e->post_title == $decoded_template->title;
-					}
+				$layouts[]        = array(
+					'ID'           => $layout_id,
+					'post_title'   => $decoded_template->title,
+					'post_content' => self::template_token_replacement( $decoded_template->content ),
 				);
-
-				if ( ! $existing_layout_template_post ) {
-					wp_insert_post(
-						array(
-							'post_type'    => self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
-							'post_title'   => $decoded_template->title,
-							'meta_input'   => array(
-								'newspack_newsletters_is_default_layout' => 'yes',
-							),
-							'post_status'  => 'publish',
-							'post_content' => self::template_token_replacement( $decoded_template->content ),
-						)
-					);
-				}
+				$layout_id++;
 			}
 		}
+		return $layouts;
 	}
 }
 Newspack_Newsletters_Layouts::instance();

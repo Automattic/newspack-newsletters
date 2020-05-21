@@ -171,6 +171,15 @@ final class Newspack_Newsletters {
 	public static function rest_api_init() {
 		\register_rest_route(
 			'newspack-newsletters/v1/',
+			'layouts',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_layouts' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
+			]
+		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -283,6 +292,24 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+	}
+
+	/**
+	 * Retrieve Layouts.
+	 */
+	public static function api_get_layouts() {
+		$layouts_query = new WP_Query(
+			array(
+				'post_type' => Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
+				'per_page'  => -1,
+			)
+		);
+		$layouts       = array_merge(
+			$layouts_query->get_posts(),
+			Newspack_Newsletters_Layouts::get_default_layouts()
+		);
+
+		return \rest_ensure_response( $layouts );
 	}
 
 	/**

@@ -20,8 +20,8 @@ import { ENTER, SPACE } from '@wordpress/keycodes';
  * Internal dependencies
  */
 import { setPreventDeduplicationForPostsInserter } from '../../../../editor/blocks/posts-inserter/utils';
-import { templatesSelector } from '../../../../store/selectors';
-import { BLANK_TEMPLATE_ID } from '../../../../consts';
+import { BLANK_TEMPLATE_ID } from '../../../../utils/consts';
+import { useLayouts } from '../../../../utils/hooks';
 
 const TemplatePicker = ( {
 	getBlocks,
@@ -29,10 +29,11 @@ const TemplatePicker = ( {
 	replaceBlocks,
 	savePost,
 	setTemplateIdMeta,
-	templates,
 } ) => {
+	const templates = useLayouts();
+
 	const insertTemplate = templateId => {
-		const { content } = find( templates, { id: templateId } ) || {};
+		const { post_content: content } = find( templates, { ID: templateId } ) || {};
 		const blocksToInsert = content ? parse( content ) : [];
 		const existingBlocksIds = getBlocks().map( ( { clientId } ) => clientId );
 		if ( existingBlocksIds.length ) {
@@ -46,8 +47,8 @@ const TemplatePicker = ( {
 
 	const [ selectedTemplateId, setSelectedTemplateId ] = useState( null );
 	const templateBlocks = useMemo(() => {
-		const template = selectedTemplateId && find( templates, { id: selectedTemplateId } );
-		return template ? parse( template.content ) : null;
+		const template = selectedTemplateId && find( templates, { ID: selectedTemplateId } );
+		return template ? parse( template.post_content ) : null;
 	}, [ selectedTemplateId, templates.length ]);
 
 	return (
@@ -55,18 +56,18 @@ const TemplatePicker = ( {
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__layouts">
 					<div className="newspack-newsletters-layouts">
-						{ templates.map( ( { id, title, content } ) =>
+						{ templates.map( ( { ID, post_title: title, post_content: content } ) =>
 							'' === content ? null : (
 								<div
-									key={ id }
+									key={ ID }
 									className={ classnames( 'newspack-newsletters-layouts__item', {
-										'is-active': selectedTemplateId === id,
+										'is-active': selectedTemplateId === ID,
 									} ) }
-									onClick={ () => setSelectedTemplateId( id ) }
+									onClick={ () => setSelectedTemplateId( ID ) }
 									onKeyDown={ event => {
 										if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
 											event.preventDefault();
-											setSelectedTemplateId( id );
+											setSelectedTemplateId( ID );
 										}
 									} }
 									role="button"
@@ -116,7 +117,6 @@ export default compose( [
 		const { getBlocks } = select( 'core/block-editor' );
 		return {
 			getBlocks,
-			templates: templatesSelector( select ),
 		};
 	} ),
 	withDispatch( dispatch => {

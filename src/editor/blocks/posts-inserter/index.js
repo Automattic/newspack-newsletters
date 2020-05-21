@@ -28,7 +28,7 @@ import Icon from './icon';
 import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
-import { LAYOUT_CPT_SLUG } from '../../../consts';
+import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
 
 const PostsInserterBlock = ( {
 	setAttributes,

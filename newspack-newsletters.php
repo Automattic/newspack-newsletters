@@ -23,5 +23,3 @@ if ( ! defined( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE' ) ) {
 if ( ! class_exists( 'Newspack_Newsletters' ) ) {
 	include_once dirname( __FILE__ ) . '/includes/class-newspack-newsletters.php';
 }
-
-register_activation_hook( __FILE__, array( 'Newspack_Newsletters_Layouts', 'insert_default_layout_posts' ) );
