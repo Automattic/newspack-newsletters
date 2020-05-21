@@ -108,8 +108,10 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 		return layout ? parse( layout.post_content ) : null;
 	}, [ selectedLayoutId, layouts.length ]);
 
+	const canRenderPreview = layoutBlocks && layoutBlocks.length > 0;
+
 	const renderPreview = () =>
-		layoutBlocks && layoutBlocks.length > 0 ? (
+		canRenderPreview ? (
 			<BlockPreview blocks={ layoutBlocks } viewportWidth={ 600 } />
 		) : (
 			<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
@@ -180,7 +182,7 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 				<span className="separator">{ __( 'or', 'newspack-newsletters' ) }</span>
 				<Button
 					isPrimary
-					disabled={ selectedLayoutId === BLANK_LAYOUT_ID }
+					disabled={ isFetchingLayouts || ! canRenderPreview }
 					onClick={ () => insertLayout( selectedLayoutId ) }
 				>
 					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }

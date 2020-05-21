@@ -201,9 +201,8 @@
 				}
 
 				&.is-active {
-					pointer-events: none;
-
 					.newspack-newsletters-layouts__item-preview {
+						pointer-events: none;
 						border-color: currentColor;
 						position: relative;
 
