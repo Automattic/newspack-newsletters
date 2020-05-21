@@ -163,6 +163,12 @@
 		overflow-y: scroll;
 		max-height: 100%;
 
+		&--loading {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
 		.newspack-newsletters-layouts {
 			display: grid;
 			gap: 16px;

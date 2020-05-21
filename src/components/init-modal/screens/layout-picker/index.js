@@ -11,7 +11,7 @@ import { parse } from '@wordpress/blocks';
 import { Fragment, useMemo, useState } from '@wordpress/element';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { Button } from '@wordpress/components';
+import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
 import { ENTER, SPACE } from '@wordpress/keycodes';
@@ -24,7 +24,7 @@ import { BLANK_LAYOUT_ID } from '../../../../utils/consts';
 import { useLayouts } from '../../../../utils/hooks';
 
 const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLayoutIdMeta } ) => {
-	const layouts = useLayouts();
+	const { layouts, isFetchingLayouts } = useLayouts();
 
 	const insertLayout = layoutId => {
 		const { post_content: content } = find( layouts, { ID: layoutId } ) || {};
@@ -45,10 +45,22 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 		return layout ? parse( layout.post_content ) : null;
 	}, [ selectedLayoutId, layouts.length ]);
 
+	const renderPreview = () =>
+		layoutBlocks && layoutBlocks.length > 0 ? (
+			<BlockPreview blocks={ layoutBlocks } viewportWidth={ 600 } />
+		) : (
+			<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
+		);
+
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
-				<div className="newspack-newsletters-modal__layouts">
+				<div
+					className={ classnames( 'newspack-newsletters-modal__layouts', {
+						'newspack-newsletters-modal__layouts--loading': isFetchingLayouts,
+					} ) }
+				>
+					{ isFetchingLayouts && <Spinner /> }
 					<div className="newspack-newsletters-layouts">
 						{ layouts.map( ( { ID, post_title: title, post_content: content } ) =>
 							'' === content ? null : (
@@ -82,11 +94,7 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 				</div>
 
 				<div className="newspack-newsletters-modal__preview">
-					{ layoutBlocks && layoutBlocks.length > 0 ? (
-						<BlockPreview blocks={ layoutBlocks } viewportWidth={ 600 } />
-					) : (
-						<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
-					) }
+					{ ! isFetchingLayouts && renderPreview() }
 				</div>
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">

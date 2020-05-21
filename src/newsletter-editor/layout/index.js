@@ -53,7 +53,7 @@ export default compose( [
 	} ),
 ] )( ( { setLayoutIdMeta, layoutId, replaceBlocks, addLayout, getBlocks, postTitle } ) => {
 	const [ warningModalVisible, setWarningModalVisible ] = useState( false );
-	const layouts = useLayouts();
+	const { layouts } = useLayouts();
 
 	const { post_content: content, post_title: title } = find( layouts, { ID: layoutId } ) || {};
 	const blockPreview = content ? parse( content ) : null;

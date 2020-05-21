@@ -11,13 +11,17 @@ import { useState, useEffect } from '@wordpress/element';
  * @return {Array} Array of layouts
  */
 export const useLayouts = () => {
+	const [ isFetching, setIsFetching ] = useState( true );
 	const [ layouts, setLayouts ] = useState( [] );
 
 	useEffect(() => {
 		apiFetch( {
 			path: `/newspack-newsletters/v1/layouts`,
-		} ).then( setLayouts );
+		} ).then( response => {
+			setLayouts( response );
+			setIsFetching( false );
+		} );
 	}, []);
 
-	return layouts;
+	return { layouts, isFetchingLayouts: isFetching };
 };
