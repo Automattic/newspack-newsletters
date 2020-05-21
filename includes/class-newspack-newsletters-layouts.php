@@ -55,7 +55,7 @@ final class Newspack_Newsletters_Layouts {
 		$cpt_args = [
 			'public'       => false,
 			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
+			'supports'     => [ 'editor', 'title' ],
 			'taxonomies'   => [],
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT, $cpt_args );
@@ -111,7 +111,7 @@ final class Newspack_Newsletters_Layouts {
 	public static function get_default_layouts() {
 		$layouts_base_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'includes/layouts/';
 		$layouts           = [];
-		// 1-indexed, because 0 is blank layout.
+		// 1-indexed, because 0 denotes a blank layout.
 		$layout_id = 1;
 		foreach ( scandir( $layouts_base_path ) as $layout ) {
 			if ( strpos( $layout, '.json' ) !== false ) {
