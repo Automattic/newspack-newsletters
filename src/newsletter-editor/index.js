@@ -11,7 +11,7 @@ import { registerPlugin } from '@wordpress/plugins';
 /**
  * Internal dependencies
  */
-import TemplateModal from '../components/template-modal';
+import InitModal from '../components/init-modal';
 import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
@@ -19,15 +19,15 @@ import registerEditorPlugin from './editor/';
 
 registerEditorPlugin();
 
-const NewsletterEdit = ( { templateId } ) => {
+const NewsletterEdit = ( { layoutId } ) => {
 	const [ hasKeys, setHasKeys ] = useState(
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.has_keys
 	);
 
-	const isDisplayingTemplateModal = ! hasKeys || -1 === templateId;
+	const isDisplayingInitModal = ! hasKeys || -1 === layoutId;
 
-	return isDisplayingTemplateModal ? (
-		<TemplateModal hasKeys={ hasKeys } onSetupStatus={ setHasKeys } />
+	return isDisplayingInitModal ? (
+		<InitModal hasKeys={ hasKeys } onSetupStatus={ setHasKeys } />
 	) : (
 		<Fragment>
 			<PluginDocumentSettingPanel
@@ -56,7 +56,7 @@ const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { templateId: meta.template_id };
+		return { layoutId: meta.template_id };
 	} ),
 ] )( NewsletterEdit );
 

@@ -11,7 +11,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import TemplatePicker from './screens/template-picker';
+import LayoutPicker from './screens/layout-picker';
 import APIKeys from './screens/api-keys';
 import './style.scss';
 
@@ -29,7 +29,7 @@ export default ( { hasKeys, onSetupStatus } ) => {
 					: __( 'Configure the newsletters', 'newspack-newsletters' )
 			}
 		>
-			{ hasKeys ? <TemplatePicker /> : <APIKeys onSetupStatus={ onSetupStatus } /> }
+			{ hasKeys ? <LayoutPicker /> : <APIKeys onSetupStatus={ onSetupStatus } /> }
 		</Modal>
 	);
 };

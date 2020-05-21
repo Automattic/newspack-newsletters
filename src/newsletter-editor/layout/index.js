@@ -18,7 +18,7 @@ import { Button, Modal, TextControl } from '@wordpress/components';
  * Internal dependencies
  */
 import { useLayouts } from '../../utils/hooks';
-import { BLANK_TEMPLATE_ID, LAYOUT_CPT_SLUG } from '../../utils/consts';
+import { BLANK_LAYOUT_ID, LAYOUT_CPT_SLUG } from '../../utils/consts';
 import './style.scss';
 import { setPreventDeduplicationForPostsInserter } from '../../editor/blocks/posts-inserter/utils';
 
@@ -31,7 +31,7 @@ export default compose( [
 		const { saveEntityRecord } = dispatch( 'core' );
 		return {
 			replaceBlocks,
-			setTemplateIDMeta: templateId => editPost( { meta: { template_id: templateId } } ),
+			setLayoutIdMeta: id => editPost( { meta: { template_id: id } } ),
 			addLayout: ( { content, title } ) =>
 				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
 					status: 'publish',
@@ -44,18 +44,18 @@ export default compose( [
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const { template_id: templateId } = meta;
+		const { template_id: layoutId } = meta;
 		return {
-			templateId,
+			layoutId,
 			postTitle: getEditedPostAttribute( 'title' ),
 			getBlocks,
 		};
 	} ),
-] )( ( { setTemplateIDMeta, templateId, replaceBlocks, addLayout, getBlocks, postTitle } ) => {
+] )( ( { setLayoutIdMeta, layoutId, replaceBlocks, addLayout, getBlocks, postTitle } ) => {
 	const [ warningModalVisible, setWarningModalVisible ] = useState( false );
-	const templates = useLayouts();
+	const layouts = useLayouts();
 
-	const { post_content: content, post_title: title } = find( templates, { ID: templateId } ) || {};
+	const { post_content: content, post_title: title } = find( layouts, { ID: layoutId } ) || {};
 	const blockPreview = content ? parse( content ) : null;
 
 	const clearPost = () => {
@@ -96,9 +96,9 @@ export default compose( [
 			</Button>
 			<br />
 			<br />
-			{ templateId !== BLANK_TEMPLATE_ID && (
+			{ layoutId !== BLANK_LAYOUT_ID && (
 				<Fragment>
-					<Button isLink href={ getEditLink( templateId ) }>
+					<Button isLink href={ getEditLink( layoutId ) }>
 						{ __( 'Edit this layout', 'newspack-newsletters' ) }
 					</Button>
 					<br />
@@ -148,7 +148,7 @@ export default compose( [
 						isPrimary
 						onClick={ () => {
 							clearPost();
-							setTemplateIDMeta( -1 );
+							setLayoutIdMeta( -1 );
 							setWarningModalVisible( false );
 						} }
 					>

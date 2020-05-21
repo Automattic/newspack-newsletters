@@ -20,20 +20,14 @@ import { ENTER, SPACE } from '@wordpress/keycodes';
  * Internal dependencies
  */
 import { setPreventDeduplicationForPostsInserter } from '../../../../editor/blocks/posts-inserter/utils';
-import { BLANK_TEMPLATE_ID } from '../../../../utils/consts';
+import { BLANK_LAYOUT_ID } from '../../../../utils/consts';
 import { useLayouts } from '../../../../utils/hooks';
 
-const TemplatePicker = ( {
-	getBlocks,
-	insertBlocks,
-	replaceBlocks,
-	savePost,
-	setTemplateIdMeta,
-} ) => {
-	const templates = useLayouts();
+const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLayoutIdMeta } ) => {
+	const layouts = useLayouts();
 
-	const insertTemplate = templateId => {
-		const { post_content: content } = find( templates, { ID: templateId } ) || {};
+	const insertLayout = layoutId => {
+		const { post_content: content } = find( layouts, { ID: layoutId } ) || {};
 		const blocksToInsert = content ? parse( content ) : [];
 		const existingBlocksIds = getBlocks().map( ( { clientId } ) => clientId );
 		if ( existingBlocksIds.length ) {
@@ -41,33 +35,33 @@ const TemplatePicker = ( {
 		} else {
 			insertBlocks( blocksToInsert );
 		}
-		setTemplateIdMeta( templateId );
+		setLayoutIdMeta( layoutId );
 		setTimeout( savePost, 1 );
 	};
 
-	const [ selectedTemplateId, setSelectedTemplateId ] = useState( null );
-	const templateBlocks = useMemo(() => {
-		const template = selectedTemplateId && find( templates, { ID: selectedTemplateId } );
-		return template ? parse( template.post_content ) : null;
-	}, [ selectedTemplateId, templates.length ]);
+	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
+	const layoutBlocks = useMemo(() => {
+		const layout = selectedLayoutId && find( layouts, { ID: selectedLayoutId } );
+		return layout ? parse( layout.post_content ) : null;
+	}, [ selectedLayoutId, layouts.length ]);
 
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__layouts">
 					<div className="newspack-newsletters-layouts">
-						{ templates.map( ( { ID, post_title: title, post_content: content } ) =>
+						{ layouts.map( ( { ID, post_title: title, post_content: content } ) =>
 							'' === content ? null : (
 								<div
 									key={ ID }
 									className={ classnames( 'newspack-newsletters-layouts__item', {
-										'is-active': selectedTemplateId === ID,
+										'is-active': selectedLayoutId === ID,
 									} ) }
-									onClick={ () => setSelectedTemplateId( ID ) }
+									onClick={ () => setSelectedLayoutId( ID ) }
 									onKeyDown={ event => {
 										if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
 											event.preventDefault();
-											setSelectedTemplateId( ID );
+											setSelectedLayoutId( ID );
 										}
 									} }
 									role="button"
@@ -88,22 +82,22 @@ const TemplatePicker = ( {
 				</div>
 
 				<div className="newspack-newsletters-modal__preview">
-					{ templateBlocks && templateBlocks.length > 0 ? (
-						<BlockPreview blocks={ templateBlocks } viewportWidth={ 600 } />
+					{ layoutBlocks && layoutBlocks.length > 0 ? (
+						<BlockPreview blocks={ layoutBlocks } viewportWidth={ 600 } />
 					) : (
 						<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
 					) }
 				</div>
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">
-				<Button isSecondary onClick={ () => insertTemplate( BLANK_TEMPLATE_ID ) }>
+				<Button isSecondary onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
 					{ __( 'Start From Scratch', 'newspack-newsletters' ) }
 				</Button>
 				<span className="separator">{ __( 'or', 'newspack-newsletters' ) }</span>
 				<Button
 					isPrimary
-					disabled={ selectedTemplateId === BLANK_TEMPLATE_ID }
-					onClick={ () => insertTemplate( selectedTemplateId ) }
+					disabled={ selectedLayoutId === BLANK_LAYOUT_ID }
+					onClick={ () => insertLayout( selectedLayoutId ) }
 				>
 					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
 				</Button>
@@ -126,7 +120,7 @@ export default compose( [
 			savePost,
 			insertBlocks,
 			replaceBlocks,
-			setTemplateIdMeta: templateId => editPost( { meta: { template_id: templateId } } ),
+			setLayoutIdMeta: id => editPost( { meta: { template_id: id } } ),
 		};
 	} ),
-] )( TemplatePicker );
+] )( LayoutPicker );

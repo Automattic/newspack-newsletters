@@ -11,13 +11,13 @@ import { useState, useEffect } from '@wordpress/element';
  * @return {Array} Array of layouts
  */
 export const useLayouts = () => {
-	const [ templates, setTemplates ] = useState( [] );
+	const [ layouts, setLayouts ] = useState( [] );
 
 	useEffect(() => {
 		apiFetch( {
 			path: `/newspack-newsletters/v1/layouts`,
-		} ).then( setTemplates );
+		} ).then( setLayouts );
 	}, []);
 
-	return templates;
+	return layouts;
 };

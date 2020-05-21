@@ -62,13 +62,13 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * Token replacement for newsletter templates.
+	 * Token replacement for newsletter layouts.
 	 *
-	 * @param string $content Template content.
+	 * @param string $content Layout content.
 	 * @param array  $extra Associative array of additional tokens to replace.
 	 * @return string Content.
 	 */
-	public static function template_token_replacement( $content, $extra = [] ) {
+	public static function layout_token_replacement( $content, $extra = [] ) {
 		$sitename       = get_bloginfo( 'name' );
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
 		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'medium' )[0] : null;
@@ -109,17 +109,17 @@ final class Newspack_Newsletters_Layouts {
 	 * Get default layouts.
 	 */
 	public static function get_default_layouts() {
-		$layout_templates_base_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'includes/templates/';
-		$layouts                    = [];
-		// 1-indexed, because 0 is blank template.
+		$layouts_base_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'includes/layouts/';
+		$layouts           = [];
+		// 1-indexed, because 0 is blank layout.
 		$layout_id = 1;
-		foreach ( scandir( $layout_templates_base_path ) as $template ) {
-			if ( strpos( $template, '.json' ) !== false ) {
-				$decoded_template  = json_decode( file_get_contents( $layout_templates_base_path . $template, true ) ); //phpcs:ignore
-				$layouts[]        = array(
+		foreach ( scandir( $layouts_base_path ) as $layout ) {
+			if ( strpos( $layout, '.json' ) !== false ) {
+				$decoded_layout  = json_decode( file_get_contents( $layouts_base_path . $layout, true ) ); //phpcs:ignore
+				$layouts[]      = array(
 					'ID'           => $layout_id,
-					'post_title'   => $decoded_template->title,
-					'post_content' => self::template_token_replacement( $decoded_template->content ),
+					'post_title'   => $decoded_layout->title,
+					'post_content' => self::layout_token_replacement( $decoded_layout->content ),
 				);
 				$layout_id++;
 			}
