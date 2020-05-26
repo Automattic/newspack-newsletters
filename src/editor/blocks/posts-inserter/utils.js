@@ -64,7 +64,9 @@ const createBlockTemplatesForSinglePost = (
 		postContentBlocks.push( getExcerptBlockTemplate( post, { excerptLength } ) );
 	}
 
-	if ( displayFeaturedImage ) {
+	const hasFeaturedImage = post.featuredImageLargeURL || post.featuredImageMediumURL;
+
+	if ( displayFeaturedImage && hasFeaturedImage ) {
 		const getImageBlock = ( alignCenter = false ) => [
 			'core/image',
 			{
