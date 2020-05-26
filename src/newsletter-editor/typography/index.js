@@ -4,7 +4,7 @@
 import { compose } from '@wordpress/compose';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { Fragment } from '@wordpress/element';
+import { Fragment, useEffect } from '@wordpress/element';
 import { SelectControl } from '@wordpress/components';
 
 const fontOptions = [
@@ -75,6 +75,12 @@ export default compose( [
 		};
 	} ),
 ] )( ( { editPost, fontBody, fontHeader } ) => {
+	useEffect(() => {
+		document.documentElement.style.setProperty( '--body-font', fontBody );
+	}, [ fontBody ]);
+	useEffect(() => {
+		document.documentElement.style.setProperty( '--header-font', fontHeader );
+	}, [ fontHeader ]);
 	return (
 		<Fragment>
 			<SelectControl
