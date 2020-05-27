@@ -11,8 +11,8 @@ import { parse, serialize } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { Fragment, useState } from '@wordpress/element';
-import { Button, Modal, TextControl } from '@wordpress/components';
+import { Fragment, useState, useEffect } from '@wordpress/element';
+import { Button, Modal, TextControl, Spinner } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -61,9 +61,13 @@ export default compose( [
 		isEditedPostEmpty,
 	} ) => {
 		const [ warningModalVisible, setWarningModalVisible ] = useState( false );
-		const { layouts } = useLayoutsState();
+		const { layouts, isFetchingLayouts } = useLayoutsState();
 
-		const usedLayout = find( layouts, { ID: layoutId } ) || {};
+		const [ usedLayout, setUsedLayout ] = useState( {} );
+		useEffect(() => {
+			setUsedLayout( find( layouts, { ID: layoutId } ) || {} );
+		}, [ layouts.length ]);
+
 		const blockPreview = usedLayout.post_content ? parse( usedLayout.post_content ) : null;
 
 		const clearPost = () => {
@@ -95,8 +99,17 @@ export default compose( [
 				content: serialize( getBlocks() ),
 				id: usedLayout.ID,
 			};
-			saveLayout( updatePayload ).then( () => {
+			saveLayout( updatePayload ).then( updatedLayout => {
 				setIsSavingLayout( false );
+
+				// Update the layout preview
+				// The shape of this data is different than the API response for CPT
+				setUsedLayout( {
+					...updatedLayout,
+					post_content: updatedLayout.content.raw,
+					post_title: updatedLayout.title.raw,
+					post_type: LAYOUT_CPT_SLUG,
+				} );
 			} );
 		};
 
@@ -104,6 +117,11 @@ export default compose( [
 
 		return (
 			<Fragment>
+				{ Boolean( layoutId && isFetchingLayouts ) && (
+					<div className="newspack-newsletters-layouts__spinner">
+						<Spinner />
+					</div>
+				) }
 				{ blockPreview !== null && (
 					<div className="newspack-newsletters-layouts">
 						<div className="newspack-newsletters-layouts__item">

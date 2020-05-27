@@ -1,6 +1,11 @@
 @import '~@wordpress/base-styles/colors';
 
 .newspack-newsletters-layouts {
+	&__spinner {
+		text-align: center;
+		padding: 40px 10px;
+	}
+
 	&__item {
 		margin: 0 0 16px;
 		width: 100%;
