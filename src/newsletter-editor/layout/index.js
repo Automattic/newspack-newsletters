@@ -17,7 +17,7 @@ import { Button, Modal, TextControl } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import { useLayouts } from '../../utils/hooks';
+import { useLayoutsState } from '../../utils/hooks';
 import { LAYOUT_CPT_SLUG } from '../../utils/consts';
 import { isUserDefinedLayout } from '../../utils';
 import './style.scss';
@@ -39,7 +39,7 @@ export default compose( [
 		};
 	} ),
 	withSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
+		const { getEditedPostAttribute, isEditedPostEmpty } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		const { template_id: layoutId } = meta;
@@ -47,150 +47,153 @@ export default compose( [
 			layoutId,
 			postTitle: getEditedPostAttribute( 'title' ),
 			getBlocks,
+			isEditedPostEmpty: isEditedPostEmpty(),
 		};
 	} ),
-] )( ( { setLayoutIdMeta, layoutId, replaceBlocks, saveLayout, getBlocks, postTitle } ) => {
-	const [ warningModalVisible, setWarningModalVisible ] = useState( false );
-	const { layouts } = useLayouts();
+] )(
+	( {
+		setLayoutIdMeta,
+		layoutId,
+		replaceBlocks,
+		saveLayout,
+		getBlocks,
+		postTitle,
+		isEditedPostEmpty,
+	} ) => {
+		const [ warningModalVisible, setWarningModalVisible ] = useState( false );
+		const { layouts } = useLayoutsState();
 
-	const usedLayout = find( layouts, { ID: layoutId } ) || {};
-	const blockPreview = usedLayout.post_content ? parse( usedLayout.post_content ) : null;
+		const usedLayout = find( layouts, { ID: layoutId } ) || {};
+		const blockPreview = usedLayout.post_content ? parse( usedLayout.post_content ) : null;
 
-	const clearPost = () => {
-		const clientIds = getBlocks().map( ( { clientId } ) => clientId );
-		if ( clientIds && clientIds.length ) {
-			replaceBlocks( clientIds, [] );
-		}
-	};
-
-	const [ isSavingLayout, setIsSavingLayout ] = useState( false );
-	const [ manageModalState, setManageModalState ] = useState( null );
-	const [ newLayoutName, setNewLayoutName ] = useState( postTitle );
-	const handleSaveAsLayout = () => {
-		setIsSavingLayout( true );
-		const updatePayload = {
-			title: newLayoutName,
-			content: serialize( getBlocks() ),
+		const clearPost = () => {
+			const clientIds = getBlocks().map( ( { clientId } ) => clientId );
+			if ( clientIds && clientIds.length ) {
+				replaceBlocks( clientIds, [] );
+			}
 		};
-		if ( manageModalState.isUpdating ) {
-			updatePayload.id = usedLayout.ID;
-		}
-		saveLayout( updatePayload ).then( () => {
-			setIsSavingLayout( false );
-			setManageModalState( false );
-		} );
-	};
 
-	const isUsingCustomLayout = isUserDefinedLayout( usedLayout );
+		const [ isSavingLayout, setIsSavingLayout ] = useState( false );
+		const [ isManageModalVisible, setIsManageModalVisible ] = useState( null );
+		const [ newLayoutName, setNewLayoutName ] = useState( postTitle );
 
-	return (
-		<Fragment>
-			{ blockPreview !== null && (
-				<div className="newspack-newsletters-layouts">
-					<div className="newspack-newsletters-layouts__item">
-						<div className="newspack-newsletters-layouts__item-preview">
-							<BlockPreview
-								blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
-								viewportWidth={ 600 }
-							/>
-						</div>
-						<div className="newspack-newsletters-layouts__item-label">
-							{ usedLayout.post_title }
+		const handleSaveAsLayout = () => {
+			setIsSavingLayout( true );
+			const updatePayload = {
+				title: newLayoutName,
+				content: serialize( getBlocks() ),
+			};
+			saveLayout( updatePayload ).then( () => {
+				setIsSavingLayout( false );
+				setIsManageModalVisible( false );
+			} );
+		};
+
+		const handeLayoutUpdate = () => {
+			setIsSavingLayout( true );
+			const updatePayload = {
+				content: serialize( getBlocks() ),
+				id: usedLayout.ID,
+			};
+			saveLayout( updatePayload ).then( () => {
+				setIsSavingLayout( false );
+			} );
+		};
+
+		const isUsingCustomLayout = isUserDefinedLayout( usedLayout );
+
+		return (
+			<Fragment>
+				{ blockPreview !== null && (
+					<div className="newspack-newsletters-layouts">
+						<div className="newspack-newsletters-layouts__item">
+							<div className="newspack-newsletters-layouts__item-preview">
+								<BlockPreview
+									blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
+									viewportWidth={ 600 }
+								/>
+							</div>
+							<div className="newspack-newsletters-layouts__item-label">
+								{ usedLayout.post_title }
+							</div>
 						</div>
 					</div>
+				) }
+				<Button isSecondary isDestructive onClick={ () => setWarningModalVisible( true ) }>
+					{ __( 'Reset newsletter layout', 'newspack-newsletters' ) }
+				</Button>
+				<br />
+				<br />
+				<div className="newspack-newsletters-tabs">
+					{ isUsingCustomLayout && (
+						<Fragment>
+							<Button isPrimary disabled={ isSavingLayout } onClick={ handeLayoutUpdate }>
+								{ __( 'Update layout', 'newspack-newsletters' ) }
+							</Button>
+						</Fragment>
+					) }
+					<Button
+						isPrimary
+						disabled={ isEditedPostEmpty || isSavingLayout }
+						onClick={ () => setIsManageModalVisible( true ) }
+					>
+						{ __( 'Create a layout', 'newspack-newsletters' ) }
+					</Button>
 				</div>
-			) }
-			<Button isSecondary isDestructive onClick={ () => setWarningModalVisible( true ) }>
-				{ __( 'Reset newsletter layout', 'newspack-newsletters' ) }
-			</Button>
-			<br />
-			<br />
-			<div className="newspack-newsletters-tabs">
-				{ isUsingCustomLayout && (
-					<Fragment>
+
+				{ isManageModalVisible && (
+					<Modal
+						className="newspack-newsletters__modal"
+						title={ __( 'Save newsletter as a layout', 'newspack-newsletters' ) }
+						onRequestClose={ () => setIsManageModalVisible( null ) }
+					>
+						<TextControl
+							label={ __( 'Title', 'newspack-newsletters' ) }
+							disabled={ isSavingLayout }
+							value={ newLayoutName }
+							onChange={ setNewLayoutName }
+						/>
 						<Button
 							isPrimary
-							disabled={ isSavingLayout }
+							disabled={ isSavingLayout || newLayoutName.length === 0 }
+							onClick={ handleSaveAsLayout }
+						>
+							{ __( 'Save', 'newspack-newsletters' ) }
+						</Button>
+						<Button isSecondary onClick={ () => setIsManageModalVisible( null ) }>
+							{ __( 'Cancel', 'newspack-newsletters' ) }
+						</Button>
+					</Modal>
+				) }
+
+				{ warningModalVisible && (
+					<Modal
+						className="newspack-newsletters__modal"
+						title={ __( 'Overwrite newsletter content?', 'newspack-newsletters' ) }
+						onRequestClose={ () => setWarningModalVisible( false ) }
+					>
+						<p>
+							{ __(
+								"Changing the newsletter's layout will remove any customizations or edits you have already made.",
+								'newspack-newsletters'
+							) }
+						</p>
+						<Button
+							isPrimary
 							onClick={ () => {
-								setNewLayoutName( usedLayout.post_title );
-								setManageModalState( {
-									title: __( 'Update layout', 'newspack-newsletters' ),
-									saveButtonText: __( 'Update', 'newspack-newsletters' ),
-									isUpdating: true,
-								} );
+								clearPost();
+								setLayoutIdMeta( -1 );
+								setWarningModalVisible( false );
 							} }
 						>
-							{ __( 'Update layout', 'newspack-newsletters' ) }
+							{ __( 'Reset layout', 'newspack-newsletters' ) }
 						</Button>
-					</Fragment>
+						<Button isSecondary onClick={ () => setWarningModalVisible( false ) }>
+							{ __( 'Cancel', 'newspack-newsletters' ) }
+						</Button>
+					</Modal>
 				) }
-				<Button
-					isPrimary
-					disabled={ isSavingLayout }
-					onClick={ () => {
-						setNewLayoutName( postTitle );
-						setManageModalState( {
-							title: __( 'Save newsletter as a layout', 'newspack-newsletters' ),
-							saveButtonText: __( 'Save', 'newspack-newsletters' ),
-						} );
-					} }
-				>
-					{ __( 'Create a layout', 'newspack-newsletters' ) }
-				</Button>
-			</div>
-
-			{ manageModalState && (
-				<Modal
-					className="newspack-newsletters__modal"
-					title={ manageModalState.title }
-					onRequestClose={ () => setManageModalState( null ) }
-				>
-					<TextControl
-						label={ __( 'Title', 'newspack-newsletters' ) }
-						disabled={ isSavingLayout }
-						value={ newLayoutName }
-						onChange={ setNewLayoutName }
-					/>
-					<Button
-						isPrimary
-						disabled={ isSavingLayout || newLayoutName.length === 0 }
-						onClick={ handleSaveAsLayout }
-					>
-						{ manageModalState.saveButtonText }
-					</Button>
-					<Button isSecondary onClick={ () => setManageModalState( null ) }>
-						{ __( 'Cancel', 'newspack-newsletters' ) }
-					</Button>
-				</Modal>
-			) }
-
-			{ warningModalVisible && (
-				<Modal
-					className="newspack-newsletters__modal"
-					title={ __( 'Overwrite newsletter content?', 'newspack-newsletters' ) }
-					onRequestClose={ () => setWarningModalVisible( false ) }
-				>
-					<p>
-						{ __(
-							"Changing the newsletter's layout will remove any customizations or edits you have already made.",
-							'newspack-newsletters'
-						) }
-					</p>
-					<Button
-						isPrimary
-						onClick={ () => {
-							clearPost();
-							setLayoutIdMeta( -1 );
-							setWarningModalVisible( false );
-						} }
-					>
-						{ __( 'Reset layout', 'newspack-newsletters' ) }
-					</Button>
-					<Button isSecondary onClick={ () => setWarningModalVisible( false ) }>
-						{ __( 'Cancel', 'newspack-newsletters' ) }
-					</Button>
-				</Modal>
-			) }
-		</Fragment>
-	);
-} );
+			</Fragment>
+		);
+	}
+);

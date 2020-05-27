@@ -15,7 +15,7 @@ import { LAYOUT_CPT_SLUG } from './consts';
  *
  * @return {Array} Array of layouts
  */
-export const useLayouts = () => {
+export const useLayoutsState = () => {
 	const [ isFetching, setIsFetching ] = useState( true );
 	const [ layouts, setLayouts ] = useState( [] );
 

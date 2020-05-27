@@ -14,66 +14,14 @@ import { withSelect, withDispatch } from '@wordpress/data';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
-import { ENTER, SPACE } from '@wordpress/keycodes';
 
 /**
  * Internal dependencies
  */
-import { setPreventDeduplicationForPostsInserter } from '../../../../editor/blocks/posts-inserter/utils';
 import { BLANK_LAYOUT_ID } from '../../../../utils/consts';
 import { isUserDefinedLayout } from '../../../../utils';
-import { useLayouts } from '../../../../utils/hooks';
-
-const SingleLayoutPreview = ( {
-	deleteHandler,
-	selectedLayoutId,
-	setSelectedLayoutId,
-	ID,
-	post_title: title,
-	post_content: content,
-	...post
-} ) => {
-	const isDeletable = isUserDefinedLayout( post );
-
-	const handleDelete = () => {
-		// eslint-disable-next-line no-alert
-		if ( confirm( __( 'Are you sure you want to delete this layout?', 'newspack-newsletters' ) ) ) {
-			deleteHandler( ID );
-		}
-	};
-
-	return '' === content ? null : (
-		<div
-			key={ ID }
-			className={ classnames( 'newspack-newsletters-layouts__item', {
-				'is-active': selectedLayoutId === ID,
-			} ) }
-			onClick={ () => setSelectedLayoutId( ID ) }
-			onKeyDown={ event => {
-				if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
-					event.preventDefault();
-					setSelectedLayoutId( ID );
-				}
-			} }
-			role="button"
-			tabIndex="0"
-			aria-label={ title }
-		>
-			<div className="newspack-newsletters-layouts__item-preview">
-				<BlockPreview
-					blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
-					viewportWidth={ 600 }
-				/>
-			</div>
-			<div className="newspack-newsletters-layouts__item-label">{ title }</div>
-			{ isDeletable && (
-				<Button isDestructive onClick={ handleDelete }>
-					{ __( 'Delete', 'newspack-newsletters' ) }
-				</Button>
-			) }
-		</div>
-	);
-};
+import { useLayoutsState } from '../../../../utils/hooks';
+import SingleLayoutPreview from './SingleLayoutPreview';
 
 const LAYOUTS_TABS = [
 	{
@@ -83,11 +31,12 @@ const LAYOUTS_TABS = [
 	{
 		title: __( 'My layouts', 'newspack-newsletters' ),
 		filter: isUserDefinedLayout,
+		isEditable: true,
 	},
 ];
 
 const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLayoutIdMeta } ) => {
-	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayouts();
+	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayoutsState();
 
 	const insertLayout = layoutId => {
 		const { post_content: content } = find( layouts, { ID: layoutId } ) || {};
@@ -164,6 +113,7 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 										selectedLayoutId={ selectedLayoutId }
 										setSelectedLayoutId={ setSelectedLayoutId }
 										deleteHandler={ deleteLayoutPost }
+										isEditable={ activeTab.isEditable }
 										{ ...layout }
 									/>
 								) )

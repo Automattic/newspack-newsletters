@@ -54,5 +54,15 @@
 	&__item-label {
 		padding: 4px 2px;
 		text-align: center;
+		input {
+			text-align: center;
+			border-color: transparent !important;
+			&:focus {
+				border-color: $blue-medium-focus !important;
+			}
+		}
+		.components-base-control__field {
+			margin-bottom: 0;
+		}
 	}
 }
