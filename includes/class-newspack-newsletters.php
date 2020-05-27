@@ -300,8 +300,8 @@ final class Newspack_Newsletters {
 	public static function api_get_layouts() {
 		$layouts_query = new WP_Query(
 			array(
-				'post_type' => Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
-				'per_page'  => -1,
+				'post_type'      => Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
+				'posts_per_page' => -1,
 			)
 		);
 		$layouts       = array_merge(
