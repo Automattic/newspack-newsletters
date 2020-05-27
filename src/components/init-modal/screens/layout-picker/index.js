@@ -8,7 +8,7 @@ import { find } from 'lodash';
  * WordPress dependencies
  */
 import { parse } from '@wordpress/blocks';
-import { Fragment, useMemo, useState } from '@wordpress/element';
+import { Fragment, useMemo, useState, useEffect } from '@wordpress/element';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Button, Spinner } from '@wordpress/components';
@@ -121,6 +121,13 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 	const activeTab = LAYOUTS_TABS[ activeTabIndex ];
 	const displayedLayouts = layouts.filter( activeTab.filter );
 
+	// Switch tab to user layouts if there are any.
+	useEffect(() => {
+		if ( ! isFetchingLayouts && layouts.filter( isUserDefinedLayout ).length ) {
+			setActiveTabIndex( 1 );
+		}
+	}, [ isFetchingLayouts ]);
+
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
@@ -128,8 +135,9 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 					{ LAYOUTS_TABS.map( ( { title }, i ) => (
 						<Button
 							key={ i }
-							isSecondary={ i !== activeTabIndex }
-							isPrimary={ i === activeTabIndex }
+							disabled={ isFetchingLayouts }
+							isSecondary={ isFetchingLayouts || i !== activeTabIndex }
+							isPrimary={ ! isFetchingLayouts && i === activeTabIndex }
 							onClick={ () => setActiveTabIndex( i ) }
 						>
 							{ title }
