@@ -18,28 +18,14 @@ import { Button, Modal, TextControl, Spinner } from '@wordpress/components';
  * Internal dependencies
  */
 import { useLayoutsState } from '../../utils/hooks';
-import { LAYOUT_CPT_SLUG } from '../../utils/consts';
+import { LAYOUT_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
 import { isUserDefinedLayout } from '../../utils';
 import './style.scss';
 import { setPreventDeduplicationForPostsInserter } from '../../editor/blocks/posts-inserter/utils';
 
 export default compose( [
-	withDispatch( dispatch => {
-		const { replaceBlocks } = dispatch( 'core/block-editor' );
-		const { editPost } = dispatch( 'core/editor' );
-		const { saveEntityRecord } = dispatch( 'core' );
-		return {
-			replaceBlocks,
-			setLayoutIdMeta: id => editPost( { meta: { template_id: id } } ),
-			saveLayout: payload =>
-				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
-					status: 'publish',
-					...payload,
-				} ),
-		};
-	} ),
 	withSelect( select => {
-		const { getEditedPostAttribute, isEditedPostEmpty } = select( 'core/editor' );
+		const { getEditedPostAttribute, isEditedPostEmpty, getCurrentPostId } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		const { template_id: layoutId } = meta;
@@ -48,11 +34,29 @@ export default compose( [
 			postTitle: getEditedPostAttribute( 'title' ),
 			getBlocks,
 			isEditedPostEmpty: isEditedPostEmpty(),
+			currentPostId: getCurrentPostId(),
+		};
+	} ),
+	withDispatch( ( dispatch, { currentPostId } ) => {
+		const { replaceBlocks } = dispatch( 'core/block-editor' );
+		const { saveEntityRecord } = dispatch( 'core' );
+		return {
+			replaceBlocks,
+			saveLayoutIdMeta: id =>
+				saveEntityRecord( 'postType', NEWSLETTER_CPT_SLUG, {
+					id: currentPostId,
+					meta: { template_id: id },
+				} ),
+			saveLayout: payload =>
+				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
+					status: 'publish',
+					...payload,
+				} ),
 		};
 	} ),
 ] )(
 	( {
-		setLayoutIdMeta,
+		saveLayoutIdMeta,
 		layoutId,
 		replaceBlocks,
 		saveLayout,
@@ -81,15 +85,31 @@ export default compose( [
 		const [ isManageModalVisible, setIsManageModalVisible ] = useState( null );
 		const [ newLayoutName, setNewLayoutName ] = useState( postTitle );
 
+		const handleLayoutUpdate = updatedLayout => {
+			setIsSavingLayout( false );
+			// Set this new layout as the newsletter's layout
+			saveLayoutIdMeta( updatedLayout.id );
+
+			// Update the layout preview
+			// The shape of this data is different than the API response for CPT
+			setUsedLayout( {
+				...updatedLayout,
+				post_content: updatedLayout.content.raw,
+				post_title: updatedLayout.title.raw,
+				post_type: LAYOUT_CPT_SLUG,
+			} );
+		};
+
 		const handleSaveAsLayout = () => {
 			setIsSavingLayout( true );
 			const updatePayload = {
 				title: newLayoutName,
 				content: serialize( getBlocks() ),
 			};
-			saveLayout( updatePayload ).then( () => {
-				setIsSavingLayout( false );
+			saveLayout( updatePayload ).then( newLayout => {
 				setIsManageModalVisible( false );
+
+				handleLayoutUpdate( newLayout );
 			} );
 		};
 
@@ -99,18 +119,7 @@ export default compose( [
 				content: serialize( getBlocks() ),
 				id: usedLayout.ID,
 			};
-			saveLayout( updatePayload ).then( updatedLayout => {
-				setIsSavingLayout( false );
-
-				// Update the layout preview
-				// The shape of this data is different than the API response for CPT
-				setUsedLayout( {
-					...updatedLayout,
-					post_content: updatedLayout.content.raw,
-					post_title: updatedLayout.title.raw,
-					post_type: LAYOUT_CPT_SLUG,
-				} );
-			} );
+			saveLayout( updatePayload ).then( handleLayoutUpdate );
 		};
 
 		const isUsingCustomLayout = isUserDefinedLayout( usedLayout );
@@ -200,7 +209,7 @@ export default compose( [
 							isPrimary
 							onClick={ () => {
 								clearPost();
-								setLayoutIdMeta( -1 );
+								saveLayoutIdMeta( -1 );
 								setWarningModalVisible( false );
 							} }
 						>
