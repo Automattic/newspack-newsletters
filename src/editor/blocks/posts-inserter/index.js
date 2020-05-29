@@ -145,6 +145,7 @@ const PostsInserterBlockWithSelect = compose( [
 			categories,
 			isDisplayingSpecificPosts,
 			specificPosts,
+			preventDeduplication,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks } = select( 'core/block-editor' );
@@ -165,7 +166,7 @@ const PostsInserterBlockWithSelect = compose( [
 							order,
 							orderby: orderBy,
 							per_page: postsToShow,
-							exclude,
+							exclude: preventDeduplication ? [] : exclude,
 						},
 						value => ! isUndefined( value )
 				  );
