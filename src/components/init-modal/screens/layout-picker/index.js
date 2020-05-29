@@ -72,10 +72,10 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 
 	// Switch tab to user layouts if there are any.
 	useEffect(() => {
-		if ( ! isFetchingLayouts && layouts.filter( isUserDefinedLayout ).length ) {
+		if ( layouts.filter( isUserDefinedLayout ).length ) {
 			setActiveTabIndex( 1 );
 		}
-	}, [ isFetchingLayouts ]);
+	}, [ layouts.length ]);
 
 	return (
 		<Fragment>
