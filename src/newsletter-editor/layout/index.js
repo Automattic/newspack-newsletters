@@ -11,7 +11,7 @@ import { parse, serialize } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { BlockPreview } from '@wordpress/block-editor';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { Fragment, useState, useEffect } from '@wordpress/element';
+import { Fragment, useState, useEffect, useMemo } from '@wordpress/element';
 import { Button, Modal, TextControl, Spinner } from '@wordpress/components';
 
 /**
@@ -72,11 +72,14 @@ export default compose( [
 		const { layouts, isFetchingLayouts } = useLayoutsState();
 
 		const [ usedLayout, setUsedLayout ] = useState( {} );
+
 		useEffect(() => {
 			setUsedLayout( find( layouts, { ID: layoutId } ) || {} );
 		}, [ layouts.length ]);
 
-		const blockPreview = usedLayout.post_content ? parse( usedLayout.post_content ) : null;
+		const blockPreview = useMemo(() => {
+			return usedLayout.post_content ? parse( usedLayout.post_content ) : null;
+		}, [ usedLayout ]);
 
 		const clearPost = () => {
 			const clientIds = getBlocks().map( ( { clientId } ) => clientId );

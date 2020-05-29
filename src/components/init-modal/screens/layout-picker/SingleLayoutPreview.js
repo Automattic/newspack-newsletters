@@ -8,7 +8,7 @@ import classnames from 'classnames';
  */
 import { withDispatch } from '@wordpress/data';
 import { parse } from '@wordpress/blocks';
-import { useState } from '@wordpress/element';
+import { useState, useMemo } from '@wordpress/element';
 import { Button, TextControl } from '@wordpress/components';
 import { ENTER, SPACE } from '@wordpress/keycodes';
 import { BlockPreview } from '@wordpress/block-editor';
@@ -49,6 +49,11 @@ const SingleLayoutPreview = ( {
 		}
 	};
 
+	const blockPreviewBlocks = useMemo(
+		() => setPreventDeduplicationForPostsInserter( parse( content ) ),
+		[ content ]
+	);
+
 	return (
 		<div
 			key={ ID }
@@ -70,10 +75,7 @@ const SingleLayoutPreview = ( {
 				aria-label={ title }
 			>
 				{ '' === content ? null : (
-					<BlockPreview
-						blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
-						viewportWidth={ 600 }
-					/>
+					<BlockPreview blocks={ blockPreviewBlocks } viewportWidth={ 600 } />
 				) }
 			</div>
 			{ isEditable ? (

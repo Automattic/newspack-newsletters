@@ -17,7 +17,7 @@ import {
 	InspectorControls,
 	BlockControls,
 } from '@wordpress/block-editor';
-import { Fragment, useEffect } from '@wordpress/element';
+import { Fragment, useEffect, useMemo } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -38,7 +38,10 @@ const PostsInserterBlock = ( {
 	setInsertedPostsIds,
 	removeBlock,
 } ) => {
-	const templateBlocks = getTemplateBlocks( postList, attributes );
+	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
+		postList,
+		attributes,
+	] );
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
 	useEffect(() => {
