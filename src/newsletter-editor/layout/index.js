@@ -39,14 +39,18 @@ export default compose( [
 	} ),
 	withDispatch( ( dispatch, { currentPostId } ) => {
 		const { replaceBlocks } = dispatch( 'core/block-editor' );
+		const { editPost } = dispatch( 'core/editor' );
 		const { saveEntityRecord } = dispatch( 'core' );
 		return {
 			replaceBlocks,
-			saveLayoutIdMeta: id =>
+			saveLayoutIdMeta: id => {
+				// Edit, so the change is picked up by the selector in NewsletterEditWithSelect
+				editPost( { meta: { template_id: id } } );
 				saveEntityRecord( 'postType', NEWSLETTER_CPT_SLUG, {
 					id: currentPostId,
 					meta: { template_id: id },
-				} ),
+				} );
+			},
 			saveLayout: payload =>
 				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
 					status: 'publish',
