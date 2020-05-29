@@ -193,13 +193,6 @@
 				width: 100%;
 				text-align: center;
 
-				&:hover,
-				&:focus {
-					.newspack-newsletters-layouts__item-preview {
-						border-color: $blue-medium-focus;
-					}
-				}
-
 				&.is-active {
 					.newspack-newsletters-layouts__item-preview {
 						pointer-events: none;
@@ -237,6 +230,11 @@
 				padding: 0 0 calc( 100% - 2px );
 				position: relative;
 				width: 100%;
+
+				&:hover,
+				&:focus {
+					border-color: $blue-medium-focus;
+				}
 
 				.block-editor-block-preview__container {
 					position: absolute;

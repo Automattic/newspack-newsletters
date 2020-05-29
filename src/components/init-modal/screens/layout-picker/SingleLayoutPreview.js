@@ -41,10 +41,12 @@ const SingleLayoutPreview = ( {
 	const [ isSaving, setIsSaving ] = useState( false );
 
 	const handleLayoutNameChange = () => {
-		setIsSaving( true );
-		saveLayout( { title: layoutName } ).then( () => {
-			setIsSaving( false );
-		} );
+		if ( layoutName !== title ) {
+			setIsSaving( true );
+			saveLayout( { title: layoutName } ).then( () => {
+				setIsSaving( false );
+			} );
+		}
 	};
 
 	return (
@@ -53,18 +55,20 @@ const SingleLayoutPreview = ( {
 			className={ classnames( 'newspack-newsletters-layouts__item', {
 				'is-active': selectedLayoutId === ID,
 			} ) }
-			onClick={ () => setSelectedLayoutId( ID ) }
-			onKeyDown={ event => {
-				if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
-					event.preventDefault();
-					setSelectedLayoutId( ID );
-				}
-			} }
-			role="button"
-			tabIndex="0"
-			aria-label={ title }
 		>
-			<div className="newspack-newsletters-layouts__item-preview">
+			<div
+				className="newspack-newsletters-layouts__item-preview"
+				onClick={ () => setSelectedLayoutId( ID ) }
+				onKeyDown={ event => {
+					if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
+						event.preventDefault();
+						setSelectedLayoutId( ID );
+					}
+				} }
+				role="button"
+				tabIndex="0"
+				aria-label={ title }
+			>
 				{ '' === content ? null : (
 					<BlockPreview
 						blocks={ setPreventDeduplicationForPostsInserter( parse( content ) ) }
