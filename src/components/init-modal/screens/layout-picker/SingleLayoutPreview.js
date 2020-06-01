@@ -95,7 +95,7 @@ const SingleLayoutPreview = ( {
 				<div className="newspack-newsletters-layouts__item-label">{ title }</div>
 			) }
 			{ isEditable && (
-				<Button isDestructive onClick={ handleDelete } disabled={ isSaving }>
+				<Button isDestructive isLink onClick={ handleDelete } disabled={ isSaving }>
 					{ __( 'Delete', 'newspack-newsletters' ) }
 				</Button>
 			) }
