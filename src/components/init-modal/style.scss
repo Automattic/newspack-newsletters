@@ -276,10 +276,26 @@
 	}
 }
 
-// Tabs
-.newspack-newsletters-tabs {
+// Buttons group
+.newspack-newsletters-buttons-group {
 	display: flex;
 	justify-content: space-around;
+	&--spaced {
+		margin-left: -5px;
+		margin-right: -5px;
+		button {
+			margin-left: 5px;
+			margin-right: 5px;
+			justify-content: center;
+		}
+	}
+	button {
+		flex: 1;
+	}
+}
+
+// Tabs
+.newspack-newsletters-tabs {
 	&__button {
 		padding: 28px 20px 20px 20px;
 		position: relative;
@@ -302,9 +318,6 @@
 			height: 3px;
 			background-color: $blue-medium-focus;
 		}
-	}
-	button {
-		flex: 1;
 	}
 }
 

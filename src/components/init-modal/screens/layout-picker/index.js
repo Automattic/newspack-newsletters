@@ -80,7 +80,7 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
-				<div className="newspack-newsletters-tabs">
+				<div className="newspack-newsletters-tabs newspack-newsletters-buttons-group">
 					{ LAYOUTS_TABS.map( ( { title }, i ) => (
 						<Button
 							key={ i }

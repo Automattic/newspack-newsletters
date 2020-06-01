@@ -32,7 +32,7 @@ export default compose( [
 		return {
 			layoutId,
 			postTitle: getEditedPostAttribute( 'title' ),
-			getBlocks,
+			postBlocks: getBlocks(),
 			isEditedPostEmpty: isEditedPostEmpty(),
 			currentPostId: getCurrentPostId(),
 		};
@@ -64,7 +64,7 @@ export default compose( [
 		layoutId,
 		replaceBlocks,
 		saveLayout,
-		getBlocks,
+		postBlocks,
 		postTitle,
 		isEditedPostEmpty,
 	} ) => {
@@ -82,7 +82,7 @@ export default compose( [
 		}, [ usedLayout ]);
 
 		const clearPost = () => {
-			const clientIds = getBlocks().map( ( { clientId } ) => clientId );
+			const clientIds = postBlocks.map( ( { clientId } ) => clientId );
 			if ( clientIds && clientIds.length ) {
 				replaceBlocks( clientIds, [] );
 			}
@@ -107,11 +107,14 @@ export default compose( [
 			} );
 		};
 
+		const postContent = useMemo( () => serialize( postBlocks ), [ postBlocks ] );
+		const isPostContentSameAsLayout = postContent === usedLayout.post_content;
+
 		const handleSaveAsLayout = () => {
 			setIsSavingLayout( true );
 			const updatePayload = {
 				title: newLayoutName,
-				content: serialize( getBlocks() ),
+				content: postContent,
 			};
 			saveLayout( updatePayload ).then( newLayout => {
 				setIsManageModalVisible( false );
@@ -121,12 +124,17 @@ export default compose( [
 		};
 
 		const handeLayoutUpdate = () => {
-			setIsSavingLayout( true );
-			const updatePayload = {
-				content: serialize( getBlocks() ),
-				id: usedLayout.ID,
-			};
-			saveLayout( updatePayload ).then( handleLayoutUpdate );
+			if (
+				// eslint-disable-next-line no-alert
+				confirm( __( 'Are you sure you want to overwrite this layout?', 'newspack-newsletters' ) )
+			) {
+				setIsSavingLayout( true );
+				const updatePayload = {
+					content: postContent,
+					id: usedLayout.ID,
+				};
+				saveLayout( updatePayload ).then( handleLayoutUpdate );
+			}
 		};
 
 		const isUsingCustomLayout = isUserDefinedLayout( usedLayout );
@@ -153,27 +161,31 @@ export default compose( [
 						</div>
 					</div>
 				) }
-				<Button isSecondary isDestructive onClick={ () => setWarningModalVisible( true ) }>
-					{ __( 'Reset newsletter layout', 'newspack-newsletters' ) }
-				</Button>
-				<br />
-				<br />
-				<div className="newspack-newsletters-tabs">
-					{ isUsingCustomLayout && (
-						<Fragment>
-							<Button isPrimary disabled={ isSavingLayout } onClick={ handeLayoutUpdate }>
-								{ __( 'Update layout', 'newspack-newsletters' ) }
-							</Button>
-						</Fragment>
-					) }
+				<div className="newspack-newsletters-buttons-group newspack-newsletters-buttons-group--spaced">
 					<Button
 						isPrimary
 						disabled={ isEditedPostEmpty || isSavingLayout }
 						onClick={ () => setIsManageModalVisible( true ) }
 					>
-						{ __( 'Create a layout', 'newspack-newsletters' ) }
+						{ __( 'Save new layout', 'newspack-newsletters' ) }
 					</Button>
+
+					{ isUsingCustomLayout && (
+						<Button
+							isSecondary
+							disabled={ isPostContentSameAsLayout || isSavingLayout }
+							onClick={ handeLayoutUpdate }
+						>
+							{ __( 'Update layout', 'newspack-newsletters' ) }
+						</Button>
+					) }
 				</div>
+
+				<br />
+
+				<Button isSecondary isLink isDestructive onClick={ () => setWarningModalVisible( true ) }>
+					{ __( 'Reset newsletter layout', 'newspack-newsletters' ) }
+				</Button>
 
 				{ isManageModalVisible && (
 					<Modal
