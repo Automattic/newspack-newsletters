@@ -85,8 +85,10 @@ const LayoutPicker = ( { getBlocks, insertBlocks, replaceBlocks, savePost, setLa
 						<Button
 							key={ i }
 							disabled={ isFetchingLayouts }
-							isSecondary={ isFetchingLayouts || i !== activeTabIndex }
-							isPrimary={ ! isFetchingLayouts && i === activeTabIndex }
+							className={ classnames( 'newspack-newsletters-tabs__button', {
+								'newspack-newsletters-tabs__button--is-active':
+									! isFetchingLayouts && i === activeTabIndex,
+							} ) }
 							onClick={ () => setActiveTabIndex( i ) }
 						>
 							{ title }
