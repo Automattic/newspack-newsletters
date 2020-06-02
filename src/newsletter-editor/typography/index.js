@@ -18,10 +18,6 @@ const fontOptions = [
 		label: __( 'Arial', 'newspack-newsletters' ),
 	},
 	{
-		value: 'System',
-		label: __( 'System', 'newspack-newsletters' ),
-	},
-	{
 		value: 'Tahoma',
 		label: __( 'Tahoma', 'newspack-newsletters' ),
 	},
