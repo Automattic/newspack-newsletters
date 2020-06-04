@@ -80,7 +80,7 @@
 			// Fullscreen mode
 			.is-fullscreen-mode & {
 				bottom: 0;
-				height: auto;
+				height: calc( 100vh - 61px );
 				left: 0;
 				margin: 0;
 				position: fixed;
@@ -297,7 +297,8 @@
 // Tabs
 .newspack-newsletters-tabs {
 	&__button {
-		padding: 28px 20px 20px 20px;
+		min-height: 48px;
+		padding: 6px 20px;
 		position: relative;
 		border-radius: 0;
 		&:focus:not( :disabled ) {
