@@ -358,6 +358,10 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Set typography meta.
+	 * The save_post action fires before post meta is updated.
+	 * This causes newsletters to be synced to the ESP before recent changes to custom fields have been recorded,
+	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the typography fields
+	 * as soon as they are changed in the editor, so that the changes are available the next time sync to ESP occurs.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
