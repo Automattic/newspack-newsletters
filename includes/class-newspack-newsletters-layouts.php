@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 final class Newspack_Newsletters_Layouts {
 	/**
 	 * CPT for Newsletter layouts.
-	 * Name if funky because of 20 character restriction.
+	 * Name is funky because of 20 character restriction.
 	 */
 	const NEWSPACK_NEWSLETTERS_LAYOUT_CPT = 'newspack_nl_layo_cpt';
 

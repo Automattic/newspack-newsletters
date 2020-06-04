@@ -306,7 +306,8 @@ final class Newspack_Newsletters {
 		);
 		$layouts       = array_merge(
 			$layouts_query->get_posts(),
-			Newspack_Newsletters_Layouts::get_default_layouts()
+			Newspack_Newsletters_Layouts::get_default_layouts(),
+			apply_filters( 'newspack_newsletters_templates', [] )
 		);
 
 		return \rest_ensure_response( $layouts );
