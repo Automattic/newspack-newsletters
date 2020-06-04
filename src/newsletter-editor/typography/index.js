@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
@@ -22,8 +23,8 @@ const fontOptions = [
 		label: __( 'Tahoma', 'newspack-newsletters' ),
 	},
 	{
-		value: '"Trebuchet MS"',
-		label: __( 'Trebuchet MS', 'newspack-newsletters' ),
+		value: 'TrebuchetMS',
+		label: __( 'Trebuchet', 'newspack-newsletters' ),
 	},
 	{
 		value: 'Verdana',
@@ -63,14 +64,23 @@ export default compose( [
 		return { editPost };
 	} ),
 	withSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
+		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
+			postId: getCurrentPostId(),
 			fontBody: meta.font_body || '',
 			fontHeader: meta.font_header || '',
 		};
 	} ),
-] )( ( { editPost, fontBody, fontHeader } ) => {
+] )( ( { editPost, fontBody, fontHeader, postId } ) => {
+	const updateFontValue = ( key, value ) => {
+		editPost( { meta: { [ key ]: value } } );
+		apiFetch( {
+			data: { key, value },
+			method: 'POST',
+			path: `/newspack-newsletters/v1/typography/${ postId }`,
+		} );
+	};
 	useEffect(() => {
 		document.documentElement.style.setProperty( '--body-font', fontBody );
 	}, [ fontBody ]);
@@ -83,13 +93,13 @@ export default compose( [
 				label={ __( 'Headings', 'newspack-newsletters' ) }
 				value={ fontHeader }
 				options={ fontOptions }
-				onChange={ value => editPost( { meta: { font_header: value } } ) }
+				onChange={ value => updateFontValue( 'font_header', value ) }
 			/>
 			<SelectControl
 				label={ __( 'Body', 'newspack-newsletters' ) }
 				value={ fontBody }
 				options={ fontOptions }
-				onChange={ value => editPost( { meta: { font_body: value } } ) }
+				onChange={ value => updateFontValue( 'font_body', value ) }
 			/>
 		</Fragment>
 	);

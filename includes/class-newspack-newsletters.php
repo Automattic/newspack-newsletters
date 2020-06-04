@@ -314,6 +314,87 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'typography/(?P<id>[\a-z]+)',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_typography' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'args'                => [
+					'id'    => [
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_id' ],
+						'sanitize_callback' => 'absint',
+					],
+					'key'   => [
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_typography_key' ],
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'value' => [
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_typography_value' ],
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Set typography meta.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_typography( $request ) {
+		$id    = $request['id'];
+		$key   = $request['key'];
+		$value = $request['value'];
+		update_post_meta( $id, $key, $value );
+	}
+
+	/**
+	 * Validate ID is a Newsletter post type.
+	 *
+	 * @param int $id Post ID.
+	 */
+	public static function validate_newsletter_id( $id ) {
+		return self::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $id );
+	}
+
+	/**
+	 * Validate typography key.
+	 *
+	 * @param String $key Meta key.
+	 */
+	public static function validate_newsletter_typography_key( $key ) {
+		return in_array(
+			$key,
+			[
+				'font_header',
+				'font_body',
+			]
+		);
+	}
+
+	/**
+	 * Validate typography value (font name).
+	 *
+	 * @param String $key Meta value.
+	 */
+	public static function validate_newsletter_typography_value( $key ) {
+		return in_array(
+			$key,
+			[
+				'Arial',
+				'Tahoma',
+				'TrebuchetMS',
+				'Verdana',
+				'Serif',
+				'Georgia',
+				'Palatino',
+				'TimesNewRoman',
+				'Courier',
+			]
+		);
 	}
 
 	/**
