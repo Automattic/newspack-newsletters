@@ -284,9 +284,10 @@ final class Newspack_Newsletters_Renderer {
 
 				if ( $figcaption ) {
 					$caption_attrs = array(
-						'align'     => 'center',
-						'color'     => '#555d66',
-						'font-size' => '13px',
+						'align'       => 'center',
+						'color'       => '#555d66',
+						'font-size'   => '13px',
+						'font-family' => $font_family,
 					);
 					 // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . $figcaption->wholeText . '</mj-text>';
@@ -317,6 +318,7 @@ final class Newspack_Newsletters_Renderer {
 						'href'          => $anchor->getAttribute( 'href' ),
 						'border-radius' => $border_radius . 'px',
 						'font-size'     => '18px',
+						'font-family'   => $font_family,
 						// Default color - will be replaced by get_colors if there are colors set.
 						'color'         => $is_outlined ? '#32373c' : '#fff',
 					);
