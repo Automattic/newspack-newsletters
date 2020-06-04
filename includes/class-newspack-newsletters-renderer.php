@@ -536,9 +536,15 @@ final class Newspack_Newsletters_Renderer {
 		self::$color_palette = get_post_meta( $post->ID, 'color_palette', true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
-		$title               = $post->post_title;
-		$blocks              = parse_blocks( $post->post_content );
-		$body                = '';
+		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
+			self::$font_header = 'Arial';
+		}
+		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
+			self::$font_body = 'Georgia';
+		}
+		$title  = $post->post_title;
+		$blocks = parse_blocks( $post->post_content );
+		$body   = '';
 		foreach ( $blocks as $block ) {
 			$block_content = self::render_mjml_component( $block );
 			if ( ! empty( $block_content ) ) {

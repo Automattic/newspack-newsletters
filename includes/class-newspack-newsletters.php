@@ -19,6 +19,23 @@ final class Newspack_Newsletters {
 	const NEWSPACK_NEWSLETTERS_CPT = 'newspack_nl_cpt';
 
 	/**
+	 * Supported fonts.
+	 *
+	 * @var array
+	 */
+	public static $supported_fonts = [
+		'Arial',
+		'Tahoma',
+		'TrebuchetMS',
+		'Verdana',
+		'Serif',
+		'Georgia',
+		'Palatino',
+		'TimesNewRoman',
+		'Courier',
+	];
+
+	/**
 	 * The single instance of the class.
 	 *
 	 * @var Newspack_Newsletters
@@ -383,17 +400,7 @@ final class Newspack_Newsletters {
 	public static function validate_newsletter_typography_value( $key ) {
 		return in_array(
 			$key,
-			[
-				'Arial',
-				'Tahoma',
-				'TrebuchetMS',
-				'Verdana',
-				'Serif',
-				'Georgia',
-				'Palatino',
-				'TimesNewRoman',
-				'Courier',
-			]
+			self::$supported_fonts
 		);
 	}
 

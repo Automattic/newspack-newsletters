@@ -91,13 +91,13 @@ export default compose( [
 		<Fragment>
 			<SelectControl
 				label={ __( 'Headings', 'newspack-newsletters' ) }
-				value={ fontHeader }
+				value={ fontHeader || 'Arial' }
 				options={ fontOptions }
 				onChange={ value => updateFontValue( 'font_header', value ) }
 			/>
 			<SelectControl
 				label={ __( 'Body', 'newspack-newsletters' ) }
-				value={ fontBody }
+				value={ fontBody || 'Georgia' }
 				options={ fontOptions }
 				onChange={ value => updateFontValue( 'font_body', value ) }
 			/>
