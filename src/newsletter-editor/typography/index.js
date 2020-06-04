@@ -6,55 +6,57 @@ import { compose } from '@wordpress/compose';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
-import { SelectControl } from '@wordpress/components';
+import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
-const fontOptions = [
+const fontOptgroups = [
 	{
-		value: null,
 		label: __( 'Sans Serif', 'newspack-newsletters' ),
-		disabled: true,
+		options: [
+			{
+				value: 'Arial',
+				label: __( 'Arial', 'newspack-newsletters' ),
+			},
+			{
+				value: 'Tahoma',
+				label: __( 'Tahoma', 'newspack-newsletters' ),
+			},
+			{
+				value: 'TrebuchetMS',
+				label: __( 'Trebuchet', 'newspack-newsletters' ),
+			},
+			{
+				value: 'Verdana',
+				label: __( 'Verdana', 'newspack-newsletters' ),
+			},
+		],
 	},
+
 	{
-		value: 'Arial',
-		label: __( 'Arial', 'newspack-newsletters' ),
-	},
-	{
-		value: 'Tahoma',
-		label: __( 'Tahoma', 'newspack-newsletters' ),
-	},
-	{
-		value: 'TrebuchetMS',
-		label: __( 'Trebuchet', 'newspack-newsletters' ),
-	},
-	{
-		value: 'Verdana',
-		label: __( 'Verdana', 'newspack-newsletters' ),
-	},
-	{
-		value: null,
 		label: __( 'Serif', 'newspack-newsletters' ),
-		disabled: true,
+		options: [
+			{
+				value: 'Georgia',
+				label: __( 'Georgia', 'newspack-newsletters' ),
+			},
+			{
+				value: 'Palatino',
+				label: __( 'Palatino', 'newspack-newsletters' ),
+			},
+			{
+				value: 'TimesNewRoman',
+				label: __( 'Times New Roman', 'newspack-newsletters' ),
+			},
+		],
 	},
+
 	{
-		value: 'Georgia',
-		label: __( 'Georgia', 'newspack-newsletters' ),
-	},
-	{
-		value: 'Palatino',
-		label: __( 'Palatino', 'newspack-newsletters' ),
-	},
-	{
-		value: 'TimesNewRoman',
-		label: __( 'Times New Roman', 'newspack-newsletters' ),
-	},
-	{
-		value: null,
 		label: __( 'Monospace', 'newspack-newsletters' ),
-		disabled: true,
-	},
-	{
-		value: 'Courier',
-		label: __( 'Courier New', 'newspack-newsletters' ),
+		options: [
+			{
+				value: 'Courier',
+				label: __( 'Courier New', 'newspack-newsletters' ),
+			},
+		],
 	},
 ];
 
@@ -89,16 +91,16 @@ export default compose( [
 	}, [ fontHeader ]);
 	return (
 		<Fragment>
-			<SelectControl
+			<SelectControlWithOptGroup
 				label={ __( 'Headings', 'newspack-newsletters' ) }
 				value={ fontHeader || 'Arial' }
-				options={ fontOptions }
+				optgroups={ fontOptgroups }
 				onChange={ value => updateFontValue( 'font_header', value ) }
 			/>
-			<SelectControl
+			<SelectControlWithOptGroup
 				label={ __( 'Body', 'newspack-newsletters' ) }
 				value={ fontBody || 'Georgia' }
-				options={ fontOptions }
+				optgroups={ fontOptgroups }
 				onChange={ value => updateFontValue( 'font_body', value ) }
 			/>
 		</Fragment>
