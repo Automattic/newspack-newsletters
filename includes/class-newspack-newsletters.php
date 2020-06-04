@@ -28,7 +28,6 @@ final class Newspack_Newsletters {
 		'Tahoma',
 		'TrebuchetMS',
 		'Verdana',
-		'Serif',
 		'Georgia',
 		'Palatino',
 		'TimesNewRoman',
