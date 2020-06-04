@@ -24,14 +24,14 @@ final class Newspack_Newsletters {
 	 * @var array
 	 */
 	public static $supported_fonts = [
-		'Arial',
-		'Tahoma',
-		'TrebuchetMS',
-		'Verdana',
-		'Georgia',
-		'Palatino',
-		'TimesNewRoman',
-		'Courier',
+		'Arial, Helvetica, sans-serif',
+		'Tahoma, sans-serif',
+		'Trebuchet MS, sans-serif',
+		'Verdana, sans-serif',
+		'Georgia, serif',
+		'Palatino, serif',
+		'Times New Roman, serif',
+		'Courier, monospace',
 	];
 
 	/**

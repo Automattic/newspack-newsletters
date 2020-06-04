@@ -13,19 +13,19 @@ const fontOptgroups = [
 		label: __( 'Sans Serif', 'newspack-newsletters' ),
 		options: [
 			{
-				value: 'Arial',
+				value: 'Arial, Helvetica, sans-serif',
 				label: __( 'Arial', 'newspack-newsletters' ),
 			},
 			{
-				value: 'Tahoma',
+				value: 'Tahoma, sans-serif',
 				label: __( 'Tahoma', 'newspack-newsletters' ),
 			},
 			{
-				value: 'TrebuchetMS',
+				value: 'Trebuchet MS, sans-serif',
 				label: __( 'Trebuchet', 'newspack-newsletters' ),
 			},
 			{
-				value: 'Verdana',
+				value: 'Verdana, sans-serif',
 				label: __( 'Verdana', 'newspack-newsletters' ),
 			},
 		],
@@ -35,15 +35,15 @@ const fontOptgroups = [
 		label: __( 'Serif', 'newspack-newsletters' ),
 		options: [
 			{
-				value: 'Georgia',
+				value: 'Georgia, serif',
 				label: __( 'Georgia', 'newspack-newsletters' ),
 			},
 			{
-				value: 'Palatino',
+				value: 'Palatino, serif',
 				label: __( 'Palatino', 'newspack-newsletters' ),
 			},
 			{
-				value: 'TimesNewRoman',
+				value: 'Times New Roman, serif',
 				label: __( 'Times New Roman', 'newspack-newsletters' ),
 			},
 		],
@@ -53,8 +53,8 @@ const fontOptgroups = [
 		label: __( 'Monospace', 'newspack-newsletters' ),
 		options: [
 			{
-				value: 'Courier',
-				label: __( 'Courier New', 'newspack-newsletters' ),
+				value: 'Courier, monospace',
+				label: __( 'Courier', 'newspack-newsletters' ),
 			},
 		],
 	},
