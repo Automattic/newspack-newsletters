@@ -67,11 +67,11 @@
 		background: white;
 		height: calc( 100% - 36px );
 		margin: -24px;
-		padding: 24px;
 
 		@media only screen and ( min-width: 600px ) {
 			display: grid;
-			gap: 0 24px;
+			grid-auto-rows: calc( 100% - 48px );
+			gap: 0;
 			grid-template-columns: 1fr 2fr;
 			grid-template-rows: 1fr;
 		}
@@ -80,7 +80,7 @@
 			// Fullscreen mode
 			.is-fullscreen-mode & {
 				bottom: 0;
-				height: auto;
+				height: calc( 100vh - 61px );
 				left: 0;
 				margin: 0;
 				position: fixed;
@@ -160,8 +160,16 @@
 	}
 
 	&__layouts {
+		grid-column-start: 1;
 		overflow-y: scroll;
 		max-height: 100%;
+		padding: 20px;
+
+		&--loading {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
 
 		.newspack-newsletters-layouts {
 			display: grid;
@@ -183,18 +191,11 @@
 				cursor: pointer;
 				margin: 0;
 				width: 100%;
-
-				&:hover,
-				&:focus {
-					.newspack-newsletters-layouts__item-preview {
-						border-color: $blue-medium-focus;
-					}
-				}
+				text-align: center;
 
 				&.is-active {
-					pointer-events: none;
-
 					.newspack-newsletters-layouts__item-preview {
+						pointer-events: none;
 						border-color: currentColor;
 						position: relative;
 
@@ -211,6 +212,14 @@
 						}
 					}
 				}
+
+				button {
+					margin: 0;
+					height: 20px;
+					&.is-destructive {
+						color: $alert-red;
+					}
+				}
 			}
 
 			&__item-preview {
@@ -221,6 +230,11 @@
 				padding: 0 0 calc( 100% - 2px );
 				position: relative;
 				width: 100%;
+
+				&:hover,
+				&:focus {
+					border-color: $blue-medium-focus;
+				}
 
 				.block-editor-block-preview__container {
 					position: absolute;
@@ -236,10 +250,13 @@
 	}
 
 	&__preview {
+		grid-column-start: 2;
+		grid-row-start: 1;
+		grid-row-end: 3;
 		align-items: center;
 		background: white;
 		border: 1px solid $light-gray-500;
-		border-radius: 2px;
+		border-top: none;
 		display: none;
 		justify-content: center;
 		overflow-y: scroll;
@@ -259,6 +276,52 @@
 	}
 }
 
+// Buttons group
+.newspack-newsletters-buttons-group {
+	display: flex;
+	justify-content: space-around;
+	&--spaced {
+		margin-left: -5px;
+		margin-right: -5px;
+		button {
+			margin-left: 5px;
+			margin-right: 5px;
+			justify-content: center;
+		}
+	}
+	button {
+		flex: 1;
+	}
+}
+
+// Tabs
+.newspack-newsletters-tabs {
+	&__button {
+		min-height: 48px;
+		padding: 6px 20px;
+		position: relative;
+		border-radius: 0;
+		&:focus:not( :disabled ) {
+			outline: none;
+			box-shadow: none;
+		}
+
+		&::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 1px;
+			background-color: $light-gray-500;
+		}
+		&--is-active::after {
+			height: 3px;
+			background-color: $blue-medium-focus;
+		}
+	}
+}
+
 // Posts Inserter - Preview
 .block-editor-block-preview__container {
 	.wp-block[data-type='newspack-newsletters/posts-inserter'] {
@@ -270,7 +333,7 @@
 		padding: 0;
 
 		&__header,
-		.components-button {
+		&__footer {
 			display: none;
 		}
 
