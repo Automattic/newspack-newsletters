@@ -1,3 +1,8 @@
+:root {
+	--header-font: arial, sans-serif;
+	--body-font: georgia, serif;
+}
+
 .wp-block {
 	max-width: 600px;
 	padding: 20px;
@@ -11,7 +16,27 @@
 		}
 
 		*:not( code ) {
-			font-family: Ubuntu, Helvetica, Arial, sans-serif !important;
+			font-family: var( --body-font );
+		}
+
+		.newspack-posts-inserter__header span,
+		.components-button,
+		.block-editor-block-list__block .components-placeholder,
+		.block-editor-block-list__block .components-placeholder div {
+			font-family: 'Noto Serif', helvetica, arial, sans-serif;
+		}
+
+		h1,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6 {
+			font-family: var( --header-font );
+		}
+
+		a {
+			font-family: inherit;
 		}
 
 		code {
