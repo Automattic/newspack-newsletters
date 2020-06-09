@@ -37,8 +37,7 @@ const getExcerptBlockTemplate = ( post, { excerptLength } ) => {
 	excerptElement.innerHTML = excerpt;
 	excerpt = excerptElement.textContent || excerptElement.innerText || '';
 
-	const needsEllipsis =
-		excerptLength < excerpt.trim().split( ' ' ).length && post.excerpt.raw === '';
+	const needsEllipsis = excerptLength < excerpt.trim().split( ' ' ).length;
 
 	const postExcerpt = needsEllipsis
 		? `${ excerpt.split( ' ', excerptLength ).join( ' ' ) } […]`
@@ -65,7 +64,9 @@ const createBlockTemplatesForSinglePost = (
 		postContentBlocks.push( getExcerptBlockTemplate( post, { excerptLength } ) );
 	}
 
-	if ( displayFeaturedImage ) {
+	const hasFeaturedImage = post.featuredImageLargeURL || post.featuredImageMediumURL;
+
+	if ( displayFeaturedImage && hasFeaturedImage ) {
 		const getImageBlock = ( alignCenter = false ) => [
 			'core/image',
 			{

@@ -12,16 +12,32 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/vendor/autoload.php';
 use \DrewM\MailChimp\MailChimp;
 
 /**
- * Main Newspack Popups Class.
+ * Main Newspack Newsletters Class.
  */
 final class Newspack_Newsletters {
 
 	const NEWSPACK_NEWSLETTERS_CPT = 'newspack_nl_cpt';
 
 	/**
+	 * Supported fonts.
+	 *
+	 * @var array
+	 */
+	public static $supported_fonts = [
+		'Arial, Helvetica, sans-serif',
+		'Tahoma, sans-serif',
+		'Trebuchet MS, sans-serif',
+		'Verdana, sans-serif',
+		'Georgia, serif',
+		'Palatino, serif',
+		'Times New Roman, serif',
+		'Courier, monospace',
+	];
+
+	/**
 	 * The single instance of the class.
 	 *
-	 * @var Newspack_Popups
+	 * @var Newspack_Newsletters
 	 */
 	protected static $instance = null;
 
@@ -61,6 +77,7 @@ final class Newspack_Newsletters {
 			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-editor.php';
+		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-layouts.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 	}
@@ -98,6 +115,28 @@ final class Newspack_Newsletters {
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => true,
 				'type'           => 'integer',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'font_header',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'font_body',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
 			]
@@ -168,6 +207,15 @@ final class Newspack_Newsletters {
 	 * Add newspack_popups_is_sitewide_default to Popup object.
 	 */
 	public static function rest_api_init() {
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'layouts',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_layouts' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
+			]
+		);
 		\register_rest_route(
 			'newspack-newsletters/v1/',
 			'mailchimp/(?P<id>[\a-z]+)',
@@ -282,6 +330,100 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+		\register_rest_route(
+			'newspack-newsletters/v1/',
+			'typography/(?P<id>[\a-z]+)',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_typography' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'args'                => [
+					'id'    => [
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_id' ],
+						'sanitize_callback' => 'absint',
+					],
+					'key'   => [
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_typography_key' ],
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'value' => [
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_typography_value' ],
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Set typography meta.
+	 * The save_post action fires before post meta is updated.
+	 * This causes newsletters to be synced to the ESP before recent changes to custom fields have been recorded,
+	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the typography fields
+	 * as soon as they are changed in the editor, so that the changes are available the next time sync to ESP occurs.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_typography( $request ) {
+		$id    = $request['id'];
+		$key   = $request['key'];
+		$value = $request['value'];
+		update_post_meta( $id, $key, $value );
+	}
+
+	/**
+	 * Validate ID is a Newsletter post type.
+	 *
+	 * @param int $id Post ID.
+	 */
+	public static function validate_newsletter_id( $id ) {
+		return self::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $id );
+	}
+
+	/**
+	 * Validate typography key.
+	 *
+	 * @param String $key Meta key.
+	 */
+	public static function validate_newsletter_typography_key( $key ) {
+		return in_array(
+			$key,
+			[
+				'font_header',
+				'font_body',
+			]
+		);
+	}
+
+	/**
+	 * Validate typography value (font name).
+	 *
+	 * @param String $key Meta value.
+	 */
+	public static function validate_newsletter_typography_value( $key ) {
+		return in_array(
+			$key,
+			self::$supported_fonts
+		);
+	}
+
+	/**
+	 * Retrieve Layouts.
+	 */
+	public static function api_get_layouts() {
+		$layouts_query = new WP_Query(
+			array(
+				'post_type'      => Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
+				'posts_per_page' => -1,
+			)
+		);
+		$layouts       = array_merge(
+			$layouts_query->get_posts(),
+			Newspack_Newsletters_Layouts::get_default_layouts(),
+			apply_filters( 'newspack_newsletters_templates', [] )
+		);
+
+		return \rest_ensure_response( $layouts );
 	}
 
 	/**
@@ -796,15 +938,22 @@ final class Newspack_Newsletters {
 			return;
 		}
 
-		$api_key  = self::mailchimp_api_key();
-		$mc       = new Mailchimp( $api_key );
-		$campaign = $mc->get( "campaigns/$mc_campaign_id" );
-		if ( $campaign ) {
-			$status = $campaign['status'];
-			if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
-				$result = $mc->delete( "campaigns/$mc_campaign_id" );
-				delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+		$api_key = self::mailchimp_api_key();
+		if ( ! $api_key ) {
+			return;
+		}
+		try {
+			$mc       = new Mailchimp( $api_key );
+			$campaign = $mc->get( "campaigns/$mc_campaign_id" );
+			if ( $campaign ) {
+				$status = $campaign['status'];
+				if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
+					$result = $mc->delete( "campaigns/$mc_campaign_id" );
+					delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+				}
 			}
+		} catch ( Exception $e ) {
+			return; // Fail silently.
 		}
 	}
 
@@ -873,15 +1022,6 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Get newsletter templates.
-	 *
-	 * @return array Array of templates.
-	 */
-	public static function get_newsletter_templates() {
-		return apply_filters( 'newspack_newsletters_templates', [] );
-	}
-
-	/**
 	 * Callback for CPT publish. Sends the campaign.
 	 *
 	 * @param string  $id post ID.
@@ -924,50 +1064,6 @@ final class Newspack_Newsletters {
 			set_transient( $transient, $e->getMessage(), 45 );
 			return;
 		}
-	}
-
-	/**
-	 * Token replacement for newsletter templates.
-	 *
-	 * @param string $content Template content.
-	 * @param array  $extra Associative array of additional tokens to replace.
-	 * @return string Content.
-	 */
-	public static function template_token_replacement( $content, $extra = [] ) {
-		$sitename       = get_bloginfo( 'name' );
-		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'medium' )[0] : null;
-
-		$sitename_block = sprintf(
-			'<!-- wp:heading {"align":"center","level":1} --><h1 class="has-text-align-center">%s</h1><!-- /wp:heading -->',
-			$sitename
-		);
-
-		$logo_block = $logo ? sprintf(
-			'<!-- wp:image {"align":"center","id":%s,"sizeSlug":"medium"} --><figure class="wp-block-image aligncenter size-medium"><img src="%s" alt="%s" class="wp-image-%s" /></figure><!-- /wp:image -->',
-			$custom_logo_id,
-			$logo,
-			$sitename,
-			$custom_logo_id
-		) : null;
-
-		$search  = array_merge(
-			[
-				'__SITENAME__',
-				'__LOGO__',
-				'__LOGO_OR_SITENAME__',
-			],
-			array_keys( $extra )
-		);
-		$replace = array_merge(
-			[
-				$sitename,
-				$logo,
-				$logo ? $logo_block : $sitename_block,
-			],
-			array_values( $extra )
-		);
-		return str_replace( $search, $replace, $content );
 	}
 
 	/**

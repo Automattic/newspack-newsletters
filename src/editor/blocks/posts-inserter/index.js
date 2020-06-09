@@ -17,7 +17,7 @@ import {
 	InspectorControls,
 	BlockControls,
 } from '@wordpress/block-editor';
-import { Fragment, useEffect } from '@wordpress/element';
+import { Fragment, useEffect, useMemo } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -38,7 +38,10 @@ const PostsInserterBlock = ( {
 	setInsertedPostsIds,
 	removeBlock,
 } ) => {
-	const templateBlocks = getTemplateBlocks( postList, attributes );
+	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
+		postList,
+		attributes,
+	] );
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
 	useEffect(() => {
@@ -128,9 +131,11 @@ const PostsInserterBlock = ( {
 				<div className="newspack-posts-inserter__preview">
 					<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
 				</div>
-				<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
-					{ __( 'Insert posts', 'newspack-newsletters' ) }
-				</Button>
+				<div className="newspack-posts-inserter__footer">
+					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
+						{ __( 'Insert posts', 'newspack-newsletters' ) }
+					</Button>
+				</div>
 			</div>
 		</Fragment>
 	);
@@ -145,6 +150,7 @@ const PostsInserterBlockWithSelect = compose( [
 			categories,
 			isDisplayingSpecificPosts,
 			specificPosts,
+			preventDeduplication,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks } = select( 'core/block-editor' );
@@ -165,7 +171,7 @@ const PostsInserterBlockWithSelect = compose( [
 							order,
 							orderby: orderBy,
 							per_page: postsToShow,
-							exclude,
+							exclude: preventDeduplication ? [] : exclude,
 						},
 						value => ! isUndefined( value )
 				  );

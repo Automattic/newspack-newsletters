@@ -21,6 +21,20 @@ final class Newspack_Newsletters_Renderer {
 	protected static $color_palette = null;
 
 	/**
+	 * The header font.
+	 *
+	 * @var String
+	 */
+	protected static $font_header = null;
+
+	/**
+	 * The body font.
+	 *
+	 * @var String
+	 */
+	protected static $font_body = null;
+
+	/**
 	 * Convert a list to HTML attributes.
 	 *
 	 * @param array $attributes Array of attributes.
@@ -191,6 +205,8 @@ final class Newspack_Newsletters_Renderer {
 			)
 		);
 
+		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
+
 		switch ( $block_name ) {
 			/**
 			 * Paragraph, List, Heading blocks.
@@ -204,6 +220,7 @@ final class Newspack_Newsletters_Renderer {
 						'padding'     => '0',
 						'line-height' => '1.8',
 						'font-size'   => '16px',
+						'font-family' => $font_family,
 					),
 					$attrs
 				);
@@ -267,9 +284,10 @@ final class Newspack_Newsletters_Renderer {
 
 				if ( $figcaption ) {
 					$caption_attrs = array(
-						'align'     => 'center',
-						'color'     => '#555d66',
-						'font-size' => '13px',
+						'align'       => 'center',
+						'color'       => '#555d66',
+						'font-size'   => '13px',
+						'font-family' => $font_family,
 					);
 					 // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . $figcaption->wholeText . '</mj-text>';
@@ -300,6 +318,7 @@ final class Newspack_Newsletters_Renderer {
 						'href'          => $anchor->getAttribute( 'href' ),
 						'border-radius' => $border_radius . 'px',
 						'font-size'     => '18px',
+						'font-family'   => $font_family,
 						// Default color - will be replaced by get_colors if there are colors set.
 						'color'         => $is_outlined ? '#32373c' : '#fff',
 					);
@@ -385,7 +404,7 @@ final class Newspack_Newsletters_Renderer {
 					'align'         => isset( $attrs['align'] ) && 'center' == $attrs['align'] ? 'center' : 'left',
 					'icon-size'     => '22px',
 					'mode'          => 'horizontal',
-					'padding'       => '5px',
+					'padding'       => '0',
 					'border-radius' => '999px',
 					'icon-padding'  => '8px',
 				);
@@ -517,9 +536,17 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function render_mjml( $post ) {
 		self::$color_palette = get_post_meta( $post->ID, 'color_palette', true );
-		$title               = $post->post_title;
-		$blocks              = parse_blocks( $post->post_content );
-		$body                = '';
+		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
+		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
+		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
+			self::$font_header = 'Arial';
+		}
+		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
+			self::$font_body = 'Georgia';
+		}
+		$title  = $post->post_title;
+		$blocks = parse_blocks( $post->post_content );
+		$body   = '';
 		foreach ( $blocks as $block ) {
 			$block_content = self::render_mjml_component( $block );
 			if ( ! empty( $block_content ) ) {
