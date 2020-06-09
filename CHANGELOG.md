@@ -1,3 +1,22 @@
+# [1.1.0](https://github.com/Automattic/newspack-newsletters/compare/v1.0.1...v1.1.0) (2020-06-09)
+
+
+### Bug Fixes
+
+* prevent deduplication in layout picker preview ([4a5721e](https://github.com/Automattic/newspack-newsletters/commit/4a5721e2289faa13c4663abb97624e3bd085c098)), closes [#199](https://github.com/Automattic/newspack-newsletters/issues/199)
+* **posts-inserter:** prevent empty featured image rendering ([56a97c4](https://github.com/Automattic/newspack-newsletters/commit/56a97c43b51e02c266d579d3a42bd741437e3deb)), closes [#201](https://github.com/Automattic/newspack-newsletters/issues/201)
+* resolve excerpt length issue ([d40f98a](https://github.com/Automattic/newspack-newsletters/commit/d40f98aebc10dd17ae3ceba523e6492c766e4d6e))
+* situation that overwrote mc campaign id ([8ecf564](https://github.com/Automattic/newspack-newsletters/commit/8ecf56460561786a2a9971cd882149fa02fa905d))
+* update editor block paddings ([#195](https://github.com/Automattic/newspack-newsletters/issues/195)) ([eb100b8](https://github.com/Automattic/newspack-newsletters/commit/eb100b86e04d953895047cbe66846c2aa6758ea1))
+* when trashing post allow mailchimp api call to fail silently ([7e2d9c4](https://github.com/Automattic/newspack-newsletters/commit/7e2d9c4bd80fd0f136c9cc1b210fc139f3eab483))
+* when trashing post allow mailchimp api call to fail silently ([8257451](https://github.com/Automattic/newspack-newsletters/commit/82574512bfc837be25c5572bc5338a46a737602c))
+
+
+### Features
+
+* add layouts management ([#165](https://github.com/Automattic/newspack-newsletters/issues/165)) ([446674f](https://github.com/Automattic/newspack-newsletters/commit/446674f193407e2dd4ad8f186c65f34ea4fa9b01)), closes [#31](https://github.com/Automattic/newspack-newsletters/issues/31) [#216](https://github.com/Automattic/newspack-newsletters/issues/216)
+* font picker ([#210](https://github.com/Automattic/newspack-newsletters/issues/210)) ([0234bf9](https://github.com/Automattic/newspack-newsletters/commit/0234bf9491bd80c775458da92fb90050de9b1a79))
+
 ## [1.0.1](https://github.com/Automattic/newspack-newsletters/compare/v1.0.0...v1.0.1) (2020-05-07)
 
 
