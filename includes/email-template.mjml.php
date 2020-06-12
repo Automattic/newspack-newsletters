@@ -92,7 +92,7 @@
 			}
 		</mj-style>
 	</mj-head>
-	<mj-body>
+	<mj-body background-color="<?php echo $background_color; ?>">
 		<?php echo $body; ?>
 	</mj-body>
 </mjml>

@@ -544,7 +544,11 @@ final class Newspack_Newsletters_Renderer {
 		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
 			self::$font_body = 'Georgia';
 		}
-		$title  = $post->post_title;
+		$title            = $post->post_title;
+		$background_color = get_post_meta( $post->ID, 'background_color', true );
+		if ( ! $background_color ) {
+			$background_color = '#ffffff';
+		}
 		$blocks = parse_blocks( $post->post_content );
 		$body   = '';
 		foreach ( $blocks as $block ) {
