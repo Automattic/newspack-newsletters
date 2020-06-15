@@ -141,6 +141,17 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'background_color',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 		/**
 		 * The default color palette lives in the editor frontend and is not
 		 * retrievable on the backend. The workaround is to set it as post meta
@@ -332,10 +343,10 @@ final class Newspack_Newsletters {
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1/',
-			'typography/(?P<id>[\a-z]+)',
+			'styling/(?P<id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_set_typography' ],
+				'callback'            => [ __CLASS__, 'api_set_styling' ],
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 				'args'                => [
 					'id'    => [
@@ -343,11 +354,11 @@ final class Newspack_Newsletters {
 						'sanitize_callback' => 'absint',
 					],
 					'key'   => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_typography_key' ],
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_styling_key' ],
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 					'value' => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_typography_value' ],
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_styling_value' ],
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -356,15 +367,15 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Set typography meta.
+	 * Set styling meta.
 	 * The save_post action fires before post meta is updated.
 	 * This causes newsletters to be synced to the ESP before recent changes to custom fields have been recorded,
-	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the typography fields
+	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the styling fields
 	 * as soon as they are changed in the editor, so that the changes are available the next time sync to ESP occurs.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
-	public static function api_set_typography( $request ) {
+	public static function api_set_styling( $request ) {
 		$id    = $request['id'];
 		$key   = $request['key'];
 		$value = $request['value'];
@@ -381,30 +392,31 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Validate typography key.
+	 * Validate styling key.
 	 *
 	 * @param String $key Meta key.
 	 */
-	public static function validate_newsletter_typography_key( $key ) {
+	public static function validate_newsletter_styling_key( $key ) {
 		return in_array(
 			$key,
 			[
 				'font_header',
 				'font_body',
+				'background_color',
 			]
 		);
 	}
 
 	/**
-	 * Validate typography value (font name).
+	 * Validate styling value (font name or hex color).
 	 *
 	 * @param String $key Meta value.
 	 */
-	public static function validate_newsletter_typography_value( $key ) {
+	public static function validate_newsletter_styling_value( $key ) {
 		return in_array(
 			$key,
 			self::$supported_fonts
-		);
+		) || preg_match( '/^#[a-f0-9]{6}$/', $key );
 	}
 
 	/**
