@@ -75,6 +75,13 @@
 				line-height: 1.6;
 			}
 
+			/* Image */
+			@media all and (max-width: 590px) {
+				img {
+					height: auto !important;
+				}
+			}
+
 			/* Social links */
 			.social-element img {
 				border-radius: 0 !important;
