@@ -858,7 +858,12 @@ final class Newspack_Newsletters {
 
 			return [
 				'lists'               => self::validate_mailchimp_operation(
-					$mc->get( 'lists' ),
+					$mc->get(
+						'lists',
+						[
+							'count' => 1000,
+						]
+					),
 					__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
 				),
 				'campaign'            => $campaign,
