@@ -95,7 +95,8 @@ const ProviderSidebar = ( {
 	}
 
 	const { list_id } = campaign.recipients || {};
-	const { web_id: listWebId } = list_id && lists.find( ( { id } ) => list_id === id );
+	const list = list_id && lists.find( ( { id } ) => list_id === id );
+	const { web_id: listWebId } = list || {};
 
 	return (
 		<Fragment>
