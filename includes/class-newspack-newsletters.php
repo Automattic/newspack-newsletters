@@ -219,7 +219,7 @@ final class Newspack_Newsletters {
 	 */
 	public static function rest_api_init() {
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'layouts',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -228,7 +228,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'mailchimp/(?P<id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -242,7 +242,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'mailchimp/(?P<id>[\a-z]+)/test',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -259,7 +259,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'mailchimp/(?P<id>[\a-z]+)/list/(?P<list_id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -276,7 +276,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'mailchimp/(?P<id>[\a-z]+)/interest/(?P<interest_id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -293,7 +293,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'mailchimp/(?P<id>[\a-z]+)/settings',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -313,7 +313,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'keys',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -322,7 +322,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'keys',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -342,7 +342,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1/',
+			'newspack-newsletters/v1',
 			'styling/(?P<id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
