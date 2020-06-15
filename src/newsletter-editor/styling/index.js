@@ -113,7 +113,7 @@ export default compose( [
 				optgroups={ fontOptgroups }
 				onChange={ value => updateStyleValue( 'font_body', value ) }
 			/>
-			<BaseControl label={ __( 'Background Color', 'newspack-newsletters' ) } id={ id }>
+			<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ id }>
 				<ColorPicker
 					id={ id }
 					color={ backgroundColor || '#ffffff' }
