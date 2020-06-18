@@ -2,7 +2,8 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { compose } from '@wordpress/compose';
+import { compose, useInstanceId } from '@wordpress/compose';
+import { ColorPicker, BaseControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
@@ -72,37 +73,54 @@ export default compose( [
 			postId: getCurrentPostId(),
 			fontBody: meta.font_body || '',
 			fontHeader: meta.font_header || '',
+			backgroundColor: meta.background_color || '',
 		};
 	} ),
-] )( ( { editPost, fontBody, fontHeader, postId } ) => {
-	const updateFontValue = ( key, value ) => {
+] )( ( { editPost, fontBody, fontHeader, backgroundColor, postId } ) => {
+	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
 		apiFetch( {
 			data: { key, value },
 			method: 'POST',
-			path: `/newspack-newsletters/v1/typography/${ postId }`,
+			path: `/newspack-newsletters/v1/styling/${ postId }`,
 		} );
 	};
+
 	useEffect(() => {
 		document.documentElement.style.setProperty( '--body-font', fontBody );
 	}, [ fontBody ]);
 	useEffect(() => {
 		document.documentElement.style.setProperty( '--header-font', fontHeader );
 	}, [ fontHeader ]);
+	useEffect(() => {
+		document.querySelector( '.edit-post-visual-editor' ).style.backgroundColor = backgroundColor;
+	}, [ backgroundColor ]);
+
+	const instanceId = useInstanceId( SelectControlWithOptGroup );
+	const id = `inspector-select-control-${ instanceId }`;
+
 	return (
 		<Fragment>
 			<SelectControlWithOptGroup
-				label={ __( 'Headings', 'newspack-newsletters' ) }
+				label={ __( 'Headings font', 'newspack-newsletters' ) }
 				value={ fontHeader || 'Arial' }
 				optgroups={ fontOptgroups }
-				onChange={ value => updateFontValue( 'font_header', value ) }
+				onChange={ value => updateStyleValue( 'font_header', value ) }
 			/>
 			<SelectControlWithOptGroup
-				label={ __( 'Body', 'newspack-newsletters' ) }
+				label={ __( 'Body font', 'newspack-newsletters' ) }
 				value={ fontBody || 'Georgia' }
 				optgroups={ fontOptgroups }
-				onChange={ value => updateFontValue( 'font_body', value ) }
+				onChange={ value => updateStyleValue( 'font_body', value ) }
 			/>
+			<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ id }>
+				<ColorPicker
+					id={ id }
+					color={ backgroundColor || '#ffffff' }
+					onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
+					disableAlpha
+				/>
+			</BaseControl>
 		</Fragment>
 	);
 } );

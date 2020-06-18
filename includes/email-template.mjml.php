@@ -75,6 +75,13 @@
 				line-height: 1.6;
 			}
 
+			/* Image */
+			@media all and (max-width: 590px) {
+				img {
+					height: auto !important;
+				}
+			}
+
 			/* Social links */
 			.social-element img {
 				border-radius: 0 !important;
@@ -92,7 +99,7 @@
 			}
 		</mj-style>
 	</mj-head>
-	<mj-body>
+	<mj-body background-color="<?php echo $background_color; ?>">
 		<?php echo $body; ?>
 	</mj-body>
 </mjml>
