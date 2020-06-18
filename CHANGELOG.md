@@ -1,3 +1,20 @@
+# [1.2.0](https://github.com/Automattic/newspack-newsletters/compare/v1.1.0...v1.2.0) (2020-06-18)
+
+
+### Bug Fixes
+
+* copy ([8fb1840](https://github.com/Automattic/newspack-newsletters/commit/8fb18407ec56c782856ffe83d7d245529aec9e29))
+* namespace use in register_rest_route ([ccaebbc](https://github.com/Automattic/newspack-newsletters/commit/ccaebbc300f183685239817c00022e16eedd9635))
+* raise list limit to maximum ([#224](https://github.com/Automattic/newspack-newsletters/issues/224)) ([863c8a7](https://github.com/Automattic/newspack-newsletters/commit/863c8a780bad91c479c26d8d4a4bf3c493c72f04))
+
+
+### Features
+
+* remove white background from layouts' groups ([0fd4468](https://github.com/Automattic/newspack-newsletters/commit/0fd4468931b7c7dfe94db30afa102973e126d2f2))
+* support background color setting ([2b98984](https://github.com/Automattic/newspack-newsletters/commit/2b98984f6088943ad5969fbe4b607945f715c5a4)), closes [#219](https://github.com/Automattic/newspack-newsletters/issues/219)
+* support background color setting ([#223](https://github.com/Automattic/newspack-newsletters/issues/223)) ([cb142eb](https://github.com/Automattic/newspack-newsletters/commit/cb142ebafb4359bdb470d8c7614a141577bdf391)), closes [#219](https://github.com/Automattic/newspack-newsletters/issues/219)
+* **mjml:** reponsive images ([#222](https://github.com/Automattic/newspack-newsletters/issues/222)) ([c1867d9](https://github.com/Automattic/newspack-newsletters/commit/c1867d969b859d0e36fa00b8ba9d6de9d9c39511)), closes [#221](https://github.com/Automattic/newspack-newsletters/issues/221)
+
 # [1.1.0](https://github.com/Automattic/newspack-newsletters/compare/v1.0.1...v1.1.0) (2020-06-09)
 
 
