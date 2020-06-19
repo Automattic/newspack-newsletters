@@ -80,6 +80,7 @@ final class Newspack_Newsletters {
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-layouts.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
+		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-ads.php';
 	}
 
 	/**

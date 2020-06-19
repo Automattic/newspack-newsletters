@@ -48,7 +48,7 @@ final class Newspack_Newsletters_Editor {
 	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
 	 */
 	public static function strip_editor_modifications() {
-		if ( ! self::is_editing_newsletter() ) {
+		if ( ! self::is_editing_newsletter() && ! self::is_editing_newsletter_ad() ) {
 			return;
 		}
 
@@ -75,7 +75,7 @@ final class Newspack_Newsletters_Editor {
 	 * @param WP_Post $post the post to consider.
 	 */
 	public static function newsletters_allowed_block_types( $allowed_block_types, $post ) {
-		if ( ! self::is_editing_newsletter() ) {
+		if ( ! self::is_editing_newsletter() && ! self::is_editing_newsletter_ad() ) {
 			return $allowed_block_types;
 		}
 		return array(
@@ -100,6 +100,17 @@ final class Newspack_Newsletters_Editor {
 	 * Load up common JS/CSS for wizards.
 	 */
 	public static function enqueue_block_editor_assets() {
+		if ( self::is_editing_newsletter() || self::is_editing_newsletter_ad() ) {
+			wp_register_style(
+				'newspack-newsletters',
+				plugins_url( '../dist/editor.css', __FILE__ ),
+				[],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.css' )
+			);
+			wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
+			wp_enqueue_style( 'newspack-newsletters' );
+		}
+
 		if ( ! self::is_editing_newsletter() ) {
 			return;
 		}
@@ -125,15 +136,6 @@ final class Newspack_Newsletters_Editor {
 				'service_provider' => 'mailchimp',
 			]
 		);
-
-		wp_register_style(
-			'newspack-newsletters',
-			plugins_url( '../dist/editor.css', __FILE__ ),
-			[],
-			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.css' )
-		);
-		wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
-		wp_enqueue_style( 'newspack-newsletters' );
 	}
 
 	/**
@@ -142,6 +144,14 @@ final class Newspack_Newsletters_Editor {
 	public static function is_editing_newsletter() {
 		$post_type = get_post()->post_type;
 		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === $post_type;
+	}
+
+	/**
+	 * Is editing a newsletter ad?
+	 */
+	public static function is_editing_newsletter_ad() {
+		$post_type = get_post()->post_type;
+		return Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT === $post_type;
 	}
 }
 Newspack_Newsletters_Editor::instance();
