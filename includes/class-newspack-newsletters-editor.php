@@ -111,6 +111,16 @@ final class Newspack_Newsletters_Editor {
 			wp_enqueue_style( 'newspack-newsletters' );
 		}
 
+		if ( self::is_editing_newsletter_ad() ) {
+			\wp_enqueue_script(
+				Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_PAGE,
+				plugins_url( '../dist/adsEditor.js', __FILE__ ),
+				[ 'wp-components', 'wp-api-fetch' ],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.js' ),
+				true
+			);
+		}
+
 		if ( ! self::is_editing_newsletter() ) {
 			return;
 		}

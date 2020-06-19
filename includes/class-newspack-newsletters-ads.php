@@ -46,10 +46,27 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
+		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
 	}
 
+	/**
+	 * Register custom fields.
+	 */
+	public static function register_meta() {
+		\register_meta(
+			'post',
+			'expiry_date',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+	}
 
 	/**
 	 * Add ads page link.
@@ -85,6 +102,7 @@ final class Newspack_Newsletters_Ads {
 		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_page_' . self::NEWSPACK_NEWSLETTERS_ADS_PAGE !== $handler ) {
 			return;
 		};
+
 		\wp_enqueue_script(
 			self::NEWSPACK_NEWSLETTERS_ADS_PAGE,
 			plugins_url( '../dist/adsAdmin.js', __FILE__ ),

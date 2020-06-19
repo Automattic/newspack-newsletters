@@ -529,12 +529,13 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
-	 * Convert a WP post to MJML markup.
+	 * Convert a WP post to MJML components.
 	 *
 	 * @param WP_Post $post The post.
-	 * @return string MJML markup.
+	 * @param Boolean $include_ads Whether to include ads.
+	 * @return string MJML markup to be injected into the template.
 	 */
-	private static function render_mjml( $post ) {
+	private static function post_to_mjml_components( $post, $include_ads ) {
 		self::$color_palette = get_post_meta( $post->ID, 'color_palette', true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
@@ -543,11 +544,6 @@ final class Newspack_Newsletters_Renderer {
 		}
 		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
 			self::$font_body = 'Georgia';
-		}
-		$title            = $post->post_title;
-		$background_color = get_post_meta( $post->ID, 'background_color', true );
-		if ( ! $background_color ) {
-			$background_color = '#ffffff';
 		}
 		$blocks = parse_blocks( $post->post_content );
 		$body   = '';
@@ -558,6 +554,42 @@ final class Newspack_Newsletters_Renderer {
 			}
 		}
 
+		// Insert any ads.
+		if ( $include_ads ) {
+			$ads_query  = new WP_Query(
+				array(
+					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
+					'posts_per_page' => -1,
+				)
+			);
+			$ads        = $ads_query->get_posts();
+			$ads_markup = '';
+			foreach ( $ads as $ad ) {
+				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
+				$now_date    = new DateTime();
+				if ( $expiry_date > $now_date ) {
+					$ads_markup .= self::post_to_mjml_components( $ad, false );
+				}
+			}
+			$body .= $ads_markup;
+		}
+
+		return $body;
+	}
+
+	/**
+	 * Convert a WP post to MJML markup.
+	 *
+	 * @param WP_Post $post The post.
+	 * @return string MJML markup.
+	 */
+	private static function render_mjml( $post ) {
+		$title            = $post->post_title; // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$body             = self::post_to_mjml_components( $post, true ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$background_color = get_post_meta( $post->ID, 'background_color', true );
+		if ( ! $background_color ) {
+			$background_color = '#ffffff';
+		}
 		ob_start();
 		include dirname( __FILE__ ) . '/email-template.mjml.php';
 		return ob_get_clean();
