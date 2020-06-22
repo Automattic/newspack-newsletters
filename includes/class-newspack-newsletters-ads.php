@@ -106,7 +106,7 @@ final class Newspack_Newsletters_Ads {
 		\wp_enqueue_script(
 			self::NEWSPACK_NEWSLETTERS_ADS_PAGE,
 			plugins_url( '../dist/adsAdmin.js', __FILE__ ),
-			[ 'wp-components', 'wp-api-fetch' ],
+			[ 'wp-components', 'wp-api-fetch', 'wp-date' ],
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsAdmin.js' ),
 			true
 		);

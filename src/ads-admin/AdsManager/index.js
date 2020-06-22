@@ -1,56 +1,123 @@
 /**
  * WordPress dependencies
  */
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useState, Fragment } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
+import { format, isInTheFuture } from '@wordpress/date';
 
 /**
  * External dependencies
  */
-import { Card, Button, FormattedHeader, ActionCard } from 'newspack-components';
+import {
+	Card,
+	Grid,
+	Button,
+	FormattedHeader,
+	ActionCard,
+	Waiting,
+	ActionCardSections,
+} from 'newspack-components';
 import classnames from 'classnames';
+import HeaderIcon from '@material-ui/icons/FeaturedVideo';
+import EditIcon from '@material-ui/icons/Edit';
 
 /**
  * Internal dependencies
  */
-import { AD_CPT } from '../consts';
+import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
+import { isAdActive } from '../utils';
 import './style.scss';
 
+const AdCard = ( { adPost } ) => {
+	const title = adPost.title.rendered;
+	let isExpired = false;
+	const { expiry_date } = adPost.meta;
+	if ( expiry_date ) {
+		isExpired = ! isInTheFuture( expiry_date );
+	}
+	return (
+		<ActionCard
+			isSmall
+			className={ classnames( {
+				'newspack-card__is-primary': ! isExpired && adPost.status === 'publish',
+				'newspack-card__is-secondary': ! isExpired && adPost.status !== 'publish',
+				'newspack-card__is-disabled': isExpired,
+			} ) }
+			key={ adPost.id }
+			title={ title.length ? title : __( '(no title)', 'newspack' ) }
+			actionText={
+				<Button className="icon-only" href={ `/wp-admin/post.php?post=${ adPost.id }&action=edit` }>
+					<EditIcon />
+				</Button>
+			}
+			description={
+				// eslint-disable-next-line no-nested-ternary
+				expiry_date
+					? `${
+							isExpired
+								? __( 'Expired', 'newspack-newsletters' )
+								: __( 'Will expire', 'newspack-newsletters' )
+					  } ${ format( 'M j Y', expiry_date ) }`
+					: null
+			}
+		/>
+	);
+};
+
 const AdsManager = () => {
+	const [ inFlight, setInFlight ] = useState( true );
 	const [ allAds, setAllAds ] = useState( [] );
 	useEffect(() => {
-		apiFetch( { path: `/wp/v2/${ AD_CPT }?status=publish,future,draft` } ).then( setAllAds );
+		apiFetch( { path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }?status=publish,future,draft` } ).then(
+			response => {
+				setAllAds( response );
+				setInFlight( false );
+			}
+		);
 	}, []);
 
+	const activeAds = allAds.filter( isAdActive );
+	const expiredAds = allAds.filter( ad => ! isAdActive( ad ) && ad.status !== 'draft' );
+	const draftAds = allAds.filter( ad => ! isAdActive( ad ) && ad.status === 'draft' );
+
 	return (
-		<Card>
-			<FormattedHeader headerText={ __( 'All ads', 'newspack-newsletters' ) } />
-
-			<div>
-				{ allAds.map( adPost => {
-					const title = adPost.title.rendered;
-					return (
-						<ActionCard
-							className={ classnames(
-								adPost.status === 'publish'
-									? 'newspack-card__is-primary'
-									: 'newspack-card__is-secondary'
-							) }
-							key={ adPost.id }
-							title={ title.length ? title : __( '(no title)', 'newspack' ) }
-							actionText={
-								<a href={ `/wp-admin/post.php?post=${ adPost.id }&action=edit` }>edit</a>
-							}
+		<Grid>
+			<FormattedHeader
+				headerIcon={ <HeaderIcon /> }
+				headerText={ __( 'Newsletter Ads', 'newspack-newsletters' ) }
+				subHeaderText={ __( 'Monetize your newsletters through self-serve ads.' ) }
+			/>
+			<Card>
+				{ inFlight ? (
+					<div className="newspack-newsletters-ads__waiting">
+						<Waiting />
+					</div>
+				) : (
+					<Fragment>
+						<ActionCardSections
+							sections={ [
+								{ key: 'active', label: __( 'Active', 'newspack-newsletters' ), items: activeAds },
+								{ key: 'draft', label: __( 'Draft', 'newspack-newsletters' ), items: draftAds },
+								{
+									key: 'expired',
+									label: __( 'Expired', 'newspack-newsletters' ),
+									items: expiredAds,
+								},
+							] }
+							renderCard={ ad => <AdCard adPost={ ad } /> }
+							emptyMessage={ __( 'No ads have been created yet.', 'newspack-newsletters' ) }
 						/>
-					);
-				} ) }
-			</div>
+					</Fragment>
+				) }
 
-			<Button isSecondary href={ `/wp-admin/post-new.php?post_type=${ AD_CPT }` }>
-				{ __( 'Create new ad', 'newspack-newsletters' ) }
-			</Button>
-		</Card>
+				<div className="newspack-buttons-card">
+					<Button isPrimary href={ `/wp-admin/post-new.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }` }>
+						{ __( 'Create new ad', 'newspack-newsletters' ) }
+					</Button>
+				</div>
+			</Card>
+		</Grid>
 	);
 };
 

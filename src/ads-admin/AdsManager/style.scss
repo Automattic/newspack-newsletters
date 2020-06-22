@@ -3,8 +3,11 @@ a.newspack-button {
 	text-decoration: none;
 }
 
-// TODO: Fix ActionCard in newspack-components
-.newspack-card:not( .newspack-card__no-background )
-	.newspack-card.newspack-action-card.newspack-card__is-secondary {
-	border-left: 4px solid orange;
+.newspack-newsletters-ads {
+	&__waiting {
+		align-items: center;
+		justify-content: center;
+		display: flex;
+		padding: 20px 0 40px 0;
+	}
 }
