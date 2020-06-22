@@ -77,9 +77,13 @@ final class Newspack_Newsletters {
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-layouts.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
-		include_once dirname( __FILE__ ) . '/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php';
 
-		Newspack_Newsletters_Mailchimp::instance();
+		switch ( self::service_provider() ) {
+			case 'mailchimp':
+				include_once dirname( __FILE__ ) . '/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php';
+				Newspack_Newsletters_Mailchimp::instance();
+				break;
+		}
 	}
 
 	/**
@@ -564,6 +568,15 @@ final class Newspack_Newsletters {
 	 */
 	public static function debug_mode() {
 		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
+	}
+
+	/**
+	 * Which Email Service Provider should be used.
+	 *
+	 * @return string Name of the Email Service Provider.
+	 */
+	public static function service_provider() {
+		return 'mailchimp'; // For now, Mailchimp is the only choice.
 	}
 }
 Newspack_Newsletters::instance();
