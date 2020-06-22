@@ -145,7 +145,7 @@ abstract class Newspack_Newsletters_Service_Provider {
 				'args'                => [
 					'id' => [
 						'sanitize_callback' => 'absint',
-						'validate_callback' => [ $this, 'validate_newsletter_id' ],
+						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
 				],
 			]
@@ -160,7 +160,7 @@ abstract class Newspack_Newsletters_Service_Provider {
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',
-						'validate_callback' => [ $this, 'validate_newsletter_id' ],
+						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
 					'test_email' => [
 						'sanitize_callback' => 'sanitize_text_field',
@@ -178,7 +178,7 @@ abstract class Newspack_Newsletters_Service_Provider {
 				'args'                => [
 					'id'        => [
 						'sanitize_callback' => 'absint',
-						'validate_callback' => [ $this, 'validate_newsletter_id' ],
+						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
 					'from_name' => [
 						'sanitize_callback' => 'sanitize_text_field',
@@ -274,15 +274,5 @@ abstract class Newspack_Newsletters_Service_Provider {
 			);
 		}
 		return true;
-	}
-
-	/**
-	 * Validate ID is a Newsletter post type.
-	 *
-	 * @param integer $post_id Post ID.
-	 * @return bool Whether post is a Newsletter.
-	 */
-	public function validate_newsletter_id( $post_id ) {
-		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post_id );
 	}
 }

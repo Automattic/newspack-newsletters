@@ -160,7 +160,7 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 	 * @param WP_POST $post Post to send.
 	 */
 	public function send( $post_id, $post ) {
-		if ( ! $this->validate_newsletter_id( $post_id ) ) {
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
 			return new WP_Error(
 				'newspack_newsletters_incorrect_post_type',
 				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
@@ -435,7 +435,7 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 				'args'                => [
 					'id'      => [
 						'sanitize_callback' => 'absint',
-						'validate_callback' => [ $this, 'validate_newsletter_id' ],
+						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
 					'list_id' => [
 						'sanitize_callback' => 'esc_attr',
@@ -453,7 +453,7 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 				'args'                => [
 					'id'          => [
 						'sanitize_callback' => 'absint',
-						'validate_callback' => [ $this, 'validate_newsletter_id' ],
+						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
 					'interest_id' => [
 						'sanitize_callback' => 'esc_attr',
