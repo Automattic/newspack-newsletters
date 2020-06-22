@@ -29,6 +29,13 @@ abstract class Newspack_Newsletters_Service_Provider {
 	public $service;
 
 	/**
+	 * Instances of descendant service provider classes.
+	 *
+	 * @var array
+	 */
+	protected static $instances = [];
+
+	/**
 	 * Abstract methods.
 	 */
 
@@ -112,6 +119,16 @@ abstract class Newspack_Newsletters_Service_Provider {
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'publish_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'send' ], 10, 2 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
+	}
+
+	/**
+	 * Manage singleton instances of all descendant service provider classes.
+	 */
+	public static function instance() {
+		if ( empty( self::$instances[ static::class ] ) ) {
+			self::$instances[ static::class ] = new static();
+		}
+		return self::$instances[ static::class ];
 	}
 
 	/**

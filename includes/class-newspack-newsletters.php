@@ -79,7 +79,7 @@ final class Newspack_Newsletters {
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
 		include_once dirname( __FILE__ ) . '/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php';
 
-		new Newspack_Newsletters_Mailchimp();
+		Newspack_Newsletters_Mailchimp::instance();
 	}
 
 	/**
