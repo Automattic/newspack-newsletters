@@ -153,30 +153,6 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
-		/**
-		 * The default color palette lives in the editor frontend and is not
-		 * retrievable on the backend. The workaround is to set it as post meta
-		 * so that it's available to the email renderer.
-		 */
-		\register_meta(
-			'post',
-			'color_palette',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => array(
-					'schema' => array(
-						'type'                 => 'object',
-						'properties'           => array(),
-						'additionalProperties' => array(
-							'type' => 'string',
-						),
-					),
-				),
-				'type'           => 'object',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
@@ -365,6 +341,27 @@ final class Newspack_Newsletters {
 				],
 			]
 		);
+		\register_rest_route(
+			'newspack-newsletters/v1',
+			'color-palette',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_set_color_palette' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+			]
+		);
+	}
+
+	/**
+	 * The default color palette lives in the editor frontend and is not
+	 * retrievable on the backend. The workaround is to set it as an option
+	 * so that it's available to the email renderer.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_set_color_palette( $request ) {
+		update_option( 'newspack_newsletters_color_palette', $request->get_body() );
+		return \rest_ensure_response( [] );
 	}
 
 	/**

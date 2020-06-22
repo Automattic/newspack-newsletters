@@ -536,7 +536,7 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup to be injected into the template.
 	 */
 	private static function post_to_mjml_components( $post, $include_ads ) {
-		self::$color_palette = get_post_meta( $post->ID, 'color_palette', true );
+		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
 		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
