@@ -359,7 +359,7 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 		try {
 			$mc      = new Mailchimp( $this->api_key() );
 			$payload = [
-				'test_emails' => $test_emails,
+				'test_emails' => $emails,
 				'send_type'   => 'html',
 			];
 			$result  = $this->validate(
@@ -375,7 +375,7 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 			$data['message'] = sprintf(
 				// translators: Message after successful test email.
 				__( 'Mailchimp test sent successfully to %s.', 'newspack-newsletters' ),
-				implode( ' ', $test_emails )
+				implode( ', ', $emails )
 			);
 
 			return \rest_ensure_response( $data );
