@@ -115,7 +115,7 @@ final class Newspack_Newsletters_Editor {
 			'newspack_newsletters_data',
 			[
 				'has_keys'         => Newspack_Newsletters::has_keys(),
-				'service_provider' => 'mailchimp',
+				'service_provider' => Newspack_Newsletters::service_provider(),
 			]
 		);
 
