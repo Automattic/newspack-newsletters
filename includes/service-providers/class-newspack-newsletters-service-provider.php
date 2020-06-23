@@ -40,11 +40,18 @@ abstract class Newspack_Newsletters_Service_Provider {
 	 */
 
 	/**
+	 * Get API key for service provider.
+	 *
+	 * @return String Stored API key for the service provider.
+	 */
+	abstract public function api_key();
+
+	/**
 	 * Set list for a campaign.
 	 *
 	 * @param string $post_id Campaign Id.
 	 * @param string $list_id ID of the list.
-	 * @return object|WP_Error API API Response or error.
+	 * @return object|WP_Error API Response or error.
 	 */
 	abstract public function list( $post_id, $list_id );
 
@@ -82,6 +89,13 @@ abstract class Newspack_Newsletters_Service_Provider {
 	 * @return object|WP_Error API Response or error.
 	 */
 	abstract public function sender( $post_id, $from_name, $reply_to );
+
+	/**
+	 * Set the API key for the service provider.
+	 *
+	 * @param string $key API key.
+	 */
+	abstract public function set_api_key( $key );
 
 	/**
 	 * Synchronize post with corresponding ESP campaign.

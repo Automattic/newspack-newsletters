@@ -42,6 +42,13 @@ final class Newspack_Newsletters {
 	protected static $instance = null;
 
 	/**
+	 * Instance of the service provider class.
+	 *
+	 * @var Newspack_Newsletters_Service_Provider
+	 */
+	protected static $provider = null;
+
+	/**
 	 * Main Newspack Newsletter Author Instance.
 	 * Ensures only one instance of Newspack Author Instance is loaded or can be loaded.
 	 *
@@ -63,16 +70,6 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 
-		$needs_nag =
-			is_admin() &&
-			( ! self::mailchimp_api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) &&
-			! get_option( 'newspack_newsletters_activation_nag_viewed', false );
-
-		if ( $needs_nag ) {
-			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
-			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
-			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
-		}
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-editor.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-layouts.php';
 		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
@@ -81,8 +78,18 @@ final class Newspack_Newsletters {
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
 				include_once dirname( __FILE__ ) . '/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php';
-				Newspack_Newsletters_Mailchimp::instance();
+				self::$provider = Newspack_Newsletters_Mailchimp::instance();
 				break;
+		}
+
+		$needs_nag = is_admin() &&
+			( ! self::$provider->api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) &&
+			! get_option( 'newspack_newsletters_activation_nag_viewed', false );
+
+		if ( $needs_nag ) {
+			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
+			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
+			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
 	}
 
@@ -358,20 +365,10 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Retrieve API keys.
+	 * Retrieve service API keys for API endpoints.
 	 */
 	public static function api_get_keys() {
-		$mailchimp_api_key = self::mailchimp_api_key();
-		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
-		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
-
-		$keys = [
-			'mailchimp_api_key' => $mailchimp_api_key ? $mailchimp_api_key : '',
-			'mjml_api_key'      => $mjml_api_key ? $mjml_api_key : '',
-			'mjml_api_secret'   => $mjml_api_secret ? $mjml_api_secret : '',
-			'status'            => ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret ),
-		];
-		return \rest_ensure_response( $keys );
+		return \rest_ensure_response( self::api_keys() );
 	}
 
 	/**
@@ -391,19 +388,11 @@ final class Newspack_Newsletters {
 				__( 'Please input a Mailchimp API key.', 'newspack-newsletters' )
 			);
 		} else {
-			try {
-				$mc   = new Mailchimp( $mailchimp_api_key );
-				$ping = $mc->get( 'ping' );
-			} catch ( Exception $e ) {
-				$ping = null;
-			}
-			if ( $ping ) {
-				update_option( 'newspack_newsletters_mailchimp_api_key', $mailchimp_api_key );
-			} else {
-				$wp_error->add(
-					'newspack_newsletters_invalid_keys_mailchimp',
-					__( 'Please input a valid Mailchimp API key.', 'newspack-newsletters' )
-				);
+			$status = self::$provider->set_api_key( $mailchimp_api_key );
+			if ( is_wp_error( $status ) ) {
+				foreach ( $status->errors as $code => $message ) {
+					$wp_error->add( $code, implode( ' ', $message ) );
+				}
 			}
 		}
 
@@ -444,10 +433,29 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Get Mailchimp API key.
+	 * Retrieve service API keys.
 	 */
-	public static function mailchimp_api_key() {
-		return get_option( 'newspack_newsletters_mailchimp_api_key', false );
+	public static function api_keys() {
+		$mailchimp_api_key = self::$provider->api_key(); // For now, it will only be Mailchimp.
+		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
+		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
+
+		return [
+			'mailchimp_api_key' => $mailchimp_api_key ? $mailchimp_api_key : '',
+			'mjml_api_key'      => $mjml_api_key ? $mjml_api_key : '',
+			'mjml_api_secret'   => $mjml_api_secret ? $mjml_api_secret : '',
+			'status'            => ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret ),
+		];
+	}
+
+	/**
+	 * Are all the needed API keys available?
+	 *
+	 * @return bool Whether all API keys are set.
+	 */
+	public static function has_keys() {
+		$keys = self::api_keys();
+		return $keys['status'];
 	}
 
 	/**

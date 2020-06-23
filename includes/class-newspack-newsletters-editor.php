@@ -103,13 +103,6 @@ final class Newspack_Newsletters_Editor {
 		if ( ! self::is_editing_newsletter() ) {
 			return;
 		}
-
-		$mailchimp_api_key = Newspack_Newsletters::mailchimp_api_key();
-		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
-		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
-
-		$has_keys = ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret );
-
 		\wp_enqueue_script(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.js', __FILE__ ),
@@ -121,7 +114,7 @@ final class Newspack_Newsletters_Editor {
 			'newspack-newsletters',
 			'newspack_newsletters_data',
 			[
-				'has_keys'         => $has_keys,
+				'has_keys'         => Newspack_Newsletters::has_keys(),
 				'service_provider' => 'mailchimp',
 			]
 		);

@@ -30,6 +30,15 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 	 */
 
 	/**
+	 * Get API key for service provider.
+	 *
+	 * @return String Stored API key for the service provider.
+	 */
+	public function api_key() {
+		return get_option( 'newspack_newsletters_mailchimp_api_key', false );
+	}
+
+	/**
 	 * Set list for a campaign.
 	 *
 	 * @param string $post_id Campaign Id.
@@ -277,6 +286,26 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 	}
 
 	/**
+	 * Set the API key for the service provider.
+	 *
+	 * @param string $key API key.
+	 */
+	public function set_api_key( $key ) {
+		try {
+			$mc   = new Mailchimp( $key );
+			$ping = $mc->get( 'ping' );
+		} catch ( Exception $e ) {
+			$ping = null;
+		}
+		return $ping ?
+			update_option( 'newspack_newsletters_mailchimp_api_key', $key ) :
+			new WP_Error(
+				'newspack_newsletters_invalid_keys_mailchimp',
+				__( 'Please input a valid Mailchimp API key.', 'newspack-newsletters' )
+			);
+	}
+
+	/**
 	 * Synchronize post with corresponding ESP campaign.
 	 *
 	 * @param WP_POST $post Post to synchronize.
@@ -412,7 +441,7 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 				$status = $campaign['status'];
 				if ( ! in_array( $status, [ 'sent', 'sending' ] ) ) {
 					$result = $mc->delete( "campaigns/$mc_campaign_id" );
-					delete_post_meta( $id, 'mc_campaign_id', $mc_campaign_id );
+					delete_post_meta( $post_id, 'mc_campaign_id', $mc_campaign_id );
 				}
 			}
 		} catch ( Exception $e ) {
@@ -561,15 +590,6 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 				$e->getMessage()
 			);
 		}
-	}
-
-	/**
-	 * Get Mailchimp API key.
-	 *
-	 * @return String Mailchimp API key.
-	 */
-	public function api_key() {
-		return get_option( 'newspack_newsletters_mailchimp_api_key', false );
 	}
 
 	/**
