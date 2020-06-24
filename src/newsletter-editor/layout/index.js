@@ -9,7 +9,6 @@ import { isEqual, find } from 'lodash';
 import { compose } from '@wordpress/compose';
 import { parse, serialize } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
-import { BlockPreview } from '@wordpress/block-editor';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { Fragment, useState, useEffect, useMemo } from '@wordpress/element';
 import { Button, Modal, TextControl, Spinner } from '@wordpress/components';
@@ -22,6 +21,7 @@ import { LAYOUT_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
 import { isUserDefinedLayout } from '../../utils';
 import './style.scss';
 import { setPreventDeduplicationForPostsInserter } from '../../editor/blocks/posts-inserter/utils';
+import NewsletterPreview from '../../components/newsletter-preview';
 
 export default compose( [
 	withSelect( select => {
@@ -159,7 +159,8 @@ export default compose( [
 					<div className="newspack-newsletters-layouts">
 						<div className="newspack-newsletters-layouts__item">
 							<div className="newspack-newsletters-layouts__item-preview">
-								<BlockPreview
+								<NewsletterPreview
+									meta={ usedLayout.meta }
 									blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
 									viewportWidth={ 600 }
 								/>
