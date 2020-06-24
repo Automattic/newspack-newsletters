@@ -633,4 +633,3 @@ final class Newspack_Newsletters_Mailchimp extends Newspack_Newsletters_Service_
 		return $result;
 	}
 }
-Newspack_Newsletters::instance();
