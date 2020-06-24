@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Main Newspack Newsletters Class.
  */
-abstract class Newspack_Newsletters_Service_Provider {
+abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newsletters_ESP_API_Interface, Newspack_Newsletters_WP_Hookable_Interface {
 
 	/**
 	 * Class constants.
@@ -34,96 +34,6 @@ abstract class Newspack_Newsletters_Service_Provider {
 	 * @var array
 	 */
 	protected static $instances = [];
-
-	/**
-	 * Abstract methods.
-	 */
-
-	/**
-	 * Get API key for service provider.
-	 *
-	 * @return String Stored API key for the service provider.
-	 */
-	abstract public function api_key();
-
-	/**
-	 * Set list for a campaign.
-	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $list_id ID of the list.
-	 * @return object|WP_Error API Response or error.
-	 */
-	abstract public function list( $post_id, $list_id );
-
-	/**
-	 * Retrieve a campaign.
-	 *
-	 * @param integer $post_id Numeric ID of the Newsletter post.
-	 * @return object|WP_Error API Response or error.
-	 */
-	abstract public function retrieve( $post_id );
-
-	/**
-	 * Update ESP campaign after post save.
-	 *
-	 * @param string  $post_id Numeric ID of the campaign.
-	 * @param WP_Post $post The complete post object.
-	 * @param boolean $update Whether this is an existing post being updated or not.
-	 */
-	abstract public function save( $post_id, $post, $update );
-
-	/**
-	 * Send a campaign.
-	 *
-	 * @param integer $post_id Post ID to send.
-	 * @param WP_POST $post Post to send.
-	 */
-	abstract public function send( $post_id, $post );
-
-	/**
-	 * Set sender data.
-	 *
-	 * @param string $post_id Numeric ID of the campaign.
-	 * @param string $from_name Sender name.
-	 * @param string $reply_to Reply to email address.
-	 * @return object|WP_Error API Response or error.
-	 */
-	abstract public function sender( $post_id, $from_name, $reply_to );
-
-	/**
-	 * Set the API key for the service provider.
-	 *
-	 * @param string $key API key.
-	 */
-	abstract public function set_api_key( $key );
-
-	/**
-	 * Synchronize post with corresponding ESP campaign.
-	 *
-	 * @param WP_POST $post Post to synchronize.
-	 * @return object|null API Response or error.
-	 */
-	abstract public function sync( $post );
-
-	/**
-	 * Send test email or emails.
-	 *
-	 * @param integer $post_id Numeric ID of the Newsletter post.
-	 * @param array   $emails Array of email addresses to send to.
-	 * @return object|WP_Error API Response or error.
-	 */
-	abstract public function test( $post_id, $emails );
-
-	/**
-	 * After Newsletter post is deleted, clean up by deleting corresponding ESP campaign.
-	 *
-	 * @param string $post_id Numeric ID of the campaign.
-	 */
-	abstract public function trash( $post_id );
-
-	/**
-	 * Class methods.
-	 */
 
 	/**
 	 * Class constructor.
