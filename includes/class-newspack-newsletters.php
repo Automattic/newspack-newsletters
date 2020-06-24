@@ -429,8 +429,19 @@ final class Newspack_Newsletters {
 				'posts_per_page' => -1,
 			)
 		);
+		$user_layouts  = array_map(
+			function ( $post ) {
+				$post->meta = [
+					'background_color' => get_post_meta( $post->ID, 'background_color', true ),
+					'font_body'        => get_post_meta( $post->ID, 'font_body', true ),
+					'font_header'      => get_post_meta( $post->ID, 'font_header', true ),
+				];
+				return $post;
+			},
+			$layouts_query->get_posts()
+		);
 		$layouts       = array_merge(
-			$layouts_query->get_posts(),
+			$user_layouts,
 			Newspack_Newsletters_Layouts::get_default_layouts(),
 			apply_filters( 'newspack_newsletters_templates', [] )
 		);
