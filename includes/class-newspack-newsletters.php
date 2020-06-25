@@ -7,8 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/vendor/autoload.php';
-
 use \DrewM\MailChimp\MailChimp;
 
 /**
@@ -70,14 +68,8 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 
-		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-editor.php';
-		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-layouts.php';
-		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-settings.php';
-		include_once dirname( __FILE__ ) . '/class-newspack-newsletters-renderer.php';
-
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
-				include_once dirname( __FILE__ ) . '/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php';
 				self::$provider = Newspack_Newsletters_Mailchimp::instance();
 				break;
 		}
