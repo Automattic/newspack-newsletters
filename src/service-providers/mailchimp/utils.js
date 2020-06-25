@@ -53,3 +53,21 @@ export const getListInterestsSettings = ( {
 
 	return { options, interestValue, setInterest: find( options, [ 'value', interestValue ] ) };
 };
+
+export const getListTags = ( { campaign } ) => {
+	const conditions = get( campaign, 'recipients.segment_opts.conditions' );
+	if ( ! conditions ) {
+		return [];
+	}
+	return conditions.reduce( ( tagIds, condition ) => {
+		if ( condition.condition_type === 'StaticSegment' ) {
+			tagIds.push( condition.value );
+		}
+		return tagIds;
+	}, [] );
+};
+
+export const getTagIds = ( tagNames, allTags ) =>
+	tagNames.map( tagName => find( allTags, [ 'name', tagName ] ).id );
+export const getTagNames = ( tagIds, allTags ) =>
+	tagIds.map( id => find( allTags, [ 'id', id ] ).name );
