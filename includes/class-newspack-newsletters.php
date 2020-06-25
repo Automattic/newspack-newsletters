@@ -65,6 +65,7 @@ final class Newspack_Newsletters {
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save_post' ], 10, 3 );
 		add_action( 'publish_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'send_campaign' ], 10, 2 );
 		add_action( 'wp_trash_post', [ __CLASS__, 'trash_post' ], 10, 1 );
+		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 
 		$needs_nag =
 			is_admin() &&
@@ -212,6 +213,39 @@ final class Newspack_Newsletters {
 			'menu_icon'    => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
+	}
+
+	/**
+	 * Filter post states in admin posts list.
+	 *
+	 * @param array   $post_states An array of post display states.
+	 * @param WP_Post $post        The current post object.
+	 * @return array The filtered $post_states array.
+	 */
+	public static function display_post_states( $post_states, $post ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+			return $post_states;
+		}
+
+		$post_status = get_post_status_object( $post->post_status );
+		$is_sent     = 'publish' === $post_status->name;
+
+		if ( $is_sent ) {
+			$sent_date = get_the_time( 'U', $post );
+			$time_diff = time() - $sent_date;
+			$sent_date = human_time_diff( $sent_date, time() );
+
+			// Show relative date if sent within the past 24 hours.
+			if ( $time_diff < 86400 ) {
+				/* translators: Relative time stamp of sent/published date */
+				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s ago', 'newspack-newsletters' ), $sent_date );
+			} else {
+				/* translators:  Absolute time stamp of sent/published date */
+				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( 'Y/m/d', $post ) );
+			}
+		}
+
+		return $post_states;
 	}
 
 	/**
