@@ -22,7 +22,15 @@ export default () =>
 					apiFetch( apiRequest )
 						.then( response => {
 							const { message } = response;
-							getNotices().forEach( notice => removeNotice( notice.id ) );
+							getNotices().forEach( notice => {
+								// Don't remove the "Campaign sent" notice.
+								if (
+									'success' !== notice.status ||
+									-1 === notice.content.indexOf( 'Campaign sent' )
+								) {
+									removeNotice( notice.id );
+								}
+							} );
 							if ( message ) {
 								createSuccessNotice( message );
 							}
@@ -32,7 +40,15 @@ export default () =>
 						} )
 						.catch( error => {
 							const { message } = error;
-							getNotices().forEach( notice => removeNotice( notice.id ) );
+							getNotices().forEach( notice => {
+								// Don't remove the "Campaign sent" notice.
+								if (
+									'success' !== notice.status ||
+									-1 === notice.content.indexOf( 'Campaign sent' )
+								) {
+									removeNotice( notice.id );
+								}
+							} );
 							createErrorNotice( message );
 							setInFlight( false );
 							setErrors( { [ error.code ]: true } );
