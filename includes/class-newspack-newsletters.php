@@ -241,7 +241,7 @@ final class Newspack_Newsletters {
 				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s ago', 'newspack-newsletters' ), $sent_date );
 			} else {
 				/* translators:  Absolute time stamp of sent/published date */
-				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( 'Y/m/d', $post ) );
+				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( get_option( 'date_format' ), $post ) );
 			}
 		}
 
