@@ -39,16 +39,19 @@ const getWarnings = props => {
 		// handled by the block editor filters.
 		case 'core/columns':
 			const { getBlock } = select( 'core/block-editor' );
-			const { innerBlocks } = getBlock( props.block.clientId );
-			const isAnyColumnCenterAligned = some( innerBlocks, isCenterAligned );
-			const areAllColumnsCenterAligned = every( innerBlocks, isCenterAligned );
-			if ( isAnyColumnCenterAligned && ! areAllColumnsCenterAligned ) {
-				warnings.push(
-					__(
-						'Unequal middle alignment. All or none of the columns should be middle-aligned.',
-						'newspack-newsletters'
-					)
-				);
+			const block = getBlock( props.block.clientId );
+			if ( block ) {
+				const { innerBlocks } = block;
+				const isAnyColumnCenterAligned = some( innerBlocks, isCenterAligned );
+				const areAllColumnsCenterAligned = every( innerBlocks, isCenterAligned );
+				if ( isAnyColumnCenterAligned && ! areAllColumnsCenterAligned ) {
+					warnings.push(
+						__(
+							'Unequal middle alignment. All or none of the columns should be middle-aligned.',
+							'newspack-newsletters'
+						)
+					);
+				}
 			}
 			break;
 
