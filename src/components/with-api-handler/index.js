@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { dispatch, select } from '@wordpress/data';
 import { createHigherOrderComponent } from '@wordpress/compose';
@@ -16,6 +17,7 @@ export default () =>
 			const setInFlightForAsync = () => {
 				setInFlight( true );
 			};
+			const successNote = __( 'Campaign sent on ', 'newspack-newsletters' );
 			const apiFetchWithErrorHandling = apiRequest => {
 				setInFlight( true );
 				return new Promise( ( resolve, reject ) => {
@@ -24,10 +26,7 @@ export default () =>
 							const { message } = response;
 							getNotices().forEach( notice => {
 								// Don't remove the "Campaign sent" notice.
-								if (
-									'success' !== notice.status ||
-									-1 === notice.content.indexOf( 'Campaign sent' )
-								) {
+								if ( 'success' !== notice.status || -1 === notice.content.indexOf( successNote ) ) {
 									removeNotice( notice.id );
 								}
 							} );
@@ -42,10 +41,7 @@ export default () =>
 							const { message } = error;
 							getNotices().forEach( notice => {
 								// Don't remove the "Campaign sent" notice.
-								if (
-									'success' !== notice.status ||
-									-1 === notice.content.indexOf( 'Campaign sent' )
-								) {
+								if ( 'success' !== notice.status || -1 === notice.content.indexOf( successNote ) ) {
 									removeNotice( notice.id );
 								}
 							} );
@@ -63,6 +59,7 @@ export default () =>
 					errors={ errors }
 					setInFlightForAsync={ setInFlightForAsync }
 					inFlight={ inFlight }
+					successNote={ successNote }
 				/>
 			);
 		},

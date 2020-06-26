@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { createPortal, useEffect, useState } from '@wordpress/element';
@@ -90,7 +89,7 @@ const Editor = compose( [
 		if ( 'publish' === props.status ) {
 			const dateTime = props.sentDate ? new Date( props.sentDate ).toLocaleString() : '';
 			// Show an editor notice if the newsletter has been sent.
-			props.createNotice( 'success', __( 'Campaign sent on ', 'newspack-newsletters' ) + dateTime, {
+			props.createNotice( 'success', props.successNote + dateTime, {
 				isDismissible: false,
 			} );
 		}
