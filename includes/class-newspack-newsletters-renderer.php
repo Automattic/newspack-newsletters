@@ -434,8 +434,13 @@ final class Newspack_Newsletters_Renderer {
 			 */
 			case 'core/column':
 				if ( isset( $attrs['verticalAlignment'] ) ) {
-					$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
+					if ( 'center' === $attrs['verticalAlignment'] ) {
+						$column_attrs['vertical-align'] = 'middle';
+					} else {
+						$column_attrs['vertical-align'] = $attrs['verticalAlignment'];
+					}
 				}
+
 				if ( isset( $attrs['width'] ) ) {
 					$column_attrs['width']     = $attrs['width'] . '%';
 					$column_attrs['css-class'] = 'mj-column-has-width';

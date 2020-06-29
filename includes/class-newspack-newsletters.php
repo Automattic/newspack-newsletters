@@ -67,6 +67,7 @@ final class Newspack_Newsletters {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
+		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
@@ -218,6 +219,39 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Filter post states in admin posts list.
+	 *
+	 * @param array   $post_states An array of post display states.
+	 * @param WP_Post $post        The current post object.
+	 * @return array The filtered $post_states array.
+	 */
+	public static function display_post_states( $post_states, $post ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+			return $post_states;
+		}
+
+		$post_status = get_post_status_object( $post->post_status );
+		$is_sent     = 'publish' === $post_status->name;
+
+		if ( $is_sent ) {
+			$sent_date = get_the_time( 'U', $post );
+			$time_diff = time() - $sent_date;
+			$sent_date = human_time_diff( $sent_date, time() );
+
+			// Show relative date if sent within the past 24 hours.
+			if ( $time_diff < 86400 ) {
+				/* translators: Relative time stamp of sent/published date */
+				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s ago', 'newspack-newsletters' ), $sent_date );
+			} else {
+				/* translators:  Absolute time stamp of sent/published date */
+				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( get_option( 'date_format' ), $post ) );
+			}
+		}
+
+		return $post_states;
+	}
+
+	/**
 	 * Add newspack_popups_is_sitewide_default to Popup object.
 	 */
 	public static function rest_api_init() {
@@ -347,8 +381,19 @@ final class Newspack_Newsletters {
 				'posts_per_page' => -1,
 			)
 		);
+		$user_layouts  = array_map(
+			function ( $post ) {
+				$post->meta = [
+					'background_color' => get_post_meta( $post->ID, 'background_color', true ),
+					'font_body'        => get_post_meta( $post->ID, 'font_body', true ),
+					'font_header'      => get_post_meta( $post->ID, 'font_header', true ),
+				];
+				return $post;
+			},
+			$layouts_query->get_posts()
+		);
 		$layouts       = array_merge(
-			$layouts_query->get_posts(),
+			$user_layouts,
 			Newspack_Newsletters_Layouts::get_default_layouts(),
 			apply_filters( 'newspack_newsletters_templates', [] )
 		);
