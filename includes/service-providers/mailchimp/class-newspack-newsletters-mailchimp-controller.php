@@ -12,17 +12,11 @@ use \DrewM\MailChimp\MailChimp;
 /**
  * API Controller for Newspack Mailchimp ESP service.
  */
-class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_ESP_Service_Provider_Controller {
-
-	/**
-	 * @var \Newspack_Newsletters_Mailchimp
-	 */
-	private $mailchimp;
-
+class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Service_Provider_Controller {
 	/**
 	 * Newspack_Newsletters_Mailchimp_Controller constructor.
 	 *
-	 * @param \Newspack_Newsletters_Mailchimp $mailchimp
+	 * @param \Newspack_Newsletters_Mailchimp $mailchimp The service provider class.
 	 */
 	public function __construct( $mailchimp ) {
 		$this->service_provider = $mailchimp;
@@ -35,7 +29,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_ESP
 	 */
 	public function register_routes() {
 
-		// Register common ESP routes from \Newspack_Newsletters_ESP_Service_Provider_Controller::register_routes.
+		// Register common ESP routes from \Newspack_Newsletters_Service_Provider_Controller::register_routes.
 		parent::register_routes();
 
 		\register_rest_route(

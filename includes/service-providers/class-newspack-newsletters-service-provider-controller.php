@@ -10,15 +10,17 @@ defined( 'ABSPATH' ) || exit;
 /**
  * General API shared by all ESP services.
  */
-abstract class Newspack_Newsletters_ESP_Service_Provider_Controller extends \WP_REST_Controller {
+abstract class Newspack_Newsletters_Service_Provider_Controller extends \WP_REST_Controller {
 
 	/**
+	 * The service provider class.
+	 *
 	 * @var Newspack_Newsletters_Service_Provider $service_provider
 	 */
 	private static $service_provider;
 
 	/**
-	 * Newspack_Newsletters_ESP_Service_Provider_Controller constructor.
+	 * Newspack_Newsletters_Service_Provider_Controller constructor.
 	 *
 	 * @param \Newspack_Newsletters_Service_Provider $service_provider Logic general to all ESP Services.
 	 */

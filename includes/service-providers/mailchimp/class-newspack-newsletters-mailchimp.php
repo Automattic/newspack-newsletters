@@ -19,7 +19,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function __construct() {
 		$this->service    = 'mailchimp';
-
 		$this->controller = new Newspack_Newsletters_Mailchimp_Controller( $this );
 
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
