@@ -113,7 +113,7 @@ final class Newspack_Newsletters_Ads {
 		wp_register_style(
 			self::NEWSPACK_NEWSLETTERS_ADS_PAGE,
 			plugins_url( '../dist/adsAdmin.css', __FILE__ ),
-			[],
+			[ 'wp-components' ],
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsAdmin.css' )
 		);
 		wp_style_add_data( self::NEWSPACK_NEWSLETTERS_ADS_PAGE, 'rtl', 'replace' );
