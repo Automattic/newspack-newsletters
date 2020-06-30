@@ -63,15 +63,22 @@ const Editor = compose( [
 	}, []);
 	const { getFetchDataConfig } = getServiceProvider();
 
+	// Set color palette option.
+	useEffect(() => {
+		props.apiFetchWithErrorHandling( {
+			path: `/newspack-newsletters/v1/color-palette`,
+			data: props.colorPalette,
+			method: 'POST',
+		} );
+	}, []);
+
 	// Fetch data from service provider.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
 			props
 				.apiFetchWithErrorHandling( getFetchDataConfig( { postId: props.postId } ) )
 				.then( result => {
-					const postUpdate = getEditPostPayload( result );
-					postUpdate.meta.color_palette = props.colorPalette;
-					props.editPost( postUpdate );
+					props.editPost( getEditPostPayload( result ) );
 				} );
 		}
 	}, [ props.isPublishingOrSavingPost ]);
