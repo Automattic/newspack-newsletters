@@ -86,7 +86,10 @@ const AdsManager = () => {
 			<FormattedHeader
 				headerIcon={ <HeaderIcon /> }
 				headerText={ __( 'Newsletter Ads', 'newspack-newsletters' ) }
-				subHeaderText={ __( 'Monetize your newsletters through self-serve ads.' ) }
+				subHeaderText={ __(
+					'Monetize your newsletters through self-serve ads.',
+					'newspack-newsletters'
+				) }
 			/>
 			<Card>
 				{ inFlight ? (
