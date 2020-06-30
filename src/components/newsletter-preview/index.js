@@ -2,7 +2,8 @@
  * WordPress dependencies
  */
 import { BlockPreview } from '@wordpress/block-editor';
-import { Fragment, useMemo } from '@wordpress/element';
+import { createRef, Fragment, useMemo, useState, useEffect } from '@wordpress/element';
+import { Spinner } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -10,7 +11,57 @@ import { Fragment, useMemo } from '@wordpress/element';
 import './style.scss';
 
 const NewsletterPreview = ( { meta = {}, ...props } ) => {
+	const [ ready, setReady ] = useState( false );
+	const containerRef = createRef();
 	const ELEMENT_ID = useMemo( () => `preview-${ Math.round( Math.random() * 1000 ) }`, [] );
+
+	/**
+	 * This hook does the work of an "onReady" callback for each BlockPreview element.
+	 * Currently, BlockPreview loads scaled elements directly into the DOM, resulting in
+	 * a flash of unstyled content when loading images.
+	 *
+	 * This hook checks whether the blocks passed to the BlockPreview contains featured images,
+	 * and if so, uses a MutationObserver to attach a 'load' event listener before providing
+	 * the "ready" style.
+	 *
+	 * If the blocks do not contain a featured image, we can show them immediately.
+	 */
+	useEffect(() => {
+		const config = { attributes: false, childList: true, subtree: true };
+		const hasFeaturedImage =
+			-1 !== JSON.stringify( props.blocks ).indexOf( '"displayFeaturedImage":true' ); // Lazy way of checking for a deeply nested value.
+
+		// If the block preview contains featured images, use a MutationObserver to listen for images being added to the DOM.
+		const observer = new MutationObserver( mutationsList => {
+			for ( const mutation of mutationsList ) {
+				if ( mutation.addedNodes.length > 0 ) {
+					const nodes = Array.prototype.slice.call( mutation.addedNodes ); // convert NodeList to Array for IE11.
+
+					nodes.forEach( node => {
+						if ( node.classList && node.classList.contains( 'wp-block' ) ) {
+							const images = Array.prototype.slice.call(
+								node.querySelectorAll( '.wp-block-image img' )
+							);
+
+							if ( images.length > 0 ) {
+								images.forEach( image => {
+									image.addEventListener( 'load', () => setReady( true ) );
+									image.addEventListener( 'error', () => setReady( true ) ); // Fallback in case of image load error.
+								} );
+							}
+						}
+					} );
+				}
+			}
+		} );
+
+		// Only listen for image load if the block preview contains featured images.
+		if ( hasFeaturedImage ) {
+			observer.observe( containerRef.current, config );
+		} else {
+			setReady( true );
+		}
+	}, [ props.blocks ]);
 
 	return (
 		<Fragment>
@@ -30,6 +81,7 @@ const NewsletterPreview = ( { meta = {}, ...props } ) => {
 					: ' '
 			}` }</style>
 			<div
+				ref={ containerRef }
 				id={ ELEMENT_ID }
 				className="newspack-newsletters__layout-preview"
 				style={ {
@@ -38,6 +90,11 @@ const NewsletterPreview = ( { meta = {}, ...props } ) => {
 			>
 				<BlockPreview { ...props } />
 			</div>
+			{ ! ready && (
+				<div className="newspack-newsletters__layout-preview-spinner">
+					<Spinner />
+				</div>
+			) }
 		</Fragment>
 	);
 };

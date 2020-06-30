@@ -1,5 +1,13 @@
-.newspack-newsletters__layout-preview {
+.newspack-newsletters__layout-preview,
+.newspack-newsletters__layout-preview-spinner {
 	width: 100%;
 	height: 100%;
 	position: absolute;
+}
+
+.newspack-newsletters__layout-preview-spinner {
+	align-items: center;
+	background-color: white;
+	display: flex;
+	justify-content: center;
 }
