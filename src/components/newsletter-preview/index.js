@@ -16,26 +16,30 @@ const NewsletterPreview = ( { meta = {}, ...props } ) => {
 	const ELEMENT_ID = useMemo( () => `preview-${ Math.round( Math.random() * 1000 ) }`, [] );
 
 	/**
-	 * This hook does the work of an "onReady" callback for each BlockPreview element.
-	 * Currently, BlockPreview loads scaled elements directly into the DOM, resulting in
-	 * a flash of unstyled content when loading images.
+	 * This hook does the work of an "onReady" callback for each BlockPreview
+	 * element. Currently, BlockPreview loads elements directly into the DOM,
+	 * resulting in a flash of unstyled content when loading images.
 	 *
-	 * This hook checks whether the blocks passed to the BlockPreview contains featured images,
-	 * and if so, uses a MutationObserver to attach a 'load' event listener before providing
-	 * the "ready" style.
+	 * This hook checks whether the blocks passed to the BlockPreview contain
+	 * featured images, and if so, uses a MutationObserver to attach a 'load'
+	 * event listener before providing the "ready" style.
 	 *
-	 * If the blocks do not contain a featured image, we can show them immediately.
+	 * If the blocks do not contain a featured image, we can show them
+	 * immediately.
 	 */
 	useEffect(() => {
 		const config = { attributes: false, childList: true, subtree: true };
-		const hasFeaturedImage =
-			-1 !== JSON.stringify( props.blocks ).indexOf( '"displayFeaturedImage":true' ); // Lazy way of checking for a deeply nested value.
 
-		// If the block preview contains featured images, use a MutationObserver to listen for images being added to the DOM.
+		// Lazy way of checking for a deeply nested value.
+		const hasFeaturedImage =
+			-1 !== JSON.stringify( props.blocks ).indexOf( '"displayFeaturedImage":true' );
+
+		// If the block preview contains featured images, listen for images being added to the DOM.
 		const observer = new MutationObserver( mutationsList => {
 			for ( const mutation of mutationsList ) {
 				if ( mutation.addedNodes.length > 0 ) {
-					const nodes = Array.prototype.slice.call( mutation.addedNodes ); // convert NodeList to Array for IE11.
+					// Convert NodeList to Array for IE11.
+					const nodes = Array.prototype.slice.call( mutation.addedNodes );
 
 					nodes.forEach( node => {
 						if ( node.classList && node.classList.contains( 'wp-block' ) ) {
