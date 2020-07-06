@@ -17,10 +17,13 @@ import './style.scss';
 
 const validateNewsletter = ( { campaign } ) => {
 	const { recipients, settings, status } = campaign || {};
-	const { list_id: listId } = recipients || {};
+	const { list_id: listId, recipient_count: recipientCount } = recipients || {};
 	const { from_name: senderName, reply_to: senderEmail } = settings || {};
 
 	const messages = [];
+	if ( recipientCount === 0 ) {
+		messages.push( __( 'There are no contacts in the chosen audience.', 'newspack-newsletters' ) );
+	}
 	if ( 'sent' === status || 'sending' === status ) {
 		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}

@@ -3,7 +3,7 @@
  */
 import { withDispatch, withSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { Button, Modal } from '@wordpress/components';
+import { Button, Modal, Notice } from '@wordpress/components';
 import { Fragment, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -16,6 +16,7 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
+import './style.scss';
 
 const { renderPreSendInfo } = getServiceProvider();
 
@@ -55,18 +56,14 @@ export default compose( [
 		isSaving,
 		savePost,
 		status,
-		validationErrors,
+		validationErrors = [],
 		isEditedPostBeingScheduled,
 		hasPublishAction,
 		visibility,
 		newsletterData,
 	} ) => {
 		const isButtonEnabled =
-			( isPublishable || isEditedPostBeingScheduled ) &&
-			isSaveable &&
-			validationErrors &&
-			! validationErrors.length &&
-			'publish' !== status;
+			( isPublishable || isEditedPostBeingScheduled ) && isSaveable && 'publish' !== status;
 		let label;
 		if ( 'publish' === status ) {
 			label = isSaving
@@ -118,8 +115,22 @@ export default compose( [
 						onRequestClose={ () => setModalVisible( false ) }
 					>
 						{ renderPreSendInfo( newsletterData ) }
+						{ validationErrors.length ? (
+							<Notice status="error" isDismissible={ false }>
+								{ __(
+									'The following errors prevent the newsletter from being sent:',
+									'newspack-newsletters'
+								) }
+								<ul>
+									{ validationErrors.map( ( error, i ) => (
+										<li key={ i }>{ error }</li>
+									) ) }
+								</ul>
+							</Notice>
+						) : null }
 						<Button
 							isPrimary
+							disabled={ validationErrors.length > 0 }
 							onClick={ () => {
 								triggerCampaignSend();
 								setModalVisible( false );

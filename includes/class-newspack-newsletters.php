@@ -720,7 +720,7 @@ final class Newspack_Newsletters {
 
 			if ( $has_interest || $tag_ids_param ) {
 				$segment_opts = [
-					'match'      => 'any',
+					'match'      => 'all',
 					'conditions' => [],
 				];
 
