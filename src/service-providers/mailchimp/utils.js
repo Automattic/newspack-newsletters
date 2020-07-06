@@ -21,7 +21,10 @@ export const getListInterestsSettings = ( {
 		! interestCategories.categories ||
 		! interestCategories.categories.length
 	) {
-		return;
+		return {
+			interestValue: null,
+			options: [],
+		};
 	}
 	const options = interestCategories.categories.reduce( ( accumulator, item ) => {
 		const { title, interests, id } = item;

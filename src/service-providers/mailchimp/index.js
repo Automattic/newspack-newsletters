@@ -57,7 +57,7 @@ const renderPreSendInfo = newsletterData => {
 
 		if ( list ) {
 			listData = { name: list.name, subscribers: parseInt( list.stats.member_count ) };
-			if ( interestSettings && interestSettings.setInterest ) {
+			if ( interestSettings.setInterest ) {
 				listData.groupName = interestSettings.setInterest.rawInterest.name;
 				listData.subscribers = parseInt(
 					interestSettings.setInterest.rawInterest.subscriber_count

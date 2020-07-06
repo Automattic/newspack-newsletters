@@ -48,7 +48,7 @@ const SegmentsSelection = ( {
 
 	return (
 		<Fragment>
-			{ availableInterests.length && (
+			{ availableInterests.length ? (
 				<SelectControl
 					label={ __( 'Groups', 'newspack-newsletters' ) }
 					value={ segmentsData.interest_id }
@@ -62,8 +62,8 @@ const SegmentsSelection = ( {
 					onChange={ interest_id => updateSegmentsData( { interest_id } ) }
 					disabled={ inFlight }
 				/>
-			) }
-			{ availableTags.length && (
+			) : null }
+			{ availableTags.length ? (
 				<FormTokenField
 					label={ __( 'Tags', 'newspack-newsletters' ) }
 					value={ getTagNames( segmentsData.tag_ids, availableTags ) }
@@ -73,7 +73,7 @@ const SegmentsSelection = ( {
 					}
 					disabled={ inFlight }
 				/>
-			) }
+			) : null }
 		</Fragment>
 	);
 };
@@ -177,17 +177,15 @@ const ProviderSidebar = ( {
 				</p>
 			) }
 
-			{ interestSettings && (
-				<SegmentsSelection
-					chosenInterestId={ interestSettings.interestValue }
-					availableInterests={ interestSettings.options }
-					chosenTags={ chosenTags }
-					availableTags={ newsletterData.tags }
-					apiFetch={ apiFetch }
-					inFlight={ inFlight }
-					onUpdate={ updateSegments }
-				/>
-			) }
+			<SegmentsSelection
+				chosenInterestId={ interestSettings.interestValue }
+				availableInterests={ interestSettings.options }
+				chosenTags={ chosenTags }
+				availableTags={ newsletterData.tags }
+				apiFetch={ apiFetch }
+				inFlight={ inFlight }
+				onUpdate={ updateSegments }
+			/>
 
 			{ renderFrom( { handleSenderUpdate: setSender } ) }
 		</Fragment>
