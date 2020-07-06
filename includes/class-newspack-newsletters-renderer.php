@@ -568,10 +568,15 @@ final class Newspack_Newsletters_Renderer {
 			$ads        = $ads_query->get_posts();
 			$ads_markup = '';
 			foreach ( $ads as $ad ) {
-				$now_date    = new DateTime();
 				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
-				if ( ! $expiry_date || $expiry_date > $now_date ) {
+				if ( ! $expiry_date ) {
 					$ads_markup .= self::post_to_mjml_components( $ad, false );
+				} else {
+					$now_date    = gmdate( 'Y-m-d' );
+					$expiry_date = $expiry_date->format( 'Y-m-d' );
+					if ( $expiry_date >= $now_date ) {
+						$ads_markup .= self::post_to_mjml_components( $ad, false );
+					}
 				}
 			}
 			$body .= $ads_markup;
