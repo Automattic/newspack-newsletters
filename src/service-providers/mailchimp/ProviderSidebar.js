@@ -182,7 +182,7 @@ const ProviderSidebar = ( {
 				chosenInterestId={ interestSettings.interestValue }
 				availableInterests={ interestSettings.options }
 				chosenTags={ chosenTags }
-				availableTags={ newsletterData.tags }
+				availableTags={ newsletterData.tags.filter( tag => tag.member_count > 0 ) }
 				apiFetch={ apiFetch }
 				inFlight={ inFlight }
 				onUpdate={ updateSegments }
