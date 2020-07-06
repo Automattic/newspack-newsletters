@@ -65,6 +65,7 @@ const SegmentsSelection = ( {
 			) : null }
 			{ availableTags.length ? (
 				<FormTokenField
+					className="newspack-newsletters__mailchimp-tags"
 					label={ __( 'Tags', 'newspack-newsletters' ) }
 					value={ getTagNames( segmentsData.tag_ids, availableTags ) }
 					suggestions={ availableTags.map( tag => tag.name ) }

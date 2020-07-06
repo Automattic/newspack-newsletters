@@ -14,6 +14,7 @@ import { find } from 'lodash';
  */
 import ProviderSidebar from './ProviderSidebar';
 import { getListInterestsSettings } from './utils';
+import './style.scss';
 
 const validateNewsletter = ( { campaign } ) => {
 	const { recipients, settings, status } = campaign || {};
