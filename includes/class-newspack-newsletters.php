@@ -685,8 +685,8 @@ final class Newspack_Newsletters {
 			$is_unsetting_interest = 'no_interests' === $interest_id_param;
 			if ( ! $is_unsetting_interest && ( ! $field || ! $interest_id ) ) {
 				return new WP_Error(
-					'newspack_newsletters_incorrect_post_type',
-					__( 'Invalid Mailchimp Interest .', 'newspack-newsletters' )
+					'newspack_newsletters_invalid_mailchimp_interest',
+					__( 'Invalid Mailchimp Interest.', 'newspack-newsletters' )
 				);
 			}
 		}
