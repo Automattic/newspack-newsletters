@@ -884,7 +884,7 @@ final class Newspack_Newsletters {
 			$tags = [];
 			if ( $list_id ) {
 				$tags_response = self::validate_mailchimp_operation(
-					$mc->get( "lists/$list_id/segments" ),
+					$mc->get( "lists/$list_id/segments?count=1000" ),
 					__( 'Error retrieving Mailchimp tags.', 'newspack_newsletters' )
 				);
 				$tags          = $tags_response['segments'];
