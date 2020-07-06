@@ -283,8 +283,14 @@ final class Newspack_Newsletters {
 				'callback'            => [ __CLASS__, 'api_set_mailchimp_segments' ],
 				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
-					'id' => [
+					'id'          => [
 						'sanitize_callback' => 'absint',
+					],
+					'interest_id' => [
+						'sanitize_callback' => 'esc_attr',
+					],
+					'tag_ids'     => [
+						'sanitize_callback' => 'wp_parse_list',
 					],
 				],
 			]
