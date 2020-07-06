@@ -13,7 +13,6 @@ import { find } from 'lodash';
  * Internal dependencies
  */
 import ProviderSidebar from './ProviderSidebar';
-import { getListInterestsSettings } from './utils';
 import './style.scss';
 
 const validateNewsletter = ( { campaign } ) => {
@@ -54,16 +53,11 @@ const renderPreSendInfo = newsletterData => {
 			'id',
 			newsletterData.campaign.recipients.list_id,
 		] );
-		const interestSettings = getListInterestsSettings( newsletterData );
-
 		if ( list ) {
-			listData = { name: list.name, subscribers: parseInt( list.stats.member_count ) };
-			if ( interestSettings.setInterest ) {
-				listData.groupName = interestSettings.setInterest.rawInterest.name;
-				listData.subscribers = parseInt(
-					interestSettings.setInterest.rawInterest.subscriber_count
-				);
-			}
+			listData = {
+				name: list.name,
+				subscribers: parseInt( newsletterData.campaign.recipients.recipient_count ),
+			};
 		}
 	}
 
