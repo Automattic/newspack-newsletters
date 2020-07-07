@@ -7,7 +7,7 @@ import { compose } from '@wordpress/compose';
 import { Fragment } from '@wordpress/element';
 import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
-import { DatePicker, Notice } from '@wordpress/components';
+import { DatePicker, Notice, Button } from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
 
 const AdEdit = ( { expiryDate, editPost } ) => {
@@ -36,6 +36,18 @@ const AdEdit = ( { expiryDate, editPost } ) => {
 					currentDate={ expiryDate }
 					onChange={ expiry_date => editPost( { meta: { expiry_date } } ) }
 				/>
+				{ expiryDate ? (
+					<div style={ { textAlign: 'center' } }>
+						<Button
+							isSecondary
+							isLink
+							isDestructive
+							onClick={ () => editPost( { meta: { expiry_date: null } } ) }
+						>
+							{ __( 'Remove expiry date', 'newspack-newsletters' ) }
+						</Button>
+					</div>
+				) : null }
 			</PluginDocumentSettingPanel>
 			{ noticeProps ? (
 				<PluginPrePublishPanel>
