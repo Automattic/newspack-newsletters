@@ -403,14 +403,18 @@ final class Newspack_Newsletters_Renderer {
 				);
 
 				$social_wrapper_attrs = array(
-					'align'         => isset( $attrs['align'] ) && 'center' == $attrs['align'] ? 'center' : 'left',
 					'icon-size'     => '22px',
 					'mode'          => 'horizontal',
 					'padding'       => '0',
 					'border-radius' => '999px',
 					'icon-padding'  => '8px',
 				);
-				$markup               = '<mj-social ' . self::array_to_attributes( $social_wrapper_attrs ) . '>';
+				if ( isset( $attrs['align'] ) ) {
+					$social_wrapper_attrs['align'] = $attrs['align'];
+				} else {
+					$social_wrapper_attrs['align'] = 'left';
+				}
+				$markup = '<mj-social ' . self::array_to_attributes( $social_wrapper_attrs ) . '>';
 				foreach ( $inner_blocks as $link_block ) {
 					if ( isset( $link_block['attrs']['url'] ) ) {
 						$url = $link_block['attrs']['url'];
