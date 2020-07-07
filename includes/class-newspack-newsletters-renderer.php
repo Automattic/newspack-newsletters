@@ -302,6 +302,7 @@ final class Newspack_Newsletters_Renderer {
 			 * Buttons block.
 			 */
 			case 'core/buttons':
+				$buttons_attr = isset( $attrs['align'] ) ? [ 'align' => $attrs['align'] ] : [];
 				foreach ( $inner_blocks as $button_block ) {
 					// Parse block content.
 					$dom = new DomDocument();
@@ -331,6 +332,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 					$button_attrs = array_merge(
 						$default_button_attrs,
+						$buttons_attr,
 						self::get_colors( $attrs )
 					);
 
