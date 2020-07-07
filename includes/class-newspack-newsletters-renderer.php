@@ -273,8 +273,12 @@ final class Newspack_Newsletters_Renderer {
 				}
 				if ( isset( $attrs['linkDestination'] ) ) {
 					$img_attrs['href'] = $attrs['linkDestination'];
+				} else {
+					$maybe_link = $img->parentNode;// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					if ( $maybe_link && 'a' === $maybe_link->nodeName && $maybe_link->getAttribute( 'href' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$img_attrs['href'] = trim( $maybe_link->getAttribute( 'href' ) );
+					}
 				}
-
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
 				}
