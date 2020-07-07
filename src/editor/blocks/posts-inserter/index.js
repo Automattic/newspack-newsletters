@@ -10,14 +10,21 @@ import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { RangeControl, Button, ToggleControl, PanelBody, Toolbar } from '@wordpress/components';
+import {
+	RangeControl,
+	Button,
+	ToggleControl,
+	PanelBody,
+	Spinner,
+	Toolbar,
+} from '@wordpress/components';
 import {
 	InnerBlocks,
 	BlockPreview,
 	InspectorControls,
 	BlockControls,
 } from '@wordpress/block-editor';
-import { Fragment, useEffect, useMemo } from '@wordpress/element';
+import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -38,11 +45,33 @@ const PostsInserterBlock = ( {
 	setInsertedPostsIds,
 	removeBlock,
 } ) => {
+	const [ ready, setReady ] = useState( ! attributes.displayFeaturedImage );
+
 	// Stringify added to minimize flicker.
 	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
 		JSON.stringify( postList ),
 		attributes,
 	] );
+
+	useEffect(() => {
+		if ( 0 < postList.length && attributes.displayFeaturedImage ) {
+			const images = [];
+
+			postList.map( post => post.featured_media && images.push( post.featured_media ) );
+
+			if ( 0 === images.length ) {
+				// If no posts have featured media, skip loading state.
+				return setReady( true );
+			}
+
+			const imageBlocks = templateBlocks.filter( block => 'core/image' === block.name );
+
+			// Preview is ready once all image blocks are inserted.
+			if ( imageBlocks.length === images.length ) {
+				setReady( true );
+			}
+		}
+	}, [ JSON.stringify( templateBlocks ) ]);
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
 	useEffect(() => {
@@ -130,7 +159,7 @@ const PostsInserterBlock = ( {
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
 				<div className="newspack-posts-inserter__preview">
-					<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
+					{ ready ? <BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } /> : <Spinner /> }
 				</div>
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
