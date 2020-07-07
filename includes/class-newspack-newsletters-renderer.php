@@ -273,8 +273,12 @@ final class Newspack_Newsletters_Renderer {
 				}
 				if ( isset( $attrs['linkDestination'] ) ) {
 					$img_attrs['href'] = $attrs['linkDestination'];
+				} else {
+					$maybe_link = $img->parentNode;// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					if ( $maybe_link && 'a' === $maybe_link->nodeName && $maybe_link->getAttribute( 'href' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$img_attrs['href'] = trim( $maybe_link->getAttribute( 'href' ) );
+					}
 				}
-
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
 				}
@@ -399,14 +403,18 @@ final class Newspack_Newsletters_Renderer {
 				);
 
 				$social_wrapper_attrs = array(
-					'align'         => isset( $attrs['align'] ) && 'center' == $attrs['align'] ? 'center' : 'left',
 					'icon-size'     => '22px',
 					'mode'          => 'horizontal',
 					'padding'       => '0',
 					'border-radius' => '999px',
 					'icon-padding'  => '8px',
 				);
-				$markup               = '<mj-social ' . self::array_to_attributes( $social_wrapper_attrs ) . '>';
+				if ( isset( $attrs['align'] ) ) {
+					$social_wrapper_attrs['align'] = $attrs['align'];
+				} else {
+					$social_wrapper_attrs['align'] = 'left';
+				}
+				$markup = '<mj-social ' . self::array_to_attributes( $social_wrapper_attrs ) . '>';
 				foreach ( $inner_blocks as $link_block ) {
 					if ( isset( $link_block['attrs']['url'] ) ) {
 						$url = $link_block['attrs']['url'];
