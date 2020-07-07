@@ -556,38 +556,62 @@ final class Newspack_Newsletters_Renderer {
 		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
 			self::$font_body = 'Georgia';
 		}
-		$blocks = parse_blocks( $post->post_content );
-		$body   = '';
-		foreach ( $blocks as $block ) {
-			$block_content = self::render_mjml_component( $block );
-			if ( ! empty( $block_content ) ) {
-				$body .= $block_content;
-			}
-		}
 
-		// Insert any ads.
+		$body         = '';
+		$valid_blocks = array_filter(
+			parse_blocks( $post->post_content ),
+			function ( $block ) {
+				return null !== $block['blockName'];
+			}
+		);
+		$total_length = strlen( $post->post_content );
+
+		// Gather ads.
+		$ads_to_insert = [];
 		if ( $include_ads ) {
-			$ads_query  = new WP_Query(
+			$ads_query = new WP_Query(
 				array(
 					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
 					'posts_per_page' => -1,
 				)
 			);
-			$ads        = $ads_query->get_posts();
-			$ads_markup = '';
-			foreach ( $ads as $ad ) {
+
+			foreach ( $ads_query->get_posts() as $ad ) {
 				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
-				if ( ! $expiry_date ) {
-					$ads_markup .= self::post_to_mjml_components( $ad, false );
-				} else {
-					$now_date    = gmdate( 'Y-m-d' );
-					$expiry_date = $expiry_date->format( 'Y-m-d' );
-					if ( $expiry_date >= $now_date ) {
-						$ads_markup .= self::post_to_mjml_components( $ad, false );
-					}
+
+				// Ad is active if it has no expiry date (a peristent ad) or the date is equal to or after today.
+				if ( ! $expiry_date || $expiry_date->format( 'Y-m-d' ) >= gmdate( 'Y-m-d' ) ) {
+					$percentage      = intval( get_post_meta( $ad->ID, 'position_in_content', true ) ) / 100;
+					$ads_to_insert[] = [
+						'precise_position' => $total_length * $percentage,
+						'markup'           => self::post_to_mjml_components( $ad, false ),
+						'is_inserted'      => false,
+					];
 				}
 			}
-			$body .= $ads_markup;
+		}
+
+		// Build MJML body and insert ads.
+		$current_position = 0;
+		foreach ( $valid_blocks as $block ) {
+			$block_content     = self::render_mjml_component( $block );
+			$current_position += strlen( wp_strip_all_tags( $block_content ) );
+			foreach ( $ads_to_insert as &$ad_to_insert ) {
+				if ( ! $ad_to_insert['is_inserted'] && $current_position > $ad_to_insert['precise_position'] ) {
+					$body                       .= $ad_to_insert['markup'];
+					$ad_to_insert['is_inserted'] = true;
+				}
+			}
+
+			$body .= $block_content;
+		}
+
+		// Insert any remaining ads at the end.
+		foreach ( $ads_to_insert as &$ad_to_insert ) {
+			if ( ! $ad_to_insert['is_inserted'] ) {
+				$body                       .= $ad_to_insert['markup'];
+				$ad_to_insert['is_inserted'] = true;
+			}
 		}
 
 		return $body;

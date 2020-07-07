@@ -7,10 +7,10 @@ import { compose } from '@wordpress/compose';
 import { Fragment } from '@wordpress/element';
 import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
-import { DatePicker, Notice, Button } from '@wordpress/components';
+import { DatePicker, Notice, Button, RangeControl } from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
 
-const AdEdit = ( { expiryDate, editPost } ) => {
+const AdEdit = ( { expiryDate, positionInContent, editPost } ) => {
 	let noticeProps;
 	if ( expiryDate ) {
 		const formattedExpiryDate = format( 'M j Y', expiryDate );
@@ -30,8 +30,15 @@ const AdEdit = ( { expiryDate, editPost } ) => {
 		<Fragment>
 			<PluginDocumentSettingPanel
 				name="newsletters-ads-settings-panel"
-				title={ __( 'Expiry date', 'newspack-newsletters' ) }
+				title={ __( 'Ad settings', 'newspack-newsletters' ) }
 			>
+				<RangeControl
+					label={ __( 'Approximate position (in percent)' ) }
+					value={ positionInContent }
+					onChange={ position_in_content => editPost( { meta: { position_in_content } } ) }
+					min={ 0 }
+					max={ 100 }
+				/>
 				<DatePicker
 					currentDate={ expiryDate }
 					onChange={ expiry_date => editPost( { meta: { expiry_date } } ) }
@@ -62,7 +69,7 @@ const AdEditWithSelect = compose( [
 	withSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { expiryDate: meta.expiry_date };
+		return { expiryDate: meta.expiry_date, positionInContent: meta.position_in_content };
 	} ),
 	withDispatch( dispatch => {
 		const { editPost } = dispatch( 'core/editor' );
