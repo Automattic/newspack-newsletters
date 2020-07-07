@@ -571,21 +571,21 @@ final class Newspack_Newsletters_Renderer {
 				array(
 					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
 					'posts_per_page' => -1,
-					'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-						array(
-							'key'     => 'expiry_date',
-							'value'   => gmdate( 'Y-m-d' ),
-							'compare' => '>=',
-							'type'    => 'DATE',
-						),
-					),
 				)
 			);
 			$ads        = $ads_query->get_posts();
 			$ads_markup = '';
 			foreach ( $ads as $ad ) {
 				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
-				$ads_markup .= self::post_to_mjml_components( $ad, false );
+				if ( ! $expiry_date ) {
+					$ads_markup .= self::post_to_mjml_components( $ad, false );
+				} else {
+					$now_date    = gmdate( 'Y-m-d' );
+					$expiry_date = $expiry_date->format( 'Y-m-d' );
+					if ( $expiry_date >= $now_date ) {
+						$ads_markup .= self::post_to_mjml_components( $ad, false );
+					}
+				}
 			}
 			$body .= $ads_markup;
 		}
