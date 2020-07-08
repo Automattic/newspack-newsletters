@@ -54,24 +54,41 @@ const PostsInserterBlock = ( {
 	] );
 
 	useEffect(() => {
-		if ( 0 < postList.length && attributes.displayFeaturedImage ) {
-			const images = [];
+		const { isDisplayingSpecificPosts, specificPosts } = attributes;
 
+		// No spinner if we're not dealing with images.
+		if ( ! attributes.displayFeaturedImage ) {
+			return setReady( true );
+		}
+
+		// No spinner if we're in the middle of selecting a specific post.
+		if ( isDisplayingSpecificPosts && 0 === specificPosts.length ) {
+			return setReady( true );
+		}
+
+		// Reset ready state.
+		setReady( false );
+
+		// If we have a post to show, check for featured image blocks.
+		if ( 0 < postList.length ) {
+			// Find all the featured images.
+			const images = [];
 			postList.map( post => post.featured_media && images.push( post.featured_media ) );
 
+			// If no posts have featured media, skip loading state.
 			if ( 0 === images.length ) {
-				// If no posts have featured media, skip loading state.
 				return setReady( true );
 			}
 
+			// Wait for image blocks to be added to the BlockPreview.
 			const imageBlocks = templateBlocks.filter( block => 'core/image' === block.name );
 
-			// Preview is ready once all image blocks are inserted.
+			// Preview is ready once all image blocks are accounted for.
 			if ( imageBlocks.length === images.length ) {
 				setReady( true );
 			}
 		}
-	}, [ JSON.stringify( templateBlocks ) ]);
+	}, [ JSON.stringify( postList ), JSON.stringify( templateBlocks ) ]);
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
 	useEffect(() => {
