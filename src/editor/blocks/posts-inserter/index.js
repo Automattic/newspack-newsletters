@@ -46,12 +46,15 @@ const PostsInserterBlock = ( {
 	removeBlock,
 } ) => {
 	const [ isReady, setIsReady ] = useState( ! attributes.displayFeaturedImage );
+	const stringifiedPostList = JSON.stringify( postList );
 
 	// Stringify added to minimize flicker.
 	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
-		JSON.stringify( postList ),
+		stringifiedPostList,
 		attributes,
 	] );
+
+	const stringifiedTemplateBlocks = JSON.stringify( templateBlocks );
 
 	useEffect(() => {
 		const { isDisplayingSpecificPosts, specificPosts } = attributes;
@@ -81,14 +84,14 @@ const PostsInserterBlock = ( {
 			}
 
 			// Wait for image blocks to be added to the BlockPreview.
-			const imageBlocks = templateBlocks.filter( block => 'core/image' === block.name );
+			const imageBlocks = stringifiedTemplateBlocks.match( /\"name\":\"core\/image\"/g ) || [];
 
 			// Preview is ready once all image blocks are accounted for.
 			if ( imageBlocks.length === images.length ) {
 				setIsReady( true );
 			}
 		}
-	}, [ JSON.stringify( postList ), JSON.stringify( templateBlocks ) ]);
+	}, [ stringifiedPostList, stringifiedTemplateBlocks ]);
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
 	useEffect(() => {
