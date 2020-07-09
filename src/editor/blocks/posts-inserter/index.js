@@ -45,7 +45,7 @@ const PostsInserterBlock = ( {
 	setInsertedPostsIds,
 	removeBlock,
 } ) => {
-	const [ ready, setReady ] = useState( ! attributes.displayFeaturedImage );
+	const [ isReady, setIsReady ] = useState( ! attributes.displayFeaturedImage );
 
 	// Stringify added to minimize flicker.
 	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
@@ -58,16 +58,16 @@ const PostsInserterBlock = ( {
 
 		// No spinner if we're not dealing with images.
 		if ( ! attributes.displayFeaturedImage ) {
-			return setReady( true );
+			return setIsReady( true );
 		}
 
 		// No spinner if we're in the middle of selecting a specific post.
 		if ( isDisplayingSpecificPosts && 0 === specificPosts.length ) {
-			return setReady( true );
+			return setIsReady( true );
 		}
 
 		// Reset ready state.
-		setReady( false );
+		setIsReady( false );
 
 		// If we have a post to show, check for featured image blocks.
 		if ( 0 < postList.length ) {
@@ -77,7 +77,7 @@ const PostsInserterBlock = ( {
 
 			// If no posts have featured media, skip loading state.
 			if ( 0 === images.length ) {
-				return setReady( true );
+				return setIsReady( true );
 			}
 
 			// Wait for image blocks to be added to the BlockPreview.
@@ -85,7 +85,7 @@ const PostsInserterBlock = ( {
 
 			// Preview is ready once all image blocks are accounted for.
 			if ( imageBlocks.length === images.length ) {
-				setReady( true );
+				setIsReady( true );
 			}
 		}
 	}, [ JSON.stringify( postList ), JSON.stringify( templateBlocks ) ]);
@@ -176,7 +176,11 @@ const PostsInserterBlock = ( {
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
 				<div className="newspack-posts-inserter__preview">
-					{ ready ? <BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } /> : <Spinner /> }
+					{ isReady ? (
+						<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
+					) : (
+						<Spinner />
+					) }
 				</div>
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
