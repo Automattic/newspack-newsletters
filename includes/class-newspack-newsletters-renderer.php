@@ -564,7 +564,7 @@ final class Newspack_Newsletters_Renderer {
 				return null !== $block['blockName'];
 			}
 		);
-		$total_length = strlen( $post->post_content );
+		$total_length = strlen( wp_strip_all_tags( $post->post_content ) );
 
 		// Gather ads.
 		$ads_to_insert = [];
@@ -597,7 +597,7 @@ final class Newspack_Newsletters_Renderer {
 			$block_content     = self::render_mjml_component( $block );
 			$current_position += strlen( wp_strip_all_tags( $block_content ) );
 			foreach ( $ads_to_insert as &$ad_to_insert ) {
-				if ( ! $ad_to_insert['is_inserted'] && $current_position > $ad_to_insert['precise_position'] ) {
+				if ( ! $ad_to_insert['is_inserted'] && $current_position >= $ad_to_insert['precise_position'] ) {
 					$body                       .= $ad_to_insert['markup'];
 					$ad_to_insert['is_inserted'] = true;
 				}
