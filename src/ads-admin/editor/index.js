@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import classnames from 'classnames';
+
+/**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
@@ -46,7 +51,9 @@ const AdEdit = ( { expiryDate, positionInContent, editPost } ) => {
 				/>
 				{ /* eslint-disable-next-line @wordpress/no-base-control-with-label-without-id */ }
 				<BaseControl
-					className="newspack-newsletters__date-picker"
+					className={ classnames( 'newspack-newsletters__date-picker', {
+						'newspack-newsletters__date-picker--has-no-date': ! expiryDate,
+					} ) }
 					label={ __( 'Expiration Date', 'newspack-newsletters' ) }
 				>
 					<DatePicker
