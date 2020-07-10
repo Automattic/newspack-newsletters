@@ -568,7 +568,7 @@ final class Newspack_Newsletters_Renderer {
 
 		// Gather ads.
 		$ads_to_insert = [];
-		if ( $include_ads ) {
+		if ( $include_ads && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
 			$ads_query = new WP_Query(
 				array(
 					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
