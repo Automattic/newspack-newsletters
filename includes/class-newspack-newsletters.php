@@ -14,8 +14,7 @@ use \DrewM\MailChimp\MailChimp;
  */
 final class Newspack_Newsletters {
 
-	const NEWSPACK_NEWSLETTERS_CPT                = 'newspack_nl_cpt';
-	const NEWSPACK_NEWSLETTERS_DEFAULT_UTM_SOURCE = 'Newsletter';
+	const NEWSPACK_NEWSLETTERS_CPT = 'newspack_nl_cpt';
 
 	/**
 	 * Supported fonts.

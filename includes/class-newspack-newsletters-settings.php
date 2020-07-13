@@ -38,11 +38,6 @@ class Newspack_Newsletters_Settings {
 				'description' => __( 'MJML Secret Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_mjml_api_secret',
 			),
-			array(
-				'description' => __( 'utm_source parameter', 'newspack-newsletters' ),
-				'key'         => 'newspack_newsletters_utm_source',
-				'placeholder' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_DEFAULT_UTM_SOURCE,
-			),
 		);
 	}
 
@@ -99,7 +94,7 @@ class Newspack_Newsletters_Settings {
 				[ __CLASS__, 'newspack_newsletters_settings_callback' ],
 				'newspack-newsletters-settings-admin',
 				'newspack_newsletters_options_group',
-				$setting
+				$setting['key']
 			);
 		};
 	}
@@ -107,16 +102,15 @@ class Newspack_Newsletters_Settings {
 	/**
 	 * Render settings fields.
 	 *
-	 * @param object $setting Setting options.
+	 * @param string $key Setting key.
 	 */
-	public static function newspack_newsletters_settings_callback( $setting ) {
-		$value = get_option( $setting['key'], false );
+	public static function newspack_newsletters_settings_callback( $key ) {
+		$value = get_option( $key, false );
 		printf(
-			'<input type="text" id="%s" name="%s" value="%s" class="widefat" placeholder="%s" />',
-			esc_attr( $setting['key'] ),
-			esc_attr( $setting['key'] ),
-			esc_attr( $value ),
-			isset( $setting['placeholder'] ) ? esc_attr( $setting['placeholder'] ) : ''
+			'<input type="text" id="%s" name="%s" value="%s" class="widefat" />',
+			esc_attr( $key ),
+			esc_attr( $key ),
+			esc_attr( $value )
 		);
 	}
 }

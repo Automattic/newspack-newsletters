@@ -174,12 +174,10 @@ final class Newspack_Newsletters_Renderer {
 		preg_match_all( '/href="([^"]*)"/', $html, $matches );
 		$href_params       = $matches[0];
 		$urls              = $matches[1];
-		$utm_source_option = get_option( 'newspack_newsletters_utm_source', false );
-		$utm_source_value  = strlen( $utm_source_option ) ? $utm_source_option : \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_DEFAULT_UTM_SOURCE;
 		foreach ( $urls as $index => $url ) {
 			$url_with_params = add_query_arg(
 				[
-					'utm_source' => $utm_source_value,
+					'utm_medium' => 'email',
 				],
 				$url
 			);
