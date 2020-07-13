@@ -172,8 +172,8 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function process_links( $html ) {
 		preg_match_all( '/href="([^"]*)"/', $html, $matches );
-		$href_params       = $matches[0];
-		$urls              = $matches[1];
+		$href_params = $matches[0];
+		$urls        = $matches[1];
 		foreach ( $urls as $index => $url ) {
 			$url_with_params = add_query_arg(
 				[
