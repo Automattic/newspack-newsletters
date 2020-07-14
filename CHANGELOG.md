@@ -1,3 +1,20 @@
+# [1.5.0](https://github.com/Automattic/newspack-newsletters/compare/v1.4.0...v1.5.0) (2020-07-14)
+
+
+### Bug Fixes
+
+* handle deeply nested image blocks ([d846beb](https://github.com/Automattic/newspack-newsletters/commit/d846beb4eb63bfeb1ebecf30e895ca49236a7eb6))
+* support adding multiple buttons ([829d534](https://github.com/Automattic/newspack-newsletters/commit/829d53453992a2171117962aa5019b5ae6a08211))
+* update state name ready to isReady ([0bbe397](https://github.com/Automattic/newspack-newsletters/commit/0bbe397b9d5ced5953728ab3aae10936dd836cc6))
+* weird empty space when no specific posts selected and no spinner ([6fd0fd9](https://github.com/Automattic/newspack-newsletters/commit/6fd0fd9488e428bc1ae634a03ce8761cc410f81c))
+
+
+### Features
+
+* append utm_medium param to all links in a newsletter ([#265](https://github.com/Automattic/newspack-newsletters/issues/265)) ([e7b1f83](https://github.com/Automattic/newspack-newsletters/commit/e7b1f83fb8d119c0fe4aa5e4e9fd2f7db28716b4))
+* handle specific posts and no image conditions ([278d259](https://github.com/Automattic/newspack-newsletters/commit/278d2591c20c23cd89041420390d38f8e4ebe08d))
+* show spinner while Post Inserter is loading image blocks ([d0bda46](https://github.com/Automattic/newspack-newsletters/commit/d0bda46875f7d980f6bbf5c72d9112d48ff3ad2f))
+
 # [1.4.0](https://github.com/Automattic/newspack-newsletters/compare/v1.3.0...v1.4.0) (2020-07-07)
 
 
