@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
-import { Button, TextControl } from '@wordpress/components';
+import { Button, Spinner, TextControl } from '@wordpress/components';
 import { hasValidEmail } from '../utils';
 
 /**
@@ -53,8 +53,11 @@ export default compose( [
 				onClick={ sendTestEmail }
 				disabled={ inFlight || ! hasValidEmail( testEmail ) }
 			>
-				{ __( 'Send a Test Email', 'newspack-newsletters' ) }
+				{ inFlight
+					? __( 'Sending Test Email...', 'newspack-newsletters' )
+					: __( 'Send a Test Email', 'newspack-newsletters' ) }
 			</Button>
+			{ inFlight && <Spinner /> }
 		</Fragment>
 	);
 } );
