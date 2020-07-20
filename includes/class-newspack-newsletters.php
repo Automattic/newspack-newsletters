@@ -68,6 +68,9 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
+		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
+		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
+		add_action( 'admin_print_scripts', [ __CLASS__, 'maybe_disable_autosave' ], 10, 3 );
 
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
@@ -156,15 +159,23 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'is_public',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'boolean',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
-			return;
-		}
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -183,13 +194,18 @@ final class Newspack_Newsletters {
 		];
 
 		$cpt_args = [
-			'labels'       => $labels,
-			'public'       => false,
-			'show_ui'      => true,
-			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [],
-			'menu_icon'    => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
+			'labels'           => $labels,
+			'public'           => true,
+			'public_queryable' => true,
+			'query_var'        => true,
+			'show_ui'          => true,
+			'show_in_rest'     => true,
+			'supports'         => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'       => [],
+			'menu_icon'        => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
+			'rewrite'          => [
+				'slug' => 'newsletter',
+			],
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
 	}
@@ -208,6 +224,7 @@ final class Newspack_Newsletters {
 
 		$post_status = get_post_status_object( $post->post_status );
 		$is_sent     = 'publish' === $post_status->name;
+		$is_public   = get_post_meta( $post->ID, 'is_public', true );
 
 		if ( $is_sent ) {
 			$sent_date = get_the_time( 'U', $post );
@@ -222,9 +239,64 @@ final class Newspack_Newsletters {
 				/* translators:  Absolute time stamp of sent/published date */
 				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( get_option( 'date_format' ), $post ) );
 			}
+
+			if ( $is_public ) {
+				$post_states[ $post_status->name ] .= __( ' | Published as a page', 'newspack-newsletters' );
+			}
 		}
 
 		return $post_states;
+	}
+
+	/**
+	 * Decide whether this newsletter should be publicly viewable as a page.
+	 */
+	public static function maybe_display_public_post() {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type() || current_user_can( 'edit_others_posts' ) ) {
+			return;
+		}
+
+		$is_public = get_post_meta( get_the_ID(), 'is_public', true );
+
+		// If not marked public, make it a 404 to non-logged-in users.
+		if ( empty( $is_public ) ) {
+			global $wp_query;
+			status_header( 404 );
+			nocache_headers();
+			include get_query_template( '404' );
+			die();
+		}
+	}
+
+	/**
+	 * Make "View" links say "Preview" if the newsletter is not marked as public.
+	 *
+	 * @param array $actions Array of action links to be shown in admin posts list.
+	 * @return array Filtered array of action links.
+	 */
+	public static function display_view_or_preview_link_in_admin( $actions ) {
+		if ( 'publish' !== get_post_status() || self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type() ) {
+			return $actions;
+		}
+
+		$is_public = get_post_meta( get_the_ID(), 'is_public', true );
+
+		if ( empty( $is_public ) && isset( $actions['view'] ) ) {
+			$actions['view'] = '<a href="' . esc_url( get_the_permalink() ) . '" rel="bookmark" aria-label="View ' . esc_attr( get_the_title() ) . '">Preview</a>';
+		}
+
+		return $actions;
+	}
+
+	/**
+	 * Disable auto-saves after newsletter has been sent.
+	 */
+	public static function maybe_disable_autosave() {
+		if ( 'publish' !== get_post_status() || self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type() ) {
+			return false;
+		}
+
+		wp_dequeue_script( 'autosave' );
 	}
 
 	/**

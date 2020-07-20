@@ -4,7 +4,7 @@
 import { withDispatch, withSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Button, Modal, Notice } from '@wordpress/components';
-import { Fragment, useEffect, useState } from '@wordpress/element';
+import { Fragment, useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf, _n } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
@@ -38,7 +38,9 @@ export default compose( [
 			isSavingPost,
 			isEditedPostBeingScheduled,
 		} = select( 'core/editor' );
-		const { newsletterData = {}, newsletterValidationErrors } = getEditedPostAttribute( 'meta' );
+		const { newsletterData = {}, newsletterValidationErrors, is_public } = getEditedPostAttribute(
+			'meta'
+		);
 		return {
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
@@ -49,6 +51,7 @@ export default compose( [
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
 			newsletterData,
+			isPublic: is_public,
 		};
 	} ),
 ] )(
@@ -64,21 +67,46 @@ export default compose( [
 		hasPublishAction,
 		visibility,
 		newsletterData,
+		isPublic,
 	} ) => {
+		// State to handle post-publish changes to Public setting.
+		const [ isDirty, setIsDirty ] = useState( false );
+		const isPublicRef = useRef();
+		const prevIsPublic = isPublicRef.current;
+
+		useEffect( () => {
+			isPublicRef.current = isPublic;
+		} );
+
+		// If changing the Public setting post-sending.
+		useEffect(() => {
+			if ( undefined !== prevIsPublic && isPublic !== prevIsPublic && 'publish' === status ) {
+				setIsDirty( true );
+			}
+		}, [ isPublic ]);
+
 		const isButtonEnabled =
-			( isPublishable || isEditedPostBeingScheduled ) && isSaveable && 'publish' !== status;
+			( isPublishable || isEditedPostBeingScheduled ) &&
+			isSaveable &&
+			'publish' !== status &&
+			! isSaving;
 		let label;
 		if ( 'publish' === status ) {
-			label = isSaving
-				? __( 'Sending', 'newspack-newsletters' )
-				: __( 'Sent', 'newspack-newsletters' );
+			if ( isSaving ) label = __( 'Sending', 'newspack-newsletters' );
+			else {
+				label = isPublic
+					? __( 'Sent and Published', 'newspack-newsletters' )
+					: __( 'Sent', 'newspack-newsletters' );
+			}
 		} else if ( 'future' === status ) {
 			// Scheduled to be sent
 			label = __( 'Scheduled', 'newspack-newsletters' );
 		} else if ( isEditedPostBeingScheduled ) {
 			label = __( 'Schedule sending', 'newspack-newsletters' );
 		} else {
-			label = __( 'Send', 'newspack-newsletters' );
+			label = isPublic
+				? __( 'Send and Publish', 'newspack-newsletters' )
+				: __( 'Send', 'newspack-newsletters' );
 		}
 
 		let publishStatus;
@@ -120,6 +148,27 @@ export default compose( [
 		};
 
 		const [ modalVisible, setModalVisible ] = useState( false );
+
+		// If we've changed the Public setting post-publish, allow the user to just save the post.
+		if ( isDirty && 'publish' === publishStatus ) {
+			return (
+				<Button
+					className="editor-post-publish-button"
+					isBusy={ isSaving }
+					isPrimary
+					isLarge
+					disabled={ isSaving }
+					onClick={ async () => {
+						await savePost();
+						setIsDirty( false );
+					} }
+				>
+					{ isSaving
+						? __( 'Updating...', 'newspack-newsletters' )
+						: __( 'Update', 'newspack-newsletters' ) }
+				</Button>
+			);
+		}
 
 		return (
 			<Fragment>
