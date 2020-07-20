@@ -70,7 +70,7 @@ final class Newspack_Newsletters {
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
-		add_action( 'admin_print_scripts', [ __CLASS__, 'maybe_disable_autosave' ], 10, 3 );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'maybe_disable_autosave' ], 10, 3 );
 
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
