@@ -172,6 +172,28 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
+	 * Append UTM param to links.
+	 *
+	 * @param string $html input HTML.
+	 * @return string HTML with processed links.
+	 */
+	private static function process_links( $html ) {
+		preg_match_all( '/href="([^"]*)"/', $html, $matches );
+		$href_params = $matches[0];
+		$urls        = $matches[1];
+		foreach ( $urls as $index => $url ) {
+			$url_with_params = add_query_arg(
+				[
+					'utm_medium' => 'email',
+				],
+				$url
+			);
+			$html            = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
+		}
+		return $html;
+	}
+
+	/**
 	 * Convert a Gutenberg block to an MJML component.
 	 * MJML component will be put in an mj-column in an mj-section for consistent layout,
 	 * unless it's a group or a columns block.
@@ -686,7 +708,7 @@ final class Newspack_Newsletters_Renderer {
 			$body = self::insert_ads( $body, INF );
 		}
 
-		return $body;
+		return self::process_links( $body );
 	}
 
 	/**
