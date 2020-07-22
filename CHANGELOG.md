@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/Automattic/newspack-newsletters/compare/v1.5.0...v1.6.0) (2020-07-22)
+
+
+### Bug Fixes
+
+* styling of spinner in relation to button ([cd7b029](https://github.com/Automattic/newspack-newsletters/commit/cd7b029768934dc8061d23ca310119b6fbd72ae6))
+
+
+### Features
+
+* add spinner while sending test email ([05f67cd](https://github.com/Automattic/newspack-newsletters/commit/05f67cdb63eabf5736a57e984b515c17b1a68f66))
+
 # [1.5.0](https://github.com/Automattic/newspack-newsletters/compare/v1.4.0...v1.5.0) (2020-07-14)
 
 
