@@ -54,7 +54,7 @@ const ProviderSidebar = ( {
 	}
 
 	const { status } = campaign || {};
-	if ( 'SCHEDULED' === status || 'SENT' === status ) {
+	if ( 'DRAFT' !== status ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
