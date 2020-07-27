@@ -22,13 +22,6 @@ const validateNewsletter = ( { campaign } ) => {
 			)
 		);
 	}
-	if ( campaign.from_name.length < 1 ) {
-		messages.push( __( 'Sender name must be set.', 'newspack-newsletters' ) );
-	}
-	if ( campaign.from_email.length < 1 || campaign.reply_to_email.length < 1 ) {
-		messages.push( __( 'Sender email must be set.', 'newspack-newsletters' ) );
-	}
-
 	return messages;
 };
 
