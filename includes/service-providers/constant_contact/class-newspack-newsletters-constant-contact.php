@@ -14,7 +14,7 @@ use Ctct\ConstantContact;
 use Ctct\Exceptions\CtctException;
 
 /**
- * Main Newspack Newsletters Class.
+ * Main Newspack Newsletters Class for Constant Contact ESP.
  */
 final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_Service_Provider {
 
@@ -70,16 +70,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return object|WP_Error API API Response or error.
 	 */
 	public function list( $post_id, $list_id ) {
-		$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-		if ( ! $cc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Constant Contact campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
-
 		try {
-			$cc       = new ConstantContact( $this->api_key() );
+			$cc_campaign_id = $this->retrieve_campaign_id( $post_id );
+			$cc             = new ConstantContact( $this->api_key() );
+
 			$campaign = $cc->emailMarketingService->getCampaign( $this->access_token(), $cc_campaign_id ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 			$campaign->addList( $list_id );
@@ -108,16 +102,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return object|WP_Error API API Response or error.
 	 */
 	public function unset_list( $post_id, $list_id ) {
-		$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-		if ( ! $cc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Constant Contact campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
-
 		try {
-			$cc       = new ConstantContact( $this->api_key() );
+			$cc_campaign_id = $this->retrieve_campaign_id( $post_id );
+			$cc             = new ConstantContact( $this->api_key() );
+
 			$campaign = $cc->emailMarketingService->getCampaign( $this->access_token(), $cc_campaign_id ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 			$campaign->sent_to_contact_lists = array_filter(
@@ -160,14 +148,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			);
 		}
 		try {
-			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-			if ( ! $cc_campaign_id ) {
-				return new WP_Error(
-					'newspack_newsletters_constant_contact_error',
-					__( 'No Constant Contact campaign ID found for this Newsletter', 'newspack-newsletter' )
-				);
-			}
-			$cc = new ConstantContact( $this->api_key() );
+			$cc_campaign_id = $this->retrieve_campaign_id( $post_id );
+			$cc             = new ConstantContact( $this->api_key() );
 
 			$campaign = $cc->emailMarketingService->getCampaign( $this->access_token(), $cc_campaign_id ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
@@ -198,15 +180,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return object|WP_Error API Response or error.
 	 */
 	public function sender( $post_id, $from_name, $reply_to ) {
-		$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-		if ( ! $cc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Constant Contact campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
 		try {
-			$cc = new ConstantContact( $this->api_key() );
+			$cc_campaign_id = $this->retrieve_campaign_id( $post_id );
+			$cc             = new ConstantContact( $this->api_key() );
 
 			$campaign = $cc->emailMarketingService->getCampaign( $this->access_token(), $cc_campaign_id ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
@@ -238,15 +214,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return object|WP_Error API Response or error.
 	 */
 	public function test( $post_id, $emails ) {
-		$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-		if ( ! $cc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Constant Contact campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
 		try {
-			$cc     = new ConstantContact( $this->api_key() );
+			$cc_campaign_id = $this->retrieve_campaign_id( $post_id );
+			$cc             = new ConstantContact( $this->api_key() );
+
 			$result = $cc->campaignScheduleService->sendTest( //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				$this->access_token(),
 				$cc_campaign_id,
@@ -441,6 +412,21 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		} catch ( Exception $e ) {
 			return; // Fail silently.
 		}
+	}
+
+	/**
+	 * Convenience method to retrieve the Constant Contact campaign ID for a post or throw an error.
+	 *
+	 * @param string $post_id Numeric ID of the campaign.
+	 * @return string Constant Contact campaign ID.
+	 * @throws Exception Error message.
+	 */
+	public function retrieve_campaign_id( $post_id ) {
+		$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
+		if ( ! $cc_campaign_id ) {
+			throw new Exception( __( 'Constant Contact campaign ID not found.', 'newspack-newsletters' ) );
+		}
+		return $cc_campaign_id;
 	}
 
 	/**
