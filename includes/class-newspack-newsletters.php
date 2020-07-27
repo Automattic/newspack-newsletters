@@ -632,6 +632,7 @@ final class Newspack_Newsletters {
 	 * @return string Name of the Email Service Provider.
 	 */
 	public static function service_provider() {
+		// TODO: UI for user input of API key in keys modal and settings page.
 		if (
 			defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY' ) &&
 			defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN' ) &&
