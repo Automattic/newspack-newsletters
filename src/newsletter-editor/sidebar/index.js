@@ -29,6 +29,7 @@ const Sidebar = ( {
 	title,
 	senderName,
 	senderEmail,
+	previewText,
 	newsletterData,
 	apiFetchWithErrorHandling,
 	postId,
@@ -56,6 +57,13 @@ const Sidebar = ( {
 		'newspack-newsletters__email-textcontrol',
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
 	);
+
+	const updateMetaValueInAPI = data =>
+		apiFetch( {
+			data,
+			method: 'POST',
+			path: `/newspack-newsletters/v1/meta-fields/${ postId }`,
+		} );
 
 	const renderFrom = ( { handleSenderUpdate } ) => (
 		<Fragment>
@@ -90,6 +98,20 @@ const Sidebar = ( {
 					{ __( 'Update Sender', 'newspack-newsletters' ) }
 				</Button>
 			) }
+			<TextControl
+				label={ __( 'Preview text', 'newspack-newsletters' ) }
+				className="newspack-newsletters__name-textcontrol newspack-newsletters__name-textcontrol--separated"
+				value={ previewText }
+				disabled={ inFlight }
+				onChange={ value => editPost( { meta: { preview_text: value } } ) }
+			/>
+			<Button
+				isLink
+				onClick={ () => updateMetaValueInAPI( { key: 'preview_text', value: previewText } ) }
+				disabled={ inFlight }
+			>
+				{ __( 'Update preview text', 'newspack-newsletters' ) }
+			</Button>
 		</Fragment>
 	);
 
@@ -116,6 +138,7 @@ export default compose( [
 			postId: getCurrentPostId(),
 			senderEmail: meta.senderEmail || '',
 			senderName: meta.senderName || '',
+			previewText: meta.preview_text || '',
 			newsletterData: meta.newsletterData || {},
 		};
 	} ),
