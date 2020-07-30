@@ -297,7 +297,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$initial_email_address = $verified_email_addresses[0]->email_address;
 
 				$campaign                       = new Campaign();
-				$campaign->name                 = uniqid();
+				$campaign->name                 = __( 'Newspack Newsletters', 'newspack-newsletters' ) . ' ' . uniqid();
 				$campaign->subject              = $post->post_title;
 				$campaign->from_email           = $initial_email_address;
 				$campaign->reply_to_email       = $initial_email_address;
