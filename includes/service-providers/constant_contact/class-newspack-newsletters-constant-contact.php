@@ -260,7 +260,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$api_key = $this->api_key();
 		if ( ! $api_key ) {
 			return new WP_Error(
-				'newspack_newsletters_incorrect_post_type',
+				'newspack_newsletters_missing_api_key',
 				__( 'No Constant Contact API key available.', 'newspack-newsletters' )
 			);
 		}
