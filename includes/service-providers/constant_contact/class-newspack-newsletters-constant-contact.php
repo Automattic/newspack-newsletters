@@ -316,7 +316,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			];
 
 		} catch ( CtctException $e ) {
-			return $this->manage_ctct_exception( $e );
+			$wp_error  = $this->manage_ctct_exception( $e );
+			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
+			set_transient( $transient, implode( ' ', $wp_error->get_error_messages() ), 45 );
+			return $wp_error;
 		} catch ( Exception $e ) {
 			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
 			set_transient( $transient, $e->getMessage(), 45 );
@@ -376,7 +379,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 			$cc->campaignScheduleService->addSchedule( $this->access_token(), $cc_campaign_id, $schedule ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		} catch ( CtctException $e ) {
-			return $this->manage_ctct_exception( $e );
+			$wp_error  = $this->manage_ctct_exception( $e );
+			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
+			set_transient( $transient, implode( ' ', $wp_error->get_error_messages() ), 45 );
+			return $wp_error;
 		} catch ( Exception $e ) {
 			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
 			set_transient( $transient, $e->getMessage(), 45 );
