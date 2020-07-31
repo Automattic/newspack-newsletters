@@ -73,6 +73,9 @@ final class Newspack_Newsletters {
 			case 'mailchimp':
 				self::$provider = Newspack_Newsletters_Mailchimp::instance();
 				break;
+			case 'constant_contact':
+				self::$provider = Newspack_Newsletters_Constant_Contact::instance();
+				break;
 		}
 
 		$needs_nag = is_admin() &&
@@ -93,6 +96,17 @@ final class Newspack_Newsletters {
 		\register_meta(
 			'post',
 			'mc_campaign_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cc_campaign_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => true,
@@ -631,6 +645,15 @@ final class Newspack_Newsletters {
 	 * @return string Name of the Email Service Provider.
 	 */
 	public static function service_provider() {
+		// TODO: UI for user input of API key in keys modal and settings page.
+		if (
+			defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY' ) &&
+			defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN' ) &&
+			NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY &&
+			NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN
+		) {
+			return 'constant_contact';
+		}
 		return 'mailchimp'; // For now, Mailchimp is the only choice.
 	}
 }
