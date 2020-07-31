@@ -48,6 +48,10 @@
 	&__error input.components-text-control__input {
 		border-color: $alert-red;
 	}
+
+	&__disable-ads {
+		margin-top: 2em;
+	}
 }
 
 .editor-post-publish-panel__prepublish {
