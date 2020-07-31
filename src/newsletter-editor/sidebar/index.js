@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useState, Fragment } from '@wordpress/element';
-import { Button, TextControl } from '@wordpress/components';
+import { Button, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -59,7 +59,7 @@ const Sidebar = ( {
 	);
 
 	const updateMetaValueInAPI = data =>
-		apiFetch( {
+		apiFetchWithErrorHandling( {
 			data,
 			method: 'POST',
 			path: `/newspack-newsletters/v1/meta-fields/${ postId }`,
@@ -98,7 +98,7 @@ const Sidebar = ( {
 					{ __( 'Update Sender', 'newspack-newsletters' ) }
 				</Button>
 			) }
-			<TextControl
+			<TextareaControl
 				label={ __( 'Preview text', 'newspack-newsletters' ) }
 				className="newspack-newsletters__name-textcontrol newspack-newsletters__name-textcontrol--separated"
 				value={ previewText }
