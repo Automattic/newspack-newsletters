@@ -349,14 +349,8 @@ final class Newspack_Newsletters {
 		$id    = $request['id'];
 		$key   = $request['key'];
 		$value = $request['value'];
-		if ( false !== update_post_meta( $id, $key, $value ) ) {
-			return [ 'status' => 'ok' ];
-		} else {
-			return new \WP_Error(
-				'newspack_newsletters_error',
-				esc_html__( 'Meta field not updated.', 'newspack' )
-			);
-		}
+		update_post_meta( $id, $key, $value );
+		return [];
 	}
 
 	/**
