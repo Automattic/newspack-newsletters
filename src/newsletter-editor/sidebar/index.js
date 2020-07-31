@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useState, Fragment } from '@wordpress/element';
-import { Button, TextControl } from '@wordpress/components';
+import { Button, TextControl, CheckboxControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -27,6 +27,7 @@ const Sidebar = ( {
 	errors,
 	editPost,
 	title,
+	disableAds,
 	senderName,
 	senderEmail,
 	newsletterData,
@@ -93,16 +94,34 @@ const Sidebar = ( {
 		</Fragment>
 	);
 
+	const updateMetaValue = ( key, value ) => {
+		editPost( { meta: { [ key ]: value } } );
+		apiFetch( {
+			data: { key, value },
+			method: 'POST',
+			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
+		} );
+	};
+
 	return (
-		<ProviderSidebar
-			postId={ postId }
-			newsletterData={ newsletterData }
-			inFlight={ inFlight }
-			apiFetch={ apiFetch }
-			renderSubject={ renderSubject }
-			renderFrom={ renderFrom }
-			updateMeta={ meta => editPost( { meta } ) }
-		/>
+		<Fragment>
+			<ProviderSidebar
+				postId={ postId }
+				newsletterData={ newsletterData }
+				inFlight={ inFlight }
+				apiFetch={ apiFetch }
+				renderSubject={ renderSubject }
+				renderFrom={ renderFrom }
+				updateMeta={ meta => editPost( { meta } ) }
+			/>
+			<CheckboxControl
+				label={ __( 'Disable ads for this newsletter.', 'newspack-newsletters' ) }
+				className="newspack-newsletters__disable-ads"
+				checked={ disableAds }
+				disabled={ inFlight }
+				onChange={ value => updateMetaValue( 'diable_ads', value ) }
+			/>
+		</Fragment>
 	);
 };
 
@@ -117,6 +136,7 @@ export default compose( [
 			senderEmail: meta.senderEmail || '',
 			senderName: meta.senderName || '',
 			newsletterData: meta.newsletterData || {},
+			disableAds: meta.diable_ads,
 		};
 	} ),
 	withDispatch( dispatch => {

@@ -170,6 +170,17 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'diable_ads',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'boolean',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -285,10 +296,10 @@ final class Newspack_Newsletters {
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1',
-			'styling/(?P<id>[\a-z]+)',
+			'post-meta/(?P<id>[\a-z]+)',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_set_styling' ],
+				'callback'            => [ __CLASS__, 'api_set_post_meta' ],
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 				'args'                => [
 					'id'    => [
@@ -296,11 +307,11 @@ final class Newspack_Newsletters {
 						'sanitize_callback' => 'absint',
 					],
 					'key'   => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_styling_key' ],
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_post_meta_key' ],
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 					'value' => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_styling_value' ],
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_post_meta_value' ],
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -330,7 +341,7 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Set styling meta.
+	 * Set post meta.
 	 * The save_post action fires before post meta is updated.
 	 * This causes newsletters to be synced to the ESP before recent changes to custom fields have been recorded,
 	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the styling fields
@@ -338,11 +349,12 @@ final class Newspack_Newsletters {
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
-	public static function api_set_styling( $request ) {
+	public static function api_set_post_meta( $request ) {
 		$id    = $request['id'];
 		$key   = $request['key'];
 		$value = $request['value'];
 		update_post_meta( $id, $key, $value );
+		return [];
 	}
 
 	/**
@@ -359,13 +371,14 @@ final class Newspack_Newsletters {
 	 *
 	 * @param String $key Meta key.
 	 */
-	public static function validate_newsletter_styling_key( $key ) {
+	public static function validate_newsletter_post_meta_key( $key ) {
 		return in_array(
 			$key,
 			[
 				'font_header',
 				'font_body',
 				'background_color',
+				'diable_ads',
 			]
 		);
 	}
@@ -373,13 +386,13 @@ final class Newspack_Newsletters {
 	/**
 	 * Validate styling value (font name or hex color).
 	 *
-	 * @param String $key Meta value.
+	 * @param String $value Meta value.
 	 */
-	public static function validate_newsletter_styling_value( $key ) {
+	public static function validate_newsletter_post_meta_value( $value ) {
 		return in_array(
-			$key,
+			$value,
 			self::$supported_fonts
-		) || preg_match( '/^#[a-f0-9]{6}$/', $key );
+		) || preg_match( '/^#[a-f0-9]{6}$/', $value ) || 'boolean' === gettype( $value );
 	}
 
 	/**
