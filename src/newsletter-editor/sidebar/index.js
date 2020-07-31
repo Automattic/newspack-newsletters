@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useState, Fragment } from '@wordpress/element';
-import { Button, TextControl, TextareaControl } from '@wordpress/components';
+import { Button, TextControl, CheckboxControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -27,6 +27,7 @@ const Sidebar = ( {
 	errors,
 	editPost,
 	title,
+	disableAds,
 	senderName,
 	senderEmail,
 	previewText,
@@ -62,7 +63,7 @@ const Sidebar = ( {
 		apiFetchWithErrorHandling( {
 			data,
 			method: 'POST',
-			path: `/newspack-newsletters/v1/meta-fields/${ postId }`,
+			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
 		} );
 
 	const renderFrom = ( { handleSenderUpdate } ) => (
@@ -115,16 +116,34 @@ const Sidebar = ( {
 		</Fragment>
 	);
 
+	const updateMetaValue = ( key, value ) => {
+		editPost( { meta: { [ key ]: value } } );
+		apiFetch( {
+			data: { key, value },
+			method: 'POST',
+			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
+		} );
+	};
+
 	return (
-		<ProviderSidebar
-			postId={ postId }
-			newsletterData={ newsletterData }
-			inFlight={ inFlight }
-			apiFetch={ apiFetch }
-			renderSubject={ renderSubject }
-			renderFrom={ renderFrom }
-			updateMeta={ meta => editPost( { meta } ) }
-		/>
+		<Fragment>
+			<ProviderSidebar
+				postId={ postId }
+				newsletterData={ newsletterData }
+				inFlight={ inFlight }
+				apiFetch={ apiFetch }
+				renderSubject={ renderSubject }
+				renderFrom={ renderFrom }
+				updateMeta={ meta => editPost( { meta } ) }
+			/>
+			<CheckboxControl
+				label={ __( 'Disable ads for this newsletter.', 'newspack-newsletters' ) }
+				className="newspack-newsletters__disable-ads"
+				checked={ disableAds }
+				disabled={ inFlight }
+				onChange={ value => updateMetaValue( 'diable_ads', value ) }
+			/>
+		</Fragment>
 	);
 };
 
@@ -140,6 +159,7 @@ export default compose( [
 			senderName: meta.senderName || '',
 			previewText: meta.preview_text || '',
 			newsletterData: meta.newsletterData || {},
+			disableAds: meta.diable_ads,
 		};
 	} ),
 	withDispatch( dispatch => {
