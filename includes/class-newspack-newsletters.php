@@ -172,6 +172,17 @@ final class Newspack_Newsletters {
 		);
 		\register_meta(
 			'post',
+			'preview_text',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
 			'diable_ads',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
@@ -311,7 +322,6 @@ final class Newspack_Newsletters {
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 					'value' => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_post_meta_value' ],
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -344,7 +354,7 @@ final class Newspack_Newsletters {
 	 * Set post meta.
 	 * The save_post action fires before post meta is updated.
 	 * This causes newsletters to be synced to the ESP before recent changes to custom fields have been recorded,
-	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the styling fields
+	 * which leads to incorrect rendering. This is addressed through custom endpoints to update the  fields
 	 * as soon as they are changed in the editor, so that the changes are available the next time sync to ESP occurs.
 	 *
 	 * @param WP_REST_Request $request API request object.
@@ -367,7 +377,7 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Validate styling key.
+	 * Validate meta key.
 	 *
 	 * @param String $key Meta key.
 	 */
@@ -378,21 +388,10 @@ final class Newspack_Newsletters {
 				'font_header',
 				'font_body',
 				'background_color',
+				'preview_text',
 				'diable_ads',
 			]
 		);
-	}
-
-	/**
-	 * Validate styling value (font name or hex color).
-	 *
-	 * @param String $value Meta value.
-	 */
-	public static function validate_newsletter_post_meta_value( $value ) {
-		return in_array(
-			$value,
-			self::$supported_fonts
-		) || preg_match( '/^#[a-f0-9]{6}$/', $value ) || 'boolean' === gettype( $value );
 	}
 
 	/**

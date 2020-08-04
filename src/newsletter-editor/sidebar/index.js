@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useState, Fragment } from '@wordpress/element';
-import { Button, TextControl, CheckboxControl } from '@wordpress/components';
+import { Button, TextControl, CheckboxControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -30,6 +30,7 @@ const Sidebar = ( {
 	disableAds,
 	senderName,
 	senderEmail,
+	previewText,
 	newsletterData,
 	apiFetchWithErrorHandling,
 	postId,
@@ -57,6 +58,13 @@ const Sidebar = ( {
 		'newspack-newsletters__email-textcontrol',
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
 	);
+
+	const updateMetaValueInAPI = data =>
+		apiFetchWithErrorHandling( {
+			data,
+			method: 'POST',
+			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
+		} );
 
 	const renderFrom = ( { handleSenderUpdate } ) => (
 		<Fragment>
@@ -91,6 +99,20 @@ const Sidebar = ( {
 					{ __( 'Update Sender', 'newspack-newsletters' ) }
 				</Button>
 			) }
+			<TextareaControl
+				label={ __( 'Preview text', 'newspack-newsletters' ) }
+				className="newspack-newsletters__name-textcontrol newspack-newsletters__name-textcontrol--separated"
+				value={ previewText }
+				disabled={ inFlight }
+				onChange={ value => editPost( { meta: { preview_text: value } } ) }
+			/>
+			<Button
+				isLink
+				onClick={ () => updateMetaValueInAPI( { key: 'preview_text', value: previewText } ) }
+				disabled={ inFlight }
+			>
+				{ __( 'Update preview text', 'newspack-newsletters' ) }
+			</Button>
 		</Fragment>
 	);
 
@@ -135,6 +157,7 @@ export default compose( [
 			postId: getCurrentPostId(),
 			senderEmail: meta.senderEmail || '',
 			senderName: meta.senderName || '',
+			previewText: meta.preview_text || '',
 			newsletterData: meta.newsletterData || {},
 			disableAds: meta.diable_ads,
 		};
