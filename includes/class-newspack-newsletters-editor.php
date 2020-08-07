@@ -144,8 +144,8 @@ final class Newspack_Newsletters_Editor {
 			'newspack-newsletters',
 			'newspack_newsletters_data',
 			[
-				'has_keys'         => Newspack_Newsletters::has_keys(),
-				'service_provider' => Newspack_Newsletters::service_provider(),
+				'is_service_provider_configured' => Newspack_Newsletters::is_service_provider_configured(),
+				'service_provider'               => Newspack_Newsletters::service_provider(),
 			]
 		);
 	}

@@ -56,6 +56,11 @@ class Newspack_Newsletters_Settings {
 				'type'        => 'text',
 			),
 			array(
+				'description' => __( 'Constant Contact API Access token', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_constant_contact_api_access_token',
+				'type'        => 'text',
+			),
+			array(
 				'description' => __( 'MJML Application ID', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_mjml_api_key',
 				'type'        => 'text',
@@ -142,12 +147,13 @@ class Newspack_Newsletters_Settings {
 			$add_options = '';
 
 			foreach ( $options as $option ) {
-				$add_options .= '<option value="' . esc_attr( $option['value'] ) . '">' . esc_html( $option['name'] ) . '</option>';
+				$add_options .= '<option ' . ( $value === $option['value'] ? 'selected' : '' ) . ' value="' . esc_attr( $option['value'] ) . '">' . esc_html( $option['name'] ) . '</option>';
 			}
 
 			$allowed_html = array(
 				'option' => array(
-					'value' => array(),
+					'value'    => array(),
+					'selected' => array(),
 				),
 			);
 

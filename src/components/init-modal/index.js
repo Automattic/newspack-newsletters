@@ -15,7 +15,7 @@ import LayoutPicker from './screens/layout-picker';
 import APIKeys from './screens/api-keys';
 import './style.scss';
 
-export default ( { hasKeys, onSetupStatus } ) => {
+export default ( { shouldDisplaySettings, onSetupStatus } ) => {
 	return (
 		<Modal
 			className="newspack-newsletters-modal__frame"
@@ -24,12 +24,12 @@ export default ( { hasKeys, onSetupStatus } ) => {
 			shouldCloseOnClickOutside={ false }
 			shouldCloseOnEsc={ false }
 			title={
-				hasKeys
-					? __( 'Select a layout for your newsletter', 'newspack-newsletters' )
-					: __( 'Configure the newsletters', 'newspack-newsletters' )
+				shouldDisplaySettings
+					? __( 'Configure the newsletters', 'newspack-newsletters' )
+					: __( 'Select a layout for your newsletter', 'newspack-newsletters' )
 			}
 		>
-			{ hasKeys ? <LayoutPicker /> : <APIKeys onSetupStatus={ onSetupStatus } /> }
+			{ shouldDisplaySettings ? <APIKeys onSetupStatus={ onSetupStatus } /> : <LayoutPicker /> }
 		</Modal>
 	);
 };
