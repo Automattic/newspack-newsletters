@@ -32,7 +32,7 @@ const getDateBlockTemplate = post => {
 };
 
 const getExcerptBlockTemplate = ( post, { excerptLength } ) => {
-	let excerpt = post.content.rendered;
+	let excerpt = post.excerpt.rendered;
 	const excerptElement = document.createElement( 'div' );
 	excerptElement.innerHTML = excerpt;
 	excerpt = excerptElement.textContent || excerptElement.innerText || '';
