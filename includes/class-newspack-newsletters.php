@@ -85,6 +85,7 @@ final class Newspack_Newsletters {
 	 * @param string $service_provider Service provider slug.
 	 */
 	private static function set_service_provider( $service_provider ) {
+		update_option( 'newspack_newsletters_service_provider', $service_provider );
 		switch ( $service_provider ) {
 			case 'mailchimp':
 				self::$provider = Newspack_Newsletters_Mailchimp::instance();
@@ -456,7 +457,6 @@ final class Newspack_Newsletters {
 				__( 'Please set at service provider.', 'newspack-newsletters' )
 			);
 		} else {
-			update_option( 'newspack_newsletters_service_provider', $service_provider );
 			self::set_service_provider( $service_provider );
 		}
 
@@ -518,13 +518,18 @@ final class Newspack_Newsletters {
 	public static function api_settings() {
 		$mjml_api_key     = get_option( 'newspack_newsletters_mjml_api_key', false );
 		$mjml_api_secret  = get_option( 'newspack_newsletters_mjml_api_secret', false );
-		$service_provider = get_option( 'newspack_newsletters_service_provider', false );
+		$service_provider = self::service_provider();
 		$response         = [
 			'service_provider' => $service_provider ? $service_provider : '',
 			'status'           => false,
 			'mjml_api_key'     => $mjml_api_key ? $mjml_api_key : '',
 			'mjml_api_secret'  => $mjml_api_secret ? $mjml_api_secret : '',
 		];
+
+		if ( ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
+			// Legacy – Mailchimp provider set before multi-provider handling was set up.
+			self::set_service_provider( 'mailchimp' );
+		}
 
 		if ( self::$provider ) {
 			$response['credentials'] = self::$provider->api_credentials();
