@@ -138,7 +138,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 					// Support for legacy Gutenberg version.
 					categoriesList={ [] }
 					minItems={ 1 }
-					maxItems={ 10 }
+					maxItems={ 20 }
 				/>
 			) }
 		</div>
