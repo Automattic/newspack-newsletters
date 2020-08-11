@@ -14,6 +14,8 @@ import {
 	RangeControl,
 	Button,
 	ToggleControl,
+	FontSizePicker,
+	ColorPicker,
 	PanelBody,
 	Spinner,
 	Toolbar,
@@ -44,6 +46,7 @@ const PostsInserterBlock = ( {
 	setHandledPostsIds,
 	setInsertedPostsIds,
 	removeBlock,
+	blockEditorSettings,
 } ) => {
 	const [ isReady, setIsReady ] = useState( ! attributes.displayFeaturedImage );
 	const stringifiedPostList = JSON.stringify( postList );
@@ -167,6 +170,34 @@ const PostsInserterBlock = ( {
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
 				</PanelBody>
+				<PanelBody title={ __( 'Text style', 'newspack-newsletters' ) }>
+					<FontSizePicker
+						fontSizes={ blockEditorSettings.fontSizes }
+						value={ attributes.textFontSize }
+						fallbackFontSize={ 16 }
+						onChange={ value => setAttributes( { textFontSize: isNaN( value ) ? null : value } ) }
+					/>
+					<ColorPicker
+						color={ attributes.textColor }
+						onChangeComplete={ value => setAttributes( { textColor: value.hex } ) }
+						disableAlpha
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Heading style', 'newspack-newsletters' ) }>
+					<FontSizePicker
+						fontSizes={ blockEditorSettings.fontSizes }
+						value={ attributes.headingFontSize }
+						fallbackFontSize={ 25 }
+						onChange={ value =>
+							setAttributes( { headingFontSize: isNaN( value ) ? null : value } )
+						}
+					/>
+					<ColorPicker
+						color={ attributes.headingColor }
+						onChangeComplete={ value => setAttributes( { headingColor: value.hex } ) }
+						disableAlpha
+					/>
+				</PanelBody>
 			</InspectorControls>
 
 			<BlockControls>
@@ -207,7 +238,7 @@ const PostsInserterBlockWithSelect = compose( [
 			preventDeduplication,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
-		const { getSelectedBlock, getBlocks } = select( 'core/block-editor' );
+		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
 
 		const { getHandledPostIds } = select( POSTS_INSERTER_STORE_NAME );
@@ -244,6 +275,7 @@ const PostsInserterBlockWithSelect = compose( [
 		return {
 			// Not used by the component, but needed in deduplication.
 			existingBlocks: getBlocks(),
+			blockEditorSettings: getSettings(),
 			selectedBlock: getSelectedBlock(),
 			postList: posts.map( post => {
 				if ( post.featured_media ) {
@@ -323,6 +355,22 @@ export default () => {
 			specificPosts: {
 				type: 'array',
 				default: [],
+			},
+			textFontSize: {
+				type: 'number',
+				default: 16,
+			},
+			headingFontSize: {
+				type: 'number',
+				default: 25,
+			},
+			textColor: {
+				type: 'string',
+				default: '#000',
+			},
+			headingColor: {
+				type: 'string',
+				default: '#000',
 			},
 		},
 		save: () => <InnerBlocks.Content />,
