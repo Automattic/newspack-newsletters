@@ -26,7 +26,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$this->controller = new Newspack_Newsletters_Constant_Contact_Controller( $this );
 
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
-		add_action( 'publish_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'send' ], 10, 2 );
+		add_action( 'transition_post_status_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'send' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 
 		parent::__construct( $this );
@@ -348,10 +348,13 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	/**
 	 * Send a campaign.
 	 *
-	 * @param integer $post_id Post ID to send.
+	 * @param string  $new_status New status of the post.
+	 * @param string  $old_status Old status of the post.
 	 * @param WP_POST $post Post to send.
 	 */
-	public function send( $post_id, $post ) {
+	public function send( $new_status, $old_status, $post ) {
+		$post_id = $post->ID;
+
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
 			return new WP_Error(
 				'newspack_newsletters_incorrect_post_type',
