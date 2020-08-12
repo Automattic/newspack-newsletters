@@ -327,9 +327,6 @@ final class Newspack_Newsletters {
 		// If not marked public, make it a 404 to non-logged-in users.
 		if ( empty( $is_public ) ) {
 			global $wp_query;
-			status_header( 404 );
-			nocache_headers();
-			include get_query_template( '404' );
 
 			// Replace document title with 'Page not found'.
 			add_filter(
@@ -338,6 +335,10 @@ final class Newspack_Newsletters {
 					return str_replace( get_the_title(), __( 'Page not found', 'newspack-newsletters' ), $title );
 				}
 			);
+
+			status_header( 404 );
+			nocache_headers();
+			include get_query_template( '404' );
 			die();
 		}
 	}
