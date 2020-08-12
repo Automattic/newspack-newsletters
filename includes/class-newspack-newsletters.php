@@ -73,6 +73,7 @@ final class Newspack_Newsletters {
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'maybe_disable_autosave' ] );
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
+		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
@@ -386,6 +387,20 @@ final class Newspack_Newsletters {
 		}
 
 		return $disabled;
+	}
+
+	/**
+	 * Disable Jetpack Related Posts on Newsletter posts.
+	 *
+	 * @param array $options Options array for Jetpack Related Posts.
+	 * @return array Filtered options array.
+	 */
+	public static function disable_jetpack_related_posts( $options ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
+			$options['enabled'] = false;
+		}
+
+		return $options;
 	}
 
 	/**
