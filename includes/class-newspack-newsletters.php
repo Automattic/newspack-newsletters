@@ -330,6 +330,14 @@ final class Newspack_Newsletters {
 			status_header( 404 );
 			nocache_headers();
 			include get_query_template( '404' );
+
+			// Replace document title with 'Page not found'.
+			add_filter(
+				'wpseo_title',
+				function( $title ) {
+					return str_replace( get_the_title(), __( 'Page not found', 'newspack-newsletters' ), $title );
+				}
+			);
 			die();
 		}
 	}
