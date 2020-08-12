@@ -72,6 +72,7 @@ final class Newspack_Newsletters {
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'maybe_disable_autosave' ] );
+		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 
 		switch ( self::service_provider() ) {
 			case 'mailchimp':
@@ -236,14 +237,12 @@ final class Newspack_Newsletters {
 			'public'           => true,
 			'public_queryable' => true,
 			'query_var'        => true,
+			'rewrite'          => [ 'slug' => 'newsletter' ],
 			'show_ui'          => true,
 			'show_in_rest'     => true,
 			'supports'         => [ 'editor', 'title', 'custom-fields' ],
 			'taxonomies'       => [],
 			'menu_icon'        => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
-			'rewrite'          => [
-				'slug' => 'newsletter',
-			],
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
 	}
@@ -364,6 +363,20 @@ final class Newspack_Newsletters {
 		}
 
 		wp_dequeue_script( 'autosave' );
+	}
+
+	/**
+	 * Disable Newspack Campaigns on Newsletter posts.
+	 *
+	 * @param array $disabled Disabled status to filter.
+	 * @return array|boolean Unfiltered disabled status, or true to disable.
+	 */
+	public static function disable_campaigns_for_newsletters( $disabled ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
+			return true;
+		}
+
+		return $disabled;
 	}
 
 	/**
