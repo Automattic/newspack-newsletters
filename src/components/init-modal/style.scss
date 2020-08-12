@@ -126,10 +126,6 @@
 			}
 		}
 
-		h4:first-of-type {
-			margin-top: 0;
-		}
-
 		.components-spinner {
 			left: 50%;
 			margin: -9px 0 0 -9px;
@@ -148,6 +144,11 @@
 					border-color: $alert-red;
 				}
 			}
+		}
+
+		select.components-select-control__input {
+			max-width: 100%;
+			width: 100%;
 		}
 	}
 
