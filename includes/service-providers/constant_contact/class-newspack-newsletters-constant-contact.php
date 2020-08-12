@@ -82,7 +82,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		if ( empty( $credentials['api_key'] ) || empty( $credentials['access_token'] ) ) {
 			return new WP_Error(
 				'newspack_newsletters_invalid_keys',
-				__( 'Please input an API key and access token.', 'newspack-newsletters' )
+				__( 'Please input Constant Contact API key and access token.', 'newspack-newsletters' )
 			);
 		} else {
 			$update_api_key      = update_option( 'newspack_newsletters_constant_contact_api_key', $credentials['api_key'] );

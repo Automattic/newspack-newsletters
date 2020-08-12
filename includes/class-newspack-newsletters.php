@@ -454,7 +454,7 @@ final class Newspack_Newsletters {
 		if ( empty( $service_provider ) ) {
 			$wp_error->add(
 				'newspack_newsletters_no_service_provider',
-				__( 'Please set at service provider.', 'newspack-newsletters' )
+				__( 'Please select a newsletter service provider.', 'newspack-newsletters' )
 			);
 		} else {
 			self::set_service_provider( $service_provider );

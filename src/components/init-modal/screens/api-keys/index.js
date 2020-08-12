@@ -109,7 +109,7 @@ export default ( { onSetupStatus } ) => {
 			<div className={ classes }>
 				<div className="newspack-newsletters-modal__settings-wrapper">
 					{ inFlight && <Spinner /> }
-					<h4>{ __( 'Select your newsletter service provider', 'newspack-newsletters' ) }</h4>
+					<h4>{ __( 'Select your email service provider', 'newspack-newsletters' ) }</h4>
 					<SelectControl
 						label={ __( 'Service Provider', 'newspack-newsletters' ) }
 						value={ serviceProvider }
@@ -158,7 +158,7 @@ export default ( { onSetupStatus } ) => {
 					) }
 					{ 'constant_contact' === serviceProvider && (
 						<Fragment>
-							<h4>{ __( 'Enter your Constant Contact API key', 'newspack-newsletters' ) }</h4>
+							<h4>{ __( 'Enter your Constant Contact API key and access token', 'newspack-newsletters' ) }</h4>
 							<TextControl
 								label={ __( 'Constant Contact API key', 'newspack-newsletters' ) }
 								value={ credentials.api_key }
@@ -168,7 +168,7 @@ export default ( { onSetupStatus } ) => {
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
 							/>
 							<TextControl
-								label={ __( 'Constant Contact API Access token', 'newspack-newsletters' ) }
+								label={ __( 'Constant Contact Access token', 'newspack-newsletters' ) }
 								value={ credentials.access_token }
 								onChange={ setCredentials( 'access_token' ) }
 								disabled={ inFlight }
@@ -185,7 +185,7 @@ export default ( { onSetupStatus } ) => {
 								</ExternalLink>
 								<span className="separator"> | </span>
 								<ExternalLink href="https://constantcontact.mashery.com/io-docs">
-									{ __( 'Get Constant Contact API access token', 'newspack-newsletters' ) }
+									{ __( 'Get Constant Contact access token', 'newspack-newsletters' ) }
 								</ExternalLink>
 							</p>
 							<hr />
