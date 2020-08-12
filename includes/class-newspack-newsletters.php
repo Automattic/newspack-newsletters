@@ -68,6 +68,7 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 
 		self::set_service_provider( self::service_provider() );
 
@@ -200,6 +201,20 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+	}
+
+	/**
+	 * Set default layout.
+	 * This can be removed once WP 5.5 adoption is sufficient.
+	 *
+	 * @param string  $post_id Numeric ID of the campaign.
+	 * @param WP_Post $post The complete post object.
+	 * @param boolean $update Whether this is an existing post being updated or not.
+	 */
+	public function save( $post_id, $post, $update ) {
+		if ( ! $update ) {
+			update_post_meta( $post_id, 'template_id', -1 );
+		}
 	}
 
 	/**
