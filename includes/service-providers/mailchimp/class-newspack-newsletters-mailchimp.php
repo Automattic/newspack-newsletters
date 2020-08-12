@@ -390,7 +390,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	public function send( $new_status, $old_status, $post ) {
 		$post_id = $post->ID;
 
-		if ( 'publish' === $new_status && 'publish' !== $old_status && Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
 			try {
 				$sync_result = $this->sync( $post );
 

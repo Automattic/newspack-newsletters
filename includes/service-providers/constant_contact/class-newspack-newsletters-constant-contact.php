@@ -362,34 +362,36 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			);
 		}
 
-		try {
-			$sync_result = $this->sync( $post );
+		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
+			try {
+				$sync_result = $this->sync( $post );
 
-			if ( is_wp_error( $sync_result ) ) {
-				return $sync_result;
+				if ( is_wp_error( $sync_result ) ) {
+					return $sync_result;
+				}
+
+				$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
+				if ( ! $cc_campaign_id ) {
+					return new WP_Error(
+						'newspack_newsletters_no_campaign_id',
+						__( 'Constant Contact campaign ID not found.', 'newspack-newsletters' )
+					);
+				}
+
+				$cc       = new ConstantContact( $this->api_key() );
+				$schedule = new Schedule();
+
+				$cc->campaignScheduleService->addSchedule( $this->access_token(), $cc_campaign_id, $schedule ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			} catch ( CtctException $e ) {
+				$wp_error  = $this->manage_ctct_exception( $e );
+				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
+				set_transient( $transient, implode( ' ', $wp_error->get_error_messages() ), 45 );
+				return $wp_error;
+			} catch ( Exception $e ) {
+				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
+				set_transient( $transient, $e->getMessage(), 45 );
+				return;
 			}
-
-			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-			if ( ! $cc_campaign_id ) {
-				return new WP_Error(
-					'newspack_newsletters_no_campaign_id',
-					__( 'Constant Contact campaign ID not found.', 'newspack-newsletters' )
-				);
-			}
-
-			$cc       = new ConstantContact( $this->api_key() );
-			$schedule = new Schedule();
-
-			$cc->campaignScheduleService->addSchedule( $this->access_token(), $cc_campaign_id, $schedule ); //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		} catch ( CtctException $e ) {
-			$wp_error  = $this->manage_ctct_exception( $e );
-			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
-			set_transient( $transient, implode( ' ', $wp_error->get_error_messages() ), 45 );
-			return $wp_error;
-		} catch ( Exception $e ) {
-			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
-			set_transient( $transient, $e->getMessage(), 45 );
-			return;
 		}
 	}
 
