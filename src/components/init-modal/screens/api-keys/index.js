@@ -30,6 +30,7 @@ export default ( { onSetupStatus } ) => {
 			data: settings,
 		} )
 			.then( results => {
+				window.newspack_newsletters_data.service_provider = results.service_provider;
 				unlockPostAutosaving( 'newsletters-modal-is-open-lock' );
 				savePost().then( () => {
 					setInFlight( false );
