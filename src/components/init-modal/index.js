@@ -25,7 +25,7 @@ export default ( { shouldDisplaySettings, onSetupStatus } ) => {
 			shouldCloseOnEsc={ false }
 			title={
 				shouldDisplaySettings
-					? __( 'Configure the newsletters', 'newspack-newsletters' )
+					? __( 'Configure plugin', 'newspack-newsletters' )
 					: __( 'Select a layout for your newsletter', 'newspack-newsletters' )
 			}
 		>
