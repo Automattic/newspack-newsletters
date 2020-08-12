@@ -142,6 +142,7 @@ final class Newspack_Newsletters {
 				'type'           => 'integer',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => -1,
 			]
 		);
 		\register_meta(

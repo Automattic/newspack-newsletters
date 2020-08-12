@@ -364,9 +364,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @param boolean $update Whether this is an existing post being updated or not.
 	 */
 	public function save( $post_id, $post, $update ) {
-		if ( ! $update ) {
-			update_post_meta( $post_id, 'template_id', -1 );
-		}
 		$status = get_post_status( $post_id );
 		if ( 'trash' === $status ) {
 			return;
