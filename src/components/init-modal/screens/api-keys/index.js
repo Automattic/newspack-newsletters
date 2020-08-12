@@ -158,7 +158,12 @@ export default ( { onSetupStatus } ) => {
 					) }
 					{ 'constant_contact' === serviceProvider && (
 						<Fragment>
-							<h4>{ __( 'Enter your Constant Contact API key and access token', 'newspack-newsletters' ) }</h4>
+							<h4>
+								{ __(
+									'Enter your Constant Contact API key and access token',
+									'newspack-newsletters'
+								) }
+							</h4>
 							<TextControl
 								label={ __( 'Constant Contact API key', 'newspack-newsletters' ) }
 								value={ credentials.api_key }
