@@ -68,6 +68,7 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
+		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'maybe_disable_autosave' ] );
@@ -230,6 +231,7 @@ final class Newspack_Newsletters {
 		];
 
 		$cpt_args = [
+			'has_archive'      => true,
 			'labels'           => $labels,
 			'public'           => true,
 			'public_queryable' => true,
@@ -285,10 +287,39 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Filter out non-public newsletter posts on newsletter archive pages.
+	 *
+	 * @param array $query The WP query object.
+	 */
+	public static function maybe_display_public_archive_posts( $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT ) ) {
+			return;
+		}
+
+		$meta_query = $query->get( 'meta_query' );
+
+		if ( empty( $meta_query ) || ! is_array( $meta_query ) ) {
+			$meta_query = [];
+		}
+
+		$meta_query[] = [
+			'key'          => 'is_public',
+			'value'        => '1',
+			'meta_compare' => '=',
+		];
+
+		$query->set( 'meta_query', $meta_query );
+	}
+
+	/**
 	 * Decide whether this newsletter should be publicly viewable as a page.
+	 * Triggers a 404 if the current page is a single Newsletter and not marked public.
 	 */
 	public static function maybe_display_public_post() {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type() || current_user_can( 'edit_others_posts' ) ) {
+		if (
+			current_user_can( 'edit_others_posts' ) ||
+			! is_singular( self::NEWSPACK_NEWSLETTERS_CPT )
+		) {
 			return;
 		}
 
