@@ -68,24 +68,32 @@ final class Newspack_Newsletters {
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 
-		switch ( self::service_provider() ) {
+		self::set_service_provider( self::service_provider() );
+
+		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
+		if ( $needs_nag ) {
+			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
+			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
+			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
+		}
+	}
+
+	/**
+	 * Register custom fields.
+	 *
+	 * @param string $service_provider Service provider slug.
+	 */
+	private static function set_service_provider( $service_provider ) {
+		update_option( 'newspack_newsletters_service_provider', $service_provider );
+		switch ( $service_provider ) {
 			case 'mailchimp':
 				self::$provider = Newspack_Newsletters_Mailchimp::instance();
 				break;
 			case 'constant_contact':
 				self::$provider = Newspack_Newsletters_Constant_Contact::instance();
 				break;
-		}
-
-		$needs_nag = is_admin() &&
-			( ! self::$provider->api_key() || ! get_option( 'newspack_newsletters_mjml_api_key', false ) || ! get_option( 'newspack_newsletters_mjml_api_secret', false ) ) &&
-			! get_option( 'newspack_newsletters_activation_nag_viewed', false );
-
-		if ( $needs_nag ) {
-			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
-			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
-			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
 	}
 
@@ -135,6 +143,7 @@ final class Newspack_Newsletters {
 				'type'           => 'integer',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => -1,
 			]
 		);
 		\register_meta(
@@ -192,6 +201,20 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+	}
+
+	/**
+	 * Set default layout.
+	 * This can be removed once WP 5.5 adoption is sufficient.
+	 *
+	 * @param string  $post_id Numeric ID of the campaign.
+	 * @param WP_Post $post The complete post object.
+	 * @param boolean $update Whether this is an existing post being updated or not.
+	 */
+	public function save( $post_id, $post, $update ) {
+		if ( ! $update ) {
+			update_post_meta( $post_id, 'template_id', -1 );
+		}
 	}
 
 	/**
@@ -278,19 +301,19 @@ final class Newspack_Newsletters {
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1',
-			'keys',
+			'settings',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => [ __CLASS__, 'api_get_keys' ],
+				'callback'            => [ __CLASS__, 'api_get_settings' ],
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 			]
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1',
-			'keys',
+			'settings',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_set_keys' ],
+				'callback'            => [ __CLASS__, 'api_set_settings' ],
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 				'args'                => [
 					'mailchimp_api_key'   => [
@@ -425,30 +448,42 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Retrieve service API keys for API endpoints.
+	 * Retrieve service API settings for API endpoints.
 	 */
-	public static function api_get_keys() {
-		return \rest_ensure_response( self::api_keys() );
+	public static function api_get_settings() {
+		return \rest_ensure_response( self::api_settings() );
 	}
 
 	/**
-	 * Set API keys.
+	 * Set API settings.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
-	public static function api_set_keys( $request ) {
-		$mailchimp_api_key = $request['mailchimp_api_key'];
-		$mjml_api_key      = $request['mjml_api_key'];
-		$mjml_api_secret   = $request['mjml_api_secret'];
-		$wp_error          = new WP_Error();
+	public static function api_set_settings( $request ) {
+		$service_provider = $request['service_provider'];
+		$credentials      = $request['credentials'];
+		$mjml_api_key     = $request['mjml_api_key'];
+		$mjml_api_secret  = $request['mjml_api_secret'];
+		$wp_error         = new WP_Error();
 
-		if ( empty( $mailchimp_api_key ) ) {
+		// Service Provider slug.
+		if ( empty( $service_provider ) ) {
 			$wp_error->add(
-				'newspack_newsletters_invalid_keys_mailchimp',
-				__( 'Please input a Mailchimp API key.', 'newspack-newsletters' )
+				'newspack_newsletters_no_service_provider',
+				__( 'Please select a newsletter service provider.', 'newspack-newsletters' )
 			);
 		} else {
-			$status = self::$provider->set_api_key( $mailchimp_api_key );
+			self::set_service_provider( $service_provider );
+		}
+
+		// Service Provider credentials.
+		if ( empty( $credentials ) ) {
+			$wp_error->add(
+				'newspack_newsletters_invalid_keys',
+				__( 'Please input credentials.', 'newspack-newsletters' )
+			);
+		} else {
+			$status = self::$provider->set_api_credentials( $credentials );
 			if ( is_wp_error( $status ) ) {
 				foreach ( $status->errors as $code => $message ) {
 					$wp_error->add( $code, implode( ' ', $message ) );
@@ -456,6 +491,7 @@ final class Newspack_Newsletters {
 			}
 		}
 
+		// MJML credentials.
 		if ( empty( $mjml_api_key ) || empty( $mjml_api_secret ) ) {
 			$wp_error->add(
 				'newspack_newsletters_invalid_keys_mjml',
@@ -489,33 +525,43 @@ final class Newspack_Newsletters {
 			}
 		}
 
-		return $wp_error->has_errors() ? $wp_error : self::api_get_keys();
+		return $wp_error->has_errors() ? $wp_error : self::api_get_settings();
 	}
 
 	/**
-	 * Retrieve service API keys.
+	 * Retrieve settings.
 	 */
-	public static function api_keys() {
-		$mailchimp_api_key = self::$provider->api_key(); // For now, it will only be Mailchimp.
-		$mjml_api_key      = get_option( 'newspack_newsletters_mjml_api_key', false );
-		$mjml_api_secret   = get_option( 'newspack_newsletters_mjml_api_secret', false );
-
-		return [
-			'mailchimp_api_key' => $mailchimp_api_key ? $mailchimp_api_key : '',
-			'mjml_api_key'      => $mjml_api_key ? $mjml_api_key : '',
-			'mjml_api_secret'   => $mjml_api_secret ? $mjml_api_secret : '',
-			'status'            => ! empty( $mailchimp_api_key ) && ! empty( $mjml_api_key ) && ! empty( $mjml_api_secret ),
+	public static function api_settings() {
+		$mjml_api_key     = get_option( 'newspack_newsletters_mjml_api_key', false );
+		$mjml_api_secret  = get_option( 'newspack_newsletters_mjml_api_secret', false );
+		$service_provider = self::service_provider();
+		$response         = [
+			'service_provider' => $service_provider ? $service_provider : '',
+			'status'           => false,
+			'mjml_api_key'     => $mjml_api_key ? $mjml_api_key : '',
+			'mjml_api_secret'  => $mjml_api_secret ? $mjml_api_secret : '',
 		];
+
+		if ( ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
+			// Legacy – Mailchimp provider set before multi-provider handling was set up.
+			self::set_service_provider( 'mailchimp' );
+		}
+
+		if ( self::$provider ) {
+			$response['credentials'] = self::$provider->api_credentials();
+			$response['status']      = self::$provider->has_api_credentials();
+		}
+		return $response;
 	}
 
 	/**
-	 * Are all the needed API keys available?
+	 * Are all the needed API credentials available?
 	 *
-	 * @return bool Whether all API keys are set.
+	 * @return bool Whether all API credentials are set.
 	 */
-	public static function has_keys() {
-		$keys = self::api_keys();
-		return $keys['status'];
+	public static function is_service_provider_configured() {
+		$settings = self::api_settings();
+		return $settings['status'];
 	}
 
 	/**
@@ -575,7 +621,7 @@ final class Newspack_Newsletters {
 	 */
 
 	/**
-	 * Add admin notice if API keys are unset.
+	 * Add admin notice if API credentials are unset.
 	 */
 	public static function activation_nag() {
 		$screen = get_current_screen();
@@ -589,8 +635,8 @@ final class Newspack_Newsletters {
 				<?php
 					echo wp_kses_post(
 						sprintf(
-							// translators: urge users to input their API keys on settings page.
-							__( 'Thank you for activating Newspack Newsletters. Please <a href="%s">head to settings</a> to set up your API keys.', 'newspack-newsletters' ),
+							// translators: urge users to input their API credentials on settings page.
+							__( 'Thank you for activating Newspack Newsletters. Please <a href="%s">head to settings</a> to set up your API credentials.', 'newspack-newsletters' ),
 							$url
 						)
 					);
@@ -644,16 +690,7 @@ final class Newspack_Newsletters {
 	 * @return string Name of the Email Service Provider.
 	 */
 	public static function service_provider() {
-		// TODO: UI for user input of API key in keys modal and settings page.
-		if (
-			defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY' ) &&
-			defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN' ) &&
-			NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY &&
-			NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN
-		) {
-			return 'constant_contact';
-		}
-		return 'mailchimp'; // For now, Mailchimp is the only choice.
+		return get_option( 'newspack_newsletters_service_provider', false );
 	}
 }
 Newspack_Newsletters::instance();

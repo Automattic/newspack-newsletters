@@ -677,7 +677,7 @@ final class Newspack_Newsletters_Renderer {
 			// Insert ads between top-level group blocks' inner blocks.
 			if ( 'core/group' === $block['blockName'] ) {
 				$default_attrs = [];
-				$attrs         = $block['attrs'];
+				$attrs         = self::process_attributes( $block['attrs'] );
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
