@@ -1,3 +1,11 @@
+## [1.8.1](https://github.com/Automattic/newspack-newsletters/compare/v1.8.0...v1.8.1) (2020-08-13)
+
+
+### Bug Fixes
+
+* group block background color ([56b96ea](https://github.com/Automattic/newspack-newsletters/commit/56b96ead54c08de09f4b1d4dae64c8f7f6e37554))
+* use hex value for group background colors in default layouts ([#292](https://github.com/Automattic/newspack-newsletters/issues/292)) ([4cc9b84](https://github.com/Automattic/newspack-newsletters/commit/4cc9b841d23a9388cc1d7413f136dfb67dde0ce2))
+
 # [1.8.0](https://github.com/Automattic/newspack-newsletters/compare/v1.7.0...v1.8.0) (2020-08-11)
 
 
