@@ -33,13 +33,34 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Get API credentials for service provider.
+	 *
+	 * @return Object Stored API credentials for the service provider.
+	 */
+	public function api_credentials() {
+		return [
+			'api_key'      => get_option( 'newspack_newsletters_constant_contact_api_key', '' ),
+			'access_token' => get_option( 'newspack_newsletters_constant_contact_api_access_token', '' ),
+		];
+	}
+
+	/**
+	 * Check if provider has all necessary credentials set.
+	 *
+	 * @return Boolean Result.
+	 */
+	public function has_api_credentials() {
+		return ! empty( $this->api_key() ) && ! empty( $this->access_token() );
+	}
+
+	/**
 	 * Get API key for service provider.
 	 *
 	 * @return String Stored API key for the service provider.
 	 */
 	public function api_key() {
-		// TODO: UI for user input of API key in keys modal and settings page.
-		return defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY' ) ? NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_API_KEY : null;
+		$credentials = self::api_credentials();
+		return $credentials['api_key'];
 	}
 
 	/**
@@ -48,18 +69,26 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return String Stored Access Token key for the service provider.
 	 */
 	public function access_token() {
-		// TODO: UI for user input of access token in keys modal and settings page.
-		return defined( 'NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN' ) ? NEWSPACK_NEWSLETTERS_CONSTANT_CONTACT_ACCESS_TOKEN : null;
+		$credentials = self::api_credentials();
+		return $credentials['access_token'];
 	}
 
 	/**
-	 * Set the API key for the service provider.
+	 * Set the API credentials for the service provider.
 	 *
-	 * @param string $key API key.
+	 * @param object $credentials API credentials.
 	 */
-	public function set_api_key( $key ) {
-		// TODO: UI for user input of Constant Contact API credentials.
-		return null;
+	public function set_api_credentials( $credentials ) {
+		if ( empty( $credentials['api_key'] ) || empty( $credentials['access_token'] ) ) {
+			return new WP_Error(
+				'newspack_newsletters_invalid_keys',
+				__( 'Please input Constant Contact API key and access token.', 'newspack-newsletters' )
+			);
+		} else {
+			$update_api_key      = update_option( 'newspack_newsletters_constant_contact_api_key', $credentials['api_key'] );
+			$update_access_token = update_option( 'newspack_newsletters_constant_contact_api_access_token', $credentials['access_token'] );
+			return $update_api_key && $update_access_token;
+		}
 	}
 
 	/**
@@ -335,9 +364,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @param boolean $update Whether this is an existing post being updated or not.
 	 */
 	public function save( $post_id, $post, $update ) {
-		if ( ! $update ) {
-			update_post_meta( $post_id, 'template_id', -1 );
-		}
 		$status = get_post_status( $post_id );
 		if ( 'trash' === $status ) {
 			return;
