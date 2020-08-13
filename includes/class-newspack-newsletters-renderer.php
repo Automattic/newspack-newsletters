@@ -204,7 +204,7 @@ final class Newspack_Newsletters_Renderer {
 	 * @param array    $default_attrs Default attributes for the component.
 	 * @return string MJML component.
 	 */
-	private static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [] ) {
+	public static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [] ) {
 		$block_name   = $block['blockName'];
 		$attrs        = $block['attrs'];
 		$inner_blocks = $block['innerBlocks'];

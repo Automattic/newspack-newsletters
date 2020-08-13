@@ -65,6 +65,7 @@ final class Newspack_Newsletters {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
@@ -269,6 +270,37 @@ final class Newspack_Newsletters {
 			'menu_icon'        => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
+	}
+
+	/**
+	 * Register blocks server-side for front-end rendering.
+	 */
+	public static function register_blocks() {
+		register_block_type(
+			'newspack-newsletters/posts-inserter',
+			[
+				'render_callback' => [ __CLASS__, 'render_posts_inserter_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Server-side render callback for Posts Inserter block.
+	 *
+	 * @param array $attributes Block attributes.
+	 */
+	public static function render_posts_inserter_block( $attributes ) {
+		$markup = '';
+
+		if ( empty( $attributes['innerBlocksToInsert'] ) || ! is_array( $attributes['innerBlocksToInsert'] ) ) {
+			return $markup;
+		}
+
+		foreach ( $attributes['innerBlocksToInsert'] as $inner_block ) {
+			$markup .= $inner_block['innerHTML'];
+		}
+
+		return wp_kses_post( $markup );
 	}
 
 	/**

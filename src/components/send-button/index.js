@@ -4,7 +4,7 @@
 import { withDispatch, withSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Button, Modal, Notice } from '@wordpress/components';
-import { Fragment, useEffect, useRef, useState } from '@wordpress/element';
+import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __, sprintf, _n } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
@@ -37,6 +37,7 @@ export default compose( [
 			isEditedPostSaveable,
 			isSavingPost,
 			isEditedPostBeingScheduled,
+			isEditedPostDirty,
 		} = select( 'core/editor' );
 		const { newsletterData = {}, newsletterValidationErrors, is_public } = getEditedPostAttribute(
 			'meta'
@@ -48,6 +49,7 @@ export default compose( [
 			validationErrors: newsletterValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
+			isEditedPostDirty: isEditedPostDirty(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
 			newsletterData,
@@ -58,6 +60,7 @@ export default compose( [
 	( {
 		editPost,
 		isPublishable,
+		isEditedPostDirty,
 		isSaveable,
 		isSaving,
 		savePost,
@@ -69,22 +72,6 @@ export default compose( [
 		newsletterData,
 		isPublic,
 	} ) => {
-		// State to handle post-publish changes to Public setting.
-		const [ isDirty, setIsDirty ] = useState( false );
-		const isPublicRef = useRef();
-		const prevIsPublic = isPublicRef.current;
-
-		useEffect( () => {
-			isPublicRef.current = isPublic;
-		} );
-
-		// If changing the Public setting post-sending.
-		useEffect(() => {
-			if ( undefined !== prevIsPublic && isPublic !== prevIsPublic && 'publish' === status ) {
-				setIsDirty( true );
-			}
-		}, [ isPublic ]);
-
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
@@ -150,7 +137,7 @@ export default compose( [
 		const [ modalVisible, setModalVisible ] = useState( false );
 
 		// If we've changed the Public setting post-publish, allow the user to just save the post.
-		if ( isDirty && 'publish' === publishStatus ) {
+		if ( isEditedPostDirty && 'publish' === publishStatus ) {
 			return (
 				<Button
 					className="editor-post-publish-button"
@@ -160,7 +147,6 @@ export default compose( [
 					disabled={ isSaving }
 					onClick={ async () => {
 						await savePost();
-						setIsDirty( false );
 					} }
 				>
 					{ isSaving
