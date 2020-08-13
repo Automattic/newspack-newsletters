@@ -288,6 +288,7 @@ final class Newspack_Newsletters {
 	 * Server-side render callback for Posts Inserter block.
 	 *
 	 * @param array $attributes Block attributes.
+	 * @return string HTML of block content to render.
 	 */
 	public static function render_posts_inserter_block( $attributes ) {
 		$markup = '';
