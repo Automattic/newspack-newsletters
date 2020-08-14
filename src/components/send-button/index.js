@@ -28,7 +28,7 @@ export default compose( [
 		const { editPost, savePost } = dispatch( 'core/editor' );
 		return { editPost, savePost };
 	} ),
-	withSelect( ( select, { forceIsSaving, forceIsDirty } ) => {
+	withSelect( ( select, { forceIsDirty } ) => {
 		const {
 			getCurrentPost,
 			getEditedPostAttribute,
@@ -37,51 +37,59 @@ export default compose( [
 			isEditedPostSaveable,
 			isSavingPost,
 			isEditedPostBeingScheduled,
-			isEditedPostDirty,
+			isCurrentPostPublished,
 		} = select( 'core/editor' );
-		const { newsletterData = {}, newsletterValidationErrors, is_public } = getEditedPostAttribute(
-			'meta'
-		);
 		return {
+			currentPost: getCurrentPost(),
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
-			isSaving: forceIsSaving || isSavingPost(),
-			validationErrors: newsletterValidationErrors,
 			status: getEditedPostAttribute( 'status' ),
+			isSaving: isSavingPost(),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
-			isEditedPostDirty: isEditedPostDirty(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
-			newsletterData,
-			isPublic: is_public,
+			meta: getEditedPostAttribute( 'meta' ),
+			isPublished: isCurrentPostPublished(),
 		};
 	} ),
 ] )(
 	( {
 		editPost,
+		savePost,
+		currentPost,
 		isPublishable,
-		isEditedPostDirty,
 		isSaveable,
 		isSaving,
-		savePost,
 		status,
-		validationErrors = [],
 		isEditedPostBeingScheduled,
 		hasPublishAction,
 		visibility,
-		newsletterData,
-		isPublic,
+		meta,
+		isPublished,
 	} ) => {
+		// State to handle post-publish changes to Public setting.
+		const [ isDirty, setIsDirty ] = useState( false );
+		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
+
+		// If changing the Public setting post-sending.
+		useEffect(() => {
+			if ( isPublished && currentPost.meta && is_public !== currentPost.meta.is_public ) {
+				setIsDirty( true );
+			}
+		}, [ is_public ]);
+
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
-			'publish' !== status &&
-			! isSaving;
+			! isPublished &&
+			! isSaving &&
+			newsletterData.campaign &&
+			0 === newsletterValidationErrors.length;
 		let label;
-		if ( 'publish' === status ) {
+		if ( isPublished ) {
 			if ( isSaving ) label = __( 'Sending', 'newspack-newsletters' );
 			else {
-				label = isPublic
+				label = is_public
 					? __( 'Sent and Published', 'newspack-newsletters' )
 					: __( 'Sent', 'newspack-newsletters' );
 			}
@@ -91,7 +99,7 @@ export default compose( [
 		} else if ( isEditedPostBeingScheduled ) {
 			label = __( 'Schedule sending', 'newspack-newsletters' );
 		} else {
-			label = isPublic
+			label = is_public
 				? __( 'Send and Publish', 'newspack-newsletters' )
 				: __( 'Send', 'newspack-newsletters' );
 		}
@@ -137,7 +145,7 @@ export default compose( [
 		const [ modalVisible, setModalVisible ] = useState( false );
 
 		// If we've changed the Public setting post-publish, allow the user to just save the post.
-		if ( isEditedPostDirty && 'publish' === publishStatus ) {
+		if ( isDirty && isPublished ) {
 			return (
 				<Button
 					className="editor-post-publish-button"
@@ -147,6 +155,7 @@ export default compose( [
 					disabled={ isSaving }
 					onClick={ async () => {
 						await savePost();
+						setIsDirty( false );
 					} }
 				>
 					{ isSaving
@@ -185,14 +194,14 @@ export default compose( [
 							</Notice>
 						) : null }
 						{ renderPreSendInfo( newsletterData ) }
-						{ validationErrors.length ? (
+						{ newsletterValidationErrors.length ? (
 							<Notice status="error" isDismissible={ false }>
 								{ __(
 									'The following errors prevent the newsletter from being sent:',
 									'newspack-newsletters'
 								) }
 								<ul>
-									{ validationErrors.map( ( error, i ) => (
+									{ newsletterValidationErrors.map( ( error, i ) => (
 										<li key={ i }>{ error }</li>
 									) ) }
 								</ul>
@@ -200,7 +209,7 @@ export default compose( [
 						) : null }
 						<Button
 							isPrimary
-							disabled={ validationErrors.length > 0 }
+							disabled={ newsletterValidationErrors.length > 0 }
 							onClick={ () => {
 								triggerCampaignSend();
 								setModalVisible( false );
