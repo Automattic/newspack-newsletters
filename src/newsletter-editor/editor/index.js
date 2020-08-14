@@ -48,9 +48,11 @@ const Editor = compose( [
 		};
 	} ),
 	withDispatch( dispatch => {
-		const { lockPostSaving, unlockPostSaving, editPost } = dispatch( 'core/editor' );
+		const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = dispatch(
+			'core/editor'
+		);
 		const { createNotice } = dispatch( 'core/notices' );
-		return { lockPostSaving, unlockPostSaving, editPost, createNotice };
+		return { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost, createNotice };
 	} ),
 ] )( props => {
 	const [ publishEl ] = useState( document.createElement( 'div' ) );
@@ -95,6 +97,10 @@ const Editor = compose( [
 	useEffect(() => {
 		if ( 'publish' === props.status ) {
 			const dateTime = props.sentDate ? new Date( props.sentDate ).toLocaleString() : '';
+
+			// Lock autosaving after a newsletter is sent.
+			props.lockPostAutosaving();
+
 			// Show an editor notice if the newsletter has been sent.
 			props.createNotice( 'success', props.successNote + dateTime, {
 				isDismissible: false,

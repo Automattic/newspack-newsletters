@@ -72,7 +72,6 @@ final class Newspack_Newsletters {
 		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
-		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'maybe_disable_autosave' ] );
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
@@ -335,7 +334,7 @@ final class Newspack_Newsletters {
 			}
 
 			if ( $is_public ) {
-				$post_states[ $post_status->name ] .= __( ' | Published as a page', 'newspack-newsletters' );
+				$post_states[ $post_status->name ] .= __( ' | Published as a post', 'newspack-newsletters' );
 			}
 		}
 
@@ -368,7 +367,7 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Decide whether this newsletter should be publicly viewable as a page.
+	 * Decide whether this newsletter should be publicly viewable as a post.
 	 * Triggers a 404 if the current page is a single Newsletter and not marked public.
 	 */
 	public static function maybe_display_public_post() {
@@ -418,17 +417,6 @@ final class Newspack_Newsletters {
 		}
 
 		return $actions;
-	}
-
-	/**
-	 * Disable auto-saves after newsletter has been sent.
-	 */
-	public static function maybe_disable_autosave() {
-		if ( 'publish' !== get_post_status() || self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type() ) {
-			return false;
-		}
-
-		wp_dequeue_script( 'autosave' );
 	}
 
 	/**
