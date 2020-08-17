@@ -440,7 +440,10 @@ final class Newspack_Newsletters {
 	 * @return array Filtered options array.
 	 */
 	public static function disable_jetpack_related_posts( $options ) {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() &&
+			! empty( get_option( 'newspack_newsletters_disable_related_posts' ) )
+		) {
 			$options['enabled'] = false;
 		}
 
