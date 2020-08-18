@@ -16,6 +16,7 @@ import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
 import { Styling, ApplyStyling } from './styling/';
+import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 
 registerEditorPlugin();
@@ -41,6 +42,7 @@ const NewsletterEdit = ( { layoutId } ) => {
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar />
+				<PublicSettings />
 			</PluginDocumentSettingPanel>
 			<PluginDocumentSettingPanel
 				name="newsletters-styling-panel"
