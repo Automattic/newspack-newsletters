@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useState, Fragment } from '@wordpress/element';
-import { Button, TextControl, CheckboxControl, TextareaControl } from '@wordpress/components';
+import { Button, TextControl, TextareaControl, ToggleControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -136,11 +136,15 @@ const Sidebar = ( {
 				renderFrom={ renderFrom }
 				updateMeta={ meta => editPost( { meta } ) }
 			/>
-			<CheckboxControl
-				label={ __( 'Disable ads for this newsletter.', 'newspack-newsletters' ) }
+			<ToggleControl
+				label={ __( 'Disable ads for this newsletter?', 'newspack-newsletters' ) }
 				className="newspack-newsletters__disable-ads"
 				checked={ disableAds }
 				disabled={ inFlight }
+				help={ __(
+					'If checked, no ads will be inserted into this newsletter’s content.',
+					'newspack-newsletters'
+				) }
 				onChange={ value => updateMetaValue( 'diable_ads', value ) }
 			/>
 		</Fragment>
