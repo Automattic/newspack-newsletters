@@ -117,6 +117,17 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $block_attrs['customColor'] ) ) {
 			$colors['border-color'] = $block_attrs['customColor'];
 		}
+
+		// Custom color handling.
+		if ( isset( $block_attrs['style'] ) ) {
+			if ( isset( $block_attrs['style']['color']['background'] ) ) {
+				$colors['background-color'] = $block_attrs['style']['color']['background'];
+			}
+			if ( isset( $block_attrs['style']['color']['text'] ) ) {
+				$colors['color'] = $block_attrs['style']['color']['text'];
+			}
+		}
+
 		return $colors;
 	}
 
@@ -134,15 +145,6 @@ final class Newspack_Newsletters_Renderer {
 		$font_size = self::get_font_size( $attrs );
 		if ( isset( $font_size ) ) {
 			$attrs['font-size'] = $font_size;
-		}
-
-		if ( isset( $attrs['style'] ) ) {
-			if ( isset( $attrs['style']['color']['background'] ) ) {
-				$attrs['background-color'] = $attrs['style']['color']['background'];
-			}
-			if ( isset( $attrs['style']['color']['text'] ) ) {
-				$attrs['color'] = $attrs['style']['color']['text'];
-			}
 		}
 
 		// Remove block-only attributes.
