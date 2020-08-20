@@ -25,7 +25,7 @@ class Newspack_Newsletters_Settings {
 	 * @return array Settings list.
 	 */
 	public static function get_settings_list() {
-		return array(
+		$settings_list = array(
 			array(
 				'description' => __( 'Service Provider', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_service_provider',
@@ -71,6 +71,16 @@ class Newspack_Newsletters_Settings {
 				'type'        => 'text',
 			),
 		);
+
+		if ( class_exists( 'Jetpack' ) && \Jetpack::is_module_active( 'related-posts' ) ) {
+			$settings_list[] = array(
+				'description' => __( 'Disable Related Posts on public newsletter posts?', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_disable_related_posts',
+				'type'        => 'checkbox',
+			);
+		}
+
+		return $settings_list;
 	}
 
 	/**
@@ -164,6 +174,17 @@ class Newspack_Newsletters_Settings {
 				esc_attr( $value ),
 				wp_kses( $add_options, $allowed_html )
 			);
+		} elseif ( 'checkbox' === $type ) {
+			?>
+				<input
+					type="checkbox"
+					id="<?php echo esc_attr( $key ); ?>"
+					name="<?php echo esc_attr( $key ); ?>"
+					<?php if ( ! empty( $value ) ) : ?>
+						checked
+					<?php endif; ?>
+				/>
+			<?php
 		} else {
 			printf(
 				'<input type="text" id="%s" name="%s" value="%s" class="widefat" />',
