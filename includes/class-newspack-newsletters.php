@@ -65,9 +65,15 @@ final class Newspack_Newsletters {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
+		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
+		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
+		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
+		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
+		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 
 		self::set_service_provider( self::service_provider() );
@@ -201,6 +207,17 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'is_public',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'boolean',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -221,9 +238,6 @@ final class Newspack_Newsletters {
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
-			return;
-		}
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -242,15 +256,51 @@ final class Newspack_Newsletters {
 		];
 
 		$cpt_args = [
-			'labels'       => $labels,
-			'public'       => false,
-			'show_ui'      => true,
-			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [],
-			'menu_icon'    => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
+			'has_archive'      => true,
+			'labels'           => $labels,
+			'public'           => true,
+			'public_queryable' => true,
+			'query_var'        => true,
+			'rewrite'          => [ 'slug' => 'newsletter' ],
+			'show_ui'          => true,
+			'show_in_rest'     => true,
+			'supports'         => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'       => [],
+			'menu_icon'        => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMGg1di0yaC01Yy00LjM0IDAtOC0zLjY2LTgtOHMzLjY2LTggOC04IDggMy42NiA4IDh2MS40M2MwIC43OS0uNzEgMS41Ny0xLjUgMS41N3MtMS41LS43OC0xLjUtMS41N1YxMmMwLTIuNzYtMi4yNC01LTUtNXMtNSAyLjI0LTUgNSAyLjI0IDUgNSA1YzEuMzggMCAyLjY0LS41NiAzLjU0LTEuNDcuNjUuODkgMS43NyAxLjQ3IDIuOTYgMS40NyAxLjk3IDAgMy41LTEuNiAzLjUtMy41N1YxMmMwLTUuNTItNC40OC0xMC0xMC0xMHptMCAxM2MtMS42NiAwLTMtMS4zNC0zLTNzMS4zNC0zIDMtMyAzIDEuMzQgMyAzLTEuMzQgMy0zIDN6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPgo=',
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
+	}
+
+	/**
+	 * Register blocks server-side for front-end rendering.
+	 */
+	public static function register_blocks() {
+		register_block_type(
+			'newspack-newsletters/posts-inserter',
+			[
+				'render_callback' => [ __CLASS__, 'render_posts_inserter_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Server-side render callback for Posts Inserter block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string HTML of block content to render.
+	 */
+	public static function render_posts_inserter_block( $attributes ) {
+		$markup = '';
+
+		if ( empty( $attributes['innerBlocksToInsert'] ) || ! is_array( $attributes['innerBlocksToInsert'] ) ) {
+			return $markup;
+		}
+
+		foreach ( $attributes['innerBlocksToInsert'] as $inner_block ) {
+			$markup .= $inner_block['innerHTML'];
+		}
+
+		return wp_kses_post( $markup );
 	}
 
 	/**
@@ -267,6 +317,7 @@ final class Newspack_Newsletters {
 
 		$post_status = get_post_status_object( $post->post_status );
 		$is_sent     = 'publish' === $post_status->name;
+		$is_public   = get_post_meta( $post->ID, 'is_public', true );
 
 		if ( $is_sent ) {
 			$sent_date = get_the_time( 'U', $post );
@@ -281,9 +332,122 @@ final class Newspack_Newsletters {
 				/* translators:  Absolute time stamp of sent/published date */
 				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( get_option( 'date_format' ), $post ) );
 			}
+
+			if ( $is_public ) {
+				$post_states[ $post_status->name ] .= __( ' | Published as a post', 'newspack-newsletters' );
+			}
 		}
 
 		return $post_states;
+	}
+
+	/**
+	 * Filter out non-public newsletter posts on newsletter archive pages.
+	 *
+	 * @param array $query The WP query object.
+	 */
+	public static function maybe_display_public_archive_posts( $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT ) ) {
+			return;
+		}
+
+		$meta_query = $query->get( 'meta_query' );
+
+		if ( empty( $meta_query ) || ! is_array( $meta_query ) ) {
+			$meta_query = [];
+		}
+
+		$meta_query[] = [
+			'key'          => 'is_public',
+			'value'        => '1',
+			'meta_compare' => '=',
+		];
+
+		$query->set( 'meta_query', $meta_query );
+	}
+
+	/**
+	 * Decide whether this newsletter should be publicly viewable as a post.
+	 * Triggers a 404 if the current page is a single Newsletter and not marked public.
+	 */
+	public static function maybe_display_public_post() {
+		if (
+			current_user_can( 'edit_others_posts' ) ||
+			! is_singular( self::NEWSPACK_NEWSLETTERS_CPT )
+		) {
+			return;
+		}
+
+		$is_public = get_post_meta( get_the_ID(), 'is_public', true );
+
+		// If not marked public, make it a 404 to non-logged-in users.
+		if ( empty( $is_public ) ) {
+			global $wp_query;
+
+			// Replace document title with 'Page not found'.
+			add_filter(
+				'wpseo_title',
+				function( $title ) {
+					return str_replace( get_the_title(), __( 'Page not found', 'newspack-newsletters' ), $title );
+				}
+			);
+
+			status_header( 404 );
+			nocache_headers();
+			include get_query_template( '404' );
+			die();
+		}
+	}
+
+	/**
+	 * Make "View" links say "Preview" if the newsletter is not marked as public.
+	 *
+	 * @param array $actions Array of action links to be shown in admin posts list.
+	 * @return array Filtered array of action links.
+	 */
+	public static function display_view_or_preview_link_in_admin( $actions ) {
+		if ( 'publish' !== get_post_status() || self::NEWSPACK_NEWSLETTERS_CPT !== get_post_type() ) {
+			return $actions;
+		}
+
+		$is_public = get_post_meta( get_the_ID(), 'is_public', true );
+
+		if ( empty( $is_public ) && isset( $actions['view'] ) ) {
+			$actions['view'] = '<a href="' . esc_url( get_the_permalink() ) . '" rel="bookmark" aria-label="View ' . esc_attr( get_the_title() ) . '">Preview</a>';
+		}
+
+		return $actions;
+	}
+
+	/**
+	 * Disable Newspack Campaigns on Newsletter posts.
+	 *
+	 * @param array $disabled Disabled status to filter.
+	 * @return array|boolean Unfiltered disabled status, or true to disable.
+	 */
+	public static function disable_campaigns_for_newsletters( $disabled ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
+			return true;
+		}
+
+		return $disabled;
+	}
+
+	/**
+	 * Disable Jetpack Related Posts on Newsletter posts.
+	 *
+	 * @param array $options Options array for Jetpack Related Posts.
+	 * @return array Filtered options array.
+	 */
+	public static function disable_jetpack_related_posts( $options ) {
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() &&
+			! empty( get_option( 'newspack_newsletters_disable_related_posts' ) )
+		) {
+			$options['enabled'] = false;
+		}
+
+		return $options;
 	}
 
 	/**

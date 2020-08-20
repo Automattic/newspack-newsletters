@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useState, Fragment } from '@wordpress/element';
-import { Button, TextControl, CheckboxControl, TextareaControl } from '@wordpress/components';
+import { Button, TextControl, TextareaControl, ToggleControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -19,8 +19,6 @@ import { getEditPostPayload, hasValidEmail } from '../utils';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
-
-const { ProviderSidebar } = getServiceProvider();
 
 const Sidebar = ( {
 	inFlight,
@@ -124,7 +122,7 @@ const Sidebar = ( {
 			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
 		} );
 	};
-
+	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
 			<ProviderSidebar
@@ -136,11 +134,15 @@ const Sidebar = ( {
 				renderFrom={ renderFrom }
 				updateMeta={ meta => editPost( { meta } ) }
 			/>
-			<CheckboxControl
-				label={ __( 'Disable ads for this newsletter.', 'newspack-newsletters' ) }
+			<ToggleControl
+				label={ __( 'Disable ads for this newsletter?', 'newspack-newsletters' ) }
 				className="newspack-newsletters__disable-ads"
 				checked={ disableAds }
 				disabled={ inFlight }
+				help={ __(
+					'If checked, no ads will be inserted into this newsletter’s content.',
+					'newspack-newsletters'
+				) }
 				onChange={ value => updateMetaValue( 'diable_ads', value ) }
 			/>
 		</Fragment>
