@@ -167,6 +167,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return object|WP_Error API Response or error.
 	 */
 	public function retrieve( $post_id ) {
+		if ( ! $this->has_api_credentials() ) {
+			return [];
+		}
 		$transient       = sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
 		$persisted_error = get_transient( $transient );
 		if ( $persisted_error ) {

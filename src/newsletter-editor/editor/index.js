@@ -77,11 +77,13 @@ const Editor = compose( [
 	// Fetch data from service provider.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
-			props
-				.apiFetchWithErrorHandling( getFetchDataConfig( { postId: props.postId } ) )
-				.then( result => {
-					props.editPost( getEditPostPayload( result ) );
-				} );
+			const params = getFetchDataConfig( { postId: props.postId } );
+			if ( 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
+				return;
+			}
+			props.apiFetchWithErrorHandling( params ).then( result => {
+				props.editPost( getEditPostPayload( result ) );
+			} );
 		}
 	}, [ props.isPublishingOrSavingPost ]);
 

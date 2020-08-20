@@ -20,8 +20,6 @@ import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
-const { ProviderSidebar } = getServiceProvider();
-
 const Sidebar = ( {
 	inFlight,
 	errors,
@@ -124,7 +122,7 @@ const Sidebar = ( {
 			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
 		} );
 	};
-
+	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
 			<ProviderSidebar
