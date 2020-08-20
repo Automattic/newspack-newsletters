@@ -1,3 +1,17 @@
+# [1.9.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.8.1...v1.9.0-alpha.1) (2020-08-20)
+
+
+### Bug Fixes
+
+* button custom colors ([#301](https://github.com/Automattic/newspack-newsletters/issues/301)) ([8ebcf5d](https://github.com/Automattic/newspack-newsletters/commit/8ebcf5d1d3f00b327974c78d75172fb10720b2a1))
+* first time set up flow ([c16d6bf](https://github.com/Automattic/newspack-newsletters/commit/c16d6bfe09eb8e1586a6a183a1859388e9c9abff))
+* pre-send info if no list set ([#297](https://github.com/Automattic/newspack-newsletters/issues/297)) ([f575d94](https://github.com/Automattic/newspack-newsletters/commit/f575d94d6bef04f9828f1870ee4360dc99056bdb))
+
+
+### Features
+
+* enable public newsletter posts ([#272](https://github.com/Automattic/newspack-newsletters/issues/272)) ([ef90bf9](https://github.com/Automattic/newspack-newsletters/commit/ef90bf96f8e56d06d9fd1cb47c9f136406099aa8))
+
 ## [1.8.1](https://github.com/Automattic/newspack-newsletters/compare/v1.8.0...v1.8.1) (2020-08-13)
 
 
