@@ -167,7 +167,7 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		if ( isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
-			$attrs['padding'] = '20px 0';
+			$attrs['padding'] = '12px 0';
 		}
 
 		return $attrs;
@@ -230,7 +230,7 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
-				'padding' => '20px',
+				'padding' => '12px',
 			)
 		);
 
