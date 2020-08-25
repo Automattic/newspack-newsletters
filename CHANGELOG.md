@@ -1,3 +1,15 @@
+# [1.10.0](https://github.com/Automattic/newspack-newsletters/compare/v1.9.0...v1.10.0) (2020-08-25)
+
+
+### Bug Fixes
+
+* reduce padding between elements in newsletter emails ([#308](https://github.com/Automattic/newspack-newsletters/issues/308)) ([4806e76](https://github.com/Automattic/newspack-newsletters/commit/4806e7615c50a22c4af92fbded6f93c7ce0fb6c5))
+
+
+### Features
+
+* update icon ([#303](https://github.com/Automattic/newspack-newsletters/issues/303)) ([53d91f0](https://github.com/Automattic/newspack-newsletters/commit/53d91f094a9d9a9f47e99b9ca60aa9503cb1f965))
+
 # [1.9.0](https://github.com/Automattic/newspack-newsletters/compare/v1.8.1...v1.9.0) (2020-08-20)
 
 
