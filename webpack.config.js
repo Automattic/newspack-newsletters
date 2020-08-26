@@ -14,7 +14,6 @@ const path = require( 'path' );
  */
 const editor = path.join( __dirname, 'src', 'editor' );
 const admin = path.join( __dirname, 'src', 'admin' );
-const adsAdmin = path.join( __dirname, 'src', 'ads-admin' );
 const adsEditor = path.join( __dirname, 'src', 'ads-admin', 'editor' );
 
 const webpackConfig = getBaseWebpackConfig(
@@ -23,7 +22,6 @@ const webpackConfig = getBaseWebpackConfig(
 		entry: {
 			editor,
 			admin,
-			adsAdmin,
 			adsEditor,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
