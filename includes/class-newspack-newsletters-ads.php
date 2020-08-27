@@ -83,7 +83,9 @@ final class Newspack_Newsletters_Ads {
 			__( 'Newsletters Ads', 'newspack-newsletters' ),
 			__( 'Ads', 'newspack-newsletters' ),
 			'manage_options',
-			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_ADS_CPT
+			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			null,
+			2
 		);
 	}
 
@@ -96,20 +98,26 @@ final class Newspack_Newsletters_Ads {
 		}
 
 		$labels = [
-			'name'               => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
-			'singular_name'      => _x( 'Newsletter Ad', 'post type singular name', 'newspack-newsletters' ),
-			'menu_name'          => _x( 'Newsletter Ads', 'admin menu', 'newspack-newsletters' ),
-			'name_admin_bar'     => _x( 'Newsletter Ad', 'add new on admin bar', 'newspack-newsletters' ),
-			'add_new'            => _x( 'Add New', 'popup', 'newspack-newsletters' ),
-			'add_new_item'       => __( 'Add New Newsletter Ad', 'newspack-newsletters' ),
-			'new_item'           => __( 'New Newsletter Ad', 'newspack-newsletters' ),
-			'edit_item'          => __( 'Edit Newsletter Ad', 'newspack-newsletters' ),
-			'view_item'          => __( 'View Newsletter Ad', 'newspack-newsletters' ),
-			'all_items'          => __( 'All Newsletter Ads', 'newspack-newsletters' ),
-			'search_items'       => __( 'Search Newsletter Ads', 'newspack-newsletters' ),
-			'parent_item_colon'  => __( 'Parent Newsletter Ads:', 'newspack-newsletters' ),
-			'not_found'          => __( 'No Newsletter Ads found.', 'newspack-newsletters' ),
-			'not_found_in_trash' => __( 'No Newsletter Ads found in Trash.', 'newspack-newsletters' ),
+			'name'                     => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
+			'singular_name'            => _x( 'Newsletter Ad', 'post type singular name', 'newspack-newsletters' ),
+			'menu_name'                => _x( 'Newsletter Ads', 'admin menu', 'newspack-newsletters' ),
+			'name_admin_bar'           => _x( 'Newsletter Ad', 'add new on admin bar', 'newspack-newsletters' ),
+			'add_new'                  => _x( 'Add New', 'popup', 'newspack-newsletters' ),
+			'add_new_item'             => __( 'Add New Newsletter Ad', 'newspack-newsletters' ),
+			'new_item'                 => __( 'New Newsletter Ad', 'newspack-newsletters' ),
+			'edit_item'                => __( 'Edit Newsletter Ad', 'newspack-newsletters' ),
+			'view_item'                => __( 'View Newsletter Ad', 'newspack-newsletters' ),
+			'all_items'                => __( 'All Newsletter Ads', 'newspack-newsletters' ),
+			'search_items'             => __( 'Search Newsletter Ads', 'newspack-newsletters' ),
+			'parent_item_colon'        => __( 'Parent Newsletter Ads:', 'newspack-newsletters' ),
+			'not_found'                => __( 'No Newsletter Ads found.', 'newspack-newsletters' ),
+			'not_found_in_trash'       => __( 'No Newsletter Ads found in Trash.', 'newspack-newsletters' ),
+			'items_list'               => __( 'Newsletter Ads list', 'newspack-newsletters' ),
+			'item_published'           => __( 'Newsletter Ad published', 'newspack-newsletters' ),
+			'item_published_privately' => __( 'Newsletter Ad published privately', 'newspack-newsletters' ),
+			'item_reverted_to_draft'   => __( 'Newsletter Ad reverted to draft', 'newspack-newsletters' ),
+			'item_scheduled'           => __( 'Newsletter Ad scheduled', 'newspack-newsletters' ),
+			'item_updated'             => __( 'Newsletter Ad updated', 'newspack-newsletters' ),
 		];
 
 		$cpt_args = [
