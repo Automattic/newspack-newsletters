@@ -68,6 +68,7 @@ final class Newspack_Newsletters {
 		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
+		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
@@ -778,6 +779,34 @@ final class Newspack_Newsletters {
 			$post_title = gmdate( get_option( 'date_format' ) );
 		}
 		return $post_title;
+	}
+
+	/**
+	 * Handle custom Newsletter styling when viewing the newsletter as a public post.
+	 */
+	public static function public_newsletter_custom_style() {
+		$post = get_post();
+		if ( $post && self::NEWSPACK_NEWSLETTERS_CPT === $post->post_type ) {
+			$font_header      = get_post_meta( $post->ID, 'font_header', true );
+			$font_body        = get_post_meta( $post->ID, 'font_body', true );
+			$background_color = get_post_meta( $post->ID, 'background_color', true );
+			?>
+				<style>
+					.main-content {
+						background-color: <?php echo esc_attr( $background_color ); ?>;
+						font-family: <?php echo esc_attr( $font_body ); ?>;
+					}
+					.main-content h1,
+					.main-content h2,
+					.main-content h3,
+					.main-content h4,
+					.main-content h5,
+					.main-content h6 {
+						font-family: <?php echo esc_attr( $font_header ); ?>;
+					}
+				</style>
+			<?php
+		}
 	}
 
 	/**
