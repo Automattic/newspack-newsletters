@@ -627,16 +627,6 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup to be injected into the template.
 	 */
 	private static function post_to_mjml_components( $post, $include_ads ) {
-		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
-		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
-		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
-		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
-			self::$font_header = 'Arial';
-		}
-		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
-			self::$font_body = 'Georgia';
-		}
-
 		$body         = '';
 		$valid_blocks = array_filter(
 			parse_blocks( $post->post_content ),
@@ -721,6 +711,16 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup.
 	 */
 	private static function render_mjml( $post ) {
+		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
+		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
+		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
+		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
+			self::$font_header = 'Arial';
+		}
+		if ( ! in_array( self::$font_body, Newspack_Newsletters::$supported_fonts ) ) {
+			self::$font_body = 'Georgia';
+		}
+
 		$title            = $post->post_title; // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$body             = self::post_to_mjml_components( $post, true ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
