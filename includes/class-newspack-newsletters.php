@@ -815,6 +815,14 @@ final class Newspack_Newsletters {
 	 * Enqueue style to handle Newspack branding.
 	 */
 	public static function branding_scripts() {
+		$screen = get_current_screen();
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
+			Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT !== $screen->post_type
+		) {
+			return;
+		}
+
 		$script = 'newspack-newsletters-branding_scripts';
 		wp_enqueue_script(
 			$script,
