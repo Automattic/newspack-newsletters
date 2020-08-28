@@ -26,4 +26,14 @@
 		top: 12px;
 		width: 111px;
 	}
+
+	&:focus {
+		box-shadow: none;
+		outline: none;
+
+		&::after {
+			outline: 1px solid white;
+			outline-offset: 4px;
+		}
+	}
 }
