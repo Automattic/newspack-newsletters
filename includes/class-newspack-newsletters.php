@@ -75,6 +75,7 @@ final class Newspack_Newsletters {
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 
 		self::set_service_provider( self::service_provider() );
 
@@ -808,6 +809,35 @@ final class Newspack_Newsletters {
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Enqueue style to handle Newspack branding.
+	 */
+	public static function branding_scripts() {
+		$screen = get_current_screen();
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
+			Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT !== $screen->post_type
+		) {
+			return;
+		}
+
+		$script = 'newspack-newsletters-branding_scripts';
+		wp_enqueue_script(
+			$script,
+			plugins_url( '../dist/branding.js', __FILE__ ),
+			[ 'jquery' ],
+			'1.0',
+			false
+		);
+		wp_enqueue_style(
+			$script,
+			plugins_url( '../dist/branding.css', __FILE__ ),
+			[],
+			'1.0',
+			'screen'
+		);
 	}
 
 	/**
