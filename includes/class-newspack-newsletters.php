@@ -239,6 +239,8 @@ final class Newspack_Newsletters {
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
+		$public_slug = get_option( 'newspack_newsletters_public_posts_slug', 'newsletter' );
+
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -257,12 +259,12 @@ final class Newspack_Newsletters {
 		];
 
 		$cpt_args = [
-			'has_archive'      => true,
+			'has_archive'      => $public_slug,
 			'labels'           => $labels,
 			'public'           => true,
 			'public_queryable' => true,
 			'query_var'        => true,
-			'rewrite'          => [ 'slug' => 'newsletter' ],
+			'rewrite'          => [ 'slug' => $public_slug ],
 			'show_ui'          => true,
 			'show_in_rest'     => true,
 			'supports'         => [ 'editor', 'title', 'custom-fields' ],
