@@ -1,3 +1,19 @@
+# [1.11.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.10.0...v1.11.0-alpha.1) (2020-09-01)
+
+
+### Bug Fixes
+
+* assorted bugfixes ([#317](https://github.com/Automattic/newspack-newsletters/issues/317)) ([01a72fb](https://github.com/Automattic/newspack-newsletters/commit/01a72fb6f418b7c46205e76536249cece7e57ff0)), closes [#300](https://github.com/Automattic/newspack-newsletters/issues/300) [#305](https://github.com/Automattic/newspack-newsletters/issues/305)
+* escaped domain ([#315](https://github.com/Automattic/newspack-newsletters/issues/315)) ([5e83e8b](https://github.com/Automattic/newspack-newsletters/commit/5e83e8b0525633e2a1f83fc7068e45f5a7ab25f3))
+* modal margin and header height ([#310](https://github.com/Automattic/newspack-newsletters/issues/310)) ([b87a768](https://github.com/Automattic/newspack-newsletters/commit/b87a7688e1185e4dba137a76d28f5cef2bbc4fee))
+
+
+### Features
+
+* add branding banner to the CPT wp-admin pages ([#316](https://github.com/Automattic/newspack-newsletters/issues/316)) ([285785c](https://github.com/Automattic/newspack-newsletters/commit/285785c7b008b1343c91d83fb0f3725cd43f3089))
+* option to specify public newsletters slug ([77656dd](https://github.com/Automattic/newspack-newsletters/commit/77656dd551ec73c211da2a6f2beb3093b01f9bd6))
+* remove Newspack UI from Ads screen ([#314](https://github.com/Automattic/newspack-newsletters/issues/314)) ([d68caa7](https://github.com/Automattic/newspack-newsletters/commit/d68caa7aee414ff68256e90a147349f1f16b4e55))
+
 # [1.10.0](https://github.com/Automattic/newspack-newsletters/compare/v1.9.0...v1.10.0) (2020-08-25)
 
 
