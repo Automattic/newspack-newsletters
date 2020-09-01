@@ -812,7 +812,7 @@ final class Newspack_Newsletters {
 					}
 					<?php if ( $background_color ) : ?>
 						.entry-content {
-							padding: 20px;
+							padding: 0 32px;;
 						}
 					<?php endif; ?>
 				</style>
