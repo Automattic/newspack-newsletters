@@ -114,7 +114,6 @@
     "@wordpress/url": "^2.13.0",
     "classnames": "^2.2.6",
     "lodash": "^4.17.19",
-    "newspack-components": "^1.2.0",
     "webpack": "^4.42.1"
   },
   "devDependencies": {

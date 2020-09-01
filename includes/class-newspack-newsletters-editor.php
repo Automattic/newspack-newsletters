@@ -114,20 +114,20 @@ final class Newspack_Newsletters_Editor {
 
 		if ( self::is_editing_newsletter_ad() ) {
 			\wp_enqueue_script(
-				Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_PAGE,
+				'newspack-newsletters-ads-page',
 				plugins_url( '../dist/adsEditor.js', __FILE__ ),
 				[ 'wp-components', 'wp-api-fetch' ],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.js' ),
 				true
 			);
 			wp_register_style(
-				Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_PAGE,
+				'newspack-newsletters-ads-page',
 				plugins_url( '../dist/adsEditor.css', __FILE__ ),
 				[],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.css' )
 			);
-			wp_style_add_data( Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_PAGE, 'rtl', 'replace' );
-			wp_enqueue_style( Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_PAGE );
+			wp_style_add_data( 'newspack-newsletters-ads-page', 'rtl', 'replace' );
+			wp_enqueue_style( 'newspack-newsletters-ads-page' );
 		}
 
 		if ( ! self::is_editing_newsletter() ) {
