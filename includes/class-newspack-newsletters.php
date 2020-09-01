@@ -832,6 +832,11 @@ final class Newspack_Newsletters {
 					.main-content h6 {
 						font-family: <?php echo esc_attr( $font_header ); ?>;
 					}
+					<?php if ( $background_color ) : ?>
+						.entry-content {
+							padding: 20px;
+						}
+					<?php endif; ?>
 				</style>
 			<?php
 		}
