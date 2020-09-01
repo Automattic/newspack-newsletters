@@ -77,6 +77,7 @@ final class Newspack_Newsletters {
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_filter( 'posts_results', [ __CLASS__, 'filter_search' ] );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 
 		self::set_service_provider( self::service_provider() );
 
@@ -257,6 +258,8 @@ final class Newspack_Newsletters {
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
+		$public_slug = get_option( 'newspack_newsletters_public_posts_slug', 'newsletter' );
+
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -275,12 +278,12 @@ final class Newspack_Newsletters {
 		];
 
 		$cpt_args = [
-			'has_archive'      => true,
+			'has_archive'      => $public_slug,
 			'labels'           => $labels,
 			'public'           => true,
 			'public_queryable' => true,
 			'query_var'        => true,
-			'rewrite'          => [ 'slug' => 'newsletter' ],
+			'rewrite'          => [ 'slug' => $public_slug ],
 			'show_ui'          => true,
 			'show_in_rest'     => true,
 			'supports'         => [ 'editor', 'title', 'custom-fields' ],
@@ -855,6 +858,35 @@ final class Newspack_Newsletters {
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Enqueue style to handle Newspack branding.
+	 */
+	public static function branding_scripts() {
+		$screen = get_current_screen();
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
+			Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT !== $screen->post_type
+		) {
+			return;
+		}
+
+		$script = 'newspack-newsletters-branding_scripts';
+		wp_enqueue_script(
+			$script,
+			plugins_url( '../dist/branding.js', __FILE__ ),
+			[ 'jquery' ],
+			'1.0',
+			false
+		);
+		wp_enqueue_style(
+			$script,
+			plugins_url( '../dist/branding.css', __FILE__ ),
+			[],
+			'1.0',
+			'screen'
+		);
 	}
 
 	/**
