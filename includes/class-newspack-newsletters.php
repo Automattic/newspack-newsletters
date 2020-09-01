@@ -248,7 +248,7 @@ final class Newspack_Newsletters {
 	 * @param WP_Post $post The complete post object.
 	 * @param boolean $update Whether this is an existing post being updated or not.
 	 */
-	public function save( $post_id, $post, $update ) {
+	public static function save( $post_id, $post, $update ) {
 		if ( ! $update ) {
 			update_post_meta( $post_id, 'template_id', -1 );
 		}
@@ -806,6 +806,9 @@ final class Newspack_Newsletters {
 	 * Handle custom Newsletter styling when viewing the newsletter as a public post.
 	 */
 	public static function public_newsletter_custom_style() {
+		if ( ! is_single() ) {
+			return;
+		}
 		$post = get_post();
 		if ( $post && self::NEWSPACK_NEWSLETTERS_CPT === $post->post_type ) {
 			$font_header      = get_post_meta( $post->ID, 'font_header', true );
