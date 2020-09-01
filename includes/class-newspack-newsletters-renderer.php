@@ -642,7 +642,6 @@ final class Newspack_Newsletters_Renderer {
 				array(
 					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
 					'posts_per_page' => -1,
-					'post_status'    => 'publish',
 				)
 			);
 
