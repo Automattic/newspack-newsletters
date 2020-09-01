@@ -95,15 +95,19 @@ final class Newspack_Newsletters {
 	 * @param array $posts The found posts.
 	 */
 	public static function filter_search( $posts ) {
-		return array_filter(
-			$posts,
-			function ( $post ) {
-				if ( self::NEWSPACK_NEWSLETTERS_CPT === $post->post_type ) {
-					return get_post_meta( $post->ID, 'is_public', true );
+		global $wp_query;
+		if ( ! is_admin() && $wp_query->is_main_query() && $wp_query->is_search() ) {
+			return array_filter(
+				$posts,
+				function ( $post ) {
+					if ( self::NEWSPACK_NEWSLETTERS_CPT === $post->post_type ) {
+						return get_post_meta( $post->ID, 'is_public', true );
+					}
+					return true;
 				}
-				return true;
-			}
-		);
+			);
+		}
+		return $posts;
 	}
 
 	/**
