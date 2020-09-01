@@ -76,7 +76,6 @@ final class Newspack_Newsletters {
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
-		add_filter( 'posts_results', [ __CLASS__, 'filter_search' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 
 		self::set_service_provider( self::service_provider() );
@@ -87,27 +86,6 @@ final class Newspack_Newsletters {
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
 			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
-	}
-
-	/**
-	 * Filter search results, disallowing non-public newsletter posts.
-	 *
-	 * @param array $posts The found posts.
-	 */
-	public static function filter_search( $posts ) {
-		global $wp_query;
-		if ( ! is_admin() && $wp_query->is_main_query() && $wp_query->is_search() ) {
-			return array_filter(
-				$posts,
-				function ( $post ) {
-					if ( self::NEWSPACK_NEWSLETTERS_CPT === $post->post_type ) {
-						return get_post_meta( $post->ID, 'is_public', true );
-					}
-					return true;
-				}
-			);
-		}
-		return $posts;
 	}
 
 	/**
