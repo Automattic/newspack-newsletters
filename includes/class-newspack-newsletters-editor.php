@@ -154,16 +154,14 @@ final class Newspack_Newsletters_Editor {
 	 * Is editing a newsletter?
 	 */
 	public static function is_editing_newsletter() {
-		$post_type = get_post()->post_type;
-		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === $post_type;
+		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type();
 	}
 
 	/**
 	 * Is editing a newsletter ad?
 	 */
 	public static function is_editing_newsletter_ad() {
-		$post_type = get_post()->post_type;
-		return Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT === $post_type;
+		return Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT === get_post_type();
 	}
 }
 Newspack_Newsletters_Editor::instance();
