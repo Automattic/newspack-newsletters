@@ -1,3 +1,11 @@
+## [1.11.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.0...v1.11.1) (2020-09-08)
+
+
+### Bug Fixes
+
+* **posts-inserter:** remove empty category select ([1978bd5](https://github.com/Automattic/newspack-newsletters/commit/1978bd5c011793435f47b686ce73dc4c5fe29ed9))
+* harden post type checks ([14a3de2](https://github.com/Automattic/newspack-newsletters/commit/14a3de23187f1eb11008b6e9af8842a9d102934c))
+
 # [1.11.0](https://github.com/Automattic/newspack-newsletters/compare/v1.10.0...v1.11.0) (2020-09-01)
 
 
