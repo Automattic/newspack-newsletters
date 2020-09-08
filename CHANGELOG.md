@@ -1,3 +1,10 @@
+## [1.11.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.0...v1.11.1-alpha.1) (2020-09-08)
+
+
+### Bug Fixes
+
+* harden post type checks ([14a3de2](https://github.com/Automattic/newspack-newsletters/commit/14a3de23187f1eb11008b6e9af8842a9d102934c))
+
 # [1.11.0](https://github.com/Automattic/newspack-newsletters/compare/v1.10.0...v1.11.0) (2020-09-01)
 
 
