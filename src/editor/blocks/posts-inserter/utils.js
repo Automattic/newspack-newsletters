@@ -14,25 +14,38 @@ import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
  */
 import { POSTS_INSERTER_BLOCK_NAME } from './consts';
 
-const getHeadingBlockTemplate = post => [
+const assignFontSize = ( fontSize, attributes ) => {
+	if ( typeof fontSize === 'number' ) {
+		attributes.style = { ...( attributes.style || {} ), typography: { fontSize } };
+	} else if ( typeof fontSize === 'string' ) {
+		attributes.fontSize = fontSize;
+	}
+	return attributes;
+};
+
+const getHeadingBlockTemplate = ( post, { headingFontSize, headingColor } ) => [
 	'core/heading',
-	{ content: `<a href="${ post.link }">${ post.title.rendered }</a>`, level: 3 },
+	assignFontSize( headingFontSize, {
+		style: { color: { text: headingColor } },
+		content: `<a href="${ post.link }">${ post.title.rendered }</a>`,
+		level: 3,
+	} ),
 ];
 
-const getDateBlockTemplate = post => {
+const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	const dateFormat = __experimentalGetSettings().formats.date;
 	return [
 		'core/paragraph',
-		{
+		assignFontSize( textFontSize, {
 			content: dateI18n( dateFormat, post.date_gmt ),
 			fontSize: 'normal',
-			customTextColor: '#444444',
-		},
+			style: { color: { text: textColor } },
+		} ),
 	];
 };
 
-const getExcerptBlockTemplate = ( post, { excerptLength } ) => {
-	let excerpt = post.content.rendered;
+const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor } ) => {
+	let excerpt = post.excerpt.rendered;
 	const excerptElement = document.createElement( 'div' );
 	excerptElement.innerHTML = excerpt;
 	excerpt = excerptElement.textContent || excerptElement.innerText || '';
@@ -42,31 +55,24 @@ const getExcerptBlockTemplate = ( post, { excerptLength } ) => {
 	const postExcerpt = needsEllipsis
 		? `${ excerpt.split( ' ', excerptLength ).join( ' ' ) } […]`
 		: excerpt;
-	return [ 'core/paragraph', { content: postExcerpt.trim() } ];
+
+	const attributes = { content: postExcerpt.trim(), style: { color: { text: textColor } } };
+	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
 };
 
-const createBlockTemplatesForSinglePost = (
-	post,
-	{
-		displayPostDate,
-		displayPostExcerpt,
-		excerptLength,
-		displayFeaturedImage,
-		featuredImageAlignment,
-	}
-) => {
-	const postContentBlocks = [ getHeadingBlockTemplate( post ) ];
+const createBlockTemplatesForSinglePost = ( post, attributes ) => {
+	const postContentBlocks = [ getHeadingBlockTemplate( post, attributes ) ];
 
-	if ( displayPostDate && post.date_gmt ) {
-		postContentBlocks.push( getDateBlockTemplate( post ) );
+	if ( attributes.displayPostDate && post.date_gmt ) {
+		postContentBlocks.push( getDateBlockTemplate( post, attributes ) );
 	}
-	if ( displayPostExcerpt ) {
-		postContentBlocks.push( getExcerptBlockTemplate( post, { excerptLength } ) );
+	if ( attributes.displayPostExcerpt ) {
+		postContentBlocks.push( getExcerptBlockTemplate( post, attributes ) );
 	}
 
 	const hasFeaturedImage = post.featuredImageLargeURL || post.featuredImageMediumURL;
 
-	if ( displayFeaturedImage && hasFeaturedImage ) {
+	if ( attributes.displayFeaturedImage && hasFeaturedImage ) {
 		const getImageBlock = ( alignCenter = false ) => [
 			'core/image',
 			{
@@ -77,7 +83,7 @@ const createBlockTemplatesForSinglePost = (
 		];
 		const imageColumnBlock = [ 'core/column', {}, [ getImageBlock() ] ];
 		const postContentColumnBlock = [ 'core/column', {}, postContentBlocks ];
-		switch ( featuredImageAlignment ) {
+		switch ( attributes.featuredImageAlignment ) {
 			case 'left':
 				return [ [ 'core/columns', {}, [ imageColumnBlock, postContentColumnBlock ] ] ];
 			case 'right':

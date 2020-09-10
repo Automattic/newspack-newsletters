@@ -5,7 +5,7 @@
 
 .wp-block {
 	max-width: 600px;
-	padding: 20px;
+	padding: 12px;
 }
 
 .editor-styles-wrapper {
@@ -57,7 +57,7 @@
 		h6,
 		p {
 			&.has-background {
-				padding: 20px;
+				padding: 12px;
 			}
 		}
 
@@ -102,7 +102,7 @@
 			padding-left: 20px;
 
 			p {
-				margin: 0 0 20px;
+				margin: 0 0 12px;
 			}
 
 			&__citation {
@@ -139,15 +139,15 @@
 				padding: 0;
 
 				&.has-background {
-					padding: 20px;
+					padding: 12px;
 				}
 			}
 		}
 
 		.wp-block {
 			&[data-type='core/list'] {
-				padding: 20px;
-				padding-left: calc( 20px + 1.3em );
+				padding: 12px;
+				padding-left: calc( 12px + 1.3em );
 
 				ol,
 				ul {
@@ -165,8 +165,8 @@
 			}
 
 			&[data-type='core/separator'] {
-				padding-bottom: 20px;
-				padding-top: 20px;
+				padding-bottom: 12px;
+				padding-top: 12px;
 
 				hr {
 					margin-bottom: 0;
@@ -185,8 +185,8 @@
 				padding: 0;
 
 				.wp-block-group.has-background {
-					padding-top: 20px;
-					padding-bottom: 20px;
+					padding-top: 12px;
+					padding-bottom: 12px;
 				}
 			}
 		}

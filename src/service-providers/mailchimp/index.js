@@ -64,6 +64,10 @@ const renderPreSendInfo = newsletterData => {
 		}
 	}
 
+	if ( ! listData ) {
+		return null;
+	}
+
 	return (
 		<p>
 			{ __( "You're about to send a newsletter to:", 'newspack-newsletters' ) }

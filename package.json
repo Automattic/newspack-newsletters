@@ -19,7 +19,7 @@
     "lint:js:staged": "eslint --ext .js,.jsx",
     "lint:scss:staged": "stylelint --syntax scss",
     "lint:php:staged": "./vendor/bin/phpcs",
-    "release:archive": "mkdir -p release && zip -r release/newspack-newsletters.zip . -x node_modules/\\* .git/\\* .github/\\* .gitignore .DS_Store/\\*",
+    "release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-newsletters --exclude-from='./.distignore' && cd release && zip -r newspack-newsletters.zip newspack-newsletters",
     "release": "npm run build && npm run semantic-release"
   },
   "lint-staged": {
@@ -114,7 +114,6 @@
     "@wordpress/url": "^2.13.0",
     "classnames": "^2.2.6",
     "lodash": "^4.17.19",
-    "newspack-components": "^1.2.0",
     "webpack": "^4.42.1"
   },
   "devDependencies": {

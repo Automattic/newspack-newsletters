@@ -16,19 +16,25 @@ import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
 import { Styling, ApplyStyling } from './styling/';
+import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 
 registerEditorPlugin();
 
 const NewsletterEdit = ( { layoutId } ) => {
-	const [ hasKeys, setHasKeys ] = useState(
-		window && window.newspack_newsletters_data && window.newspack_newsletters_data.has_keys
+	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
+		window &&
+			window.newspack_newsletters_data &&
+			window.newspack_newsletters_data.is_service_provider_configured !== '1'
 	);
 
-	const isDisplayingInitModal = ! hasKeys || -1 === layoutId;
+	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
 	return isDisplayingInitModal ? (
-		<InitModal hasKeys={ hasKeys } onSetupStatus={ setHasKeys } />
+		<InitModal
+			shouldDisplaySettings={ shouldDisplaySettings }
+			onSetupStatus={ setShouldDisplaySettings }
+		/>
 	) : (
 		<Fragment>
 			<PluginDocumentSettingPanel
@@ -36,6 +42,7 @@ const NewsletterEdit = ( { layoutId } ) => {
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar />
+				<PublicSettings />
 			</PluginDocumentSettingPanel>
 			<PluginDocumentSettingPanel
 				name="newsletters-styling-panel"

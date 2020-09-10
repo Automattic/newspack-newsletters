@@ -17,7 +17,7 @@
 				top: 0;
 
 				.components-modal__header {
-					height: 61px;
+					height: 60px;
 				}
 			}
 		}
@@ -80,12 +80,12 @@
 			// Fullscreen mode
 			.is-fullscreen-mode & {
 				bottom: 0;
-				height: calc( 100vh - 61px );
+				height: calc( 100vh - 60px );
 				left: 0;
 				margin: 0;
 				position: fixed;
 				right: 0;
-				top: 61px;
+				top: 60px;
 			}
 		}
 	}
@@ -117,17 +117,14 @@
 
 		&-wrapper {
 			flex: 0 0 100%;
+			max-width: 600px;
+			padding-left: 24px;
+			padding-right: 24px;
 			position: relative;
 
-			@media only screen and ( min-width: 600px ) {
-				margin-left: auto;
-				margin-right: auto;
-				max-width: 600px;
+			@media only screen and ( min-width: 648px ) {
+				max-width: 648px;
 			}
-		}
-
-		h4:first-of-type {
-			margin-top: 0;
 		}
 
 		.components-spinner {
@@ -148,6 +145,13 @@
 					border-color: $alert-red;
 				}
 			}
+		}
+
+		.components-text-control__input,
+		.components-select-control__input {
+			margin: 0;
+			max-width: 100%;
+			width: 100%;
 		}
 	}
 
