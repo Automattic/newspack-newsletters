@@ -65,9 +65,9 @@ const customStylesSelector = select => {
 	const { getEditedPostAttribute } = select( 'core/editor' );
 	const meta = getEditedPostAttribute( 'meta' );
 	return {
-		fontBody: meta.font_body || '',
-		fontHeader: meta.font_header || '',
-		backgroundColor: meta.background_color || '',
+		fontBody: meta.font_body || fontOptgroups[ 1 ].options[ 0 ].value,
+		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
+		backgroundColor: meta.background_color || '#ffffff',
 	};
 };
 
@@ -116,20 +116,20 @@ export const Styling = compose( [
 		<Fragment>
 			<SelectControlWithOptGroup
 				label={ __( 'Headings font', 'newspack-newsletters' ) }
-				value={ fontHeader || 'Arial' }
+				value={ fontHeader }
 				optgroups={ fontOptgroups }
 				onChange={ value => updateStyleValue( 'font_header', value ) }
 			/>
 			<SelectControlWithOptGroup
 				label={ __( 'Body font', 'newspack-newsletters' ) }
-				value={ fontBody || 'Georgia' }
+				value={ fontBody }
 				optgroups={ fontOptgroups }
 				onChange={ value => updateStyleValue( 'font_body', value ) }
 			/>
 			<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ id }>
 				<ColorPicker
 					id={ id }
-					color={ backgroundColor || '#ffffff' }
+					color={ backgroundColor }
 					onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
 					disableAlpha
 				/>

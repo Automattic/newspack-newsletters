@@ -68,13 +68,15 @@ final class Newspack_Newsletters {
 		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
+		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 
 		self::set_service_provider( self::service_provider() );
 
@@ -228,7 +230,7 @@ final class Newspack_Newsletters {
 	 * @param WP_Post $post The complete post object.
 	 * @param boolean $update Whether this is an existing post being updated or not.
 	 */
-	public function save( $post_id, $post, $update ) {
+	public static function save( $post_id, $post, $update ) {
 		if ( ! $update ) {
 			update_post_meta( $post_id, 'template_id', -1 );
 		}
@@ -238,6 +240,8 @@ final class Newspack_Newsletters {
 	 * Register the custom post type.
 	 */
 	public static function register_cpt() {
+		$public_slug = get_option( 'newspack_newsletters_public_posts_slug', 'newsletter' );
+
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),
@@ -256,12 +260,12 @@ final class Newspack_Newsletters {
 		];
 
 		$cpt_args = [
-			'has_archive'      => true,
+			'has_archive'      => $public_slug,
 			'labels'           => $labels,
 			'public'           => true,
 			'public_queryable' => true,
 			'query_var'        => true,
-			'rewrite'          => [ 'slug' => 'newsletter' ],
+			'rewrite'          => [ 'slug' => $public_slug ],
 			'show_ui'          => true,
 			'show_in_rest'     => true,
 			'supports'         => [ 'editor', 'title', 'custom-fields' ],
@@ -738,7 +742,7 @@ final class Newspack_Newsletters {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
-				esc_html__( 'You cannot use this resource.', 'newspack' ),
+				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),
 				[
 					'status' => 403,
 				]
@@ -757,7 +761,7 @@ final class Newspack_Newsletters {
 		if ( ! current_user_can( 'edit_others_posts' ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
-				esc_html__( 'You cannot use this resource.', 'newspack' ),
+				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),
 				[
 					'status' => 403,
 				]
@@ -778,6 +782,42 @@ final class Newspack_Newsletters {
 			$post_title = gmdate( get_option( 'date_format' ) );
 		}
 		return $post_title;
+	}
+
+	/**
+	 * Handle custom Newsletter styling when viewing the newsletter as a public post.
+	 */
+	public static function public_newsletter_custom_style() {
+		if ( ! is_single() ) {
+			return;
+		}
+		$post = get_post();
+		if ( $post && self::NEWSPACK_NEWSLETTERS_CPT === $post->post_type ) {
+			$font_header      = get_post_meta( $post->ID, 'font_header', true );
+			$font_body        = get_post_meta( $post->ID, 'font_body', true );
+			$background_color = get_post_meta( $post->ID, 'background_color', true );
+			?>
+				<style>
+					.main-content {
+						background-color: <?php echo esc_attr( $background_color ); ?>;
+						font-family: <?php echo esc_attr( $font_body ); ?>;
+					}
+					.main-content h1,
+					.main-content h2,
+					.main-content h3,
+					.main-content h4,
+					.main-content h5,
+					.main-content h6 {
+						font-family: <?php echo esc_attr( $font_header ); ?>;
+					}
+					<?php if ( $background_color ) : ?>
+						.entry-content {
+							padding: 0 32px;;
+						}
+					<?php endif; ?>
+				</style>
+			<?php
+		}
 	}
 
 	/**
@@ -808,6 +848,35 @@ final class Newspack_Newsletters {
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Enqueue style to handle Newspack branding.
+	 */
+	public static function branding_scripts() {
+		$screen = get_current_screen();
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
+			Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT !== $screen->post_type
+		) {
+			return;
+		}
+
+		$script = 'newspack-newsletters-branding_scripts';
+		wp_enqueue_script(
+			$script,
+			plugins_url( '../dist/branding.js', __FILE__ ),
+			[ 'jquery' ],
+			'1.0',
+			false
+		);
+		wp_enqueue_style(
+			$script,
+			plugins_url( '../dist/branding.css', __FILE__ ),
+			[],
+			'1.0',
+			'screen'
+		);
 	}
 
 	/**
