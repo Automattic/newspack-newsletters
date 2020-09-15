@@ -719,7 +719,7 @@ final class Newspack_Newsletters {
 			$response['credentials'] = self::$provider->api_credentials();
 		}
 
-		if ( self::$provider->has_api_credentials() && $mjml_api_key && $mjml_api_secret ) {
+		if ( self::$provider && self::$provider->has_api_credentials() && $mjml_api_key && $mjml_api_secret ) {
 			$response['status'] = true;
 		}
 
