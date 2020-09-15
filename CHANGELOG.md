@@ -1,3 +1,10 @@
+## [1.11.2-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.11.2-alpha.1...v1.11.2-alpha.2) (2020-09-15)
+
+
+### Bug Fixes
+
+* handle missing provider ([121630c](https://github.com/Automattic/newspack-newsletters/commit/121630c2c94a8438166d43f7875cae8a0f461b3e))
+
 ## [1.11.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.1...v1.11.2-alpha.1) (2020-09-15)
 
 
