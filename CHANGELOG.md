@@ -1,3 +1,11 @@
+## [1.11.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.1...v1.11.2-alpha.1) (2020-09-15)
+
+
+### Bug Fixes
+
+* increase timeout for api tag retrieval ([5b39839](https://github.com/Automattic/newspack-newsletters/commit/5b398393e4b6dc3130654cec56a8c284b752e707))
+* take MJML creds into account for settings status ([cfab93a](https://github.com/Automattic/newspack-newsletters/commit/cfab93ac6270f7beb0e59bff04478d4401ce2c9f))
+
 ## [1.11.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.0...v1.11.1) (2020-09-08)
 
 
