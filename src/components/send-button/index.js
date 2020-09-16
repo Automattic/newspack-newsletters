@@ -50,6 +50,7 @@ export default compose( [
 			visibility: getEditedPostVisibility(),
 			meta: getEditedPostAttribute( 'meta' ),
 			isPublished: isCurrentPostPublished(),
+			author: getEditedPostAttribute( 'author' ),
 		};
 	} ),
 ] )(
@@ -66,17 +67,32 @@ export default compose( [
 		visibility,
 		meta,
 		isPublished,
+		author,
 	} ) => {
 		// State to handle post-publish changes to Public setting.
 		const [ isDirty, setIsDirty ] = useState( false );
-		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
+		const {
+			font_body,
+			font_header,
+			newsletterData = {},
+			newsletterValidationErrors = [],
+			is_public,
+		} = meta;
 
-		// If changing the Public setting post-sending.
+		// If changing certain settings that can affect the published post, after sending.
 		useEffect(() => {
-			if ( isPublished && currentPost.meta && is_public !== currentPost.meta.is_public ) {
+			if (
+				currentPost &&
+				isPublished &&
+				( currentPost.author !== author ||
+					currentPost.status !== status ||
+					currentPost.meta.font_body !== font_body ||
+					currentPost.meta.font_header !== font_header ||
+					currentPost.meta.is_public !== is_public )
+			) {
 				setIsDirty( true );
 			}
-		}, [ is_public ]);
+		}, [ author, status, font_body, font_header, is_public ]);
 
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
