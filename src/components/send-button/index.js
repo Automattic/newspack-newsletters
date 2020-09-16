@@ -51,6 +51,8 @@ export default compose( [
 			meta: getEditedPostAttribute( 'meta' ),
 			isPublished: isCurrentPostPublished(),
 			author: getEditedPostAttribute( 'author' ),
+			categories: getEditedPostAttribute( 'newspack_nl_category' ),
+			tags: getEditedPostAttribute( 'newspack_nl_tag' ),
 		};
 	} ),
 ] )(
@@ -68,6 +70,8 @@ export default compose( [
 		meta,
 		isPublished,
 		author,
+		categories,
+		tags,
 	} ) => {
 		// State to handle post-publish changes to Public setting.
 		const [ isDirty, setIsDirty ] = useState( false );
@@ -88,11 +92,13 @@ export default compose( [
 					currentPost.status !== status ||
 					currentPost.meta.font_body !== font_body ||
 					currentPost.meta.font_header !== font_header ||
-					currentPost.meta.is_public !== is_public )
+					currentPost.meta.is_public !== is_public ||
+					JSON.stringify( currentPost.newspack_nl_category ) !== JSON.stringify( categories ) ||
+					JSON.stringify( currentPost.newspack_nl_tag ) !== JSON.stringify( tags ) )
 			) {
 				setIsDirty( true );
 			}
-		}, [ author, status, font_body, font_header, is_public ]);
+		}, [ author, status, font_body, font_header, is_public, categories, tags ]);
 
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&

@@ -15,6 +15,8 @@ use \DrewM\MailChimp\MailChimp;
 final class Newspack_Newsletters {
 
 	const NEWSPACK_NEWSLETTERS_CPT = 'newspack_nl_cpt';
+	const NEWSPACK_NEWSLETTERS_CAT = 'newspack_nl_category';
+	const NEWSPACK_NEWSLETTERS_TAG = 'newspack_nl_tag';
 
 	/**
 	 * Supported fonts.
@@ -64,8 +66,10 @@ final class Newspack_Newsletters {
 	 */
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
+		add_action( 'init', [ __CLASS__, 'register_tax' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
+		add_action( 'init', [ __CLASS__, 'handle_permalinks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
@@ -276,6 +280,39 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Register custom taxonomies for Newsletter CPT.
+	 */
+	public static function register_tax() {
+		$public_slug = get_option( 'newspack_newsletters_public_posts_slug', 'newsletter' );
+
+		$category_args = [
+			'hierarchical'  => true,
+			'public'        => true,
+			'rewrite'       => [
+				'hierarchical' => true,
+				'slug'         => $public_slug . '-category',
+			],
+			'show_in_menu'  => true,
+			'show_in_rest'  => true,
+			'show_tagcloud' => false,
+			'show_ui'       => true,
+		];
+
+		$tag_args = [
+			'hierarchical'  => false,
+			'public'        => true,
+			'rewrite'       => [ 'slug' => $public_slug . '-tag' ],
+			'show_in_menu'  => true,
+			'show_in_rest'  => true,
+			'show_tagcloud' => false,
+			'show_ui'       => true,
+		];
+
+		\register_taxonomy( self::NEWSPACK_NEWSLETTERS_CAT, self::NEWSPACK_NEWSLETTERS_CPT, $category_args );
+		\register_taxonomy( self::NEWSPACK_NEWSLETTERS_TAG, self::NEWSPACK_NEWSLETTERS_CPT, $tag_args );
+	}
+
+	/**
 	 * Register blocks server-side for front-end rendering.
 	 */
 	public static function register_blocks() {
@@ -351,7 +388,15 @@ final class Newspack_Newsletters {
 	 * @param array $query The WP query object.
 	 */
 	public static function maybe_display_public_archive_posts( $query ) {
-		if ( is_admin() || ! $query->is_main_query() || ! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT ) ) {
+		if (
+			is_admin() ||
+			! $query->is_main_query() ||
+			(
+				! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT ) &&
+				! is_tax( self::NEWSPACK_NEWSLETTERS_CAT ) &&
+				! is_tax( self::NEWSPACK_NEWSLETTERS_TAG )
+			)
+		) {
 			return;
 		}
 
