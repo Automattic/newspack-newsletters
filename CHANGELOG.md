@@ -1,3 +1,10 @@
+# [1.12.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.2...v1.12.0-alpha.1) (2020-09-22)
+
+
+### Features
+
+* add author support for newsletter CPT ([#339](https://github.com/Automattic/newspack-newsletters/issues/339)) ([fb7cb6d](https://github.com/Automattic/newspack-newsletters/commit/fb7cb6d45154633ef0865fb5bb4f4d501428fbfe))
+
 ## [1.11.2](https://github.com/Automattic/newspack-newsletters/compare/v1.11.1...v1.11.2) (2020-09-15)
 
 
