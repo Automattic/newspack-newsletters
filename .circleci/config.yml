@@ -110,6 +110,7 @@ workflows:
       - release:
           requires:
             - build
+            - test-php
           filters:
             branches:
               only:
