@@ -7,7 +7,7 @@
  * Author URI:      https://newspack.pub
  * Text Domain:     newspack-newsletters
  * Domain Path:     /languages
- * Version:         1.11.2
+ * Version:         1.12.0
  *
  * @package         Newspack_Newsletters
  */
