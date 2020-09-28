@@ -33,7 +33,7 @@ Need to target a post title to your newsletter audience? Not a problem! You can 
 
 = Add ads! =
 
-Monetize your newsletters by including advertising. The Newspack Newsletters plugin lets you create ads, which are stored as a custom post type. Ads are automatically appended to the end of your newsletters, and can also be toggled off on a newsletter-by-newsletter basis.
+Monetize your newsletters by including advertising. The Newspack Newsletters plugin lets you create ads, which are stored as a custom post type. Ads are automatically inserted into your newsletters, and can also be toggled off on a newsletter-by-newsletter basis.
 
 = Send with ease =
 
