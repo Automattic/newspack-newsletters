@@ -166,6 +166,11 @@ const PostsInserterBlock = ( {
 						checked={ attributes.displayFeaturedImage }
 						onChange={ value => setAttributes( { displayFeaturedImage: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Display author', 'newspack-newsletters' ) }
+						checked={ attributes.displayAuthor }
+						onChange={ value => setAttributes( { displayAuthor: value } ) }
+					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
@@ -339,6 +344,10 @@ export default () => {
 			displayFeaturedImage: {
 				type: 'boolean',
 				default: true,
+			},
+			displayAuthor: {
+				type: 'boolean',
+				default: false,
 			},
 			innerBlocksToInsert: {
 				type: 'array',
