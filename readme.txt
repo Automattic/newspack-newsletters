@@ -45,6 +45,9 @@ Before sending your campaign, you can send test emails to one or more email addr
 
 The Newspack Newletters plugin is part of Newspack, a suite of tools to help small to mid-sized news organizations publish and generate revenue with WordPress. Newspack is a collaborative project by WordPress.com and the Google News Initiative. You can learn more about Newspack by [visiting our website](https://newspack.pub/).
 
+= Credits =
+
+The [beach photograph](https://www.pexels.com/photo/wind-grass-beach-sea-7763/) in the screenshot is by Life of Pix, licensed [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 == Installation ==
 1. Upload the Newspack Newsletters plugin to your website, and activate it.
