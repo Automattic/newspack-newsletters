@@ -47,7 +47,7 @@ The Newspack Newletters plugin is part of Newspack, a suite of tools to help sma
 
 = Credits =
 
-Image in screenshot from Pexels https://www.pexels.com, [CC0], https://creativecommons.org/publicdomain/zero/1.0/. Specific photo: https://www.pexels.com/photo/wind-grass-beach-sea-7763/ by Life of Pix.
+The [beach photograph](https://www.pexels.com/photo/wind-grass-beach-sea-7763/) in the screenshot is by Life of Pix, licensed [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 == Installation ==
 1. Upload the Newspack Newsletters plugin to your website, and activate it.
