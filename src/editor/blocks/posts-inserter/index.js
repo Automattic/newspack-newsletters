@@ -241,6 +241,9 @@ const PostsInserterBlockWithSelect = compose( [
 			isDisplayingSpecificPosts,
 			specificPosts,
 			preventDeduplication,
+			tags,
+			tagExclusions,
+			categoryExclusions,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
@@ -258,10 +261,13 @@ const PostsInserterBlockWithSelect = compose( [
 				: pickBy(
 						{
 							categories: catIds,
+							tags,
 							order,
 							orderby: orderBy,
 							per_page: postsToShow,
 							exclude: preventDeduplication ? [] : exclude,
+							categories_exclude: categoryExclusions,
+							tags_exclude: tagExclusions,
 						},
 						value => ! isUndefined( value )
 				  );
@@ -380,6 +386,18 @@ export default () => {
 			headingColor: {
 				type: 'string',
 				default: '#000',
+			},
+			tags: {
+				type: 'array',
+				default: [],
+			},
+			tagExclusions: {
+				type: 'array',
+				default: [],
+			},
+			categoryExclusions: {
+				type: 'array',
+				default: [],
 			},
 		},
 		save: () => <InnerBlocks.Content />,

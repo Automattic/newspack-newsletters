@@ -7,11 +7,22 @@ import { includes, debounce } from 'lodash';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { QueryControls, FormTokenField, ToggleControl, Spinner } from '@wordpress/components';
+import {
+	Button,
+	QueryControls,
+	FormTokenField,
+	ToggleControl,
+	Spinner,
+} from '@wordpress/components';
 import { addQueryArgs } from '@wordpress/url';
-import { useState, useEffect } from '@wordpress/element';
+import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { decodeEntities } from '@wordpress/html-entities';
+
+/**
+ * Internal dependencies
+ */
+import AutocompleteTokenField from '../../../components/autocomplete-tokenfield';
 
 const fetchPostSuggestions = search =>
 	apiFetch( {
@@ -42,6 +53,9 @@ const decodePost = encodedPost => {
 // https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/posts-inserter/edit.js
 const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 	const [ categoriesList, setCategoriesList ] = useState( [] );
+	const [ showAdvancedFilters, setShowAdvancedFilters ] = useState( false );
+
+	const { categoryExclusions, tags, tagExclusions } = attributes;
 
 	useEffect(() => {
 		apiFetch( {
@@ -79,6 +93,24 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 		setAttributes( { categories: allCategories } );
 	};
 
+	const selectTags = tokens => {
+		const validTags = tokens.filter( token => !! token );
+
+		setAttributes( { tags: validTags } );
+	};
+
+	const selectExcludedTags = tokens => {
+		const validTags = tokens.filter( token => !! token );
+
+		setAttributes( { tagExclusions: validTags } );
+	};
+
+	const selectExcludedCategories = tokens => {
+		const validCats = tokens.filter( token => !! token );
+
+		setAttributes( { categoryExclusions: validCats } );
+	};
+
 	const [ isFetchingPosts, setIsFetchingPosts ] = useState( false );
 	const [ foundPosts, setFoundPosts ] = useState( [] );
 	const handleSpecificPostsInput = search => {
@@ -98,6 +130,70 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				const [ id, title ] = decodePost( encodedTitle );
 				return { id: parseInt( id ), title };
 			} ),
+		} );
+	};
+
+	const fetchCategorySuggestions = search => {
+		return apiFetch( {
+			path: addQueryArgs( '/wp/v2/categories', {
+				search,
+				per_page: 20,
+				_fields: 'id,name',
+				orderby: 'count',
+				order: 'desc',
+			} ),
+		} ).then( function( categories ) {
+			return categories.map( category => ( {
+				value: category.id,
+				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
+			} ) );
+		} );
+	};
+
+	const fetchSavedCategories = categoryIDs => {
+		return apiFetch( {
+			path: addQueryArgs( '/wp/v2/categories', {
+				per_page: 100,
+				_fields: 'id,name',
+				include: categoryIDs.join( ',' ),
+			} ),
+		} ).then( function( categories ) {
+			return categories.map( category => ( {
+				value: category.id,
+				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
+			} ) );
+		} );
+	};
+
+	const fetchTagSuggestions = search => {
+		return apiFetch( {
+			path: addQueryArgs( '/wp/v2/tags', {
+				search,
+				per_page: 20,
+				_fields: 'id,name',
+				orderby: 'count',
+				order: 'desc',
+			} ),
+		} ).then( function( fetchedTags ) {
+			return fetchedTags.map( tag => ( {
+				value: tag.id,
+				label: decodeEntities( tag.name ) || __( '(no title)', 'newspack-newsletters' ),
+			} ) );
+		} );
+	};
+
+	const fetchSavedTags = tagIDs => {
+		return apiFetch( {
+			path: addQueryArgs( '/wp/v2/tags', {
+				per_page: 100,
+				_fields: 'id,name',
+				include: tagIDs.join( ',' ),
+			} ),
+		} ).then( function( fetchedTags ) {
+			return fetchedTags.map( tag => ( {
+				value: tag.id,
+				label: decodeEntities( tag.name ) || __( '(no title)', 'newspack-newsletters' ),
+			} ) );
 		} );
 	};
 
@@ -126,18 +222,55 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 					onInputChange={ debounce( handleSpecificPostsInput, 400 ) }
 				/>
 			) : (
-				<QueryControls
-					{ ...{ order: attributes.order, orderBy: attributes.orderBy } }
-					numberOfItems={ attributes.postsToShow }
-					onOrderChange={ value => setAttributes( { order: value } ) }
-					onOrderByChange={ value => setAttributes( { orderBy: value } ) }
-					onNumberOfItemsChange={ value => setAttributes( { postsToShow: value } ) }
-					categorySuggestions={ categorySuggestions }
-					onCategoryChange={ selectCategories }
-					selectedCategories={ attributes.categories }
-					minItems={ 1 }
-					maxItems={ 20 }
-				/>
+				<Fragment>
+					<QueryControls
+						{ ...{ order: attributes.order, orderBy: attributes.orderBy } }
+						numberOfItems={ attributes.postsToShow }
+						onOrderChange={ value => setAttributes( { order: value } ) }
+						onOrderByChange={ value => setAttributes( { orderBy: value } ) }
+						onNumberOfItemsChange={ value => setAttributes( { postsToShow: value } ) }
+						categorySuggestions={ categorySuggestions }
+						onCategoryChange={ selectCategories }
+						selectedCategories={ attributes.categories }
+						minItems={ 1 }
+						maxItems={ 20 }
+					/>
+					<AutocompleteTokenField
+						key="tags"
+						tokens={ tags }
+						onChange={ selectTags }
+						fetchSuggestions={ fetchTagSuggestions }
+						fetchSavedInfo={ fetchSavedTags }
+						label={ __( 'Tags', 'newspack-newsletters' ) }
+					/>
+					<p key="toggle-advanced-filters">
+						<Button isLink onClick={ () => setShowAdvancedFilters( ! showAdvancedFilters ) }>
+							{ showAdvancedFilters
+								? __( 'Hide Advanced Filters', 'newspack-newsletters' )
+								: __( 'Show Advanced Filters', 'newspack-newsletters' ) }
+						</Button>
+					</p>
+					{ showAdvancedFilters && (
+						<Fragment>
+							<AutocompleteTokenField
+								key="category-exclusion"
+								tokens={ categoryExclusions }
+								onChange={ selectExcludedCategories }
+								fetchSuggestions={ fetchCategorySuggestions }
+								fetchSavedInfo={ fetchSavedCategories }
+								label={ __( 'Excluded Categories', 'newspack-newsletters' ) }
+							/>
+							<AutocompleteTokenField
+								key="tag-exclusion"
+								tokens={ tagExclusions }
+								onChange={ selectExcludedTags }
+								fetchSuggestions={ fetchTagSuggestions }
+								fetchSavedInfo={ fetchSavedTags }
+								label={ __( 'Excluded Tags', 'newspack-newsletters' ) }
+							/>
+						</Fragment>
+					) }
+				</Fragment>
 			) }
 		</div>
 	);
