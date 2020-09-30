@@ -6,6 +6,7 @@ import { omit } from 'lodash';
 /**
  * WordPress dependencies
  */
+import { __ } from '@wordpress/i18n';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
 
@@ -60,9 +61,35 @@ const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor
 	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
 };
 
+const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
+	if (
+		Array.isArray( post.newspack_author_info ) &&
+		post.newspack_author_info.length &&
+		post.newspack_author_info[ 0 ].display_name
+	) {
+		return [
+			'core/paragraph',
+			assignFontSize( textFontSize, {
+				content: __( 'By ', 'newspack-newsletters' ) + post.newspack_author_info[ 0 ].display_name,
+				fontSize: 'normal',
+				style: { color: { text: textColor } },
+			} ),
+		];
+	}
+
+	return null;
+};
+
 const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	const postContentBlocks = [ getHeadingBlockTemplate( post, attributes ) ];
 
+	if ( attributes.displayAuthor ) {
+		const author = getAuthorBlockTemplate( post, attributes );
+
+		if ( author ) {
+			postContentBlocks.push( author );
+		}
+	}
 	if ( attributes.displayPostDate && post.date_gmt ) {
 		postContentBlocks.push( getDateBlockTemplate( post, attributes ) );
 	}

@@ -166,6 +166,11 @@ const PostsInserterBlock = ( {
 						checked={ attributes.displayFeaturedImage }
 						onChange={ value => setAttributes( { displayFeaturedImage: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Display author', 'newspack-newsletters' ) }
+						checked={ attributes.displayAuthor }
+						onChange={ value => setAttributes( { displayAuthor: value } ) }
+					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
@@ -236,6 +241,9 @@ const PostsInserterBlockWithSelect = compose( [
 			isDisplayingSpecificPosts,
 			specificPosts,
 			preventDeduplication,
+			tags,
+			tagExclusions,
+			categoryExclusions,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
@@ -253,10 +261,13 @@ const PostsInserterBlockWithSelect = compose( [
 				: pickBy(
 						{
 							categories: catIds,
+							tags,
 							order,
 							orderby: orderBy,
 							per_page: postsToShow,
 							exclude: preventDeduplication ? [] : exclude,
+							categories_exclude: categoryExclusions,
+							tags_exclude: tagExclusions,
 						},
 						value => ! isUndefined( value )
 				  );
@@ -340,6 +351,10 @@ export default () => {
 				type: 'boolean',
 				default: true,
 			},
+			displayAuthor: {
+				type: 'boolean',
+				default: false,
+			},
 			innerBlocksToInsert: {
 				type: 'array',
 				default: '',
@@ -371,6 +386,18 @@ export default () => {
 			headingColor: {
 				type: 'string',
 				default: '#000',
+			},
+			tags: {
+				type: 'array',
+				default: [],
+			},
+			tagExclusions: {
+				type: 'array',
+				default: [],
+			},
+			categoryExclusions: {
+				type: 'array',
+				default: [],
 			},
 		},
 		save: () => <InnerBlocks.Content />,
