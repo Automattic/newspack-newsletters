@@ -1,3 +1,15 @@
+# [1.13.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.12.0...v1.13.0-alpha.1) (2020-09-30)
+
+
+### Bug Fixes
+
+* prevent draft ads from being inserted into newsletters ([#350](https://github.com/Automattic/newspack-newsletters/issues/350)) ([ddd5cfe](https://github.com/Automattic/newspack-newsletters/commit/ddd5cfe39ab61b261c21bc644aae6b3dbc7ec3b7))
+
+
+### Features
+
+* posts inserter enhancements ([#348](https://github.com/Automattic/newspack-newsletters/issues/348)) ([004ad27](https://github.com/Automattic/newspack-newsletters/commit/004ad27202b96284722243a9756670ad20982914))
+
 # [1.12.0](https://github.com/Automattic/newspack-newsletters/compare/v1.11.2...v1.12.0) (2020-09-22)
 
 
