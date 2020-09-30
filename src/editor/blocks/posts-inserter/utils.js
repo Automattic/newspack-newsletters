@@ -6,6 +6,7 @@ import { omit } from 'lodash';
 /**
  * WordPress dependencies
  */
+import { __ } from '@wordpress/i18n';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
 
@@ -69,7 +70,7 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 		return [
 			'core/paragraph',
 			assignFontSize( textFontSize, {
-				content: 'By ' + post.newspack_author_info[ 0 ].display_name,
+				content: __( 'By ', 'newspack-newsletters' ) + post.newspack_author_info[ 0 ].display_name,
 				fontSize: 'normal',
 				style: { color: { text: textColor } },
 			} ),
