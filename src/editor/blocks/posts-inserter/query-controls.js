@@ -235,14 +235,6 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 						minItems={ 1 }
 						maxItems={ 20 }
 					/>
-					<AutocompleteTokenField
-						key="tags"
-						tokens={ tags }
-						onChange={ selectTags }
-						fetchSuggestions={ fetchTagSuggestions }
-						fetchSavedInfo={ fetchSavedTags }
-						label={ __( 'Tags', 'newspack-newsletters' ) }
-					/>
 					<p key="toggle-advanced-filters">
 						<Button isLink onClick={ () => setShowAdvancedFilters( ! showAdvancedFilters ) }>
 							{ showAdvancedFilters
@@ -252,6 +244,14 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 					</p>
 					{ showAdvancedFilters && (
 						<Fragment>
+							<AutocompleteTokenField
+								key="tags"
+								tokens={ tags }
+								onChange={ selectTags }
+								fetchSuggestions={ fetchTagSuggestions }
+								fetchSavedInfo={ fetchSavedTags }
+								label={ __( 'Tags', 'newspack-newsletters' ) }
+							/>
 							<AutocompleteTokenField
 								key="category-exclusion"
 								tokens={ categoryExclusions }
