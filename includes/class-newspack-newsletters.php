@@ -289,7 +289,7 @@ final class Newspack_Newsletters {
 			'public'        => true,
 			'rewrite'       => [
 				'hierarchical' => true,
-				'slug'         => $public_slug . '-category',
+				'slug'         => $public_slug . '/category',
 			],
 			'show_in_menu'  => true,
 			'show_in_rest'  => true,
@@ -300,7 +300,7 @@ final class Newspack_Newsletters {
 		$tag_args = [
 			'hierarchical'  => false,
 			'public'        => true,
-			'rewrite'       => [ 'slug' => $public_slug . '-tag' ],
+			'rewrite'       => [ 'slug' => $public_slug . '/tag' ],
 			'show_in_menu'  => true,
 			'show_in_rest'  => true,
 			'show_tagcloud' => false,
@@ -309,6 +309,10 @@ final class Newspack_Newsletters {
 
 		\register_taxonomy( self::NEWSPACK_NEWSLETTERS_CAT, self::NEWSPACK_NEWSLETTERS_CPT, $category_args );
 		\register_taxonomy( self::NEWSPACK_NEWSLETTERS_TAG, self::NEWSPACK_NEWSLETTERS_CPT, $tag_args );
+
+		// Rewrite rules are necessary for the prefixed permalinks to work.
+		\add_rewrite_rule( '^' . $public_slug . '/category/([^/]+)/?$', 'index.php?' . self::NEWSPACK_NEWSLETTERS_CAT . '=$matches[1]', 'top' );
+		\add_rewrite_rule( '^' . $public_slug . '/tag/([^/]+)/?$', 'index.php?' . self::NEWSPACK_NEWSLETTERS_TAG . '=$matches[1]', 'top' );
 	}
 
 	/**
