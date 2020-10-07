@@ -1,3 +1,10 @@
+# [1.14.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.13.0...v1.14.0-alpha.1) (2020-10-07)
+
+
+### Features
+
+* enable categories and tags for newsletter CPT ([#340](https://github.com/Automattic/newspack-newsletters/issues/340)) ([b5fad81](https://github.com/Automattic/newspack-newsletters/commit/b5fad813e9a3df5b6f77853be27217ac1b289b87))
+
 # [1.13.0](https://github.com/Automattic/newspack-newsletters/compare/v1.12.0...v1.13.0) (2020-09-30)
 
 
