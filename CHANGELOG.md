@@ -1,3 +1,10 @@
+# [1.14.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.14.0-alpha.1...v1.14.0-alpha.2) (2020-10-20)
+
+
+### Bug Fixes
+
+* handle updated gutenberg colors setting ([d9b3609](https://github.com/Automattic/newspack-newsletters/commit/d9b36091332bbe926233b556e5dd43ccfe77045a)), closes [#358](https://github.com/Automattic/newspack-newsletters/issues/358)
+
 # [1.14.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.13.0...v1.14.0-alpha.1) (2020-10-07)
 
 
