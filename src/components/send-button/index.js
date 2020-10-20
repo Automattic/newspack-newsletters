@@ -100,12 +100,15 @@ export default compose( [
 			}
 		}, [ author, status, font_body, font_header, is_public, categories, tags ]);
 
+		const hasCampaign =
+			newsletterData.campaign ||
+			window.newspack_newsletters_data.service_provider === 'campaign_monitor';
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			! isPublished &&
 			! isSaving &&
-			newsletterData.campaign &&
+			hasCampaign &&
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {

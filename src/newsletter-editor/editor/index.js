@@ -1,9 +1,4 @@
 /**
- * External dependencies
- */
-import { get, isEmpty } from 'lodash';
-
-/**
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
@@ -35,14 +30,6 @@ const Editor = compose( [
 		const meta = getEditedPostAttribute( 'meta' );
 		const status = getEditedPostAttribute( 'status' );
 		const sentDate = getEditedPostAttribute( 'date' );
-		const settings = getSettings();
-		const experimentalSettingsColors = get( settings, [
-			'__experimentalFeatures',
-			'global',
-			'color',
-			'palette',
-		] );
-		const colors = settings.colors || experimentalSettingsColors || [];
 
 		return {
 			isCleanNewPost: isCleanNewPost(),
@@ -52,8 +39,8 @@ const Editor = compose( [
 				: false,
 			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
-			colorPalette: colors.reduce(
-				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
+			colorPalette: getSettings().colors.reduce(
+				( colors, { slug, color } ) => ( { ...colors, [ slug ]: color } ),
 				{}
 			),
 			status,
@@ -80,21 +67,21 @@ const Editor = compose( [
 
 	// Set color palette option.
 	useEffect(() => {
-		if ( isEmpty( props.colorPalette ) ) {
-			return;
-		}
 		props.apiFetchWithErrorHandling( {
 			path: `/newspack-newsletters/v1/color-palette`,
 			data: props.colorPalette,
 			method: 'POST',
 		} );
-	}, [ isEmpty( props.colorPalette ) ]);
+	}, []);
 
 	// Fetch data from service provider.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
 			const params = getFetchDataConfig( { postId: props.postId } );
-			if ( 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
+			if (
+				0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ||
+				0 === params.path.indexOf( '/newspack-newsletters/v1/campaign_monitor/' )
+			) {
 				return;
 			}
 			props.apiFetchWithErrorHandling( params ).then( result => {
@@ -113,7 +100,7 @@ const Editor = compose( [
 	}, [ props.isReady ]);
 
 	useEffect(() => {
-		if ( 'publish' === props.status ) {
+		if ( 'publish' === props.status && ! props.isPublishingOrSavingPost ) {
 			const dateTime = props.sentDate ? new Date( props.sentDate ).toLocaleString() : '';
 
 			// Lock autosaving after a newsletter is sent.

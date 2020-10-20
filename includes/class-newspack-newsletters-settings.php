@@ -43,6 +43,10 @@ class Newspack_Newsletters_Settings {
 						'name'  => __( 'Constant Contact', 'newspack-newsletters' ),
 						'value' => 'constant_contact',
 					),
+					array(
+						'name'  => __( 'Campaign Monitor', 'newspack-newsletters' ),
+						'value' => 'campaign_monitor',
+					),
 				),
 				'type'        => 'select',
 			),
@@ -59,6 +63,16 @@ class Newspack_Newsletters_Settings {
 			array(
 				'description' => __( 'Constant Contact API Access token', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_constant_contact_api_access_token',
+				'type'        => 'text',
+			),
+			array(
+				'description' => __( 'Campaign Monitor API Key', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_campaign_monitor_api_key',
+				'type'        => 'text',
+			),
+			array(
+				'description' => __( 'Campaign Monitor Client ID', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_campaign_monitor_client_id',
 				'type'        => 'text',
 			),
 			array(

@@ -30,7 +30,8 @@
 	}
 
 	&__subject-textcontrol,
-	&__to-selectcontrol {
+	&__to-selectcontrol,
+	&__sendmode-radiocontrol {
 		.components-base-control__label {
 			font-weight: 600;
 		}
