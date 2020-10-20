@@ -1,3 +1,16 @@
+# [1.14.0](https://github.com/Automattic/newspack-newsletters/compare/v1.13.0...v1.14.0) (2020-10-20)
+
+
+### Bug Fixes
+
+* handle updated gutenberg colors setting ([d9b3609](https://github.com/Automattic/newspack-newsletters/commit/d9b36091332bbe926233b556e5dd43ccfe77045a)), closes [#358](https://github.com/Automattic/newspack-newsletters/issues/358)
+* published public posts fixes ([ddb5d28](https://github.com/Automattic/newspack-newsletters/commit/ddb5d28099538a69bd52a849951c4c9092bc4b05))
+
+
+### Features
+
+* enable categories and tags for newsletter CPT ([#340](https://github.com/Automattic/newspack-newsletters/issues/340)) ([b5fad81](https://github.com/Automattic/newspack-newsletters/commit/b5fad813e9a3df5b6f77853be27217ac1b289b87))
+
 # [1.13.0](https://github.com/Automattic/newspack-newsletters/compare/v1.12.0...v1.13.0) (2020-09-30)
 
 
