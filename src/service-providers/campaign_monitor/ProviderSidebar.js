@@ -49,10 +49,19 @@ const ProviderSidebarComponent = ( {
 	 */
 	updateMetaValue,
 
+	/**
+	 * Newsletter data from the parent components
+	 */
 	newsletterData,
 
+	/**
+	 * Dispatcher to display an error message in the editor.
+	 */
 	createErrorNotice,
 
+	/**
+	 * Current post status.
+	 */
 	status,
 } ) => {
 	const [ lists, setLists ] = useState( [] );
@@ -72,6 +81,7 @@ const ProviderSidebarComponent = ( {
 			setLists( response.lists );
 			setSegments( response.segments );
 
+			// TODO: the below attempts to pass the selecdted list/segment name to the presend check modal, but it only works if the ProviderSidebar is currently mounted and has run this function.
 			if ( 'list' === sendMode && listId ) {
 				const list = response.lists.find( thisList => listId === thisList.ListID );
 				updateMetaValue( 'newsletterData', { ...newsletterData, listName: list.Name } );
@@ -84,6 +94,7 @@ const ProviderSidebarComponent = ( {
 				updateMetaValue( 'newsletterData', { ...newsletterData, listName: segment.Title } );
 			}
 		} catch ( e ) {
+			// TODO: The error handling is not working if sending fails. Also, the "Campaign Sent" notice gets shown regardless of whether the campaign got successfully sent.
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
 			);
