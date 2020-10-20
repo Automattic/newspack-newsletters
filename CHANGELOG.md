@@ -1,3 +1,10 @@
+# [1.14.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.14.0-alpha.2...v1.14.0-alpha.3) (2020-10-20)
+
+
+### Bug Fixes
+
+* published public posts fixes ([ddb5d28](https://github.com/Automattic/newspack-newsletters/commit/ddb5d28099538a69bd52a849951c4c9092bc4b05))
+
 # [1.14.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.14.0-alpha.1...v1.14.0-alpha.2) (2020-10-20)
 
 
