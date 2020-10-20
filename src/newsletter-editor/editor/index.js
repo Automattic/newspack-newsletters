@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { get, isEmpty } from 'lodash';
+
+/**
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
@@ -30,6 +35,14 @@ const Editor = compose( [
 		const meta = getEditedPostAttribute( 'meta' );
 		const status = getEditedPostAttribute( 'status' );
 		const sentDate = getEditedPostAttribute( 'date' );
+		const settings = getSettings();
+		const experimentalSettingsColors = get( settings, [
+			'__experimentalFeatures',
+			'global',
+			'color',
+			'palette',
+		] );
+		const colors = settings.colors || experimentalSettingsColors || [];
 
 		return {
 			isCleanNewPost: isCleanNewPost(),
@@ -39,8 +52,8 @@ const Editor = compose( [
 				: false,
 			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
-			colorPalette: getSettings().colors.reduce(
-				( colors, { slug, color } ) => ( { ...colors, [ slug ]: color } ),
+			colorPalette: colors.reduce(
+				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
 			),
 			status,
@@ -67,12 +80,15 @@ const Editor = compose( [
 
 	// Set color palette option.
 	useEffect(() => {
+		if ( isEmpty( props.colorPalette ) ) {
+			return;
+		}
 		props.apiFetchWithErrorHandling( {
 			path: `/newspack-newsletters/v1/color-palette`,
 			data: props.colorPalette,
 			method: 'POST',
 		} );
-	}, []);
+	}, [ isEmpty( props.colorPalette ) ]);
 
 	// Fetch data from service provider.
 	useEffect(() => {
