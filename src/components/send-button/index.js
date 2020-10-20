@@ -40,7 +40,6 @@ export default compose( [
 			isCurrentPostPublished,
 		} = select( 'core/editor' );
 		return {
-			currentPost: getCurrentPost(),
 			isPublishable: forceIsDirty || isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
 			status: getEditedPostAttribute( 'status' ),
@@ -50,14 +49,12 @@ export default compose( [
 			visibility: getEditedPostVisibility(),
 			meta: getEditedPostAttribute( 'meta' ),
 			isPublished: isCurrentPostPublished(),
-			author: getEditedPostAttribute( 'author' ),
 		};
 	} ),
 ] )(
 	( {
 		editPost,
 		savePost,
-		currentPost,
 		isPublishable,
 		isSaveable,
 		isSaving,
@@ -67,32 +64,8 @@ export default compose( [
 		visibility,
 		meta,
 		isPublished,
-		author,
 	} ) => {
-		// State to handle post-publish changes to Public setting.
-		const [ isDirty, setIsDirty ] = useState( false );
-		const {
-			font_body,
-			font_header,
-			newsletterData = {},
-			newsletterValidationErrors = [],
-			is_public,
-		} = meta;
-
-		// If changing certain settings that can affect the published post, after sending.
-		useEffect(() => {
-			if (
-				currentPost &&
-				isPublished &&
-				( currentPost.author !== author ||
-					currentPost.status !== status ||
-					currentPost.meta.font_body !== font_body ||
-					currentPost.meta.font_header !== font_header ||
-					currentPost.meta.is_public !== is_public )
-			) {
-				setIsDirty( true );
-			}
-		}, [ author, status, font_body, font_header, is_public ]);
+		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
 
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
@@ -160,8 +133,8 @@ export default compose( [
 
 		const [ modalVisible, setModalVisible ] = useState( false );
 
-		// If we've changed the Public setting post-publish, allow the user to just save the post.
-		if ( isDirty && isPublished ) {
+		// For public and published newsletters, display the generic button text.
+		if ( isPublished && is_public ) {
 			return (
 				<Button
 					className="editor-post-publish-button"
@@ -169,10 +142,7 @@ export default compose( [
 					isPrimary
 					isLarge
 					disabled={ isSaving }
-					onClick={ async () => {
-						await savePost();
-						setIsDirty( false );
-					} }
+					onClick={ savePost }
 				>
 					{ isSaving
 						? __( 'Updating...', 'newspack-newsletters' )
