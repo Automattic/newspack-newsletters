@@ -46,6 +46,7 @@ const Editor = compose( [
 			),
 			status,
 			sentDate,
+			isPublic: meta.is_public,
 		};
 	} ),
 	withDispatch( dispatch => {
@@ -110,6 +111,13 @@ const Editor = compose( [
 			} );
 		}
 	}, [ props.status ]);
+
+	useEffect(() => {
+		// Unhide post title if the newsletter is a public post.
+		document.querySelector( '.editor-post-title' ).style.display = props.isPublic
+			? 'initial'
+			: 'none';
+	}, [ props.isPublic ]);
 
 	return createPortal( <SendButton />, publishEl );
 } );
