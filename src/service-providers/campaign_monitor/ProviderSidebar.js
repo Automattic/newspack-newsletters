@@ -16,11 +16,6 @@ import {
 } from '@wordpress/components';
 
 /**
- * Internal dependencies
- */
-import './styles.scss';
-
-/**
  * Validation utility.
  *
  * @param  {Object} object data fetched using getFetchDataConfig
