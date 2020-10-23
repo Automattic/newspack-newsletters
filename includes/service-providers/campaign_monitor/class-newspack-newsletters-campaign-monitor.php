@@ -284,15 +284,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		if ( ! $this->has_api_credentials() ) {
 			return [];
 		}
-		$transient       = sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
-		$persisted_error = get_transient( $transient );
-		if ( $persisted_error ) {
-			delete_transient( $transient );
-			return new WP_Error(
-				'newspack_newsletters_campaign_monitor_error',
-				$persisted_error
-			);
-		}
 		try {
 			$cm       = new CS_REST_General( $this->api_key() );
 			$response = [];
@@ -459,15 +450,20 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * @param string  $new_status New status of the post.
 	 * @param string  $old_status Old status of the post.
 	 * @param WP_POST $post Post to send.
+	 *
+	 * @throws Exception Error message if sending fails.
 	 */
 	public function send( $new_status, $old_status, $post ) {
 		$post_id = $post->ID;
 
+		// Only run if the current post is a newsletter.
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
-			return new WP_Error(
-				'newspack_newsletters_incorrect_post_type',
-				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
-			);
+			return;
+		}
+
+		// Only run if the current service provider is Campaign Monitor.
+		if ( 'campaign_monitor' !== get_option( 'newspack_newsletters_service_provider', false ) ) {
+			return;
 		}
 
 		if ( ( 'publish' === $new_status && 'publish' !== $old_status ) || ( 'future' === $new_status && 'future' !== $old_status ) ) {
@@ -476,16 +472,10 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				$client_id = $this->client_id();
 
 				if ( ! $api_key ) {
-					return new WP_Error(
-						'newspack_newsletters_missing_api_key',
-						__( 'No Campaign Monitor API key available.', 'newspack-newsletters' )
-					);
+					throw new Exception( __( 'No Campaign Monitor API key available.', 'newspack-newsletters' ) );
 				}
 				if ( ! $client_id ) {
-					return new WP_Error(
-						'newspack_newsletters_missing_client_id',
-						__( 'No Campaign Monitor Client ID available.', 'newspack-newsletters' )
-					);
+					throw new Exception( __( 'No Campaign Monitor Client ID available.', 'newspack-newsletters' ) );
 				}
 
 				$cm_campaigns = new CS_REST_Campaigns( null, [ 'api_key' => $api_key ] );
@@ -500,8 +490,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				$new_campaign = $cm_campaigns->create( $client_id, $args );
 
 				if ( ! $new_campaign->was_successful() ) {
-					return new WP_Error(
-						'newspack_newsletters_campaign_monitor_error',
+					throw new Exception(
 						__( 'Failed sending Campaign Monitor test campaign: ', 'newspack-newsletters' ) . $new_campaign->response->Message
 					);
 				}
@@ -515,9 +504,16 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 					]
 				);
 			} catch ( Exception $e ) {
-				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
-				set_transient( $transient, $e->getMessage(), 45 );
-				return;
+				// Reset publish status.
+				wp_update_post(
+					[
+						'ID'          => $post_id,
+						'post_status' => 'draft',
+					],
+					true
+				);
+
+				wp_die( esc_html( $e->getMessage() ) );
 			}
 		}
 	}

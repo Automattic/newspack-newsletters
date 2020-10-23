@@ -134,28 +134,12 @@ const ProviderSidebarComponent = ( {
 			from_name: senderName,
 		};
 
-		if ( 'list' === sendMode && listId ) {
-			const list = lists.find( thisList => listId === thisList.ListID );
-
-			if ( list ) {
-				updatedData.listName = list.Name;
-			}
-		}
-
-		if ( 'segment' === sendMode && segmentId ) {
-			const segment = segments.find( thisSegment => segmentId === thisSegment.SegmentID );
-
-			if ( segment ) {
-				updatedData.listName = segment.Title;
-			}
-		}
-
 		const messages = validateNewsletter( updatedData );
 
 		// Send info to parent components, for send button/validation management.
 		updateMetaValue( 'newsletterValidationErrors', messages );
 		updateMetaValue( 'newsletterData', updatedData );
-	}, [ JSON.stringify( cmData ), lists, segments ]);
+	}, [ JSON.stringify( cmData ), lists, segments, status ]);
 
 	if ( ! inFlight && 'publish' === status ) {
 		return (
@@ -262,7 +246,7 @@ const ProviderSidebarComponent = ( {
 };
 
 const mapStateToProps = select => {
-	const { getEditedPostAttribute } = select( 'core/editor' );
+	const { getCurrentPostAttribute, getEditedPostAttribute } = select( 'core/editor' );
 	const meta = getEditedPostAttribute( 'meta' );
 
 	return {
@@ -273,7 +257,7 @@ const mapStateToProps = select => {
 			senderName: meta.cm_from_name,
 			senderEmail: meta.cm_from_email,
 		},
-		status: getEditedPostAttribute( 'status' ),
+		status: getCurrentPostAttribute( 'status' ),
 	};
 };
 

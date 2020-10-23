@@ -126,6 +126,10 @@ export default ( { onSetupStatus } ) => {
 								value: 'constant_contact',
 								label: __( 'Constant Contact', 'newspack-newsletters' ),
 							},
+							{
+								value: 'campaign_monitor',
+								label: __( 'Campaign Monitor', 'newspack-newsletters' ),
+							},
 						] }
 					/>
 					<hr />
@@ -200,7 +204,7 @@ export default ( { onSetupStatus } ) => {
 						<Fragment>
 							<h4>
 								{ __(
-									'Enter your Campaign Monitor API key and access token',
+									'Enter your Campaign Monitor API key and client ID',
 									'newspack-newsletters'
 								) }
 							</h4>

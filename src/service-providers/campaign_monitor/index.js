@@ -2,6 +2,8 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { Spinner } from '@wordpress/components';
+import { Fragment } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -28,10 +30,54 @@ const getFetchDataConfig = ( { postId } ) => ( {
  * @return {any} A React component
  */
 const renderPreSendInfo = ( newsletterData = {} ) => {
+	const { list_id, lists, segment_id, segments, send_mode } = newsletterData;
+	let sendToName = null;
+
+	if ( ! send_mode ) {
+		return <Spinner />;
+	}
+
+	// Get the list name if in list mode.
+	if ( 'list' === send_mode && list_id ) {
+		const list = lists.find( thisList => list_id === thisList.ListID );
+
+		if ( list ) {
+			sendToName = list.Name;
+		}
+	}
+
+	// Get the segment name if in segment mode.
+	if ( 'segment' === send_mode && segment_id ) {
+		const segment = segments.find( thisSegment => segment_id === thisSegment.SegmentID );
+
+		if ( segment ) {
+			sendToName = segment.Title;
+		}
+	}
+
+	if ( ! sendToName ) {
+		return (
+			<p>
+				{ __(
+					'You’re about to send a Campaign Monitor newsletter. Are you sure you want to proceed?',
+					'newspack-newsletters'
+				) }
+			</p>
+		);
+	}
+
 	return (
-		<p>
-			{ __( 'Sending newsletter to:', 'newspack-newsletters' ) } { newsletterData.listName }
-		</p>
+		<Fragment>
+			<p>
+				{ __(
+					'You’re about to send a Campaign Monitor newsletter to the following ',
+					'newspack-newsletters'
+				) }
+				{ send_mode + ': ' }
+				<strong>{ sendToName }</strong>
+			</p>
+			<p>{ __( 'Are you sure you want to proceed?', 'newspack-newsletters' ) }</p>
+		</Fragment>
 	);
 };
 
