@@ -164,117 +164,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	}
 
 	/**
-	 * Set send mode for a campaign.
-	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $send_mode Send mode for the campaign.
-	 * @return object|WP_Error API API Response or error.
-	 */
-	public function send_mode( $post_id, $send_mode ) {
-		try {
-			$result         = update_post_meta( $post_id, 'cm_send_mode', $send_mode );
-			$data           = $this->retrieve( $post_id );
-			$data['result'] = $result;
-
-			return \rest_ensure_response( $data );
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'newspack_newsletters_campaign_monitor_error',
-				$e->getMessage()
-			);
-		}
-	}
-
-	/**
-	 * Set list for a campaign.
-	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $list_id ID of the list.
-	 * @return object|WP_Error API API Response or error.
-	 */
-	public function list( $post_id, $list_id ) {
-		try {
-			$result         = update_post_meta( $post_id, 'cm_list_id', $list_id );
-			$data           = $this->retrieve( $post_id );
-			$data['result'] = $result;
-
-			return \rest_ensure_response( $data );
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'newspack_newsletters_campaign_monitor_error',
-				$e->getMessage()
-			);
-		}
-	}
-
-	/**
-	 * Set segmemt for a campaign.
-	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $segment_id ID of the segment.
-	 * @return object|WP_Error API API Response or error.
-	 */
-	public function segment( $post_id, $segment_id ) {
-		try {
-			$result         = update_post_meta( $post_id, 'cm_segment_id', $segment_id );
-			$data           = $this->retrieve( $post_id );
-			$data['result'] = $result;
-
-			return \rest_ensure_response( $data );
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'newspack_newsletters_campaign_monitor_error',
-				$e->getMessage()
-			);
-		}
-	}
-
-	/**
-	 * Unset list for a campaign.
-	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $list_id ID of the list.
-	 * @return object|WP_Error API API Response or error.
-	 */
-	public function unset_list( $post_id, $list_id ) {
-		try {
-			$result         = delete_post_meta( $post_id, 'cm_list_id', $list_id );
-			$data           = $this->retrieve( $post_id );
-			$data['result'] = $result;
-
-			return \rest_ensure_response( $data );
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'newspack_newsletters_campaign_monitor_error',
-				$e->getMessage()
-			);
-		}
-	}
-
-	/**
-	 * Unset segment for a campaign.
-	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $segment_id ID of the segment.
-	 * @return object|WP_Error API API Response or error.
-	 */
-	public function unset_segment( $post_id, $segment_id ) {
-		try {
-			$result         = delete_post_meta( $post_id, 'cm_segment_id', $list_id );
-			$data           = $this->retrieve( $post_id );
-			$data['result'] = $result;
-
-			return \rest_ensure_response( $data );
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'newspack_newsletters_campaign_monitor_error',
-				$e->getMessage()
-			);
-		}
-	}
-
-	/**
-	 * Retrieve a campaign.
+	 * Retrieve campaign details.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @param boolean $fetch_all If true, returns all campaign data, even those stored in WP.
@@ -315,23 +205,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				$e->getMessage()
 			);
 		}
-	}
-
-	/**
-	 * Set sender data.
-	 *
-	 * @param string $post_id Numeric ID of the campaign.
-	 * @param string $from_name Sender name.
-	 * @param string $reply_to Reply to email address.
-	 * @return object|WP_Error API Response or error.
-	 */
-	public function sender( $post_id, $from_name, $reply_to ) {
-		update_post_meta( $post_id, 'cm_from_name', $from_name );
-		update_post_meta( $post_id, 'cm_from_email', $reply_to );
-
-		$data = $this->retrieve( $post_id );
-
-		return \rest_ensure_response( $data );
 	}
 
 	/**
@@ -632,16 +505,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	}
 
 	/**
-	 * Sync not used in this ESP, because campaigns are generated on send.
-	 *
-	 * @param WP_POST $post Post to synchronize.
-	 * @return object|null API Response or error.
-	 */
-	public function sync( $post ) {
-		return $post;
-	}
-
-	/**
 	 * On save.
 	 *
 	 * @param string   $post_id Numeric ID of the campaign.
@@ -654,11 +517,44 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * List not used in this ESP, because campaigns are generated on send.
+	 *
+	 * @param string $post_id Campaign Id.
+	 * @param string $list_id ID of the list.
+	 * @return object|WP_Error API Response or error.
+	 */
+	public function list( $post_id, $list_id ) {
+		return null;
+	}
+
+	/**
+	 * Sender not used in this ESP, because campaigns are generated on send.
+	 *
+	 * @param string $post_id Numeric ID of the campaign.
+	 * @param string $from_name Sender name.
+	 * @param string $reply_to Reply to email address.
+	 * @return object|WP_Error API Response or error.
+	 */
+	public function sender( $post_id, $from_name, $reply_to ) {
+		return null;
+	}
+
+	/**
+	 * Sync not used in this ESP, because campaigns are generated on send.
+	 *
+	 * @param WP_POST $post Post to synchronize.
+	 * @return object|null API Response or error.
+	 */
+	public function sync( $post ) {
+		return null;
+	}
+
+	/**
 	 * Trash not used in this ESP, because campaigns are generated on send.
 	 *
 	 * @param string $post_id Numeric ID of the campaign.
 	 */
 	public function trash( $post_id ) {
-		return $post_id;
+		return null;
 	}
 }

@@ -115,7 +115,6 @@ const ProviderSidebarComponent = ( {
 			setLists( response.lists );
 			setSegments( response.segments );
 		} catch ( e ) {
-			// TODO: The error handling is not working if sending fails. Also, the "Campaign Sent" notice gets shown regardless of whether the campaign got successfully sent.
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
 			);
