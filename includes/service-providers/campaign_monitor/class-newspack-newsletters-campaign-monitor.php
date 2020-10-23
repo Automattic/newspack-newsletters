@@ -439,6 +439,13 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * @return object|WP_Error API Response or error.
 	 */
 	public function content( $post_id ) {
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
 		$post     = get_post( $post_id );
 		$renderer = new Newspack_Newsletters_Renderer();
 		$html     = $renderer->render_html_email( $post );

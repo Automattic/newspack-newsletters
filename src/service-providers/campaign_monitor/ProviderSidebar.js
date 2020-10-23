@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { Fragment, useEffect, useState } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 import {
 	BaseControl,
 	ExternalLink,
@@ -14,6 +14,40 @@ import {
 	TextControl,
 	Notice,
 } from '@wordpress/components';
+
+/**
+ * Internal dependencies
+ */
+import './styles.scss';
+
+/**
+ * Validation utility.
+ *
+ * @param  {Object} object data fetched using getFetchDataConfig
+ * @return {string[]} Array of validation messages. If empty, newsletter is valid.
+ */
+export const validateNewsletter = ( { from_email, from_name, list_id, segment_id, send_mode } ) => {
+	const messages = [];
+	if ( ! from_email || ! from_name ) {
+		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
+	}
+
+	if ( ! send_mode ) {
+		messages.push( __( 'Must select a send mode', 'newspack-newsletters' ) );
+	}
+
+	if ( 'list' === send_mode && ! list_id ) {
+		messages.push( __( 'Must select a list when sending in list mode', 'newspack-newsletters' ) );
+	}
+
+	if ( 'segment' === send_mode && ! segment_id ) {
+		messages.push(
+			__( 'Must select a segment when sending in segment mode', 'newspack-newsletters' )
+		);
+	}
+
+	return messages;
+};
 
 /**
  * Component to be rendered in the sidebar panel.
@@ -80,19 +114,6 @@ const ProviderSidebarComponent = ( {
 
 			setLists( response.lists );
 			setSegments( response.segments );
-
-			// TODO: the below attempts to pass the selecdted list/segment name to the presend check modal, but it only works if the ProviderSidebar is currently mounted and has run this function.
-			if ( 'list' === sendMode && listId ) {
-				const list = response.lists.find( thisList => listId === thisList.ListID );
-				updateMetaValue( 'newsletterData', { ...newsletterData, listName: list.Name } );
-			}
-
-			if ( 'segment' === sendMode && segmentId ) {
-				const segment = response.segments.find(
-					thisSegment => segmentId === thisSegment.SegmentID
-				);
-				updateMetaValue( 'newsletterData', { ...newsletterData, listName: segment.Title } );
-			}
 		} catch ( e ) {
 			// TODO: The error handling is not working if sending fails. Also, the "Campaign Sent" notice gets shown regardless of whether the campaign got successfully sent.
 			createErrorNotice(
@@ -100,6 +121,42 @@ const ProviderSidebarComponent = ( {
 			);
 		}
 	};
+
+	useEffect(() => {
+		const updatedData = {
+			...newsletterData,
+			lists,
+			segments,
+			send_mode: sendMode,
+			list_id: listId,
+			segment_id: segmentId,
+			from_email: senderEmail,
+			from_name: senderName,
+		};
+
+		// TODO: the below attempts to pass the selecdted list/segment name to the presend check modal, but it only works if the ProviderSidebar is currently mounted and has run this function.
+		if ( 'list' === sendMode && listId ) {
+			const list = lists.find( thisList => listId === thisList.ListID );
+
+			if ( list ) {
+				updatedData.listName = list.Name;
+			}
+		}
+
+		if ( 'segment' === sendMode && segmentId ) {
+			const segment = segments.find( thisSegment => segmentId === thisSegment.SegmentID );
+
+			if ( segment ) {
+				updatedData.listName = segment.Title;
+			}
+		}
+
+		const messages = validateNewsletter( updatedData );
+
+		// Send info to parent components, for send button/validation management.
+		updateMetaValue( 'newsletterValidationErrors', messages );
+		updateMetaValue( 'newsletterData', updatedData );
+	}, [ JSON.stringify( cmData ), lists, segments ]);
 
 	if ( ! inFlight && 'publish' === status ) {
 		return (
@@ -110,7 +167,7 @@ const ProviderSidebarComponent = ( {
 	}
 
 	return (
-		<Fragment>
+		<div className="newspack-newsletters__campaign-monitor-sidebar">
 			{ renderSubject() }
 
 			<BaseControl className="newspack-newsletters__send-mode">
@@ -130,8 +187,8 @@ const ProviderSidebarComponent = ( {
 			{ 'list' === sendMode && lists && (
 				<BaseControl className="newspack-newsletters__list-select">
 					<SelectControl
+						className="newspack-newsletters__campaign-monitor-send-to"
 						label={ __( 'To', 'newspack-newsletters' ) }
-						className="newspack-newsletters__to-selectcontrol"
 						value={ listId }
 						options={ [
 							{
@@ -171,17 +228,19 @@ const ProviderSidebarComponent = ( {
 				</BaseControl>
 			) }
 
-			<p>
-				{ 'list' === sendMode ? (
-					<ExternalLink href={ 'https://help.campaignmonitor.com/create-a-subscriber-list' }>
-						{ __( 'Manage lists on Campaign Monitor', 'newspack-newsletters' ) }
-					</ExternalLink>
-				) : (
-					<ExternalLink href={ 'https://help.campaignmonitor.com/list-segmentation' }>
-						{ __( 'Manage segments on Campaign Monitor', 'newspack-newsletters' ) }
-					</ExternalLink>
-				) }
-			</p>
+			{ sendMode && (
+				<p>
+					{ 'segment' === sendMode ? (
+						<ExternalLink href={ 'https://help.campaignmonitor.com/list-segmentation' }>
+							{ __( 'Manage segments on Campaign Monitor', 'newspack-newsletters' ) }
+						</ExternalLink>
+					) : (
+						<ExternalLink href={ 'https://help.campaignmonitor.com/create-a-subscriber-list' }>
+							{ __( 'Manage lists on Campaign Monitor', 'newspack-newsletters' ) }
+						</ExternalLink>
+					) }
+				</p>
+			) }
 
 			<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
 			<TextControl
@@ -199,7 +258,7 @@ const ProviderSidebarComponent = ( {
 				disabled={ inFlight }
 				onChange={ value => updateMetaValue( 'cm_from_email', value ) }
 			/>
-		</Fragment>
+		</div>
 	);
 };
 
@@ -229,9 +288,7 @@ const mapDispatchToProps = dispatch => {
 	};
 };
 
-const ProviderSidebar = compose( [
+export const ProviderSidebar = compose( [
 	withSelect( mapStateToProps ),
 	withDispatch( mapDispatchToProps ),
 ] )( ProviderSidebarComponent );
-
-export default ProviderSidebar;

@@ -78,10 +78,7 @@ const Editor = compose( [
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
 			const params = getFetchDataConfig( { postId: props.postId } );
-			if (
-				0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ||
-				0 === params.path.indexOf( '/newspack-newsletters/v1/campaign_monitor/' )
-			) {
+			if ( 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
 				return;
 			}
 			props.apiFetchWithErrorHandling( params ).then( result => {

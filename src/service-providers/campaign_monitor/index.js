@@ -6,22 +6,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import ProviderSidebar from './ProviderSidebar';
-
-/**
- * Validation utility.
- *
- * @param  {Object} object data fetched using getFetchDataConfig
- * @return {string[]} Array of validation messages. If empty, newsletter is valid.
- */
-const validateNewsletter = ( { status } ) => {
-	const messages = [];
-	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
-	}
-
-	return messages;
-};
+import { ProviderSidebar, validateNewsletter } from './ProviderSidebar';
 
 /**
  * Get config used to fetch newsletter data.
@@ -42,11 +27,13 @@ const getFetchDataConfig = ( { postId } ) => ( {
  * @param {Object} newsletterData the data returned by getFetchDataConfig handler
  * @return {any} A React component
  */
-const renderPreSendInfo = ( newsletterData = {} ) => (
-	<p>
-		{ __( 'Sending newsletter to:', 'newspack-newsletters' ) } { newsletterData.listName }
-	</p>
-);
+const renderPreSendInfo = ( newsletterData = {} ) => {
+	return (
+		<p>
+			{ __( 'Sending newsletter to:', 'newspack-newsletters' ) } { newsletterData.listName }
+		</p>
+	);
+};
 
 export default {
 	validateNewsletter,
