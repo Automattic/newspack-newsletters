@@ -134,7 +134,6 @@ const ProviderSidebarComponent = ( {
 			from_name: senderName,
 		};
 
-		// TODO: the below attempts to pass the selecdted list/segment name to the presend check modal, but it only works if the ProviderSidebar is currently mounted and has run this function.
 		if ( 'list' === sendMode && listId ) {
 			const list = lists.find( thisList => listId === thisList.ListID );
 
