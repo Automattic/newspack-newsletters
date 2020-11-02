@@ -11,9 +11,15 @@ import {
 	ExternalLink,
 	RadioControl,
 	SelectControl,
+	Spinner,
 	TextControl,
 	Notice,
 } from '@wordpress/components';
+
+/**
+ * Internal dependencies
+ */
+import './style.scss';
 
 /**
  * Validation utility.
@@ -93,6 +99,7 @@ const ProviderSidebarComponent = ( {
 	 */
 	status,
 } ) => {
+	const [ isLoading, setIsLoading ] = useState( false );
 	const [ lists, setLists ] = useState( [] );
 	const [ segments, setSegments ] = useState( [] );
 	const { listId, segmentId, sendMode, senderName, senderEmail } = cmData;
@@ -102,6 +109,7 @@ const ProviderSidebarComponent = ( {
 	}, []);
 
 	const fetchListsAndSegments = async () => {
+		setIsLoading( true );
 		try {
 			const response = await apiFetch( {
 				path: `/newspack-newsletters/v1/campaign_monitor/${ postId }/retrieve`,
@@ -114,6 +122,7 @@ const ProviderSidebarComponent = ( {
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
 			);
 		}
+		setIsLoading( false );
 	};
 
 	useEffect(() => {
@@ -147,10 +156,11 @@ const ProviderSidebarComponent = ( {
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
 			{ renderSubject() }
-
 			<BaseControl className="newspack-newsletters__send-mode">
 				<RadioControl
-					className="newspack-newsletters__sendmode-radiocontrol"
+					className={
+						'newspack-newsletters__sendmode-radiocontrol' + ( inFlight ? ' inFlight' : '' )
+					}
 					label={ __( 'Send Mode', 'newspack-newsletters' ) }
 					selected={ sendMode }
 					onChange={ value => updateMetaValue( 'cm_send_mode', value ) }
@@ -160,8 +170,8 @@ const ProviderSidebarComponent = ( {
 					] }
 					disabled={ inFlight }
 				/>
+				{ inFlight && <Spinner /> }
 			</BaseControl>
-
 			{ 'list' === sendMode && lists && (
 				<BaseControl className="newspack-newsletters__list-select">
 					<SelectControl
@@ -181,9 +191,9 @@ const ProviderSidebarComponent = ( {
 						onChange={ value => updateMetaValue( 'cm_list_id', value ) }
 						disabled={ inFlight || ! lists.length }
 					/>
+					{ isLoading && <Spinner /> }
 				</BaseControl>
 			) }
-
 			{ 'segment' === sendMode && segments && (
 				<BaseControl className="newspack-newsletters__list-select">
 					<SelectControl
@@ -203,9 +213,9 @@ const ProviderSidebarComponent = ( {
 						onChange={ value => updateMetaValue( 'cm_segment_id', value ) }
 						disabled={ inFlight || ! segments.length }
 					/>
+					{ isLoading && <Spinner /> }
 				</BaseControl>
 			) }
-
 			{ sendMode && (
 				<p>
 					{ 'segment' === sendMode ? (
@@ -219,7 +229,6 @@ const ProviderSidebarComponent = ( {
 					) }
 				</p>
 			) }
-
 			<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
 			<TextControl
 				label={ __( 'Name', 'newspack-newsletters' ) }
