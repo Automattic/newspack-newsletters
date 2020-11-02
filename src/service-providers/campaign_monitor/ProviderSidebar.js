@@ -189,7 +189,7 @@ const ProviderSidebarComponent = ( {
 							} ) ),
 						] }
 						onChange={ value => updateMetaValue( 'cm_list_id', value ) }
-						disabled={ inFlight || ! lists.length }
+						disabled={ isLoading }
 					/>
 					{ isLoading && <Spinner /> }
 				</BaseControl>
@@ -211,7 +211,7 @@ const ProviderSidebarComponent = ( {
 							} ) ),
 						] }
 						onChange={ value => updateMetaValue( 'cm_segment_id', value ) }
-						disabled={ inFlight || ! segments.length }
+						disabled={ isLoading }
 					/>
 					{ isLoading && <Spinner /> }
 				</BaseControl>
