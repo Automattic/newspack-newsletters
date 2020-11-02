@@ -198,7 +198,11 @@ export default compose( [
 						) : null }
 						<Button
 							isPrimary
-							disabled={ newsletterValidationErrors.length > 0 }
+							disabled={
+								newsletterValidationErrors.length > 0 ||
+								( window.newspack_newsletters_data.service_provider === 'campaign_monitor' &&
+									! newsletterData.send_mode )
+							}
 							onClick={ () => {
 								triggerCampaignSend();
 								setModalVisible( false );
