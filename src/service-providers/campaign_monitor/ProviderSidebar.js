@@ -126,6 +126,7 @@ const ProviderSidebarComponent = ( {
 			segment_id: segmentId,
 			from_email: senderEmail,
 			from_name: senderName,
+			campaign: true,
 		};
 
 		const messages = validateNewsletter( updatedData );

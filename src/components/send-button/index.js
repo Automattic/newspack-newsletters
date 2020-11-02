@@ -67,15 +67,12 @@ export default compose( [
 	} ) => {
 		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
 
-		const hasCampaign =
-			newsletterData.campaign ||
-			window.newspack_newsletters_data.service_provider === 'campaign_monitor';
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			! isPublished &&
 			! isSaving &&
-			hasCampaign &&
+			newsletterData.campaign &&
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
