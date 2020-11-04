@@ -196,6 +196,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				$response['segment_id'] = $cm_segment_id;
 				$response['from_name']  = $cm_from_name;
 				$response['from_email'] = $cm_from_email;
+				$response['campaign']   = true;
 			}
 
 			return $response;
