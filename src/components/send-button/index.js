@@ -66,15 +66,13 @@ export default compose( [
 		isPublished,
 	} ) => {
 		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
-		const isCampaignMonitor =
-			window.newspack_newsletters_data.service_provider === 'campaign_monitor';
 
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			! isPublished &&
 			! isSaving &&
-			( newsletterData.campaign || isCampaignMonitor ) &&
+			newsletterData.campaign &&
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
@@ -200,10 +198,7 @@ export default compose( [
 						) : null }
 						<Button
 							isPrimary
-							disabled={
-								newsletterValidationErrors.length > 0 ||
-								( isCampaignMonitor && ! newsletterData.send_mode )
-							}
+							disabled={ newsletterValidationErrors.length > 0 }
 							onClick={ () => {
 								triggerCampaignSend();
 								setModalVisible( false );
