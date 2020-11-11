@@ -126,6 +126,10 @@ export default ( { onSetupStatus } ) => {
 								value: 'constant_contact',
 								label: __( 'Constant Contact', 'newspack-newsletters' ),
 							},
+							{
+								value: 'campaign_monitor',
+								label: __( 'Campaign Monitor', 'newspack-newsletters' ),
+							},
 						] }
 					/>
 					<hr />
@@ -191,6 +195,42 @@ export default ( { onSetupStatus } ) => {
 								<span className="separator"> | </span>
 								<ExternalLink href="https://constantcontact.mashery.com/io-docs">
 									{ __( 'Get Constant Contact access token', 'newspack-newsletters' ) }
+								</ExternalLink>
+							</p>
+							<hr />
+						</Fragment>
+					) }
+					{ 'campaign_monitor' === serviceProvider && (
+						<Fragment>
+							<h4>
+								{ __(
+									'Enter your Campaign Monitor API key and client ID',
+									'newspack-newsletters'
+								) }
+							</h4>
+							<TextControl
+								label={ __( 'Campaign Monitor API key', 'newspack-newsletters' ) }
+								value={ credentials.api_key }
+								onChange={ setCredentials( 'api_key' ) }
+								disabled={ inFlight }
+								onKeyDown={ handleKeyDown }
+								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+							/>
+							<TextControl
+								label={ __( 'Campaign Monitor Client ID', 'newspack-newsletters' ) }
+								value={ credentials.client_id }
+								onChange={ setCredentials( 'client_id' ) }
+								disabled={ inFlight }
+								onKeyDown={ handleKeyDown }
+								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+							/>
+							{ errors.newspack_newsletters_invalid_keys && (
+								<p className="error">{ errors.newspack_newsletters_invalid_keys }</p>
+							) }
+
+							<p>
+								<ExternalLink href="https://help.campaignmonitor.com/api-keys">
+									{ __( 'Get Campaign Monitor API key and Client ID', 'newspack-newsletters' ) }
 								</ExternalLink>
 							</p>
 							<hr />
