@@ -1,3 +1,11 @@
+# [1.15.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.14.0...v1.15.0-alpha.1) (2020-11-11)
+
+
+### Features
+
+* campaign monitor implementation ([#364](https://github.com/Automattic/newspack-newsletters/issues/364)) ([bd9c29a](https://github.com/Automattic/newspack-newsletters/commit/bd9c29acaccad8331c21a7957e095a0128e3d695)), closes [#369](https://github.com/Automattic/newspack-newsletters/issues/369)
+* enable custom footer ([#369](https://github.com/Automattic/newspack-newsletters/issues/369)) ([8334fa5](https://github.com/Automattic/newspack-newsletters/commit/8334fa55784a5a08143b23b1e88e78d07c033f19))
+
 # [1.14.0](https://github.com/Automattic/newspack-newsletters/compare/v1.13.0...v1.14.0) (2020-10-20)
 
 
