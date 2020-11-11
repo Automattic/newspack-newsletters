@@ -80,7 +80,10 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 			document.documentElement.style.setProperty( '--header-font', fontHeader );
 		}, [ fontHeader ]);
 		useEffect(() => {
-			document.querySelector( '.edit-post-visual-editor' ).style.backgroundColor = backgroundColor;
+			const editorElement = document.querySelector( '.edit-post-visual-editor' );
+			if ( editorElement ) {
+				editorElement.style.backgroundColor = backgroundColor;
+			}
 		}, [ backgroundColor ]);
 
 		return null;
