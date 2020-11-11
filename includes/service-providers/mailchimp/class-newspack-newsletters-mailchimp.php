@@ -24,6 +24,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'transition_post_status', [ $this, 'send' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
+		add_filter( 'newspack_newsletters_process_link', [ $this, 'process_link' ], 10, 2 );
 
 		parent::__construct( $this );
 	}
@@ -637,5 +638,24 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			throw new Exception( implode( ' ', $messages ) );
 		}
 		return $result;
+	}
+
+	/**
+	 * Special handling for link hrefs containing Mailchimp merge fields.
+	 *
+	 * @param String $processed The processed link, with utm_medium parameter added.
+	 * @param String $original The original, unprocessed link.
+	 * @return The link to use.
+	 */
+	public function process_link( $processed, $original ) {
+		// Match Mailchimp Merge Fields.
+		if ( preg_match( '/\*\|([A-Z_0-9:]+)\|\*/', $original ) ) {
+			// Check if http:// was prepended.
+			if ( 0 === strpos( $original, 'http://*|' ) ) {
+				$original = substr( $original, 7 );
+			}
+			return $original;
+		}
+		return $processed;
 	}
 }
