@@ -158,7 +158,10 @@ export default compose( [
 					isBusy={ isSaving && 'publish' === status }
 					isPrimary
 					isLarge
-					onClick={ () => setModalVisible( true ) }
+					onClick={ async () => {
+						await savePost();
+						setModalVisible( true );
+					} }
 					disabled={ ! isButtonEnabled }
 				>
 					{ label }
