@@ -25,6 +25,7 @@ const Editor = compose( [
 	withSelect( select => {
 		const {
 			getCurrentPostId,
+			getCurrentPostAttribute,
 			getEditedPostAttribute,
 			isPublishingPost,
 			isSavingPost,
@@ -33,8 +34,8 @@ const Editor = compose( [
 		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
 		const { getSettings } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const status = getEditedPostAttribute( 'status' );
-		const sentDate = getEditedPostAttribute( 'date' );
+		const status = getCurrentPostAttribute( 'status' );
+		const sentDate = getCurrentPostAttribute( 'date' );
 		const settings = getSettings();
 		const experimentalSettingsColors = get( settings, [
 			'__experimentalFeatures',
@@ -114,7 +115,7 @@ const Editor = compose( [
 	}, [ props.isReady ]);
 
 	useEffect(() => {
-		if ( 'publish' === props.status ) {
+		if ( 'publish' === props.status && ! props.isPublishingOrSavingPost ) {
 			const dateTime = props.sentDate ? new Date( props.sentDate ).toLocaleString() : '';
 
 			// Lock autosaving after a newsletter is sent.

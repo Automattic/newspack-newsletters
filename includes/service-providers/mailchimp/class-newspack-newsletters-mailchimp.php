@@ -418,6 +418,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	public function send( $new_status, $old_status, $post ) {
 		$post_id = $post->ID;
 
+		// Only run if the current service provider is Mailchimp.
+		if ( 'mailchimp' !== get_option( 'newspack_newsletters_service_provider', false ) ) {
+			return;
+		}
+
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
 			return new WP_Error(
 				'newspack_newsletters_incorrect_post_type',

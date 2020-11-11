@@ -105,6 +105,9 @@ final class Newspack_Newsletters {
 			case 'constant_contact':
 				self::$provider = Newspack_Newsletters_Constant_Contact::instance();
 				break;
+			case 'campaign_monitor':
+				self::$provider = Newspack_Newsletters_Campaign_Monitor::instance();
+				break;
 		}
 	}
 
@@ -117,18 +120,72 @@ final class Newspack_Newsletters {
 			'mc_campaign_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
 			]
 		);
+
+		/**
+		 * This meta field is used only in the editor.
+		 */
+		\register_meta(
+			'post',
+			'newsletterData',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'type'                 => 'object',
+						'context'              => [ 'edit' ],
+						'additionalProperties' => true,
+						'properties'           => [],
+					],
+				],
+				'type'           => 'object',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+
+		/**
+		 * This meta field is used only in the editor.
+		 */
+		\register_meta(
+			'post',
+			'newsletterValidationErrors',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'type'    => 'array',
+						'context' => [ 'edit' ],
+						'items'   => [
+							'type' => 'string',
+						],
+					],
+				],
+				'type'           => 'array',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+
 		\register_meta(
 			'post',
 			'cc_campaign_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -139,7 +196,101 @@ final class Newspack_Newsletters {
 			'mc_list_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_list_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_segment_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_send_mode',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_from_name',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_from_email',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_preview_text',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -150,7 +301,11 @@ final class Newspack_Newsletters {
 			'template_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'integer',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -162,7 +317,11 @@ final class Newspack_Newsletters {
 			'font_header',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -173,7 +332,11 @@ final class Newspack_Newsletters {
 			'font_body',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -184,7 +347,11 @@ final class Newspack_Newsletters {
 			'background_color',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -195,7 +362,11 @@ final class Newspack_Newsletters {
 			'preview_text',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -206,7 +377,11 @@ final class Newspack_Newsletters {
 			'diable_ads',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'boolean',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -217,7 +392,11 @@ final class Newspack_Newsletters {
 			'is_public',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => true,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
 				'type'           => 'boolean',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
@@ -629,6 +808,12 @@ final class Newspack_Newsletters {
 				'background_color',
 				'preview_text',
 				'diable_ads',
+				'cm_list_id',
+				'cm_segment_id',
+				'cm_send_mode',
+				'cm_from_name',
+				'cm_from_email',
+				'cm_preview_text',
 			]
 		);
 	}
