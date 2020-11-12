@@ -184,13 +184,18 @@ final class Newspack_Newsletters_Renderer {
 		$href_params = $matches[0];
 		$urls        = $matches[1];
 		foreach ( $urls as $index => $url ) {
-			$url_with_params = add_query_arg(
-				[
-					'utm_medium' => 'email',
-				],
+			$url_with_params = apply_filters(
+				'newspack_newsletters_process_link',
+				add_query_arg(
+					[
+						'utm_medium' => 'email',
+					],
+					$url
+				),
 				$url
 			);
-			$html            = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
+
+			$html = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
 		}
 		return $html;
 	}
