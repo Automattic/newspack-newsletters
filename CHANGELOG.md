@@ -1,3 +1,10 @@
+## [1.15.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.15.0...v1.15.1-alpha.1) (2020-11-17)
+
+
+### Bug Fixes
+
+* editor crash when in code mode ([#370](https://github.com/Automattic/newspack-newsletters/issues/370)) ([#374](https://github.com/Automattic/newspack-newsletters/issues/374)) ([26782b9](https://github.com/Automattic/newspack-newsletters/commit/26782b94d82aa6d9f73248ff19c3ffd2c7066f0b))
+
 # [1.15.0](https://github.com/Automattic/newspack-newsletters/compare/v1.14.0...v1.15.0) (2020-11-11)
 
 
