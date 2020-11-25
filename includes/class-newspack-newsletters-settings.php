@@ -92,6 +92,22 @@ class Newspack_Newsletters_Settings {
 				'sanitize_callback' => 'sanitize_title',
 				'type'              => 'text',
 			),
+
+			/**
+			 * Letterhead Creator key
+			 *
+			 * This key is required for folks who want to integrate promotions served through
+			 * Letterhead into their newsletters. It's generally passed as a bearer token against LH
+			 * API.
+			 *
+			 * @see https://help.tryletterhead.com/hc/en-us/articles/360051316834-API-reference
+			 */
+			array(
+				'default'     => '',
+				'description' => __( 'Letterhead Key (optional)', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_letterhead_api_key',
+				'type'        => 'text',
+			),
 		);
 
 		if ( class_exists( 'Jetpack' ) && \Jetpack::is_module_active( 'related-posts' ) ) {
