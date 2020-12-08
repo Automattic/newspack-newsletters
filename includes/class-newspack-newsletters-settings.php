@@ -102,6 +102,13 @@ class Newspack_Newsletters_Settings {
 			);
 		}
 
+		$settings_list[] = array(
+			'description' => __( 'Use Mailchimp Tags?', 'newspack-newsletters' ),
+			'key'         => 'newspack_newsletters_use_mailchimp_tags',
+			'type'        => 'checkbox',
+			'provider'    => 'mailchimp',
+		);
+
 		return $settings_list;
 	}
 
@@ -148,6 +155,9 @@ class Newspack_Newsletters_Settings {
 			'newspack-newsletters-settings-admin'
 		);
 		foreach ( self::get_settings_list() as $setting ) {
+			if ( isset( $setting['provider'] ) && get_option( 'newspack_newsletters_service_provider', null ) !== $setting['provider'] ) {
+				continue;
+			}
 			$args = [
 				'sanitize_callback' => ! empty( $setting['sanitize_callback'] ) ? $setting['sanitize_callback'] : 'sanitize_text_field',
 			];
