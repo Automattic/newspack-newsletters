@@ -307,8 +307,8 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['height'] ) ) {
 					$img_attrs['height'] = $attrs['height'] . 'px';
 				}
-				if ( isset( $attrs['linkDestination'] ) ) {
-					$img_attrs['href'] = $attrs['linkDestination'];
+				if ( isset( $attrs['href'] ) ) {
+					$img_attrs['href'] = $attrs['href'];
 				} else {
 					$maybe_link = $img->parentNode;// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					if ( $maybe_link && 'a' === $maybe_link->nodeName && $maybe_link->getAttribute( 'href' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
