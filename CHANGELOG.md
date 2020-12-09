@@ -1,3 +1,11 @@
+## [1.16.1](https://github.com/Automattic/newspack-newsletters/compare/v1.16.0...v1.16.1) (2020-12-09)
+
+
+### Bug Fixes
+
+* empty commit to trigger a release after CI job timeout ([0273e2a](https://github.com/Automattic/newspack-newsletters/commit/0273e2a5aaa4067f3f6671550fbd02bd3ab9e50b))
+* image links ([23a6dc9](https://github.com/Automattic/newspack-newsletters/commit/23a6dc98626a48aac3e87ad1fe293d7031acfcb6))
+
 # [1.16.0](https://github.com/Automattic/newspack-newsletters/compare/v1.15.1...v1.16.0) (2020-12-09)
 
 
