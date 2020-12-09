@@ -104,7 +104,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			'core/image',
 			{
 				url: alignCenter ? post.featuredImageLargeURL : post.featuredImageMediumURL,
-				linkDestination: post.link,
+				href: post.link,
 				...( alignCenter ? { align: 'center' } : {} ),
 			},
 		];
