@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/Automattic/newspack-newsletters/compare/v1.15.1...v1.16.0) (2020-12-09)
+
+
+### Features
+
+* setting to opt-in to mailchimp tags ([#380](https://github.com/Automattic/newspack-newsletters/issues/380)) ([a9e0c66](https://github.com/Automattic/newspack-newsletters/commit/a9e0c66a75e917a853053b1c3c178b97ef5d6957))
+
 ## [1.15.1](https://github.com/Automattic/newspack-newsletters/compare/v1.15.0...v1.15.1) (2020-11-17)
 
 
