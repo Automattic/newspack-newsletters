@@ -777,10 +777,14 @@ final class Newspack_Newsletters_Renderer {
 					'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 				)
 			);
-			if ( 401 === intval( $request['response']['code'] ) ) {
-				throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			} else {
+				if ( 401 === intval( $request['response']['code'] ) ) {
+					throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
+				}
+				return json_decode( $request['body'] )->html;
 			}
-			return is_wp_error( $request ) ? $request : json_decode( $request['body'] )->html;
 		}
 	}
 }
