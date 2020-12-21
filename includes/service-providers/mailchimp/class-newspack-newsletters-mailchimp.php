@@ -309,7 +309,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$result  = $this->validate(
 				$mc->post(
 					"campaigns/$mc_campaign_id/actions/test",
-					$payload
+					$payload,
+					60
 				),
 				__( 'Error sending test email.', 'newspack_newsletters' )
 			);
