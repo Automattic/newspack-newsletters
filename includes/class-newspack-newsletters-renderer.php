@@ -161,6 +161,11 @@ final class Newspack_Newsletters_Renderer {
 			$attrs['padding'] = '0';
 		}
 
+		if ( isset( $attrs['textAlign'] ) && ! isset( $attrs['align'] ) ) {
+			$attrs['align'] = $attrs['textAlign'];
+			unset( $attrs['textAlign'] );
+		}
+
 		if ( isset( $attrs['align'] ) && 'full' == $attrs['align'] ) {
 			$attrs['full-width'] = 'full-width';
 			unset( $attrs['align'] );
