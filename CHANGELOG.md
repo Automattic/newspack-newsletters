@@ -1,3 +1,12 @@
+## [1.16.2](https://github.com/Automattic/newspack-newsletters/compare/v1.16.1...v1.16.2) (2021-01-12)
+
+
+### Bug Fixes
+
+* alignment for elements using textAlign ([#390](https://github.com/Automattic/newspack-newsletters/issues/390)) ([405c33e](https://github.com/Automattic/newspack-newsletters/commit/405c33e734ebcf9656b6ddba405df3f10ac440af))
+* longer timeout for test send ([#389](https://github.com/Automattic/newspack-newsletters/issues/389)) ([0d18659](https://github.com/Automattic/newspack-newsletters/commit/0d1865902b9eed57cdb7e0c79f3ac9f20c67ea55))
+* **mjml:** error handling ([f47fdf4](https://github.com/Automattic/newspack-newsletters/commit/f47fdf454f90682168c9f46e63b3547937de96af))
+
 ## [1.16.1](https://github.com/Automattic/newspack-newsletters/compare/v1.16.0...v1.16.1) (2020-12-09)
 
 
