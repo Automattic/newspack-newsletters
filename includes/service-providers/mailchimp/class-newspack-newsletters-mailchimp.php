@@ -109,12 +109,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'list_id' => $list_id,
 				],
 			];
-
 			$result  = $this->validate(
-				$mc->patch(
-					"campaigns/$mc_campaign_id",
-					$payload
-				),
+				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
 				__( 'Error setting Mailchimp list.', 'newspack_newsletters' )
 			);
 
