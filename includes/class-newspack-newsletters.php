@@ -1180,7 +1180,7 @@ final class Newspack_Newsletters {
 				'relation' => 'OR',
 				[
 					'key'     => 'is_public',
-					'value'   => true, // This might need to be '1', not sure if it converts it automatically.
+					'value'   => true,
 					'compare' => '=',
 				],
 				[
