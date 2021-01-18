@@ -364,10 +364,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			 *
 			 * Allows custom tracking codes to be sent.
 			 *
-			 * @param array $payload Mailchimp payload.
+			 * @param array  $payload        Mailchimp payload.
+			 * @param object $post           Post object.
 			 * @param string $mc_campaign_id Mailchimp campaign ID, if defined.
 			 */
-			$payload = apply_filters( 'newspack_newsletters_mc_payload_sync', $payload, $mc_campaign_id );
+			$payload = apply_filters( 'newspack_newsletters_mc_payload_sync', $payload, $post, $mc_campaign_id );
 
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
