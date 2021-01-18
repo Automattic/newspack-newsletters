@@ -119,8 +119,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					 * Allows custom tracking codes to be sent and other use cases.
 					 *
 					 * @param array $payload Mailchimp payload.
+					 * @param string $mc_campaign_id Mailchimp campaign ID.
 					 */
-					apply_filters( 'newspack_newsletters_mc_payload', $payload )
+					apply_filters( 'newspack_newsletters_mc_payload', $payload, $mc_campaign_id )
 				),
 				__( 'Error setting Mailchimp list.', 'newspack_newsletters' )
 			);
