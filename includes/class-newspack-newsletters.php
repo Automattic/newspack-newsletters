@@ -80,7 +80,7 @@ final class Newspack_Newsletters {
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
-
+		add_action( 'pre_get_posts', [ __CLASS__, 'adjust_wp_query_for_public_newsletters' ] );
 		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
@@ -1161,6 +1161,35 @@ final class Newspack_Newsletters {
 	 */
 	public static function service_provider() {
 		return get_option( 'newspack_newsletters_service_provider', false );
+	}
+
+	/**
+	 * Add meta query elements to check if Newsletter is public.
+	 *
+	 * @param object $query The query.
+	 * @return object $query The query.
+	 */
+	public static function adjust_wp_query_for_public_newsletters( $query ) {
+		if ( is_admin() ) {
+			return;
+		}
+		$post_type = $query->get( 'post_type', '' );
+		if ( self::NEWSPACK_NEWSLETTERS_CPT === $post_type || ( is_array( $post_type ) && in_array( self::NEWSPACK_NEWSLETTERS_CPT, $post_type ) ) ) {
+			$meta_query   = $query->get( 'meta_query', [] ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
+			$meta_query[] = [
+				'relation' => 'OR',
+				[
+					'key'     => 'is_public',
+					'value'   => true, // This might need to be '1', not sure if it converts it automatically.
+					'compare' => '=',
+				],
+				[
+					'key'     => 'is_public',
+					'compare' => 'NOT EXISTS',
+				],
+			];
+			$query->set( 'meta_query', $meta_query ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
+		}
 	}
 }
 Newspack_Newsletters::instance();
