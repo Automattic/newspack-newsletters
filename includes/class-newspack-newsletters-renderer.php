@@ -660,7 +660,7 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Return an array of ads prepared to be inserted into the email template. If the Newspack
 	 * author has Letterhead enabled, we'll prefer fetching ads from that API. If not, we'll
-	 * prefer native ads.
+	 * prefer Newspack ad types.
 	 *
 	 * @param string $post_date The WP Post date.
 	 * @param int    $total_length The total length of the content.
