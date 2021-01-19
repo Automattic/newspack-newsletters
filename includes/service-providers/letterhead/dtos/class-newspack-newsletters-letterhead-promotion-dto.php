@@ -8,7 +8,7 @@
 /**
  * Class Newspack_Newsletters_Letterhead_Promotion_Dto
  *
- * This is just a barebones object we use to make it a tad more
+ * This is a barebones object we use to make it a tad more
  * convenient to work the Promotion data from Letterhead. There are a lot more
  * available properties, but we only include those we want to use in Newspack.
  */

@@ -38,7 +38,7 @@ class Newspack_Newsletters_Letterhead_Promotion {
 	}
 
 	/**
-	 * Convert a Letterhead promotion into an array compatible with how Newspack inserts ads
+	 * Convert a Letterhead promotion into an array compatible with the way Newspack inserts ads
 	 * into email template.
 	 *
 	 * @param int $content_length The total length of the content.

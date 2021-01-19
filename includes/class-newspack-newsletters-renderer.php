@@ -677,7 +677,7 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
-	 * Gets a newspack native ad and formats it for insertion.
+	 * Gets a newspack ad and formats it for insertion.
 	 *
 	 * @param WP_Post $ad The Ad newsletter post.
 	 * @param int     $total_length_of_content The length of content.

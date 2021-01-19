@@ -3,13 +3,11 @@
  * Service Provider: Letterhead
  *
  * Letterhead is a service that provides - er - self-service ads (called promotions)
- * for news-organization newsletters : ). We're optimistically organizing this
+ * for news-organization newsletters. We're optimistically organizing this
  * with service providers both because it's a third-party partner integration, but
  * also because eventually we think Newspack writers who use Letterhead may want to
- * have LH handle the sending.
- *
- * This class includes a bunch of dull methods that don't do anything yet, but are
- * added to satisfy the needs of the interface implemented by Newspack_Newsletters_Service_Provider.
+ * have LH handle the sending in the future. This class should make it easier
+ * to hook into existing functionality.
  *
  * @package Newspack
  * @version 0.1.0
@@ -65,7 +63,7 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 		}
 
 		$credentials = $this->api_credentials();
-		$url         = "https://platform.staging.whereby.us/api/v2/promotions/?date={$date}&mjml=true";
+		$url         = "https://platform.whereby.us/api/v2/promotions/?date={$date}&mjml=true";
 
 		$request_headers = [
 			'Authorization' => "Bearer {$credentials}",
