@@ -63,7 +63,7 @@
 			text-align: center;
 			border-color: transparent !important;
 			&:focus {
-				border-color: blue !important;
+				border-color: $blue-medium-focus !important;
 			}
 		}
 		.components-base-control__field {
