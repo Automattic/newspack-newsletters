@@ -237,7 +237,7 @@
 
 				&:hover,
 				&:focus {
-					border-color: $blue-medium-focus;
+					border-color: blue;
 				}
 
 				.block-editor-block-preview__container {
@@ -321,7 +321,7 @@
 		}
 		&--is-active::after {
 			height: 3px;
-			background-color: $blue-medium-focus;
+			background-color: blue;
 		}
 	}
 }

@@ -31,6 +31,8 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/service-providers/con
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/service-providers/campaign_monitor/class-newspack-newsletters-campaign-monitor.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/service-providers/campaign_monitor/class-newspack-newsletters-campaign-monitor-controller.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/service-providers/letterhead/class-newspack-newsletters-letterhead.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/service-providers/letterhead/dtos/class-newspack-newsletters-letterhead-promotion-dto.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/service-providers/letterhead/models/class-newspack-newsletters-letterhead-promotion.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsletters-editor.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsletters-layouts.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsletters-settings.php';

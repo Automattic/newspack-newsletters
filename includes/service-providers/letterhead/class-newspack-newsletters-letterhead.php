@@ -34,7 +34,107 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 	}
 
 	/**
-	 * Whether we have a complete set of Letterhead credentials.
+	 * Fetch the newsletter's promotions from Letterhead and format them for insertion
+	 * in Newspack's email template.
+	 *
+	 * @param string $date The date of the publication.
+	 * @param int    $length_of_newsletter The length of the newsletter.
+	 * @return array
+	 */
+	public function get_and_prepare_promotions_for_insertion( $date, $length_of_newsletter ) {
+		$promotions_from_api = $this->get_promotions_by_date( $date );
+
+		return array_map(
+			function ( Newspack_Newsletters_Letterhead_Promotion $promotion ) use ( $length_of_newsletter ) {
+				return $promotion->convert_to_compatible_newspack_ad_array( $length_of_newsletter );
+			},
+			$promotions_from_api
+		);
+	}
+
+	/**
+	 * This will call the Letterhead promotions API with the specific date passed as the
+	 * argument and the appropriate credentials. It will return an array.
+	 *
+	 * @param string $date The date of publication.
+	 * @return array
+	 */
+	public function get_promotions_by_date( $date ) {
+		if ( ! $this->has_api_credentials() ) {
+			return [];
+		}
+
+		$credentials = $this->api_credentials();
+		$url         = "https://platform.staging.whereby.us/api/v2/promotions/?date={$date}&mjml=true";
+
+		$request_headers = [
+			'Authorization' => "Bearer {$credentials}",
+		];
+
+		$request_arguments = [
+			'headers' => $request_headers,
+		];
+
+		$response = function_exists( 'vip_safe_wp_remote_get' )
+			? vip_safe_wp_remote_get( $url, '', 1, 1, 60, $request_arguments )
+            // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
+			: wp_remote_get( $url, $request_arguments );
+
+		/**
+		 * Our end users don't really benefit from having a broken experience just because our API call
+		 * failed. We can fail silently and return an empty array.
+		 */
+		if ( is_wp_error( $response ) ) {
+			// We should log the error somewhere.
+			return [];
+		}
+
+		$promotions = wp_remote_retrieve_body( $response );
+
+		return $this->get_promotions_from_json_response( $promotions );
+	}
+
+	/**
+	 * Pass the json response from, presumably, a Letterhead API call, and return an array of
+	 * Promotions.
+	 *
+	 * @param string $promotions_json The json response from a successful Lettherhead API query.
+	 * @return array Newspack_Newsletters_Letterhead_Promotion[]
+	 */
+	private function get_promotions_from_json_response( $promotions_json ) {
+		$promotion_response_object = json_decode( $promotions_json, false );
+
+		/**
+		 * We'll pass the json body through the Dto to normalize and get just the promotion data
+		 * we care about.
+		 *
+		 * @var array Newspack_Newsletters_Letterhead_Promotion_Dto[]
+		 */
+		$array_of_promotion_dtos = array_map(
+			function( \stdClass $promotion_object ) {
+				return new Newspack_Newsletters_Letterhead_Promotion_Dto( $promotion_object );
+			},
+			$promotion_response_object
+		);
+
+		/**
+		 * Then we'll get an array of Promotions from these Dtos.
+		 *
+		 * @var array Newspack_Newsletters_Letterhead_Promotion[]
+		 */
+		$array_of_promotions = array_map(
+			function( Newspack_Newsletters_Letterhead_Promotion_Dto $dto ) {
+				return new Newspack_Newsletters_Letterhead_Promotion( $dto );
+			},
+			$array_of_promotion_dtos
+		);
+
+		return $array_of_promotions;
+	}
+
+	/**
+	 * Whether we have a complete set of Letterhead credentials. This doesn't presently check
+	 * whether the credentials are valid, just that they are present.
 	 *
 	 * @return bool Whether we have the API credentials we need.
 	 */
