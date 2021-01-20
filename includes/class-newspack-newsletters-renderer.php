@@ -625,6 +625,152 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
+	 * Return an array of Newspack-native ads.
+	 *
+	 * @param int $total_length_of_content The total length of content.
+	 * @return array
+	 */
+	private static function generate_array_of_newspack_native_ads_to_insert( $total_length_of_content ) {
+		$ad_post_type          = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$all_ads_no_pagination = -1;
+		$published_ad_status   = 'publish';
+
+		$query_to_fetch_published_ads = new WP_Query(
+			[
+				'post_type'      => $ad_post_type,
+				'posts_per_page' => $all_ads_no_pagination,
+				'posts_status'   => $published_ad_status,
+			]
+		);
+
+		$published_ads = $query_to_fetch_published_ads->get_posts();
+
+		$published_ads_to_insert = [];
+
+		foreach ( $published_ads as $ad ) {
+			$ad_prepared_for_insertion = self::get_ad_prepared_for_insertion( $ad, $total_length_of_content );
+			if ( ! empty( $ad_prepared_for_insertion ) ) {
+				$published_ads_to_insert[] = $ad_prepared_for_insertion;
+			}
+		}
+
+		return $published_ads_to_insert;
+	}
+
+	/**
+	 * Return an array of ads prepared to be inserted into the email template. If the Newspack
+	 * author has Letterhead enabled, we'll prefer fetching ads from that API. If not, we'll
+	 * prefer Newspack ad types.
+	 *
+	 * @param string $post_date The WP Post date.
+	 * @param int    $total_length The total length of the content.
+	 * @return array
+	 */
+	private static function get_ads( $post_date, $total_length ) {
+		$publication_date_formatted_for_letterhead_api = gmdate( 'Y-m-d', strtotime( $post_date ) );
+		$letterhead                                    = new Newspack_Newsletters_Letterhead();
+		$include_native_ads                            = ! $letterhead->has_api_credentials();
+
+		return $include_native_ads
+			? self::generate_array_of_newspack_native_ads_to_insert( $total_length )
+			: $letterhead->get_and_prepare_promotions_for_insertion( $publication_date_formatted_for_letterhead_api, $total_length );
+	}
+
+	/**
+	 * Gets a newspack ad and formats it for insertion.
+	 *
+	 * @param WP_Post $ad The Ad newsletter post.
+	 * @param int     $total_length_of_content The length of content.
+	 * @return array|null
+	 */
+	private static function get_ad_prepared_for_insertion( $ad, $total_length_of_content ) {
+		$ad_id                  = $ad->ID;
+		$is_published_ad_active = self::is_published_ad_active( $ad_id );
+
+		if ( $is_published_ad_active ) {
+			$positioning      = self::get_ad_position_percentage( $ad_id );
+			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
+
+			return [
+				'is_inserted'      => false,
+				'markup'           => self::post_to_mjml_components( $ad, false ),
+				'percentage'       => $positioning,
+				'precise_position' => $precise_position,
+			];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Given the position preference on the ad object and the total length of newsletter content, we'll return
+	 * a specific number to indicate where the ad should be inserted in the body of the newsletter.
+	 *
+	 * @param int $position_percentage The position preference on an ad.
+	 * @param int $total_length_of_newsletter_content The total length of newsletter content.
+	 * @return float|int
+	 */
+	public static function get_ad_placement_precise_position( $position_percentage, $total_length_of_newsletter_content ) {
+		return $total_length_of_newsletter_content * $position_percentage;
+	}
+
+	/**
+	 * Gets the position preference of a newspack native ad from post meta.
+	 *
+	 * @param int $ad_id The id of the ad post type.
+	 * @return float|int
+	 */
+	private static function get_ad_position_percentage( $ad_id ) {
+		$position_key   = 'position_in_content';
+		$position_value = get_post_meta( $ad_id, $position_key, true );
+
+		return intval( $position_value ) / 100;
+	}
+
+	/**
+	 * Whether the newspack native ad is active or expired.
+	 *
+	 * @param int $ad_id ID of the Ad post type.
+	 * @return bool
+	 */
+	private static function is_published_ad_active( $ad_id ) {
+		$expiration_date = self::get_ad_expiration_date( $ad_id );
+
+		if ( ! $expiration_date ) {
+			return true;
+		}
+
+		return self::is_ad_unexpired( $expiration_date );
+	}
+
+	/**
+	 * Determines whetherthe newspack native ad is expired.
+	 *
+	 * @param string $expiration_date_as_datetime The expiration date as datetime.
+	 * @return bool
+	 */
+	private static function is_ad_unexpired( $expiration_date_as_datetime ) {
+		$date_format               = 'Y-m-d';
+		$formatted_expiration_date = $expiration_date_as_datetime->format( $date_format );
+		$today                     = gmdate( $date_format );
+
+		return $formatted_expiration_date >= $today;
+	}
+
+	/**
+	 * Returns the ad expiration date of a native Ad post type from the post meta.
+	 *
+	 * @param int $ad_id The ad id.
+	 * @return DateTime
+	 */
+	private static function get_ad_expiration_date( $ad_id ) {
+		$expiration_date_meta_key   = 'expiry_date';
+		$expiration_date_meta_value = get_post_meta( $ad_id, $expiration_date_meta_key, true );
+
+		return new DateTime( $expiration_date_meta_value );
+	}
+
+	/**
 	 * Convert a WP post to MJML components.
 	 *
 	 * @param WP_Post $post The post.
@@ -632,39 +778,37 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup to be injected into the template.
 	 */
 	private static function post_to_mjml_components( $post, $include_ads ) {
-		$body         = '';
+		/**
+		 * We'll start with an empty $body string and progressively update this
+		 * variable with html.
+		 */
+		$body = '';
+
+		/**
+		 * The post content.
+		 */
+		$content = $post->post_content;
+
 		$valid_blocks = array_filter(
-			parse_blocks( $post->post_content ),
+			parse_blocks( $content ),
 			function ( $block ) {
 				return null !== $block['blockName'];
 			}
 		);
+
+		/**
+		 * The total length of the Newsletter, which we use to hashtag math and determine
+		 * the position an ad is included.
+		 */
 		$total_length = self::get_total_newsletter_character_length( $valid_blocks );
 
-		// Gather ads.
+		/**
+		 * When ads are enabled, we fetch and format them for insertion.
+		 *
+		 * @note "diable_ads" is a typo that's been in production for awhile.
+		 */
 		if ( $include_ads && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
-			$ads_query = new WP_Query(
-				array(
-					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
-					'posts_per_page' => -1,
-					'posts_status'   => 'publish',
-				)
-			);
-
-			foreach ( $ads_query->get_posts() as $ad ) {
-				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
-
-				// Ad is active if it has no expiry date (a peristent ad) or the date is equal to or after today.
-				if ( ! $expiry_date || $expiry_date->format( 'Y-m-d' ) >= gmdate( 'Y-m-d' ) ) {
-					$percentage            = intval( get_post_meta( $ad->ID, 'position_in_content', true ) ) / 100;
-					self::$ads_to_insert[] = [
-						'precise_position' => $total_length * $percentage,
-						'percentage'       => $percentage,
-						'markup'           => self::post_to_mjml_components( $ad, false ),
-						'is_inserted'      => false,
-					];
-				}
-			}
+			self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
 		}
 
 		// Build MJML body and insert ads.
@@ -693,7 +837,7 @@ final class Newspack_Newsletters_Renderer {
 				// Insert ads between other blocks.
 				$block_content = self::render_mjml_component( $block );
 				if ( $include_ads ) {
-					$current_position += strlen( wp_strip_all_tags( $block_content ) );
+					$current_position += strlen( $block_content );
 					$body              = self::insert_ads( $body, $current_position );
 				}
 			}
@@ -718,6 +862,7 @@ final class Newspack_Newsletters_Renderer {
 	private static function render_mjml( $post ) {
 		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
+		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
 		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
 			self::$font_header = 'Arial';
@@ -726,7 +871,11 @@ final class Newspack_Newsletters_Renderer {
 			self::$font_body = 'Georgia';
 		}
 
-		$title            = $post->post_title; // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$title = $post->post_title; // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+
+		/**
+		 * Generate a string of MJML as the body of the email. We include ads at this stage.
+		 */
 		$body             = self::post_to_mjml_components( $post, true ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$preview_text     = get_post_meta( $post->ID, 'preview_text', true );
@@ -755,6 +904,9 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Convert a WP Post to email-compliant HTML.
 	 *
+	 * @note `render_html_email` is called every time a Newspack newsletter `sync`s, which
+	 * in turn is called whenever the Newsletter custom post type is saved.
+	 *
 	 * @param WP_Post $post The post.
 	 * @return string email-compliant HTML.
 	 * @throws Exception Error message.
@@ -777,6 +929,7 @@ final class Newspack_Newsletters_Renderer {
 					'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 				)
 			);
+
 			if ( 401 === intval( $request['response']['code'] ) ) {
 				throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
 			}

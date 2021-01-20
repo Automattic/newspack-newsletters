@@ -105,7 +105,7 @@ class Newspack_Newsletters_Settings {
 			array(
 				'default'     => '',
 				'description' => __( 'Letterhead Key (optional)', 'newspack-newsletters' ),
-				'key'         => 'newspack_newsletters_letterhead_api_key',
+				'key'         => Newspack_Newsletters_Letterhead::LETTERHEAD_WP_OPTION_KEY,
 				'type'        => 'text',
 			),
 		);
