@@ -64,7 +64,7 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 
 
 		$credentials = $this->api_credentials();
-		$url         = getenv( 'NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT' ) . "/api/v2/promotions/?date={$date}&mjml=true";
+		$url         = NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT . "/api/v2/promotions/?date={$date}&mjml=true";
 
 		$request_headers = [
 			'Authorization' => "Bearer {$credentials}",
