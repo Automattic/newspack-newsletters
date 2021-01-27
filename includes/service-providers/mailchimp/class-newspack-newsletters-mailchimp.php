@@ -173,8 +173,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
+			$newspack_newsletters_use_mailchimp_tags = get_option( 'newspack_newsletters_use_mailchimp_tags', false );
+
 			$tags = [];
-			if ( $list_id ) {
+			if ( $list_id && $newspack_newsletters_use_mailchimp_tags ) {
 				$tags_response = $this->validate(
 					$mc->get( "lists/$list_id/segments?count=1000", [], 20 ),
 					__( 'Error retrieving Mailchimp tags.', 'newspack_newsletters' )
@@ -307,7 +309,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$result  = $this->validate(
 				$mc->post(
 					"campaigns/$mc_campaign_id/actions/test",
-					$payload
+					$payload,
+					60
 				),
 				__( 'Error sending test email.', 'newspack_newsletters' )
 			);
