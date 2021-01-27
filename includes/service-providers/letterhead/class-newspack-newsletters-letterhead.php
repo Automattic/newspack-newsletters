@@ -62,8 +62,9 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 			return [];
 		}
 
+
 		$credentials = $this->api_credentials();
-		$url         = "https://platform.whereby.us/api/v2/promotions/?date={$date}&mjml=true";
+		$url         = getenv( 'NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT' ) . "/api/v2/promotions/?date={$date}&mjml=true";
 
 		$request_headers = [
 			'Authorization' => "Bearer {$credentials}",
@@ -75,7 +76,7 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 
 		$response = function_exists( 'vip_safe_wp_remote_get' )
 			? vip_safe_wp_remote_get( $url, '', 1, 1, 60, $request_arguments )
-            // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
+			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
 			: wp_remote_get( $url, $request_arguments );
 
 		/**

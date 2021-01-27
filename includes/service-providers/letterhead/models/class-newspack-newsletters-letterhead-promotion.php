@@ -54,7 +54,7 @@ class Newspack_Newsletters_Letterhead_Promotion {
 		return [
 			'is_inserted'      => false,
 			'markup'           => $this->get_mjml(),
-			'percentage'       => 5,
+			'percentage'       => $this->positioning,
 			'precise_position' => $precise_position,
 		];
 	}
