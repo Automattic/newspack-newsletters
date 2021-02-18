@@ -530,8 +530,16 @@ final class Newspack_Newsletters {
 	 * @param array $query The WP query object.
 	 */
 	public static function maybe_display_public_archive_posts( $query ) {
-		// Only run on the main front-end query for post category and tag archives.
-		if ( is_admin() || ! $query->is_main_query() || ( ! is_category() && ! is_tag() ) ) {
+		// Only run on the main front-end query for post category and tag archives, or newsletter CPT archives.
+		if (
+			is_admin() ||
+			! $query->is_main_query() ||
+			(
+				! is_category() &&
+				! is_tag() &&
+				! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT )
+			)
+		) {
 			return;
 		}
 
@@ -541,7 +549,7 @@ final class Newspack_Newsletters {
 		}
 
 		// Filter out non-public Newsletter posts.
-		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
+		if ( is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT ) || self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
 			$meta_query = $query->get( 'meta_query' );
 
 			if ( empty( $meta_query ) || ! is_array( $meta_query ) ) {
