@@ -109,6 +109,15 @@ class Newspack_Newsletters_Settings {
 			'provider'    => 'mailchimp',
 		);
 
+		$settings_list = array_map(
+			function ( $item ) {
+				$default       = ! empty( $item['default'] ) ? $item['default'] : false;
+				$item['value'] = get_option( $item['key'], $default );
+				return $item;
+			},
+			$settings_list
+		);
+
 		return $settings_list;
 	}
 
@@ -186,8 +195,7 @@ class Newspack_Newsletters_Settings {
 		$key         = $setting['key'];
 		$type        = $setting['type'];
 		$description = $setting['description'];
-		$default     = ! empty( $setting['default'] ) ? $setting['default'] : false;
-		$value       = get_option( $key, $default );
+		$value       = $setting['value'];
 
 		if ( 'select' === $type ) {
 			$options     = $setting['options'];
