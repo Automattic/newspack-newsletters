@@ -54,26 +54,31 @@ class Newspack_Newsletters_Settings {
 				'description' => __( 'Mailchimp API Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_mailchimp_api_key',
 				'type'        => 'text',
+				'provider'    => 'mailchimp',
 			),
 			array(
 				'description' => __( 'Constant Contact API Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_constant_contact_api_key',
 				'type'        => 'text',
+				'provider'    => 'constant_contact',
 			),
 			array(
 				'description' => __( 'Constant Contact API Access token', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_constant_contact_api_access_token',
 				'type'        => 'text',
+				'provider'    => 'constant_contact',
 			),
 			array(
 				'description' => __( 'Campaign Monitor API Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_campaign_monitor_api_key',
 				'type'        => 'text',
+				'provider'    => 'campaign_monitor',
 			),
 			array(
 				'description' => __( 'Campaign Monitor Client ID', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_campaign_monitor_client_id',
 				'type'        => 'text',
+				'provider'    => 'campaign_monitor',
 			),
 			array(
 				'description' => __( 'MJML Application ID', 'newspack-newsletters' ),
@@ -164,9 +169,6 @@ class Newspack_Newsletters_Settings {
 			'newspack-newsletters-settings-admin'
 		);
 		foreach ( self::get_settings_list() as $setting ) {
-			if ( isset( $setting['provider'] ) && get_option( 'newspack_newsletters_service_provider', null ) !== $setting['provider'] ) {
-				continue;
-			}
 			$args = [
 				'sanitize_callback' => ! empty( $setting['sanitize_callback'] ) ? $setting['sanitize_callback'] : 'sanitize_text_field',
 			];
@@ -249,6 +251,17 @@ class Newspack_Newsletters_Settings {
 	public static function update_option_newspack_newsletters_public_posts_slug( $old_value, $new_value ) {
 		Newspack_Newsletters::register_cpt();
 		flush_rewrite_rules(); // phpcs:ignore
+	}
+
+	/**
+	 * Update settings.
+	 *
+	 * @param string $settings Update.
+	 */
+	public static function update_settings( $settings ) {
+		foreach ( $settings as $key => $value ) {
+			update_option( $key, $value );
+		}
 	}
 }
 
