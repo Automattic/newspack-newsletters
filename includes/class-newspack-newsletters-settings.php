@@ -259,8 +259,8 @@ class Newspack_Newsletters_Settings {
 	 * @param string $settings Update.
 	 */
 	public static function update_settings( $settings ) {
-		foreach ($settings as $key => $value) {
-			update_option($key, $value);
+		foreach ( $settings as $key => $value ) {
+			update_option( $key, $value );
 		}
 	}
 }
