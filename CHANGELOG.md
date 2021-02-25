@@ -1,3 +1,11 @@
+# [1.19.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.18.0...v1.19.0-alpha.1) (2021-02-25)
+
+
+### Features
+
+* add settings update method ([#407](https://github.com/Automattic/newspack-newsletters/issues/407)) ([158a2dc](https://github.com/Automattic/newspack-newsletters/commit/158a2dccd05ff37b100aa1b5619a31a21f10571e))
+* provide settings values early ([e5e078d](https://github.com/Automattic/newspack-newsletters/commit/e5e078dd53825e003fd3fc1ce3224960ade4e314))
+
 # [1.18.0](https://github.com/Automattic/newspack-newsletters/compare/v1.17.0...v1.18.0) (2021-01-28)
 
 
