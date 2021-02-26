@@ -133,8 +133,8 @@ export default compose( [
 
 		const [ modalVisible, setModalVisible ] = useState( false );
 
-		// For public and published newsletters, display the generic button text.
-		if ( isPublished && is_public ) {
+		// For sent newsletters, display the generic button text.
+		if ( isPublished ) {
 			return (
 				<Button
 					className="editor-post-publish-button"
