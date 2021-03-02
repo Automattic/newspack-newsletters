@@ -1,3 +1,10 @@
+# [1.19.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.19.0-alpha.1...v1.19.0-alpha.2) (2021-03-02)
+
+
+### Bug Fixes
+
+* **ads:** prevent draft ads insertion ([#410](https://github.com/Automattic/newspack-newsletters/issues/410)) ([381dc51](https://github.com/Automattic/newspack-newsletters/commit/381dc5174806118d50da07d7bb89d40f073146a1))
+
 # [1.19.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.18.0...v1.19.0-alpha.1) (2021-02-25)
 
 
