@@ -421,6 +421,11 @@ final class Newspack_Newsletters {
 	public static function register_cpt() {
 		$public_slug = get_option( 'newspack_newsletters_public_posts_slug', 'newsletter' );
 
+		// Prevent empty slug value.
+		if ( empty( $public_slug ) ) {
+			$public_slug = 'newsletter';
+		}
+
 		$labels = [
 			'name'               => _x( 'Newsletters', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'      => _x( 'Newsletter', 'post type singular name', 'newspack-newsletters' ),

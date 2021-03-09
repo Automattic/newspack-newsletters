@@ -196,8 +196,9 @@ class Newspack_Newsletters_Settings {
 	public static function newspack_newsletters_settings_callback( $setting ) {
 		$key         = $setting['key'];
 		$type        = $setting['type'];
+		$default     = $setting['default'];
 		$description = $setting['description'];
-		$value       = $setting['value'];
+		$value       = empty( $setting['value'] ) && ! empty( $default ) ? $default : $setting['value'];
 
 		if ( 'select' === $type ) {
 			$options     = $setting['options'];
@@ -249,6 +250,11 @@ class Newspack_Newsletters_Settings {
 	 * @param string $new_value The new value.
 	 */
 	public static function update_option_newspack_newsletters_public_posts_slug( $old_value, $new_value ) {
+		// Prevent empty slug value.
+		if ( empty( $new_value ) ) {
+			return update_option( 'newspack_newsletters_public_posts_slug', 'newsletter' ); // Return early to prevent flushing rewrite rules twice.
+		}
+
 		Newspack_Newsletters::register_cpt();
 		flush_rewrite_rules(); // phpcs:ignore
 	}
