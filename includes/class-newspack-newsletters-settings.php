@@ -196,9 +196,8 @@ class Newspack_Newsletters_Settings {
 	public static function newspack_newsletters_settings_callback( $setting ) {
 		$key         = $setting['key'];
 		$type        = $setting['type'];
-		$default     = $setting['default'];
 		$description = $setting['description'];
-		$value       = empty( $setting['value'] ) && ! empty( $default ) ? $default : $setting['value'];
+		$value       = empty( $setting['value'] ) && ! empty( $setting['default'] ) ? $setting['default'] : $setting['value'];
 
 		if ( 'select' === $type ) {
 			$options     = $setting['options'];
