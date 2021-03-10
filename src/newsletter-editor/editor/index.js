@@ -90,7 +90,7 @@ const Editor = compose( [
 			data: props.colorPalette,
 			method: 'POST',
 		} );
-	}, [ isEmpty( props.colorPalette ) ]);
+	}, [ JSON.stringify( props.colorPalette ) ]);
 
 	// Fetch data from service provider.
 	useEffect(() => {
