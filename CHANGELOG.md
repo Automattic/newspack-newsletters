@@ -1,3 +1,10 @@
+# [1.20.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.19.1-alpha.1...v1.20.0-alpha.1) (2021-03-16)
+
+
+### Features
+
+* add revisions support for newsletter CPTs ([#420](https://github.com/Automattic/newspack-newsletters/issues/420)) ([3e51831](https://github.com/Automattic/newspack-newsletters/commit/3e518315f92b0b6fde38ddac66e918ab2e8c00cf))
+
 ## [1.19.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.19.0...v1.19.1-alpha.1) (2021-03-16)
 
 

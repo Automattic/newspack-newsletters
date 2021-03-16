@@ -6,7 +6,7 @@
  * Author:          Automattic
  * Text Domain:     newspack-newsletters
  * Domain Path:     /languages
- * Version:         1.19.1-alpha.1
+ * Version:         1.20.0-alpha.1
  *
  * @package         Newspack_Newsletters
  */
