@@ -1,3 +1,17 @@
+# [1.20.0](https://github.com/Automattic/newspack-newsletters/compare/v1.19.0...v1.20.0) (2021-03-16)
+
+
+### Bug Fixes
+
+* colors of headings with links; top block space in editor ([3a720a6](https://github.com/Automattic/newspack-newsletters/commit/3a720a6b4a4a73edbb62df701bf24ea8f8a4bab7))
+* editor colors ([02e2057](https://github.com/Automattic/newspack-newsletters/commit/02e205706beca8d759c6ccb3f22ad83a91e2b8a6))
+* only show public newsletters on CPT archive pages ([#406](https://github.com/Automattic/newspack-newsletters/issues/406)) ([ec42ceb](https://github.com/Automattic/newspack-newsletters/commit/ec42ceb479ad1073aaba54ee5655966fcfe98621))
+
+
+### Features
+
+* add revisions support for newsletter CPTs ([#420](https://github.com/Automattic/newspack-newsletters/issues/420)) ([3e51831](https://github.com/Automattic/newspack-newsletters/commit/3e518315f92b0b6fde38ddac66e918ab2e8c00cf))
+
 # [1.19.0](https://github.com/Automattic/newspack-newsletters/compare/v1.18.0...v1.19.0) (2021-03-03)
 
 
