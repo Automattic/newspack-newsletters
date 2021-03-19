@@ -77,7 +77,6 @@ final class Newspack_Newsletters {
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
-		add_action( 'pre_get_posts', [ __CLASS__, 'adjust_wp_query_for_public_newsletters' ] );
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
 		self::set_service_provider( self::service_provider() );
 
@@ -550,27 +549,31 @@ final class Newspack_Newsletters {
 		}
 
 		// Allow Newsletter posts to appear in post category and tag archives.
-		if ( empty( $query->get( 'post_type' ) ) ) {
+		if ( is_category() || is_tag() || empty( $query->get( 'post_type' ) ) ) {
 			$query->set( 'post_type', [ 'post', self::NEWSPACK_NEWSLETTERS_CPT ] );
 		}
 
 		// Filter out non-public Newsletter posts.
-		if ( is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT ) || self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
-			$meta_query = $query->get( 'meta_query' );
+		$meta_query        = $query->get( 'meta_query', [] ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
+		$meta_query_params = [
+			[
+				'key'     => 'is_public',
+				'value'   => true,
+				'compare' => '=',
+			],
+		];
 
-			if ( empty( $meta_query ) || ! is_array( $meta_query ) ) {
-				$meta_query = [];
-			}
-
-			$meta_query[] = [
-				'key'          => 'is_public',
-				'value'        => '1',
-				'meta_compare' => '=',
+		// If a regular post archive, also allow posts that don't have the is_public meta field.
+		if ( is_category() || is_tag() ) {
+			$meta_query_params['relation'] = 'OR';
+			$meta_query_params[]           = [
+				'key'     => 'is_public',
+				'compare' => 'NOT EXISTS',
 			];
-
-
-			$query->set( 'meta_query', $meta_query );
 		}
+
+		$meta_query[] = $meta_query_params;
+		$query->set( 'meta_query', $meta_query ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
 	}
 
 	/**
@@ -1137,35 +1140,6 @@ final class Newspack_Newsletters {
 	 */
 	public static function service_provider() {
 		return get_option( 'newspack_newsletters_service_provider', false );
-	}
-
-	/**
-	 * Add meta query elements to check if Newsletter is public.
-	 *
-	 * @param object $query The query.
-	 * @return object $query The query.
-	 */
-	public static function adjust_wp_query_for_public_newsletters( $query ) {
-		if ( is_admin() ) {
-			return;
-		}
-		$post_type = $query->get( 'post_type', '' );
-		if ( self::NEWSPACK_NEWSLETTERS_CPT === $post_type || ( is_array( $post_type ) && in_array( self::NEWSPACK_NEWSLETTERS_CPT, $post_type ) ) ) {
-			$meta_query   = $query->get( 'meta_query', [] ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
-			$meta_query[] = [
-				'relation' => 'OR',
-				[
-					'key'     => 'is_public',
-					'value'   => true,
-					'compare' => '=',
-				],
-				[
-					'key'     => 'is_public',
-					'compare' => 'NOT EXISTS',
-				],
-			];
-			$query->set( 'meta_query', $meta_query ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
-		}
 	}
 
 	/**
