@@ -78,6 +78,7 @@ final class Newspack_Newsletters {
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 		add_action( 'pre_get_posts', [ __CLASS__, 'adjust_wp_query_for_public_newsletters' ] );
+		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
 		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
@@ -452,7 +453,7 @@ final class Newspack_Newsletters {
 			'rewrite'          => [ 'slug' => $public_slug ],
 			'show_ui'          => true,
 			'show_in_rest'     => true,
-			'supports'         => [ 'author', 'editor', 'title', 'custom-fields', 'newspack_blocks', 'revisions' ],
+			'supports'         => [ 'author', 'editor', 'title', 'custom-fields', 'newspack_blocks', 'revisions', 'thumbnail' ],
 			'taxonomies'       => [ 'category', 'post_tag' ],
 			'menu_icon'        => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGQ9Ik0yMS45OSA4YzAtLjcyLS4zNy0xLjM1LS45NC0xLjdMMTIgMSAyLjk1IDYuM0MyLjM4IDYuNjUgMiA3LjI4IDIgOHYxMGMwIDEuMS45IDIgMiAyaDE2YzEuMSAwIDItLjkgMi0ybC0uMDEtMTB6TTEyIDEzTDMuNzQgNy44NCAxMiAzbDguMjYgNC44NEwxMiAxM3oiIGZpbGw9IiNhMGE1YWEiLz48L3N2Zz4K',
 		];
@@ -1165,6 +1166,19 @@ final class Newspack_Newsletters {
 			];
 			$query->set( 'meta_query', $meta_query ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
 		}
+	}
+
+	/**
+	 * If using a Newspack theme, add support for featured image options to all listings.
+	 *
+	 * @param array $post_types Array of supported post types.
+	 * @return array Filtered array of supported post types.
+	 */
+	public static function support_featured_image_options( $post_types ) {
+		return array_merge(
+			$post_types,
+			[ self::NEWSPACK_NEWSLETTERS_CPT ]
+		);
 	}
 }
 Newspack_Newsletters::instance();
