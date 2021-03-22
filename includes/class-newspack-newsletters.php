@@ -1143,7 +1143,7 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * If using a Newspack theme, add support for featured image options to all listings.
+	 * If using a Newspack theme, add support for featured image options.
 	 *
 	 * @param array $post_types Array of supported post types.
 	 * @return array Filtered array of supported post types.
