@@ -45,7 +45,6 @@ final class Newspack_Newsletters_Editor {
 	/**
 	 * Remove all editor enqueued assets besides this plugins' and disable some editor features.
 	 * This is to prevent theme styles being loaded in the editor.
-	 * Remove editor color palette theme supports - the MJML parser uses a static list of default editor colors.
 	 */
 	public static function strip_editor_modifications() {
 		if ( ! self::is_editing_newsletter() && ! self::is_editing_newsletter_ad() ) {
@@ -56,14 +55,13 @@ final class Newspack_Newsletters_Editor {
 		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
 			$action_handlers = array_keys( $filter );
 			foreach ( $action_handlers as $handler ) {
-				if ( __CLASS__ . '::enqueue_block_editor_assets' != $handler ) {
+				if ( __CLASS__ . '::enqueue_block_editor_assets' != $handler && 'newspack_enqueue_scripts' !== $handler ) {
 					remove_action( 'enqueue_block_editor_assets', $handler, $index );
 				}
 			}
 		}
 
 		remove_editor_styles();
-		remove_theme_support( 'editor-color-palette' );
 		add_theme_support( 'editor-gradient-presets', array() );
 		add_theme_support( 'disable-custom-gradients' );
 	}

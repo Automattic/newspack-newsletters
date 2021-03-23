@@ -90,7 +90,7 @@ const Editor = compose( [
 			data: props.colorPalette,
 			method: 'POST',
 		} );
-	}, [ isEmpty( props.colorPalette ) ]);
+	}, [ JSON.stringify( props.colorPalette ) ]);
 
 	// Fetch data from service provider.
 	useEffect(() => {
@@ -129,10 +129,13 @@ const Editor = compose( [
 	}, [ props.status ]);
 
 	useEffect(() => {
-		// Unhide post title if the newsletter is a public post.
-		document.querySelector( '.editor-post-title' ).style.display = props.isPublic
-			? 'initial'
-			: 'none';
+		// Hide post title if the newsletter is a not a public post.
+		const editorTitleEl = document.querySelector( '.editor-post-title' );
+		if ( editorTitleEl ) {
+			editorTitleEl.classList[ props.isPublic ? 'remove' : 'add' ](
+				'newspack-newsletters-post-title-hidden'
+			);
+		}
 	}, [ props.isPublic ]);
 
 	return createPortal( <SendButton />, publishEl );
