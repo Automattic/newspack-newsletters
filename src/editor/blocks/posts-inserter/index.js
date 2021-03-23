@@ -244,6 +244,7 @@ const PostsInserterBlockWithSelect = compose( [
 			tags,
 			tagExclusions,
 			categoryExclusions,
+			excerptLength,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
@@ -268,6 +269,7 @@ const PostsInserterBlockWithSelect = compose( [
 							exclude: preventDeduplication ? [] : exclude,
 							categories_exclude: categoryExclusions,
 							tags_exclude: tagExclusions,
+							excerpt_length: excerptLength,
 						},
 						value => ! isUndefined( value )
 				  );
