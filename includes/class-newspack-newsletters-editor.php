@@ -177,7 +177,7 @@ final class Newspack_Newsletters_Editor {
 	 * @param array           $args Request arguments.
 	 * @param WP_REST_Request $request The original REST request params.
 	 *
-	 * @return null Don't modify the request.
+	 * @return array Unmodified request args.
 	 */
 	public static function maybe_filter_excerpt_length( $args, $request ) {
 		$params = $request->get_params();
@@ -186,7 +186,7 @@ final class Newspack_Newsletters_Editor {
 			self::filter_excerpt_length( intval( $params['excerpt_length'] ) );
 		}
 
-		return null;
+		return $args;
 	}
 
 	/**
