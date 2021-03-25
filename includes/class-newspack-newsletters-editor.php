@@ -21,6 +21,13 @@ final class Newspack_Newsletters_Editor {
 	protected static $instance = null;
 
 	/**
+	 * Closure for excerpt filtering that can be added and removed.
+	 *
+	 * @var newspack_newsletters_excerpt_length_filter
+	 */
+	public static $newspack_newsletters_excerpt_length_filter = null;
+
+	/**
 	 * Main Newspack Newsletter Editor Instance.
 	 * Ensures only one instance of Newspack Editor Instance is loaded or can be loaded.
 	 *
@@ -40,6 +47,8 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
+		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
+		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 	}
 
 	/**
@@ -160,6 +169,80 @@ final class Newspack_Newsletters_Editor {
 	 */
 	public static function is_editing_newsletter_ad() {
 		return Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT === get_post_type();
+	}
+
+	/**
+	 * If excerpt length is set in Post Inserter block attributes, override the site's excerpt length using the setting.
+	 *
+	 * @param array           $args Request arguments.
+	 * @param WP_REST_Request $request The original REST request params.
+	 *
+	 * @return array Unmodified request args.
+	 */
+	public static function maybe_filter_excerpt_length( $args, $request ) {
+		$params = $request->get_params();
+
+		if ( isset( $params['excerpt_length'] ) ) {
+			self::filter_excerpt_length( intval( $params['excerpt_length'] ) );
+		}
+
+		return $args;
+	}
+
+	/**
+	 * After fetching posts, reset the excerpt length.
+	 *
+	 * @param array $posts Array of posts.
+	 *
+	 * @return array Unmodified array of posts.
+	 */
+	public static function maybe_reset_excerpt_length( $posts ) {
+		if ( self::$newspack_newsletters_excerpt_length_filter ) {
+			self::remove_excerpt_length_filter();
+		}
+
+		return $posts;
+	}
+
+	/**
+	 * Filter for excerpt length.
+	 *
+	 * @param int $excerpt_length Excerpt length to set.
+	 */
+	public static function filter_excerpt_length( $excerpt_length ) {
+		// If showing excerpt, filter the length using the block attribute.
+		if ( is_int( $excerpt_length ) ) {
+			self::$newspack_newsletters_excerpt_length_filter = add_filter(
+				'excerpt_length',
+				function() use ( $excerpt_length ) {
+					return $excerpt_length;
+				},
+				999
+			);
+			add_filter( 'wc_memberships_trimmed_restricted_excerpt', [ __CLASS__, 'remove_wc_memberships_excerpt_limit' ], 999 );
+		}
+	}
+
+	/**
+	 * Remove excerpt length filter after newsletters post loop.
+	 */
+	public static function remove_excerpt_length_filter() {
+		remove_filter(
+			'excerpt_length',
+			self::$newspack_newsletters_excerpt_length_filter,
+			999
+		);
+		remove_filter( 'wc_memberships_trimmed_restricted_excerpt', [ __CLASS__, 'remove_wc_memberships_excerpt_limit' ] );
+	}
+
+	/**
+	 * Function to override WooCommerce Membership's Excerpt Length filter.
+	 *
+	 * @return string Current post's original excerpt.
+	 */
+	public static function remove_wc_memberships_excerpt_limit() {
+		$excerpt = get_the_excerpt( get_the_id() );
+		return $excerpt;
 	}
 }
 Newspack_Newsletters_Editor::instance();
