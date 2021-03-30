@@ -120,19 +120,19 @@ const PostsInserterBlock = ( {
 	const blockControlsImages = [
 		{
 			icon: 'align-none',
-			title: __( 'Show image on top', 'newspack-blocks' ),
+			title: __( 'Show image on top', 'newspack-newsletters' ),
 			isActive: attributes.featuredImageAlignment === 'top',
 			onClick: () => setAttributes( { featuredImageAlignment: 'top' } ),
 		},
 		{
 			icon: 'align-pull-left',
-			title: __( 'Show image on left', 'newspack-blocks' ),
+			title: __( 'Show image on left', 'newspack-newsletters' ),
 			isActive: attributes.featuredImageAlignment === 'left',
 			onClick: () => setAttributes( { featuredImageAlignment: 'left' } ),
 		},
 		{
 			icon: 'align-pull-right',
-			title: __( 'Show image on right', 'newspack-blocks' ),
+			title: __( 'Show image on right', 'newspack-newsletters' ),
 			isActive: attributes.featuredImageAlignment === 'right',
 			onClick: () => setAttributes( { featuredImageAlignment: 'right' } ),
 		},
@@ -244,6 +244,7 @@ const PostsInserterBlockWithSelect = compose( [
 			tags,
 			tagExclusions,
 			categoryExclusions,
+			excerptLength,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
@@ -268,6 +269,7 @@ const PostsInserterBlockWithSelect = compose( [
 							exclude: preventDeduplication ? [] : exclude,
 							categories_exclude: categoryExclusions,
 							tags_exclude: tagExclusions,
+							excerpt_length: excerptLength,
 						},
 						value => ! isUndefined( value )
 				  );
