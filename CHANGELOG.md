@@ -1,3 +1,15 @@
+# [1.22.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.21.0...v1.22.0-alpha.1) (2021-03-30)
+
+
+### Bug Fixes
+
+* respect excerpt length setting while not messing up site excerpts ([#428](https://github.com/Automattic/newspack-newsletters/issues/428)) ([2c8d674](https://github.com/Automattic/newspack-newsletters/commit/2c8d6745b8be790deb5b5626a2fd769d1d17f676))
+
+
+### Features
+
+* add support for excerpts for newsletter CPTs ([#433](https://github.com/Automattic/newspack-newsletters/issues/433)) ([09f1800](https://github.com/Automattic/newspack-newsletters/commit/09f1800442e03aab2900dbfa74092a84a19e2f48))
+
 # [1.21.0](https://github.com/Automattic/newspack-newsletters/compare/v1.20.0...v1.21.0) (2021-03-23)
 
 
