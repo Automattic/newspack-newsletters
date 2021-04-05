@@ -802,7 +802,7 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		/**
-		 * The total length of the Newsletter, which we use to hashtag math and determine
+		 * The total length of the Newsletter, which we use to determine
 		 * the position an ad is included.
 		 */
 		$total_length = self::get_total_newsletter_character_length( $valid_blocks );
