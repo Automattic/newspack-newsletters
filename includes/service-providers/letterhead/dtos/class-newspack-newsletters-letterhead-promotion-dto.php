@@ -1,6 +1,6 @@
 <?php
 /**
- * Letterhead Promotion Dto.
+ * Letterhead Promotion Dto (Data Transfer Object).
  *
  * @package Newspack
  */
