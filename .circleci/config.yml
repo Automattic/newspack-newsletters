@@ -68,8 +68,7 @@ jobs:
             bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 latest
             ./vendor/bin/phpunit
 
-  # Release job
-  release:
+  release_github:
     docker:
       - image: circleci/php:7.2-node-browsers
     steps:
@@ -81,22 +80,35 @@ jobs:
           name: Install rsync
           command: sudo apt install rsync
       - run:
-          name: Release new version
+          name: Release new version on Github
           command: npm run release
+      # Persist assets generated for the GH release, so that they are available for WPORG release.
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
 
-  # Reset alpha branch after a release
+  release_wporg:
+    docker:
+      - image: circleci/php:7.2-node-browsers
+    steps:
+      - checkout_with_workspace
+      - run:
+          name: Release new version on wordpress.org
+          command: |
+            wget -O release-wporg.sh https://raw.githubusercontent.com/Automattic/newspack-scripts/master/release-wporg.sh
+            chmod 755 ./release-wporg.sh && ./release-wporg.sh
+
   post_release:
     docker:
       - image: circleci/php:7.2-node-browsers
     steps:
       - checkout_with_workspace
       - run:
-          name: Set tip of alpha branch on top of release and force-push it to remote
+          name: Perform post-release chores
           command: |
-            git pull origin release
-            git checkout alpha
-            git reset --hard release --
-            git push "https://$GITHUB_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git" --force
+            wget -O post-release.sh https://raw.githubusercontent.com/Automattic/newspack-scripts/master/post-release.sh
+            chmod 755 ./post-release.sh && ./post-release.sh
 
 workflows:
   version: 2
@@ -107,7 +119,7 @@ workflows:
       - lint:
           requires:
             - build
-      - release:
+      - release_github:
           requires:
             - build
             - test-php
@@ -118,7 +130,14 @@ workflows:
                 - alpha
       - post_release:
           requires:
-            - release
+            - release_github
+          filters:
+            branches:
+              only:
+                - release
+      - release_wporg:
+          requires:
+            - release_github
           filters:
             branches:
               only:
