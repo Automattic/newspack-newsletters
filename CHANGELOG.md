@@ -1,3 +1,10 @@
+# [1.23.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.22.0...v1.23.0-alpha.1) (2021-04-06)
+
+
+### Features
+
+* **ci:** releasing on WPORG ([b84dbc5](https://github.com/Automattic/newspack-newsletters/commit/b84dbc5a9fe4c9f50d9d42c716de2f1d087c84f2))
+
 # [1.22.0](https://github.com/Automattic/newspack-newsletters/compare/v1.21.0...v1.22.0) (2021-03-30)
 
 
