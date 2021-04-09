@@ -6,7 +6,7 @@ import { omit } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
 
@@ -62,16 +62,33 @@ const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor
 };
 
 const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
-	if (
-		Array.isArray( post.newspack_author_info ) &&
-		post.newspack_author_info.length &&
-		post.newspack_author_info[ 0 ].display_name
-	) {
+	const { newspack_author_info } = post;
+
+	if ( Array.isArray( newspack_author_info ) && newspack_author_info.length ) {
+		const authorLinks = newspack_author_info.reduce( ( acc, author, index ) => {
+			const { author_link, display_name } = author;
+
+			if ( author_link && display_name ) {
+				const comma =
+					newspack_author_info.length > 2 && index < newspack_author_info.length - 1
+						? _x( ', ', 'comma separator for multiple authors', 'newspack-newsletters' )
+						: '';
+				const and =
+					newspack_author_info.length > 1 && index === newspack_author_info.length - 1
+						? __( 'and ', 'newspack-newsletters' )
+						: '';
+				acc.push( `${ and }<a href="${ author_link }">${ display_name }</a>${ comma }` );
+			}
+
+			return acc;
+		}, [] );
+
 		return [
-			'core/paragraph',
+			'core/heading',
 			assignFontSize( textFontSize, {
-				content: __( 'By ', 'newspack-newsletters' ) + post.newspack_author_info[ 0 ].display_name,
+				content: __( 'By ', 'newspack-newsletters' ) + authorLinks.join( ' ' ),
 				fontSize: 'normal',
+				level: 6,
 				style: { color: { text: textColor } },
 			} ),
 		];
