@@ -691,13 +691,7 @@ final class Newspack_Newsletters {
 				'callback'            => [ __CLASS__, 'api_set_settings' ],
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 				'args'                => [
-					'mailchimp_api_key'   => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'mjml_application_id' => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'mjml_api_secret'     => [
+					'mailchimp_api_key' => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -882,8 +876,6 @@ final class Newspack_Newsletters {
 	public static function api_set_settings( $request ) {
 		$service_provider = $request['service_provider'];
 		$credentials      = $request['credentials'];
-		$mjml_api_key     = $request['mjml_api_key'];
-		$mjml_api_secret  = $request['mjml_api_secret'];
 		$wp_error         = new WP_Error();
 
 		// Service Provider slug.
@@ -911,40 +903,6 @@ final class Newspack_Newsletters {
 			}
 		}
 
-		// MJML credentials.
-		if ( empty( $mjml_api_key ) || empty( $mjml_api_secret ) ) {
-			$wp_error->add(
-				'newspack_newsletters_invalid_keys_mjml',
-				__( 'Please input MJML application ID and secret key.', 'newspack-newsletters' )
-			);
-		} else {
-			$credentials = "$mjml_api_key:$mjml_api_secret";
-			$url         = 'https://api.mjml.io/v1/render';
-			$mjml_test   = wp_remote_post(
-				$url,
-				[
-					'body'    => wp_json_encode(
-						[
-							'mjml' => '<h1>test</h1>',
-						]
-					),
-					'headers' => array(
-						'Authorization' => 'Basic ' . base64_encode( $credentials ),
-					),
-					'timeout' => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-				]
-			);
-			if ( 200 === $mjml_test['response']['code'] ) {
-				update_option( 'newspack_newsletters_mjml_api_key', $mjml_api_key );
-				update_option( 'newspack_newsletters_mjml_api_secret', $mjml_api_secret );
-			} else {
-				$wp_error->add(
-					'newspack_newsletters_invalid_keys_mjml',
-					__( 'Please input valid MJML application ID and secret key.', 'newspack-newsletters' )
-				);
-			}
-		}
-
 		return $wp_error->has_errors() ? $wp_error : self::api_get_settings();
 	}
 
@@ -952,14 +910,10 @@ final class Newspack_Newsletters {
 	 * Retrieve settings.
 	 */
 	public static function api_settings() {
-		$mjml_api_key     = get_option( 'newspack_newsletters_mjml_api_key', false );
-		$mjml_api_secret  = get_option( 'newspack_newsletters_mjml_api_secret', false );
 		$service_provider = self::service_provider();
 		$response         = [
 			'service_provider' => $service_provider ? $service_provider : '',
 			'status'           => false,
-			'mjml_api_key'     => $mjml_api_key ? $mjml_api_key : '',
-			'mjml_api_secret'  => $mjml_api_secret ? $mjml_api_secret : '',
 		];
 
 		if ( ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
@@ -971,7 +925,7 @@ final class Newspack_Newsletters {
 			$response['credentials'] = self::$provider->api_credentials();
 		}
 
-		if ( self::$provider && self::$provider->has_api_credentials() && $mjml_api_key && $mjml_api_secret ) {
+		if ( self::$provider && self::$provider->has_api_credentials() ) {
 			$response['status'] = true;
 		}
 
