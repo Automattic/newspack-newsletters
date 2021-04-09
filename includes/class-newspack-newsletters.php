@@ -15,6 +15,7 @@ use \DrewM\MailChimp\MailChimp;
 final class Newspack_Newsletters {
 
 	const NEWSPACK_NEWSLETTERS_CPT = 'newspack_nl_cpt';
+	const EMAIL_HTML_META          = 'newspack_email_html';
 
 	/**
 	 * Supported fonts.
@@ -719,7 +720,7 @@ final class Newspack_Newsletters {
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 					'value' => [
-						'sanitize_callback' => 'sanitize_text_field',
+						'required' => true,
 					],
 				],
 			]
@@ -731,6 +732,25 @@ final class Newspack_Newsletters {
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_color_palette' ],
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+			]
+		);
+		\register_rest_route(
+			'newspack-newsletters/v1',
+			'post-mjml',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_get_mjml' ],
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'args'                => [
+					'id'      => [
+						'required'          => true,
+						'validate_callback' => [ __CLASS__, 'validate_newsletter_id' ],
+						'sanitize_callback' => 'absint',
+					],
+					'content' => [
+						'required' => true,
+					],
+				],
 			]
 		);
 	}
@@ -745,6 +765,25 @@ final class Newspack_Newsletters {
 	public static function api_set_color_palette( $request ) {
 		update_option( 'newspack_newsletters_color_palette', $request->get_body() );
 		return \rest_ensure_response( [] );
+	}
+
+	/**
+	 * The default color palette lives in the editor frontend and is not
+	 * retrievable on the backend. The workaround is to set it as an option
+	 * so that it's available to the email renderer.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 */
+	public static function api_get_mjml( $request ) {
+		if ( empty( $request['title'] ) ) {
+			$request['title'] = get_the_title( $request['id'] );
+		}
+		$post = (object) [
+			'post_title'   => $request['title'],
+			'post_content' => $request['content'],
+			'ID'           => $request['id'],
+		];
+		return \rest_ensure_response( [ 'mjml' => Newspack_Newsletters_Renderer::render_post_to_mjml( $post ) ] );
 	}
 
 	/**
@@ -793,6 +832,7 @@ final class Newspack_Newsletters {
 				'cm_from_name',
 				'cm_from_email',
 				'cm_preview_text',
+				self::EMAIL_HTML_META,
 			]
 		);
 	}

@@ -723,7 +723,7 @@ final class Newspack_Newsletters_Renderer {
 	 * @param WP_Post $post The post.
 	 * @return string MJML markup.
 	 */
-	private static function render_mjml( $post ) {
+	public static function render_post_to_mjml( $post ) {
 		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
@@ -761,38 +761,12 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
-	 * Convert a WP Post to email-compliant HTML.
+	 * Retrieve email-compliant HTML for a newsletter CPT.
 	 *
 	 * @param WP_Post $post The post.
 	 * @return string email-compliant HTML.
-	 * @throws Exception Error message.
 	 */
-	public static function render_html_email( $post ) {
-		$mjml_creds = self::mjml_api_credentials();
-		if ( $mjml_creds ) {
-			$mjml_api_url = 'https://api.mjml.io/v1/render';
-			$request      = wp_remote_post(
-				$mjml_api_url,
-				array(
-					'body'    => wp_json_encode(
-						array(
-							'mjml' => self::render_mjml( $post ),
-						)
-					),
-					'headers' => array(
-						'Authorization' => 'Basic ' . base64_encode( $mjml_creds ),
-					),
-					'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-				)
-			);
-			if ( is_wp_error( $request ) ) {
-				return $request;
-			} else {
-				if ( 401 === intval( $request['response']['code'] ) ) {
-					throw new Exception( __( 'MJML rendering error.', 'newspack_newsletters' ) );
-				}
-				return json_decode( $request['body'] )->html;
-			}
-		}
+	public static function retrieve_email_html( $post ) {
+		return get_post_meta( $post->ID, Newspack_Newsletters::EMAIL_HTML_META, true );
 	}
 }
