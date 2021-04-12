@@ -868,7 +868,7 @@ final class Newspack_Newsletters_Renderer {
 				// Insert ads between other blocks.
 				$block_content = self::render_mjml_component( $block );
 				if ( $include_ads ) {
-					$current_position += strlen( $block_content );
+					$current_position += strlen( wp_strip_all_tags( $block_content ) );
 					$body              = self::insert_ads( $body, $current_position );
 				}
 			}
