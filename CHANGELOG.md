@@ -1,3 +1,337 @@
+# [1.23.0](https://github.com/Automattic/newspack-newsletters/compare/v1.22.0...v1.23.0) (2021-04-06)
+
+
+### Features
+
+* **ci:** releasing on WPORG ([b84dbc5](https://github.com/Automattic/newspack-newsletters/commit/b84dbc5a9fe4c9f50d9d42c716de2f1d087c84f2))
+
+# [1.22.0](https://github.com/Automattic/newspack-newsletters/compare/v1.21.0...v1.22.0) (2021-03-30)
+
+
+### Bug Fixes
+
+* respect excerpt length setting while not messing up site excerpts ([#428](https://github.com/Automattic/newspack-newsletters/issues/428)) ([2c8d674](https://github.com/Automattic/newspack-newsletters/commit/2c8d6745b8be790deb5b5626a2fd769d1d17f676))
+
+
+### Features
+
+* add support for excerpts for newsletter CPTs ([#433](https://github.com/Automattic/newspack-newsletters/issues/433)) ([09f1800](https://github.com/Automattic/newspack-newsletters/commit/09f1800442e03aab2900dbfa74092a84a19e2f48))
+
+# [1.21.0](https://github.com/Automattic/newspack-newsletters/compare/v1.20.0...v1.21.0) (2021-03-23)
+
+
+### Features
+
+* add filter for Mailchimp campaign sync payload ([#394](https://github.com/Automattic/newspack-newsletters/issues/394)) ([aac44bb](https://github.com/Automattic/newspack-newsletters/commit/aac44bb333222f88c84e3e0b6015b26fcf3c778a))
+* featured images and pre_get_posts refactor ([#425](https://github.com/Automattic/newspack-newsletters/issues/425)) ([1a1f912](https://github.com/Automattic/newspack-newsletters/commit/1a1f91206227cb58b478b102ed2d456ff4a0ccda))
+
+# [1.20.0](https://github.com/Automattic/newspack-newsletters/compare/v1.19.0...v1.20.0) (2021-03-16)
+
+
+### Bug Fixes
+
+* colors of headings with links; top block space in editor ([3a720a6](https://github.com/Automattic/newspack-newsletters/commit/3a720a6b4a4a73edbb62df701bf24ea8f8a4bab7))
+* editor colors ([02e2057](https://github.com/Automattic/newspack-newsletters/commit/02e205706beca8d759c6ccb3f22ad83a91e2b8a6))
+* only show public newsletters on CPT archive pages ([#406](https://github.com/Automattic/newspack-newsletters/issues/406)) ([ec42ceb](https://github.com/Automattic/newspack-newsletters/commit/ec42ceb479ad1073aaba54ee5655966fcfe98621))
+
+
+### Features
+
+* add revisions support for newsletter CPTs ([#420](https://github.com/Automattic/newspack-newsletters/issues/420)) ([3e51831](https://github.com/Automattic/newspack-newsletters/commit/3e518315f92b0b6fde38ddac66e918ab2e8c00cf))
+
+# [1.19.0](https://github.com/Automattic/newspack-newsletters/compare/v1.18.0...v1.19.0) (2021-03-03)
+
+
+### Bug Fixes
+
+* **ads:** prevent draft ads insertion ([#410](https://github.com/Automattic/newspack-newsletters/issues/410)) ([381dc51](https://github.com/Automattic/newspack-newsletters/commit/381dc5174806118d50da07d7bb89d40f073146a1))
+
+
+### Features
+
+* add settings update method ([#407](https://github.com/Automattic/newspack-newsletters/issues/407)) ([158a2dc](https://github.com/Automattic/newspack-newsletters/commit/158a2dccd05ff37b100aa1b5619a31a21f10571e))
+* provide settings values early ([e5e078d](https://github.com/Automattic/newspack-newsletters/commit/e5e078dd53825e003fd3fc1ce3224960ade4e314))
+
+# [1.18.0](https://github.com/Automattic/newspack-newsletters/compare/v1.17.0...v1.18.0) (2021-01-28)
+
+
+### Features
+
+* make Newsletters use post categories + tags ([#398](https://github.com/Automattic/newspack-newsletters/issues/398)) ([23b97d4](https://github.com/Automattic/newspack-newsletters/commit/23b97d47a4bde471e34cd50447792f662963c2f1))
+
+# [1.17.0](https://github.com/Automattic/newspack-newsletters/compare/v1.16.2...v1.17.0) (2021-01-19)
+
+
+### Features
+
+* add support for homepage posts block ([#393](https://github.com/Automattic/newspack-newsletters/issues/393)) ([710b674](https://github.com/Automattic/newspack-newsletters/commit/710b674e9e326079d113c54b87d1acf938224b78))
+
+## [1.16.2](https://github.com/Automattic/newspack-newsletters/compare/v1.16.1...v1.16.2) (2021-01-12)
+
+
+### Bug Fixes
+
+* alignment for elements using textAlign ([#390](https://github.com/Automattic/newspack-newsletters/issues/390)) ([405c33e](https://github.com/Automattic/newspack-newsletters/commit/405c33e734ebcf9656b6ddba405df3f10ac440af))
+* longer timeout for test send ([#389](https://github.com/Automattic/newspack-newsletters/issues/389)) ([0d18659](https://github.com/Automattic/newspack-newsletters/commit/0d1865902b9eed57cdb7e0c79f3ac9f20c67ea55))
+* **mjml:** error handling ([f47fdf4](https://github.com/Automattic/newspack-newsletters/commit/f47fdf454f90682168c9f46e63b3547937de96af))
+
+## [1.16.1](https://github.com/Automattic/newspack-newsletters/compare/v1.16.0...v1.16.1) (2020-12-09)
+
+
+### Bug Fixes
+
+* empty commit to trigger a release after CI job timeout ([0273e2a](https://github.com/Automattic/newspack-newsletters/commit/0273e2a5aaa4067f3f6671550fbd02bd3ab9e50b))
+* image links ([23a6dc9](https://github.com/Automattic/newspack-newsletters/commit/23a6dc98626a48aac3e87ad1fe293d7031acfcb6))
+
+# [1.16.0](https://github.com/Automattic/newspack-newsletters/compare/v1.15.1...v1.16.0) (2020-12-09)
+
+
+### Features
+
+* setting to opt-in to mailchimp tags ([#380](https://github.com/Automattic/newspack-newsletters/issues/380)) ([a9e0c66](https://github.com/Automattic/newspack-newsletters/commit/a9e0c66a75e917a853053b1c3c178b97ef5d6957))
+
+## [1.15.1](https://github.com/Automattic/newspack-newsletters/compare/v1.15.0...v1.15.1) (2020-11-17)
+
+
+### Bug Fixes
+
+* editor crash when in code mode ([#370](https://github.com/Automattic/newspack-newsletters/issues/370)) ([143fe4c](https://github.com/Automattic/newspack-newsletters/commit/143fe4cd94ed19384d3bae68aa751c2ed641e45a))
+
+# [1.15.0](https://github.com/Automattic/newspack-newsletters/compare/v1.14.0...v1.15.0) (2020-11-11)
+
+
+### Features
+
+* campaign monitor implementation ([#364](https://github.com/Automattic/newspack-newsletters/issues/364)) ([bd9c29a](https://github.com/Automattic/newspack-newsletters/commit/bd9c29acaccad8331c21a7957e095a0128e3d695)), closes [#369](https://github.com/Automattic/newspack-newsletters/issues/369)
+* enable custom footer ([#369](https://github.com/Automattic/newspack-newsletters/issues/369)) ([8334fa5](https://github.com/Automattic/newspack-newsletters/commit/8334fa55784a5a08143b23b1e88e78d07c033f19))
+
+# [1.14.0](https://github.com/Automattic/newspack-newsletters/compare/v1.13.0...v1.14.0) (2020-10-20)
+
+
+### Bug Fixes
+
+* handle updated gutenberg colors setting ([d9b3609](https://github.com/Automattic/newspack-newsletters/commit/d9b36091332bbe926233b556e5dd43ccfe77045a)), closes [#358](https://github.com/Automattic/newspack-newsletters/issues/358)
+* published public posts fixes ([ddb5d28](https://github.com/Automattic/newspack-newsletters/commit/ddb5d28099538a69bd52a849951c4c9092bc4b05))
+
+
+### Features
+
+* enable categories and tags for newsletter CPT ([#340](https://github.com/Automattic/newspack-newsletters/issues/340)) ([b5fad81](https://github.com/Automattic/newspack-newsletters/commit/b5fad813e9a3df5b6f77853be27217ac1b289b87))
+
+# [1.13.0](https://github.com/Automattic/newspack-newsletters/compare/v1.12.0...v1.13.0) (2020-09-30)
+
+
+### Bug Fixes
+
+* prevent draft ads from being inserted into newsletters ([#350](https://github.com/Automattic/newspack-newsletters/issues/350)) ([ddd5cfe](https://github.com/Automattic/newspack-newsletters/commit/ddd5cfe39ab61b261c21bc644aae6b3dbc7ec3b7))
+
+
+### Features
+
+* posts inserter enhancements ([#348](https://github.com/Automattic/newspack-newsletters/issues/348)) ([004ad27](https://github.com/Automattic/newspack-newsletters/commit/004ad27202b96284722243a9756670ad20982914))
+
+# [1.12.0](https://github.com/Automattic/newspack-newsletters/compare/v1.11.2...v1.12.0) (2020-09-22)
+
+
+### Features
+
+* add author support for newsletter CPT ([#339](https://github.com/Automattic/newspack-newsletters/issues/339)) ([fb7cb6d](https://github.com/Automattic/newspack-newsletters/commit/fb7cb6d45154633ef0865fb5bb4f4d501428fbfe))
+
+## [1.11.2](https://github.com/Automattic/newspack-newsletters/compare/v1.11.1...v1.11.2) (2020-09-15)
+
+
+### Bug Fixes
+
+* handle missing provider ([121630c](https://github.com/Automattic/newspack-newsletters/commit/121630c2c94a8438166d43f7875cae8a0f461b3e))
+* increase timeout for api tag retrieval ([5b39839](https://github.com/Automattic/newspack-newsletters/commit/5b398393e4b6dc3130654cec56a8c284b752e707))
+* take MJML creds into account for settings status ([cfab93a](https://github.com/Automattic/newspack-newsletters/commit/cfab93ac6270f7beb0e59bff04478d4401ce2c9f))
+
+## [1.11.1](https://github.com/Automattic/newspack-newsletters/compare/v1.11.0...v1.11.1) (2020-09-08)
+
+
+### Bug Fixes
+
+* **posts-inserter:** remove empty category select ([1978bd5](https://github.com/Automattic/newspack-newsletters/commit/1978bd5c011793435f47b686ce73dc4c5fe29ed9))
+* harden post type checks ([14a3de2](https://github.com/Automattic/newspack-newsletters/commit/14a3de23187f1eb11008b6e9af8842a9d102934c))
+
+# [1.11.0](https://github.com/Automattic/newspack-newsletters/compare/v1.10.0...v1.11.0) (2020-09-01)
+
+
+### Bug Fixes
+
+* assorted bugfixes ([#317](https://github.com/Automattic/newspack-newsletters/issues/317)) ([01a72fb](https://github.com/Automattic/newspack-newsletters/commit/01a72fb6f418b7c46205e76536249cece7e57ff0)), closes [#300](https://github.com/Automattic/newspack-newsletters/issues/300) [#305](https://github.com/Automattic/newspack-newsletters/issues/305)
+* escaped domain ([#315](https://github.com/Automattic/newspack-newsletters/issues/315)) ([5e83e8b](https://github.com/Automattic/newspack-newsletters/commit/5e83e8b0525633e2a1f83fc7068e45f5a7ab25f3))
+* modal margin and header height ([#310](https://github.com/Automattic/newspack-newsletters/issues/310)) ([b87a768](https://github.com/Automattic/newspack-newsletters/commit/b87a7688e1185e4dba137a76d28f5cef2bbc4fee))
+
+
+### Features
+
+* add branding banner to the CPT wp-admin pages ([#316](https://github.com/Automattic/newspack-newsletters/issues/316)) ([285785c](https://github.com/Automattic/newspack-newsletters/commit/285785c7b008b1343c91d83fb0f3725cd43f3089))
+* option to specify public newsletters slug ([77656dd](https://github.com/Automattic/newspack-newsletters/commit/77656dd551ec73c211da2a6f2beb3093b01f9bd6))
+* remove Newspack UI from Ads screen ([#314](https://github.com/Automattic/newspack-newsletters/issues/314)) ([d68caa7](https://github.com/Automattic/newspack-newsletters/commit/d68caa7aee414ff68256e90a147349f1f16b4e55))
+
+# [1.10.0](https://github.com/Automattic/newspack-newsletters/compare/v1.9.0...v1.10.0) (2020-08-25)
+
+
+### Bug Fixes
+
+* reduce padding between elements in newsletter emails ([#308](https://github.com/Automattic/newspack-newsletters/issues/308)) ([4806e76](https://github.com/Automattic/newspack-newsletters/commit/4806e7615c50a22c4af92fbded6f93c7ce0fb6c5))
+
+
+### Features
+
+* update icon ([#303](https://github.com/Automattic/newspack-newsletters/issues/303)) ([53d91f0](https://github.com/Automattic/newspack-newsletters/commit/53d91f094a9d9a9f47e99b9ca60aa9503cb1f965))
+
+# [1.9.0](https://github.com/Automattic/newspack-newsletters/compare/v1.8.1...v1.9.0) (2020-08-20)
+
+
+### Bug Fixes
+
+* button custom colors ([#301](https://github.com/Automattic/newspack-newsletters/issues/301)) ([8ebcf5d](https://github.com/Automattic/newspack-newsletters/commit/8ebcf5d1d3f00b327974c78d75172fb10720b2a1))
+* first time set up flow ([c16d6bf](https://github.com/Automattic/newspack-newsletters/commit/c16d6bfe09eb8e1586a6a183a1859388e9c9abff))
+* pre-send info if no list set ([#297](https://github.com/Automattic/newspack-newsletters/issues/297)) ([f575d94](https://github.com/Automattic/newspack-newsletters/commit/f575d94d6bef04f9828f1870ee4360dc99056bdb))
+
+
+### Features
+
+* enable public newsletter posts ([#272](https://github.com/Automattic/newspack-newsletters/issues/272)) ([ef90bf9](https://github.com/Automattic/newspack-newsletters/commit/ef90bf96f8e56d06d9fd1cb47c9f136406099aa8))
+
+## [1.8.1](https://github.com/Automattic/newspack-newsletters/compare/v1.8.0...v1.8.1) (2020-08-13)
+
+
+### Bug Fixes
+
+* group block background color ([56b96ea](https://github.com/Automattic/newspack-newsletters/commit/56b96ead54c08de09f4b1d4dae64c8f7f6e37554))
+* use hex value for group background colors in default layouts ([#292](https://github.com/Automattic/newspack-newsletters/issues/292)) ([4cc9b84](https://github.com/Automattic/newspack-newsletters/commit/4cc9b841d23a9388cc1d7413f136dfb67dde0ce2))
+
+# [1.8.0](https://github.com/Automattic/newspack-newsletters/compare/v1.7.0...v1.8.0) (2020-08-11)
+
+
+### Bug Fixes
+
+* links in heading color inheritance ([6c4e4dd](https://github.com/Automattic/newspack-newsletters/commit/6c4e4dd1880a49a542ab86426f24ea2dbc36aaf1)), closes [#279](https://github.com/Automattic/newspack-newsletters/issues/279)
+* **posts-inserter:** handle excerpt ([4b92ab3](https://github.com/Automattic/newspack-newsletters/commit/4b92ab33ff3068196306ca253c726da0c70650a3)), closes [#278](https://github.com/Automattic/newspack-newsletters/issues/278)
+
+
+### Features
+
+* **posts-inserter:** font size, color options ([70f3a46](https://github.com/Automattic/newspack-newsletters/commit/70f3a462158edf90c750aae5ecfb312e30aa67fc))
+* **posts-inserter:** increase posts count cap to 20 ([c622ce4](https://github.com/Automattic/newspack-newsletters/commit/c622ce46c43744e557a6cfa304f2e59ebb0067d9)), closes [#246](https://github.com/Automattic/newspack-newsletters/issues/246)
+
+# [1.7.0](https://github.com/Automattic/newspack-newsletters/compare/v1.6.0...v1.7.0) (2020-08-04)
+
+
+### Features
+
+* add infrastructure for constant contact support ([f08ee75](https://github.com/Automattic/newspack-newsletters/commit/f08ee751aa4beb549e71b7f8d17d31d5312b2ebf))
+* add preview text option ([#276](https://github.com/Automattic/newspack-newsletters/issues/276)) ([3ea6b30](https://github.com/Automattic/newspack-newsletters/commit/3ea6b302711755ac4f7fdc11d15ccaae9ca8a364))
+* **ads:** handle setting ad position ([#260](https://github.com/Automattic/newspack-newsletters/issues/260)) ([7ad92dc](https://github.com/Automattic/newspack-newsletters/commit/7ad92dc9e21b705a9eb3e186cab70581c8f7bc5f)), closes [#237](https://github.com/Automattic/newspack-newsletters/issues/237)
+
+# [1.6.0](https://github.com/Automattic/newspack-newsletters/compare/v1.5.0...v1.6.0) (2020-07-22)
+
+
+### Bug Fixes
+
+* styling of spinner in relation to button ([cd7b029](https://github.com/Automattic/newspack-newsletters/commit/cd7b029768934dc8061d23ca310119b6fbd72ae6))
+
+
+### Features
+
+* add spinner while sending test email ([05f67cd](https://github.com/Automattic/newspack-newsletters/commit/05f67cdb63eabf5736a57e984b515c17b1a68f66))
+
+# [1.5.0](https://github.com/Automattic/newspack-newsletters/compare/v1.4.0...v1.5.0) (2020-07-14)
+
+
+### Bug Fixes
+
+* handle deeply nested image blocks ([d846beb](https://github.com/Automattic/newspack-newsletters/commit/d846beb4eb63bfeb1ebecf30e895ca49236a7eb6))
+* support adding multiple buttons ([829d534](https://github.com/Automattic/newspack-newsletters/commit/829d53453992a2171117962aa5019b5ae6a08211))
+* update state name ready to isReady ([0bbe397](https://github.com/Automattic/newspack-newsletters/commit/0bbe397b9d5ced5953728ab3aae10936dd836cc6))
+* weird empty space when no specific posts selected and no spinner ([6fd0fd9](https://github.com/Automattic/newspack-newsletters/commit/6fd0fd9488e428bc1ae634a03ce8761cc410f81c))
+
+
+### Features
+
+* append utm_medium param to all links in a newsletter ([#265](https://github.com/Automattic/newspack-newsletters/issues/265)) ([e7b1f83](https://github.com/Automattic/newspack-newsletters/commit/e7b1f83fb8d119c0fe4aa5e4e9fd2f7db28716b4))
+* handle specific posts and no image conditions ([278d259](https://github.com/Automattic/newspack-newsletters/commit/278d2591c20c23cd89041420390d38f8e4ebe08d))
+* show spinner while Post Inserter is loading image blocks ([d0bda46](https://github.com/Automattic/newspack-newsletters/commit/d0bda46875f7d980f6bbf5c72d9112d48ff3ad2f))
+
+# [1.4.0](https://github.com/Automattic/newspack-newsletters/compare/v1.3.0...v1.4.0) (2020-07-07)
+
+
+### Bug Fixes
+
+* resolve php notices ([#256](https://github.com/Automattic/newspack-newsletters/issues/256)) ([e854521](https://github.com/Automattic/newspack-newsletters/commit/e8545215d1ea94a8c6c05eafc19e81632d8a0a74))
+
+
+### Features
+
+* **ads:** allow no expiry date on ads ([#252](https://github.com/Automattic/newspack-newsletters/issues/252)) ([eacb5f7](https://github.com/Automattic/newspack-newsletters/commit/eacb5f73d2993c8d6fd8019ab2a9c4fa37f2327a)), closes [#251](https://github.com/Automattic/newspack-newsletters/issues/251)
+* **mailchimp:** handle segmentation via tags ([#241](https://github.com/Automattic/newspack-newsletters/issues/241)) ([99f2f1f](https://github.com/Automattic/newspack-newsletters/commit/99f2f1f3d091e590123228142180ead02d5e65e9)), closes [#21](https://github.com/Automattic/newspack-newsletters/issues/21)
+* **mjml:** handle social icons block aligment options ([#257](https://github.com/Automattic/newspack-newsletters/issues/257)) ([ce10875](https://github.com/Automattic/newspack-newsletters/commit/ce108750ee41106d2dfc6498300f2c97d2904333))
+* support linked images ([#255](https://github.com/Automattic/newspack-newsletters/issues/255)) ([7f7ce8e](https://github.com/Automattic/newspack-newsletters/commit/7f7ce8e0bc3c6067d8fa9d6fd8885c4e6915743e))
+
+# [1.3.0](https://github.com/Automattic/newspack-newsletters/compare/v1.2.0...v1.3.0) (2020-06-30)
+
+
+### Bug Fixes
+
+* apply custom styles even if styling tab in sidebar is closed ([#240](https://github.com/Automattic/newspack-newsletters/issues/240)) ([20b08bc](https://github.com/Automattic/newspack-newsletters/commit/20b08bca750434f52d0a4415b99ce4142e707eae))
+* localize date formats and notice text ([0cb82f1](https://github.com/Automattic/newspack-newsletters/commit/0cb82f1ebad2a23e71e50d0daa9cd9feb30b1732))
+* posts-inserter columns warning ([5db6b97](https://github.com/Automattic/newspack-newsletters/commit/5db6b97c30272d357f8bc780ce108814a4745a4c))
+* store translated success note as prop ([5638aee](https://github.com/Automattic/newspack-newsletters/commit/5638aee41caaa4a368b3513c4dfbe4fd1fc759f9))
+
+
+### Features
+
+* add "sent" status to posts list in dashboard ([ed369e4](https://github.com/Automattic/newspack-newsletters/commit/ed369e46f71670ff1685b294af64ea0c46786feb))
+* add a "sent" editor notice after a campaign has been sent ([188908e](https://github.com/Automattic/newspack-newsletters/commit/188908ede101860911f19c4f900a140cdcd31868))
+* column middle alignment handling ([5f82db4](https://github.com/Automattic/newspack-newsletters/commit/5f82db4f14dd38845882935d7b9c246d83f91b4b)), closes [#231](https://github.com/Automattic/newspack-newsletters/issues/231)
+* handle custom styling of layouts ([#238](https://github.com/Automattic/newspack-newsletters/issues/238)) ([2ba844d](https://github.com/Automattic/newspack-newsletters/commit/2ba844dc5f2d9d62c82217b3dd4897a6573ebe8d)), closes [#225](https://github.com/Automattic/newspack-newsletters/issues/225)
+
+# [1.2.0](https://github.com/Automattic/newspack-newsletters/compare/v1.1.0...v1.2.0) (2020-06-18)
+
+
+### Bug Fixes
+
+* copy ([8fb1840](https://github.com/Automattic/newspack-newsletters/commit/8fb18407ec56c782856ffe83d7d245529aec9e29))
+* namespace use in register_rest_route ([ccaebbc](https://github.com/Automattic/newspack-newsletters/commit/ccaebbc300f183685239817c00022e16eedd9635))
+* raise list limit to maximum ([#224](https://github.com/Automattic/newspack-newsletters/issues/224)) ([863c8a7](https://github.com/Automattic/newspack-newsletters/commit/863c8a780bad91c479c26d8d4a4bf3c493c72f04))
+
+
+### Features
+
+* remove white background from layouts' groups ([0fd4468](https://github.com/Automattic/newspack-newsletters/commit/0fd4468931b7c7dfe94db30afa102973e126d2f2))
+* support background color setting ([2b98984](https://github.com/Automattic/newspack-newsletters/commit/2b98984f6088943ad5969fbe4b607945f715c5a4)), closes [#219](https://github.com/Automattic/newspack-newsletters/issues/219)
+* support background color setting ([#223](https://github.com/Automattic/newspack-newsletters/issues/223)) ([cb142eb](https://github.com/Automattic/newspack-newsletters/commit/cb142ebafb4359bdb470d8c7614a141577bdf391)), closes [#219](https://github.com/Automattic/newspack-newsletters/issues/219)
+* **mjml:** reponsive images ([#222](https://github.com/Automattic/newspack-newsletters/issues/222)) ([c1867d9](https://github.com/Automattic/newspack-newsletters/commit/c1867d969b859d0e36fa00b8ba9d6de9d9c39511)), closes [#221](https://github.com/Automattic/newspack-newsletters/issues/221)
+
+# [1.1.0](https://github.com/Automattic/newspack-newsletters/compare/v1.0.1...v1.1.0) (2020-06-09)
+
+
+### Bug Fixes
+
+* prevent deduplication in layout picker preview ([4a5721e](https://github.com/Automattic/newspack-newsletters/commit/4a5721e2289faa13c4663abb97624e3bd085c098)), closes [#199](https://github.com/Automattic/newspack-newsletters/issues/199)
+* **posts-inserter:** prevent empty featured image rendering ([56a97c4](https://github.com/Automattic/newspack-newsletters/commit/56a97c43b51e02c266d579d3a42bd741437e3deb)), closes [#201](https://github.com/Automattic/newspack-newsletters/issues/201)
+* resolve excerpt length issue ([d40f98a](https://github.com/Automattic/newspack-newsletters/commit/d40f98aebc10dd17ae3ceba523e6492c766e4d6e))
+* situation that overwrote mc campaign id ([8ecf564](https://github.com/Automattic/newspack-newsletters/commit/8ecf56460561786a2a9971cd882149fa02fa905d))
+* update editor block paddings ([#195](https://github.com/Automattic/newspack-newsletters/issues/195)) ([eb100b8](https://github.com/Automattic/newspack-newsletters/commit/eb100b86e04d953895047cbe66846c2aa6758ea1))
+* when trashing post allow mailchimp api call to fail silently ([7e2d9c4](https://github.com/Automattic/newspack-newsletters/commit/7e2d9c4bd80fd0f136c9cc1b210fc139f3eab483))
+* when trashing post allow mailchimp api call to fail silently ([8257451](https://github.com/Automattic/newspack-newsletters/commit/82574512bfc837be25c5572bc5338a46a737602c))
+
+
+### Features
+
+* add layouts management ([#165](https://github.com/Automattic/newspack-newsletters/issues/165)) ([446674f](https://github.com/Automattic/newspack-newsletters/commit/446674f193407e2dd4ad8f186c65f34ea4fa9b01)), closes [#31](https://github.com/Automattic/newspack-newsletters/issues/31) [#216](https://github.com/Automattic/newspack-newsletters/issues/216)
+* font picker ([#210](https://github.com/Automattic/newspack-newsletters/issues/210)) ([0234bf9](https://github.com/Automattic/newspack-newsletters/commit/0234bf9491bd80c775458da92fb90050de9b1a79))
+
+## [1.0.1](https://github.com/Automattic/newspack-newsletters/compare/v1.0.0...v1.0.1) (2020-05-07)
+
+
+### Bug Fixes
+
+* **settings:** fix settings url in post-activation nag ([863a16b](https://github.com/Automattic/newspack-newsletters/commit/863a16be3473d13875bcc64db11bb86c41628adb))
+
 # 1.0.0 (2020-05-05)
 
 

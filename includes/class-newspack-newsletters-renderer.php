@@ -814,6 +814,32 @@ final class Newspack_Newsletters_Renderer {
 		 */
 		if ( $include_ads && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
 			self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
+
+			$ads_query = new WP_Query(
+				array(
+					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
+					'posts_per_page' => -1,
+				)
+			);
+
+			foreach ( $ads_query->get_posts() as $ad ) {
+				// For some reason the 'post_status' param in WP_Query sometimes seems to be disregarded.
+				if ( 'publish' !== $ad->post_status ) {
+					continue;
+				}
+				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
+
+				// Ad is active if it has no expiry date (a peristent ad) or the date is equal to or after today.
+				if ( ! $expiry_date || $expiry_date->format( 'Y-m-d' ) >= gmdate( 'Y-m-d' ) ) {
+					$percentage            = intval( get_post_meta( $ad->ID, 'position_in_content', true ) ) / 100;
+					self::$ads_to_insert[] = [
+						'precise_position' => $total_length * $percentage,
+						'percentage'       => $percentage,
+						'markup'           => self::post_to_mjml_components( $ad, false ),
+						'is_inserted'      => false,
+					];
+				}
+			}
 		}
 
 		// Build MJML body and insert ads.
