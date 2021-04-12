@@ -71,7 +71,7 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 			if ( author_link && display_name ) {
 				const comma =
 					newspack_author_info.length > 2 && index < newspack_author_info.length - 1
-						? _x( ', ', 'comma separator for multiple authors', 'newspack-newsletters' )
+						? _x( ',', 'comma separator for multiple authors', 'newspack-newsletters' )
 						: '';
 				const and =
 					newspack_author_info.length > 1 && index === newspack_author_info.length - 1
