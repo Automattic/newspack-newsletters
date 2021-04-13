@@ -638,21 +638,26 @@ final class Newspack_Newsletters_Renderer {
 	private static function generate_array_of_newspack_native_ads_to_insert( $total_length_of_content ) {
 		$ad_post_type          = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
 		$all_ads_no_pagination = -1;
-		$published_ad_status   = 'publish';
 
 		$query_to_fetch_published_ads = new WP_Query(
 			[
 				'post_type'      => $ad_post_type,
 				'posts_per_page' => $all_ads_no_pagination,
-				'posts_status'   => $published_ad_status,
 			]
 		);
 
-		$published_ads = $query_to_fetch_published_ads->get_posts();
+		$ads = $query_to_fetch_published_ads->get_posts();
 
 		$published_ads_to_insert = [];
 
-		foreach ( $published_ads as $ad ) {
+		foreach ( $ads as $ad ) {
+			$ad_post_status      = $ad->post_status;
+			$ad_is_not_published = 'publish' !== $ad_post_status;
+
+			if ( $ad_is_not_published ) {
+				continue;
+			}
+
 			$ad_prepared_for_insertion = self::get_ad_prepared_for_insertion( $ad, $total_length_of_content );
 			if ( ! empty( $ad_prepared_for_insertion ) ) {
 				$published_ads_to_insert[] = $ad_prepared_for_insertion;
@@ -672,13 +677,34 @@ final class Newspack_Newsletters_Renderer {
 	 * @return array
 	 */
 	private static function get_ads( $post_date, $total_length ) {
+		/**
+		 * The Letterhead API just likes dates that look like this.
+		 *
+		 * @example '2021-04-12'
+		 * @var string $publication_date_formatted_for_letterhead_api
+		 */
 		$publication_date_formatted_for_letterhead_api = gmdate( 'Y-m-d', strtotime( $post_date ) );
 		$letterhead                                    = new Newspack_Newsletters_Letterhead();
-		$include_native_ads                            = ! $letterhead->has_api_credentials();
 
-		return $include_native_ads
-			? self::generate_array_of_newspack_native_ads_to_insert( $total_length )
-			: $letterhead->get_and_prepare_promotions_for_insertion( $publication_date_formatted_for_letterhead_api, $total_length );
+		/**
+		 * Whether when getting ads we should load Newspack's ad post type.
+		 *
+		 * @var bool $prefer_newspack_native_ads
+		 */
+		$prefer_newspack_native_ads = ! $letterhead->has_api_credentials();
+
+		/**
+		 * If our Newspack user isn't connected to Letterhead, no worries. We will return
+		 * any native ads they might have.
+		 */
+		if ( $prefer_newspack_native_ads ) {
+			return self::generate_array_of_newspack_native_ads_to_insert( $total_length );
+		}
+
+		/**
+		 * Otherwise, we will fetch Letterhead ads ("promotions") from that API.
+		 */
+		return $letterhead->get_and_prepare_promotions_for_insertion( $publication_date_formatted_for_letterhead_api, $total_length );
 	}
 
 	/**
@@ -814,32 +840,6 @@ final class Newspack_Newsletters_Renderer {
 		 */
 		if ( $include_ads && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
 			self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
-
-			$ads_query = new WP_Query(
-				array(
-					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
-					'posts_per_page' => -1,
-				)
-			);
-
-			foreach ( $ads_query->get_posts() as $ad ) {
-				// For some reason the 'post_status' param in WP_Query sometimes seems to be disregarded.
-				if ( 'publish' !== $ad->post_status ) {
-					continue;
-				}
-				$expiry_date = new DateTime( get_post_meta( $ad->ID, 'expiry_date', true ) );
-
-				// Ad is active if it has no expiry date (a peristent ad) or the date is equal to or after today.
-				if ( ! $expiry_date || $expiry_date->format( 'Y-m-d' ) >= gmdate( 'Y-m-d' ) ) {
-					$percentage            = intval( get_post_meta( $ad->ID, 'position_in_content', true ) ) / 100;
-					self::$ads_to_insert[] = [
-						'precise_position' => $total_length * $percentage,
-						'percentage'       => $percentage,
-						'markup'           => self::post_to_mjml_components( $ad, false ),
-						'is_inserted'      => false,
-					];
-				}
-			}
 		}
 
 		// Build MJML body and insert ads.
