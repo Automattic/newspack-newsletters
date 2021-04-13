@@ -89,7 +89,7 @@ const ProviderSidebar = ( {
 	updateMeta,
 } ) => {
 	const campaign = newsletterData.campaign;
-	const lists = newsletterData.lists ? newsletterData.lists.lists : [];
+	const lists = newsletterData.lists?.lists || [];
 
 	const setList = listId =>
 		apiFetch( {

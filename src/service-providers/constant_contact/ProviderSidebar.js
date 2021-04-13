@@ -15,7 +15,7 @@ const ProviderSidebar = ( {
 	updateMeta,
 } ) => {
 	const campaign = newsletterData.campaign;
-	const lists = newsletterData.lists ? newsletterData.lists : [];
+	const lists = newsletterData.lists || [];
 
 	const setList = ( listId, value ) => {
 		const method = value ? 'PUT' : 'DELETE';
