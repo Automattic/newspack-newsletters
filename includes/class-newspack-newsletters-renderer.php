@@ -759,6 +759,30 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
+	 * Get properties required to render a useful modal in the editor that alerts
+	 * users of ads they're sending.
+	 *
+	 * @param WP_REST_REQUEST $request The WP Request Object.
+	 * @return array
+	 */
+	public function get_ads_warning_in_editor( $request ) {
+		$letterhead                 = new Newspack_Newsletters_Letterhead();
+		$has_letterhead_credentials = $letterhead->has_api_credentials();
+		$post_date                  = $request->get_param( 'date' );
+		$newspack_ad_type           = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
+		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}&page=newspack-newsletters-ads-admin";
+
+		$ads = self::get_ads( $post_date, 0 );
+
+		return [
+			'count'     => count( $ads ),
+			'label'     => $has_letterhead_credentials ? 'promotion' : 'ad',
+			'manageUrl' => $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads,
+		];
+	}
+
+	/**
 	 * Whether the newspack native ad is active or expired.
 	 *
 	 * @param int $ad_id ID of the Ad post type.
@@ -929,6 +953,29 @@ final class Newspack_Newsletters_Renderer {
 			return "$key:$secret";
 		}
 		return false;
+	}
+
+	/**
+	 * Expose one or more Rest routes for a public API.
+	 *
+	 * @return mixed
+	 */
+	public function register_newsletter_renderer_routes() {
+		$arguments = array(
+			/**
+			 * Return an array of properties required to render a useful ads warning.
+			 *
+			 * @uses Newspack_Newsletters_Renderer::get_ads_warning_in_editor()
+			 */
+			'callback' => array( $this, 'get_ads_warning_in_editor' ),
+			'methods'  => 'GET',
+		);
+
+		$ad_type_slug = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$namespace    = "wp/v2/{$ad_type_slug}";
+		$route        = 'count';
+
+		return register_rest_route( $namespace, $route, $arguments );
 	}
 
 	/**

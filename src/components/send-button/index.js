@@ -18,8 +18,7 @@ import { get } from 'lodash';
  */
 import { getServiceProvider } from '../../service-providers';
 import './style.scss';
-import { NEWSLETTER_AD_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
-import { isAdActive } from '../../ads-admin/utils';
+import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 const { renderPreSendInfo } = getServiceProvider();
 
@@ -49,6 +48,7 @@ export default compose( [
 			visibility: getEditedPostVisibility(),
 			meta: getEditedPostAttribute( 'meta' ),
 			isPublished: isCurrentPostPublished(),
+			postDate: getEditedPostAttribute( 'date' ),
 		};
 	} ),
 ] )(
@@ -64,6 +64,7 @@ export default compose( [
 		visibility,
 		meta,
 		isPublished,
+		postDate,
 	} ) => {
 		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
 
@@ -104,22 +105,28 @@ export default compose( [
 			publishStatus = 'publish';
 		}
 
+		const [ adLabel, setAdLabel ] = useState();
 		const [ adsWarning, setAdsWarning ] = useState();
+		const [ activeAdManageUrl, setActiveAdManageUrl ] = useState();
+
 		useEffect(() => {
 			apiFetch( {
-				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }`,
+				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
 			} ).then( response => {
-				const activeAds = response.filter( isAdActive );
-				if ( activeAds.length ) {
+				const countOfActiveAds = response.count;
+				setActiveAdManageUrl( response.manageUrl );
+				setAdLabel( response.label );
+
+				if ( countOfActiveAds > 0 ) {
 					setAdsWarning(
-						sprintf(
+						sprintf( /* eslint-disable-line */
 							_n(
-								'There is %d active ad.',
-								'There are %d active ads.',
-								activeAds.length,
+								'There is %d active ' + response.label + '.',
+								'There is %d active ' + response.label + 's.',
+								countOfActiveAds,
 								'newspack-newsletters'
 							),
-							activeAds.length
+							countOfActiveAds
 						)
 					);
 				}
@@ -176,9 +183,10 @@ export default compose( [
 							<Notice isDismissible={ false }>
 								{ adsWarning }{' '}
 								<a
-									href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
+									href={ activeAdManageUrl }
+									target={ adLabel === 'promotion' ? '_blank' : '_self' }
 								>
-									{ __( 'Manage ads', 'newspack-newsletters' ) }
+									{ __( 'Manage ' + adLabel + 's.', 'newspack-newsletters' ) }
 								</a>
 							</Notice>
 						) : null }

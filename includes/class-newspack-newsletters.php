@@ -78,7 +78,21 @@ final class Newspack_Newsletters {
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
+
+		/**
+		 * Set the email service provider, which will instantiate the appropriate class
+		 * (Mailchimp, ConstantContact, etc.).
+		 */
 		self::set_service_provider( self::service_provider() );
+
+		$renderer = new Newspack_Newsletters_Renderer();
+
+		/**
+		 * Register routes we can query from the editor.
+		 *
+		 * @uses Newspack_Newsletters_Renderer::register_newsletter_renderer_routes()
+		 */
+		add_action( 'rest_api_init', array( $renderer, 'register_newsletter_renderer_routes' ) );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 		if ( $needs_nag ) {
