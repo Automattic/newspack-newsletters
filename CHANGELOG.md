@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/Automattic/newspack-newsletters/compare/v1.23.0...v1.23.1) (2021-04-13)
+
+
+### Bug Fixes
+
+* avoid potentially undefined nested property ([#441](https://github.com/Automattic/newspack-newsletters/issues/441)) ([b6d12c9](https://github.com/Automattic/newspack-newsletters/commit/b6d12c9c28cf34d1d429551a9dfd99c22fd7c612))
+
 # [1.23.0](https://github.com/Automattic/newspack-newsletters/compare/v1.22.0...v1.23.0) (2021-04-06)
 
 
