@@ -109,7 +109,7 @@ class Newspack_Newsletters_Settings {
 			 */
 			array(
 				'default'     => '',
-				'description' => __( 'Letterhead Key (optional)', 'newspack-newsletters' ),
+				'description' => __( '<a href="https://tryletterhead.com" target="_blank">Letterhead</a> API Key', 'newspack-newsletters' ),
 				'key'         => Newspack_Newsletters_Letterhead::LETTERHEAD_WP_OPTION_KEY,
 				'type'        => 'text',
 			),
