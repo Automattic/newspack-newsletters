@@ -52,10 +52,8 @@ const renderPreSendInfo = newsletterData => {
 	}
 	let listData;
 	if ( newsletterData.campaign && newsletterData.lists ) {
-		const list = find( newsletterData.lists.lists, [
-			'id',
-			newsletterData.campaign.recipients.list_id,
-		] );
+		const lists = newsletterData.lists?.lists || [];
+		const list = find( lists, [ 'id', newsletterData.campaign.recipients.list_id ] );
 		if ( list ) {
 			listData = {
 				name: list.name,
