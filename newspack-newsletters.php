@@ -23,7 +23,7 @@ if ( ! defined( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE' ) ) {
  * a separate instance, we'll set a default.
  */
 if ( ! defined( 'NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT' ) ) {
-	define( 'NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT', 'https://platform.whereby.us' );
+	define( 'NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT', 'https://api.tryletterhead.com' );
 }
 // Include main plugin resources.
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/vendor/autoload.php';
