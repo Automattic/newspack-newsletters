@@ -154,6 +154,8 @@ final class Newspack_Newsletters_Editor {
 			[
 				'is_service_provider_configured' => Newspack_Newsletters::is_service_provider_configured(),
 				'service_provider'               => Newspack_Newsletters::service_provider(),
+				'email_html_meta'                => Newspack_Newsletters::EMAIL_HTML_META,
+				'newsletter_cpt'                 => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			]
 		);
 	}

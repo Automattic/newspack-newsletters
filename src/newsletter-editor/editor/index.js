@@ -2,14 +2,62 @@
  * External dependencies
  */
 import { get, isEmpty } from 'lodash';
+import mjml2html from 'mjml-browser';
 
 /**
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
-import { withDispatch, withSelect } from '@wordpress/data';
+import { withDispatch, dispatch as globalDispatch, withSelect } from '@wordpress/data';
 import { createPortal, useEffect, useState } from '@wordpress/element';
 import { registerPlugin } from '@wordpress/plugins';
+import { __ } from '@wordpress/i18n';
+import apiFetch from '@wordpress/api-fetch';
+
+/**
+ * Use a middleware to hijack the post update request.
+ * When a post is about to be updated, first the email-compliant HTML has
+ * to be produced. To do that, MJML (more at mjml.io) is used.
+ */
+apiFetch.use( ( options, next ) => {
+	const { method, path = '', data = {} } = options;
+	if (
+		path.indexOf( window.newspack_newsletters_data.newsletter_cpt ) > 0 &&
+		data.content &&
+		data.id &&
+		( method === 'POST' || method === 'PUT' )
+	) {
+		// First, send the content over to the server to convert the post content
+		// into MJML markup.
+		return apiFetch( {
+			path: `/newspack-newsletters/v1/post-mjml`,
+			method: 'POST',
+			data: {
+				id: data.id,
+				title: data.title,
+				content: data.content,
+			},
+		} )
+			.then( ( { mjml } ) => {
+				// Once received MJML markup, convert it to email-compliant HTML
+				// and save as post meta for later retrieval.
+				const { html } = mjml2html( mjml );
+				return apiFetch( {
+					data: { key: window.newspack_newsletters_data.email_html_meta, value: html },
+					method: 'POST',
+					path: `/newspack-newsletters/v1/post-meta/${ data.id }`,
+				} );
+			} )
+			.then( () => next( options ) ) // Proceed with the post update request.
+			.catch( error => {
+				// In case of an error, display notice and proceed with the post update request.
+				const { createErrorNotice } = globalDispatch( 'core/notices' );
+				createErrorNotice( error.message || __( 'Something went wrong', 'newspack-newsletters' ) );
+				return next( options );
+			} );
+	}
+	return next( options );
+} );
 
 /**
  * Internal dependencies
