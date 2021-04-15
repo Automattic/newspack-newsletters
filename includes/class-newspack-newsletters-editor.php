@@ -48,6 +48,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
+		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 	}
 
@@ -192,6 +193,26 @@ final class Newspack_Newsletters_Editor {
 	}
 
 	/**
+	 * Append author info to the posts REST response so we can append Coauthors, if they exist.
+	 */
+	public static function add_newspack_author_info() {
+		/* Add author info source */
+		register_rest_field(
+			'post',
+			'newspack_author_info',
+			[
+				'get_callback' => [ __CLASS__, 'newspack_get_author_info' ],
+				'schema'       => [
+					'context' => [
+						'edit',
+					],
+					'type'    => 'array',
+				],
+			]
+		);
+	}
+
+	/**
 	 * After fetching posts, reset the excerpt length.
 	 *
 	 * @param array $posts Array of posts.
@@ -245,6 +266,47 @@ final class Newspack_Newsletters_Editor {
 	public static function remove_wc_memberships_excerpt_limit() {
 		$excerpt = get_the_excerpt( get_the_id() );
 		return $excerpt;
+	}
+
+	/**
+	 * Append author data to the REST /posts response, so we can include Coauthors, link and display names.
+	 *
+	 * @param object $post Post object for the post being returned.
+	 * @return object Formatted data for all authors associated with the post.
+	 */
+	public static function newspack_get_author_info( $post ) {
+		$author_data = [];
+
+		if ( function_exists( 'get_coauthors' ) ) {
+			$authors = get_coauthors();
+
+			foreach ( $authors as $author ) {
+				$author_link = null;
+				if ( function_exists( 'coauthors_posts_links' ) ) {
+					$author_link = get_author_posts_url( $author->ID, $author->user_nicename );
+				}
+				$author_data[] = [
+					/* Get the author name */
+					'display_name' => esc_html( $author->display_name ),
+					/* Get the author ID */
+					'id'           => $author->ID,
+					/* Get the author Link */
+					'author_link'  => $author_link,
+				];
+			}
+		} else {
+			$author_data[] = [
+				/* Get the author name */
+				'display_name' => get_the_author_meta( 'display_name', $post['author'] ),
+				/* Get the author ID */
+				'id'           => $post['author'],
+				/* Get the author Link */
+				'author_link'  => get_author_posts_url( $post['author'] ),
+			];
+		}
+
+		/* Return the author data */
+		return $author_data;
 	}
 }
 Newspack_Newsletters_Editor::instance();
