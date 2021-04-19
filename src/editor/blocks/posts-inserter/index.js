@@ -235,8 +235,6 @@ const PostsInserterBlockWithSelect = compose( [
 	withSelect( ( select, props ) => {
 		const {
 			postsToShow,
-			order,
-			orderBy,
 			categories,
 			isDisplayingSpecificPosts,
 			specificPosts,
@@ -263,8 +261,6 @@ const PostsInserterBlockWithSelect = compose( [
 						{
 							categories: catIds,
 							tags,
-							order,
-							orderby: orderBy,
 							per_page: postsToShow,
 							exclude: preventDeduplication ? [] : exclude,
 							categories_exclude: categoryExclusions,

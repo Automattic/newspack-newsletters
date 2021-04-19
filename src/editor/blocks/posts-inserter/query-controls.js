@@ -224,10 +224,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 			) : (
 				<Fragment>
 					<QueryControls
-						{ ...{ order: attributes.order, orderBy: attributes.orderBy } }
 						numberOfItems={ attributes.postsToShow }
-						onOrderChange={ value => setAttributes( { order: value } ) }
-						onOrderByChange={ value => setAttributes( { orderBy: value } ) }
 						onNumberOfItemsChange={ value => setAttributes( { postsToShow: value } ) }
 						categorySuggestions={ categorySuggestions }
 						onCategoryChange={ selectCategories }
