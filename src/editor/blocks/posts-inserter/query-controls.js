@@ -11,6 +11,7 @@ import {
 	Button,
 	QueryControls,
 	FormTokenField,
+	SelectControl,
 	ToggleControl,
 	Spinner,
 } from '@wordpress/components';
@@ -264,6 +265,40 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 								fetchSuggestions={ fetchTagSuggestions }
 								fetchSavedInfo={ fetchSavedTags }
 								label={ __( 'Excluded Tags', 'newspack-newsletters' ) }
+							/>
+							<SelectControl
+								key="query-controls-order-select"
+								label={ __( 'Order by' ) }
+								value={ `${ attributes.orderBy }/${ attributes.order }` }
+								options={ [
+									{
+										label: __( 'Newest to oldest' ),
+										value: 'date/desc',
+									},
+									{
+										label: __( 'Oldest to newest' ),
+										value: 'date/asc',
+									},
+									{
+										/* translators: label for ordering posts by title in ascending order */
+										label: __( 'A → Z' ),
+										value: 'title/asc',
+									},
+									{
+										/* translators: label for ordering posts by title in descending order */
+										label: __( 'Z → A' ),
+										value: 'title/desc',
+									},
+								] }
+								onChange={ value => {
+									const [ newOrderBy, newOrder ] = value.split( '/' );
+									if ( newOrder !== attributes.order ) {
+										setAttributes( { order: newOrder } );
+									}
+									if ( newOrderBy !== attributes.orderBy ) {
+										setAttributes( { orderBy: newOrderBy } );
+									}
+								} }
 							/>
 						</Fragment>
 					) }
