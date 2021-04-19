@@ -492,7 +492,7 @@ final class Newspack_Newsletters_Renderer {
 				}
 
 				if ( isset( $attrs['width'] ) ) {
-					$column_attrs['width']     = $attrs['width'] . '%';
+					$column_attrs['width']     = $attrs['width'];
 					$column_attrs['css-class'] = 'mj-column-has-width';
 				}
 
@@ -518,7 +518,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 				};
 				foreach ( $no_width_cols_indexes as $no_width_cols_index ) {
-					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes );
+					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes ) . '%';
 				};
 
 				if ( isset( $attrs['color'] ) ) {
