@@ -351,7 +351,7 @@ final class Newspack_Newsletters_Renderer {
 					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = $button_block['attrs'];
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 28;
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 5;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
@@ -362,8 +362,9 @@ final class Newspack_Newsletters_Renderer {
 						'border-radius' => $border_radius . 'px',
 						'font-size'     => '18px',
 						'font-family'   => $font_family,
+						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
-						'color'         => $is_outlined ? '#32373c' : '#fff',
+						'color'         => $is_outlined ? '#32373c' : '#fff !important',
 					);
 					if ( $is_outlined ) {
 						$default_button_attrs['background-color'] = 'transparent';
@@ -491,7 +492,7 @@ final class Newspack_Newsletters_Renderer {
 				}
 
 				if ( isset( $attrs['width'] ) ) {
-					$column_attrs['width']     = $attrs['width'] . '%';
+					$column_attrs['width']     = $attrs['width'];
 					$column_attrs['css-class'] = 'mj-column-has-width';
 				}
 
@@ -517,7 +518,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 				};
 				foreach ( $no_width_cols_indexes as $no_width_cols_index ) {
-					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes );
+					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes ) . '%';
 				};
 
 				if ( isset( $attrs['color'] ) ) {
