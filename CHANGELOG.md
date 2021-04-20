@@ -1,3 +1,15 @@
+# [1.24.0](https://github.com/Automattic/newspack-newsletters/compare/v1.23.1...v1.24.0) (2021-04-20)
+
+
+### Bug Fixes
+
+* minor bugfixes ([#447](https://github.com/Automattic/newspack-newsletters/issues/447)) ([0b1e976](https://github.com/Automattic/newspack-newsletters/commit/0b1e9767f37918b4a05ab0e2d62a86bec0e18f16))
+
+
+### Features
+
+* convert MJML using the browser ([#443](https://github.com/Automattic/newspack-newsletters/issues/443)) ([9171e49](https://github.com/Automattic/newspack-newsletters/commit/9171e498edcddd946d716e96dba93bcf259590a5)), closes [#400](https://github.com/Automattic/newspack-newsletters/issues/400)
+
 ## [1.23.1](https://github.com/Automattic/newspack-newsletters/compare/v1.23.0...v1.23.1) (2021-04-13)
 
 
