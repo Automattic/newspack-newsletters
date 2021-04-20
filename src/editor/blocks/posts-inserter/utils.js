@@ -117,9 +117,11 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	const hasFeaturedImage = post.featuredImageLargeURL || post.featuredImageMediumURL;
 
 	if ( attributes.displayFeaturedImage && hasFeaturedImage ) {
+		const featuredImageId = post.featured_media;
 		const getImageBlock = ( alignCenter = false ) => [
 			'core/image',
 			{
+				id: featuredImageId,
 				url: alignCenter ? post.featuredImageLargeURL : post.featuredImageMediumURL,
 				href: post.link,
 				...( alignCenter ? { align: 'center' } : {} ),

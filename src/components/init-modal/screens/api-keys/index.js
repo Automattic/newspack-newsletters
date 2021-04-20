@@ -49,10 +49,6 @@ export default ( { onSetupStatus } ) => {
 					'Only administrators can set API keys.',
 					'newspack-newsletters'
 				),
-				newspack_newsletters_invalid_keys_mjml: __(
-					'Only administrators can set MJML credentials.',
-					'newspack-newsletters'
-				),
 			} );
 			return;
 		}
@@ -76,17 +72,9 @@ export default ( { onSetupStatus } ) => {
 			.catch( handleErrors );
 	}, []);
 
-	const {
-		service_provider: serviceProvider = '',
-		credentials = {},
-		mjml_api_key: mjmlApplicationId = '',
-		mjml_api_secret: mjmlAPISecret = '',
-	} = settings;
+	const { service_provider: serviceProvider = '', credentials = {} } = settings;
 
-	const canSubmit =
-		values( credentials ).join( '' ).length &&
-		mjmlApplicationId.length > 0 &&
-		mjmlAPISecret.length > 0;
+	const canSubmit = values( credentials ).join( '' ).length;
 
 	const classes = classnames(
 		'newspack-newsletters-modal__content',
@@ -233,34 +221,8 @@ export default ( { onSetupStatus } ) => {
 									{ __( 'Get Campaign Monitor API key and Client ID', 'newspack-newsletters' ) }
 								</ExternalLink>
 							</p>
-							<hr />
 						</Fragment>
 					) }
-					<h4>{ __( 'Enter your MJML API keys', 'newspack-newsletters' ) }</h4>
-					<TextControl
-						label={ __( 'MJML application ID', 'newspack-newsletters' ) }
-						value={ mjmlApplicationId }
-						onChange={ value => setSettings( { ...settings, mjml_api_key: value } ) }
-						disabled={ inFlight }
-						onKeyDown={ handleKeyDown }
-						className={ errors.newspack_newsletters_invalid_keys_mjml && 'has-error' }
-					/>
-					<TextControl
-						label={ __( 'MJML secret key', 'newspack-newsletters' ) }
-						value={ mjmlAPISecret }
-						onChange={ value => setSettings( { ...settings, mjml_api_secret: value } ) }
-						disabled={ inFlight }
-						onKeyDown={ handleKeyDown }
-						className={ errors.newspack_newsletters_invalid_keys_mjml && 'has-error' }
-					/>
-					{ errors.newspack_newsletters_invalid_keys_mjml && (
-						<p className="error">{ errors.newspack_newsletters_invalid_keys_mjml }</p>
-					) }
-					<p>
-						<ExternalLink href="https://mjml.io/api">
-							{ __( 'Request MJML API keys', 'newspack-newsletters' ) }
-						</ExternalLink>
-					</p>
 				</div>
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">
