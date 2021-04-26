@@ -631,20 +631,30 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
+	 * Convert a WP post to an array of non-empty blocks.
+	 *
+	 * @param WP_Post $post The post.
+	 * @return object[] Blocks.
+	 */
+	private static function get_valid_post_blocks( $post ) {
+		return array_filter(
+			parse_blocks( $post->post_content ),
+			function ( $block ) {
+				return null !== $block['blockName'];
+			}
+		);
+	}
+
+	/**
 	 * Convert a WP post to MJML components.
 	 *
 	 * @param WP_Post $post The post.
 	 * @param Boolean $include_ads Whether to include ads.
 	 * @return string MJML markup to be injected into the template.
 	 */
-	private static function post_to_mjml_components( $post, $include_ads ) {
+	public static function post_to_mjml_components( $post, $include_ads = false ) {
 		$body         = '';
-		$valid_blocks = array_filter(
-			parse_blocks( $post->post_content ),
-			function ( $block ) {
-				return null !== $block['blockName'];
-			}
-		);
+		$valid_blocks = self::get_valid_post_blocks( $post );
 		$total_length = self::get_total_newsletter_character_length( $valid_blocks );
 
 		// Gather ads.
@@ -669,7 +679,7 @@ final class Newspack_Newsletters_Renderer {
 					self::$ads_to_insert[] = [
 						'precise_position' => $total_length * $percentage,
 						'percentage'       => $percentage,
-						'markup'           => self::post_to_mjml_components( $ad, false ),
+						'markup'           => self::post_to_mjml_components( $ad ),
 						'is_inserted'      => false,
 					];
 				}
@@ -680,6 +690,18 @@ final class Newspack_Newsletters_Renderer {
 		$current_position = 0;
 		foreach ( $valid_blocks as $block ) {
 			$block_content = '';
+
+			// Convert reusable block to group block.
+			// Reusable blocks are CPTs, where the block's ref attribute is the post ID.
+			if ( 'core/block' === $block['blockName'] && isset( $block['attrs']['ref'] ) ) {
+				$reusable_block_post = get_post( $block['attrs']['ref'] );
+				if ( ! empty( $reusable_block_post ) ) {
+					$block['blockName']    = 'core/group';
+					$block['innerBlocks']  = self::get_valid_post_blocks( $reusable_block_post );
+					$block['innerHTML']    = $reusable_block_post->post_content;
+					$block['innerContent'] = $reusable_block_post->post_content;
+				}
+			}
 
 			// Insert ads between top-level group blocks' inner blocks.
 			if ( 'core/group' === $block['blockName'] ) {
