@@ -14,9 +14,13 @@ import SelectControlWithOptGroup from '../../components/select-control-with-optg
  */
 import { CSSLint } from 'csslint';
 import CodeMirror from '@uiw/react-codemirror';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'codemirror/mode/css/css';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'codemirror/addon/lint/lint';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'codemirror/addon/lint/lint.css';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'codemirror/addon/lint/css-lint';
 
 /**
@@ -173,7 +177,10 @@ export const Styling = compose( [
 			<BaseControl
 				id={ `inspector-custom-css-control-${ instanceId }` }
 				label={ __( 'Custom CSS', 'newspack-newsletters' ) }
-				help={ __( 'Custom CSS entered here will be appended to default styles.' ) }
+				help={ __(
+					'Custom CSS will be appended to default styles in sent emails only.',
+					'newspack-newsletters'
+				) }
 			>
 				<CodeMirror
 					className="components-textarea-control__input"
