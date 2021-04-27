@@ -9,6 +9,26 @@ import { withDispatch, withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
+/**
+ * External dependencies
+ */
+import { CSSLint } from 'csslint';
+import CodeMirror from '@uiw/react-codemirror';
+import 'codemirror/mode/css/css';
+import 'codemirror/addon/lint/lint';
+import 'codemirror/addon/lint/lint.css';
+import 'codemirror/addon/lint/css-lint';
+
+/**
+ * Internal dependencies
+ */
+import './style.scss';
+
+/**
+ * Add CSSLint to global scope for CodeMirror.
+ */
+window.CSSLint = window.CSSLint || CSSLint;
+
 const fontOptgroups = [
 	{
 		label: __( 'Sans Serif', 'newspack-newsletters' ),
@@ -68,11 +88,12 @@ const customStylesSelector = select => {
 		fontBody: meta.font_body || fontOptgroups[ 1 ].options[ 0 ].value,
 		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
 		backgroundColor: meta.background_color || '#ffffff',
+		customCss: meta.custom_css || '',
 	};
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )(
-	( { fontBody, fontHeader, backgroundColor } ) => {
+	( { fontBody, fontHeader, backgroundColor, customCss } ) => {
 		useEffect(() => {
 			document.documentElement.style.setProperty( '--body-font', fontBody );
 		}, [ fontBody ]);
@@ -85,6 +106,18 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 				editorElement.style.backgroundColor = backgroundColor;
 			}
 		}, [ backgroundColor ]);
+		useEffect(() => {
+			const editorElement = document.querySelector( '.edit-post-visual-editor' );
+			if ( editorElement ) {
+				let styleEl = document.querySelector( 'style' );
+				if ( ! styleEl ) {
+					styleEl = document.createElement( 'style' );
+					styleEl.setAttribute( 'type', 'text/css' );
+					editorElement.appendChild( styleEl );
+				}
+				styleEl.innerText = customCss;
+			}
+		}, [ customCss ]);
 
 		return null;
 	}
@@ -102,7 +135,7 @@ export const Styling = compose( [
 			...customStylesSelector( select ),
 		};
 	} ),
-] )( ( { editPost, fontBody, fontHeader, backgroundColor, postId } ) => {
+] )( ( { editPost, fontBody, fontHeader, backgroundColor, customCss, postId } ) => {
 	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
 		apiFetch( {
@@ -135,6 +168,25 @@ export const Styling = compose( [
 					color={ backgroundColor }
 					onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
 					disableAlpha
+				/>
+			</BaseControl>
+			<BaseControl
+				id={ `inspector-custom-css-control-${ instanceId }` }
+				label={ __( 'Custom CSS', 'newspack-newsletters' ) }
+				help={ __( 'Custom CSS entered here will be appended to default styles.' ) }
+			>
+				<CodeMirror
+					className="components-textarea-control__input"
+					value={ customCss }
+					height={ 250 }
+					onChange={ instance => editPost( { meta: { custom_css: instance.getValue() } } ) }
+					options={ {
+						gutters: [ 'CodeMirror-lint-markers' ],
+						height: 'auto',
+						indentWithTabs: true,
+						mode: 'css',
+						lint: true,
+					} }
 				/>
 			</BaseControl>
 		</Fragment>

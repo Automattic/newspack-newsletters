@@ -739,6 +739,7 @@ final class Newspack_Newsletters_Renderer {
 		$body             = self::post_to_mjml_components( $post, true ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$preview_text     = get_post_meta( $post->ID, 'preview_text', true );
+		$custom_css       = get_post_meta( $post->ID, 'custom_css', true );
 		if ( ! $background_color ) {
 			$background_color = '#ffffff';
 		}
