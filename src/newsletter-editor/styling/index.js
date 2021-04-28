@@ -119,9 +119,9 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 					styleEl.setAttribute( 'type', 'text/css' );
 					editorElement.appendChild( styleEl );
 				}
-				styleEl.innerText = customCss;
+				styleEl.textContent = styleEl.textContent + ' ' + customCss;
 			}
-		}, [ customCss ]);
+		}, []);
 
 		return null;
 	}
@@ -178,7 +178,7 @@ export const Styling = compose( [
 				id={ `inspector-custom-css-control-${ instanceId }` }
 				label={ __( 'Custom CSS', 'newspack-newsletters' ) }
 				help={ __(
-					'Custom CSS will be appended to default styles in sent emails only.',
+					'Custom CSS will be appended to default styles in sent emails only. Refresh editor to preview styles.',
 					'newspack-newsletters'
 				) }
 			>
