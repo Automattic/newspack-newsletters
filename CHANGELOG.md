@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/Automattic/newspack-newsletters/compare/v1.24.0...v1.24.1) (2021-04-28)
+
+
+### Bug Fixes
+
+* handle reusable blocks ([56c6d87](https://github.com/Automattic/newspack-newsletters/commit/56c6d87ab9c0c282d6628d0b35f99a5259e446dc)), closes [#344](https://github.com/Automattic/newspack-newsletters/issues/344)
+
 # [1.24.0](https://github.com/Automattic/newspack-newsletters/compare/v1.23.1...v1.24.0) (2021-04-20)
 
 
