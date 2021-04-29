@@ -171,6 +171,11 @@ const PostsInserterBlock = ( {
 						checked={ attributes.displayAuthor }
 						onChange={ value => setAttributes( { displayAuthor: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Display "Continue reading…" link', 'newspack-newsletters' ) }
+						checked={ attributes.displayContinueReading }
+						onChange={ value => setAttributes( { displayContinueReading: value } ) }
+					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
