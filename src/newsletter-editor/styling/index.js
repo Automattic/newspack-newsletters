@@ -96,6 +96,28 @@ const customStylesSelector = select => {
 	};
 };
 
+// Create a temporary DOM document (not displayed) for parsing CSS rules.
+const doc = document.implementation.createHTMLDocument( 'Temp' );
+
+/**
+ * Takes a given CSS string, parses it, and scopes all its rules to the given `scope`.
+ *
+ * @param {string} scope The scope to apply to each rule in the CSS.
+ * @param {string} css The CSS to scope.
+ * @returns Scoped CSS string.
+ */
+const getScopedCss = ( scope, css ) => {
+	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
+
+	style.textContent = css;
+	doc.head.appendChild( style );
+
+	const rules = [ ...style.sheet.cssRules ];
+	const scopedRules = rules.map( rule => scope + ' ' + rule.cssText );
+
+	return scopedRules.join( '\n' );
+};
+
 export const ApplyStyling = withSelect( customStylesSelector )(
 	( { fontBody, fontHeader, backgroundColor, customCss } ) => {
 		useEffect(() => {
@@ -113,15 +135,19 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 		useEffect(() => {
 			const editorElement = document.querySelector( '.edit-post-visual-editor' );
 			if ( editorElement ) {
-				let styleEl = document.querySelector( 'style' );
+				let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
 				if ( ! styleEl ) {
 					styleEl = document.createElement( 'style' );
 					styleEl.setAttribute( 'type', 'text/css' );
-					editorElement.appendChild( styleEl );
+					styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
+					document.head.appendChild( styleEl );
 				}
-				styleEl.textContent = styleEl.textContent + ' ' + customCss;
+
+				const scopedCss = getScopedCss( '.edit-post-visual-editor', customCss );
+
+				styleEl.textContent = scopedCss;
 			}
-		}, []);
+		}, [ customCss ]);
 
 		return null;
 	}
@@ -178,7 +204,7 @@ export const Styling = compose( [
 				id={ `inspector-custom-css-control-${ instanceId }` }
 				label={ __( 'Custom CSS', 'newspack-newsletters' ) }
 				help={ __(
-					'Custom CSS will be appended to default styles in sent emails only. Refresh editor to preview styles.',
+					'This is an advanced feature and may result in unpredictable behavior. Custom CSS will be appended to default styles in sent emails only.',
 					'newspack-newsletters'
 				) }
 			>
