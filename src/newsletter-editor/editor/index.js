@@ -1,25 +1,44 @@
 /**
  * External dependencies
  */
-import { get, isEmpty } from 'lodash';
+import { pick, get, isEmpty } from 'lodash';
 import mjml2html from 'mjml-browser';
 
 /**
  * WordPress dependencies
  */
 import { compose } from '@wordpress/compose';
-import { withDispatch, dispatch as globalDispatch, withSelect } from '@wordpress/data';
+import {
+	withDispatch,
+	dispatch as globalDispatch,
+	withSelect,
+	select as globalSelect,
+} from '@wordpress/data';
 import { createPortal, useEffect, useState } from '@wordpress/element';
 import { registerPlugin } from '@wordpress/plugins';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
+ * Internal dependencies
+ */
+import { NEWSLETTER_CPT_SLUG } from '../../utils/consts';
+
+const POST_META_WHITELIST = [
+	'is_public',
+	'preview_text',
+	'diable_ads',
+	'font_body',
+	'font_header',
+	'background_color',
+];
+
+/**
  * Use a middleware to hijack the post update request.
  * When a post is about to be updated, first the email-compliant HTML has
  * to be produced. To do that, MJML (more at mjml.io) is used.
  */
-apiFetch.use( ( options, next ) => {
+apiFetch.use( async ( options, next ) => {
 	const { method, path = '', data = {} } = options;
 	if (
 		path.indexOf( window.newspack_newsletters_data.newsletter_cpt ) > 0 &&
@@ -27,7 +46,16 @@ apiFetch.use( ( options, next ) => {
 		data.id &&
 		( method === 'POST' || method === 'PUT' )
 	) {
-		// First, send the content over to the server to convert the post content
+		// First, save post meta. It is not saved when saving a draft, so
+		// it's saved here in order for the backend to have access to these.
+		const postMeta = globalSelect( 'core/editor' ).getEditedPostAttribute( 'meta' );
+		await apiFetch( {
+			data: { meta: pick( postMeta, POST_META_WHITELIST ) },
+			method: 'POST',
+			path: `/wp/v2/${ NEWSLETTER_CPT_SLUG }/${ data.id }`,
+		} );
+
+		// Then, send the content over to the server to convert the post content
 		// into MJML markup.
 		return apiFetch( {
 			path: `/newspack-newsletters/v1/post-mjml`,
@@ -43,9 +71,9 @@ apiFetch.use( ( options, next ) => {
 				// and save as post meta for later retrieval.
 				const { html } = mjml2html( mjml );
 				return apiFetch( {
-					data: { key: window.newspack_newsletters_data.email_html_meta, value: html },
+					data: { meta: { [ window.newspack_newsletters_data.email_html_meta ]: html } },
 					method: 'POST',
-					path: `/newspack-newsletters/v1/post-meta/${ data.id }`,
+					path: `/wp/v2/${ NEWSLETTER_CPT_SLUG }/${ data.id }`,
 				} );
 			} )
 			.then( () => next( options ) ) // Proceed with the post update request.

@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies
  */
-import apiFetch from '@wordpress/api-fetch';
 import { compose, useInstanceId } from '@wordpress/compose';
 import { ColorPicker, BaseControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -95,21 +94,10 @@ export const Styling = compose( [
 		const { editPost } = dispatch( 'core/editor' );
 		return { editPost };
 	} ),
-	withSelect( select => {
-		const { getCurrentPostId } = select( 'core/editor' );
-		return {
-			postId: getCurrentPostId(),
-			...customStylesSelector( select ),
-		};
-	} ),
-] )( ( { editPost, fontBody, fontHeader, backgroundColor, postId } ) => {
+	withSelect( customStylesSelector ),
+] )( ( { editPost, fontBody, fontHeader, backgroundColor } ) => {
 	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
-		apiFetch( {
-			data: { key, value },
-			method: 'POST',
-			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
-		} );
 	};
 
 	const instanceId = useInstanceId( SelectControlWithOptGroup );
