@@ -272,19 +272,9 @@ final class Newspack_Newsletters_Renderer {
 					$attrs
 				);
 
-				if ( 'newspack-newsletters/share' === $block_name ) {
-					if ( self::$post_permalink ) {
-						// It'd be cool to include a HTML link in the email body, but that's not possible - https://stackoverflow.com/a/13415988/3772847.
-						$placeholder = urlencode( '[LINK]' );
-						$inner_html  = str_replace(
-							$placeholder,
-							urlencode( self::$post_permalink ),
-							$inner_html
-						);
-					} else {
-						// If there's no permalink (which is not set if the post is not public), the share link has no utility.
-						return '';
-					}
+				if ( 'newspack-newsletters/share' === $block_name && ! self::$post_permalink ) {
+					// If there's no permalink (which is not set if the post is not public), the share link has no utility.
+					return '';
 				}
 
 				// Only mj-text has to use container-background-color attr for background color.
