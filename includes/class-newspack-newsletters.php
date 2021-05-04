@@ -400,6 +400,22 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'custom_css',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'default'        => '',
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -826,6 +842,7 @@ final class Newspack_Newsletters {
 				'cm_from_name',
 				'cm_from_email',
 				'cm_preview_text',
+				'custom_css',
 				self::EMAIL_HTML_META,
 			]
 		);

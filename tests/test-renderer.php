@@ -96,4 +96,28 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			'Renders the reusable block into valid markup'
 		);
 	}
+
+	/**
+	 * Rendering with custom CSS.
+	 */
+	public function test_custom_css() {
+		$custom_css_str  = 'p { color: pink; }';
+		$newsletter_post = self::factory()->post->create(
+			[
+				'post_type'    => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with custom CSS.',
+				'post_content' => "<!-- wp:paragraph -->\n<p>A paragraph with some custom CSS applied.<\/p>\n<!-- \/wp:paragraph -->",
+			]
+		);
+		$post_object     = get_post( $newsletter_post );
+
+		// Add the custom CSS.
+		update_post_meta( $post_object->ID, 'custom_css', $custom_css_str );
+
+		$this->assertContains(
+			$custom_css_str,
+			Newspack_Newsletters_Renderer::render_post_to_mjml( $post_object ),
+			'Rendered email contains the custom CSS.'
+		);
+	}
 }
