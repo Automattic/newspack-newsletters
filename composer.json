@@ -5,8 +5,7 @@
   "require": {
     "drewm/mailchimp-api": "^2.5",
     "constantcontact/constantcontact": "2.1.*",
-    "campaignmonitor/createsend-php": "^6.1",
-    "xwp/wp-dev-lib": "^1.6"
+    "campaignmonitor/createsend-php": "^6.1"
   },
   "require-dev": {
     "automattic/vipwpcs": "^2.0",
