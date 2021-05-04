@@ -31,6 +31,7 @@ const POST_META_WHITELIST = [
 	'font_body',
 	'font_header',
 	'background_color',
+	'custom_css',
 ];
 
 /**

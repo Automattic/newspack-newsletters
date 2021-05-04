@@ -402,6 +402,22 @@ final class Newspack_Newsletters {
 		);
 		\register_meta(
 			'post',
+			'custom_css',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'default'        => '',
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
 			self::EMAIL_HTML_META,
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,

@@ -8,6 +8,30 @@ import { withDispatch, withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
+/**
+ * External dependencies
+ */
+import { CSSLint } from 'csslint';
+import CodeMirror from '@uiw/react-codemirror';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import 'codemirror/mode/css/css';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import 'codemirror/addon/lint/lint';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import 'codemirror/addon/lint/lint.css';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import 'codemirror/addon/lint/css-lint';
+
+/**
+ * Internal dependencies
+ */
+import './style.scss';
+
+/**
+ * Add CSSLint to global scope for CodeMirror.
+ */
+window.CSSLint = window.CSSLint || CSSLint;
+
 const fontOptgroups = [
 	{
 		label: __( 'Sans Serif', 'newspack-newsletters' ),
@@ -67,11 +91,34 @@ const customStylesSelector = select => {
 		fontBody: meta.font_body || fontOptgroups[ 1 ].options[ 0 ].value,
 		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
 		backgroundColor: meta.background_color || '#ffffff',
+		customCss: meta.custom_css || '',
 	};
 };
 
+// Create a temporary DOM document (not displayed) for parsing CSS rules.
+const doc = document.implementation.createHTMLDocument( 'Temp' );
+
+/**
+ * Takes a given CSS string, parses it, and scopes all its rules to the given `scope`.
+ *
+ * @param {string} scope The scope to apply to each rule in the CSS.
+ * @param {string} css The CSS to scope.
+ * @returns Scoped CSS string.
+ */
+const getScopedCss = ( scope, css ) => {
+	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
+
+	style.textContent = css;
+	doc.head.appendChild( style );
+
+	const rules = [ ...style.sheet.cssRules ];
+	const scopedRules = rules.map( rule => scope + ' ' + rule.cssText );
+
+	return scopedRules.join( '\n' );
+};
+
 export const ApplyStyling = withSelect( customStylesSelector )(
-	( { fontBody, fontHeader, backgroundColor } ) => {
+	( { fontBody, fontHeader, backgroundColor, customCss } ) => {
 		useEffect(() => {
 			document.documentElement.style.setProperty( '--body-font', fontBody );
 		}, [ fontBody ]);
@@ -84,6 +131,22 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 				editorElement.style.backgroundColor = backgroundColor;
 			}
 		}, [ backgroundColor ]);
+		useEffect(() => {
+			const editorElement = document.querySelector( '.edit-post-visual-editor' );
+			if ( editorElement ) {
+				let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
+				if ( ! styleEl ) {
+					styleEl = document.createElement( 'style' );
+					styleEl.setAttribute( 'type', 'text/css' );
+					styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
+					document.head.appendChild( styleEl );
+				}
+
+				const scopedCss = getScopedCss( '.edit-post-visual-editor', customCss );
+
+				styleEl.textContent = scopedCss;
+			}
+		}, [ customCss ]);
 
 		return null;
 	}
@@ -95,7 +158,7 @@ export const Styling = compose( [
 		return { editPost };
 	} ),
 	withSelect( customStylesSelector ),
-] )( ( { editPost, fontBody, fontHeader, backgroundColor } ) => {
+] )( ( { editPost, fontBody, fontHeader, customCss, backgroundColor } ) => {
 	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
 	};
@@ -123,6 +186,28 @@ export const Styling = compose( [
 					color={ backgroundColor }
 					onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
 					disableAlpha
+				/>
+			</BaseControl>
+			<BaseControl
+				id={ `inspector-custom-css-control-${ instanceId }` }
+				label={ __( 'Custom CSS', 'newspack-newsletters' ) }
+				help={ __(
+					'This is an advanced feature and may result in unpredictable behavior. Custom CSS will be appended to default styles in sent emails only.',
+					'newspack-newsletters'
+				) }
+			>
+				<CodeMirror
+					className="components-textarea-control__input"
+					value={ customCss }
+					height={ 250 }
+					onChange={ instance => editPost( { meta: { custom_css: instance.getValue() } } ) }
+					options={ {
+						gutters: [ 'CodeMirror-lint-markers' ],
+						height: 'auto',
+						indentWithTabs: true,
+						mode: 'css',
+						lint: true,
+					} }
 				/>
 			</BaseControl>
 		</Fragment>
