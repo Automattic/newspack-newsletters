@@ -122,7 +122,7 @@ export default compose( [
 						sprintf( /* eslint-disable-line */
 							_n(
 								'There is %d active ' + response.label + '.',
-								'There is %d active ' + response.label + 's.',
+								'There are %d active ' + response.label + 's.',
 								countOfActiveAds,
 								'newspack-newsletters'
 							),
