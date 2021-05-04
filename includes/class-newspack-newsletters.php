@@ -87,13 +87,6 @@ final class Newspack_Newsletters {
 
 		$renderer = new Newspack_Newsletters_Renderer();
 
-		/**
-		 * Register routes we can query from the editor.
-		 *
-		 * @uses Newspack_Newsletters_Renderer::register_newsletter_renderer_routes()
-		 */
-		add_action( 'rest_api_init', array( $renderer, 'register_newsletter_renderer_routes' ) );
-
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 		if ( $needs_nag ) {
 			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
@@ -747,6 +740,20 @@ final class Newspack_Newsletters {
 				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 			]
 		);
+
+		\register_rest_route(
+			'wp/v2/' . Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'count',
+			[
+				/**
+				 * Return an array of properties required to render a useful ads warning.
+				 *
+				 * @uses Newspack_Newsletters::get_ads_warning_in_editor()
+				 */
+				'callback' => [ __CLASS__, 'get_ads_warning_in_editor' ],
+				'methods'  => 'GET',
+			]
+		);
 	}
 
 	/**
@@ -1146,6 +1153,32 @@ final class Newspack_Newsletters {
 	public static function debug_mode() {
 		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
+
+
+	/**
+	 * Get properties required to render a useful modal in the editor that alerts
+	 * users of ads they're sending.
+	 *
+	 * @param WP_REST_REQUEST $request The WP Request Object.
+	 * @return array
+	 */
+	public function get_ads_warning_in_editor( $request ) {
+		$letterhead                 = new Newspack_Newsletters_Letterhead();
+		$has_letterhead_credentials = $letterhead->has_api_credentials();
+		$post_date                  = $request->get_param( 'date' );
+		$newspack_ad_type           = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
+		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}&page=newspack-newsletters-ads-admin";
+
+		$ads = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
+
+		return [
+			'count'     => count( $ads ),
+			'label'     => $has_letterhead_credentials ? 'promotion' : 'ad',
+			'manageUrl' => $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads,
+		];
+	}
+
 
 	/**
 	 * Which Email Service Provider should be used.
