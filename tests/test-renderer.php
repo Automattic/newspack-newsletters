@@ -69,4 +69,55 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			'Appends utm_medium=email to links with params'
 		);
 	}
+
+	/**
+	 * Rendering a reusable block component.
+	 */
+	public function test_reusable_block() {
+		$reusable_block_post_id = self::factory()->post->create(
+			[
+				'post_type'    => 'wp_block',
+				'post_title'   => 'Reusable block.',
+				'post_content' => "<!-- wp:paragraph -->\n<p>Hello<\/p>\n<!-- \/wp:paragraph -->",
+			]
+		);
+		$newsletter_post        = self::factory()->post->create(
+			[
+				'post_type'    => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with a reusable block in it.',
+				'post_content' => '<!-- wp:block {"ref":' . $reusable_block_post_id . '} /-->',
+			]
+		);
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::post_to_mjml_components(
+				get_post( $newsletter_post )
+			),
+			"<mj-wrapper ref=\"4\"><mj-section padding=\"0\"><mj-column padding=\"12px\" width=\"100%\"><mj-text padding=\"0\" line-height=\"1.8\" font-size=\"16px\" >\n<p>Hello</p>\n</mj-text></mj-column></mj-section></mj-wrapper>",
+			'Renders the reusable block into valid markup'
+		);
+	}
+
+	/**
+	 * Rendering with custom CSS.
+	 */
+	public function test_custom_css() {
+		$custom_css_str  = 'p { color: pink; }';
+		$newsletter_post = self::factory()->post->create(
+			[
+				'post_type'    => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with custom CSS.',
+				'post_content' => "<!-- wp:paragraph -->\n<p>A paragraph with some custom CSS applied.<\/p>\n<!-- \/wp:paragraph -->",
+			]
+		);
+		$post_object     = get_post( $newsletter_post );
+
+		// Add the custom CSS.
+		update_post_meta( $post_object->ID, 'custom_css', $custom_css_str );
+
+		$this->assertContains(
+			$custom_css_str,
+			Newspack_Newsletters_Renderer::render_post_to_mjml( $post_object ),
+			'Rendered email contains the custom CSS.'
+		);
+	}
 }
