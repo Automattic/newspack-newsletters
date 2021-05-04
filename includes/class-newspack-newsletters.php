@@ -750,8 +750,15 @@ final class Newspack_Newsletters {
 				 *
 				 * @uses Newspack_Newsletters::get_ads_warning_in_editor()
 				 */
-				'callback' => [ __CLASS__, 'get_ads_warning_in_editor' ],
-				'methods'  => 'GET',
+				'callback'            => [ __CLASS__, 'get_ads_warning_in_editor' ],
+				'methods'             => 'GET',
+
+				/**
+				 * Ensure the user can call this route.
+				 *
+				 * @uses Newspack_Newsletters::api_administration_permissions_check()
+				 */
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
 			]
 		);
 	}
