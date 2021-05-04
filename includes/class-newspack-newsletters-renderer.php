@@ -929,9 +929,6 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Retrieve email-compliant HTML for a newsletter CPT.
 	 *
-	 * @note `render_html_email` is called every time a Newspack newsletter `sync`s, which
-	 * in turn is called whenever the Newsletter custom post type is saved.
-	 *
 	 * @param WP_Post $post The post.
 	 * @return string email-compliant HTML.
 	 */
