@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/Automattic/newspack-newsletters/compare/v1.24.1...v1.25.0) (2021-05-04)
+
+
+### Features
+
+* custom CSS ([#454](https://github.com/Automattic/newspack-newsletters/issues/454)) ([748247c](https://github.com/Automattic/newspack-newsletters/commit/748247c14a1c3ca22bdf5d041162f00ddbda9f0a))
+
 ## [1.24.1](https://github.com/Automattic/newspack-newsletters/compare/v1.24.0...v1.24.1) (2021-04-28)
 
 
