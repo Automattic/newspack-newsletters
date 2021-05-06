@@ -785,14 +785,11 @@ final class Newspack_Newsletters {
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_get_mjml( $request ) {
-		if ( empty( $request['title'] ) ) {
-			$request['title'] = get_the_title( $request['id'] );
+		$post = get_post( $request['id'] );
+		if ( ! empty( $request['title'] ) ) {
+			$post->post_title = $request['title'];
 		}
-		$post = (object) [
-			'post_title'   => $request['title'],
-			'post_content' => $request['content'],
-			'ID'           => $request['id'],
-		];
+		$post->post_content = $request['content'];
 		return \rest_ensure_response( [ 'mjml' => Newspack_Newsletters_Renderer::render_post_to_mjml( $post ) ] );
 	}
 
