@@ -102,6 +102,7 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 	 */
 	private function get_promotions_from_json_response( $promotions_json ) {
 		$promotion_response_object = json_decode( $promotions_json, false );
+		$promotion_response_array  = is_null( $promotion_response_object ) ? [] : $promotion_response_object;
 
 		/**
 		 * We'll pass the json body through the Dto to normalize and get just the promotion data
@@ -113,7 +114,7 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 			function( \stdClass $promotion_object ) {
 				return new Newspack_Newsletters_Letterhead_Promotion_Dto( $promotion_object );
 			},
-			$promotion_response_object
+			$promotion_response_array
 		);
 
 		/**
