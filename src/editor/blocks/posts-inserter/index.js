@@ -143,7 +143,7 @@ const PostsInserterBlock = ( {
 			<InspectorControls>
 				<PanelBody title={ __( 'Post content settings', 'newspack-newsletters' ) }>
 					<ToggleControl
-						label={ __( 'Display post excerpt', 'newspack-newsletters' ) }
+						label={ __( 'Post excerpt', 'newspack-newsletters' ) }
 						checked={ attributes.displayPostExcerpt }
 						onChange={ value => setAttributes( { displayPostExcerpt: value } ) }
 					/>
@@ -157,19 +157,24 @@ const PostsInserterBlock = ( {
 						/>
 					) }
 					<ToggleControl
-						label={ __( 'Display date', 'newspack-newsletters' ) }
+						label={ __( 'Date', 'newspack-newsletters' ) }
 						checked={ attributes.displayPostDate }
 						onChange={ value => setAttributes( { displayPostDate: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Display featured image', 'newspack-newsletters' ) }
+						label={ __( 'Featured image', 'newspack-newsletters' ) }
 						checked={ attributes.displayFeaturedImage }
 						onChange={ value => setAttributes( { displayFeaturedImage: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Display author', 'newspack-newsletters' ) }
+						label={ __( "Author's name", 'newspack-newsletters' ) }
 						checked={ attributes.displayAuthor }
 						onChange={ value => setAttributes( { displayAuthor: value } ) }
+					/>
+					<ToggleControl
+						label={ __( '"Continue reading…" link', 'newspack-newsletters' ) }
+						checked={ attributes.displayContinueReading }
+						onChange={ value => setAttributes( { displayContinueReading: value } ) }
 					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
