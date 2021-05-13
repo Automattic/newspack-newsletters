@@ -38,7 +38,6 @@ const Sidebar = ( {
 	const apiFetch = config =>
 		apiFetchWithErrorHandling( config ).then( result => {
 			editPost( getEditPostPayload( result ) );
-
 			setSenderDirty( false );
 		} );
 
@@ -56,13 +55,6 @@ const Sidebar = ( {
 		'newspack-newsletters__email-textcontrol',
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
 	);
-
-	const updateMetaValueInAPI = data =>
-		apiFetchWithErrorHandling( {
-			data,
-			method: 'POST',
-			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
-		} );
 
 	const renderFrom = ( { handleSenderUpdate } ) => (
 		<Fragment>
@@ -104,24 +96,9 @@ const Sidebar = ( {
 				disabled={ inFlight }
 				onChange={ value => editPost( { meta: { preview_text: value } } ) }
 			/>
-			<Button
-				isLink
-				onClick={ () => updateMetaValueInAPI( { key: 'preview_text', value: previewText } ) }
-				disabled={ inFlight }
-			>
-				{ __( 'Update preview text', 'newspack-newsletters' ) }
-			</Button>
 		</Fragment>
 	);
 
-	const updateMetaValue = ( key, value ) => {
-		editPost( { meta: { [ key ]: value } } );
-		apiFetch( {
-			data: { key, value },
-			method: 'POST',
-			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
-		} );
-	};
 	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
@@ -143,7 +120,7 @@ const Sidebar = ( {
 					'If checked, no ads will be inserted into this newsletter’s content.',
 					'newspack-newsletters'
 				) }
-				onChange={ value => updateMetaValue( 'diable_ads', value ) }
+				onChange={ value => editPost( { meta: { diable_ads: value } } ) }
 			/>
 		</Fragment>
 	);
