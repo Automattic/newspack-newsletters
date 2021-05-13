@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { pick, get, isEmpty } from 'lodash';
+import { pick, omit, get, isEmpty } from 'lodash';
 import mjml2html from 'mjml-browser';
 
 /**
@@ -47,6 +47,11 @@ apiFetch.use( async ( options, next ) => {
 		data.id &&
 		( method === 'POST' || method === 'PUT' )
 	) {
+		const emailHTMLMetaName = window.newspack_newsletters_data.email_html_meta;
+
+		// Strip the meta which will be updated explicitly from post update payload.
+		options.data.meta = omit( options.data.meta, [ ...POST_META_WHITELIST, emailHTMLMetaName ] );
+
 		// First, save post meta. It is not saved when saving a draft, so
 		// it's saved here in order for the backend to have access to these.
 		const postMeta = globalSelect( 'core/editor' ).getEditedPostAttribute( 'meta' );
@@ -72,7 +77,7 @@ apiFetch.use( async ( options, next ) => {
 				// and save as post meta for later retrieval.
 				const { html } = mjml2html( mjml );
 				return apiFetch( {
-					data: { meta: { [ window.newspack_newsletters_data.email_html_meta ]: html } },
+					data: { meta: { [ emailHTMLMetaName ]: html } },
 					method: 'POST',
 					path: `/wp/v2/${ NEWSLETTER_CPT_SLUG }/${ data.id }`,
 				} );
