@@ -86,8 +86,6 @@ final class Newspack_Newsletters {
 		 */
 		self::set_service_provider( self::service_provider() );
 
-		$renderer = new Newspack_Newsletters_Renderer();
-
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 		if ( $needs_nag ) {
 			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
