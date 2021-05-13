@@ -1179,7 +1179,7 @@ final class Newspack_Newsletters {
 	 * @param WP_REST_REQUEST $request The WP Request Object.
 	 * @return array
 	 */
-	public function get_ads_warning_in_editor( $request ) {
+	public static function get_ads_warning_in_editor( $request ) {
 		$letterhead                 = new Newspack_Newsletters_Letterhead();
 		$has_letterhead_credentials = $letterhead->has_api_credentials();
 		$post_date                  = $request->get_param( 'date' );
