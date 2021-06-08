@@ -37,6 +37,7 @@ node_modules
 .git
 .github
 .circleci
-/src
+/src/**/*.js
+/src/**/*.scss
 /tests
 /bin

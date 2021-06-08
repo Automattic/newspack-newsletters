@@ -33,6 +33,7 @@ import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
  */
 import './style.scss';
 import './deduplication';
+import blockDefinition from './block.json';
 import Icon from './icon';
 import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
@@ -329,84 +330,10 @@ const PostsInserterBlockWithSelect = compose( [
 
 export default () => {
 	registerBlockType( POSTS_INSERTER_BLOCK_NAME, {
+		...blockDefinition,
 		title: 'Posts Inserter',
-		category: 'widgets',
 		icon: Icon,
 		edit: PostsInserterBlockWithSelect,
-		attributes: {
-			areBlocksInserted: {
-				type: 'boolean',
-				default: false,
-			},
-			postsToShow: {
-				type: 'number',
-				default: 3,
-			},
-			displayPostExcerpt: {
-				type: 'boolean',
-				default: true,
-			},
-			excerptLength: {
-				type: 'number',
-				default: 15,
-			},
-			displayPostDate: {
-				type: 'boolean',
-				default: false,
-			},
-			displayFeaturedImage: {
-				type: 'boolean',
-				default: true,
-			},
-			displayAuthor: {
-				type: 'boolean',
-				default: false,
-			},
-			innerBlocksToInsert: {
-				type: 'array',
-				default: '',
-			},
-			featuredImageAlignment: {
-				type: 'string',
-				default: 'left',
-			},
-			isDisplayingSpecificPosts: {
-				type: 'boolean',
-				default: false,
-			},
-			specificPosts: {
-				type: 'array',
-				default: [],
-			},
-			textFontSize: {
-				type: 'number',
-				default: 16,
-			},
-			headingFontSize: {
-				type: 'number',
-				default: 25,
-			},
-			textColor: {
-				type: 'string',
-				default: '#000',
-			},
-			headingColor: {
-				type: 'string',
-				default: '#000',
-			},
-			tags: {
-				type: 'array',
-				default: [],
-			},
-			tagExclusions: {
-				type: 'array',
-				default: [],
-			},
-			categoryExclusions: {
-				type: 'array',
-				default: [],
-			},
-		},
 		save: () => <InnerBlocks.Content />,
 	} );
 };
