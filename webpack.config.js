@@ -16,6 +16,7 @@ const editor = path.join( __dirname, 'src', 'editor' );
 const admin = path.join( __dirname, 'src', 'admin' );
 const adsEditor = path.join( __dirname, 'src', 'ads-admin', 'editor' );
 const branding = path.join( __dirname, 'src', 'branding' );
+const blocks = path.join( __dirname, 'src', 'editor', 'blocks' );
 
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
@@ -25,6 +26,7 @@ const webpackConfig = getBaseWebpackConfig(
 			admin,
 			adsEditor,
 			branding,
+			blocks,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
