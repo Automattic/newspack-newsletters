@@ -1,3 +1,10 @@
+## [1.27.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.27.0...v1.27.1-alpha.1) (2021-06-15)
+
+
+### Bug Fixes
+
+* prevent gravityforms scripts ([72e47c9](https://github.com/Automattic/newspack-newsletters/commit/72e47c957180d4ea66f5adf31fe458bcc4df0cd3))
+
 # [1.27.0](https://github.com/Automattic/newspack-newsletters/compare/v1.26.0...v1.27.0) (2021-06-08)
 
 
