@@ -80,7 +80,18 @@ final class Newspack_Newsletters {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
 		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
-		self::set_service_provider( self::service_provider() );
+
+		add_filter( 'bulk_actions-edit-newspack_nl_cpt', [ __CLASS__, 'register_bulk_actions' ] );
+        add_filter( 'handle_bulk_actions-edit-newspack_nl_cpt', [ __CLASS__, 'bulk_action_handler' ],10,3 );
+        add_action( 'admin_notices', [ __CLASS__, 'bulk_action_admin_notice' ] );
+		
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_quick_edit_population' ] );
+		add_filter( 'manage_newspack_nl_cpt_posts_columns', [ __CLASS__, 'npublic_columns' ], 10,2 );
+		add_action( 'manage_newspack_nl_cpt_posts_custom_column', [ __CLASS__, 'populate_columns' ], 10, 2);
+		add_action( 'quick_edit_custom_box',  [ __CLASS__, 'quick_edit_fields' ], 10, 2);
+		add_action( 'save_post', [ __CLASS__, 'quick_edit_save' ] );
+		
+        self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 		if ( $needs_nag ) {
@@ -88,6 +99,157 @@ final class Newspack_Newsletters {
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
 			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
+	}
+
+	/**
+     * populate result in quickedit field
+	 * @param $pagehook
+	 */
+	public function enqueue_quick_edit_population( $pagehook ) {
+
+		// do nothing if we are not on the target pages
+		if ( 'edit.php' != $pagehook ) {
+			return;
+		}
+
+		wp_enqueue_script( 'populatequickedit', plugins_url( '../dist/quickedit.js', __FILE__ ), array('jquery'), '1.0', false );
+
+	}
+
+	/**
+     * Adding column
+	 * @param $column_array
+	 * @return mixed
+	 */
+	public function npublic_columns( $column_array ) {
+
+		$column_array['public'] = 'Published as a post';
+
+		return $column_array;
+	}
+
+	/**
+     * Populate column value
+	 * @param $column_name
+	 * @param $post_id
+	 */
+	public function populate_columns( $column_name, $post_id ) {
+
+		// if you have to populate more that one columns, use switch()
+		switch ( $column_name ) :
+			case 'public':
+				echo ( get_post_meta( $post_id, 'is_public', true ) == '1')  ? 'Yes' : 'No';
+				break;
+		endswitch;
+
+	}
+
+	/**
+     * Display Make Newsletters public checkbox
+	 * @param $column_name
+	 * @param $post_type
+	 */
+	public function quick_edit_fields( $column_name, $post_type ) {
+
+		switch ( $column_name ) :
+			case 'public':
+				wp_nonce_field( 'quick_edit_npublic_nonce', 'npublic_nonce' );
+				echo '<fieldset class="inline-edit-col-right"><div class="inline-edit-col"><div class="inline-edit-group wp-clearfix">';
+				echo '<label class="alignleft">
+						<input type="checkbox" name="npublic">
+						<span class="checkbox-title">Make newsletter page public?</span>
+					</label>';
+
+				// for the LAST column only - closing the fieldset element
+				echo '</div></div></fieldset>';
+
+				break;
+		endswitch;
+
+	}
+
+	/**
+     * Save value in public newsletters checkbox
+	 * @param $post_id
+	 */
+	public function quick_edit_save( $post_id ) {
+
+		// check user capabilities
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		// check nonce
+		if ( ! wp_verify_nonce( $_POST['npublic_nonce'], 'quick_edit_npublic_nonce' ) ) {
+			return;
+		}
+
+		// update checkbox
+		if ( isset( $_POST['npublic'] ) ) {
+			update_post_meta( $post_id, 'is_public', '1' );
+		} else {
+			update_post_meta( $post_id, 'is_public', '' );
+		}
+
+
+	}
+	/**
+     * Register bulk action fields in bulk action dropdown
+	 * @param $bulk_actions
+	 * @return mixed
+	 */
+	public static function register_bulk_actions( $bulk_actions ) {
+		$bulk_actions['public_newsletters'] = __( 'Make Newsletters Public', 'newspack_newsletters' );
+		$bulk_actions['non_public_newsletters'] = __( 'Make Newsletters Non-public', 'newspack_newsletters' );
+		return $bulk_actions;
+	}
+
+	/**
+     * Bulk action handler onclick event
+	 * @param $redirect_to
+	 * @param $doaction
+	 * @param $post_ids
+	 * @return mixed
+	 */
+	public static function bulk_action_handler( $redirect_to, $doaction, $post_ids ) {
+		$nonce = wp_create_nonce( 'npublic' );
+		if ( $doaction == 'public_newsletters' ) {
+			foreach ( $post_ids as $post_id ) {
+				update_post_meta( $post_id, 'is_public', 1 );
+			}
+			$redirect_to = admin_url( 'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_CPT . '&public_newsletters_done=' . count( $post_ids ) . '&_wpnonce=' . $nonce );
+
+		}
+		if ( $doaction == 'non_public_newsletters' ) {
+			foreach ( $post_ids as $post_id ) {
+				update_post_meta( $post_id, 'is_public', '' );
+			}
+
+			$redirect_to = admin_url( 'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_CPT . '&non-public_newsletters_done=' . count( $post_ids ) . '&_wpnonce=' . $nonce );
+
+		}
+		return $redirect_to;
+	}
+
+    /**
+     * Admin notice on bulk action event
+     */
+	public static function bulk_action_admin_notice() {
+        if( isset ( $_REQUEST['_wpnonce'] ) ) {
+            $nonce = sanitize_key( $_REQUEST['_wpnonce'] );
+        }
+        if( ! empty ( $nonce ) ) {
+            if (wp_verify_nonce($nonce, 'npublic')) {
+
+                if (!empty($_REQUEST['public_newsletters_done'])) {
+                    $num_changed = (int)$_REQUEST['public_newsletters_done'];
+                    printf('<div id="message" class="updated notice is-dismissable"><p>' . __('Published %d newsletters to public.', 'newspack-newsletters') . '</p></div>', $num_changed);
+                } else if (!empty($_REQUEST['non-public_newsletters_done'])) {
+                    $num_changed = (int)$_REQUEST['non-public_newsletters_done'];
+                    printf('<div id="message" class="updated notice is-dismissable"><p>' . __('%d newsletters to non public.', 'newspack-newsletters') . '</p></div>', $num_changed);
+                }
+            }
+        }
 	}
 
 	/**
@@ -561,7 +723,7 @@ final class Newspack_Newsletters {
 			}
 
 			if ( $is_public ) {
-				$post_states[ $post_status->name ] .= __( ' | Published as a post', 'newspack-newsletters' );
+				//$post_states[ $post_status->name ] .= __( ' | Published as a postPublished as a post', 'newspack-newsletters' );
 			}
 		}
 
@@ -1096,7 +1258,7 @@ final class Newspack_Newsletters {
 				'ajaxurl' => get_admin_url() . 'admin-ajax.php',
 			]
 		);
-		wp_enqueue_script( $script );
+		wp_2ue_script( $script );
 	}
 
 	/**
