@@ -1266,7 +1266,7 @@ final class Newspack_Newsletters {
 				'ajaxurl' => get_admin_url() . 'admin-ajax.php',
 			]
 		);
-		wp_2ue_script( $script );
+		wp_enqueue_script( $script );
 	}
 
 	/**
