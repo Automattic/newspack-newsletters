@@ -89,7 +89,7 @@ final class Newspack_Newsletters {
 		add_filter( 'manage_newspack_nl_cpt_posts_columns', [ __CLASS__, 'npublic_columns' ], 10, 2 );
 		add_action( 'manage_newspack_nl_cpt_posts_custom_column', [ __CLASS__, 'populate_columns' ], 10, 2 );
 		add_action( 'quick_edit_custom_box', [ __CLASS__, 'quick_edit_fields' ], 10, 2 );
-		add_action( 'save_post', [ __CLASS__, 'quick_edit_save' ] );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'quick_edit_save' ] );
 		
 		self::set_service_provider( self::service_provider() );
 
@@ -178,7 +178,7 @@ final class Newspack_Newsletters {
 	 * 
 	 * @param int $post_id Post ID.
 	 */
-	public function quick_edit_save( $post_id ) {
+	public static function quick_edit_save( $post_id ) {
 
 		// check user capabilities.
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
@@ -1266,7 +1266,7 @@ final class Newspack_Newsletters {
 				'ajaxurl' => get_admin_url() . 'admin-ajax.php',
 			]
 		);
-		wp_enqueue_script( $script );
+		wp_2ue_script( $script );
 	}
 
 	/**
