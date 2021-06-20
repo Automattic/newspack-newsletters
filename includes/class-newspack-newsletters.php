@@ -106,7 +106,7 @@ final class Newspack_Newsletters {
 	 * 
 	 * @param string $pagehook To check pagehook.
 	 */
-	public function enqueue_quick_edit_population( $pagehook ) {
+	public static function enqueue_quick_edit_population( $pagehook ) {
 
 		// do nothing if we are not on the target pages.
 		if ( 'edit.php' != $pagehook ) {
@@ -1266,7 +1266,7 @@ final class Newspack_Newsletters {
 				'ajaxurl' => get_admin_url() . 'admin-ajax.php',
 			]
 		);
-		wp_2ue_script( $script );
+		wp_enqueue_script( $script );
 	}
 
 	/**
