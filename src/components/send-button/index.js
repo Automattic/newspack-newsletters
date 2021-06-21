@@ -140,7 +140,6 @@ export default compose( [
 					className="editor-post-publish-button"
 					isBusy={ isSaving }
 					isPrimary
-					isLarge
 					disabled={ isSaving }
 					onClick={ savePost }
 				>
@@ -157,7 +156,6 @@ export default compose( [
 					className="editor-post-publish-button"
 					isBusy={ isSaving && 'publish' === status }
 					isPrimary
-					isLarge
 					onClick={ async () => {
 						await savePost();
 						setModalVisible( true );

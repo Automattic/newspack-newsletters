@@ -157,6 +157,9 @@
 			}
 
 			&[data-type='core/social-link'] {
+				align-items: center;
+				display: flex;
+				justify-content: center;
 				padding: 0;
 
 				&:not( [contenteditable] ):focus::after {
@@ -187,6 +190,25 @@
 				.wp-block-group.has-background {
 					padding-top: 12px;
 					padding-bottom: 12px;
+				}
+			}
+
+			&[data-align='center'] {
+				.wp-block-social-links {
+					margin-left: 8px;
+					margin-right: 0;
+				}
+			}
+
+			&[data-align='left'] {
+				.wp-block-social-links {
+					margin-left: 0;
+				}
+			}
+
+			&[data-align='right'] {
+				.wp-block-social-links {
+					margin-right: 0;
 				}
 			}
 		}
