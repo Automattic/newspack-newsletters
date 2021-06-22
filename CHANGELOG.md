@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/Automattic/newspack-newsletters/compare/v1.27.1...v1.28.0) (2021-06-22)
+
+
+### Features
+
+* update colors to use latest WP base-styles  ([#477](https://github.com/Automattic/newspack-newsletters/issues/477)) ([a3ce0cd](https://github.com/Automattic/newspack-newsletters/commit/a3ce0cd0beeebff778af217988d05b6410e095bd))
+
 ## [1.27.1](https://github.com/Automattic/newspack-newsletters/compare/v1.27.0...v1.27.1) (2021-06-15)
 
 
