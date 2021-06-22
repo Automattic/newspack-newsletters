@@ -13,12 +13,24 @@
 
 	&__item-preview {
 		background: white;
-		border: 1px solid $light-gray-500;
+		border: 1px solid $gray-300;
 		border-radius: 2px;
 		overflow: hidden;
 		padding: 0 0 calc( 100% - 2px );
 		position: relative;
 		width: 100%;
+
+		&::before {
+			border: 2px solid white;
+			bottom: 0;
+			content: '';
+			display: block;
+			left: 0;
+			right: 0;
+			position: absolute;
+			top: 0;
+			z-index: 1;
+		}
 
 		.block-editor-block-preview__container {
 			position: absolute;
@@ -63,7 +75,7 @@
 			text-align: center;
 			border-color: transparent !important;
 			&:focus {
-				border-color: $blue-medium-focus !important;
+				border-color: var( --wp-admin-theme-color ) !important;
 			}
 		}
 		.components-base-control__field {
