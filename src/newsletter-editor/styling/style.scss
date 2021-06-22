@@ -1,3 +1,5 @@
+@import '~@wordpress/base-styles/colors';
+
 .CodeMirror {
-	border: 1px solid #75757e;
+	border: 1px solid $gray-700;
 }

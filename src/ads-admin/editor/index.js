@@ -15,11 +15,6 @@ import { registerPlugin } from '@wordpress/plugins';
 import { DatePicker, BaseControl, Notice, Button, RangeControl } from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
 
-/**
- * Internal dependencies
- */
-import './style.scss';
-
 const AdEdit = ( { expiryDate, positionInContent, editPost } ) => {
 	let noticeProps;
 	if ( expiryDate ) {

@@ -103,7 +103,7 @@ const doc = document.implementation.createHTMLDocument( 'Temp' );
  *
  * @param {string} scope The scope to apply to each rule in the CSS.
  * @param {string} css The CSS to scope.
- * @returns Scoped CSS string.
+ * @return Scoped CSS string.
  */
 const getScopedCss = ( scope, css ) => {
 	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
