@@ -741,7 +741,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_color_palette' ],
-				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 			]
 		);
 		\register_rest_route(
@@ -750,7 +750,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_get_mjml' ],
-				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'      => [
 						'required'          => true,
