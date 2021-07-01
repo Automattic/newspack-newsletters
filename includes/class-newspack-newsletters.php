@@ -671,10 +671,10 @@ final class Newspack_Newsletters {
 	public static function public_page_column_content( $column_name, $post_id ) {
 		if ( 'public_page' === $column_name ) {
 			$is_public = get_post_meta( $post_id, 'is_public', true );
-			echo empty( $is_public ) ? esc_html__( 'No', 'newspack-newsletters' ) : esc_html__( 'Yes', 'newspack-newsletters' );
-			// Inline data for javascript use.
 			?>
-			<div class="is_public hidden"><?php echo esc_html( $is_public ); ?></div>
+			<span class="inline_data is_public" data-is_public="<?php echo esc_html( $is_public ); ?>">
+				<?php echo empty( $is_public ) ? esc_html__( 'No', 'newspack-newsletters' ) : esc_html__( 'Yes', 'newspack-newsletters' ); ?>
+			</span>
 			<?php
 		}
 	}
