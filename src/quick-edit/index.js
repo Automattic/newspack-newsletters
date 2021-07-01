@@ -14,7 +14,7 @@ if ( 'undefined' !== typeof inlineEditPost ) {
 		}
 
 		if ( id > 0 ) {
-			if ( jQuery( `tr#post-${ id } .is_public` ).text() ) {
+			if ( jQuery( `tr#post-${ id } .inline_data.is_public` ).data( 'is_public' ) ) {
 				jQuery( `tr#edit-${ id } :input[name="switch_public_page"]` ).prop( 'checked', true );
 			}
 		}
