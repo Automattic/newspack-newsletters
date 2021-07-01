@@ -75,10 +75,13 @@ class Newspack_Newsletters_Bulk_Actions {
 
 	/**
 	 * Admin notice on bulk action update result.
+	 * 
+	 * phpcs:disable WordPress.Security.NonceVerification.Recommended
+	 * Bulk actions nonces are verified by the core, before the action handler and admin_notices.
 	 */
 	public static function admin_notices() {
-		if ( isset( $_REQUEST['newsletters_public_count'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$count = (int) $_REQUEST['newsletters_public_count']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_REQUEST['newsletters_public_count'] ) ) {
+			$count = (int) $_REQUEST['newsletters_public_count'];
 			printf(
 				/* translators: %d updated posts count */
 				'<div id="message" class="updated notice is-dismissable"><p>' . esc_html( _n( '%d newsletter now have public page available.', '%d newsletters now have public page available.', $count, 'newspack-newsletters' ) ) . '</p></div>',
@@ -86,8 +89,8 @@ class Newspack_Newsletters_Bulk_Actions {
 			);
 		}
 
-		if ( isset( $_REQUEST['newsletters_non_public_count'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$count = (int) $_REQUEST['newsletters_non_public_count']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_REQUEST['newsletters_non_public_count'] ) ) {
+			$count = (int) $_REQUEST['newsletters_non_public_count'];
 			printf( 
 				/* translators: %d updated posts count */
 				'<div id="message" class="updated notice is-dismissable"><p>' . esc_html( _n( '%d newsletter now have public page disabled.', '%d newsletters now have public page disabled.', $count, 'newspack-newsletters' ) ) . '</p></div>',
@@ -95,6 +98,7 @@ class Newspack_Newsletters_Bulk_Actions {
 			);
 		}
 	}
+	// phpcs:enable WordPress.Security.NonceVerification.Recommended
 }
 
 if ( is_admin() ) {
