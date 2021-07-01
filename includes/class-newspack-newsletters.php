@@ -73,6 +73,8 @@ final class Newspack_Newsletters {
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
+		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
+		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
@@ -645,6 +647,35 @@ final class Newspack_Newsletters {
 			nocache_headers();
 			include get_query_template( '404' );
 			die();
+		}
+	}
+
+	/**
+	 * Add "Public page" admin column
+	 * 
+	 * @param array $columns Newsletters columns.
+	 * 
+	 * @return array
+	 */
+	public static function add_public_page_column( $columns ) {
+		return array_merge( $columns, [ 'public_page' => __( 'Public page', 'newspack-newsletters' ) ] );
+	}
+
+	/**
+	 * Add "Public page" admin column content
+	 * Displays wether the newsletter post has a public page or not
+	 * 
+	 * @param string $column_name Column name.
+	 * @param int    $post_id     Post ID.
+	 */
+	public static function public_page_column_content( $column_name, $post_id ) {
+		if ( 'public_page' === $column_name ) {
+			$is_public = get_post_meta( $post_id, 'is_public', true );
+			echo empty( $is_public ) ? esc_html__( 'No', 'newspack-newsletters' ) : esc_html__( 'Yes', 'newspack-newsletters' );
+			// Inline data for javascript use.
+			?>
+			<div class="is_public hidden"><?php echo esc_html( $is_public ); ?></div>
+			<?php
 		}
 	}
 
