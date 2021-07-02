@@ -176,6 +176,7 @@ final class Newspack_Newsletters_Editor {
 				'service_provider'               => Newspack_Newsletters::service_provider(),
 				'email_html_meta'                => Newspack_Newsletters::EMAIL_HTML_META,
 				'newsletter_cpt'                 => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'user_test_emails'               => self::get_current_user_test_emails(),
 			]
 		);
 	}
@@ -286,6 +287,19 @@ final class Newspack_Newsletters_Editor {
 	public static function remove_wc_memberships_excerpt_limit() {
 		$excerpt = get_the_excerpt( get_the_id() );
 		return $excerpt;
+	}
+
+	/**
+	 * Get current user test emails
+	 * 
+	 * @return array List of user defined emails.
+	 */
+	public static function get_current_user_test_emails() {
+		$emails = get_user_meta( get_current_user_id(), 'newspack_nl_test_emails', true );
+		if ( ! is_array( $emails ) ) {
+			return array();
+		}
+		return $emails;
 	}
 
 	/**
