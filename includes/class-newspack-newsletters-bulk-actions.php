@@ -43,7 +43,7 @@ class Newspack_Newsletters_Bulk_Actions {
 	 */
 	public static function register_bulk_actions( $bulk_actions ) {
 		$bulk_actions['newsletters_public']     = __( 'Make newsletters page public', 'newspack-newsletters' );
-		$bulk_actions['newsletters_non_public'] = __( 'Make newsletters page non-public', 'newspack-newsletters' );
+		$bulk_actions['newsletters_non_public'] = __( 'Make newsletter pages non-public', 'newspack-newsletters' );
 		return $bulk_actions;
 	}
 
