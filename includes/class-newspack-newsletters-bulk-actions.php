@@ -93,7 +93,7 @@ class Newspack_Newsletters_Bulk_Actions {
 			$count = (int) $_REQUEST['newsletters_non_public_count'];
 			printf( 
 				/* translators: %d updated posts count */
-				'<div id="message" class="updated notice is-dismissable"><p>' . esc_html( _n( '%d newsletter now have public page disabled.', '%d newsletters now have public page disabled.', $count, 'newspack-newsletters' ) ) . '</p></div>',
+				'<div id="message" class="updated notice is-dismissable"><p>' . esc_html( _n( '%d newsletter now has public page disabled.', '%d newsletters now have public page disabled.', $count, 'newspack-newsletters' ) ) . '</p></div>',
 				esc_attr( number_format_i18n( $count ) )
 			);
 		}
