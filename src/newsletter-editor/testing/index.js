@@ -28,7 +28,7 @@ export default compose( [
 	} ),
 ] )( ( { apiFetchWithErrorHandling, inFlight, postId, savePost, setInFlightForAsync } ) => {
 	const [ testEmail, setTestEmail ] = useState(
-		window?.newspack_newsletters_data?.user_test_emails?.join( ',' )
+		window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || ''
 	);
 
 	const sendTestEmail = async () => {
