@@ -17,7 +17,7 @@ class Newspack_Newsletters_Quick_Edit {
 	public static function init() {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
 		add_action( 'quick_edit_custom_box', [ __CLASS__, 'quick_edit_box' ], 10, 2 );
-		add_action( 'save_post', [ __CLASS__, 'save' ], 10, 2 );
+		add_action( 'save_post_newspack_nl_cpt', [ __CLASS__, 'save' ] );
 	}
   
 	/**
@@ -68,14 +68,10 @@ class Newspack_Newsletters_Quick_Edit {
 	/**
 	 * Save Quick Edit action values.
 	 * 
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    The post being saved.
+	 * @param int $post_id Post ID.
 	 */
-	public static function save( $post_id, $post ) {
+	public static function save( $post_id ) {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
-		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
 			return;
 		}
 		if (
