@@ -295,9 +295,11 @@ final class Newspack_Newsletters_Editor {
 	 * @return array List of user defined emails.
 	 */
 	public static function get_current_user_test_emails() {
-		$emails = get_user_meta( get_current_user_id(), 'newspack_nl_test_emails', true );
+		$user_id = get_current_user_id();
+		$emails  = get_user_meta( $user_id, 'newspack_nl_test_emails', true );
 		if ( ! is_array( $emails ) ) {
-			return array();
+			$user_info = get_userdata( $user_id );
+			return array( $user_info->user_email );
 		}
 		return $emails;
 	}
