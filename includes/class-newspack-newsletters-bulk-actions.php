@@ -42,7 +42,7 @@ class Newspack_Newsletters_Bulk_Actions {
 	 * @return array Updated bulk actions. 
 	 */
 	public static function register_bulk_actions( $bulk_actions ) {
-		$bulk_actions['newsletters_public']     = __( 'Make newsletters page public', 'newspack-newsletters' );
+		$bulk_actions['newsletters_public']     = __( 'Make newsletter pages public', 'newspack-newsletters' );
 		$bulk_actions['newsletters_non_public'] = __( 'Make newsletter pages non-public', 'newspack-newsletters' );
 		return $bulk_actions;
 	}
@@ -84,7 +84,7 @@ class Newspack_Newsletters_Bulk_Actions {
 			$count = (int) $_REQUEST['newsletters_public_count'];
 			printf(
 				/* translators: %d updated posts count */
-				'<div id="message" class="updated notice is-dismissable"><p>' . esc_html( _n( '%d newsletter now have public page available.', '%d newsletters now have public page available.', $count, 'newspack-newsletters' ) ) . '</p></div>',
+				'<div id="message" class="updated notice is-dismissable"><p>' . esc_html( _n( '%d newsletter now has public page available.', '%d newsletters now have public page available.', $count, 'newspack-newsletters' ) ) . '</p></div>',
 				esc_attr( number_format_i18n( $count ) )
 			);
 		}
