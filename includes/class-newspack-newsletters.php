@@ -561,10 +561,6 @@ final class Newspack_Newsletters {
 				/* translators:  Absolute time stamp of sent/published date */
 				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( get_option( 'date_format' ), $post ) );
 			}
-
-			if ( $is_public ) {
-				$post_states[ $post_status->name ] .= __( ' | Published as a post', 'newspack-newsletters' );
-			}
 		}
 
 		return $post_states;
