@@ -27,9 +27,15 @@ export default compose( [
 		};
 	} ),
 ] )(
-	( { apiFetchWithErrorHandling, inFlight, postId, savePost, setInFlightForAsync, ...props } ) => {
-		const { testEmail, onChangeEmail } = props;
-
+	( {
+		apiFetchWithErrorHandling,
+		inFlight,
+		postId,
+		savePost,
+		setInFlightForAsync,
+		testEmail,
+		onChangeEmail,
+	} ) => {
 		const sendTestEmail = async () => {
 			const serviceProvider =
 				window &&
