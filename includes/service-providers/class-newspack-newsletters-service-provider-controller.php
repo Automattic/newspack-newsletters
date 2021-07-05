@@ -47,6 +47,6 @@ abstract class Newspack_Newsletters_Service_Provider_Controller extends \WP_REST
 		if ( 1 === count( $emails ) && $user_info->user_email === $emails[0] ) {
 			return false;
 		}
-		return (bool) update_user_meta( get_current_user_id(), 'newspack_nl_test_emails', $emails );
+		return (bool) update_user_meta( $user_id, 'newspack_nl_test_emails', $emails );
 	}
 }
