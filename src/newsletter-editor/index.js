@@ -28,6 +28,10 @@ const NewsletterEdit = ( { layoutId } ) => {
 			window.newspack_newsletters_data.is_service_provider_configured !== '1'
 	);
 
+	const [ testEmail, setTestEmail ] = useState(
+		window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || ''
+	);
+
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
 	return isDisplayingInitModal ? (
@@ -54,7 +58,7 @@ const NewsletterEdit = ( { layoutId } ) => {
 				name="newsletters-testing-panel"
 				title={ __( 'Testing', 'newspack-newsletters' ) }
 			>
-				<Testing />
+				<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } />
 			</PluginDocumentSettingPanel>
 			<PluginDocumentSettingPanel
 				name="newsletters-layout-panel"

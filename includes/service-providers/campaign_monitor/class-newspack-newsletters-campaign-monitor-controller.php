@@ -97,6 +97,7 @@ class Newspack_Newsletters_Campaign_Monitor_Controller extends Newspack_Newslett
 		foreach ( $emails as &$email ) {
 			$email = sanitize_email( trim( $email ) );
 		}
+		$this->update_user_test_emails( $emails );
 		$response = $this->service_provider->test(
 			$request['id'],
 			$emails
