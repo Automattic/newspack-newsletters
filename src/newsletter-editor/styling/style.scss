@@ -1,7 +1,5 @@
-.CodeMirror {
-	border: 1px solid #75757e;
-}
+@import '~@wordpress/base-styles/colors';
 
-.editor-styles-wrapper {
-	background-color: transparent;
+.CodeMirror {
+	border: 1px solid $gray-700;
 }

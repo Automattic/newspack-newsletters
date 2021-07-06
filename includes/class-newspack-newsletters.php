@@ -73,6 +73,8 @@ final class Newspack_Newsletters {
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
+		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
+		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
@@ -84,6 +86,7 @@ final class Newspack_Newsletters {
 		 * Set the email service provider, which will instantiate the appropriate class
 		 * (Mailchimp, ConstantContact, etc.).
 		 */
+		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
 		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
@@ -421,6 +424,21 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			self::EMAIL_HTML_META,
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -485,10 +503,16 @@ final class Newspack_Newsletters {
 	 * Register blocks server-side for front-end rendering.
 	 */
 	public static function register_blocks() {
+		$block_definition = json_decode(
+			file_get_contents( __DIR__ . '/../src/editor/blocks/posts-inserter/block.json' ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			true
+		);
 		register_block_type(
-			'newspack-newsletters/posts-inserter',
+			$block_definition['name'],
 			[
 				'render_callback' => [ __CLASS__, 'render_posts_inserter_block' ],
+				'attributes'      => $block_definition['attributes'],
+				'supports'        => $block_definition['supports'],
 			]
 		);
 	}
@@ -541,10 +565,6 @@ final class Newspack_Newsletters {
 			} else {
 				/* translators:  Absolute time stamp of sent/published date */
 				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), get_the_time( get_option( 'date_format' ), $post ) );
-			}
-
-			if ( $is_public ) {
-				$post_states[ $post_status->name ] .= __( ' | Published as a post', 'newspack-newsletters' );
 			}
 		}
 
@@ -628,6 +648,35 @@ final class Newspack_Newsletters {
 			nocache_headers();
 			include get_query_template( '404' );
 			die();
+		}
+	}
+
+	/**
+	 * Add "Public page" admin column
+	 * 
+	 * @param array $columns Newsletters columns.
+	 * 
+	 * @return array
+	 */
+	public static function add_public_page_column( $columns ) {
+		return array_merge( $columns, [ 'public_page' => __( 'Public page', 'newspack-newsletters' ) ] );
+	}
+
+	/**
+	 * Add "Public page" admin column content
+	 * Displays wether the newsletter post has a public page or not
+	 * 
+	 * @param string $column_name Column name.
+	 * @param int    $post_id     Post ID.
+	 */
+	public static function public_page_column_content( $column_name, $post_id ) {
+		if ( 'public_page' === $column_name ) {
+			$is_public = get_post_meta( $post_id, 'is_public', true );
+			?>
+			<span class="inline_data is_public" data-is_public="<?php echo esc_html( $is_public ); ?>">
+				<?php echo empty( $is_public ) ? esc_html__( 'No', 'newspack-newsletters' ) : esc_html__( 'Yes', 'newspack-newsletters' ); ?>
+			</span>
+			<?php
 		}
 	}
 
@@ -720,33 +769,11 @@ final class Newspack_Newsletters {
 		);
 		\register_rest_route(
 			'newspack-newsletters/v1',
-			'post-meta/(?P<id>[\a-z]+)',
-			[
-				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_set_post_meta' ],
-				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
-				'args'                => [
-					'id'    => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_id' ],
-						'sanitize_callback' => 'absint',
-					],
-					'key'   => [
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_post_meta_key' ],
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'value' => [
-						'required' => true,
-					],
-				],
-			]
-		);
-		\register_rest_route(
-			'newspack-newsletters/v1',
 			'color-palette',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_set_color_palette' ],
-				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 			]
 		);
 
@@ -777,7 +804,7 @@ final class Newspack_Newsletters {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_get_mjml' ],
-				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'      => [
 						'required'          => true,
@@ -805,21 +832,18 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * The default color palette lives in the editor frontend and is not
-	 * retrievable on the backend. The workaround is to set it as an option
-	 * so that it's available to the email renderer.
+	 * Get MJML markup for a post.
+	 * Content is sent straight from the editor, because all this happens
+	 * before post is saved in the database.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_get_mjml( $request ) {
-		if ( empty( $request['title'] ) ) {
-			$request['title'] = get_the_title( $request['id'] );
+		$post = get_post( $request['id'] );
+		if ( ! empty( $request['title'] ) ) {
+			$post->post_title = $request['title'];
 		}
-		$post = (object) [
-			'post_title'   => $request['title'],
-			'post_content' => $request['content'],
-			'ID'           => $request['id'],
-		];
+		$post->post_content = $request['content'];
 		return \rest_ensure_response( [ 'mjml' => Newspack_Newsletters_Renderer::render_post_to_mjml( $post ) ] );
 	}
 
@@ -847,32 +871,6 @@ final class Newspack_Newsletters {
 	 */
 	public static function validate_newsletter_id( $id ) {
 		return self::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $id );
-	}
-
-	/**
-	 * Validate meta key.
-	 *
-	 * @param String $key Meta key.
-	 */
-	public static function validate_newsletter_post_meta_key( $key ) {
-		return in_array(
-			$key,
-			[
-				'font_header',
-				'font_body',
-				'background_color',
-				'preview_text',
-				'diable_ads',
-				'cm_list_id',
-				'cm_segment_id',
-				'cm_send_mode',
-				'cm_from_name',
-				'cm_from_email',
-				'cm_preview_text',
-				'custom_css',
-				self::EMAIL_HTML_META,
-			]
-		);
 	}
 
 	/**
@@ -1217,6 +1215,20 @@ final class Newspack_Newsletters {
 			$post_types,
 			[ self::NEWSPACK_NEWSLETTERS_CPT ]
 		);
+	}
+
+	/**
+	 * Prevent Gravityforms from injecting scripts into the newsletter markup.
+	 *
+	 * @param bool $force_js Whether to force GF to inject scripts (default: true).
+	 * @return bool Modified $force_js.
+	 */
+	public static function suppress_gravityforms_js_on_newsletters( $force_js ) {
+		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
+			return false;
+		}
+
+		return $force_js;
 	}
 }
 Newspack_Newsletters::instance();

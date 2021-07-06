@@ -147,7 +147,6 @@ export default compose( [
 					className="editor-post-publish-button"
 					isBusy={ isSaving }
 					isPrimary
-					isLarge
 					disabled={ isSaving }
 					onClick={ savePost }
 				>
@@ -164,7 +163,6 @@ export default compose( [
 					className="editor-post-publish-button"
 					isBusy={ isSaving && 'publish' === status }
 					isPrimary
-					isLarge
 					onClick={ async () => {
 						await savePost();
 						setModalVisible( true );
@@ -182,8 +180,9 @@ export default compose( [
 						{ adsWarning ? (
 							<Notice isDismissible={ false }>
 								{ adsWarning }{' '}
-								<a
+								<a // eslint-disable-line react/jsx-no-target-blank
 									href={ activeAdManageUrl }
+									rel={ adLabel === 'promotion' ? 'noreferrer' : '' }
 									target={ adLabel === 'promotion' ? '_blank' : '_self' }
 								>
 									{ __( 'Manage ' + adLabel + 's.', 'newspack-newsletters' ) }

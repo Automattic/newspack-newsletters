@@ -1,3 +1,38 @@
+# [1.28.0](https://github.com/Automattic/newspack-newsletters/compare/v1.27.1...v1.28.0) (2021-06-22)
+
+
+### Features
+
+* update colors to use latest WP base-styles  ([#477](https://github.com/Automattic/newspack-newsletters/issues/477)) ([a3ce0cd](https://github.com/Automattic/newspack-newsletters/commit/a3ce0cd0beeebff778af217988d05b6410e095bd))
+
+## [1.27.1](https://github.com/Automattic/newspack-newsletters/compare/v1.27.0...v1.27.1) (2021-06-15)
+
+
+### Bug Fixes
+
+* prevent gravityforms scripts ([72e47c9](https://github.com/Automattic/newspack-newsletters/commit/72e47c957180d4ea66f5adf31fe458bcc4df0cd3))
+
+# [1.27.0](https://github.com/Automattic/newspack-newsletters/compare/v1.26.0...v1.27.0) (2021-06-08)
+
+
+### Features
+
+* register posts inserter block if editing a reusable block ([99ea55a](https://github.com/Automattic/newspack-newsletters/commit/99ea55a66c3035e34b68e21e40bd88209da064de))
+
+# [1.26.0](https://github.com/Automattic/newspack-newsletters/compare/v1.25.0...v1.26.0) (2021-05-13)
+
+
+### Features
+
+* assorted fixes & improvements ([#456](https://github.com/Automattic/newspack-newsletters/issues/456)) ([9716465](https://github.com/Automattic/newspack-newsletters/commit/97164659d3993b89de089a74fdd3d610da51859d)), closes [#296](https://github.com/Automattic/newspack-newsletters/issues/296)
+
+# [1.25.0](https://github.com/Automattic/newspack-newsletters/compare/v1.24.1...v1.25.0) (2021-05-04)
+
+
+### Features
+
+* custom CSS ([#454](https://github.com/Automattic/newspack-newsletters/issues/454)) ([748247c](https://github.com/Automattic/newspack-newsletters/commit/748247c14a1c3ca22bdf5d041162f00ddbda9f0a))
+
 ## [1.24.1](https://github.com/Automattic/newspack-newsletters/compare/v1.24.0...v1.24.1) (2021-04-28)
 
 

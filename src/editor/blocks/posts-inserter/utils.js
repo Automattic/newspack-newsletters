@@ -61,6 +61,14 @@ const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor
 	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
 };
 
+const getContinueReadingLinkBlockTemplate = ( post, { textFontSize, textColor } ) => {
+	const attributes = {
+		content: `<a href="${ post.link }">${ __( 'Continue reading…', 'newspack' ) }</a>`,
+		style: { color: { text: textColor } },
+	};
+	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
+};
+
 const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	const { newspack_author_info } = post;
 
@@ -112,6 +120,9 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	}
 	if ( attributes.displayPostExcerpt ) {
 		postContentBlocks.push( getExcerptBlockTemplate( post, attributes ) );
+	}
+	if ( attributes.displayContinueReading ) {
+		postContentBlocks.push( getContinueReadingLinkBlockTemplate( post, attributes ) );
 	}
 
 	const hasFeaturedImage = post.featuredImageLargeURL || post.featuredImageMediumURL;

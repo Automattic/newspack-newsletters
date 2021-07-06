@@ -138,9 +138,29 @@ final class Newspack_Newsletters_Editor {
 			wp_enqueue_style( 'newspack-newsletters-ads-page' );
 		}
 
+		// If it's a reusable block, register this plugin's blocks.
+		if ( 'wp_block' === get_post_type() ) {
+			\wp_enqueue_script(
+				'newspack-newsletters-blocks',
+				plugins_url( '../dist/blocks.js', __FILE__ ),
+				[],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.js' ),
+				true
+			);
+			wp_register_style(
+				'newspack-newsletters-blocks',
+				plugins_url( '../dist/blocks.css', __FILE__ ),
+				[],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.css' )
+			);
+			wp_style_add_data( 'newspack-newsletters-blocks', 'rtl', 'replace' );
+			wp_enqueue_style( 'newspack-newsletters-blocks' );
+		}
+
 		if ( ! self::is_editing_newsletter() ) {
 			return;
 		}
+
 		\wp_enqueue_script(
 			'newspack-newsletters',
 			plugins_url( '../dist/editor.js', __FILE__ ),
@@ -156,6 +176,7 @@ final class Newspack_Newsletters_Editor {
 				'service_provider'               => Newspack_Newsletters::service_provider(),
 				'email_html_meta'                => Newspack_Newsletters::EMAIL_HTML_META,
 				'newsletter_cpt'                 => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'user_test_emails'               => self::get_current_user_test_emails(),
 			]
 		);
 	}
@@ -266,6 +287,21 @@ final class Newspack_Newsletters_Editor {
 	public static function remove_wc_memberships_excerpt_limit() {
 		$excerpt = get_the_excerpt( get_the_id() );
 		return $excerpt;
+	}
+
+	/**
+	 * Get current user test emails
+	 * 
+	 * @return array List of user defined emails.
+	 */
+	public static function get_current_user_test_emails() {
+		$user_id = get_current_user_id();
+		$emails  = get_user_meta( $user_id, 'newspack_nl_test_emails', true );
+		if ( ! is_array( $emails ) ) {
+			$user_info = get_userdata( $user_id );
+			return array( $user_info->user_email );
+		}
+		return $emails;
 	}
 
 	/**

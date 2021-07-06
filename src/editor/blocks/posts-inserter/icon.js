@@ -1,10 +1,14 @@
 import { Path, SVG } from '@wordpress/components';
 
-/* From https://material.io/tools/icons */
 const icon = (
 	<SVG xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-		<Path d="M0 0h24v24H0z" fill="none" />
-		<Path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM10 9h8v2h-8zm0 3h4v2h-4zm0-6h8v2h-8z" />
+		<Path d="M6.5 14.25H11v-1.5H6.5zM14.5 11.25h-8v-1.5h8zM6.5 8.25h8v-1.5h-8z" />
+		<Path
+			clipRule="evenodd"
+			d="M4.625 3C3.728 3 3 3.728 3 4.625v11.75C3 17.272 3.728 18 4.625 18h11.75c.897 0 1.625-.728 1.625-1.625V4.625C18 3.728 17.272 3 16.375 3zm11.75 1.5H4.625a.125.125 0 00-.125.125v11.75c0 .069.056.125.125.125h11.75a.125.125 0 00.125-.125V4.625a.125.125 0 00-.125-.125z"
+			fillRule="evenodd"
+		/>
+		<Path d="M20.25 8v11c0 .69-.56 1.25-1.249 1.25H6v1.5h13.001A2.749 2.749 0 0021.75 19V8z" />
 	</SVG>
 );
 

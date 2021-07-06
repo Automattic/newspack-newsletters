@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies
  */
-import apiFetch from '@wordpress/api-fetch';
 import { compose, useInstanceId } from '@wordpress/compose';
 import { ColorPicker, BaseControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -104,7 +103,7 @@ const doc = document.implementation.createHTMLDocument( 'Temp' );
  *
  * @param {string} scope The scope to apply to each rule in the CSS.
  * @param {string} css The CSS to scope.
- * @returns Scoped CSS string.
+ * @return Scoped CSS string.
  */
 const getScopedCss = ( scope, css ) => {
 	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
@@ -127,7 +126,7 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 			document.documentElement.style.setProperty( '--header-font', fontHeader );
 		}, [ fontHeader ]);
 		useEffect(() => {
-			const editorElement = document.querySelector( '.edit-post-visual-editor' );
+			const editorElement = document.querySelector( '.editor-styles-wrapper' );
 			if ( editorElement ) {
 				editorElement.style.backgroundColor = backgroundColor;
 			}
@@ -158,21 +157,10 @@ export const Styling = compose( [
 		const { editPost } = dispatch( 'core/editor' );
 		return { editPost };
 	} ),
-	withSelect( select => {
-		const { getCurrentPostId } = select( 'core/editor' );
-		return {
-			postId: getCurrentPostId(),
-			...customStylesSelector( select ),
-		};
-	} ),
-] )( ( { editPost, fontBody, fontHeader, backgroundColor, customCss, postId } ) => {
+	withSelect( customStylesSelector ),
+] )( ( { editPost, fontBody, fontHeader, customCss, backgroundColor } ) => {
 	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
-		apiFetch( {
-			data: { key, value },
-			method: 'POST',
-			path: `/newspack-newsletters/v1/post-meta/${ postId }`,
-		} );
 	};
 
 	const instanceId = useInstanceId( SelectControlWithOptGroup );
