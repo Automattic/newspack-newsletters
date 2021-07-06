@@ -82,7 +82,7 @@ final class Newspack_Newsletters_Ads {
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			__( 'Newsletters Ads', 'newspack-newsletters' ),
 			__( 'Ads', 'newspack-newsletters' ),
-			'manage_options',
+			'edit_others_posts',
 			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
 			null,
 			2
