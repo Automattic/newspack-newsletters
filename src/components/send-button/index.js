@@ -119,14 +119,15 @@ export default compose( [
 
 				if ( countOfActiveAds > 0 ) {
 					setAdsWarning(
-						sprintf( /* eslint-disable-line */
+						sprintf(
 							_n(
-								'There is %d active ' + response.label + '.',
-								'There are %d active ' + response.label + 's.',
+								'There is %d active %s.',
+								'There are %d active %ss.',
 								countOfActiveAds,
 								'newspack-newsletters'
 							),
-							countOfActiveAds
+							countOfActiveAds,
+							response.label
 						)
 					);
 				}
