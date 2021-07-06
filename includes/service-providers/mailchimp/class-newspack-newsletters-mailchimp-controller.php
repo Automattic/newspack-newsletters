@@ -149,6 +149,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 		foreach ( $emails as &$email ) {
 			$email = sanitize_email( trim( $email ) );
 		}
+		$this->update_user_test_emails( $emails );
 		$response = $this->service_provider->test(
 			$request['id'],
 			$emails

@@ -16,6 +16,7 @@ const editor = path.join( __dirname, 'src', 'editor' );
 const admin = path.join( __dirname, 'src', 'admin' );
 const adsEditor = path.join( __dirname, 'src', 'ads-admin', 'editor' );
 const branding = path.join( __dirname, 'src', 'branding' );
+const quickEdit = path.join( __dirname, 'src', 'quick-edit' );
 const blocks = path.join( __dirname, 'src', 'editor', 'blocks' );
 
 const webpackConfig = getBaseWebpackConfig(
@@ -26,6 +27,7 @@ const webpackConfig = getBaseWebpackConfig(
 			admin,
 			adsEditor,
 			branding,
+			quickEdit,
 			blocks,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
