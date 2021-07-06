@@ -1,3 +1,29 @@
+# [1.29.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.28.0...v1.29.0-alpha.1) (2021-07-06)
+
+
+### Bug Fixes
+
+* allow editor users to edit and send newsletters ([#485](https://github.com/Automattic/newspack-newsletters/issues/485)) ([4e74538](https://github.com/Automattic/newspack-newsletters/commit/4e745386c3b973ea1ef26f54dbf5f832b36af0bb))
+* destructure testEmail and onChangeEmail along with other props ([113654e](https://github.com/Automattic/newspack-newsletters/commit/113654eba9063f3f3dfc8f079df55882f25a4800))
+* ensure `testEmail` is string ([bdcf3ce](https://github.com/Automattic/newspack-newsletters/commit/bdcf3cebe54b5be6511e536179ea84763be4a159))
+* grammar tweak on admin notice ([3fd4fa0](https://github.com/Automattic/newspack-newsletters/commit/3fd4fa08461c2748edbdc91f1a401ac251f849db))
+* move `testEmail` state to `NewsletterEdit` component ([6272dd5](https://github.com/Automattic/newspack-newsletters/commit/6272dd5e71d8dfc6769ec6f3b68fdd2d19e91376))
+* remove redundant status text ([d7aabc3](https://github.com/Automattic/newspack-newsletters/commit/d7aabc35b10a6b058a34d4cec08e15cfdfb802da))
+* typo on admin notice and bulk action label ([0af9e23](https://github.com/Automattic/newspack-newsletters/commit/0af9e230f6086adfbdac1fa6655f77707210bb7c))
+* typo on bulk action label ([379c1b9](https://github.com/Automattic/newspack-newsletters/commit/379c1b950170118b0e2dbec2fd8063ed8ee67b74))
+* update js with new data attribute element ([67957bc](https://github.com/Automattic/newspack-newsletters/commit/67957bce7e577e4765d16d01cee62af32e6ea568))
+* update phpcs:disable nonce verification with comments ([8aad986](https://github.com/Automattic/newspack-newsletters/commit/8aad9869b68bfcb2947ee86b65f0ca6e664213c9))
+* use `$user_id` ([441532c](https://github.com/Automattic/newspack-newsletters/commit/441532cb676770335063aad7e3d9222971530c5d))
+* use `save_post_${post_type}` for quick edit save ([50598c0](https://github.com/Automattic/newspack-newsletters/commit/50598c09751a3397944755a35332e15f5c15bdfa))
+* use single element with data attribute for inline data ([9fd2559](https://github.com/Automattic/newspack-newsletters/commit/9fd2559a62a37b5faf61aac6195c1e9f4d6c4651))
+
+
+### Features
+
+* persist user test emails as user meta ([ad53b42](https://github.com/Automattic/newspack-newsletters/commit/ad53b42af90ec179d05e64c212f0283524f732c9))
+* refactor bulk actions and quick edit ([60ed3cb](https://github.com/Automattic/newspack-newsletters/commit/60ed3cb8ed7730b6f8810d78d819d7ef883019a4))
+* use user email address as default test email ([7e669fd](https://github.com/Automattic/newspack-newsletters/commit/7e669fd8c17865c7bb870a2200fc2d3e0463203f))
+
 # [1.28.0](https://github.com/Automattic/newspack-newsletters/compare/v1.27.1...v1.28.0) (2021-06-22)
 
 
