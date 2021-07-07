@@ -128,14 +128,6 @@ final class Newspack_Newsletters_Editor {
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.js' ),
 				true
 			);
-			wp_register_style(
-				'newspack-newsletters-ads-page',
-				plugins_url( '../dist/adsEditor.css', __FILE__ ),
-				[],
-				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.css' )
-			);
-			wp_style_add_data( 'newspack-newsletters-ads-page', 'rtl', 'replace' );
-			wp_enqueue_style( 'newspack-newsletters-ads-page' );
 		}
 
 		// If it's a reusable block, register this plugin's blocks.
