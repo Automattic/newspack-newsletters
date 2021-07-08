@@ -81,6 +81,11 @@ final class Newspack_Newsletters {
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
+
+		/**
+		 * Set the email service provider, which will instantiate the appropriate class
+		 * (Mailchimp, ConstantContact, etc.).
+		 */
 		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
 		self::set_service_provider( self::service_provider() );
 
@@ -771,6 +776,28 @@ final class Newspack_Newsletters {
 				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 			]
 		);
+
+		\register_rest_route(
+			'wp/v2/' . Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'count',
+			[
+				/**
+				 * Return an array of properties required to render a useful ads warning.
+				 *
+				 * @uses Newspack_Newsletters::get_ads_warning_in_editor()
+				 */
+				'callback'            => [ __CLASS__, 'get_ads_warning_in_editor' ],
+				'methods'             => 'GET',
+
+				/**
+				 * Ensure the user can call this route.
+				 *
+				 * @uses Newspack_Newsletters::api_administration_permissions_check()
+				 */
+				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
+			]
+		);
+
 		\register_rest_route(
 			'newspack-newsletters/v1',
 			'post-mjml',
@@ -1141,6 +1168,32 @@ final class Newspack_Newsletters {
 	public static function debug_mode() {
 		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
+
+
+	/**
+	 * Get properties required to render a useful modal in the editor that alerts
+	 * users of ads they're sending.
+	 *
+	 * @param WP_REST_REQUEST $request The WP Request Object.
+	 * @return array
+	 */
+	public static function get_ads_warning_in_editor( $request ) {
+		$letterhead                 = new Newspack_Newsletters_Letterhead();
+		$has_letterhead_credentials = $letterhead->has_api_credentials();
+		$post_date                  = $request->get_param( 'date' );
+		$newspack_ad_type           = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
+		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}&page=newspack-newsletters-ads-admin";
+
+		$ads = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
+
+		return [
+			'count'     => count( $ads ),
+			'label'     => $has_letterhead_credentials ? 'promotion' : 'ad',
+			'manageUrl' => $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads,
+		];
+	}
+
 
 	/**
 	 * Which Email Service Provider should be used.
