@@ -12,16 +12,11 @@ import CopyHTML from '../../components/copy-html';
 /**
  * Validation utility.
  *
- * @param  {Object} object data fetched using getFetchDataConfig
  * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
-const validateNewsletter = ( { status } ) => {
-	const messages = [];
-	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
-	}
-
-	return messages;
+const validateNewsletter = () => {
+	// Return empty array as there is no validation.
+	return [];
 };
 
 /**
