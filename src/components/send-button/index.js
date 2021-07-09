@@ -21,7 +21,7 @@ import './style.scss';
 import { NEWSLETTER_AD_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
 import { isAdActive } from '../../ads-admin/utils';
 
-const { renderPreSendInfo } = getServiceProvider();
+const { renderPreSendInfo, renderPostUpdateInfo } = getServiceProvider();
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -65,14 +65,19 @@ export default compose( [
 		meta,
 		isPublished,
 	} ) => {
-		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
+		const {
+			without_provider: withoutProvider,
+			newsletterData = {},
+			newsletterValidationErrors = [],
+			is_public,
+		} = meta;
 
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			! isPublished &&
 			! isSaving &&
-			newsletterData.campaign &&
+			( newsletterData.campaign || withoutProvider ) &&
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
@@ -91,6 +96,15 @@ export default compose( [
 			label = is_public
 				? __( 'Send and Publish', 'newspack-newsletters' )
 				: __( 'Send', 'newspack-newsletters' );
+		}
+
+		let updateLabel;
+		if ( isSaving ) {
+			updateLabel = __( 'Updating...', 'newspack-newsletters' );
+		} else if ( withoutProvider ) {
+			updateLabel = __( 'Update and copy HTML', 'newspack-newsletters' );
+		} else {
+			updateLabel = __( 'Update', 'newspack-newsletters' );
 		}
 
 		let publishStatus;
@@ -136,17 +150,39 @@ export default compose( [
 		// For sent newsletters, display the generic button text.
 		if ( isPublished ) {
 			return (
-				<Button
-					className="editor-post-publish-button"
-					isBusy={ isSaving }
-					isPrimary
-					disabled={ isSaving }
-					onClick={ savePost }
-				>
-					{ isSaving
-						? __( 'Updating...', 'newspack-newsletters' )
-						: __( 'Update', 'newspack-newsletters' ) }
-				</Button>
+				<Fragment>
+					<Button
+						className="editor-post-publish-button"
+						isBusy={ isSaving }
+						isPrimary
+						disabled={ isSaving }
+						onClick={ async () => {
+							await savePost();
+							if ( renderPostUpdateInfo ) setModalVisible( true );
+						} }
+					>
+						{ updateLabel }
+					</Button>
+					{ modalVisible && renderPostUpdateInfo && (
+						<Modal
+							className="newspack-newsletters__modal"
+							title={ __( 'Newsletter HTML', 'newspack-newsletters' ) }
+							onRequestClose={ () => setModalVisible( false ) }
+						>
+							{ adsWarning ? (
+								<Notice isDismissible={ false }>
+									{ adsWarning }{' '}
+									<a
+										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
+									>
+										{ __( 'Manage ads', 'newspack-newsletters' ) }
+									</a>
+								</Notice>
+							) : null }
+							{ renderPostUpdateInfo( newsletterData ) }
+						</Modal>
+					) }
+				</Fragment>
 			);
 		}
 
@@ -194,19 +230,23 @@ export default compose( [
 								</ul>
 							</Notice>
 						) : null }
-						<Button
-							isPrimary
-							disabled={ newsletterValidationErrors.length > 0 }
-							onClick={ () => {
-								triggerCampaignSend();
-								setModalVisible( false );
-							} }
-						>
-							{ __( 'Send', 'newspack-newsletters' ) }
-						</Button>
-						<Button isSecondary onClick={ () => setModalVisible( false ) }>
-							{ __( 'Cancel', 'newspack-newsletters' ) }
-						</Button>
+						<div className="modal-buttons">
+							<Button isSecondary onClick={ () => setModalVisible( false ) }>
+								{ __( 'Cancel', 'newspack-newsletters' ) }
+							</Button>
+							<Button
+								isPrimary
+								disabled={ newsletterValidationErrors.length > 0 }
+								onClick={ () => {
+									triggerCampaignSend();
+									setModalVisible( false );
+								} }
+							>
+								{ withoutProvider
+									? __( 'Mark as sent', 'newspack-newsletters' )
+									: __( 'Send', 'newspack-newsletters' ) }
+							</Button>
+						</div>
 					</Modal>
 				) }
 			</Fragment>
