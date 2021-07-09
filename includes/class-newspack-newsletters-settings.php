@@ -36,6 +36,10 @@ class Newspack_Newsletters_Settings {
 						'value' => '',
 					),
 					array(
+						'name'  => __( 'Manual', 'newspack-newsletters' ),
+						'value' => 'manual',
+					),
+					array(
 						'name'  => __( 'Mailchimp', 'newspack-newsletters' ),
 						'value' => 'mailchimp',
 					),

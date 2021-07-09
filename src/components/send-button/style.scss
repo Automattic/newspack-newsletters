@@ -6,4 +6,12 @@
 			margin-left: 1.3em;
 		}
 	}
+	.modal-buttons {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 1.3em;
+		.components-button {
+			margin-left: 0.7rem;
+		}
+	}
 }

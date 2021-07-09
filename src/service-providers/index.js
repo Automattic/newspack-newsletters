@@ -1,10 +1,12 @@
 import example from './example';
+import manual from './manual';
 import mailchimp from './mailchimp';
 import constant_contact from './constant_contact';
 import campaign_monitor from './campaign_monitor';
 
 const SERVICE_PROVIDERS = {
 	example,
+	manual,
 	mailchimp,
 	constant_contact,
 	campaign_monitor,

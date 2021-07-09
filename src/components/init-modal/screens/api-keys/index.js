@@ -74,7 +74,7 @@ export default ( { onSetupStatus } ) => {
 
 	const { service_provider: serviceProvider = '', credentials = {} } = settings;
 
-	const canSubmit = values( credentials ).join( '' ).length;
+	const canSubmit = 'manual' === serviceProvider || values( credentials ).join( '' ).length;
 
 	const classes = classnames(
 		'newspack-newsletters-modal__content',
@@ -109,6 +109,7 @@ export default ( { onSetupStatus } ) => {
 								disabled: true,
 								label: __( 'Select service provider', 'newspack-newsletters' ),
 							},
+							{ value: 'manual', label: __( 'Manual', 'newspack-newsletters' ) },
 							{ value: 'mailchimp', label: __( 'Mailchimp', 'newspack-newsletters' ) },
 							{
 								value: 'constant_contact',

@@ -89,14 +89,17 @@ const Sidebar = ( {
 					{ __( 'Update Sender', 'newspack-newsletters' ) }
 				</Button>
 			) }
-			<TextareaControl
-				label={ __( 'Preview text', 'newspack-newsletters' ) }
-				className="newspack-newsletters__name-textcontrol newspack-newsletters__name-textcontrol--separated"
-				value={ previewText }
-				disabled={ inFlight }
-				onChange={ value => editPost( { meta: { preview_text: value } } ) }
-			/>
 		</Fragment>
+	);
+
+	const renderPreviewText = () => (
+		<TextareaControl
+			label={ __( 'Preview text', 'newspack-newsletters' ) }
+			className="newspack-newsletters__name-textcontrol newspack-newsletters__name-textcontrol--separated"
+			value={ previewText }
+			disabled={ inFlight }
+			onChange={ value => editPost( { meta: { preview_text: value } } ) }
+		/>
 	);
 
 	const { ProviderSidebar } = getServiceProvider();
@@ -109,6 +112,7 @@ const Sidebar = ( {
 				apiFetch={ apiFetch }
 				renderSubject={ renderSubject }
 				renderFrom={ renderFrom }
+				renderPreviewText={ renderPreviewText }
 				updateMeta={ meta => editPost( { meta } ) }
 			/>
 			<ToggleControl

@@ -118,6 +118,22 @@ final class Newspack_Newsletters {
 	public static function register_meta() {
 		\register_meta(
 			'post',
+			'without_provider',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'boolean',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+
+		\register_meta(
+			'post',
 			'mc_campaign_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
@@ -447,6 +463,12 @@ final class Newspack_Newsletters {
 	public static function save( $post_id, $post, $update ) {
 		if ( ! $update ) {
 			update_post_meta( $post_id, 'template_id', -1 );
+
+			// Set "without provider" post meta if using manual.
+			$provider = self::service_provider();
+			if ( 'manual' === $provider ) {
+				update_post_meta( $post_id, 'without_provider', true );
+			}
 		}
 	}
 
@@ -941,6 +963,10 @@ final class Newspack_Newsletters {
 		}
 
 		if ( self::$provider && self::$provider->has_api_credentials() ) {
+			$response['status'] = true;
+		}
+
+		if ( 'manual' === $service_provider ) {
 			$response['status'] = true;
 		}
 

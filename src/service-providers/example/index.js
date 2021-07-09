@@ -59,6 +59,10 @@ const ProviderSidebar = ( {
 	 * the data can be sent to the backend.
 	 */
 	renderFrom,
+	/**
+	 * Function that renders preview text input
+	 */
+	renderPreviewText,
 } ) => {
 	const handleSenderUpdate = ( { senderName, senderEmail } ) =>
 		apiFetch( {
@@ -74,6 +78,7 @@ const ProviderSidebar = ( {
 		<Fragment>
 			{ renderSubject() }
 			{ renderFrom( { handleSenderUpdate } ) }
+			{ renderPreviewText() }
 		</Fragment>
 	);
 };

@@ -8,6 +8,7 @@ import { BaseControl, CheckboxControl, Spinner, Notice } from '@wordpress/compon
 const ProviderSidebar = ( {
 	renderSubject,
 	renderFrom,
+	renderPreviewText,
 	inFlight,
 	newsletterData,
 	apiFetch,
@@ -81,6 +82,7 @@ const ProviderSidebar = ( {
 				) ) }
 			</BaseControl>
 			{ renderFrom( { handleSenderUpdate: setSender } ) }
+			{ renderPreviewText() }
 		</Fragment>
 	);
 };
