@@ -1,3 +1,10 @@
+## [1.29.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.29.0...v1.29.1-alpha.1) (2021-07-13)
+
+
+### Bug Fixes
+
+* remove non-existent enqueued `adsEditor` styles ([#492](https://github.com/Automattic/newspack-newsletters/issues/492)) ([5f8aed2](https://github.com/Automattic/newspack-newsletters/commit/5f8aed2de5768e45e6969c37b6d568f5ed154fb8))
+
 # [1.29.0](https://github.com/Automattic/newspack-newsletters/compare/v1.28.0...v1.29.0) (2021-07-06)
 
 
