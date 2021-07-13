@@ -82,6 +82,7 @@ const SegmentsSelection = ( {
 const ProviderSidebar = ( {
 	renderSubject,
 	renderFrom,
+	renderPreviewText,
 	inFlight,
 	newsletterData,
 	apiFetch,
@@ -189,6 +190,7 @@ const ProviderSidebar = ( {
 			/>
 
 			{ renderFrom( { handleSenderUpdate: setSender } ) }
+			{ renderPreviewText() }
 		</Fragment>
 	);
 };
