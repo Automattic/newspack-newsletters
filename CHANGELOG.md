@@ -1,3 +1,10 @@
+## [1.29.1-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.29.1-alpha.1...v1.29.1-alpha.2) (2021-07-13)
+
+
+### Bug Fixes
+
+* force alpha build ([101801c](https://github.com/Automattic/newspack-newsletters/commit/101801cd296d26249a7170fb70ca270315c01024))
+
 ## [1.29.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.29.0...v1.29.1-alpha.1) (2021-07-13)
 
 
