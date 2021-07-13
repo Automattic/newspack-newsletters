@@ -117,6 +117,15 @@ export default compose( [
 			publishStatus = 'publish';
 		}
 
+		let modalSubmitLabel;
+		if ( 'manual' === serviceProviderName ) {
+			modalSubmitLabel = is_public
+				? __( 'Mark as sent and publish', 'newspack-newsletters' )
+				: __( 'Mark as sent', 'newspack-newsletters' );
+		} else {
+			modalSubmitLabel = __( 'Send', 'newspack-newsletters' );
+		}
+
 		const [ adsWarning, setAdsWarning ] = useState();
 		useEffect(() => {
 			apiFetch( {
@@ -241,9 +250,7 @@ export default compose( [
 									setModalVisible( false );
 								} }
 							>
-								{ 'manual' === serviceProviderName
-									? __( 'Mark as sent', 'newspack-newsletters' )
-									: __( 'Send', 'newspack-newsletters' ) }
+								{ modalSubmitLabel }
 							</Button>
 						</div>
 					</Modal>
