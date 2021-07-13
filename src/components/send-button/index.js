@@ -21,8 +21,6 @@ import './style.scss';
 import { NEWSLETTER_AD_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
 import { isAdActive } from '../../ads-admin/utils';
 
-const { renderPreSendInfo, renderPostUpdateInfo } = getServiceProvider();
-
 export default compose( [
 	withDispatch( dispatch => {
 		const { editPost, savePost } = dispatch( 'core/editor' );
@@ -65,19 +63,20 @@ export default compose( [
 		meta,
 		isPublished,
 	} ) => {
+		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
+
 		const {
-			without_provider: withoutProvider,
-			newsletterData = {},
-			newsletterValidationErrors = [],
-			is_public,
-		} = meta;
+			name: serviceProviderName,
+			renderPreSendInfo,
+			renderPostUpdateInfo,
+		} = getServiceProvider();
 
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			! isPublished &&
 			! isSaving &&
-			( newsletterData.campaign || withoutProvider ) &&
+			( newsletterData.campaign || 'manual' === serviceProviderName ) &&
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
@@ -101,7 +100,7 @@ export default compose( [
 		let updateLabel;
 		if ( isSaving ) {
 			updateLabel = __( 'Updating...', 'newspack-newsletters' );
-		} else if ( withoutProvider ) {
+		} else if ( 'manual' === serviceProviderName ) {
 			updateLabel = __( 'Update and copy HTML', 'newspack-newsletters' );
 		} else {
 			updateLabel = __( 'Update', 'newspack-newsletters' );
@@ -242,7 +241,7 @@ export default compose( [
 									setModalVisible( false );
 								} }
 							>
-								{ withoutProvider
+								{ 'manual' === serviceProviderName
 									? __( 'Mark as sent', 'newspack-newsletters' )
 									: __( 'Send', 'newspack-newsletters' ) }
 							</Button>

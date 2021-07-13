@@ -12,6 +12,7 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import InitModal from '../components/init-modal';
+import { getServiceProvider } from '../service-providers';
 import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
@@ -21,7 +22,7 @@ import registerEditorPlugin from './editor/';
 
 registerEditorPlugin();
 
-const NewsletterEdit = ( { layoutId, withoutProvider } ) => {
+const NewsletterEdit = ( { layoutId } ) => {
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
 		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
 	);
@@ -29,6 +30,8 @@ const NewsletterEdit = ( { layoutId, withoutProvider } ) => {
 	const [ testEmail, setTestEmail ] = useState(
 		window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || ''
 	);
+
+	const { name: serviceProviderName } = getServiceProvider();
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
@@ -52,7 +55,7 @@ const NewsletterEdit = ( { layoutId, withoutProvider } ) => {
 			>
 				<Styling />
 			</PluginDocumentSettingPanel>
-			{ ! withoutProvider && (
+			{ 'manual' !== serviceProviderName && (
 				<PluginDocumentSettingPanel
 					name="newsletters-testing-panel"
 					title={ __( 'Testing', 'newspack-newsletters' ) }
@@ -76,7 +79,7 @@ const NewsletterEditWithSelect = compose( [
 	withSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { layoutId: meta.template_id, withoutProvider: meta.without_provider };
+		return { layoutId: meta.template_id };
 	} ),
 ] )( NewsletterEdit );
 

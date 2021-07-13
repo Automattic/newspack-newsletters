@@ -15,5 +15,8 @@ const SERVICE_PROVIDERS = {
 export const getServiceProvider = () => {
 	const serviceProvider =
 		window && window.newspack_newsletters_data && window.newspack_newsletters_data.service_provider;
-	return SERVICE_PROVIDERS[ serviceProvider || 'example' ];
+	return {
+		name: serviceProvider,
+		...SERVICE_PROVIDERS[ serviceProvider || 'example' ],
+	};
 };
