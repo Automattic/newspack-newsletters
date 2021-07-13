@@ -904,16 +904,18 @@ final class Newspack_Newsletters {
 		}
 
 		// Service Provider credentials.
-		if ( empty( $credentials ) ) {
-			$wp_error->add(
-				'newspack_newsletters_invalid_keys',
-				__( 'Please input credentials.', 'newspack-newsletters' )
-			);
-		} else {
-			$status = self::$provider->set_api_credentials( $credentials );
-			if ( is_wp_error( $status ) ) {
-				foreach ( $status->errors as $code => $message ) {
-					$wp_error->add( $code, implode( ' ', $message ) );
+		if ( 'manual' !== $service_provider ) {
+			if ( empty( $credentials ) ) {
+				$wp_error->add(
+					'newspack_newsletters_invalid_keys',
+					__( 'Please input credentials.', 'newspack-newsletters' )
+				);
+			} else {
+				$status = self::$provider->set_api_credentials( $credentials );
+				if ( is_wp_error( $status ) ) {
+					foreach ( $status->errors as $code => $message ) {
+						$wp_error->add( $code, implode( ' ', $message ) );
+					}
 				}
 			}
 		}
@@ -940,7 +942,10 @@ final class Newspack_Newsletters {
 			$response['credentials'] = self::$provider->api_credentials();
 		}
 
-		if ( self::$provider && self::$provider->has_api_credentials() ) {
+		if (
+			'manual' === $service_provider ||
+			( self::$provider && self::$provider->has_api_credentials() )
+		) {
 			$response['status'] = true;
 		}
 

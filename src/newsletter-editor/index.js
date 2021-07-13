@@ -12,6 +12,7 @@ import { registerPlugin } from '@wordpress/plugins';
  * Internal dependencies
  */
 import InitModal from '../components/init-modal';
+import { getServiceProvider } from '../service-providers';
 import Layout from './layout/';
 import Sidebar from './sidebar/';
 import Testing from './testing/';
@@ -23,14 +24,14 @@ registerEditorPlugin();
 
 const NewsletterEdit = ( { layoutId } ) => {
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
-		window &&
-			window.newspack_newsletters_data &&
-			window.newspack_newsletters_data.is_service_provider_configured !== '1'
+		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
 	);
 
 	const [ testEmail, setTestEmail ] = useState(
 		window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || ''
 	);
+
+	const { name: serviceProviderName } = getServiceProvider();
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
@@ -54,12 +55,14 @@ const NewsletterEdit = ( { layoutId } ) => {
 			>
 				<Styling />
 			</PluginDocumentSettingPanel>
-			<PluginDocumentSettingPanel
-				name="newsletters-testing-panel"
-				title={ __( 'Testing', 'newspack-newsletters' ) }
-			>
-				<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } />
-			</PluginDocumentSettingPanel>
+			{ 'manual' !== serviceProviderName && (
+				<PluginDocumentSettingPanel
+					name="newsletters-testing-panel"
+					title={ __( 'Testing', 'newspack-newsletters' ) }
+				>
+					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } />
+				</PluginDocumentSettingPanel>
+			) }
 			<PluginDocumentSettingPanel
 				name="newsletters-layout-panel"
 				title={ __( 'Layout', 'newspack-newsletters' ) }
