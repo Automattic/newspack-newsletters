@@ -177,8 +177,13 @@ const Editor = compose( [
 	// Fetch data from service provider.
 	useEffect(() => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
+			// Exit if provider does not support fetching data.
+			if ( ! getFetchDataConfig ) {
+				return;
+			}
 			const params = getFetchDataConfig( { postId: props.postId } );
-			if ( 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
+			// Exit if data config is example or does not provide path
+			if ( ! params?.path || 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
 				return;
 			}
 			props.apiFetchWithErrorHandling( params ).then( result => {

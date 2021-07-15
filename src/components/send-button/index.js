@@ -20,8 +20,6 @@ import { getServiceProvider } from '../../service-providers';
 import './style.scss';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
-const { renderPreSendInfo } = getServiceProvider();
-
 export default compose( [
 	withDispatch( dispatch => {
 		const { editPost, savePost } = dispatch( 'core/editor' );
@@ -68,12 +66,18 @@ export default compose( [
 	} ) => {
 		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
 
+		const {
+			name: serviceProviderName,
+			renderPreSendInfo,
+			renderPostUpdateInfo,
+		} = getServiceProvider();
+
 		const isButtonEnabled =
 			( isPublishable || isEditedPostBeingScheduled ) &&
 			isSaveable &&
 			! isPublished &&
 			! isSaving &&
-			newsletterData.campaign &&
+			( newsletterData.campaign || 'manual' === serviceProviderName ) &&
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
@@ -94,6 +98,15 @@ export default compose( [
 				: __( 'Send', 'newspack-newsletters' );
 		}
 
+		let updateLabel;
+		if ( isSaving ) {
+			updateLabel = __( 'Updating...', 'newspack-newsletters' );
+		} else if ( 'manual' === serviceProviderName ) {
+			updateLabel = __( 'Update and copy HTML', 'newspack-newsletters' );
+		} else {
+			updateLabel = __( 'Update', 'newspack-newsletters' );
+		}
+
 		let publishStatus;
 		if ( ! hasPublishAction ) {
 			publishStatus = 'pending';
@@ -108,10 +121,20 @@ export default compose( [
 		const [ adLabel, setAdLabel ] = useState();
 		const [ adsWarning, setAdsWarning ] = useState();
 		const [ activeAdManageUrl, setActiveAdManageUrl ] = useState();
+		const newspack_ad_post_type_slug = NEWSLETTER_AD_CPT_SLUG;
+
+		let modalSubmitLabel;
+		if ( 'manual' === serviceProviderName ) {
+			modalSubmitLabel = is_public
+				? __( 'Mark as send and publish', 'newspack-newsletters' )
+				: __( 'Mark as sent', 'newspack-newsletters' );
+		} else {
+			modalSubmitLabel = __( 'Send', 'newspack-newsletters' );
+		}
 
 		useEffect(() => {
 			apiFetch( {
-				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
+				path: `/wp/v2/${ newspack_ad_post_type_slug }/count/?date=${ postDate }`,
 			} ).then( response => {
 				const countOfActiveAds = response.count;
 				setActiveAdManageUrl( response.manageUrl );
@@ -144,17 +167,39 @@ export default compose( [
 		// For sent newsletters, display the generic button text.
 		if ( isPublished ) {
 			return (
-				<Button
-					className="editor-post-publish-button"
-					isBusy={ isSaving }
-					isPrimary
-					disabled={ isSaving }
-					onClick={ savePost }
-				>
-					{ isSaving
-						? __( 'Updating...', 'newspack-newsletters' )
-						: __( 'Update', 'newspack-newsletters' ) }
-				</Button>
+				<Fragment>
+					<Button
+						className="editor-post-publish-button"
+						isBusy={ isSaving }
+						isPrimary
+						disabled={ isSaving }
+						onClick={ async () => {
+							await savePost();
+							if ( renderPostUpdateInfo ) setModalVisible( true );
+						} }
+					>
+						{ updateLabel }
+					</Button>
+					{ modalVisible && renderPostUpdateInfo && (
+						<Modal
+							className="newspack-newsletters__modal"
+							title={ __( 'Newsletter HTML', 'newspack-newsletters' ) }
+							onRequestClose={ () => setModalVisible( false ) }
+						>
+							{ adsWarning ? (
+								<Notice isDismissible={ false }>
+									{ adsWarning }{' '}
+									<a
+										href={ `/wp-admin/edit.php?post_type=${ newspack_ad_post_type_slug }&page=newspack-newsletters-ads-admin` }
+									>
+										{ __( 'Manage ads', 'newspack-newsletters' ) }
+									</a>
+								</Notice>
+							) : null }
+							{ renderPostUpdateInfo( newsletterData ) }
+						</Modal>
+					) }
+				</Fragment>
 			);
 		}
 
@@ -204,19 +249,21 @@ export default compose( [
 								</ul>
 							</Notice>
 						) : null }
-						<Button
-							isPrimary
-							disabled={ newsletterValidationErrors.length > 0 }
-							onClick={ () => {
-								triggerCampaignSend();
-								setModalVisible( false );
-							} }
-						>
-							{ __( 'Send', 'newspack-newsletters' ) }
-						</Button>
-						<Button isSecondary onClick={ () => setModalVisible( false ) }>
-							{ __( 'Cancel', 'newspack-newsletters' ) }
-						</Button>
+						<div className="modal-buttons">
+							<Button isSecondary onClick={ () => setModalVisible( false ) }>
+								{ __( 'Cancel', 'newspack-newsletters' ) }
+							</Button>
+							<Button
+								isPrimary
+								disabled={ newsletterValidationErrors.length > 0 }
+								onClick={ () => {
+									triggerCampaignSend();
+									setModalVisible( false );
+								} }
+							>
+								{ modalSubmitLabel }
+							</Button>
+						</div>
 					</Modal>
 				) }
 			</Fragment>
