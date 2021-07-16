@@ -218,7 +218,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 					suggestions={ encodePosts( foundPosts ) }
 					displayTransform={ string => {
 						const [ id, title ] = decodePost( string );
-						return title || id;
+						return title || id || '';
 					} }
 					onInputChange={ debounce( handleSpecificPostsInput, 400 ) }
 				/>
