@@ -46,7 +46,7 @@ final class Newspack_Newsletters_Editor {
 	public function __construct() {
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
-		add_filter( 'allowed_block_types', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
+		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
@@ -283,7 +283,7 @@ final class Newspack_Newsletters_Editor {
 
 	/**
 	 * Get current user test emails
-	 * 
+	 *
 	 * @return array List of user defined emails.
 	 */
 	public static function get_current_user_test_emails() {

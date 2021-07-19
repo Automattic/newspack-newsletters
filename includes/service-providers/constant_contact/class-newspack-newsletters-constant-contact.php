@@ -469,7 +469,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	public function retrieve_campaign_id( $post_id ) {
 		$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
 		if ( ! $cc_campaign_id ) {
-			throw new Exception( __( 'Constant Contact campaign ID not found.', 'newspack-newsletters' ) );
+			$this->sync( get_post( $post_id ) );
 		}
 		return $cc_campaign_id;
 	}

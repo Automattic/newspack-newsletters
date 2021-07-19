@@ -148,10 +148,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		try {
 			$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
 			if ( ! $mc_campaign_id ) {
-				return new WP_Error(
-					'newspack_newsletters_mailchimp_error',
-					__( 'No Mailchimp campaign ID found for this Newsletter', 'newspack-newsletter' )
-				);
+				$this->sync( get_post( $post_id ) );
 			}
 			$mc                  = new Mailchimp( $this->api_key() );
 			$campaign            = $this->validate(
