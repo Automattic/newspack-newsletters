@@ -1,3 +1,10 @@
+## [1.29.2-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.29.2-alpha.1...v1.29.2-alpha.2) (2021-07-19)
+
+
+### Bug Fixes
+
+* ensure post object for syncs ([#507](https://github.com/Automattic/newspack-newsletters/issues/507)) ([9a3afc3](https://github.com/Automattic/newspack-newsletters/commit/9a3afc3b781398927cc5ddaf29a37a8c9853de9e))
+
 ## [1.29.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.29.1...v1.29.2-alpha.1) (2021-07-19)
 
 
