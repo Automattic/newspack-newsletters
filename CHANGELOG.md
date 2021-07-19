@@ -1,3 +1,13 @@
+## [1.29.2](https://github.com/Automattic/newspack-newsletters/compare/v1.29.1...v1.29.2) (2021-07-19)
+
+
+### Bug Fixes
+
+* ensure post object for syncs ([#507](https://github.com/Automattic/newspack-newsletters/issues/507)) ([9a3afc3](https://github.com/Automattic/newspack-newsletters/commit/9a3afc3b781398927cc5ddaf29a37a8c9853de9e))
+* sync instead of erroring for missing campaign ([#505](https://github.com/Automattic/newspack-newsletters/issues/505)) ([7a0dd2f](https://github.com/Automattic/newspack-newsletters/commit/7a0dd2fee2fc05b07e7300d1ac188d68263c5e0a))
+* **wp-5.8:** ensure string for displayTransform ([#504](https://github.com/Automattic/newspack-newsletters/issues/504)) ([ec4de19](https://github.com/Automattic/newspack-newsletters/commit/ec4de192ee1814eb613087b5cf4ad91577ab36ea))
+* change allowed_block_types filter name (WARNING: incompatible w/ WP <5.8) ([#498](https://github.com/Automattic/newspack-newsletters/issues/498)) ([f7ba7f1](https://github.com/Automattic/newspack-newsletters/commit/f7ba7f129895f84c1038673153b990af2b53244a))
+
 ## [1.29.1](https://github.com/Automattic/newspack-newsletters/compare/v1.29.0...v1.29.1) (2021-07-13)
 
 
