@@ -510,6 +510,12 @@ final class Newspack_Newsletters {
 				'supports'        => $block_definition['supports'],
 			]
 		);
+		register_block_type(
+			'newspack-newsletters/share',
+			[
+				'render_callback' => [ __CLASS__, 'render_share_block' ],
+			]
+		);
 	}
 
 	/**
@@ -530,6 +536,15 @@ final class Newspack_Newsletters {
 		}
 
 		return wp_kses_post( $markup );
+	}
+
+	/**
+	 * Server-side render callback for Share block.
+	 * It does not make sense to render anything when the email
+	 * is viewed as a public post.
+	 */
+	public static function render_share_block() {
+		return '';
 	}
 
 	/**

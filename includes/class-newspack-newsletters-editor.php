@@ -102,6 +102,7 @@ final class Newspack_Newsletters_Editor {
 			'core/quote',
 			'core/social-links',
 			'newspack-newsletters/posts-inserter',
+			'newspack-newsletters/share',
 		);
 	}
 
