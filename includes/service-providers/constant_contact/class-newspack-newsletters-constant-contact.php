@@ -20,6 +20,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$this->controller = new Newspack_Newsletters_Constant_Contact_Controller( $this );
 
 		add_action( 'admin_init', [ $this, 'oauth_callback' ] );
+		add_action( 'update_option_newspack_newsletters_constant_contact_api_key', [ $this, 'clear_tokens' ], 10, 2 );
+		add_action( 'update_option_newspack_newsletters_constant_contact_api_secret', [ $this, 'clear_tokens' ], 10, 2 );
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'transition_post_status', [ $this, 'send' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
@@ -193,6 +195,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * Set the API credentials for the service provider.
 	 *
 	 * @param object $credentials API credentials.
+	 *
+	 * @return Boolean Whether any API credential was updated.
 	 */
 	public function set_api_credentials( $credentials ) {
 		if ( empty( $credentials['api_key'] ) || empty( $credentials['api_secret'] ) ) {
@@ -203,7 +207,20 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		} else {
 			$update_api_key    = update_option( 'newspack_newsletters_constant_contact_api_key', $credentials['api_key'] );
 			$update_api_secret = update_option( 'newspack_newsletters_constant_contact_api_secret', $credentials['api_secret'] );
-			return $update_api_key && $update_api_secret;
+			return $update_api_key || $update_api_secret;
+		}
+	}
+
+	/**
+	 * Clear API tokens when API key or secret changes.
+	 *
+	 * @param string $old_api_value Old API value.
+	 * @param string $new_api_value New API value.
+	 */
+	public function clear_tokens( $old_api_value, $new_api_value ) {
+		if ( $old_api_value !== $new_api_value ) {
+			delete_option( 'newspack_newsletters_constant_contact_api_access_token' );
+			delete_option( 'newspack_newsletters_constant_contact_api_refresh_token	' );
 		}
 	}
 
@@ -419,6 +436,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$cc = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 
 			$data = $this->retrieve( $post_id );
+
+			if ( is_wp_error( $data ) ) {
+				return $data;
+			}
 
 			$activity = $data['campaign']->activity;
 			$result   = $cc->test_campaign( $activity->campaign_activity_id, $emails );
