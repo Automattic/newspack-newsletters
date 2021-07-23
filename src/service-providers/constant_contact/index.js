@@ -11,7 +11,7 @@ import ProviderSidebar from './ProviderSidebar';
 const validateNewsletter = ( { campaign } ) => {
 	const messages = [];
 
-	if ( 'DRAFT' !== campaign.current_status ) {
+	if ( campaign && 'DRAFT' !== campaign.current_status ) {
 		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}
 	if ( ! campaign?.activity?.contact_list_ids?.length ) {
