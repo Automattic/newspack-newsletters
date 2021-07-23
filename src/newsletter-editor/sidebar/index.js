@@ -37,8 +37,12 @@ const Sidebar = ( {
 
 	const apiFetch = config =>
 		apiFetchWithErrorHandling( config ).then( result => {
-			editPost( getEditPostPayload( result ) );
-			setSenderDirty( false );
+			if ( typeof result === 'object' && result.campaign ) {
+				editPost( getEditPostPayload( result ) );
+				setSenderDirty( false );
+			} else {
+				return result;
+			}
 		} );
 
 	const renderSubject = () => (

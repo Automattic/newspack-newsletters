@@ -11,10 +11,10 @@ import ProviderSidebar from './ProviderSidebar';
 const validateNewsletter = ( { campaign } ) => {
 	const messages = [];
 
-	if ( 'DRAFT' !== campaign.status ) {
+	if ( 'DRAFT' !== campaign.current_status ) {
 		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}
-	if ( ! campaign.sent_to_contact_lists.length ) {
+	if ( ! campaign?.activity?.contact_list_ids?.length ) {
 		messages.push(
 			__(
 				'At least one Constant Contact list must be selected before publishing.',
@@ -33,24 +33,20 @@ const renderPreSendInfo = newsletterData => {
 	if ( ! newsletterData.campaign ) {
 		return null;
 	}
-	let subscriberCount = 0;
-	const listNames = [];
-	newsletterData.lists.forEach( ( { id, name, contact_count } ) => {
-		if (
-			newsletterData.campaign.sent_to_contact_lists.some(
-				( { id: usedListId } ) => usedListId === id
-			)
-		) {
-			listNames.push( name );
-			subscriberCount += contact_count;
-		}
-	} );
+	const campaignLists = newsletterData.lists.filter(
+		( { list_id } ) =>
+			newsletterData.campaign?.activity?.contact_list_ids?.indexOf( list_id ) !== -1
+	);
+	const subscriberCount = campaignLists.reduce(
+		( total, list ) => total + list.membership_count,
+		0
+	);
 
 	return (
 		<p>
 			{ __( "You're about to send a newsletter to:", 'newspack-newsletters' ) }
 			<br />
-			<strong>{ listNames.join( ', ' ) }</strong>
+			<strong>{ campaignLists.map( list => list.name ).join( ', ' ) }</strong>
 			<br />
 			<strong>
 				{ sprintf(

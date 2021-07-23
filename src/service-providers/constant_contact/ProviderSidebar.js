@@ -1,9 +1,11 @@
+import { once } from 'lodash';
+
 /**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect } from '@wordpress/element';
-import { BaseControl, CheckboxControl, Spinner, Notice } from '@wordpress/components';
+import { Fragment, useEffect, useState } from '@wordpress/element';
+import { BaseControl, CheckboxControl, Spinner, Notice, Button } from '@wordpress/components';
 
 const ProviderSidebar = ( {
 	renderSubject,
@@ -15,8 +17,27 @@ const ProviderSidebar = ( {
 	postId,
 	updateMeta,
 } ) => {
+	const [ authURL, setAuthURL ] = useState( '' );
+	const [ validConnection, setValidConnection ] = useState( undefined );
+
 	const campaign = newsletterData.campaign;
 	const lists = newsletterData.lists || [];
+
+	const verifyConnection = () => {
+		if ( validConnection ) return;
+		setValidConnection( undefined );
+		apiFetch( {
+			path: '/newspack-newsletters/v1/constant_contact/verify_connection',
+			method: 'GET',
+		} )
+			.then( res => {
+				setAuthURL( res.auth_url );
+				setValidConnection( res.valid );
+			} )
+			.catch( () => {
+				setValidConnection( false );
+			} );
+	};
 
 	const setList = ( listId, value ) => {
 		const method = value ? 'PUT' : 'DELETE';
@@ -37,13 +58,48 @@ const ProviderSidebar = ( {
 		} );
 
 	useEffect(() => {
+		verifyConnection();
+	}, [ postId ]);
+
+	useEffect(() => {
 		if ( campaign ) {
 			updateMeta( {
-				senderName: campaign.from_name,
-				senderEmail: campaign.from_email,
+				senderName: campaign.activity.from_name,
+				senderEmail: campaign.activity.from_email,
 			} );
 		}
 	}, [ campaign ]);
+
+	if ( undefined === validConnection ) {
+		return (
+			<div className="newspack-newsletters__loading-data">
+				{ __( 'Checking Constant Contact connection status...', 'newspack-newsletters' ) }
+				<Spinner />
+			</div>
+		);
+	}
+
+	if ( ! validConnection ) {
+		return (
+			<Fragment>
+				<p>
+					{ __(
+						'You must connect with your Constant Contact account before publishing your newsletter.',
+						'newspack-newsletters'
+					) }
+				</p>
+				<Button
+					isPrimary
+					onClick={ () => {
+						const authWindow = window.open( authURL, 'ccOAuth', 'width=500,height=600' );
+						authWindow.opener = { verify: once( verifyConnection ) };
+					} }
+				>
+					{ __( 'Authenticate with Constant Contact', 'newspack-newsletter' ) }
+				</Button>
+			</Fragment>
+		);
+	}
 
 	if ( ! campaign ) {
 		return (
@@ -54,7 +110,7 @@ const ProviderSidebar = ( {
 		);
 	}
 
-	const { status } = campaign || {};
+	const { current_status: status } = campaign || {};
 	if ( 'DRAFT' !== status ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
@@ -70,12 +126,12 @@ const ProviderSidebar = ( {
 				id="newspack-newsletters-constant_contact-lists"
 				label={ __( 'Lists', 'newspack-newsletters' ) }
 			>
-				{ lists.map( ( { id, name } ) => (
+				{ lists.map( ( { list_id: id, name } ) => (
 					<CheckboxControl
 						key={ id }
 						label={ name }
 						value={ id }
-						checked={ campaign.sent_to_contact_lists.some( list => list.id === id ) }
+						checked={ campaign?.activity?.contact_list_ids?.some( listId => listId === id ) }
 						onChange={ value => setList( id, value ) }
 						disabled={ inFlight }
 					/>
