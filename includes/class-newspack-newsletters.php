@@ -182,11 +182,7 @@ final class Newspack_Newsletters {
 			'cc_campaign_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
+				'show_in_rest'   => false,
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
