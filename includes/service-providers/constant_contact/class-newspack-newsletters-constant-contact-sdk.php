@@ -87,7 +87,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			return json_decode( $response->getBody() );
 		} catch ( RequestException $e ) {
 			$body = json_decode( $e->getResponse()->getBody()->getContents() );
-			if ( isset( $body[0] ) && isset( $body[0]->error_message ) ) {
+			if ( is_array( $body ) && isset( $body[0] ) && isset( $body[0]->error_message ) ) {
 				$message = $body[0]->error_message;
 			} elseif ( isset( $body->error_message ) ) {
 				$message = $body->error_message;
