@@ -1,11 +1,9 @@
-import { once } from 'lodash';
-
 /**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect, useState } from '@wordpress/element';
-import { BaseControl, CheckboxControl, Spinner, Notice, Button } from '@wordpress/components';
+import { Fragment, useEffect } from '@wordpress/element';
+import { BaseControl, CheckboxControl, Spinner, Notice } from '@wordpress/components';
 
 const ProviderSidebar = ( {
 	renderSubject,
@@ -17,27 +15,8 @@ const ProviderSidebar = ( {
 	postId,
 	updateMeta,
 } ) => {
-	const [ authURL, setAuthURL ] = useState( '' );
-	const [ validConnection, setValidConnection ] = useState( undefined );
-
 	const campaign = newsletterData.campaign;
 	const lists = newsletterData.lists || [];
-
-	const verifyConnection = () => {
-		if ( validConnection ) return;
-		setValidConnection( undefined );
-		apiFetch( {
-			path: '/newspack-newsletters/v1/constant_contact/verify_connection',
-			method: 'GET',
-		} )
-			.then( res => {
-				setAuthURL( res.auth_url );
-				setValidConnection( res.valid );
-			} )
-			.catch( () => {
-				setValidConnection( false );
-			} );
-	};
 
 	const setList = ( listId, value ) => {
 		const method = value ? 'PUT' : 'DELETE';
@@ -58,10 +37,6 @@ const ProviderSidebar = ( {
 		} );
 
 	useEffect(() => {
-		verifyConnection();
-	}, [ postId ]);
-
-	useEffect(() => {
 		if ( campaign ) {
 			updateMeta( {
 				senderName: campaign.activity.from_name,
@@ -69,37 +44,6 @@ const ProviderSidebar = ( {
 			} );
 		}
 	}, [ campaign ]);
-
-	if ( undefined === validConnection ) {
-		return (
-			<div className="newspack-newsletters__loading-data">
-				{ __( 'Checking Constant Contact connection status...', 'newspack-newsletters' ) }
-				<Spinner />
-			</div>
-		);
-	}
-
-	if ( ! validConnection ) {
-		return (
-			<Fragment>
-				<p>
-					{ __(
-						'You must connect with your Constant Contact account before publishing your newsletter.',
-						'newspack-newsletters'
-					) }
-				</p>
-				<Button
-					isPrimary
-					onClick={ () => {
-						const authWindow = window.open( authURL, 'ccOAuth', 'width=500,height=600' );
-						authWindow.opener = { verify: once( verifyConnection ) };
-					} }
-				>
-					{ __( 'Authenticate with Constant Contact', 'newspack-newsletter' ) }
-				</Button>
-			</Fragment>
-		);
-	}
 
 	if ( ! campaign ) {
 		return (

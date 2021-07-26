@@ -32,10 +32,10 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 
 		\register_rest_route(
 			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
-			'verify_connection',
+			'verify_token',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'verify_connection' ],
+				'callback'            => [ $this, 'verify_token' ],
 				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
 			]
 		);
@@ -136,8 +136,8 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 	 * 
 	 * @return WP_REST_Response|mixed API response or error.
 	 */
-	public function verify_connection() {
-		$response = $this->service_provider->verify_connection();
+	public function verify_token() {
+		$response = $this->service_provider->verify_token();
 		return \rest_ensure_response( $response );
 	}
 

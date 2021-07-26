@@ -35,6 +35,7 @@ export default compose( [
 		setInFlightForAsync,
 		testEmail,
 		onChangeEmail,
+		disabled,
 	} ) => {
 		const sendTestEmail = async () => {
 			const serviceProvider =
@@ -65,7 +66,7 @@ export default compose( [
 					<Button
 						isPrimary
 						onClick={ sendTestEmail }
-						disabled={ inFlight || ! hasValidEmail( testEmail ) }
+						disabled={ disabled || inFlight || ! hasValidEmail( testEmail ) }
 					>
 						{ inFlight
 							? __( 'Sending Test Email...', 'newspack-newsletters' )

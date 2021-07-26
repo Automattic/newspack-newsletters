@@ -8,10 +8,17 @@ import { __, sprintf, _n } from '@wordpress/i18n';
  */
 import ProviderSidebar from './ProviderSidebar';
 
+const hasOauth = true;
+
 const validateNewsletter = ( { campaign } ) => {
 	const messages = [];
 
-	if ( campaign && 'DRAFT' !== campaign.current_status ) {
+	// Exit early if campaign is not set
+	if ( ! campaign ) {
+		return [ __( 'Not connected to Constant Contact', 'newspack-newsletters' ) ];
+	}
+
+	if ( 'DRAFT' !== campaign.current_status ) {
 		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}
 	if ( ! campaign?.activity?.contact_list_ids?.length ) {
@@ -59,6 +66,7 @@ const renderPreSendInfo = newsletterData => {
 };
 
 export default {
+	hasOauth,
 	validateNewsletter,
 	getFetchDataConfig,
 	ProviderSidebar,
