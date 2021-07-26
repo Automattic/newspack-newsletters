@@ -88,7 +88,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			}
 			return $response;
 		} catch ( Exception $e ) {
-			$response['error'] = $e->getMessage();
 			return $response;
 		}
 	}
@@ -474,28 +473,41 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				__( 'No Constant Contact API key available.', 'newspack-newsletters' )
 			);
 		}
-		if ( ! $this->has_valid_connection() ) {
-			throw new Exception(
-				__( 'Unable to connect to Constant Contact API', 'newspack-newsletters' )
-			);
-		}
 		try {
-			$cc             = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
-			$cc_campaign_id = get_post_meta( $post->ID, 'cc_campaign_id', true );
-			$renderer       = new Newspack_Newsletters_Renderer();
-			$content        = $renderer->retrieve_email_html( $post );
+			if ( ! $this->has_valid_connection() ) {
+				throw new Exception(
+					__( 'Unable to connect to Constant Contact API', 'newspack-newsletters' )
+				);
+			}
+			$cc              = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
+			$cc_campaign_id  = get_post_meta( $post->ID, 'cc_campaign_id', true );
+			$renderer        = new Newspack_Newsletters_Renderer();
+			$content         = $renderer->retrieve_email_html( $post );
+			$auto_draft_html = '<html><body>[[trackingImage]]<p>Auto draft</p></body></html>';
+
+			$activity_data = [
+				'format_type'  => 5, // https://v3.developer.constantcontact.com/api_guide/email_campaigns_overview.html#collapse-format-types .
+				'html_content' => empty( $content ) ? $auto_draft_html : $content,
+				'subject'      => $post->post_title,
+			];
+
 			if ( $cc_campaign_id ) {
 				$campaign = $cc->get_campaign( $cc_campaign_id );
 
-				$activity = [
-					'format_type'      => 5,
-					'email_content'    => $content,
-					'subject'          => $post->post_title,
-					'contact_list_ids' => $campaign->activity->contact_list_ids,
-					'from_email'       => $campaign->activity->from_email,
-					'from_name'        => $campaign->activity->from_name,
-					'reply_to_email'   => $campaign->activity->reply_to_email,
-				];
+				// Constant Constact only allow updates on DRAFT or SENT status.
+				if ( ! in_array( $campaign->current_status, [ 'DRAFT', 'SENT' ], true ) ) {
+					return;
+				}
+
+				$activity = array_merge(
+					$activity_data,
+					[
+						'contact_list_ids' => $campaign->activity->contact_list_ids,
+						'from_name'        => $campaign->activity->from_name,
+						'from_email'       => $campaign->activity->from_email,
+						'reply_to_email'   => $campaign->activity->reply_to_email,
+					]
+				);
 
 				$cc->update_campaign_activity( $campaign->activity->campaign_activity_id, $activity );
 
@@ -524,19 +536,18 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 				$initial_email_address = $verified_email_addresses[0]->email_address;
 
-				$auto_draft_html = '<html><body><p>Auto draft</p></body></html>';
-
 				$campaign = [
 					'name'                      => $this->get_campaign_name( $post ),
 					'email_campaign_activities' => [
-						[
-							'format_type'    => 5, // https://v3.developer.constantcontact.com/api_guide/email_campaigns_overview.html#collapse-format-types .
-							'subject'        => $post->post_title,
-							'from_email'     => $initial_email_address,
-							'reply_to_email' => $initial_email_address,
-							'from_name'      => $initial_sender,
-							'html_content'   => empty( $content ) ? $auto_draft_html : $content,
-						],
+						array_merge(
+							$activity_data,
+							[
+								'subject'        => $post->post_title,
+								'from_name'      => $initial_sender,
+								'from_email'     => $initial_email_address,
+								'reply_to_email' => $initial_email_address,
+							]
+						),
 					],
 				];
 
@@ -635,7 +646,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		if ( ! $api_key ) {
 			return;
 		}
+
 		try {
+			if ( ! $this->verify_connection() ) {
+				return;
+			}
+
 			$cc = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 
 			$campaign = $cc->get_campaign( $cc_campaign_id );
