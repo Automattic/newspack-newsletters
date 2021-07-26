@@ -71,8 +71,9 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @param string $path    Request path.
 	 * @param array  $options Request options to apply. See \GuzzleHttp\RequestOptions.
 	 *
+	 * @return object Request result.
+	 *
 	 * @throws Exception Error message.
-	 * @return mixed
 	 */
 	private function request( $method, $path, $options = [] ) {
 		$config = [
@@ -231,7 +232,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	/**
 	 * Get Account info
 	 *
-	 * @return mixed
+	 * @return object Account info.
 	 */
 	public function get_account_info() {
 		return $this->request(
@@ -244,7 +245,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	/**
 	 * Get account email addresses
 	 *
-	 * @return mixed
+	 * @return object Email addresses.
 	 */
 	public function get_email_addresses() {
 		return $this->request( 'GET', 'account/emails' );
@@ -254,7 +255,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	/**
 	 * Get Contact Lists
 	 *
-	 * @return mixed
+	 * @return object Contact lists.
 	 */
 	public function get_contact_lists() {
 		return $this->request(
@@ -294,7 +295,8 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * Get campaign data from v2 or v3 API
 	 *
 	 * @param string $campaign_id Campaign id.
-	 * @return mixed
+	 *
+	 * @return object Campaign data.
 	 */
 	public function get_campaign( $campaign_id ) {
 		$campaign           = $this->request( 'GET', 'emails/' . $this->parse_campaign_id( $campaign_id ) );
@@ -314,10 +316,10 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 
 	/**
 	 * Get campaign activity.
-	 * 
+	 *
 	 * @param string $campaign_activity_id Campaign Activity ID.
-	 * 
-	 * @return mixed
+	 *
+	 * @return object Campaign activity data.
 	 */
 	public function get_campaign_activity( $campaign_activity_id ) {
 		return $this->request( 'GET', 'emails/activities/' . $campaign_activity_id );
@@ -329,7 +331,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @param string $campaign_id Campaign ID.
 	 * @param string $name        Campaign name.
 	 *
-	 * @return mixed
+	 * @return object Updated campaign data.
 	 */
 	public function update_campaign_name( $campaign_id, $name ) {
 		$campaign = $this->request(
@@ -346,7 +348,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @param string $campaign_activity_id Campaign Activity ID.
 	 * @param string $data                 Campaign Activity Data.
 	 *
-	 * @return mixed
+	 * @return object Updated campaign activity data.
 	 */
 	public function update_campaign_activity( $campaign_activity_id, $data ) {
 		return $this->request(
@@ -361,7 +363,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 *
 	 * @param array $data Campaign data.
 	 *
-	 * @return mixed
+	 * @return object Created campaign data.
 	 */
 	public function create_campaign( $data ) {
 		$campaign = $this->request(
@@ -376,11 +378,9 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * Delete campaign
 	 *
 	 * @param string $campaign_id Campaign ID.
-	 *
-	 * @return mixed
 	 */
 	public function delete_campaign( $campaign_id ) {
-		return $this->request( 'DELETE', 'emails/' . $this->parse_campaign_id( $campaign_id ) );
+		$this->request( 'DELETE', 'emails/' . $this->parse_campaign_id( $campaign_id ) );
 	}
 
 	/**
@@ -388,11 +388,9 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 *
 	 * @param string   $campaign_activity_id Campaign Activity ID.
 	 * @param string[] $emails               Email addresses.
-	 *
-	 * @return mixed
 	 */
 	public function test_campaign( $campaign_activity_id, $emails ) {
-		return $this->request(
+		$this->request(
 			'POST',
 			'emails/activities/' . $campaign_activity_id . '/tests',
 			[ 'body' => wp_json_encode( [ 'email_addresses' => $emails ] ) ]
@@ -404,11 +402,9 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 *
 	 * @param string $campaign_activity_id Campaign Activity ID.
 	 * @param string $date                 ISO-8601 Formatted date or '0' for immediately.
-	 *
-	 * @return mixed
 	 */
 	public function create_schedule( $campaign_activity_id, $date = '0' ) {
-		return $this->request(
+		$this->request(
 			'POST',
 			'emails/activities/' . $campaign_activity_id . '/schedules',
 			[ 'body' => wp_json_encode( [ 'scheduled_date' => $date ] ) ]
