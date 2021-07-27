@@ -1,3 +1,15 @@
+# [1.30.0](https://github.com/Automattic/newspack-newsletters/compare/v1.29.2...v1.30.0) (2021-07-27)
+
+
+### Bug Fixes
+
+* allow text formatting assets in the editor ([#521](https://github.com/Automattic/newspack-newsletters/issues/521)) ([afa16ff](https://github.com/Automattic/newspack-newsletters/commit/afa16ffff6a30e78af277943c5c2acf83f1035ca))
+
+
+### Features
+
+* share to a friend block ([#518](https://github.com/Automattic/newspack-newsletters/issues/518)) ([6adf4ca](https://github.com/Automattic/newspack-newsletters/commit/6adf4ca7f1dffd95c46c783d651ba0310232e6ab)), closes [#349](https://github.com/Automattic/newspack-newsletters/issues/349)
+
 ## [1.29.2](https://github.com/Automattic/newspack-newsletters/compare/v1.29.1...v1.29.2) (2021-07-19)
 
 
