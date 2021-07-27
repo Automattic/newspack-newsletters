@@ -61,11 +61,17 @@ final class Newspack_Newsletters_Editor {
 			return;
 		}
 
+		$allowed_actions = [
+			__CLASS__ . '::enqueue_block_editor_assets',
+			'newspack_enqueue_scripts',
+			'wp_enqueue_editor_format_library_assets',
+		];
+
 		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
 		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
 			$action_handlers = array_keys( $filter );
 			foreach ( $action_handlers as $handler ) {
-				if ( __CLASS__ . '::enqueue_block_editor_assets' != $handler && 'newspack_enqueue_scripts' !== $handler ) {
+				if ( ! in_array( $handler, $allowed_actions, true ) ) {
 					remove_action( 'enqueue_block_editor_assets', $handler, $index );
 				}
 			}
@@ -102,6 +108,7 @@ final class Newspack_Newsletters_Editor {
 			'core/quote',
 			'core/social-links',
 			'newspack-newsletters/posts-inserter',
+			'newspack-newsletters/share',
 		);
 	}
 

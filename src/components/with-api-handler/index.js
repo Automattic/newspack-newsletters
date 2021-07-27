@@ -7,6 +7,17 @@ import { dispatch, select } from '@wordpress/data';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { useState } from '@wordpress/element';
 
+import { SHARE_BLOCK_NOTICE_ID } from '../../editor/blocks/share/consts';
+
+const successNote = __( 'Campaign sent on ', 'newspack-newsletters' );
+const shouldRemoveNotice = notice => {
+	return (
+		notice.id !== SHARE_BLOCK_NOTICE_ID &&
+		'error' !== notice.status &&
+		( 'success' !== notice.status || -1 === notice.content.indexOf( successNote ) )
+	);
+};
+
 export default () =>
 	createHigherOrderComponent(
 		OriginalComponent => props => {
@@ -17,41 +28,30 @@ export default () =>
 			const setInFlightForAsync = () => {
 				setInFlight( true );
 			};
-			const successNote = __( 'Campaign sent on ', 'newspack-newsletters' );
 			const apiFetchWithErrorHandling = apiRequest => {
 				setInFlight( true );
 				return new Promise( ( resolve, reject ) => {
 					apiFetch( apiRequest )
 						.then( response => {
-							const { message } = response;
 							getNotices().forEach( notice => {
-								// Don't remove the "Campaign sent" notice or error messages from async ops.
-								if (
-									'error' !== notice.status &&
-									( 'success' !== notice.status || -1 === notice.content.indexOf( successNote ) )
-								) {
+								if ( shouldRemoveNotice( notice ) ) {
 									removeNotice( notice.id );
 								}
 							} );
-							if ( message ) {
-								createSuccessNotice( message );
+							if ( response.message ) {
+								createSuccessNotice( response.message );
 							}
 							setInFlight( false );
 							setErrors( {} );
 							resolve( response );
 						} )
 						.catch( error => {
-							const { message } = error;
 							getNotices().forEach( notice => {
-								// Don't remove the "Campaign sent" notice or error messages from async ops.
-								if (
-									'error' !== notice.status &&
-									( 'success' !== notice.status || -1 === notice.content.indexOf( successNote ) )
-								) {
+								if ( shouldRemoveNotice( notice ) ) {
 									removeNotice( notice.id );
 								}
 							} );
-							createErrorNotice( message );
+							createErrorNotice( error.message );
 							setInFlight( false );
 							setErrors( { [ error.code ]: true } );
 							reject( error );

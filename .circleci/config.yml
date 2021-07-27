@@ -29,7 +29,7 @@ jobs:
       - checkout_with_workspace
       - run:
           name: Run SCSS Linter
-          command: npm run lint:js
+          command: npm run lint:scss
       - run:
           name: Run JS Linter
           command: npm run lint:js
