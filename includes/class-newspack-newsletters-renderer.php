@@ -40,6 +40,13 @@ final class Newspack_Newsletters_Renderer {
 	protected static $ads_to_insert = [];
 
 	/**
+	 * The post permalink, if the post is public.
+	 *
+	 * @var String
+	 */
+	protected static $post_permalink = null;
+
+	/**
 	 * Convert a list to HTML attributes.
 	 *
 	 * @param array $attributes Array of attributes.
@@ -248,12 +255,13 @@ final class Newspack_Newsletters_Renderer {
 
 		switch ( $block_name ) {
 			/**
-			 * Paragraph, List, Heading blocks.
+			 * Text-based blocks.
 			 */
 			case 'core/paragraph':
 			case 'core/list':
 			case 'core/heading':
 			case 'core/quote':
+			case 'newspack-newsletters/share':
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
@@ -263,6 +271,11 @@ final class Newspack_Newsletters_Renderer {
 					),
 					$attrs
 				);
+
+				if ( 'newspack-newsletters/share' === $block_name && ! self::$post_permalink ) {
+					// If there's no permalink (which is not set if the post is not public), the share link has no utility.
+					return '';
+				}
 
 				// Only mj-text has to use container-background-color attr for background color.
 				if ( isset( $text_attrs['background-color'] ) ) {
@@ -750,6 +763,11 @@ final class Newspack_Newsletters_Renderer {
 		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
+		$is_public           = get_post_meta( $post->ID, 'is_public', true );
+
+		if ( $is_public ) {
+			self::$post_permalink = get_permalink( $post->ID );
+		}
 		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
 			self::$font_header = 'Arial';
 		}
