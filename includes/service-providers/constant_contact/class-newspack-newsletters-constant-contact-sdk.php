@@ -170,10 +170,12 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	}
 
 	/**
-	 * Refresh access token.
+	 * Get access token.
 	 *
 	 * @param string $redirect_uri Redirect URI.
 	 * @param string $code         Authorization code.
+	 *
+	 * @return object Token data.
 	 *
 	 * @throws Exception Error message.
 	 */
@@ -204,6 +206,8 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * Refresh access token.
 	 *
 	 * @param string $refresh_token Refresh token.
+	 *
+	 * @return object Token data.
 	 *
 	 * @throws Exception Error message.
 	 */
