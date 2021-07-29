@@ -67,8 +67,8 @@ class Newspack_Newsletters_Settings {
 				'provider'    => 'constant_contact',
 			),
 			array(
-				'description' => __( 'Constant Contact API Access token', 'newspack-newsletters' ),
-				'key'         => 'newspack_newsletters_constant_contact_api_access_token',
+				'description' => __( 'Constant Contact API Secret', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_constant_contact_api_secret',
 				'type'        => 'text',
 				'provider'    => 'constant_contact',
 			),
