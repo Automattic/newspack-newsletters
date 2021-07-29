@@ -483,12 +483,17 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$renderer        = new Newspack_Newsletters_Renderer();
 			$content         = $renderer->retrieve_email_html( $post );
 			$auto_draft_html = '<html><body>[[trackingImage]]<p>Auto draft</p></body></html>';
+			$account_info    = $cc->get_account_info();
 
 			$activity_data = [
 				'format_type'  => 5, // https://v3.developer.constantcontact.com/api_guide/email_campaigns_overview.html#collapse-format-types .
 				'html_content' => empty( $content ) ? $auto_draft_html : $content,
 				'subject'      => $post->post_title,
 			];
+
+			if ( $account_info->physical_address ) {
+				$activity_data['physical_address_in_footer'] = $account_info->physical_address;
+			}
 
 			if ( $cc_campaign_id ) {
 				$campaign = $cc->get_campaign( $cc_campaign_id );
@@ -512,7 +517,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 				$campaign_result = $cc->get_campaign( $cc_campaign_id );
 			} else {
-				$account_info = $cc->get_account_info();
 
 				$initial_sender = __( 'Sender Name', 'newspack-newsletters' );
 				if ( $account_info->organization_name ) {
