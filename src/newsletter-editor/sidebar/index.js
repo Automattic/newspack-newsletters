@@ -11,6 +11,7 @@ import { Button, TextControl, TextareaControl, ToggleControl } from '@wordpress/
  * External dependencies
  */
 import classnames from 'classnames';
+import { once } from 'lodash';
 
 /**
  * Internal dependencies
@@ -21,6 +22,9 @@ import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
 const Sidebar = ( {
+	isConnected,
+	oauthUrl,
+	onAuthorize,
 	inFlight,
 	errors,
 	editPost,
@@ -37,8 +41,12 @@ const Sidebar = ( {
 
 	const apiFetch = config =>
 		apiFetchWithErrorHandling( config ).then( result => {
-			editPost( getEditPostPayload( result ) );
-			setSenderDirty( false );
+			if ( typeof result === 'object' && result.campaign ) {
+				editPost( getEditPostPayload( result ) );
+				setSenderDirty( false );
+			} else {
+				return result;
+			}
 		} );
 
 	const renderSubject = () => (
@@ -103,6 +111,30 @@ const Sidebar = ( {
 	);
 
 	const { ProviderSidebar } = getServiceProvider();
+
+	if ( false === isConnected ) {
+		return (
+			<Fragment>
+				<p>
+					{ __(
+						'You must authorize your account before publishing your newsletter.',
+						'newspack-newsletters'
+					) }
+				</p>
+				<Button
+					isPrimary
+					disabled={ inFlight }
+					onClick={ () => {
+						const authWindow = window.open( oauthUrl, 'esp_oauth', 'width=500,height=600' );
+						authWindow.opener = { verify: once( onAuthorize ) };
+					} }
+				>
+					{ __( 'Authorize', 'newspack-newsletter' ) }
+				</Button>
+			</Fragment>
+		);
+	}
+
 	return (
 		<Fragment>
 			<ProviderSidebar
