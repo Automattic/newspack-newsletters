@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/Automattic/newspack-newsletters/compare/v1.30.0...v1.30.1) (2021-07-29)
+
+
+### Bug Fixes
+
+* trigger release build ([02493fc](https://github.com/Automattic/newspack-newsletters/commit/02493fcca5dcf94e9af02a6af24d87adf9bada5d))
+
 # [1.30.0](https://github.com/Automattic/newspack-newsletters/compare/v1.29.2...v1.30.0) (2021-07-27)
 
 
