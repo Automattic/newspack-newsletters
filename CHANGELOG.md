@@ -1,3 +1,10 @@
+## [1.30.2](https://github.com/Automattic/newspack-newsletters/compare/v1.30.1...v1.30.2) (2021-07-29)
+
+
+### Bug Fixes
+
+* composer dependency bug ([0d0dc20](https://github.com/Automattic/newspack-newsletters/commit/0d0dc20d6c8377c6bd38ce2e1398ea7abc9dcce3))
+
 ## [1.30.1](https://github.com/Automattic/newspack-newsletters/compare/v1.30.0...v1.30.1) (2021-07-29)
 
 
