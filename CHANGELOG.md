@@ -1,3 +1,10 @@
+## [1.30.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.30.0...v1.30.1-alpha.1) (2021-07-29)
+
+
+### Bug Fixes
+
+* trigger alpha release build ([d17924e](https://github.com/Automattic/newspack-newsletters/commit/d17924e5ef85460c3e6a02eb697fa67fdf20d50c))
+
 # [1.30.0](https://github.com/Automattic/newspack-newsletters/compare/v1.29.2...v1.30.0) (2021-07-27)
 
 
