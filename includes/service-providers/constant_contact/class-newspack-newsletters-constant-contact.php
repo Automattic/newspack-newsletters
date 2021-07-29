@@ -526,11 +526,13 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				}
 
 				$email_addresses          = (array) $cc->get_email_addresses();
-				$verified_email_addresses = array_filter(
-					$email_addresses,
-					function ( $email ) {
-						return 'CONFIRMED' === $email->confirm_status;
-					}
+				$verified_email_addresses = array_values(
+					array_filter(
+						$email_addresses,
+						function ( $email ) {
+							return 'CONFIRMED' === $email->confirm_status;
+						}
+					)
 				);
 
 				if ( empty( $verified_email_addresses ) ) {
