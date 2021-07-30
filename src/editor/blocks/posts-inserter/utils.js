@@ -45,10 +45,10 @@ const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	];
 };
 
-const getSubtitleBlockTemplate = ( post, { textFontSize, textColor } ) => {
+const getSubtitleBlockTemplate = ( post, { subHeadingFontSize, textColor } ) => {
 	const subtitle = post?.meta?.newspack_post_subtitle || '';
-	const attributes = { content: subtitle.trim(), style: { color: { text: textColor } } };
-	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
+	const attributes = { level: 4, content: subtitle.trim(), style: { color: { text: textColor } } };
+	return [ 'core/heading', assignFontSize( subHeadingFontSize, attributes ) ];
 };
 
 const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor } ) => {
@@ -114,6 +114,9 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	const postContentBlocks = [ getHeadingBlockTemplate( post, attributes ) ];
 
+	if ( attributes.displayPostSubtitle && post.meta?.newspack_post_subtitle ) {
+		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
+	}
 	if ( attributes.displayAuthor ) {
 		const author = getAuthorBlockTemplate( post, attributes );
 
@@ -123,9 +126,6 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	}
 	if ( attributes.displayPostDate && post.date_gmt ) {
 		postContentBlocks.push( getDateBlockTemplate( post, attributes ) );
-	}
-	if ( attributes.displayPostSubtitle && post.meta?.newspack_post_subtitle ) {
-		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
 	}
 	if ( attributes.displayPostExcerpt ) {
 		postContentBlocks.push( getExcerptBlockTemplate( post, attributes ) );

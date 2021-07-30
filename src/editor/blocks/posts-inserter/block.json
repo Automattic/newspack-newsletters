@@ -61,6 +61,10 @@
 			"type": "number",
 			"default": 25
 		},
+		"subHeadingFontSize": {
+			"type": "number",
+			"default": 18
+		},
 		"textColor": {
 			"type": "string",
 			"default": "#000"
