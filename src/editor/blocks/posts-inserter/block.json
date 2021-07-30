@@ -13,6 +13,10 @@
 			"type": "number",
 			"default": 3
 		},
+		"displayPostSubtitle": {
+			"type": "boolean",
+			"default": false
+		},
 		"displayPostExcerpt": {
 			"type": "boolean",
 			"default": true

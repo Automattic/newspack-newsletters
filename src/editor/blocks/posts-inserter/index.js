@@ -144,6 +144,11 @@ const PostsInserterBlock = ( {
 			<InspectorControls>
 				<PanelBody title={ __( 'Post content settings', 'newspack-newsletters' ) }>
 					<ToggleControl
+						label={ __( 'Post subtitle', 'newspack-newsletters' ) }
+						checked={ attributes.displayPostSubtitle }
+						onChange={ value => setAttributes( { displayPostSubtitle: value } ) }
+					/>
+					<ToggleControl
 						label={ __( 'Post excerpt', 'newspack-newsletters' ) }
 						checked={ attributes.displayPostExcerpt }
 						onChange={ value => setAttributes( { displayPostExcerpt: value } ) }

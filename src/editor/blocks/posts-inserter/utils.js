@@ -45,6 +45,12 @@ const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	];
 };
 
+const getSubtitleBlockTemplate = ( post, { textFontSize, textColor } ) => {
+	const subtitle = post?.meta?.newspack_post_subtitle || '';
+	const attributes = { content: subtitle.trim(), style: { color: { text: textColor } } };
+	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
+};
+
 const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor } ) => {
 	let excerpt = post.excerpt.rendered;
 	const excerptElement = document.createElement( 'div' );
@@ -117,6 +123,9 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	}
 	if ( attributes.displayPostDate && post.date_gmt ) {
 		postContentBlocks.push( getDateBlockTemplate( post, attributes ) );
+	}
+	if ( attributes.displayPostSubtitle && post.meta?.newspack_post_subtitle ) {
+		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
 	}
 	if ( attributes.displayPostExcerpt ) {
 		postContentBlocks.push( getExcerptBlockTemplate( post, attributes ) );
