@@ -45,6 +45,12 @@ const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	];
 };
 
+const getSubtitleBlockTemplate = ( post, { subHeadingFontSize, textColor } ) => {
+	const subtitle = post?.meta?.newspack_post_subtitle || '';
+	const attributes = { level: 4, content: subtitle.trim(), style: { color: { text: textColor } } };
+	return [ 'core/heading', assignFontSize( subHeadingFontSize, attributes ) ];
+};
+
 const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor } ) => {
 	let excerpt = post.excerpt.rendered;
 	const excerptElement = document.createElement( 'div' );
@@ -108,6 +114,9 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	const postContentBlocks = [ getHeadingBlockTemplate( post, attributes ) ];
 
+	if ( attributes.displayPostSubtitle && post.meta?.newspack_post_subtitle ) {
+		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
+	}
 	if ( attributes.displayAuthor ) {
 		const author = getAuthorBlockTemplate( post, attributes );
 

@@ -13,6 +13,10 @@
 			"type": "number",
 			"default": 3
 		},
+		"displayPostSubtitle": {
+			"type": "boolean",
+			"default": false
+		},
 		"displayPostExcerpt": {
 			"type": "boolean",
 			"default": true
@@ -56,6 +60,10 @@
 		"headingFontSize": {
 			"type": "number",
 			"default": 25
+		},
+		"subHeadingFontSize": {
+			"type": "number",
+			"default": 18
 		},
 		"textColor": {
 			"type": "string",
