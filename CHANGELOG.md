@@ -1,3 +1,15 @@
+# [1.31.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.30.2...v1.31.0-alpha.1) (2021-08-03)
+
+
+### Bug Fixes
+
+* add campaign monitor to readme ([#531](https://github.com/Automattic/newspack-newsletters/issues/531)) ([79949f4](https://github.com/Automattic/newspack-newsletters/commit/79949f42eca33386605e491cb1a835bd27bcef79))
+
+
+### Features
+
+* subtitle support for post inserter ([#530](https://github.com/Automattic/newspack-newsletters/issues/530)) ([f4b1c60](https://github.com/Automattic/newspack-newsletters/commit/f4b1c60246b7746773fb986be8a3efa338acde36))
+
 ## [1.30.2](https://github.com/Automattic/newspack-newsletters/compare/v1.30.1...v1.30.2) (2021-07-29)
 
 
