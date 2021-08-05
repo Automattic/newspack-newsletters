@@ -49,7 +49,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'   => $inner_html,
 				]
 			),
-			'<mj-section textColor="vivid-purple" color="#db18e6" background-color="#4aadd7" font-size="16px" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.8" font-size="16px"  textColor="vivid-purple" color="#db18e6" container-background-color="#4aadd7">' . $inner_html . '</mj-text></mj-column></mj-section>',
+			'<mj-section textColor="vivid-purple" color="#db18e6 !important" background-color="#4aadd7 !important" font-size="16px" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.8" font-size="16px"  textColor="vivid-purple" color="#db18e6 !important" container-background-color="#4aadd7 !important">' . $inner_html . '</mj-text></mj-column></mj-section>',
 			'Renders styled paragraph'
 		);
 	}
