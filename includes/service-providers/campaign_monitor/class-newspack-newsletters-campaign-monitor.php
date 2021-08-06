@@ -22,10 +22,107 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		$this->service    = 'campaign_monitor';
 		$this->controller = new Newspack_Newsletters_Campaign_Monitor_Controller( $this );
 
+		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'transition_post_status', [ $this, 'send' ], 10, 3 );
 
 		parent::__construct( $this );
+	}
+
+	/**
+	 * Register custom fields.
+	 */
+	public static function register_meta() {
+		\register_meta(
+			'post',
+			'cm_list_id',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_segment_id',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_send_mode',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_from_name',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_from_email',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'cm_preview_text',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
