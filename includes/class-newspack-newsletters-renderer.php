@@ -135,6 +135,14 @@ final class Newspack_Newsletters_Renderer {
 			}
 		}
 
+		// Add !important to all colors.
+		if ( isset( $colors['color'] ) ) {
+			$colors['color'] .= ' !important';
+		}
+		if ( isset( $colors['background-color'] ) ) {
+			$colors['background-color'] .= ' !important';
+		}
+
 		return $colors;
 	}
 
@@ -364,7 +372,7 @@ final class Newspack_Newsletters_Renderer {
 					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = $button_block['attrs'];
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 5;
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 999;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
