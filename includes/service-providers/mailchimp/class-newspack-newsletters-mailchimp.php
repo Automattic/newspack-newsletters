@@ -21,45 +21,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$this->service    = 'mailchimp';
 		$this->controller = new Newspack_Newsletters_Mailchimp_Controller( $this );
 
-		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'transition_post_status', [ $this, 'send' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 		add_filter( 'newspack_newsletters_process_link', [ $this, 'process_link' ], 10, 2 );
 
 		parent::__construct( $this );
-	}
-
-	/**
-	 * Register custom fields.
-	 */
-	public static function register_meta() {
-		\register_meta(
-			'post',
-			'mc_campaign_id',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => false,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'mc_list_id',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**

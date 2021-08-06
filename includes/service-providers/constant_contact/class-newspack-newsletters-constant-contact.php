@@ -19,7 +19,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$this->service    = 'constant_contact';
 		$this->controller = new Newspack_Newsletters_Constant_Contact_Controller( $this );
 
-		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'admin_init', [ $this, 'oauth_callback' ] );
 		add_action( 'update_option_newspack_newsletters_constant_contact_api_key', [ $this, 'clear_tokens' ], 10, 2 );
 		add_action( 'update_option_newspack_newsletters_constant_contact_api_secret', [ $this, 'clear_tokens' ], 10, 2 );
@@ -28,23 +27,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 
 		parent::__construct( $this );
-	}
-
-	/**
-	 * Register custom fields.
-	 */
-	public static function register_meta() {
-		\register_meta(
-			'post',
-			'cc_campaign_id',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => false,
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
