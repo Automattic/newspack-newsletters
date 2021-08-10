@@ -1,3 +1,12 @@
+## [1.31.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.31.0...v1.31.1-alpha.1) (2021-08-10)
+
+
+### Bug Fixes
+
+* do not show mc_campaign_id in rest ([#537](https://github.com/Automattic/newspack-newsletters/issues/537)) ([e73cb8d](https://github.com/Automattic/newspack-newsletters/commit/e73cb8dd53ba3b551c25d2212335dafefa3ff107))
+* ensure sync on test email and handle failed publishing ([#534](https://github.com/Automattic/newspack-newsletters/issues/534)) ([5550169](https://github.com/Automattic/newspack-newsletters/commit/55501699812e2d67167c7fde6d1127e4897178f0))
+* renderer button styling ([#536](https://github.com/Automattic/newspack-newsletters/issues/536)) ([f9540e0](https://github.com/Automattic/newspack-newsletters/commit/f9540e0799fbe12cf6dbf390e08e3baecc00a847))
+
 # [1.31.0](https://github.com/Automattic/newspack-newsletters/compare/v1.30.2...v1.31.0) (2021-08-03)
 
 
