@@ -298,6 +298,18 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 		}
 		try {
+
+			$sync_result = $this->sync( get_post( $post_id ) );
+			if ( ! $sync_result ) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_error',
+					__( 'Unable to synchronize with Mailchimp.', 'newspack-newsletters' )
+				);
+			}
+			if ( is_wp_error( $sync_result ) ) {
+				return $sync_result;
+			}
+
 			$mc      = new Mailchimp( $this->api_key() );
 			$payload = [
 				'test_emails' => $emails,
@@ -426,7 +438,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *
 	 * @param string  $new_status New status of the post.
 	 * @param string  $old_status Old status of the post.
-	 * @param WP_POST $post Post to send.
+	 * @param WP_Post $post       Post to send.
+	 *
+	 * @throws Exception Error message if sending fails.
 	 */
 	public function send( $new_status, $old_status, $post ) {
 		$post_id = $post->ID;
@@ -447,14 +461,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			try {
 				$sync_result = $this->sync( $post );
 
-				if ( is_wp_error( $sync_result ) ) {
-					return $sync_result;
+				if ( ! $sync_result || is_wp_error( $sync_result ) ) {
+					throw new Exception(
+						__( 'Unable to synchronize with Mailchimp.', 'newspack-newsletters' )
+					);
 				}
 
 				$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
 				if ( ! $mc_campaign_id ) {
-					return new WP_Error(
-						'newspack_newsletters_no_campaign_id',
+					throw new Exception(
 						__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 					);
 				}
@@ -464,14 +479,22 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$payload = [
 					'send_type' => 'html',
 				];
-				$result  = $this->validate(
+				$this->validate(
 					$mc->post( "campaigns/$mc_campaign_id/actions/send", $payload ),
 					__( 'Error sending campaign.', 'newspack_newsletters' )
 				);
 			} catch ( Exception $e ) {
 				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
 				set_transient( $transient, $e->getMessage(), 45 );
-				return;
+				// Reset publish status.
+				wp_update_post(
+					[
+						'ID'          => $post_id,
+						'post_status' => 'draft',
+					],
+					true
+				);
+				wp_die( esc_html( $e->getMessage() ) );
 			}
 		}
 	}
