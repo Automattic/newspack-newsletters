@@ -51,6 +51,16 @@ const getSubtitleBlockTemplate = ( post, { subHeadingFontSize, textColor } ) => 
 	return [ 'core/heading', assignFontSize( subHeadingFontSize, attributes ) ];
 };
 
+const getContentBlockTemplate = ( post, { textFontSize, textColor } ) => {
+	let content = post.content.rendered;
+	const contentElement = document.createElement( 'div' );
+	contentElement.innerHTML = content;
+	content = contentElement.textContent || contentElement.innerText || '';
+
+	const attributes = { content: content.trim(), style: { color: { text: textColor } } };
+	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
+};
+
 const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor } ) => {
 	let excerpt = post.excerpt.rendered;
 	const excerptElement = document.createElement( 'div' );
@@ -126,6 +136,9 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	}
 	if ( attributes.displayPostDate && post.date_gmt ) {
 		postContentBlocks.push( getDateBlockTemplate( post, attributes ) );
+	}
+	if ( attributes.displayPostContent ) {
+		postContentBlocks.push( getContentBlockTemplate( post, attributes ) );
 	}
 	if ( attributes.displayPostExcerpt ) {
 		postContentBlocks.push( getExcerptBlockTemplate( post, attributes ) );

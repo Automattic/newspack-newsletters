@@ -149,9 +149,24 @@ const PostsInserterBlock = ( {
 						onChange={ value => setAttributes( { displayPostSubtitle: value } ) }
 					/>
 					<ToggleControl
+						label={ __( 'Post content', 'newspack-newsletters' ) }
+						checked={ attributes.displayPostContent }
+						onChange={ value =>
+							setAttributes( {
+								displayPostContent: value,
+								displayPostExcerpt: value ? false : attributes.displayPostExcerpt,
+							} )
+						}
+					/>
+					<ToggleControl
 						label={ __( 'Post excerpt', 'newspack-newsletters' ) }
 						checked={ attributes.displayPostExcerpt }
-						onChange={ value => setAttributes( { displayPostExcerpt: value } ) }
+						onChange={ value => {
+							setAttributes( {
+								displayPostContent: value ? false : attributes.displayPostContent,
+								displayPostExcerpt: value,
+							} );
+						} }
 					/>
 					{ attributes.displayPostExcerpt && (
 						<RangeControl

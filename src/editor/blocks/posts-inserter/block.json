@@ -17,6 +17,10 @@
 			"type": "boolean",
 			"default": false
 		},
+	  	"displayPostContent": {
+			"type": "boolean",
+			"default": false
+		},
 		"displayPostExcerpt": {
 			"type": "boolean",
 			"default": true
