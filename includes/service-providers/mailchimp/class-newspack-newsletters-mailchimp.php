@@ -182,20 +182,42 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			return [
-				'lists'               => $this->validate(
-					$mc->get(
-						'lists',
-						[
-							'count' => 1000,
-						]
-					),
-					__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
-				),
+				'lists'               => $this->get_lists(),
 				'campaign'            => $campaign,
 				'campaign_id'         => $mc_campaign_id,
 				'interest_categories' => $interest_categories,
 				'tags'                => $tags,
 			];
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
+	 * Get lists.
+	 */
+	public function get_lists() {
+		try {
+			$mc                  = new Mailchimp( $this->api_key() );
+			$lists_response = $this->validate(
+				$mc->get(
+					'lists',
+					[
+						'count' => 1000,
+					]
+				),
+				__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
+			);
+			if (is_wp_error($lists_response)) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_error',
+					$lists_response->getMessage()
+				);
+			}
+			return $lists_response['lists'];
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',

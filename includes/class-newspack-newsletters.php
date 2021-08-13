@@ -526,9 +526,9 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Add "Public page" admin column
-	 * 
+	 *
 	 * @param array $columns Newsletters columns.
-	 * 
+	 *
 	 * @return array
 	 */
 	public static function add_public_page_column( $columns ) {
@@ -538,7 +538,7 @@ final class Newspack_Newsletters {
 	/**
 	 * Add "Public page" admin column content
 	 * Displays wether the newsletter post has a public page or not
-	 * 
+	 *
 	 * @param string $column_name Column name.
 	 * @param int    $post_id     Post ID.
 	 */
@@ -1060,6 +1060,23 @@ final class Newspack_Newsletters {
 		}
 
 		return $force_js;
+	}
+
+	/**
+	 * Get mailing lists of the configured ESP.
+	 */
+	public static function get_esp_lists() {
+		if (self::is_service_provider_configured()) {
+			try {
+				return self::$provider->get_lists();
+			} catch (\Exception $e) {
+				return new WP_Error(
+					'newspack_newsletters_get_lists',
+					$e->getMessage()
+				);
+			}
+		}
+		return [];
 	}
 }
 Newspack_Newsletters::instance();

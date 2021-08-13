@@ -95,7 +95,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	/**
 	 * Check if is connected to service provider.
 	 *
-	 * @return Boolean 
+	 * @return Boolean
 	 */
 	public function has_valid_connection() {
 		return $this->verify_token( false )['valid'];
@@ -124,7 +124,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			return;
 		}
 		if (
-			! isset( $_GET['cc_oauth2callback'] ) || 
+			! isset( $_GET['cc_oauth2callback'] ) ||
 			! wp_verify_nonce( sanitize_text_field( $_GET['cc_oauth2callback'] ), 'newspack_newsletters_oauth_nonce' ) ||
 			! isset( $_GET['code'] )
 		) {
@@ -692,5 +692,14 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			throw new Exception( __( 'Constant Contact campaign ID not found.', 'newspack-newsletters' ) );
 		}
 		return $cc_campaign_id;
+	}
+
+	/**
+	 * Get lists.
+	 */
+	public function get_lists() {
+		throw new Exception(
+			__( 'Lists listing not implemented for Constant Contact.', 'newspack-newsletters' )
+		);
 	}
 }

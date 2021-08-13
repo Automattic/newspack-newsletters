@@ -124,7 +124,14 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			);
 		}
 
-		return $lists->response;
+		return array_map(
+			function ($item){
+				$item->id = $item->ListID;
+				$item->name = $item->Name;
+				return $item;
+			},
+			$lists->response
+		);
 	}
 
 	/**

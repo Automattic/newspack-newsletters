@@ -74,4 +74,11 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	 * @return object|null API Response or error.
 	 */
 	public function sync( $post );
+
+	/**
+	 * List the ESP's contact lists.
+	 *
+	 * @return object|null API Response or error.
+	 */
+	public function get_lists();
 }
