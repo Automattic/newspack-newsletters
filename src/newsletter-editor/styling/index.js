@@ -105,7 +105,7 @@ const doc = document.implementation.createHTMLDocument( 'Temp' );
  * @param {string} css The CSS to scope.
  * @return Scoped CSS string.
  */
-const getScopedCss = ( scope, css ) => {
+export const getScopedCss = ( scope, css ) => {
 	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
 
 	style.textContent = css;
