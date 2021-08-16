@@ -201,7 +201,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function get_lists() {
 		try {
-			$mc                  = new Mailchimp( $this->api_key() );
+			$mc             = new Mailchimp( $this->api_key() );
 			$lists_response = $this->validate(
 				$mc->get(
 					'lists',
@@ -211,7 +211,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				),
 				__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
 			);
-			if (is_wp_error($lists_response)) {
+			if ( is_wp_error( $lists_response ) ) {
 				return new WP_Error(
 					'newspack_newsletters_mailchimp_error',
 					$lists_response->getMessage()
@@ -714,5 +714,72 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return $original;
 		}
 		return $processed;
+	}
+
+	/**
+	 * Add contact to a list.
+	 *
+	 * @param array  $contact Contact data.
+	 * @param strine $list_id List ID.
+	 * @return object|null API Response or error.
+	 */
+	public function add_contact( $contact, $list_id ) {
+		try {
+			$mc             = new Mailchimp( $this->api_key() );
+			$email_address  = $contact['email'];
+			$name_fragments = explode( ' ', $contact['name'], 2 );
+			$merge_fields   = [
+				'FNAME' => $name_fragments[0],
+			];
+			if ( isset( $name_fragments[1] ) ) {
+				$merge_fields['LNAME'] = $name_fragments[1];
+			}
+			$update_payload = [
+				'email_address' => $email_address,
+				'merge_fields'  => $merge_fields,
+				'status'        => 'subscribed',
+			];
+
+			// Get list merge fields (metadata) to create them if needed.
+			$list_merge_fields = array_reduce(
+				$mc->get( "lists/$list_id/merge-fields" )['merge_fields'],
+				function( $acc, $field ) {
+					$acc[ $field['name'] ] = $field['tag'];
+					return $acc;
+				},
+				[]
+			);
+			foreach ( $contact['metadata'] as $key => $value ) {
+				if ( isset( $list_merge_fields[ $key ] ) ) {
+					$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
+				} else {
+					$created_merge_field = $mc->post(
+						"lists/$list_id/merge-fields",
+						[
+							'name' => $key,
+							'type' => 'text',
+						]
+					);
+					$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
+				}
+			}
+
+			// Create or update a list member.
+			$found_subscribers = $mc->get(
+				'search-members',
+				[
+					'list_id' => $list_id,
+					'query'   => $email_address,
+				]
+			)['exact_matches']['members'];
+			if ( empty( $found_subscribers ) ) {
+				$mc->post( "lists/$list_id/members", $update_payload );
+			} else {
+				$member_id = $found_subscribers[0]['id'];
+				$mc->patch( "lists/$list_id/members/$member_id", $update_payload );
+			}
+		} catch ( \Exception $e ) {
+			// .
+		}
 	}
 }

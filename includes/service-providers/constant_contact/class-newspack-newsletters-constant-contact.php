@@ -702,4 +702,17 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			__( 'Lists listing not implemented for Constant Contact.', 'newspack-newsletters' )
 		);
 	}
+
+	/**
+	 * Add contact to a list.
+	 *
+	 * @param array  $contact Contact data.
+	 * @param strine $list_id List ID.
+	 * @return object|null API Response or error.
+	 */
+	public function add_contact( $contact, $list_id ) {
+		throw new Exception(
+			__( 'Adding contacts not implemented for Constant Contact.', 'newspack-newsletters' )
+		);
+	}
 }

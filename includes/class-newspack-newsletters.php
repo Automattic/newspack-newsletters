@@ -1066,10 +1066,10 @@ final class Newspack_Newsletters {
 	 * Get mailing lists of the configured ESP.
 	 */
 	public static function get_esp_lists() {
-		if (self::is_service_provider_configured()) {
+		if ( self::is_service_provider_configured() ) {
 			try {
 				return self::$provider->get_lists();
-			} catch (\Exception $e) {
+			} catch ( \Exception $e ) {
 				return new WP_Error(
 					'newspack_newsletters_get_lists',
 					$e->getMessage()
@@ -1077,6 +1077,25 @@ final class Newspack_Newsletters {
 			}
 		}
 		return [];
+	}
+
+	/**
+	 * Add contact to a mailing list of the configured ESP.
+	 *
+	 * @param array  $contact The contact to add to the list.
+	 * @param string $list_id ID of the list to add the contact to.
+	 */
+	public static function add_contact( $contact, $list_id ) {
+		if ( self::is_service_provider_configured() ) {
+			try {
+				return self::$provider->add_contact( $contact, $list_id );
+			} catch ( \Exception $e ) {
+				return new WP_Error(
+					'newspack_newsletters_get_lists',
+					$e->getMessage()
+				);
+			}
+		}
 	}
 }
 Newspack_Newsletters::instance();

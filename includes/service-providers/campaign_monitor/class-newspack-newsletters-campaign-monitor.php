@@ -125,8 +125,8 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		}
 
 		return array_map(
-			function ($item){
-				$item->id = $item->ListID;
+			function ( $item ) {
+				$item->id   = $item->ListID;
 				$item->name = $item->Name;
 				return $item;
 			},
@@ -564,5 +564,62 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 */
 	public function trash( $post_id ) {
 		return null;
+	}
+
+	/**
+	 * Add contact to a list.
+	 *
+	 * @param array  $contact Contact data.
+	 * @param strine $list_id List ID.
+	 * @return object|null API Response or error.
+	 */
+	public function add_contact( $contact, $list_id ) {
+		try {
+			$api_key   = $this->api_key();
+			$client_id = $this->client_id();
+			if ( $api_key && $client_id ) {
+				$cm_subscribers   = new CS_REST_Subscribers( $list_id, [ 'api_key' => $api_key ] );
+				$email_address    = $contact['email'];
+				$found_subscriber = $cm_subscribers->get( $email_address, true );
+				$update_payload   = [
+					'EmailAddress'   => $email_address,
+					'Name'           => $contact['name'],
+					'CustomFields'   => [],
+					'ConsentToTrack' => 'yes',
+					'Resubscribe'    => true,
+				];
+
+				// Get custom fields (metadata) to create them if needed.
+				$cm_list            = new CS_REST_Lists( $list_id, [ 'api_key' => $api_key ] );
+				$custom_fields_keys = array_map(
+					function( $field ) {
+						return $field->FieldName;
+					},
+					$cm_list->get_custom_fields()->response
+				);
+				foreach ( $contact['metadata'] as $key => $value ) {
+					$update_payload['CustomFields'][] = [
+						'Key'   => $key,
+						'Value' => (string) $value,
+					];
+					if ( ! in_array( $key, $custom_fields_keys ) ) {
+						$cm_list->create_custom_field(
+							[
+								'FieldName' => $key,
+								'DataType'  => CS_REST_CUSTOM_FIELD_TYPE_TEXT,
+							]
+						);
+					}
+				}
+
+				if ( 200 === $found_subscriber->http_status_code ) {
+					$result = $cm_subscribers->update( $email_address, $update_payload );
+				} else {
+					$result = $cm_subscribers->add( $update_payload );
+				};
+			}
+		} catch ( \Exception $e ) {
+			// .
+		}
 	}
 }

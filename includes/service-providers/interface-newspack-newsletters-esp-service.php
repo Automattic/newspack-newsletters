@@ -81,4 +81,13 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	 * @return object|null API Response or error.
 	 */
 	public function get_lists();
+
+	/**
+	 * Add contact to a list.
+	 *
+	 * @param array  $contact Contact data.
+	 * @param strine $list_id List ID.
+	 * @return object|null API Response or error.
+	 */
+	public function add_contact( $contact, $list_id);
 }
