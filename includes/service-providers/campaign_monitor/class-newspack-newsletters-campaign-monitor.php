@@ -126,8 +126,8 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 
 		return array_map(
 			function ( $item ) {
-				$item->id   = $item->ListID;
-				$item->name = $item->Name;
+				$item->id   = $item->ListID; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$item->name = $item->Name; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				return $item;
 			},
 			$lists->response
@@ -571,7 +571,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 *
 	 * @param array  $contact Contact data.
 	 * @param strine $list_id List ID.
-	 * @return object|null API Response or error.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {
@@ -593,7 +592,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				$cm_list            = new CS_REST_Lists( $list_id, [ 'api_key' => $api_key ] );
 				$custom_fields_keys = array_map(
 					function( $field ) {
-						return $field->FieldName;
+						return $field->FieldName; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					},
 					$cm_list->get_custom_fields()->response
 				);
@@ -619,7 +618,10 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				};
 			}
 		} catch ( \Exception $e ) {
-			// .
+			return new \WP_Error(
+				'newspack_add_contact',
+				$e->getMessage()
+			);
 		}
 	}
 }

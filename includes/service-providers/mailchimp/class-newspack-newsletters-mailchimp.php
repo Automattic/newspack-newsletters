@@ -721,7 +721,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *
 	 * @param array  $contact Contact data.
 	 * @param strine $list_id List ID.
-	 * @return object|null API Response or error.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {
@@ -779,7 +778,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$mc->patch( "lists/$list_id/members/$member_id", $update_payload );
 			}
 		} catch ( \Exception $e ) {
-			// .
+			return new \WP_Error(
+				'newspack_add_contact',
+				$e->getMessage()
+			);
 		}
 	}
 }

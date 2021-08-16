@@ -696,6 +696,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 	/**
 	 * Get lists.
+	 *
+	 * @throws Exception Error message.
 	 */
 	public function get_lists() {
 		throw new Exception(
@@ -708,7 +710,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 *
 	 * @param array  $contact Contact data.
 	 * @param strine $list_id List ID.
-	 * @return object|null API Response or error.
+	 * @throws Exception Error message.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		throw new Exception(
