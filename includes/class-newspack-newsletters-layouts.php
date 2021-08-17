@@ -99,6 +99,17 @@ final class Newspack_Newsletters_Layouts {
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'custom_css',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
