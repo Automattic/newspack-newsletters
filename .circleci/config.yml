@@ -75,7 +75,7 @@ jobs:
       - checkout_with_workspace
       - run:
           name: Install PHP dependencies
-          command: composer install --no-dev --no-scripts && composer dump-autoload
+          command: composer install --no-dev --no-scripts && composer prefix-guzzle && composer dump-autoload
       - run:
           name: Install rsync
           command: sudo apt install rsync
