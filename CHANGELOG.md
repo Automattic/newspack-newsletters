@@ -1,3 +1,12 @@
+## [1.31.2](https://github.com/Automattic/newspack-newsletters/compare/v1.31.1...v1.31.2) (2021-08-17)
+
+
+### Bug Fixes
+
+* add custom css to layouts ([#540](https://github.com/Automattic/newspack-newsletters/issues/540)) ([a10afb6](https://github.com/Automattic/newspack-newsletters/commit/a10afb68d268bc6ba2522cf7d71c933f2d576edc))
+* custom namespace for Guzzle ([#548](https://github.com/Automattic/newspack-newsletters/issues/548)) ([d5ec053](https://github.com/Automattic/newspack-newsletters/commit/d5ec05351e4e75ec083a57d47b2e9a9422ab64a2))
+* unbind prefix command from composer dump event ([#553](https://github.com/Automattic/newspack-newsletters/issues/553)) ([cedc3b6](https://github.com/Automattic/newspack-newsletters/commit/cedc3b6a010dd6e9ad69d7d78ee889f49041c15b))
+
 ## [1.31.1](https://github.com/Automattic/newspack-newsletters/compare/v1.31.0...v1.31.1) (2021-08-10)
 
 
