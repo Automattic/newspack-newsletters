@@ -6,8 +6,7 @@
 		"drewm/mailchimp-api": "^2.5",
 		"campaignmonitor/createsend-php": "^6.1",
 		"guzzlehttp/guzzle": "^7.0",
-		"humbug/php-scoper": "0.13.9",
-		"jetbrains/phpstorm-stubs": "dev-master"
+		"humbug/php-scoper": "^0.15.0"
 	},
 	"require-dev": {
 		"automattic/vipwpcs": "^2.0",
