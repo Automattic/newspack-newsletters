@@ -32,9 +32,6 @@
 		],
 		"post-update-cmd": [
 			"vendor/bin/cghooks update"
-		],
-		"post-autoload-dump": [
-			"composer prefix-guzzle"
 		]
 	},
 	"extra": {
