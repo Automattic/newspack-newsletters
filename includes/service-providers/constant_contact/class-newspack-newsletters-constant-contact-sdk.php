@@ -7,8 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use Newspack_Newsletters_Vendor\GuzzleHttp\Client;
+use Newspack_Newsletters_Vendor\GuzzleHttp\Exception\RequestException;
 
 /**
  * Constant Contact Simple SDK for v3 API.
