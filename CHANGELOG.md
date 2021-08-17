@@ -1,3 +1,10 @@
+## [1.31.2-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.31.2-alpha.1...v1.31.2-alpha.2) (2021-08-17)
+
+
+### Bug Fixes
+
+* custom namespace for Guzzle ([#548](https://github.com/Automattic/newspack-newsletters/issues/548)) ([d5ec053](https://github.com/Automattic/newspack-newsletters/commit/d5ec05351e4e75ec083a57d47b2e9a9422ab64a2))
+
 ## [1.31.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.31.1...v1.31.2-alpha.1) (2021-08-17)
 
 
