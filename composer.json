@@ -33,7 +33,7 @@
 		"post-update-cmd": [
 			"vendor/bin/cghooks update"
 		],
-		"post-autoload-dump": [
+		"pre-autoload-dump": [
 			"composer prefix-guzzle"
 		]
 	},
