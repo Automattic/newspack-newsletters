@@ -1,3 +1,10 @@
+## [1.31.2-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.31.2-alpha.2...v1.31.2-alpha.3) (2021-08-17)
+
+
+### Bug Fixes
+
+* unbind prefix command from composer dump event ([#553](https://github.com/Automattic/newspack-newsletters/issues/553)) ([cedc3b6](https://github.com/Automattic/newspack-newsletters/commit/cedc3b6a010dd6e9ad69d7d78ee889f49041c15b))
+
 ## [1.31.2-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.31.2-alpha.1...v1.31.2-alpha.2) (2021-08-17)
 
 
