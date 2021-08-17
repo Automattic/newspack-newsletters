@@ -8,6 +8,7 @@ import { Fragment, useMemo } from '@wordpress/element';
  * Internal dependencies
  */
 import './style.scss';
+import { getScopedCss } from '../../newsletter-editor/styling';
 
 const NewsletterPreview = ( { meta = {}, ...props } ) => {
 	const ELEMENT_ID = useMemo( () => `preview-${ Math.round( Math.random() * 1000 ) }`, [] );
@@ -27,6 +28,12 @@ const NewsletterPreview = ( { meta = {}, ...props } ) => {
 #${ ELEMENT_ID } h1, #${ ELEMENT_ID } h2, #${ ELEMENT_ID } h3, #${ ELEMENT_ID } h4, #${ ELEMENT_ID } h5, #${ ELEMENT_ID } h6 {
   font-family: ${ meta.font_header };
 }`
+					: ' '
+			}${
+				meta.custom_css
+					? `
+${ getScopedCss( `#${ ELEMENT_ID }`, meta.custom_css ) }
+`
 					: ' '
 			}` }</style>
 			<div
