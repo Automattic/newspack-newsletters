@@ -1,3 +1,10 @@
+## [1.31.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.31.1...v1.31.2-alpha.1) (2021-08-17)
+
+
+### Bug Fixes
+
+* add custom css to layouts ([#540](https://github.com/Automattic/newspack-newsletters/issues/540)) ([a10afb6](https://github.com/Automattic/newspack-newsletters/commit/a10afb68d268bc6ba2522cf7d71c933f2d576edc))
+
 ## [1.31.1](https://github.com/Automattic/newspack-newsletters/compare/v1.31.0...v1.31.1) (2021-08-10)
 
 
