@@ -546,12 +546,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function audience_segments( $post_id, $target_id ) {
 
+		$interest_id = false;
+		$segment_id  = false;
+
 		// Determine if we're dealing with an interest or a segment.
 		if ( false !== strpos( $target_id, ':' ) ) {
 			$exploded    = explode( ':', $target_id );
 			$field       = count( $exploded ) ? $exploded[0] : null;
 			$interest_id = count( $exploded ) > 1 ? $exploded[1] : null;
-		} else {
+		} elseif ( '' !== $target_id ) {
 			$segment_id = $target_id;
 		}
 
