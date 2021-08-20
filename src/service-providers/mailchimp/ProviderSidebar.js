@@ -3,75 +3,71 @@
  */
 import { __ } from '@wordpress/i18n';
 import { Fragment, useEffect, useState } from '@wordpress/element';
-import {
-	ExternalLink,
-	SelectControl,
-	Spinner,
-	Notice,
-	FormTokenField,
-} from '@wordpress/components';
+import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import { getListInterestsSettings, getListTags, getTagNames, getTagIds } from './utils';
+import { getListInterestsSettings } from './utils';
 
 const SegmentsSelection = ( {
 	onUpdate,
 	inFlight,
-	chosenInterestId,
+	chosenTarget,
 	availableInterests,
-	chosenTags,
-	availableTags,
+	availableSegments,
 } ) => {
-	const [ segmentsData, setSegmentsData ] = useState( {
-		interest_id: chosenInterestId,
-		tag_ids: chosenTags,
-	} );
-	const updateSegmentsData = data => setSegmentsData( { ...segmentsData, ...data } );
-
-	// Update with real data after local (optimistic) update.
-	useEffect(() => {
-		setSegmentsData( {
-			interest_id: chosenInterestId,
-			tag_ids: chosenTags,
-		} );
-	}, [ chosenInterestId, chosenTags.join() ]);
+	const [ targetId, setTargetId ] = useState( chosenTarget || '' );
 
 	const [ isInitial, setIsInitial ] = useState( true );
 	useEffect(() => {
 		if ( ! isInitial ) {
-			onUpdate( segmentsData );
+			onUpdate( targetId );
 		}
 		setIsInitial( false );
-	}, [ segmentsData.interest_id, segmentsData.tag_ids.join() ]);
+	}, [ targetId ]);
+
+	let options = [];
+
+	if ( availableInterests.length > 0 ) {
+		options = options.concat( [
+			{
+				label: __( 'Group', 'newspack-newsletters' ),
+				value: 'groups',
+				disabled: true,
+			},
+			...availableInterests,
+		] );
+	}
+
+	if ( availableSegments.length > 0 ) {
+		options = options.concat( [
+			{
+				label: __( 'Segment or tag', 'newspack-newsletters' ),
+				value: 'segments',
+				disabled: true,
+			},
+			...availableSegments.map( segment => ( {
+				label: ` - ${ segment.name }`,
+				value: segment.id,
+			} ) ),
+		] );
+	}
 
 	return (
 		<Fragment>
-			{ availableInterests.length ? (
+			{ options.length ? (
 				<SelectControl
-					label={ __( 'Groups', 'newspack-newsletters' ) }
-					value={ segmentsData.interest_id }
+					label={ __( 'Group, segment, or tag', 'newspack-newsletters' ) }
+					value={ targetId }
 					options={ [
 						{
-							label: __( '-- Select a group --', 'newspack-newsletters' ),
-							value: 'no_interests',
+							label: __( 'All subscribers in audience', 'newspack-newsletters' ),
+							value: '',
 						},
-						...availableInterests,
+						...options,
 					] }
-					onChange={ interest_id => updateSegmentsData( { interest_id } ) }
-					disabled={ inFlight }
-				/>
-			) : null }
-			{ availableTags.length ? (
-				<FormTokenField
-					className="newspack-newsletters__mailchimp-tags"
-					label={ __( 'Tags', 'newspack-newsletters' ) }
-					value={ getTagNames( segmentsData.tag_ids, availableTags ) }
-					suggestions={ availableTags.map( tag => tag.name ) }
-					onChange={ updatedTagsNames =>
-						updateSegmentsData( { tag_ids: getTagIds( updatedTagsNames, availableTags ) } )
-					}
+					onChange={ id => setTargetId( id ) }
 					disabled={ inFlight }
 				/>
 			) : null }
@@ -91,6 +87,7 @@ const ProviderSidebar = ( {
 } ) => {
 	const campaign = newsletterData.campaign;
 	const lists = newsletterData.lists?.lists || [];
+	const segments = newsletterData.segments || newsletterData.tags || []; // Keep .tags for backwards compatibility.
 
 	const setList = listId =>
 		apiFetch( {
@@ -98,12 +95,15 @@ const ProviderSidebar = ( {
 			method: 'POST',
 		} );
 
-	const updateSegments = updatedData =>
+	const updateSegments = target_id => {
 		apiFetch( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/segments`,
 			method: 'POST',
-			data: updatedData,
+			data: {
+				target_id,
+			},
 		} );
+	};
 
 	const setSender = ( { senderName, senderEmail } ) =>
 		apiFetch( {
@@ -156,15 +156,19 @@ const ProviderSidebar = ( {
 	const list = list_id && lists.find( ( { id } ) => list_id === id );
 	const { web_id: listWebId } = list || {};
 
+	const recipients = newsletterData.campaign?.recipients;
+
+	const chosenTarget =
+		recipients?.segment_opts?.saved_segment_id || recipients?.segment_opts?.conditions[ 0 ]?.value;
+
 	const interestSettings = getListInterestsSettings( newsletterData );
-	const chosenTags = getListTags( newsletterData );
 
 	return (
 		<Fragment>
 			{ renderSubject() }
 
 			<SelectControl
-				label={ __( 'To', 'newspack-newsletters' ) }
+				label={ __( 'Audience', 'newspack-newsletters' ) }
 				className="newspack-newsletters__to-selectcontrol"
 				value={ list_id }
 				options={ [
@@ -189,10 +193,9 @@ const ProviderSidebar = ( {
 			) }
 
 			<SegmentsSelection
-				chosenInterestId={ interestSettings.interestValue }
+				chosenTarget={ chosenTarget }
 				availableInterests={ interestSettings.options }
-				chosenTags={ chosenTags }
-				availableTags={ newsletterData.tags.filter( tag => tag.member_count > 0 ) }
+				availableSegments={ segments.filter( segment => segment.member_count > 0 ) }
 				apiFetch={ apiFetch }
 				inFlight={ inFlight }
 				onUpdate={ updateSegments }
