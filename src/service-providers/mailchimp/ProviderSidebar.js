@@ -58,7 +58,7 @@ const SegmentsSelection = ( {
 		<Fragment>
 			{ options.length ? (
 				<SelectControl
-					label={ __( 'Group, segment or tag', 'newspack-newsletters' ) }
+					label={ __( 'Group, segment, or tag', 'newspack-newsletters' ) }
 					value={ targetId }
 					options={ [
 						{
