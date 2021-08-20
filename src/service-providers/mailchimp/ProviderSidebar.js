@@ -117,9 +117,18 @@ const ProviderSidebar = ( {
 
 	useEffect(() => {
 		if ( campaign && campaign.settings ) {
+			const { from_name, reply_to } = campaign.settings;
 			updateMeta( {
-				senderName: campaign.settings.from_name,
-				senderEmail: campaign.settings.reply_to,
+				...( from_name
+					? {
+							senderName: from_name,
+					  }
+					: {} ),
+				...( reply_to
+					? {
+							senderEmail: reply_to,
+					  }
+					: {} ),
 			} );
 		}
 	}, [ campaign ]);

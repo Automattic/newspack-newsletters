@@ -66,6 +66,7 @@ final class Newspack_Newsletters {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'init', [ __CLASS__, 'register_editor_only_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
@@ -113,53 +114,83 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Register custom fields for use in the editor only.
+	 * These have to be registered so the updates are handles correctly.
+	 */
+	public static function register_editor_only_meta() {
+		$fields = [
+			[
+				'name'               => 'newsletterData',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'type'                 => 'object',
+							'context'              => [ 'edit' ],
+							'additionalProperties' => true,
+							'properties'           => [],
+						],
+					],
+					'type'         => 'object',
+				],
+			],
+			[
+				'name'               => 'newsletterValidationErrors',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'type'    => 'array',
+							'context' => [ 'edit' ],
+							'items'   => [
+								'type' => 'string',
+							],
+						],
+					],
+					'type'         => 'array',
+				],
+			],
+			[
+				'name'               => 'senderName',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'context' => [ 'edit' ],
+						],
+					],
+					'type'         => 'string',
+				],
+			],
+			[
+				'name'               => 'senderEmail',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'context' => [ 'edit' ],
+						],
+					],
+					'type'         => 'string',
+				],
+			],
+		];
+		foreach ( $fields as $field ) {
+			\register_meta(
+				'post',
+				$field['name'],
+				array_merge(
+					$field['register_meta_args'],
+					[
+						'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+						'single'         => true,
+						'auth_callback'  => '__return_true',
+					]
+				)
+			);
+		}
+	}
+
+	/**
 	 * Register custom fields.
 	 */
 	public static function register_meta() {
-		/**
-		 * This meta field is used only in the editor.
-		 */
-		\register_meta(
-			'post',
-			'newsletterData',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'type'                 => 'object',
-						'context'              => [ 'edit' ],
-						'additionalProperties' => true,
-						'properties'           => [],
-					],
-				],
-				'type'           => 'object',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-
-		/**
-		 * This meta field is used only in the editor.
-		 */
-		\register_meta(
-			'post',
-			'newsletterValidationErrors',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'type'    => 'array',
-						'context' => [ 'edit' ],
-						'items'   => [
-							'type' => 'string',
-						],
-					],
-				],
-				'type'           => 'array',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 		\register_meta(
 			'post',
 			'template_id',
@@ -526,9 +557,9 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Add "Public page" admin column
-	 * 
+	 *
 	 * @param array $columns Newsletters columns.
-	 * 
+	 *
 	 * @return array
 	 */
 	public static function add_public_page_column( $columns ) {
@@ -538,7 +569,7 @@ final class Newspack_Newsletters {
 	/**
 	 * Add "Public page" admin column content
 	 * Displays wether the newsletter post has a public page or not
-	 * 
+	 *
 	 * @param string $column_name Column name.
 	 * @param int    $post_id     Post ID.
 	 */
