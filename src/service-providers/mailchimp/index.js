@@ -13,7 +13,6 @@ import { find } from 'lodash';
  * Internal dependencies
  */
 import ProviderSidebar from './ProviderSidebar';
-import './style.scss';
 
 const validateNewsletter = ( { campaign } ) => {
 	const { recipients, settings, status } = campaign || {};

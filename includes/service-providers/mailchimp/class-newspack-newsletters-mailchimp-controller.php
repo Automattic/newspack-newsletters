@@ -145,15 +145,12 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 				'callback'            => [ $this, 'api_segments' ],
 				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
 				'args'                => [
-					'id'          => [
+					'id'        => [
 						'sanitize_callback' => 'absint',
 						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
-					'interest_id' => [
+					'target_id' => [
 						'sanitize_callback' => 'esc_attr',
-					],
-					'tag_ids'     => [
-						'sanitize_callback' => 'wp_parse_list',
 					],
 				],
 			]
@@ -228,8 +225,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 	public function api_segments( $request ) {
 		$response = $this->service_provider->audience_segments(
 			$request['id'],
-			$request['interest_id'],
-			$request['tag_ids']
+			$request['target_id']
 		);
 		return \rest_ensure_response( $response );
 	}
