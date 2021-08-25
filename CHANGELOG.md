@@ -1,3 +1,13 @@
+## [1.31.3](https://github.com/Automattic/newspack-newsletters/compare/v1.31.2...v1.31.3) (2021-08-25)
+
+
+### Bug Fixes
+
+* mailchimp recipients and segmentation options ([#556](https://github.com/Automattic/newspack-newsletters/issues/556)) ([7108d08](https://github.com/Automattic/newspack-newsletters/commit/7108d0886da290a65651ccb15bd5c8a8299b4e68))
+* prevent sender data overwrite on updates ([54b46fa](https://github.com/Automattic/newspack-newsletters/commit/54b46fa5e62530d1f4f7cf7dd6ee0408591cad85))
+* typos on "support" layout ([#559](https://github.com/Automattic/newspack-newsletters/issues/559)) ([e33833f](https://github.com/Automattic/newspack-newsletters/commit/e33833f13a5bd12d171f13fa8332ca2d3f70e9ea))
+* update stylelint version ([#560](https://github.com/Automattic/newspack-newsletters/issues/560)) ([c7731c3](https://github.com/Automattic/newspack-newsletters/commit/c7731c3d366bee740dade0343582a553765997d1))
+
 ## [1.31.2](https://github.com/Automattic/newspack-newsletters/compare/v1.31.1...v1.31.2) (2021-08-17)
 
 
