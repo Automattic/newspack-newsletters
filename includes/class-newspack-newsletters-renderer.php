@@ -300,7 +300,7 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/image':
 				// Parse block content.
 				$dom = new DomDocument();
-				@$dom->loadHTML( $inner_html ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 				$xpath      = new DOMXpath( $dom );
 				$img        = $xpath->query( '//img' )[0];
 				$img_src    = $img->getAttribute( 'src' );
@@ -367,7 +367,7 @@ final class Newspack_Newsletters_Renderer {
 				foreach ( $inner_blocks as $button_block ) {
 					// Parse block content.
 					$dom = new DomDocument();
-					@$dom->loadHTML( $button_block['innerHTML'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					@$dom->loadHTML( mb_convert_encoding( $button_block['innerHTML'], 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 					$xpath         = new DOMXpath( $dom );
 					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = $button_block['attrs'];
