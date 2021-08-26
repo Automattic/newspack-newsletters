@@ -1,3 +1,14 @@
+## [1.31.4](https://github.com/Automattic/newspack-newsletters/compare/v1.31.3...v1.31.4) (2021-08-26)
+
+
+### Bug Fixes
+
+* **npm:** list codemirror as a dependency ([bf66d95](https://github.com/Automattic/newspack-newsletters/commit/bf66d958abbf6f3a4ddc19b00ba75c417a651359))
+* convert encoding before passing to DomDocument ([#565](https://github.com/Automattic/newspack-newsletters/issues/565)) ([bfd3915](https://github.com/Automattic/newspack-newsletters/commit/bfd3915d635bb687d52e3118252c9805f69a9fe4))
+* do not sync on autosave ([#563](https://github.com/Automattic/newspack-newsletters/issues/563)) ([ffbca87](https://github.com/Automattic/newspack-newsletters/commit/ffbca87ede425400f49414549afefae1a86b0be5))
+* modify selectorText instead of cssText ([#564](https://github.com/Automattic/newspack-newsletters/issues/564)) ([0400957](https://github.com/Automattic/newspack-newsletters/commit/0400957803d83b39a51cd5f9c4c9c1c65cbaad53))
+* prevent PHPCS from checking vendor files during release ([beab342](https://github.com/Automattic/newspack-newsletters/commit/beab342e561d817b51bed63dc0fb11f4d6d5620b))
+
 ## [1.31.3](https://github.com/Automattic/newspack-newsletters/compare/v1.31.2...v1.31.3) (2021-08-25)
 
 
