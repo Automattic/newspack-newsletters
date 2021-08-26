@@ -36,9 +36,6 @@
 	},
 	"extra": {
 		"hooks": {
-			"pre-commit": [
-				"./node_modules/.bin/lint-staged"
-			],
 			"commit-msg": [
 				"cat $1 | ./node_modules/.bin/commitlint"
 			]
