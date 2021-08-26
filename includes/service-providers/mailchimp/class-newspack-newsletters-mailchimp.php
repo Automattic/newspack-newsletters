@@ -434,6 +434,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( 'trash' === $status ) {
 			return;
 		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
 		$this->sync( $post );
 	}
 
