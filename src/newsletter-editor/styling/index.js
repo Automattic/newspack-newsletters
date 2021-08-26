@@ -112,9 +112,15 @@ export const getScopedCss = ( scope, css ) => {
 	doc.head.appendChild( style );
 
 	const rules = [ ...style.sheet.cssRules ];
-	const scopedRules = rules.map( rule => scope + ' ' + rule.cssText );
-
-	return scopedRules.join( '\n' );
+	return rules
+		.map( rule => {
+			rule.selectorText = rule.selectorText
+				.split( ',' )
+				.map( selector => `${ scope } ${ selector }` )
+				.join( ', ' );
+			return rule.cssText;
+		} )
+		.join( '\n' );
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )(
