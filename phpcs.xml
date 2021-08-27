@@ -27,6 +27,4 @@
 	<exclude-pattern>*/vendor_prefixed/*</exclude-pattern>
 	<exclude-pattern>*/dist/*</exclude-pattern>
 	<exclude-pattern>*/release/*</exclude-pattern>
-	<exclude-pattern>*/tags/*</exclude-pattern>
-	<exclude-pattern>*/trunk/*</exclude-pattern>
 </ruleset>
