@@ -41,3 +41,4 @@ node_modules
 /src/**/*.scss
 /tests
 /bin
+.cache
