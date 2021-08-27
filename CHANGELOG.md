@@ -1,3 +1,10 @@
+## [1.31.5](https://github.com/Automattic/newspack-newsletters/compare/v1.31.4...v1.31.5) (2021-08-27)
+
+
+### Bug Fixes
+
+* wporg release ([#572](https://github.com/Automattic/newspack-newsletters/issues/572)) ([4ad2208](https://github.com/Automattic/newspack-newsletters/commit/4ad2208a19abcdbe8cd43d048f8d7f336f27f8e7))
+
 ## [1.31.4](https://github.com/Automattic/newspack-newsletters/compare/v1.31.3...v1.31.4) (2021-08-26)
 
 
