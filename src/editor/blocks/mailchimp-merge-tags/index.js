@@ -1,7 +1,16 @@
+/**
+ * WordPress dependencies
+ */
 import { __ } from '@wordpress/i18n';
 
+/**
+ * Internal dependencies
+ */
 import './style.scss';
 
+/**
+ * MailChimp merge tags.
+ */
 const tags = [
 	{
 		tag: '*|ARCHIVE|*',
@@ -33,6 +42,9 @@ const tags = [
 	},
 ];
 
+/**
+ * Merge tags completer configuration.
+ */
 const completer = {
 	name: 'Mailchimp Merge Tags',
 	triggerPrefix: '*|',
