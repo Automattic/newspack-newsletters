@@ -25,6 +25,7 @@ const tags = [
 			"Inserts your subscriber's first name if it's available in your audience.",
 			'newspack-newsletters'
 		),
+		keywords: [ 'first name' ],
 	},
 	{
 		tag: '*|LNAME|*',
@@ -32,6 +33,7 @@ const tags = [
 			"Inserts your subscriber's last name if it's available in your audience.",
 			'newspack-newsletters'
 		),
+		keywords: [ 'last name' ],
 	},
 	{
 		tag: '*|TWITTER:PROFILE|*',
@@ -55,7 +57,7 @@ const completer = {
 			<p className="newspack-completer-mc-merge-tags-label">{ label }</p>
 		</div>
 	),
-	getOptionKeywords: ( { tag } ) => [ tag ],
+	getOptionKeywords: ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ],
 	getOptionCompletion: ( { tag } ) => tag,
 };
 
