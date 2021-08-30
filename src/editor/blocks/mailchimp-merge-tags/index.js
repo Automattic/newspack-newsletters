@@ -6,6 +6,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
+import { getServiceProvider } from '../../../service-providers';
 import './style.scss';
 
 /**
@@ -224,6 +225,7 @@ const completer = {
 };
 
 export default () => {
+	const { name: serviceProviderName } = getServiceProvider();
 	const updateParagraphPlaceholder = ( settings, name ) => {
 		if ( name === 'core/paragraph' ) {
 			settings.attributes.placeholder.default = __(
@@ -233,20 +235,19 @@ export default () => {
 		}
 		return settings;
 	};
-
-	wp.hooks.addFilter(
-		'blocks.registerBlockType',
-		'newspack-newsletters/autocompleters/mailchimp-merge-tags-placeholder',
-		updateParagraphPlaceholder
-	);
-
 	const appendCompleters = ( completers, blockName ) => {
 		return blockName === 'core/paragraph' ? [ ...completers, completer ] : completers;
 	};
-
-	wp.hooks.addFilter(
-		'editor.Autocomplete.completers',
-		'newspack-newsletters/autocompleters/mailchimp-merge-tags',
-		appendCompleters
-	);
+	if ( serviceProviderName === 'mailchimp' ) {
+		wp.hooks.addFilter(
+			'blocks.registerBlockType',
+			'newspack-newsletters/autocompleters/mailchimp-merge-tags-placeholder',
+			updateParagraphPlaceholder
+		);
+		wp.hooks.addFilter(
+			'editor.Autocomplete.completers',
+			'newspack-newsletters/autocompleters/mailchimp-merge-tags',
+			appendCompleters
+		);
+	}
 };
