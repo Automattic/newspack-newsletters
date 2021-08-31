@@ -54,24 +54,22 @@
 			"default": []
 		},
 		"textFontSize": {
-			"type": "number",
-			"default": 16
+			"type": "number"
 		},
 		"headingFontSize": {
-			"type": "number",
-			"default": 25
+			"type": "number"
 		},
 		"subHeadingFontSize": {
-			"type": "number",
-			"default": 18
+			"type": "number"
 		},
 		"textColor": {
-			"type": "string",
-			"default": "#000"
+			"type": "string"
 		},
 		"headingColor": {
-			"type": "string",
-			"default": "#000"
+			"type": "string"
+		},
+		"subHeadingColor": {
+			"type": "string"
 		},
 		"tags": {
 			"type": "array",
