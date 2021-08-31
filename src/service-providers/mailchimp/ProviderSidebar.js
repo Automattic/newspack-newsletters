@@ -86,7 +86,7 @@ const ProviderSidebar = ( {
 	updateMeta,
 } ) => {
 	const campaign = newsletterData.campaign;
-	const lists = newsletterData.lists?.lists || [];
+	const lists = newsletterData.lists || [];
 	const segments = newsletterData.segments || newsletterData.tags || []; // Keep .tags for backwards compatibility.
 
 	const setList = listId =>
