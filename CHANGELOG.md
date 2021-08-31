@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/Automattic/newspack-newsletters/compare/v1.32.0...v1.32.1) (2021-08-31)
+
+
+### Bug Fixes
+
+* mailchimp lists ([3d095c5](https://github.com/Automattic/newspack-newsletters/commit/3d095c560228f83a582e5ac630f84c68dca309ac))
+
 # [1.32.0](https://github.com/Automattic/newspack-newsletters/compare/v1.31.5...v1.32.0) (2021-08-31)
 
 
