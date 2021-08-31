@@ -19,28 +19,36 @@ const supportedTags = [];
 /**
  * Merge tags completer configuration.
  *
- * @param {Object[]} initialTags Initial tags to use as options.
- *
  * @return {Object} Completer configuration.
  */
-const completer = ( initialTags = [] ) => ( {
-	name: 'Mailchimp Merge Tags',
-	triggerPrefix: '*|',
-	options: [
-		...initialTags,
-		...( supportedTags.length
-			? tags.filter( tag => supportedTags.indexOf( tag.tag ) !== -1 )
-			: tags ),
-	],
-	getOptionLabel: ( { tag, label } ) => (
-		<div>
-			<code>{ tag }</code>
-			<p className="newspack-completer-mc-merge-tags-label">{ label }</p>
-		</div>
-	),
-	getOptionKeywords: ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ],
-	getOptionCompletion: ( { tag } ) => tag,
-} );
+const getCompleter = () => {
+	return {
+		name: 'Mailchimp Merge Tags',
+		triggerPrefix: '*|',
+		options: () => {
+			const { getEditedPostAttribute } = wp.data.select( 'core/editor' );
+			const listMergeFields = getEditedPostAttribute( 'meta' )?.newsletterData?.merge_fields || [];
+			return [
+				...listMergeFields.map( mergeField => ( {
+					tag: `*|${ mergeField.tag }|*`,
+					label: mergeField.name,
+					keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
+				} ) ),
+				...( supportedTags.length
+					? tags.filter( tag => supportedTags.indexOf( tag.tag ) !== -1 )
+					: tags ),
+			];
+		},
+		getOptionLabel: ( { tag, label } ) => (
+			<div>
+				<code>{ tag }</code>
+				<p className="newspack-completer-mc-merge-tags-label">{ label }</p>
+			</div>
+		),
+		getOptionKeywords: ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ],
+		getOptionCompletion: ( { tag } ) => tag,
+	};
+};
 
 export default () => {
 	const { name: serviceProviderName } = getServiceProvider();
@@ -54,20 +62,7 @@ export default () => {
 		return settings;
 	};
 	const addMergeTagsCompleter = ( completers, blockName ) => {
-		const { getCurrentPostAttribute } = wp.data.select( 'core/editor' );
-		const listMergeFields = getCurrentPostAttribute( 'meta' ).newsletterData?.merge_fields || [];
-		return blockName === 'core/paragraph'
-			? [
-					...completers,
-					completer(
-						listMergeFields.map( mergeField => ( {
-							tag: `*|${ mergeField.tag }|*`,
-							label: mergeField.name,
-							keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
-						} ) )
-					),
-			  ]
-			: completers;
+		return blockName === 'core/paragraph' ? [ ...completers, getCompleter() ] : completers;
 	};
 	if ( serviceProviderName === 'mailchimp' ) {
 		wp.hooks.addFilter(
