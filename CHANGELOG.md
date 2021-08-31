@@ -1,3 +1,15 @@
+# [1.32.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.31.5...v1.32.0-alpha.1) (2021-08-31)
+
+
+### Bug Fixes
+
+* post inserter default styles ([#576](https://github.com/Automattic/newspack-newsletters/issues/576)) ([93d44ed](https://github.com/Automattic/newspack-newsletters/commit/93d44ed706730e1f5d72ed6a4d6243f6542309d4))
+
+
+### Features
+
+* **esp:** lists getters and contanct adding ([#546](https://github.com/Automattic/newspack-newsletters/issues/546)) ([cc351cb](https://github.com/Automattic/newspack-newsletters/commit/cc351cbd2bf7bc5e3204e3c24504d4a8452e465e))
+
 ## [1.31.5](https://github.com/Automattic/newspack-newsletters/compare/v1.31.4...v1.31.5) (2021-08-27)
 
 
