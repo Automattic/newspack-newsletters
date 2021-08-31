@@ -207,13 +207,20 @@ const supportedTags = [];
 
 /**
  * Merge tags completer configuration.
+ *
+ * @param {Object[]} initialTags Initial tags to use as options.
+ *
+ * @return {Object} Completer configuration.
  */
-const completer = {
+const completer = ( initialTags = [] ) => ( {
 	name: 'Mailchimp Merge Tags',
 	triggerPrefix: '*|',
-	options: supportedTags.length
-		? tags.filter( tag => supportedTags.indexOf( tag.tag ) !== -1 )
-		: tags,
+	options: [
+		...initialTags,
+		...( supportedTags.length
+			? tags.filter( tag => supportedTags.indexOf( tag.tag ) !== -1 )
+			: tags ),
+	],
 	getOptionLabel: ( { tag, label } ) => (
 		<div>
 			<code>{ tag }</code>
@@ -222,7 +229,7 @@ const completer = {
 	),
 	getOptionKeywords: ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ],
 	getOptionCompletion: ( { tag } ) => tag,
-};
+} );
 
 export default () => {
 	const { name: serviceProviderName } = getServiceProvider();
@@ -235,19 +242,32 @@ export default () => {
 		}
 		return settings;
 	};
-	const appendCompleters = ( completers, blockName ) => {
-		return blockName === 'core/paragraph' ? [ ...completers, completer ] : completers;
+	const addMergeTagsCompleter = ( completers, blockName ) => {
+		const { getCurrentPostAttribute } = wp.data.select( 'core/editor' );
+		const listMergeFields = getCurrentPostAttribute( 'meta' ).newsletterData?.merge_fields || [];
+		return blockName === 'core/paragraph'
+			? [
+					...completers,
+					completer(
+						listMergeFields.map( mergeField => ( {
+							tag: `*|${ mergeField.tag }|*`,
+							label: mergeField.name,
+							keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
+						} ) )
+					),
+			  ]
+			: completers;
 	};
 	if ( serviceProviderName === 'mailchimp' ) {
 		wp.hooks.addFilter(
 			'blocks.registerBlockType',
-			'newspack-newsletters/autocompleters/mailchimp-merge-tags-placeholder',
+			'newspack-newsletters/mailchimp-merge-tags-placeholder',
 			updateParagraphPlaceholder
 		);
 		wp.hooks.addFilter(
 			'editor.Autocomplete.completers',
 			'newspack-newsletters/autocompleters/mailchimp-merge-tags',
-			appendCompleters
+			addMergeTagsCompleter
 		);
 	}
 };
