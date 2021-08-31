@@ -191,6 +191,53 @@ const tags = [
 		),
 	},
 	{
+		tag: '*|LIST:DESCRIPTION|*',
+		label: __( "Inserts your audience's permission reminder", 'newspack-newsletters' ),
+	},
+	{
+		tag: '*|EMAIL|*',
+		label: __(
+			"Inserts your contact's email address. This is commonly used in the unsubscribe link, which helps them know who will be removed if they click the Unsubscribe link.",
+			'newspack-newsletters'
+		),
+	},
+	{
+		tag: '*|HTML:LIST_ADDRESS_HTML|*',
+		label: __(
+			'Inserts in your mailing address and the "Add us to your address book" link that points to the vcard (.vcf) file with your address details.',
+			'newspack-newsletters'
+		),
+	},
+	{
+		tag: '*|LIST:ADDRESS_VCARD|*',
+		label: __(
+			'Inserts an "Add us to your address book" link to your campaign.',
+			'newspack-newsletters'
+		),
+	},
+	{
+		tag: '*|LIST:ADDRESS_VCARD_HREF|*',
+		label: __(
+			"Inserts a text URL that points to your vcard (.vcf) file of your address details. Use this as a link's Web Address to create a linked version.",
+			'newspack-newsletters'
+		),
+	},
+	{
+		tag: '*|LIST:NAME|*',
+		label: __( 'Inserts the name of your audience.', 'newspack-newsletters' ),
+	},
+	{
+		tag: '*|ABOUT_LIST|*',
+		label: __( 'Creates a link to the About Your List page.', 'newspack-newsletters' ),
+	},
+	{
+		tag: '*|LIST:UID|*',
+		label: __(
+			"Inserts your audience's unique ID from your audience's hosted forms.",
+			'newspack-newsletters'
+		),
+	},
+	{
 		tag: '*|TWITTER:PROFILE|*',
 		label: __(
 			"Populates your campaign with your Twitter avatar, follower, tweet, and following counts; and a follow link. Doesn't include your latest tweets.",
