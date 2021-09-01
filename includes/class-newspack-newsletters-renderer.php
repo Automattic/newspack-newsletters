@@ -630,9 +630,18 @@ final class Newspack_Newsletters_Renderer {
 							'alt'    => $caption,
 							'width'  => $data->width,
 							'height' => $data->height,
-							'href'   => $data->url,
+							'href'   => $attrs['url'],
 						);
 						$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+						if ( ! empty( $caption ) ) {
+							$caption_attrs = array(
+								'align'       => 'center',
+								'color'       => '#555d66',
+								'font-size'   => '13px',
+								'font-family' => $font_family,
+							);
+							$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
+						}
 						break;
 					case 'video':
 						if ( $data->thumbnail_url ) {
