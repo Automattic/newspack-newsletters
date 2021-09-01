@@ -55,6 +55,28 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test embed blocks rendering.
+	 */
+	public function test_render_embed_blocks() {
+		// Video embed.
+		$inner_html = '<figure><div>https://www.youtube.com/watch?v=aIRgcb3cQ1Q</div></figure>';
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'   => 'core/embed',
+					'attrs'       => [
+						'url' => 'https://www.youtube.com/watch?v=aIRgcb3cQ1Q',
+					],
+					'innerBlocks' => [],
+					'innerHTML'   => $inner_html,
+				]
+			),
+			'<mj-section url="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" padding="0"><mj-column padding="12px" width="100%"><mj-image padding="0" src="https://i.ytimg.com/vi/aIRgcb3cQ1Q/hqdefault.jpg" width="480px" height="360px" href="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" /><mj-text align="center" color="#555d66" font-size="13px" >How to use the Newspack Newsletter plugin - YouTube</mj-text></mj-column></mj-section>',
+			'Renders image with caption from video embed block'
+		);
+	}
+
+	/**
 	 * Test other rendering-related function.
 	 */
 	public function test_aux_functions() {
