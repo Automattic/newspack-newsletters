@@ -578,6 +578,98 @@ final class Newspack_Newsletters_Renderer {
 				}
 				$block_mjml_markup = $markup . '</mj-wrapper>';
 				break;
+
+			/**
+			 * Embed block.
+			 */
+			case 'core/embed':
+				$oembed = _wp_oembed_get_object();
+				$data   = $oembed->get_data( $attrs['url'] );
+
+				$text_attrs = array(
+					'padding'     => '0',
+					'line-height' => '1.8',
+					'font-size'   => '16px',
+					'font-family' => $font_family,
+				);
+
+				$allowed_html = array(
+					'a'          => array(
+						'href'  => array(),
+						'title' => array(),
+					),
+					'blockquote' => array(),
+					'br'         => array(),
+					'em'         => array(),
+					'strong'     => array(),
+				);
+
+				// Parse block caption.
+				$dom = new DomDocument();
+				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				$xpath      = new DOMXpath( $dom );
+				$figcaption = $xpath->query( '//figcaption/text()' )[0];
+				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$caption = ! empty( $figcaption->wholeText ) && is_string( $figcaption->wholeText ) ? $figcaption->wholeText : '';
+				if ( empty( $caption ) && ! empty( $data->title ) && is_string( $data->title ) ) {
+					$caption = $data->title;
+				}
+
+				$markup = '';
+
+				switch ( $data->type ) {
+					case 'photo':
+						if ( empty( $data->url ) || empty( $data->width ) || empty( $data->height ) ) {
+							break;
+						}
+						if ( ! is_string( $data->url ) || ! is_numeric( $data->width ) || ! is_numeric( $data->height ) ) {
+							break;
+						}
+						$img_attrs = array(
+							'src'    => $data->url,
+							'alt'    => $caption,
+							'width'  => $data->width,
+							'height' => $data->height,
+							'href'   => $data->url,
+						);
+						$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+						break;
+					case 'video':
+						if ( $data->thumbnail_url ) {
+							$img_attrs = array(
+								'padding' => '0',
+								'src'     => $data->thumbnail_url,
+								'width'   => $data->thumbnail_width . 'px',
+								'height'  => $data->thumbnail_height . 'px',
+								'href'    => $attrs['url'],
+							);
+							$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+						}
+						if ( ! empty( $caption ) ) {
+							$caption_attrs = array(
+								'align'       => 'center',
+								'color'       => '#555d66',
+								'font-size'   => '13px',
+								'font-family' => $font_family,
+							);
+							$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
+						}
+						break;
+					case 'rich':
+						if ( ! empty( $data->html ) && is_string( $data->html ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . wp_kses( $data->html, $allowed_html ) . '</mj-text>';
+						} elseif ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $data->provider_name ) . ' - ' . esc_html( $caption ) . '</a></mj-text>';
+						}
+						break;
+					case 'link':
+						if ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $caption ) . '</a></mj-text>';
+						}
+						break;
+				}
+				$block_mjml_markup = $markup;
+				break;
 		}
 
 		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
