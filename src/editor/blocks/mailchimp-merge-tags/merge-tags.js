@@ -202,13 +202,6 @@ export default [
 		label: __( "Inserts your audience's permission reminder", 'newspack-newsletters' ),
 	},
 	{
-		tag: '*|EMAIL|*',
-		label: __(
-			"Inserts your contact's email address. This is commonly used in the unsubscribe link, which helps them know who will be removed if they click the Unsubscribe link.",
-			'newspack-newsletters'
-		),
-	},
-	{
 		tag: '*|HTML:LIST_ADDRESS_HTML|*',
 		label: __(
 			'Inserts in your mailing address and the "Add us to your address book" link that points to the vcard (.vcf) file with your address details.',
