@@ -665,8 +665,9 @@ final class Newspack_Newsletters_Renderer {
 						}
 						break;
 					case 'rich':
-						if ( ! empty( $data->html ) && is_string( $data->html ) ) {
-							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . wp_kses( $data->html, $allowed_html ) . '</mj-text>';
+						$html = wp_kses( $data->html ?? '', $allowed_html );
+						if ( ! empty( $html ) && is_string( $html ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $html . '</mj-text>';
 						} elseif ( ! empty( $caption ) ) {
 							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $data->provider_name ) . ' - ' . esc_html( $caption ) . '</a></mj-text>';
 						}
