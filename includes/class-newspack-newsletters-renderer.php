@@ -668,7 +668,7 @@ final class Newspack_Newsletters_Renderer {
 						if ( ! empty( $html ) ) {
 							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $html . '</mj-text>';
 						} elseif ( ! empty( $caption ) ) {
-							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $data->provider_name ) . ' - ' . esc_html( $caption ) . '</a></mj-text>';
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $caption ) . '</a></mj-text>';
 						}
 						break;
 					case 'link':
