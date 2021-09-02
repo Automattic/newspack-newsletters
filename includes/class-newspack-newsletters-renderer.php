@@ -661,6 +661,8 @@ final class Newspack_Newsletters_Renderer {
 							if ( ! empty( $caption ) ) {
 								$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
 							}
+						} elseif ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $caption ) . '</a></mj-text>';
 						}
 						break;
 					case 'rich':
