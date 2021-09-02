@@ -649,7 +649,7 @@ final class Newspack_Newsletters_Renderer {
 						}
 						break;
 					case 'video':
-						if ( $data->thumbnail_url ) {
+						if ( ! empty( $data->thumbnail_url ) ) {
 							$img_attrs = array(
 								'padding' => '0',
 								'src'     => $data->thumbnail_url,
@@ -658,9 +658,9 @@ final class Newspack_Newsletters_Renderer {
 								'href'    => $attrs['url'],
 							);
 							$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
-						}
-						if ( ! empty( $caption ) ) {
-							$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
+							if ( ! empty( $caption ) ) {
+								$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
+							}
 						}
 						break;
 					case 'rich':
