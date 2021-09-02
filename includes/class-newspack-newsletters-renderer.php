@@ -586,7 +586,7 @@ final class Newspack_Newsletters_Renderer {
 				$oembed = _wp_oembed_get_object();
 				$data   = $oembed->get_data( $attrs['url'] );
 
-				if ( ! $data || ! empty( $data->type ) ) {
+				if ( ! $data || empty( $data->type ) ) {
 					break;
 				}
 
