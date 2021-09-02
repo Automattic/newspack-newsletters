@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { uniqBy } from 'lodash';
+
+/**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
@@ -9,12 +14,6 @@ import { __ } from '@wordpress/i18n';
 import { getServiceProvider } from '../../../service-providers';
 import tags from './merge-tags';
 import './style.scss';
-
-/**
- * Supported merge tags.
- * Empty array means all merge tags are supported.
- */
-const supportedTags = [];
 
 /**
  * Merge tags completer configuration.
@@ -28,16 +27,17 @@ const getCompleter = () => {
 		options: () => {
 			const { getEditedPostAttribute } = wp.data.select( 'core/editor' );
 			const listMergeFields = getEditedPostAttribute( 'meta' )?.newsletterData?.merge_fields || [];
-			return [
-				...listMergeFields.map( mergeField => ( {
-					tag: `*|${ mergeField.tag }|*`,
-					label: mergeField.name,
-					keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
-				} ) ),
-				...( supportedTags.length
-					? tags.filter( tag => supportedTags.indexOf( tag.tag ) !== -1 )
-					: tags ),
-			];
+			return uniqBy(
+				[
+					...listMergeFields.map( mergeField => ( {
+						tag: `*|${ mergeField.tag }|*`,
+						label: mergeField.name,
+						keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
+					} ) ),
+					...tags,
+				],
+				'tag'
+			);
 		},
 		getOptionLabel: ( { tag, label } ) => (
 			<div>
