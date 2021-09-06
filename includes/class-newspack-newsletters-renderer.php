@@ -604,17 +604,6 @@ final class Newspack_Newsletters_Renderer {
 					'font-family' => $font_family,
 				);
 
-				$allowed_html = array(
-					'a'          => array(
-						'href'  => array(),
-						'title' => array(),
-					),
-					'blockquote' => array(),
-					'br'         => array(),
-					'em'         => array(),
-					'strong'     => array(),
-				);
-
 				// Parse block caption.
 				$dom = new DomDocument();
 				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -666,7 +655,7 @@ final class Newspack_Newsletters_Renderer {
 						}
 						break;
 					case 'rich':
-						$html = wp_kses( (string) $data->html, $allowed_html );
+						$html = wp_kses( (string) $data->html, Newspack_Newsletters_Embed::$allowed_html );
 						if ( ! empty( $html ) ) {
 							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $html . '</mj-text>';
 						} elseif ( ! empty( $caption ) ) {

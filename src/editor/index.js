@@ -12,6 +12,7 @@ import { registerPlugin } from '@wordpress/plugins';
 import './style.scss';
 import registerPostsInserterBlock from './blocks/posts-inserter';
 import registerShareBlock from './blocks/share';
+import registerEmbedBlockEdit from './blocks/embed';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import '../newsletter-editor';
@@ -19,6 +20,8 @@ import '../newsletter-editor';
 addBlocksValidationFilter();
 registerPostsInserterBlock();
 registerShareBlock();
+
+registerEmbedBlockEdit();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {
