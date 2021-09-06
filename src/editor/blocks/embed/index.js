@@ -78,6 +78,22 @@ const EmbedPreview = props => {
 
 export default () => {
 	wp.hooks.addFilter(
+		'blocks.registerBlockType',
+		'newspack-newsletters/embed-block/disable-align',
+		( settings, name ) => {
+			if ( name === 'core/embed' ) {
+				settings = {
+					...settings,
+					supports: {
+						...settings.supports,
+						align: false,
+					},
+				};
+			}
+			return settings;
+		}
+	);
+	wp.hooks.addFilter(
 		'editor.BlockEdit',
 		'newspack-newsletters/embed-block-edit-editor',
 		BlockEdit => {
