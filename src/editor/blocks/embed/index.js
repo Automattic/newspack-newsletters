@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import { __ } from '@wordpress/i18n';
 import { Fragment, useState } from '@wordpress/element';
 import { select } from '@wordpress/data';
-import { ToolbarButton, ToolbarGroup } from '@wordpress/components';
+import { ToolbarButton, ToolbarGroup, Placeholder } from '@wordpress/components';
 import { BlockControls, useBlockProps, RichText } from '@wordpress/block-editor';
 import { createBlock } from '@wordpress/blocks';
 import { globe } from '@wordpress/icons';
@@ -46,6 +46,15 @@ const EmbedPreview = props => {
 				embedContent = <div dangerouslySetInnerHTML={ { __html: props.sanitized_html } } />;
 			}
 			break;
+	}
+	if ( ! embedContent && ! caption ) {
+		return (
+			<Placeholder>
+				<p className="components-placeholder__error">
+					{ __( 'No suitable content found to display in email format.', 'newspack-newsletters' ) }
+				</p>
+			</Placeholder>
+		);
 	}
 	return (
 		<figure className={ classnames( props.className, 'wp-block-embed' ) }>
