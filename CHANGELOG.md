@@ -1,3 +1,17 @@
+# [1.33.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.32.1...v1.33.0-alpha.1) (2021-09-08)
+
+
+### Bug Fixes
+
+* list info in pre-send modal ([6a615fb](https://github.com/Automattic/newspack-newsletters/commit/6a615fb74cc6025c96c8fc04ca6a715c27619656))
+* use WP_Http instead of Guzzle ([#582](https://github.com/Automattic/newspack-newsletters/issues/582)) ([5052004](https://github.com/Automattic/newspack-newsletters/commit/5052004ff75b2eb10d3559ee97fab2ce7bc7edf2))
+
+
+### Features
+
+* add support for embed blocks ([#583](https://github.com/Automattic/newspack-newsletters/issues/583)) ([53a2f57](https://github.com/Automattic/newspack-newsletters/commit/53a2f576b3924df62422ade8c9a263b12f1540f3))
+* autocompleter for mailchimp merge tags ([#575](https://github.com/Automattic/newspack-newsletters/issues/575)) ([412d39b](https://github.com/Automattic/newspack-newsletters/commit/412d39b11d3505cf0c9cfe51625f1ce69ef92bfe))
+
 ## [1.32.1](https://github.com/Automattic/newspack-newsletters/compare/v1.32.0...v1.32.1) (2021-08-31)
 
 
