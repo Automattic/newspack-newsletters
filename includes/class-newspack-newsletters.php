@@ -1098,6 +1098,18 @@ final class Newspack_Newsletters {
 	 */
 	public static function get_esp_lists() {
 		if ( self::is_service_provider_configured() ) {
+			if ( 'manual' === self::service_provider() ) {
+				return new WP_Error(
+					'newspack_newsletters_manual_lists',
+					__( 'Lists not available while using manual configuration.', 'newspack-newsletters' )
+				);
+			}
+			if ( ! self::$provider ) {
+				return new WP_Error(
+					'newspack_newsletters_esp_not_a_provider',
+					__( 'Lists not available for the current Newsletters setup.', 'newspack-newsletters' )
+				);
+			}
 			try {
 				return self::$provider->get_lists();
 			} catch ( \Exception $e ) {
