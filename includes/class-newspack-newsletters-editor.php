@@ -97,6 +97,7 @@ final class Newspack_Newsletters_Editor {
 			'core/block',
 			'core/group',
 			'core/paragraph',
+			'core/embed',
 			'core/heading',
 			'core/column',
 			'core/columns',
