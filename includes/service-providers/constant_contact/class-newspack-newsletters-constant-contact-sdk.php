@@ -7,9 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-use Newspack_Newsletters_Vendor\GuzzleHttp\Client;
-use Newspack_Newsletters_Vendor\GuzzleHttp\Exception\RequestException;
-
 /**
  * Constant Contact Simple SDK for v3 API.
  */
@@ -58,13 +55,6 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	private $access_token;
 
 	/**
-	 * Client for making API requests.
-	 *
-	 * @var Client
-	 */
-	private $client;
-
-	/**
 	 * Perform API requests.
 	 *
 	 * @param string $method  Request method.
@@ -76,7 +66,13 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @throws Exception Error message.
 	 */
 	private function request( $method, $path, $options = [] ) {
-		$config = [
+		$url = $this->base_uri . $path;
+		if ( $options['query'] ) {
+			$url = add_query_arg( $options['query'], $url );
+			unset( $options['query'] );
+		}
+		$args = [
+			'method'  => $method,
 			'headers' => [
 				'Content-Type'  => 'application/json',
 				'Accept'        => 'application/json',
@@ -84,18 +80,13 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			],
 		];
 		try {
-			$response = $this->client->request( $method, $path, $config + $options );
-			return json_decode( $response->getBody() );
-		} catch ( RequestException $e ) {
-			$body = json_decode( $e->getResponse()->getBody()->getContents() );
-			if ( is_array( $body ) && isset( $body[0] ) && isset( $body[0]->error_message ) ) {
-				$message = $body[0]->error_message;
-			} elseif ( isset( $body->error_message ) ) {
-				$message = $body->error_message;
-			} else {
-				$message = $e->getMessage();
+			$response = wp_safe_remote_request( $url, $args + $options );
+			if ( is_wp_error( $response ) ) {
+				throw new Exception( $response->get_error_message() );
 			}
-			throw new Exception( 'Constant Contact: ' . $message );
+			return json_decode( $response['body'] );
+		} catch ( Exception $e ) {
+			throw new Exception( 'Constant Contact: ' . $e->getMessage() );
 		}
 	}
 
@@ -121,8 +112,6 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 		if ( $access_token ) {
 			$this->access_token = $access_token;
 		}
-
-		$this->client = new Client( [ 'base_uri' => $this->base_uri ] );
 	}
 
 	/**
@@ -163,7 +152,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				'token_info',
 				[ 'body' => wp_json_encode( [ 'token' => $access_token ] ) ]
 			);
-			return [] === array_diff( $this->scope, $response->scopes );
+			return [] === array_diff( $this->scope, $response->scopes ?? [] );
 		} catch ( Exception $e ) {
 			return false;
 		}
@@ -181,13 +170,12 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 */
 	public function get_access_token( $redirect_uri, $code ) {
 		$credentials = base64_encode( $this->api_key . ':' . $this->api_secret );
-
-		$options = [
-			'query'   => [
-				'code'         => $code,
-				'grant_type'   => 'authorization_code',
-				'redirect_uri' => $redirect_uri,
-			],
+		$query       = [
+			'code'         => $code,
+			'grant_type'   => 'authorization_code',
+			'redirect_uri' => $redirect_uri,
+		];
+		$args        = [
 			'headers' => [
 				'Content-Type'  => 'application/json',
 				'Accept'        => 'application/json',
@@ -195,10 +183,13 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			],
 		];
 		try {
-			$response = $this->client->post( $this->token_base_uri, $options );
-			return json_decode( $response->getBody() );
-		} catch ( RequestException $e ) {
-			throw new Exception( $e->getMessage() );
+			$response = wp_safe_remote_post( add_query_arg( $query, $this->token_base_uri ), $args );
+			if ( is_wp_error( $response ) ) {
+				throw new Exception( $response->get_error_message() );
+			}
+			return json_decode( $response['body'] );
+		} catch ( Exception $e ) {
+			throw new Exception( 'Constant Contact: ' . $e->getMessage() );
 		}
 	}
 
@@ -213,12 +204,11 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 */
 	public function refresh_token( $refresh_token ) {
 		$credentials = base64_encode( $this->api_key . ':' . $this->api_secret );
-
-		$options = [
-			'query'   => [
-				'refresh_token' => $refresh_token,
-				'grant_type'    => 'refresh_token',
-			],
+		$query       = [
+			'refresh_token' => $refresh_token,
+			'grant_type'    => 'refresh_token',
+		];
+		$args        = [
 			'headers' => [
 				'Content-Type'  => 'application/json',
 				'Accept'        => 'application/json',
@@ -226,10 +216,13 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			],
 		];
 		try {
-			$response = $this->client->post( $this->token_base_uri, $options );
-			return json_decode( $response->getBody() );
-		} catch ( RequestException $e ) {
-			throw new Exception( $e->getMessage() );
+			$response = wp_safe_remote_post( add_query_arg( $query, $this->token_base_uri ), $args );
+			if ( is_wp_error( $response ) ) {
+				throw new Exception( $response->get_error_message() );
+			}
+			return json_decode( $response['body'] );
+		} catch ( Exception $e ) {
+			throw new Exception( 'Constant Contact: ' . $e->getMessage() );
 		}
 	}
 
