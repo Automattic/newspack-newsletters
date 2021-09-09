@@ -66,6 +66,7 @@ final class Newspack_Newsletters {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'init', [ __CLASS__, 'register_editor_only_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
@@ -118,190 +119,83 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Register custom fields for use in the editor only.
+	 * These have to be registered so the updates are handles correctly.
+	 */
+	public static function register_editor_only_meta() {
+		$fields = [
+			[
+				'name'               => 'newsletterData',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'type'                 => 'object',
+							'context'              => [ 'edit' ],
+							'additionalProperties' => true,
+							'properties'           => [],
+						],
+					],
+					'type'         => 'object',
+				],
+			],
+			[
+				'name'               => 'newsletterValidationErrors',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'type'    => 'array',
+							'context' => [ 'edit' ],
+							'items'   => [
+								'type' => 'string',
+							],
+						],
+					],
+					'type'         => 'array',
+				],
+			],
+			[
+				'name'               => 'senderName',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'context' => [ 'edit' ],
+						],
+					],
+					'type'         => 'string',
+				],
+			],
+			[
+				'name'               => 'senderEmail',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'context' => [ 'edit' ],
+						],
+					],
+					'type'         => 'string',
+				],
+			],
+		];
+		foreach ( $fields as $field ) {
+			\register_meta(
+				'post',
+				$field['name'],
+				array_merge(
+					$field['register_meta_args'],
+					[
+						'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+						'single'         => true,
+						'auth_callback'  => '__return_true',
+					]
+				)
+			);
+		}
+	}
+
+	/**
 	 * Register custom fields.
 	 */
 	public static function register_meta() {
-		\register_meta(
-			'post',
-			'mc_campaign_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-
-		/**
-		 * This meta field is used only in the editor.
-		 */
-		\register_meta(
-			'post',
-			'newsletterData',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'type'                 => 'object',
-						'context'              => [ 'edit' ],
-						'additionalProperties' => true,
-						'properties'           => [],
-					],
-				],
-				'type'           => 'object',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-
-		/**
-		 * This meta field is used only in the editor.
-		 */
-		\register_meta(
-			'post',
-			'newsletterValidationErrors',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'type'    => 'array',
-						'context' => [ 'edit' ],
-						'items'   => [
-							'type' => 'string',
-						],
-					],
-				],
-				'type'           => 'array',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-
-		\register_meta(
-			'post',
-			'cc_campaign_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'mc_list_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'cm_list_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'cm_segment_id',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'cm_send_mode',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'cm_from_name',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'cm_from_email',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'cm_preview_text',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 		\register_meta(
 			'post',
 			'template_id',
@@ -515,6 +409,12 @@ final class Newspack_Newsletters {
 				'supports'        => $block_definition['supports'],
 			]
 		);
+		register_block_type(
+			'newspack-newsletters/share',
+			[
+				'render_callback' => [ __CLASS__, 'render_share_block' ],
+			]
+		);
 	}
 
 	/**
@@ -535,6 +435,15 @@ final class Newspack_Newsletters {
 		}
 
 		return wp_kses_post( $markup );
+	}
+
+	/**
+	 * Server-side render callback for Share block.
+	 * It does not make sense to render anything when the email
+	 * is viewed as a public post.
+	 */
+	public static function render_share_block() {
+		return '';
 	}
 
 	/**
@@ -653,9 +562,9 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Add "Public page" admin column
-	 * 
+	 *
 	 * @param array $columns Newsletters columns.
-	 * 
+	 *
 	 * @return array
 	 */
 	public static function add_public_page_column( $columns ) {
@@ -665,7 +574,7 @@ final class Newspack_Newsletters {
 	/**
 	 * Add "Public page" admin column content
 	 * Displays wether the newsletter post has a public page or not
-	 * 
+	 *
 	 * @param string $column_name Column name.
 	 * @param int    $post_id     Post ID.
 	 */
@@ -889,6 +798,7 @@ final class Newspack_Newsletters {
 					'background_color' => get_post_meta( $post->ID, 'background_color', true ),
 					'font_body'        => get_post_meta( $post->ID, 'font_body', true ),
 					'font_header'      => get_post_meta( $post->ID, 'font_header', true ),
+					'custom_css'       => get_post_meta( $post->ID, 'custom_css', true ),
 				];
 				return $post;
 			},
@@ -1234,6 +1144,54 @@ final class Newspack_Newsletters {
 		}
 
 		return $force_js;
+	}
+
+	/**
+	 * Get mailing lists of the configured ESP.
+	 */
+	public static function get_esp_lists() {
+		if ( self::is_service_provider_configured() ) {
+			if ( 'manual' === self::service_provider() ) {
+				return new WP_Error(
+					'newspack_newsletters_manual_lists',
+					__( 'Lists not available while using manual configuration.', 'newspack-newsletters' )
+				);
+			}
+			if ( ! self::$provider ) {
+				return new WP_Error(
+					'newspack_newsletters_esp_not_a_provider',
+					__( 'Lists not available for the current Newsletters setup.', 'newspack-newsletters' )
+				);
+			}
+			try {
+				return self::$provider->get_lists();
+			} catch ( \Exception $e ) {
+				return new WP_Error(
+					'newspack_newsletters_get_lists',
+					$e->getMessage()
+				);
+			}
+		}
+		return [];
+	}
+
+	/**
+	 * Add contact to a mailing list of the configured ESP.
+	 *
+	 * @param array  $contact The contact to add to the list.
+	 * @param string $list_id ID of the list to add the contact to.
+	 */
+	public static function add_contact( $contact, $list_id ) {
+		if ( self::is_service_provider_configured() ) {
+			try {
+				return self::$provider->add_contact( $contact, $list_id );
+			} catch ( \Exception $e ) {
+				return new WP_Error(
+					'newspack_newsletters_get_lists',
+					$e->getMessage()
+				);
+			}
+		}
 	}
 }
 Newspack_Newsletters::instance();

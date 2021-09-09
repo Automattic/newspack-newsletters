@@ -39,8 +39,8 @@ const ProviderSidebar = ( {
 	useEffect(() => {
 		if ( campaign ) {
 			updateMeta( {
-				senderName: campaign.from_name,
-				senderEmail: campaign.from_email,
+				senderName: campaign.activity.from_name,
+				senderEmail: campaign.activity.from_email,
 			} );
 		}
 	}, [ campaign ]);
@@ -54,7 +54,7 @@ const ProviderSidebar = ( {
 		);
 	}
 
-	const { status } = campaign || {};
+	const { current_status: status } = campaign || {};
 	if ( 'DRAFT' !== status ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
@@ -70,12 +70,12 @@ const ProviderSidebar = ( {
 				id="newspack-newsletters-constant_contact-lists"
 				label={ __( 'Lists', 'newspack-newsletters' ) }
 			>
-				{ lists.map( ( { id, name } ) => (
+				{ lists.map( ( { list_id: id, name } ) => (
 					<CheckboxControl
 						key={ id }
 						label={ name }
 						value={ id }
-						checked={ campaign.sent_to_contact_lists.some( list => list.id === id ) }
+						checked={ campaign?.activity?.contact_list_ids?.some( listId => listId === id ) }
 						onChange={ value => setList( id, value ) }
 						disabled={ inFlight }
 					/>

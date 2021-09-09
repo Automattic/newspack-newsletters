@@ -40,6 +40,13 @@ final class Newspack_Newsletters_Renderer {
 	protected static $ads_to_insert = [];
 
 	/**
+	 * The post permalink, if the post is public.
+	 *
+	 * @var String
+	 */
+	protected static $post_permalink = null;
+
+	/**
 	 * Convert a list to HTML attributes.
 	 *
 	 * @param array $attributes Array of attributes.
@@ -126,6 +133,14 @@ final class Newspack_Newsletters_Renderer {
 			if ( isset( $block_attrs['style']['color']['text'] ) ) {
 				$colors['color'] = $block_attrs['style']['color']['text'];
 			}
+		}
+
+		// Add !important to all colors.
+		if ( isset( $colors['color'] ) ) {
+			$colors['color'] .= ' !important';
+		}
+		if ( isset( $colors['background-color'] ) ) {
+			$colors['background-color'] .= ' !important';
 		}
 
 		return $colors;
@@ -248,12 +263,13 @@ final class Newspack_Newsletters_Renderer {
 
 		switch ( $block_name ) {
 			/**
-			 * Paragraph, List, Heading blocks.
+			 * Text-based blocks.
 			 */
 			case 'core/paragraph':
 			case 'core/list':
 			case 'core/heading':
 			case 'core/quote':
+			case 'newspack-newsletters/share':
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
@@ -263,6 +279,11 @@ final class Newspack_Newsletters_Renderer {
 					),
 					$attrs
 				);
+
+				if ( 'newspack-newsletters/share' === $block_name && ! self::$post_permalink ) {
+					// If there's no permalink (which is not set if the post is not public), the share link has no utility.
+					return '';
+				}
 
 				// Only mj-text has to use container-background-color attr for background color.
 				if ( isset( $text_attrs['background-color'] ) ) {
@@ -279,7 +300,7 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/image':
 				// Parse block content.
 				$dom = new DomDocument();
-				@$dom->loadHTML( $inner_html ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 				$xpath      = new DOMXpath( $dom );
 				$img        = $xpath->query( '//img' )[0];
 				$img_src    = $img->getAttribute( 'src' );
@@ -346,12 +367,12 @@ final class Newspack_Newsletters_Renderer {
 				foreach ( $inner_blocks as $button_block ) {
 					// Parse block content.
 					$dom = new DomDocument();
-					@$dom->loadHTML( $button_block['innerHTML'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					@$dom->loadHTML( mb_convert_encoding( $button_block['innerHTML'], 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 					$xpath         = new DOMXpath( $dom );
 					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = $button_block['attrs'];
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 5;
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 999;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
@@ -556,6 +577,98 @@ final class Newspack_Newsletters_Renderer {
 					$markup .= self::render_mjml_component( $block, false, true, $default_attrs );
 				}
 				$block_mjml_markup = $markup . '</mj-wrapper>';
+				break;
+
+			/**
+			 * Embed block.
+			 */
+			case 'core/embed':
+				$oembed = _wp_oembed_get_object();
+				$data   = $oembed->get_data( $attrs['url'] );
+
+				if ( ! $data || empty( $data->type ) ) {
+					break;
+				}
+
+				$text_attrs = array(
+					'padding'     => '0',
+					'line-height' => '1.8',
+					'font-size'   => '16px',
+					'font-family' => $font_family,
+				);
+
+				$caption_attrs = array(
+					'align'       => 'center',
+					'color'       => '#555d66',
+					'font-size'   => '13px',
+					'font-family' => $font_family,
+				);
+
+				// Parse block caption.
+				$dom = new DomDocument();
+				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				$xpath      = new DOMXpath( $dom );
+				$figcaption = $xpath->query( '//figcaption/text()' )[0];
+				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$caption = ! empty( $figcaption->wholeText ) && is_string( $figcaption->wholeText ) ? $figcaption->wholeText : '';
+				if ( empty( $caption ) && ! empty( $data->title ) && is_string( $data->title ) ) {
+					$caption = $data->title;
+				}
+
+				$markup = '';
+
+				switch ( $data->type ) {
+					case 'photo':
+						if ( empty( $data->url ) || empty( $data->width ) || empty( $data->height ) ) {
+							break;
+						}
+						if ( ! is_string( $data->url ) || ! is_numeric( $data->width ) || ! is_numeric( $data->height ) ) {
+							break;
+						}
+						$img_attrs = array(
+							'src'    => $data->url,
+							'alt'    => $caption,
+							'width'  => $data->width,
+							'height' => $data->height,
+							'href'   => $attrs['url'],
+						);
+						$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+						if ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
+						}
+						break;
+					case 'video':
+						if ( ! empty( $data->thumbnail_url ) ) {
+							$img_attrs = array(
+								'padding' => '0',
+								'src'     => $data->thumbnail_url,
+								'width'   => $data->thumbnail_width . 'px',
+								'height'  => $data->thumbnail_height . 'px',
+								'href'    => $attrs['url'],
+							);
+							$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+							if ( ! empty( $caption ) ) {
+								$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
+							}
+						} elseif ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $caption ) . '</a></mj-text>';
+						}
+						break;
+					case 'rich':
+						$html = wp_kses( (string) $data->html, Newspack_Newsletters_Embed::$allowed_html );
+						if ( ! empty( $html ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $html . '</mj-text>';
+						} elseif ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $caption ) . '</a></mj-text>';
+						}
+						break;
+					case 'link':
+						if ( ! empty( $caption ) ) {
+							$markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '><a href="' . esc_url( $attrs['url'] ) . '">' . esc_html( $caption ) . '</a></mj-text>';
+						}
+						break;
+				}
+				$block_mjml_markup = $markup;
 				break;
 		}
 
@@ -902,6 +1015,11 @@ final class Newspack_Newsletters_Renderer {
 		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
+		$is_public           = get_post_meta( $post->ID, 'is_public', true );
+
+		if ( $is_public ) {
+			self::$post_permalink = get_permalink( $post->ID );
+		}
 		if ( ! in_array( self::$font_header, Newspack_Newsletters::$supported_fonts ) ) {
 			self::$font_header = 'Arial';
 		}

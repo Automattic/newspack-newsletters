@@ -5,6 +5,11 @@ import { __ } from '@wordpress/i18n';
 import { Fragment } from '@wordpress/element';
 
 /**
+ * @type {boolean} Whether the ESP requires OAuth authentication.
+ */
+const hasOauth = false;
+
+/**
  * Validation utility.
  *
  * @param  {Object} object data fetched using getFetchDataConfig
@@ -97,6 +102,7 @@ const renderPreSendInfo = ( newsletterData = {} ) => (
 );
 
 export default {
+	hasOauth,
 	validateNewsletter,
 	getFetchDataConfig,
 	ProviderSidebar,

@@ -144,6 +144,11 @@ const PostsInserterBlock = ( {
 			<InspectorControls>
 				<PanelBody title={ __( 'Post content settings', 'newspack-newsletters' ) }>
 					<ToggleControl
+						label={ __( 'Post subtitle', 'newspack-newsletters' ) }
+						checked={ attributes.displayPostSubtitle }
+						onChange={ value => setAttributes( { displayPostSubtitle: value } ) }
+					/>
+					<ToggleControl
 						label={ __( 'Post excerpt', 'newspack-newsletters' ) }
 						checked={ attributes.displayPostExcerpt }
 						onChange={ value => setAttributes( { displayPostExcerpt: value } ) }
@@ -185,11 +190,12 @@ const PostsInserterBlock = ( {
 					<FontSizePicker
 						fontSizes={ blockEditorSettings.fontSizes }
 						value={ attributes.textFontSize }
-						fallbackFontSize={ 16 }
-						onChange={ value => setAttributes( { textFontSize: isNaN( value ) ? null : value } ) }
+						onChange={ value => {
+							return setAttributes( { textFontSize: value } );
+						} }
 					/>
 					<ColorPicker
-						color={ attributes.textColor }
+						color={ attributes.textColor || '' }
 						onChangeComplete={ value => setAttributes( { textColor: value.hex } ) }
 						disableAlpha
 					/>
@@ -198,14 +204,23 @@ const PostsInserterBlock = ( {
 					<FontSizePicker
 						fontSizes={ blockEditorSettings.fontSizes }
 						value={ attributes.headingFontSize }
-						fallbackFontSize={ 25 }
-						onChange={ value =>
-							setAttributes( { headingFontSize: isNaN( value ) ? null : value } )
-						}
+						onChange={ value => setAttributes( { headingFontSize: value } ) }
 					/>
 					<ColorPicker
-						color={ attributes.headingColor }
+						color={ attributes.headingColor || '' }
 						onChangeComplete={ value => setAttributes( { headingColor: value.hex } ) }
+						disableAlpha
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Subtitle style', 'newspack-newsletters' ) }>
+					<FontSizePicker
+						fontSizes={ blockEditorSettings.fontSizes }
+						value={ attributes.subHeadingFontSize }
+						onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
+					/>
+					<ColorPicker
+						color={ attributes.subHeadingColor || '' }
+						onChangeComplete={ value => setAttributes( { subHeadingColor: value.hex } ) }
 						disableAlpha
 					/>
 				</PanelBody>

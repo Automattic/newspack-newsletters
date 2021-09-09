@@ -11,12 +11,19 @@ import { registerPlugin } from '@wordpress/plugins';
  */
 import './style.scss';
 import registerPostsInserterBlock from './blocks/posts-inserter';
+import registerShareBlock from './blocks/share';
+import registerEmbedBlockEdit from './blocks/embed';
+import registerMergeTagsFilters from './blocks/mailchimp-merge-tags';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import '../newsletter-editor';
 
 addBlocksValidationFilter();
 registerPostsInserterBlock();
+registerShareBlock();
+
+registerEmbedBlockEdit();
+registerMergeTagsFilters();
 
 /* Unregister core block styles that are unsupported in emails */
 domReady( () => {

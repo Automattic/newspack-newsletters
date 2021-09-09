@@ -17,10 +17,9 @@ import { POSTS_INSERTER_BLOCK_NAME } from './consts';
 
 const assignFontSize = ( fontSize, attributes ) => {
 	if ( typeof fontSize === 'number' ) {
-		attributes.style = { ...( attributes.style || {} ), typography: { fontSize } };
-	} else if ( typeof fontSize === 'string' ) {
-		attributes.fontSize = fontSize;
+		fontSize = fontSize + 'px';
 	}
+	attributes.style = { ...( attributes.style || {} ), typography: { fontSize } };
 	return attributes;
 };
 
@@ -43,6 +42,16 @@ const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
 			style: { color: { text: textColor } },
 		} ),
 	];
+};
+
+const getSubtitleBlockTemplate = ( post, { subHeadingFontSize, subHeadingColor } ) => {
+	const subtitle = post?.meta?.newspack_post_subtitle || '';
+	const attributes = {
+		level: 4,
+		content: subtitle.trim(),
+		style: { color: { text: subHeadingColor } },
+	};
+	return [ 'core/heading', assignFontSize( subHeadingFontSize, attributes ) ];
 };
 
 const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor } ) => {
@@ -108,6 +117,9 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	const postContentBlocks = [ getHeadingBlockTemplate( post, attributes ) ];
 
+	if ( attributes.displayPostSubtitle && post.meta?.newspack_post_subtitle ) {
+		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
+	}
 	if ( attributes.displayAuthor ) {
 		const author = getAuthorBlockTemplate( post, attributes );
 

@@ -18,8 +18,26 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 	 */
 	public function __construct( $constant_contact ) {
 		$this->service_provider = $constant_contact;
+		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
 		parent::__construct( $constant_contact );
+	}
+
+	/**
+	 * Register custom fields.
+	 */
+	public static function register_meta() {
+		\register_meta(
+			'post',
+			'cc_campaign_id',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => false,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -30,6 +48,15 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 		// Register common ESP routes from \Newspack_Newsletters_Service_Provider_Controller::register_routes.
 		parent::register_routes();
 
+		\register_rest_route(
+			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
+			'verify_token',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'verify_token' ],
+				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
+			]
+		);
 		\register_rest_route(
 			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
 			'(?P<id>[\a-z]+)',
@@ -120,6 +147,16 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 				],
 			]
 		);
+	}
+
+	/**
+	 * Verify connection
+	 * 
+	 * @return WP_REST_Response|mixed API response or error.
+	 */
+	public function verify_token() {
+		$response = $this->service_provider->verify_token();
+		return \rest_ensure_response( $response );
 	}
 
 	/**

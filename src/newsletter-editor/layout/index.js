@@ -28,7 +28,7 @@ export default compose( [
 		const { getEditedPostAttribute, isEditedPostEmpty, getCurrentPostId } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const { template_id: layoutId, background_color, font_body, font_header } = meta;
+		const { template_id: layoutId, background_color, font_body, font_header, custom_css } = meta;
 		return {
 			layoutId,
 			postTitle: getEditedPostAttribute( 'title' ),
@@ -39,6 +39,7 @@ export default compose( [
 				background_color,
 				font_body,
 				font_header,
+				custom_css,
 			},
 		};
 	} ),

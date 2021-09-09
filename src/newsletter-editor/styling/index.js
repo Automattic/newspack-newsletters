@@ -105,16 +105,22 @@ const doc = document.implementation.createHTMLDocument( 'Temp' );
  * @param {string} css The CSS to scope.
  * @return Scoped CSS string.
  */
-const getScopedCss = ( scope, css ) => {
+export const getScopedCss = ( scope, css ) => {
 	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
 
 	style.textContent = css;
 	doc.head.appendChild( style );
 
 	const rules = [ ...style.sheet.cssRules ];
-	const scopedRules = rules.map( rule => scope + ' ' + rule.cssText );
-
-	return scopedRules.join( '\n' );
+	return rules
+		.map( rule => {
+			rule.selectorText = rule.selectorText
+				.split( ',' )
+				.map( selector => `${ scope } ${ selector }` )
+				.join( ', ' );
+			return rule.cssText;
+		} )
+		.join( '\n' );
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )(

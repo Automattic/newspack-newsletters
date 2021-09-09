@@ -67,8 +67,8 @@ class Newspack_Newsletters_Settings {
 				'provider'    => 'constant_contact',
 			),
 			array(
-				'description' => __( 'Constant Contact API Access token', 'newspack-newsletters' ),
-				'key'         => 'newspack_newsletters_constant_contact_api_access_token',
+				'description' => __( 'Constant Contact API Secret', 'newspack-newsletters' ),
+				'key'         => 'newspack_newsletters_constant_contact_api_secret',
 				'type'        => 'text',
 				'provider'    => 'constant_contact',
 			),
@@ -116,13 +116,6 @@ class Newspack_Newsletters_Settings {
 				'type'        => 'checkbox',
 			);
 		}
-
-		$settings_list[] = array(
-			'description' => __( 'Use Mailchimp Tags?', 'newspack-newsletters' ),
-			'key'         => 'newspack_newsletters_use_mailchimp_tags',
-			'type'        => 'checkbox',
-			'provider'    => 'mailchimp',
-		);
 
 		$settings_list = array_map(
 			function ( $item ) {

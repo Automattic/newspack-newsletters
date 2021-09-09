@@ -13,6 +13,10 @@
 			"type": "number",
 			"default": 3
 		},
+		"displayPostSubtitle": {
+			"type": "boolean",
+			"default": false
+		},
 		"displayPostExcerpt": {
 			"type": "boolean",
 			"default": true
@@ -50,20 +54,22 @@
 			"default": []
 		},
 		"textFontSize": {
-			"type": "number",
-			"default": 16
+			"type": "number"
 		},
 		"headingFontSize": {
-			"type": "number",
-			"default": 25
+			"type": "number"
+		},
+		"subHeadingFontSize": {
+			"type": "number"
 		},
 		"textColor": {
-			"type": "string",
-			"default": "#000"
+			"type": "string"
 		},
 		"headingColor": {
-			"type": "string",
-			"default": "#000"
+			"type": "string"
+		},
+		"subHeadingColor": {
+			"type": "string"
 		},
 		"tags": {
 			"type": "array",

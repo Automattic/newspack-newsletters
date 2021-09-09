@@ -166,9 +166,9 @@ export default ( { onSetupStatus } ) => {
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
 							/>
 							<TextControl
-								label={ __( 'Constant Contact Access token', 'newspack-newsletters' ) }
-								value={ credentials.access_token }
-								onChange={ setCredentials( 'access_token' ) }
+								label={ __( 'Constant Contact API Secret', 'newspack-newsletters' ) }
+								value={ credentials.api_secret }
+								onChange={ setCredentials( 'api_secret' ) }
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }

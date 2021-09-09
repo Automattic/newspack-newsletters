@@ -4,13 +4,14 @@
 import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { useState, Fragment } from '@wordpress/element';
+import { Fragment } from '@wordpress/element';
 import { Button, TextControl, TextareaControl, ToggleControl } from '@wordpress/components';
 
 /**
  * External dependencies
  */
 import classnames from 'classnames';
+import { once } from 'lodash';
 
 /**
  * Internal dependencies
@@ -21,6 +22,9 @@ import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
 const Sidebar = ( {
+	isConnected,
+	oauthUrl,
+	onAuthorize,
 	inFlight,
 	errors,
 	editPost,
@@ -33,12 +37,13 @@ const Sidebar = ( {
 	apiFetchWithErrorHandling,
 	postId,
 } ) => {
-	const [ senderDirty, setSenderDirty ] = useState( false );
-
 	const apiFetch = config =>
 		apiFetchWithErrorHandling( config ).then( result => {
-			editPost( getEditPostPayload( result ) );
-			setSenderDirty( false );
+			if ( typeof result === 'object' && result.campaign ) {
+				editPost( getEditPostPayload( result ) );
+			} else {
+				return result;
+			}
 		} );
 
 	const renderSubject = () => (
@@ -66,7 +71,6 @@ const Sidebar = ( {
 				disabled={ inFlight }
 				onChange={ value => {
 					editPost( { meta: { senderName: value } } );
-					setSenderDirty( true );
 				} }
 			/>
 			<TextControl
@@ -77,18 +81,15 @@ const Sidebar = ( {
 				disabled={ inFlight }
 				onChange={ value => {
 					editPost( { meta: { senderEmail: value } } );
-					setSenderDirty( true );
 				} }
 			/>
-			{ senderDirty && (
-				<Button
-					isLink
-					onClick={ () => handleSenderUpdate( { senderName, senderEmail } ) }
-					disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
-				>
-					{ __( 'Update Sender', 'newspack-newsletters' ) }
-				</Button>
-			) }
+			<Button
+				isLink
+				onClick={ () => handleSenderUpdate( { senderName, senderEmail } ) }
+				disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
+			>
+				{ __( 'Update Sender', 'newspack-newsletters' ) }
+			</Button>
 		</Fragment>
 	);
 
@@ -102,6 +103,30 @@ const Sidebar = ( {
 		/>
 	);
 
+	if ( false === isConnected ) {
+		return (
+			<Fragment>
+				<p>
+					{ __(
+						'You must authorize your account before publishing your newsletter.',
+						'newspack-newsletters'
+					) }
+				</p>
+				<Button
+					isPrimary
+					disabled={ inFlight }
+					onClick={ () => {
+						const authWindow = window.open( oauthUrl, 'esp_oauth', 'width=500,height=600' );
+						authWindow.opener = { verify: once( onAuthorize ) };
+					} }
+				>
+					{ __( 'Authorize', 'newspack-newsletter' ) }
+				</Button>
+			</Fragment>
+		);
+	}
+
+	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
 	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
