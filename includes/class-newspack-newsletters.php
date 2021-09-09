@@ -842,8 +842,9 @@ final class Newspack_Newsletters {
 			'service_provider' => $service_provider ? $service_provider : '',
 			'status'           => false,
 		];
+		$is_esp_manual    = 'manual' === $service_provider;
 
-		if ( ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
+		if ( ! $is_esp_manual && ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
 			// Legacy – Mailchimp provider set before multi-provider handling was set up.
 			self::set_service_provider( 'mailchimp' );
 		}
@@ -853,7 +854,7 @@ final class Newspack_Newsletters {
 		}
 
 		if (
-			'manual' === $service_provider ||
+			$is_esp_manual ||
 			( self::$provider && self::$provider->has_api_credentials() )
 		) {
 			$response['status'] = true;
