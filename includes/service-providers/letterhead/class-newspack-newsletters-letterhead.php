@@ -22,6 +22,17 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 	const LETTERHEAD_WP_OPTION_KEY = 'newspack_newsletters_letterhead_api_key';
 
 	/**
+	 * Add a contact to specific list.
+	 *
+	 * @param array  $contact Contact data.
+	 * @param string $list_id List identifier.
+	 * @return object|void|null API Response or error
+	 */
+	public function add_contact( $contact, $list_id ) {
+		// TODO: Implement add_contact() method.
+	}
+
+	/**
 	 * Gets the Letterhead API credentials. Right now, that's just a key : ).
 	 *
 	 * @return string The user's LH API key.
@@ -48,6 +59,15 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 			},
 			$promotions_from_api
 		);
+	}
+
+	/**
+	 * Get lists
+	 *
+	 * @return object|void|null API Response or Error
+	 */
+	public function get_lists() {
+		// TODO: Implement get_lists() method.
 	}
 
 	/**
