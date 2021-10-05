@@ -68,7 +68,7 @@ const withVisibilityControl = createHigherOrderComponent( BlockEdit => {
 			</Fragment>
 		);
 	};
-} );
+}, 'withVisibilityControl' );
 
 export default () => {
 	wp.hooks.addFilter(
