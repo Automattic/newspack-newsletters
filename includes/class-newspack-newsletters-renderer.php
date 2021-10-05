@@ -242,7 +242,7 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		// Verify if block is configured to be web-only.
-		if ( 'web' === $attrs['newsletterVisibility'] ) {
+		if ( isset( $attrs['newsletterVisibility'] ) && 'web' === $attrs['newsletterVisibility'] ) {
 			return '';
 		}
 
