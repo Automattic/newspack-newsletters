@@ -52,7 +52,7 @@ const withVisibilityControl = createHigherOrderComponent( BlockEdit => {
 						initialOpen={ true }
 					>
 						<SelectControl
-							label={ __( 'Select which output to display', 'newspack-newsletters' ) }
+							label={ __( 'Where should this block be visible?', 'newspack-newsletters' ) }
 							value={ value }
 							options={ visibilityOptions }
 							onChange={ selected => {
