@@ -2,15 +2,17 @@
  * External dependencies
  */
 import { assign } from 'lodash';
+import classnames from 'classnames';
 
 /**
  * WordPress dependencies
  */
 import { Fragment } from '@wordpress/element';
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, SelectControl } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { BlockControls, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, ToolbarGroup, SelectControl, ToolbarDropdownMenu } from '@wordpress/components';
+import { __, sprintf } from '@wordpress/i18n';
+import { globe } from '@wordpress/icons';
 
 const ATTRIBUTE_NAME = 'newsletterVisibility';
 
@@ -18,14 +20,17 @@ const visibilityOptions = [
 	{
 		label: __( 'Email and Web', 'newspack-newsletters' ),
 		value: '',
+		icon: 'visibility',
 	},
 	{
 		label: __( 'Email only', 'newspack-newsletters' ),
 		value: 'email',
+		icon: 'email',
 	},
 	{
 		label: __( 'Web only', 'newspack-newsletters' ),
 		value: 'web',
+		icon: globe,
 	},
 ];
 
@@ -43,8 +48,29 @@ const withVisibilityControl = createHigherOrderComponent( BlockEdit => {
 	return props => {
 		const { attributes, setAttributes } = props;
 		const value = attributes[ ATTRIBUTE_NAME ];
+		const currentIcon =
+			visibilityOptions.find( option => option.value === value )?.icon || 'visibility';
+		const menuLabel = value
+			? sprintf( __( 'Currently visible only on "%s" version.', 'newspack-newsletters' ), value )
+			: __( 'Select a visibility option', 'newspack-newsletter' );
 		return (
 			<Fragment>
+				<BlockControls>
+					<ToolbarGroup>
+						<ToolbarDropdownMenu
+							icon={ currentIcon }
+							label={ menuLabel }
+							toggleProps={ {
+								className: classnames( { 'is-pressed': !! value } ),
+							} }
+							controls={ visibilityOptions.map( option => ( {
+								icon: option.icon,
+								title: option.label,
+								onClick: () => setAttributes( { [ ATTRIBUTE_NAME ]: option.value } ),
+							} ) ) }
+						/>
+					</ToolbarGroup>
+				</BlockControls>
 				<BlockEdit { ...props } />
 				<InspectorControls>
 					<PanelBody
