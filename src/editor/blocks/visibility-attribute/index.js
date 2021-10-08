@@ -59,7 +59,7 @@ const withVisibilityControl = createHigherOrderComponent( BlockEdit => {
 								setAttributes( { [ ATTRIBUTE_NAME ]: selected } );
 							} }
 							help={ __(
-								"If your newsletter is going to be published on the web, select here if you'd like this block to be visible in a particular version",
+								"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
 								'newspack-newsletters'
 							) }
 						/>
