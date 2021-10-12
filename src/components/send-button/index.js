@@ -121,6 +121,8 @@ export default compose( [
 		const [ adLabel, setAdLabel ] = useState();
 		const [ adsWarning, setAdsWarning ] = useState();
 		const [ activeAdManageUrl, setActiveAdManageUrl ] = useState();
+		const [ activeAdManageUrlRel, setActiveAdManageUrlRel ] = useState();
+		const [ activeAdManageTarget, setActiveAdManageTarget ] = useState();
 		const newspack_ad_post_type_slug = NEWSLETTER_AD_CPT_SLUG;
 
 		let modalSubmitLabel;
@@ -136,9 +138,18 @@ export default compose( [
 			apiFetch( {
 				path: `/wp/v2/${ newspack_ad_post_type_slug }/count/?date=${ postDate }`,
 			} ).then( response => {
-				const countOfActiveAds = response.count;
-				setActiveAdManageUrl( response.manageUrl );
-				setAdLabel( response.label );
+				const {
+					count: countOfActiveAds,
+					label: adManageLabel,
+					manageUrl,
+					manageUrlRel,
+					manageUrlTarget,
+				} = response;
+
+				setActiveAdManageUrl( manageUrl );
+				setAdLabel( adManageLabel );
+				setActiveAdManageUrlRel( manageUrlRel );
+				setActiveAdManageTarget( manageUrlTarget );
 
 				if ( countOfActiveAds > 0 ) {
 					setAdsWarning(
@@ -150,7 +161,7 @@ export default compose( [
 								'newspack-newsletters'
 							),
 							countOfActiveAds,
-							response.label
+							adManageLabel
 						)
 					);
 				}
@@ -228,8 +239,8 @@ export default compose( [
 								{ adsWarning }{' '}
 								<a // eslint-disable-line react/jsx-no-target-blank
 									href={ activeAdManageUrl }
-									rel={ adLabel === 'promotion' ? 'noreferrer' : '' }
-									target={ adLabel === 'promotion' ? '_blank' : '_self' }
+									rel={ activeAdManageUrlRel }
+									target={ activeAdManageTarget }
 								>
 									{ sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel ) }
 								</a>

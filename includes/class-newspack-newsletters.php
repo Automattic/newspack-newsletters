@@ -1101,14 +1101,18 @@ final class Newspack_Newsletters {
 		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
 		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}&page=newspack-newsletters-ads-admin";
 
-		$ads            = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
-		$ads_label      = $has_letterhead_credentials ? __( 'promotion', 'newspack-newsletters' ) : __( 'ad', 'newspack-newsletters' );
-		$ads_manage_url = $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads;
+		$ads                   = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
+		$ads_label             = $has_letterhead_credentials ? __( 'promotion', 'newspack-newsletters' ) : __( 'ad', 'newspack-newsletters' );
+		$ads_manage_url        = $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads;
+		$ads_manage_url_rel    = $has_letterhead_credentials ? 'noreferrer' : '';
+		$ads_manage_url_target = $has_letterhead_credentials ? '_blank' : '_self';
 
 		return [
-			'count'     => count( $ads ),
-			'label'     => $ads_label,
-			'manageUrl' => $ads_manage_url,
+			'count'           => count( $ads ),
+			'label'           => $ads_label,
+			'manageUrl'       => $ads_manage_url,
+			'manageUrlRel'    => $ads_manage_url_rel,
+			'manageUrlTarget' => $ads_manage_url_target,
 		];
 	}
 
