@@ -126,7 +126,7 @@ export default compose( [
 		let modalSubmitLabel;
 		if ( 'manual' === serviceProviderName ) {
 			modalSubmitLabel = is_public
-				? __( 'Mark as send and publish', 'newspack-newsletters' )
+				? __( 'Mark as sent and publish', 'newspack-newsletters' )
 				: __( 'Mark as sent', 'newspack-newsletters' );
 		} else {
 			modalSubmitLabel = __( 'Send', 'newspack-newsletters' );
@@ -231,7 +231,7 @@ export default compose( [
 									rel={ adLabel === 'promotion' ? 'noreferrer' : '' }
 									target={ adLabel === 'promotion' ? '_blank' : '_self' }
 								>
-									{ __( 'Manage ' + adLabel + 's.', 'newspack-newsletters' ) }
+									{ sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel ) }
 								</a>
 							</Notice>
 						) : null }
