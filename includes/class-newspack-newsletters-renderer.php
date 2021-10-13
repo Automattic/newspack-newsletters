@@ -771,7 +771,8 @@ final class Newspack_Newsletters_Renderer {
 		$total_length = self::get_total_newsletter_character_length( $valid_blocks );
 
 		// Gather ads.
-		if ( $include_ads && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
+		$is_newsletter = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post->ID );
+		if ( $include_ads && $is_newsletter && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
 			$ads_query = new WP_Query(
 				array(
 					'post_type'      => Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
