@@ -1141,5 +1141,41 @@ final class Newspack_Newsletters {
 			}
 		}
 	}
+
+	/**
+     * Adds a filter to the posts query to exclude Newspack non-public newsletters from search results.
+     * 
+	 * @param WP_Query $query
+	 *
+	 * @return WP_Query
+	 */
+    public static function filter_non_public_newsletters( $query )
+    {
+        if ( ! is_admin() ) {
+	        $meta_query = $query->get( 'meta_query' );
+
+
+	        if ( empty( $meta_query ) || ! is_array( $meta_query ) ) {
+		        $meta_query = array();
+	        }
+
+	        $meta_query[] = array(
+		        'relation' => 'OR',
+		        array(
+			        'key'     => 'is_public',
+			        'value'   => true,
+			        'compare' => '=',
+		        ),
+		        array(
+			        'key'     => 'is_public',
+			        'compare' => 'NOT EXISTS',
+		        ),
+	        );
+
+	        $query->set( 'meta_query', $meta_query );
+        }
+        
+        return $query;
+    }
 }
 Newspack_Newsletters::instance();
