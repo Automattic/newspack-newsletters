@@ -1142,5 +1142,31 @@ final class Newspack_Newsletters {
 			}
 		}
 	}
+
+	/**
+     * Custom join to be used in conjunction with filter_non_public_newsletters_where
+     * so that only public newsletters which are published are displayed in search.
+     *
+	 * @param string $join
+	 * @param WP_Query $query
+	 *
+	 * @return string
+	 */
+    public static function filter_non_public_newsletters_join( $join, $query ) {
+        global $wpdb;
+
+        if ( self::should_apply_filter_to_query( $query ) ) {
+            $join .= "LEFT JOIN {$wpdb->postmeta} AS cj1 ON (
+                        {$wpdb->posts}.ID = cj1.post_id 
+                        AND {$wpdb->posts}.post_type = 'newspack_nl_cpt' 
+                        AND cj1.meta_key = 'is_public' 
+                        AND cj1.meta_value = '1' ) ";
+            $join .= "LEFT JOIN {$wpdb->postmeta} AS cj2 
+                        ON ( {$wpdb->posts}.ID = cj2.post_id AND cj2.meta_key = 'is_public' ) ";
+        }
+        
+        return $join;
+    }
+    }
 }
 Newspack_Newsletters::instance();
