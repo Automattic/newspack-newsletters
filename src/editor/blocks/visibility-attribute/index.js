@@ -12,7 +12,12 @@ import { createHigherOrderComponent } from '@wordpress/compose';
 import { BlockControls, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, ToolbarGroup, SelectControl, ToolbarDropdownMenu } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
-import { globe } from '@wordpress/icons';
+import { Icon, warning, globe } from '@wordpress/icons';
+
+/**
+ * Internal dependencies
+ */
+import './style.scss';
 
 const ATTRIBUTE_NAME = 'newsletterVisibility';
 
@@ -96,6 +101,31 @@ const withVisibilityControl = createHigherOrderComponent( BlockEdit => {
 	};
 }, 'withVisibilityControl' );
 
+const withVisibilityNotice = createHigherOrderComponent( BlockListBlock => {
+	return props => {
+		const value = props.attributes[ ATTRIBUTE_NAME ];
+		if ( value ) {
+			return (
+				<div
+					className={ classnames( {
+						'wp-block': true,
+						'newspack-newsletters__editor-block': true,
+						[ `newsletters-block-visibility__${ value }` ]: !! value,
+						'newsletters-block-selected': props.isSelected,
+					} ) }
+				>
+					<span className="newsletters-block-visibility-label">
+						<Icon icon={ warning } size={ 15 } />
+						{ sprintf( __( 'Only visible on the "%s" version.', 'newspack-newsletters' ), value ) }
+					</span>
+					<BlockListBlock { ...props } />
+				</div>
+			);
+		}
+		return <BlockListBlock { ...props } />;
+	};
+}, 'withVisibilityNotice' );
+
 export default () => {
 	wp.hooks.addFilter(
 		'blocks.registerBlockType',
@@ -106,5 +136,10 @@ export default () => {
 		'editor.BlockEdit',
 		'newspack-newsletters/visibility-control',
 		withVisibilityControl
+	);
+	wp.hooks.addFilter(
+		'editor.BlockListBlock',
+		'newspack-newsletters/visibility-notice',
+		withVisibilityNotice
 	);
 };
