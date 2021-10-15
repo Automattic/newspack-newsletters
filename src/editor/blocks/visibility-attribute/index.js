@@ -8,7 +8,8 @@ import classnames from 'classnames';
  * WordPress dependencies
  */
 import { Fragment } from '@wordpress/element';
-import { createHigherOrderComponent } from '@wordpress/compose';
+import { compose, createHigherOrderComponent } from '@wordpress/compose';
+import { withSelect } from '@wordpress/data';
 import { BlockControls, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, ToolbarGroup, SelectControl, ToolbarDropdownMenu } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
@@ -49,83 +50,108 @@ const addVisibilityAttribute = settings => {
 	return settings;
 };
 
-const withVisibilityControl = createHigherOrderComponent( BlockEdit => {
-	return props => {
-		const { attributes, setAttributes } = props;
-		const value = attributes[ ATTRIBUTE_NAME ];
-		const currentIcon =
-			visibilityOptions.find( option => option.value === value )?.icon || 'visibility';
-		const menuLabel = value
-			? sprintf( __( 'Currently visible only on "%s" version.', 'newspack-newsletters' ), value )
-			: __( 'Select a visibility option', 'newspack-newsletter' );
-		return (
-			<Fragment>
-				<BlockControls>
-					<ToolbarGroup>
-						<ToolbarDropdownMenu
-							icon={ currentIcon }
-							label={ menuLabel }
-							toggleProps={ {
-								className: classnames( { 'is-pressed': !! value } ),
-							} }
-							controls={ visibilityOptions.map( option => ( {
-								icon: option.icon,
-								title: option.label,
-								onClick: () => setAttributes( { [ ATTRIBUTE_NAME ]: option.value } ),
-							} ) ) }
-						/>
-					</ToolbarGroup>
-				</BlockControls>
-				<BlockEdit { ...props } />
-				<InspectorControls>
-					<PanelBody
-						title={ __( 'Visibility options', 'newspack-newsletters' ) }
-						initialOpen={ true }
-					>
-						<SelectControl
-							label={ __( 'Where should this block be visible?', 'newspack-newsletters' ) }
-							value={ value }
-							options={ visibilityOptions }
-							onChange={ selected => {
-								setAttributes( { [ ATTRIBUTE_NAME ]: selected } );
-							} }
-							help={ __(
-								"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
-								'newspack-newsletters'
-							) }
-						/>
-					</PanelBody>
-				</InspectorControls>
-			</Fragment>
-		);
-	};
-}, 'withVisibilityControl' );
-
-const withVisibilityNotice = createHigherOrderComponent( BlockListBlock => {
-	return props => {
-		const value = props.attributes[ ATTRIBUTE_NAME ];
-		if ( value ) {
+const withVisibilityControl = createHigherOrderComponent(
+	BlockEdit =>
+		compose(
+			withSelect( select => {
+				const { is_public } = select( 'core/editor' ).getEditedPostAttribute( 'meta' );
+				return { is_public };
+			} )
+		)( props => {
+			const { attributes, setAttributes } = props;
+			const value = attributes[ ATTRIBUTE_NAME ];
+			const currentIcon =
+				visibilityOptions.find( option => option.value === value )?.icon || 'visibility';
+			const menuLabel = value
+				? sprintf( __( 'Currently visible only on "%s" version.', 'newspack-newsletters' ), value )
+				: __( 'Select a visibility option', 'newspack-newsletter' );
+			if ( ! props.is_public && ! value ) {
+				return <BlockEdit { ...props } />;
+			}
 			return (
-				<div
-					className={ classnames( {
-						'wp-block': true,
-						'newspack-newsletters__editor-block': true,
-						[ `newsletters-block-visibility__${ value }` ]: !! value,
-						'newsletters-block-selected': props.isSelected,
-					} ) }
-					data-align={ props.attributes?.align || null }
-				>
-					<span className="newsletters-block-visibility-label">
-						<Icon icon={ warning } size={ 15 } />
-						{ sprintf( __( 'Only visible on the "%s" version.', 'newspack-newsletters' ), value ) }
-					</span>
-					<BlockListBlock { ...props } />
-				</div>
+				<Fragment>
+					<BlockControls>
+						<ToolbarGroup>
+							<ToolbarDropdownMenu
+								icon={ currentIcon }
+								label={ menuLabel }
+								toggleProps={ {
+									className: classnames( { 'is-pressed': !! value } ),
+								} }
+								controls={ visibilityOptions.map( option => ( {
+									icon: option.icon,
+									title: option.label,
+									onClick: () => setAttributes( { [ ATTRIBUTE_NAME ]: option.value } ),
+								} ) ) }
+							/>
+						</ToolbarGroup>
+					</BlockControls>
+					<BlockEdit { ...props } />
+					<InspectorControls>
+						<PanelBody
+							title={ __( 'Visibility options', 'newspack-newsletters' ) }
+							initialOpen={ true }
+						>
+							<SelectControl
+								label={ __( 'Where should this block be visible?', 'newspack-newsletters' ) }
+								value={ value }
+								options={ visibilityOptions }
+								onChange={ selected => {
+									setAttributes( { [ ATTRIBUTE_NAME ]: selected } );
+								} }
+								help={ __(
+									"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
+									'newspack-newsletters'
+								) }
+							/>
+						</PanelBody>
+					</InspectorControls>
+				</Fragment>
 			);
-		}
-		return <BlockListBlock { ...props } />;
-	};
-}, 'withVisibilityNotice' );
+		} ),
+	'withVisibilityControl'
+);
+
+const withVisibilityNotice = createHigherOrderComponent(
+	BlockListBlock =>
+		compose(
+			withSelect( select => {
+				const { is_public } = select( 'core/editor' ).getEditedPostAttribute( 'meta' );
+				return { is_public };
+			} )
+		)( props => {
+			const value = props.attributes[ ATTRIBUTE_NAME ];
+			const shouldBePublic = ! props.is_public && value === 'web';
+			if ( value && ( ( props.is_public && value === 'email' ) || value === 'web' ) ) {
+				return (
+					<div
+						className={ classnames( {
+							'wp-block': true,
+							'newspack-newsletters__editor-block': true,
+							[ `newsletters-block-visibility__${ value }` ]: !! value,
+							'newsletters-block-selected': props.isSelected,
+							'newsletters-block-error': shouldBePublic,
+						} ) }
+						data-align={ props.attributes?.align || null }
+					>
+						<span className="newsletters-block-visibility-label">
+							<Icon icon={ warning } size={ 15 } />
+							{ sprintf(
+								__( 'Only visible on the "%s" version.', 'newspack-newsletters' ),
+								value
+							) }
+							{ shouldBePublic
+								? ' ' + __( 'Newsletter is not public.', 'newspack-newsletters' )
+								: null }
+						</span>
+						<BlockListBlock { ...props } />
+					</div>
+				);
+			}
+			return <BlockListBlock { ...props } />;
+		} ),
+	'withVisibilityNotice'
+);
 
 export default () => {
 	wp.hooks.addFilter(

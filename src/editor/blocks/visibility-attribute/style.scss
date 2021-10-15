@@ -9,6 +9,12 @@
 	margin-bottom: 0;
 	padding: 0 !important;
 	transition: border-radius 0.2s ease-in-out;
+	&.newsletters-block-error {
+		box-shadow: 0 0 0 2px $alert-red;
+		.newsletters-block-visibility-label {
+			background: $alert-red;
+		}
+	}
 	.newsletters-block-visibility-label {
 		z-index: 10;
 		display: flex;
