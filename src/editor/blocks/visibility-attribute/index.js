@@ -113,6 +113,7 @@ const withVisibilityNotice = createHigherOrderComponent( BlockListBlock => {
 						[ `newsletters-block-visibility__${ value }` ]: !! value,
 						'newsletters-block-selected': props.isSelected,
 					} ) }
+					data-align={ props.attributes?.align || null }
 				>
 					<span className="newsletters-block-visibility-label">
 						<Icon icon={ warning } size={ 15 } />

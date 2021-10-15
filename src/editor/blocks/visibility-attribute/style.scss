@@ -33,7 +33,7 @@
 	}
 	&.newsletters-block-selected {
 		border-radius: 3px 3px 0 3px;
-		.newsletters-block-visibility-label {
+		> .newsletters-block-visibility-label {
 			margin-top: 0;
 			border-radius: 3px 0 3px 3px;
 		}
