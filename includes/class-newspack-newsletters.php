@@ -526,9 +526,9 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Add "Public page" admin column
-	 * 
+	 *
 	 * @param array $columns Newsletters columns.
-	 * 
+	 *
 	 * @return array
 	 */
 	public static function add_public_page_column( $columns ) {
@@ -538,7 +538,7 @@ final class Newspack_Newsletters {
 	/**
 	 * Add "Public page" admin column content
 	 * Displays wether the newsletter post has a public page or not
-	 * 
+	 *
 	 * @param string $column_name Column name.
 	 * @param int    $post_id     Post ID.
 	 */
@@ -812,7 +812,9 @@ final class Newspack_Newsletters {
 			'status'           => false,
 		];
 
-		if ( ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
+		// 'newspack_mailchimp_api_key' is a new option introduced to manage MC API key accross Newspack plugins.
+		// Keeping the old option for backwards compatibility.
+		if ( ! self::$provider && get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key' ) ) ) {
 			// Legacy – Mailchimp provider set before multi-provider handling was set up.
 			self::set_service_provider( 'mailchimp' );
 		}
