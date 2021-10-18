@@ -486,16 +486,17 @@ final class Newspack_Newsletters {
 			is_admin() ||
 			! $query->is_main_query() ||
 			(
-				! is_category() &&
-				! is_tag() &&
-				! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT )
+				! $query->is_category() &&
+				! $query->is_tag() &&
+				! $query->is_search() &&
+				! $query->is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT )
 			)
 		) {
 			return;
 		}
 
 		// Allow Newsletter posts to appear in post category and tag archives.
-		if ( is_category() || is_tag() || empty( $query->get( 'post_type' ) ) ) {
+		if ( $query->is_category() || $query->is_tag() || empty( $query->get( 'post_type' ) ) ) {
 			$query->set( 'post_type', [ 'post', self::NEWSPACK_NEWSLETTERS_CPT ] );
 		}
 
@@ -510,7 +511,7 @@ final class Newspack_Newsletters {
 		];
 
 		// If a regular post archive, also allow posts that don't have the is_public meta field.
-		if ( is_category() || is_tag() ) {
+		if ( $query->is_category() || $query->is_tag() || $query->is_search() ) {
 			$meta_query_params['relation'] = 'OR';
 			$meta_query_params[]           = [
 				'key'     => 'is_public',
