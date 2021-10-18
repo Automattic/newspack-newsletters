@@ -136,13 +136,19 @@ const withVisibilityNotice = createHigherOrderComponent(
 					>
 						<span className="newsletters-block-visibility-label">
 							<Icon icon={ warning } size={ 15 } />
-							{ sprintf(
-								__( 'Only visible on the "%s" version.', 'newspack-newsletters' ),
-								value
+							{ shouldBePublic ? (
+								__(
+									'Newsletter is not public, this block will not be visible.',
+									'newspack-newsletters'
+								)
+							) : (
+								<Fragment>
+									{ value === 'web' &&
+										__( 'Only visible on public newsletter page.', 'newspack-newsletters' ) }
+									{ value === 'email' &&
+										__( 'Only visible in the sent email.', 'newspack-newsletters' ) }
+								</Fragment>
 							) }
-							{ shouldBePublic
-								? ' ' + __( 'Newsletter is not public.', 'newspack-newsletters' )
-								: null }
 						</span>
 						<BlockListBlock { ...props } />
 					</div>
