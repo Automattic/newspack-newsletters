@@ -40,14 +40,17 @@ ul, ol {
 }
 
 /* Quote */
+blockquote,
 .wp-block-quote {
 	border-left: 4px solid #000;
 	margin: 0;
 	padding-left: 20px;
 }
+blockquote cite,
 .wp-block-quote cite {
 	color: #767676;
 }
+blockquote p,
 .wp-block-quote p {
 	padding-bottom: 12px;
 }

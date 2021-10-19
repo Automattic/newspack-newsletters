@@ -4,7 +4,7 @@
 import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { useState, Fragment } from '@wordpress/element';
+import { Fragment } from '@wordpress/element';
 import { Button, TextControl, TextareaControl, ToggleControl } from '@wordpress/components';
 
 /**
@@ -37,13 +37,10 @@ const Sidebar = ( {
 	apiFetchWithErrorHandling,
 	postId,
 } ) => {
-	const [ senderDirty, setSenderDirty ] = useState( false );
-
 	const apiFetch = config =>
 		apiFetchWithErrorHandling( config ).then( result => {
 			if ( typeof result === 'object' && result.campaign ) {
 				editPost( getEditPostPayload( result ) );
-				setSenderDirty( false );
 			} else {
 				return result;
 			}
@@ -74,7 +71,6 @@ const Sidebar = ( {
 				disabled={ inFlight }
 				onChange={ value => {
 					editPost( { meta: { senderName: value } } );
-					setSenderDirty( true );
 				} }
 			/>
 			<TextControl
@@ -85,18 +81,15 @@ const Sidebar = ( {
 				disabled={ inFlight }
 				onChange={ value => {
 					editPost( { meta: { senderEmail: value } } );
-					setSenderDirty( true );
 				} }
 			/>
-			{ senderDirty && (
-				<Button
-					isLink
-					onClick={ () => handleSenderUpdate( { senderName, senderEmail } ) }
-					disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
-				>
-					{ __( 'Update Sender', 'newspack-newsletters' ) }
-				</Button>
-			) }
+			<Button
+				isLink
+				onClick={ () => handleSenderUpdate( { senderName, senderEmail } ) }
+				disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
+			>
+				{ __( 'Update Sender', 'newspack-newsletters' ) }
+			</Button>
 		</Fragment>
 	);
 
@@ -109,8 +102,6 @@ const Sidebar = ( {
 			onChange={ value => editPost( { meta: { preview_text: value } } ) }
 		/>
 	);
-
-	const { ProviderSidebar } = getServiceProvider();
 
 	if ( false === isConnected ) {
 		return (
@@ -135,6 +126,8 @@ const Sidebar = ( {
 		);
 	}
 
+	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
+	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
 			<ProviderSidebar

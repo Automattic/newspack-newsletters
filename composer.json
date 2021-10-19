@@ -4,9 +4,7 @@
 	"type": "wordpress-plugin",
 	"require": {
 		"drewm/mailchimp-api": "^2.5",
-		"campaignmonitor/createsend-php": "^6.1",
-		"guzzlehttp/guzzle": "^7.0",
-		"humbug/php-scoper": "^0.15.0"
+		"campaignmonitor/createsend-php": "^6.1"
 	},
 	"require-dev": {
 		"automattic/vipwpcs": "^2.0",
@@ -15,18 +13,8 @@
 		"brainmaestro/composer-git-hooks": "^2.8",
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.0"
 	},
-	"autoload": {
-		"classmap": [
-			"includes/",
-			"vendor_prefixed/"
-		]
-	},
 	"license": "GPL-2.0-or-later",
 	"scripts": {
-		"prefix-guzzle": [
-			"vendor/bin/php-scoper add-prefix --prefix=Newspack_Newsletters_Vendor --output-dir=./vendor_prefixed/guzzlehttp --config=config/php-scoper/guzzlehttp.inc.php --force --quiet",
-			"vendor/bin/php-scoper add-prefix --prefix=Newspack_Newsletters_Vendor --output-dir=./vendor_prefixed/psr --config=config/php-scoper/psr.inc.php --force --quiet"
-		],
 		"post-install-cmd": [
 			"vendor/bin/cghooks add --no-lock"
 		],

@@ -160,6 +160,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
 			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+			$merge_fields        = $list_id ? $this->get_list_merge_fields( $list_id ) : [];
 			$interest_categories = $list_id ? $this->validate(
 				$mc->get( "lists/$list_id/interest-categories" ),
 				__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
@@ -174,32 +175,87 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$newspack_newsletters_use_mailchimp_tags = get_option( 'newspack_newsletters_use_mailchimp_tags', false );
-
-			$tags = [];
-			if ( $list_id && $newspack_newsletters_use_mailchimp_tags ) {
-				$tags_response = $this->validate(
-					$mc->get( "lists/$list_id/segments?count=1000", [], 20 ),
-					__( 'Error retrieving Mailchimp tags.', 'newspack_newsletters' )
+			$segments = [];
+			if ( $list_id ) {
+				$segments_response = $this->validate(
+					$mc->get(
+						"lists/$list_id/segments",
+						[
+							'count' => 1000,
+						],
+						20
+					),
+					__( 'Error retrieving Mailchimp segments.', 'newspack_newsletters' )
 				);
-				$tags          = $tags_response['segments'];
+				$segments          = $segments_response['segments'];
 			}
 
 			return [
-				'lists'               => $this->validate(
-					$mc->get(
-						'lists',
-						[
-							'count' => 1000,
-						]
-					),
-					__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
-				),
+				'lists'               => $this->get_lists(),
+				'merge_fields'        => $merge_fields,
 				'campaign'            => $campaign,
 				'campaign_id'         => $mc_campaign_id,
 				'interest_categories' => $interest_categories,
-				'tags'                => $tags,
+				'segments'            => $segments,
 			];
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
+	 * Get lists.
+	 */
+	public function get_lists() {
+		try {
+			$mc             = new Mailchimp( $this->api_key() );
+			$lists_response = $this->validate(
+				$mc->get(
+					'lists',
+					[
+						'count' => 1000,
+					]
+				),
+				__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
+			);
+			if ( is_wp_error( $lists_response ) ) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_error',
+					$lists_response->getMessage()
+				);
+			}
+			return $lists_response['lists'];
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
+	 * Retrieve the list merge fields.
+	 *
+	 * @param string $list_id List ID.
+	 *
+	 * @return array|WP_Error List of merge fields or error.
+	 */
+	public function get_list_merge_fields( $list_id ) {
+		try {
+			$mc       = new Mailchimp( $this->api_key() );
+			$response = $this->validate(
+				$mc->get(
+					"lists/$list_id/merge-fields",
+					[
+						'count' => 1000,
+					]
+				),
+				__( 'Error retrieving Mailchimp list merge fields.', 'newspack_newsletters' )
+			);
+			return $response['merge_fields'];
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
@@ -434,6 +490,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( 'trash' === $status ) {
 			return;
 		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
 		$this->sync( $post );
 	}
 
@@ -539,23 +598,23 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Set Mailchimp Audience segments for a Campaign.
 	 *
-	 * @param string   $post_id Numeric ID of the post.
-	 * @param string   $compound_interest_id ID of the interest, including field.
-	 * @param number[] $tag_ids List of tag IDs.
+	 * @param string     $post_id   Numeric ID of the post.
+	 * @param string|int $target_id Segment/tag ID or compound interest ID (field name and ID).
+	 *
 	 * @return object|WP_Error API API Response or error.
 	 */
-	public function audience_segments( $post_id, $compound_interest_id, $tag_ids ) {
-		if ( $compound_interest_id ) {
-			$exploded              = explode( ':', $compound_interest_id );
-			$field                 = count( $exploded ) ? $exploded[0] : null;
-			$interest_id           = count( $exploded ) > 1 ? $exploded[1] : null;
-			$is_unsetting_interest = 'no_interests' === $compound_interest_id;
-			if ( ! $is_unsetting_interest && ( ! $field || ! $interest_id ) ) {
-				return new WP_Error(
-					'newspack_newsletters_invalid_mailchimp_interest',
-					__( 'Invalid Mailchimp Interest.', 'newspack-newsletters' )
-				);
-			}
+	public function audience_segments( $post_id, $target_id ) {
+
+		$interest_id = false;
+		$segment_id  = false;
+
+		// Determine if we're dealing with an interest or a segment.
+		if ( false !== strpos( $target_id, ':' ) ) {
+			$exploded    = explode( ':', $target_id );
+			$field       = count( $exploded ) ? $exploded[0] : null;
+			$interest_id = count( $exploded ) > 1 ? $exploded[1] : null;
+		} elseif ( '' !== $target_id ) {
+			$segment_id = $target_id;
 		}
 
 		$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
@@ -565,6 +624,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
 			);
 		}
+
+		if ( '' !== $target_id && ! $interest_id && ! $segment_id ) {
+			return new WP_Error(
+				'newspack_newsletters_invalid_mailchimp_interest',
+				__( 'Invalid Mailchimp Interest.', 'newspack-newsletters' )
+			);
+		}
+
 		try {
 			$mc       = new Mailchimp( $this->api_key() );
 			$campaign = $this->validate(
@@ -580,36 +647,38 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				);
 			}
 
-			$has_interest = $compound_interest_id && ! $is_unsetting_interest;
-
 			$segment_opts = (object) [];
 
-			if ( $has_interest || $tag_ids ) {
+			if ( $interest_id ) {
 				$segment_opts = [
 					'match'      => 'all',
-					'conditions' => [],
+					'conditions' => [
+						[
+							'condition_type' => 'Interests',
+							'field'          => $field,
+							'op'             => 'interestcontains',
+							'value'          => [ $interest_id ],
+						],
+					],
 				];
-
-				if ( $has_interest ) {
-					$segment_opts['conditions'][] = [
-						'condition_type' => 'Interests',
-						'field'          => $field,
-						'op'             => 'interestcontains',
-						'value'          => [
-							$interest_id,
+			} elseif ( $segment_id ) {
+				$segment_data = $mc->get( "lists/$list_id/segments/$segment_id" );
+				if ( 'static' === $segment_data['type'] ) {
+					// Handle static segments (tags).
+					$segment_opts = [
+						'match'      => 'all',
+						'conditions' => [
+							[
+								'condition_type' => 'StaticSegment',
+								'field'          => 'static_segment',
+								'op'             => 'static_is',
+								'value'          => $segment_id,
+							],
 						],
 					];
-				}
-
-				if ( $tag_ids ) {
-					foreach ( $tag_ids as $tag_id ) {
-						$segment_opts['conditions'][] = [
-							'condition_type' => 'StaticSegment',
-							'field'          => 'static_segment',
-							'op'             => 'static_is',
-							'value'          => $tag_id,
-						];
-					}
+				} elseif ( 'saved' === $segment_data['type'] ) {
+					// Handle saved segments.
+					$segment_opts = $segment_data['options'];
 				}
 			}
 
@@ -619,6 +688,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'segment_opts' => $segment_opts,
 				],
 			];
+
+			// Add saved segment ID to payload if present.
+			if ( $segment_data && 'saved' === $segment_data['type'] ) {
+				$payload['recipients']['saved_segment_id'] = $segment_id;
+			}
 
 			$result = $this->validate(
 				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
@@ -696,5 +770,74 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return $original;
 		}
 		return $processed;
+	}
+
+	/**
+	 * Add contact to a list.
+	 *
+	 * @param array  $contact Contact data.
+	 * @param strine $list_id List ID.
+	 */
+	public function add_contact( $contact, $list_id ) {
+		try {
+			$mc             = new Mailchimp( $this->api_key() );
+			$email_address  = $contact['email'];
+			$name_fragments = explode( ' ', $contact['name'], 2 );
+			$merge_fields   = [
+				'FNAME' => $name_fragments[0],
+			];
+			if ( isset( $name_fragments[1] ) ) {
+				$merge_fields['LNAME'] = $name_fragments[1];
+			}
+			$update_payload = [
+				'email_address' => $email_address,
+				'merge_fields'  => $merge_fields,
+				'status'        => 'subscribed',
+			];
+
+			// Get list merge fields (metadata) to create them if needed.
+			$list_merge_fields = array_reduce(
+				$mc->get( "lists/$list_id/merge-fields" )['merge_fields'],
+				function( $acc, $field ) {
+					$acc[ $field['name'] ] = $field['tag'];
+					return $acc;
+				},
+				[]
+			);
+			foreach ( $contact['metadata'] as $key => $value ) {
+				if ( isset( $list_merge_fields[ $key ] ) ) {
+					$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
+				} else {
+					$created_merge_field = $mc->post(
+						"lists/$list_id/merge-fields",
+						[
+							'name' => $key,
+							'type' => 'text',
+						]
+					);
+					$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
+				}
+			}
+
+			// Create or update a list member.
+			$found_subscribers = $mc->get(
+				'search-members',
+				[
+					'list_id' => $list_id,
+					'query'   => $email_address,
+				]
+			)['exact_matches']['members'];
+			if ( empty( $found_subscribers ) ) {
+				$mc->post( "lists/$list_id/members", $update_payload );
+			} else {
+				$member_id = $found_subscribers[0]['id'];
+				$mc->patch( "lists/$list_id/members/$member_id", $update_payload );
+			}
+		} catch ( \Exception $e ) {
+			return new \WP_Error(
+				'newspack_add_contact',
+				$e->getMessage()
+			);
+		}
 	}
 }

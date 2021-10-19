@@ -1,3 +1,72 @@
+## [1.33.1](https://github.com/Automattic/newspack-newsletters/compare/v1.33.0...v1.33.1) (2021-09-14)
+
+
+### Bug Fixes
+
+* handle unavailable lists ([#585](https://github.com/Automattic/newspack-newsletters/issues/585)) ([c84cc77](https://github.com/Automattic/newspack-newsletters/commit/c84cc779d4d55deb5a26fbe6b3a224dd414e2533))
+* manual provider setting ([1c8811a](https://github.com/Automattic/newspack-newsletters/commit/1c8811a03635ed166007635af6086d8885a9f141))
+
+# [1.33.0](https://github.com/Automattic/newspack-newsletters/compare/v1.32.1...v1.33.0) (2021-09-08)
+
+
+### Bug Fixes
+
+* list info in pre-send modal ([6a615fb](https://github.com/Automattic/newspack-newsletters/commit/6a615fb74cc6025c96c8fc04ca6a715c27619656))
+* use WP_Http instead of Guzzle ([#582](https://github.com/Automattic/newspack-newsletters/issues/582)) ([5052004](https://github.com/Automattic/newspack-newsletters/commit/5052004ff75b2eb10d3559ee97fab2ce7bc7edf2))
+
+
+### Features
+
+* add support for embed blocks ([#583](https://github.com/Automattic/newspack-newsletters/issues/583)) ([53a2f57](https://github.com/Automattic/newspack-newsletters/commit/53a2f576b3924df62422ade8c9a263b12f1540f3))
+* autocompleter for mailchimp merge tags ([#575](https://github.com/Automattic/newspack-newsletters/issues/575)) ([412d39b](https://github.com/Automattic/newspack-newsletters/commit/412d39b11d3505cf0c9cfe51625f1ce69ef92bfe))
+
+## [1.32.1](https://github.com/Automattic/newspack-newsletters/compare/v1.32.0...v1.32.1) (2021-08-31)
+
+
+### Bug Fixes
+
+* mailchimp lists ([3d095c5](https://github.com/Automattic/newspack-newsletters/commit/3d095c560228f83a582e5ac630f84c68dca309ac))
+
+# [1.32.0](https://github.com/Automattic/newspack-newsletters/compare/v1.31.5...v1.32.0) (2021-08-31)
+
+
+### Bug Fixes
+
+* post inserter default styles ([#576](https://github.com/Automattic/newspack-newsletters/issues/576)) ([93d44ed](https://github.com/Automattic/newspack-newsletters/commit/93d44ed706730e1f5d72ed6a4d6243f6542309d4))
+
+
+### Features
+
+* **esp:** lists getters and contanct adding ([#546](https://github.com/Automattic/newspack-newsletters/issues/546)) ([cc351cb](https://github.com/Automattic/newspack-newsletters/commit/cc351cbd2bf7bc5e3204e3c24504d4a8452e465e))
+
+## [1.31.5](https://github.com/Automattic/newspack-newsletters/compare/v1.31.4...v1.31.5) (2021-08-27)
+
+
+### Bug Fixes
+
+* wporg release ([#572](https://github.com/Automattic/newspack-newsletters/issues/572)) ([4ad2208](https://github.com/Automattic/newspack-newsletters/commit/4ad2208a19abcdbe8cd43d048f8d7f336f27f8e7))
+
+## [1.31.4](https://github.com/Automattic/newspack-newsletters/compare/v1.31.3...v1.31.4) (2021-08-26)
+
+
+### Bug Fixes
+
+* **npm:** list codemirror as a dependency ([bf66d95](https://github.com/Automattic/newspack-newsletters/commit/bf66d958abbf6f3a4ddc19b00ba75c417a651359))
+* convert encoding before passing to DomDocument ([#565](https://github.com/Automattic/newspack-newsletters/issues/565)) ([bfd3915](https://github.com/Automattic/newspack-newsletters/commit/bfd3915d635bb687d52e3118252c9805f69a9fe4))
+* do not sync on autosave ([#563](https://github.com/Automattic/newspack-newsletters/issues/563)) ([ffbca87](https://github.com/Automattic/newspack-newsletters/commit/ffbca87ede425400f49414549afefae1a86b0be5))
+* modify selectorText instead of cssText ([#564](https://github.com/Automattic/newspack-newsletters/issues/564)) ([0400957](https://github.com/Automattic/newspack-newsletters/commit/0400957803d83b39a51cd5f9c4c9c1c65cbaad53))
+* prevent PHPCS from checking vendor files during release ([beab342](https://github.com/Automattic/newspack-newsletters/commit/beab342e561d817b51bed63dc0fb11f4d6d5620b))
+
+## [1.31.3](https://github.com/Automattic/newspack-newsletters/compare/v1.31.2...v1.31.3) (2021-08-25)
+
+
+### Bug Fixes
+
+* mailchimp recipients and segmentation options ([#556](https://github.com/Automattic/newspack-newsletters/issues/556)) ([7108d08](https://github.com/Automattic/newspack-newsletters/commit/7108d0886da290a65651ccb15bd5c8a8299b4e68))
+* prevent sender data overwrite on updates ([54b46fa](https://github.com/Automattic/newspack-newsletters/commit/54b46fa5e62530d1f4f7cf7dd6ee0408591cad85))
+* typos on "support" layout ([#559](https://github.com/Automattic/newspack-newsletters/issues/559)) ([e33833f](https://github.com/Automattic/newspack-newsletters/commit/e33833f13a5bd12d171f13fa8332ca2d3f70e9ea))
+* update stylelint version ([#560](https://github.com/Automattic/newspack-newsletters/issues/560)) ([c7731c3](https://github.com/Automattic/newspack-newsletters/commit/c7731c3d366bee740dade0343582a553765997d1))
+
 ## [1.31.2](https://github.com/Automattic/newspack-newsletters/compare/v1.31.1...v1.31.2) (2021-08-17)
 
 

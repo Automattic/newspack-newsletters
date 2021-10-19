@@ -101,13 +101,6 @@ class Newspack_Newsletters_Settings {
 			);
 		}
 
-		$settings_list[] = array(
-			'description' => __( 'Use Mailchimp Tags?', 'newspack-newsletters' ),
-			'key'         => 'newspack_newsletters_use_mailchimp_tags',
-			'type'        => 'checkbox',
-			'provider'    => 'mailchimp',
-		);
-
 		$settings_list = array_map(
 			function ( $item ) {
 				$default       = ! empty( $item['default'] ) ? $item['default'] : false;

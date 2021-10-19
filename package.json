@@ -1,6 +1,6 @@
 {
   "name": "newspack-newsletters",
-  "version": "1.31.2",
+  "version": "1.33.1",
   "description": "",
   "scripts": {
     "cm": "git-cz",
@@ -142,7 +142,7 @@
     "semantic-release-version-bump": "^1.4.1",
     "stylelint": "^13.3.0",
     "stylelint-config-prettier": "^8.0.1",
-    "stylelint-config-wordpress": "^16.0.0",
+    "stylelint-config-wordpress": "^17.0.0",
     "stylelint-prettier": "^1.1.2"
   }
 }

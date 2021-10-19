@@ -13,7 +13,6 @@ import { find } from 'lodash';
  * Internal dependencies
  */
 import ProviderSidebar from './ProviderSidebar';
-import './style.scss';
 
 const validateNewsletter = ( { campaign } ) => {
 	const { recipients, settings, status } = campaign || {};
@@ -52,7 +51,7 @@ const renderPreSendInfo = newsletterData => {
 	}
 	let listData;
 	if ( newsletterData.campaign && newsletterData.lists ) {
-		const lists = newsletterData.lists?.lists || [];
+		const lists = newsletterData.lists || [];
 		const list = find( lists, [ 'id', newsletterData.campaign.recipients.list_id ] );
 		if ( list ) {
 			listData = {
