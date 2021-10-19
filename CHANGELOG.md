@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/Automattic/newspack-newsletters/compare/v1.33.1...v1.34.0) (2021-10-19)
+
+
+### Features
+
+* block visibility attribute ([#591](https://github.com/Automattic/newspack-newsletters/issues/591)) ([300eae5](https://github.com/Automattic/newspack-newsletters/commit/300eae57f6617dc8721af6eb7eb99ce455aaa4dd))
+
 ## [1.33.1](https://github.com/Automattic/newspack-newsletters/compare/v1.33.0...v1.33.1) (2021-09-14)
 
 
