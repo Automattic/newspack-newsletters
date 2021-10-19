@@ -241,6 +241,11 @@ final class Newspack_Newsletters_Renderer {
 			return '';
 		}
 
+		// Verify if block is configured to be web-only.
+		if ( isset( $attrs['newsletterVisibility'] ) && 'web' === $attrs['newsletterVisibility'] ) {
+			return '';
+		}
+
 		$block_mjml_markup = '';
 		$attrs             = self::process_attributes( array_merge( $default_attrs, $attrs ) );
 
