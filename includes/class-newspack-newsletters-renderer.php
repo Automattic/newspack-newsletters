@@ -305,7 +305,8 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/image':
 				// Parse block content.
 				$dom = new DomDocument();
-				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				libxml_use_internal_errors( true );
+				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
 				$xpath      = new DOMXpath( $dom );
 				$img        = $xpath->query( '//img' )[0];
 				$img_src    = $img->getAttribute( 'src' );
@@ -370,15 +371,25 @@ final class Newspack_Newsletters_Renderer {
 			 */
 			case 'core/buttons':
 				foreach ( $inner_blocks as $button_block ) {
+
+					if ( empty( $button_block['innerHTML'] ) ) {
+						break;
+					}
+
 					// Parse block content.
 					$dom = new DomDocument();
-					@$dom->loadHTML( mb_convert_encoding( $button_block['innerHTML'], 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					libxml_use_internal_errors( true );
+					$dom->loadHTML( mb_convert_encoding( $button_block['innerHTML'], 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
 					$xpath         = new DOMXpath( $dom );
 					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = $button_block['attrs'];
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 999;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
+
+					if ( ! $anchor ) {
+						break;
+					}
 
 					$default_button_attrs = array(
 						'padding'       => '0',
@@ -611,7 +622,8 @@ final class Newspack_Newsletters_Renderer {
 
 				// Parse block caption.
 				$dom = new DomDocument();
-				@$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				libxml_use_internal_errors( true );
+				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
 				$xpath      = new DOMXpath( $dom );
 				$figcaption = $xpath->query( '//figcaption/text()' )[0];
 				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
