@@ -314,21 +314,6 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
-		\register_meta(
-			'post',
-			self::EMAIL_HTML_META,
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
@@ -689,9 +674,8 @@ final class Newspack_Newsletters {
 				'callback'            => [ __CLASS__, 'api_get_mjml' ],
 				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
-					'id'      => [
+					'post_id' => [
 						'required'          => true,
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_id' ],
 						'sanitize_callback' => 'absint',
 					],
 					'content' => [
@@ -722,7 +706,7 @@ final class Newspack_Newsletters {
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_get_mjml( $request ) {
-		$post = get_post( $request['id'] );
+		$post = get_post( $request['post_id'] );
 		if ( ! empty( $request['title'] ) ) {
 			$post->post_title = $request['title'];
 		}
