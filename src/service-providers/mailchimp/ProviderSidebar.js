@@ -17,7 +17,7 @@ const SegmentsSelection = ( {
 	availableInterests,
 	availableSegments,
 } ) => {
-	const [ targetId, setTargetId ] = useState( chosenTarget || '' );
+	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || '' );
 
 	const [ isInitial, setIsInitial ] = useState( true );
 	useEffect(() => {
@@ -49,9 +49,16 @@ const SegmentsSelection = ( {
 			},
 			...availableSegments.map( segment => ( {
 				label: ` - ${ segment.name }`,
-				value: segment.id,
+				value: segment.id.toString(),
 			} ) ),
 		] );
+	}
+
+	if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
+		const foundOption = options.find(
+			option => option.value && option.value.indexOf( targetId ) !== -1
+		);
+		if ( foundOption ) setTargetId( foundOption.value );
 	}
 
 	return (
@@ -67,7 +74,7 @@ const SegmentsSelection = ( {
 						},
 						...options,
 					] }
-					onChange={ id => setTargetId( id ) }
+					onChange={ id => setTargetId( id.toString() ) }
 					disabled={ inFlight }
 				/>
 			) : null }
@@ -159,7 +166,9 @@ const ProviderSidebar = ( {
 	const recipients = newsletterData.campaign?.recipients;
 
 	const chosenTarget =
-		recipients?.segment_opts?.saved_segment_id || recipients?.segment_opts?.conditions[ 0 ]?.value;
+		recipients?.segment_opts?.saved_segment_id ||
+		recipients?.segment_opts?.conditions[ 0 ]?.value ||
+		'';
 
 	const interestSettings = getListInterestsSettings( newsletterData );
 
@@ -193,7 +202,7 @@ const ProviderSidebar = ( {
 			) }
 
 			<SegmentsSelection
-				chosenTarget={ chosenTarget }
+				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
 				availableInterests={ interestSettings.options }
 				availableSegments={ segments.filter( segment => segment.member_count > 0 ) }
 				apiFetch={ apiFetch }
