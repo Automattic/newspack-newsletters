@@ -491,16 +491,7 @@ final class Newspack_Newsletters {
 	 */
 	public static function maybe_display_public_archive_posts( $query ) {
 		// Only run on the main front-end query for post category and tag archives, or newsletter CPT archives.
-		if (
-			is_admin() ||
-			! $query->is_main_query() ||
-			(
-				! $query->is_category() &&
-				! $query->is_tag() &&
-				! $query->is_search() &&
-				! $query->is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT )
-			)
-		) {
+		if ( ! self::should_apply_filter_to_query( $query ) ) {
 			return;
 		}
 
