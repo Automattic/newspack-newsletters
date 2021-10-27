@@ -476,6 +476,15 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * @param array $query The WP query object.
+     * 
+     * @return bool
+	 */
+	public static function should_apply_filter_to_query( $query ) {
+        return ! is_admin() && $query->is_main_query() && ( $query->is_archive() || $query->is_search() );
+    }
+
+	/**
 	 * Allow newsletter posts to appear in archive pages, but only if set to be public.
 	 *
 	 * @param array $query The WP query object.
