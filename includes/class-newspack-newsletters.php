@@ -694,7 +694,15 @@ final class Newspack_Newsletters {
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_set_color_palette( $request ) {
-		update_option( 'newspack_newsletters_color_palette', $request->get_body() );
+		try {
+			$color_palette = json_decode( (string) get_option( 'newspack_newsletters_color_palette', '{}' ) ?? '{}', true );
+		} catch ( \Exception $e ) {
+			$color_palette = [];
+		}
+		update_option(
+			'newspack_newsletters_color_palette',
+			wp_json_encode( array_merge( $color_palette ?? [], json_decode( $request->get_body(), true ) ) )
+		);
 		return \rest_ensure_response( [] );
 	}
 
