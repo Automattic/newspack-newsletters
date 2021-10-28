@@ -77,7 +77,6 @@ final class Newspack_Newsletters {
 		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
 		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
-		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
@@ -588,20 +587,6 @@ final class Newspack_Newsletters {
 		}
 
 		return $actions;
-	}
-
-	/**
-	 * Disable Newspack Campaigns on Newsletter posts.
-	 *
-	 * @param array $disabled Disabled status to filter.
-	 * @return array|boolean Unfiltered disabled status, or true to disable.
-	 */
-	public static function disable_campaigns_for_newsletters( $disabled ) {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
-			return true;
-		}
-
-		return $disabled;
 	}
 
 	/**
