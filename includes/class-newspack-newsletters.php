@@ -691,10 +691,20 @@ final class Newspack_Newsletters {
 	 * retrievable on the backend. The workaround is to set it as an option
 	 * so that it's available to the email renderer.
 	 *
+	 * The editor can send multiple color palettes, so we're merging them.
+	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_set_color_palette( $request ) {
-		update_option( 'newspack_newsletters_color_palette', $request->get_body() );
+		update_option(
+			'newspack_newsletters_color_palette',
+			wp_json_encode(
+				array_merge(
+					json_decode( (string) get_option( 'newspack_newsletters_color_palette', '{}' ), true ) ?? [],
+					json_decode( $request->get_body(), true )
+				)
+			)
+		);
 		return \rest_ensure_response( [] );
 	}
 
