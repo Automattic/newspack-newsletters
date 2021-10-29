@@ -1167,6 +1167,24 @@ final class Newspack_Newsletters {
         
         return $join;
     }
+
+	/**
+     * Custom where to be used in conjunction with filter_non_public_newsletters_join
+	 * so that only public newsletters which are published are displayed in search.
+     *
+	 * @param string $where
+	 * @param WP_Query $query
+	 *
+	 * @return string
+	 */
+	public static function filter_non_public_newsletters_where( $where, $query ) {
+        global $wpdb;
+
+		if ( self::should_apply_filter_to_query( $query ) ) {
+            $where .= "AND ( ( cj1.post_id IS NOT NULL ) OR ( cj2.post_id IS NULL ) )";
+		}
+
+        return $where;
     }
 }
 Newspack_Newsletters::instance();
