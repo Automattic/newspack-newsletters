@@ -54,12 +54,14 @@ const SegmentsSelection = ( {
 		] );
 	}
 
-	if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
-		const foundOption = options.find(
-			option => option.value && option.value.indexOf( targetId ) !== -1
-		);
-		if ( foundOption ) setTargetId( foundOption.value );
-	}
+	useEffect(() => {
+		if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
+			const foundOption = options.find(
+				option => option.value && option.value.indexOf( targetId ) !== -1
+			);
+			if ( foundOption ) setTargetId( foundOption.value );
+		}
+	}, [ targetId ]);
 
 	return (
 		<Fragment>
