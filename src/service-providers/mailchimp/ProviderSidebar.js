@@ -13,6 +13,7 @@ import { getListInterestsSettings } from './utils';
 const SegmentsSelection = ( {
 	onUpdate,
 	inFlight,
+	targetField,
 	chosenTarget,
 	availableInterests,
 	availableSegments,
@@ -57,7 +58,7 @@ const SegmentsSelection = ( {
 	useEffect(() => {
 		if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
 			const foundOption = options.find(
-				option => option.value && option.value.indexOf( targetId ) !== -1
+				option => option.value && option.value === `${ targetField || '' }:${ targetId }`
 			);
 			if ( foundOption ) setTargetId( foundOption.value );
 		}
@@ -172,6 +173,10 @@ const ProviderSidebar = ( {
 		recipients?.segment_opts?.conditions[ 0 ]?.value ||
 		'';
 
+	const targetField = recipients?.segment_opts?.conditions?.length
+		? recipients?.segment_opts?.conditions[ 0 ]?.field
+		: '';
+
 	const interestSettings = getListInterestsSettings( newsletterData );
 
 	return (
@@ -205,6 +210,7 @@ const ProviderSidebar = ( {
 
 			<SegmentsSelection
 				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
+				targetField={ targetField }
 				availableInterests={ interestSettings.options }
 				availableSegments={ segments.filter( segment => segment.member_count > 0 ) }
 				apiFetch={ apiFetch }
