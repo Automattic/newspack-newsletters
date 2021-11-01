@@ -56,9 +56,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt-get update && sudo apt-get install subversion
-            sudo -E docker-php-ext-install mysqli
-            sudo apt-get update && sudo apt-get install default-mysql-client
+            sudo apt-get update && sudo apt-get install -y subversion default-mysql-client
       - run:
           name: Run Tests
           command: |
