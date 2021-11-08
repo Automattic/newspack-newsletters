@@ -64,27 +64,27 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
-		add_action( 'init', [ __CLASS__, 'register_meta' ] );
-		add_action( 'init', [ __CLASS__, 'register_editor_only_meta' ] );
-		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
-		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
-		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
-		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
-		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
+		add_action( 'init', array( __CLASS__, 'register_cpt' ) );
+		add_action( 'init', array( __CLASS__, 'register_meta' ) );
+		add_action( 'init', array( __CLASS__, 'register_editor_only_meta' ) );
+		add_action( 'init', array( __CLASS__, 'register_blocks' ) );
+		add_action( 'rest_api_init', array( __CLASS__, 'rest_api_init' ) );
+		add_action( 'default_title', array( __CLASS__, 'default_title' ), 10, 2 );
+		add_action( 'wp_head', array( __CLASS__, 'public_newsletter_custom_style' ), 10, 2 );
+		add_filter( 'display_post_states', array( __CLASS__, 'display_post_states' ), 10, 2 );
+		add_action( 'pre_get_posts', array( __CLASS__, 'maybe_display_public_archive_posts' ) );
 		add_filter( 'posts_join', array( __CLASS__, 'filter_non_public_newsletters_join' ), 10, 2 );
 		add_filter( 'posts_where', array( __CLASS__, 'filter_non_public_newsletters_where' ), 10, 2 );
-		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
-		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
-		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
-		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
-		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
-		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
-		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
-		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
-		add_filter( 'render_block', [ __CLASS__, 'remove_email_only_block' ], 10, 2 );
+		add_action( 'template_redirect', array( __CLASS__, 'maybe_display_public_post' ) );
+		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', array( __CLASS__, 'add_public_page_column' ) );
+		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', array( __CLASS__, 'public_page_column_content' ), 10, 2 );
+		add_filter( 'post_row_actions', array( __CLASS__, 'display_view_or_preview_link_in_admin' ) );
+		add_filter( 'jetpack_relatedposts_filter_options', array( __CLASS__, 'disable_jetpack_related_posts' ) );
+		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, array( __CLASS__, 'save' ), 10, 3 );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'branding_scripts' ) );
+		add_filter( 'newspack_theme_featured_image_post_types', array( __CLASS__, 'support_featured_image_options' ) );
+		add_filter( 'gform_force_hooks_js_output', array( __CLASS__, 'suppress_gravityforms_js_on_newsletters' ) );
+		add_filter( 'render_block', array( __CLASS__, 'remove_email_only_block' ), 10, 2 );
 		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
@@ -486,7 +486,7 @@ final class Newspack_Newsletters {
 
 		// Allow Newsletter posts to appear in post category and tag archives.
 		if ( $query->is_category() || $query->is_tag() || empty( $query->get( 'post_type' ) ) ) {
-			$query->set( 'post_type', array( 'post', self::NEWSPACK_NEWSLETTERS_CPT ) );
+			$query->set( 'post_type', array( 'post', self::NEWSPACK_NEWSLETTERS_CPT ) ); // phpcs:ignore
 		}
 
 		// Filter out non-public Newsletter posts.
@@ -690,7 +690,7 @@ final class Newspack_Newsletters {
 			'newspack_newsletters_color_palette',
 			wp_json_encode(
 				array_merge(
-					json_decode( (string) get_option( 'newspack_newsletters_color_palette', '{}' ), true ) ?? [],
+					json_decode( (string) get_option( 'newspack_newsletters_color_palette', '{}' ), true ) ?? array(),
 					json_decode( $request->get_body(), true )
 				)
 			)
