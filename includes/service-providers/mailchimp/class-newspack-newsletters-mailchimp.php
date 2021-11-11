@@ -81,8 +81,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$ping = null;
 		}
 		return $ping ?
-			// 'newspack_mailchimp_api_key' is a new option introduced to manage MC API key accross Newspack plugins.
-			// Keeping the old option for backwards compatibility.
 			update_option( 'newspack_mailchimp_api_key', $api_key ) :
 			new WP_Error(
 				'newspack_newsletters_invalid_keys',
