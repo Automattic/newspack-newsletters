@@ -1,3 +1,33 @@
+## [1.35.1](https://github.com/Automattic/newspack-newsletters/compare/v1.35.0...v1.35.1) (2021-11-03)
+
+
+### Bug Fixes
+
+* allow social-link inner block ([#603](https://github.com/Automattic/newspack-newsletters/issues/603)) ([ab2f892](https://github.com/Automattic/newspack-newsletters/commit/ab2f8926765ff6216bf87ef7be15ddad9159d7c2))
+* **mailchimp:** segment selection and saved segments ([#605](https://github.com/Automattic/newspack-newsletters/issues/605)) ([e0b62e3](https://github.com/Automattic/newspack-newsletters/commit/e0b62e329ce83da7e7815d1c34a635e34d0038c3))
+* enable prompts on public newsletters ([7e2290b](https://github.com/Automattic/newspack-newsletters/commit/7e2290b66bd85bae4d47a784fdc5a873c4ba1374))
+* merge color palette values ([#608](https://github.com/Automattic/newspack-newsletters/issues/608)) ([9ba2bae](https://github.com/Automattic/newspack-newsletters/commit/9ba2bae41babf161ac89244946633cf116caf029))
+
+# [1.35.0](https://github.com/Automattic/newspack-newsletters/compare/v1.34.0...v1.35.0) (2021-10-26)
+
+
+### Bug Fixes
+
+* handle empty button blocks ([#600](https://github.com/Automattic/newspack-newsletters/issues/600)) ([b6ec555](https://github.com/Automattic/newspack-newsletters/commit/b6ec555e5f204762190bb7c2fce195a572778e62))
+* mailchimp segments timeout ([#601](https://github.com/Automattic/newspack-newsletters/issues/601)) ([0c99ead](https://github.com/Automattic/newspack-newsletters/commit/0c99eaddbc2163278e1a80b4773cd7f416465b31))
+
+
+### Features
+
+* **editor:** allow other post types to be treated as email ([1442a46](https://github.com/Automattic/newspack-newsletters/commit/1442a465b84aa08dfaa0c05e49363a414557cddc))
+
+# [1.34.0](https://github.com/Automattic/newspack-newsletters/compare/v1.33.1...v1.34.0) (2021-10-19)
+
+
+### Features
+
+* block visibility attribute ([#591](https://github.com/Automattic/newspack-newsletters/issues/591)) ([300eae5](https://github.com/Automattic/newspack-newsletters/commit/300eae57f6617dc8721af6eb7eb99ce455aaa4dd))
+
 ## [1.33.1](https://github.com/Automattic/newspack-newsletters/compare/v1.33.0...v1.33.1) (2021-09-14)
 
 
