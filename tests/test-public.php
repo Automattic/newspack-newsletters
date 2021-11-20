@@ -6,7 +6,7 @@
  */
 
 /**
- * Featured listing test case.
+ * Public newsletters test case.
  */
 class Newsletter_Public_Test extends WP_UnitTestCase {
 	/**
