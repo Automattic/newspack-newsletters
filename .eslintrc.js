@@ -13,7 +13,7 @@ module.exports = {
 	rules: {
 		// Disallow importing or requiring packages that are not listed in package.json
 		// This prevents us from depending on transitive dependencies, which could break in unexpected ways.
-		'import/no-extraneous-dependencies': ['error'],
+		'import/no-extraneous-dependencies': [ 'error' ],
 		// Skip prop types validation for now
 		'react/prop-types': 'off',
 		// Allow exporting components as default exports
@@ -24,6 +24,7 @@ module.exports = {
 		'react/jsx-curly-spacing': 'off',
 		// JSDoc rules overrides
 		'jsdoc/require-returns': 'off',
+		'jsdoc/require-param': 'off',
 		// PHP vars from backend are in snake case
 		camelcase: 'off',
 	},
