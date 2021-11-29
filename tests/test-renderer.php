@@ -165,7 +165,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			Newspack_Newsletters_Renderer::post_to_mjml_components(
 				get_post( $newsletter_post )
 			),
-			"<mj-wrapper ref=\"4\"><mj-section padding=\"0\"><mj-column padding=\"12px\" width=\"100%\"><mj-text padding=\"0\" line-height=\"1.8\" font-size=\"16px\" >\n<p>Hello</p>\n</mj-text></mj-column></mj-section></mj-wrapper>",
+			"<mj-wrapper ref=\"$reusable_block_post_id\"><mj-section padding=\"0\"><mj-column padding=\"12px\" width=\"100%\"><mj-text padding=\"0\" line-height=\"1.8\" font-size=\"16px\" >\n<p>Hello</p>\n</mj-text></mj-column></mj-section></mj-wrapper>",
 			'Renders the reusable block into valid markup'
 		);
 	}

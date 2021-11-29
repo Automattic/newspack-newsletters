@@ -10,7 +10,7 @@ commands:
 jobs:
   build:
     docker:
-      - image: circleci/php:7.4-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -24,7 +24,7 @@ jobs:
   # Linting
   lint:
     docker:
-      - image: circleci/php:7.4-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -41,7 +41,7 @@ jobs:
 
   test-php:
     docker:
-      - image: circleci/php:7.4
+      - image: cimg/php:7.4
       - image: circleci/mysql:5.6
     environment:
       - WP_TESTS_DIR: '/tmp/wordpress-tests-lib'
@@ -56,21 +56,19 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt-get update && sudo apt-get install subversion
-            sudo -E docker-php-ext-install mysqli
-            sudo apt-get update && sudo apt-get install default-mysql-client
+            sudo apt-get update && sudo apt-get install -y subversion default-mysql-client
       - run:
           name: Run Tests
           command: |
             composer install
             composer require "phpunit/phpunit=5.7.*"
             rm -rf $WP_TESTS_DIR $WP_CORE_DIR
-            bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 latest
+            bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 5.8.1
             ./vendor/bin/phpunit
 
   release_github:
     docker:
-      - image: circleci/php:7.4-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -78,7 +76,7 @@ jobs:
           command: composer install --no-dev --no-scripts
       - run:
           name: Install rsync
-          command: sudo apt install rsync
+          command: sudo apt-get update && sudo apt-get install rsync
       - run:
           name: Release new version on Github
           command: npm run release
@@ -90,7 +88,7 @@ jobs:
 
   release_wporg:
     docker:
-      - image: circleci/php:7.4-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:
@@ -101,7 +99,7 @@ jobs:
 
   post_release:
     docker:
-      - image: circleci/php:7.4-node-browsers
+      - image: cimg/php:7.4-browsers
     steps:
       - checkout_with_workspace
       - run:

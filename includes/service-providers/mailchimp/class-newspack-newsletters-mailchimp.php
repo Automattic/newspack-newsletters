@@ -36,7 +36,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function api_credentials() {
 		return [
-			'api_key' => get_option( 'newspack_newsletters_mailchimp_api_key', '' ),
+			// 'newspack_mailchimp_api_key' is a new option introduced to manage MC API key accross Newspack plugins.
+			// Keeping the old option for backwards compatibility.
+			'api_key' => get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key', '' ) ),
 		];
 	}
 
@@ -79,7 +81,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$ping = null;
 		}
 		return $ping ?
-			update_option( 'newspack_newsletters_mailchimp_api_key', $api_key ) :
+			update_option( 'newspack_mailchimp_api_key', $api_key ) :
 			new WP_Error(
 				'newspack_newsletters_invalid_keys',
 				__( 'Please input a valid Mailchimp API key.', 'newspack-newsletters' )
@@ -114,7 +116,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				__( 'Error setting Mailchimp list.', 'newspack_newsletters' )
 			);
 
-			$data           = $this->retrieve( $post_id );
+			$data = $this->retrieve( $post_id );
+			if ( is_wp_error( $data ) ) {
+				return \rest_ensure_response( $data );
+			}
+
 			$data['result'] = $result;
 
 			return \rest_ensure_response( $data );
@@ -173,17 +179,29 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			$segments = [];
 			if ( $list_id ) {
-				$segments_response = $this->validate(
+				$saved_segments_response  = $this->validate(
 					$mc->get(
 						"lists/$list_id/segments",
 						[
+							'type'  => 'saved',
 							'count' => 1000,
 						],
-						20
+						60
 					),
 					__( 'Error retrieving Mailchimp segments.', 'newspack_newsletters' )
 				);
-				$segments          = $segments_response['segments'];
+				$static_segments_response = $this->validate(
+					$mc->get(
+						"lists/$list_id/segments",
+						[
+							'type'  => 'static',
+							'count' => 1000,
+						],
+						60
+					),
+					__( 'Error retrieving Mailchimp segments.', 'newspack_newsletters' )
+				);
+				$segments                 = array_merge( $saved_segments_response['segments'], $static_segments_response['segments'] );
 			}
 
 			return [
@@ -687,7 +705,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			// Add saved segment ID to payload if present.
 			if ( $segment_data && 'saved' === $segment_data['type'] ) {
-				$payload['recipients']['saved_segment_id'] = $segment_id;
+				$payload['recipients']['segment_opts']['saved_segment_id'] = (int) $segment_id;
 			}
 
 			$result = $this->validate(

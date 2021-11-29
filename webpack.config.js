@@ -18,6 +18,7 @@ const adsEditor = path.join( __dirname, 'src', 'ads-admin', 'editor' );
 const branding = path.join( __dirname, 'src', 'branding' );
 const quickEdit = path.join( __dirname, 'src', 'quick-edit' );
 const blocks = path.join( __dirname, 'src', 'editor', 'blocks' );
+const newsletterEditor = path.join( __dirname, 'src', 'newsletter-editor' );
 
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
@@ -29,6 +30,7 @@ const webpackConfig = getBaseWebpackConfig(
 			branding,
 			quickEdit,
 			blocks,
+			newsletterEditor,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}

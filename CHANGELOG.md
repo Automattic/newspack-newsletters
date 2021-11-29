@@ -1,3 +1,67 @@
+# [1.36.0](https://github.com/Automattic/newspack-newsletters/compare/v1.35.1...v1.36.0) (2021-11-18)
+
+
+### Bug Fixes
+
+* change MC API key option name ([#597](https://github.com/Automattic/newspack-newsletters/issues/597)) ([76275e8](https://github.com/Automattic/newspack-newsletters/commit/76275e8c540696eba342b473e8a1c1107d5f073b))
+* non-public newsletters should not surface in search results ([7de9262](https://github.com/Automattic/newspack-newsletters/commit/7de92624ce117b78ac7785376fb13ad8d83596d8))
+
+
+### Features
+
+* allow custom hooks in the email editor ([21e5034](https://github.com/Automattic/newspack-newsletters/commit/21e5034693ddf7129b513c67e6a46477d8ad671a))
+
+# [1.36.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.35.1...v1.36.0-alpha.1) (2021-11-16)
+
+
+### Bug Fixes
+
+* change MC API key option name ([#597](https://github.com/Automattic/newspack-newsletters/issues/597)) ([76275e8](https://github.com/Automattic/newspack-newsletters/commit/76275e8c540696eba342b473e8a1c1107d5f073b))
+* non-public newsletters should not surface in search results ([7de9262](https://github.com/Automattic/newspack-newsletters/commit/7de92624ce117b78ac7785376fb13ad8d83596d8))
+
+
+### Features
+
+* allow custom hooks in the email editor ([21e5034](https://github.com/Automattic/newspack-newsletters/commit/21e5034693ddf7129b513c67e6a46477d8ad671a))
+
+## [1.35.1](https://github.com/Automattic/newspack-newsletters/compare/v1.35.0...v1.35.1) (2021-11-03)
+
+
+### Bug Fixes
+
+* allow social-link inner block ([#603](https://github.com/Automattic/newspack-newsletters/issues/603)) ([ab2f892](https://github.com/Automattic/newspack-newsletters/commit/ab2f8926765ff6216bf87ef7be15ddad9159d7c2))
+* **mailchimp:** segment selection and saved segments ([#605](https://github.com/Automattic/newspack-newsletters/issues/605)) ([e0b62e3](https://github.com/Automattic/newspack-newsletters/commit/e0b62e329ce83da7e7815d1c34a635e34d0038c3))
+* enable prompts on public newsletters ([7e2290b](https://github.com/Automattic/newspack-newsletters/commit/7e2290b66bd85bae4d47a784fdc5a873c4ba1374))
+* merge color palette values ([#608](https://github.com/Automattic/newspack-newsletters/issues/608)) ([9ba2bae](https://github.com/Automattic/newspack-newsletters/commit/9ba2bae41babf161ac89244946633cf116caf029))
+
+# [1.35.0](https://github.com/Automattic/newspack-newsletters/compare/v1.34.0...v1.35.0) (2021-10-26)
+
+
+### Bug Fixes
+
+* handle empty button blocks ([#600](https://github.com/Automattic/newspack-newsletters/issues/600)) ([b6ec555](https://github.com/Automattic/newspack-newsletters/commit/b6ec555e5f204762190bb7c2fce195a572778e62))
+* mailchimp segments timeout ([#601](https://github.com/Automattic/newspack-newsletters/issues/601)) ([0c99ead](https://github.com/Automattic/newspack-newsletters/commit/0c99eaddbc2163278e1a80b4773cd7f416465b31))
+
+
+### Features
+
+* **editor:** allow other post types to be treated as email ([1442a46](https://github.com/Automattic/newspack-newsletters/commit/1442a465b84aa08dfaa0c05e49363a414557cddc))
+
+# [1.34.0](https://github.com/Automattic/newspack-newsletters/compare/v1.33.1...v1.34.0) (2021-10-19)
+
+
+### Features
+
+* block visibility attribute ([#591](https://github.com/Automattic/newspack-newsletters/issues/591)) ([300eae5](https://github.com/Automattic/newspack-newsletters/commit/300eae57f6617dc8721af6eb7eb99ce455aaa4dd))
+
+## [1.33.1](https://github.com/Automattic/newspack-newsletters/compare/v1.33.0...v1.33.1) (2021-09-14)
+
+
+### Bug Fixes
+
+* handle unavailable lists ([#585](https://github.com/Automattic/newspack-newsletters/issues/585)) ([c84cc77](https://github.com/Automattic/newspack-newsletters/commit/c84cc779d4d55deb5a26fbe6b3a224dd414e2533))
+* manual provider setting ([1c8811a](https://github.com/Automattic/newspack-newsletters/commit/1c8811a03635ed166007635af6086d8885a9f141))
+
 # [1.33.0](https://github.com/Automattic/newspack-newsletters/compare/v1.32.1...v1.33.0) (2021-09-08)
 
 

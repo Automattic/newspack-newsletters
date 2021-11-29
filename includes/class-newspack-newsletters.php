@@ -73,16 +73,18 @@ final class Newspack_Newsletters {
 		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
+		add_filter( 'posts_join', [ __CLASS__, 'filter_non_public_newsletters_join' ], 11, 2 );
+		add_filter( 'posts_where', [ __CLASS__, 'filter_non_public_newsletters_where' ], 11, 2 );
 		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
 		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
-		add_filter( 'newspack_newsletters_assess_has_disabled_popups', [ __CLASS__, 'disable_campaigns_for_newsletters' ], 11 );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
 		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
+		add_filter( 'render_block', [ __CLASS__, 'remove_email_only_block' ], 10, 2 );
 		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
@@ -313,21 +315,6 @@ final class Newspack_Newsletters {
 				'auth_callback'  => '__return_true',
 			]
 		);
-		\register_meta(
-			'post',
-			self::EMAIL_HTML_META,
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**
@@ -476,50 +463,99 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Allow newsletter posts to appear in archive pages, but only if set to be public.
+	 * Convenience function to determine whether a Newspack specific filter should be applied to a query.
+	 * Queries that should contain public newsletters: any archive (term, author, or date), search, or
+	 * blog page query that can contain regular posts.
+	 *
+	 * @param WP_Query $query The WP query object.
+	 * @param boolean  $include_newsletters If true, only apply filter when the query includes newsletters.
+	 *
+	 * @return bool
+	 */
+	public static function should_apply_filter_to_query( $query, $include_newsletters = false ) {
+		$maybe_apply_filter = true;
+
+		if ( $include_newsletters ) {
+			$post_types         = $query->get( 'post_type' );
+			$maybe_apply_filter = 'any' === $post_types || self::NEWSPACK_NEWSLETTERS_CPT === $post_types || ( is_array( $post_types ) && in_array( self::NEWSPACK_NEWSLETTERS_CPT, $post_types ) );
+		}
+
+		return $maybe_apply_filter && ! is_admin() && $query->is_main_query() && ( $query->is_archive() || $query->is_search() || $query->is_home() );
+	}
+
+	/**
+	 * Allow newsletter posts to appear when regular posts are queried.
 	 *
 	 * @param array $query The WP query object.
 	 */
 	public static function maybe_display_public_archive_posts( $query ) {
-		// Only run on the main front-end query for post category and tag archives, or newsletter CPT archives.
-		if (
-			is_admin() ||
-			! $query->is_main_query() ||
-			(
-				! is_category() &&
-				! is_tag() &&
-				! is_post_type_archive( self::NEWSPACK_NEWSLETTERS_CPT )
-			)
-		) {
+		if ( ! self::should_apply_filter_to_query( $query ) ) {
 			return;
 		}
 
-		// Allow Newsletter posts to appear in post category and tag archives.
-		if ( is_category() || is_tag() || empty( $query->get( 'post_type' ) ) ) {
-			$query->set( 'post_type', [ 'post', self::NEWSPACK_NEWSLETTERS_CPT ] );
+		$post_types = $query->get( 'post_type' );
+
+		// An 'any' post_types arg means any post type, so no need to add anything.
+		if ( 'any' === $post_types ) {
+			return;
 		}
 
-		// Filter out non-public Newsletter posts.
-		$meta_query        = $query->get( 'meta_query', [] ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
-		$meta_query_params = [
-			[
-				'key'     => 'is_public',
-				'value'   => true,
-				'compare' => '=',
-			],
-		];
-
-		// If a regular post archive, also allow posts that don't have the is_public meta field.
-		if ( is_category() || is_tag() ) {
-			$meta_query_params['relation'] = 'OR';
-			$meta_query_params[]           = [
-				'key'     => 'is_public',
-				'compare' => 'NOT EXISTS',
-			];
+		// If post_types arg is empty or 'post', we need to convert it to an array so we can add the newsletter post type.
+		if ( empty( $post_types ) || 'post' === $post_types ) {
+			$post_types = [ 'post' ];
 		}
 
-		$meta_query[] = $meta_query_params;
-		$query->set( 'meta_query', $meta_query ); // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
+		// If post_types arg is an array and doesn't already contain the newsletter post type, add it.
+		$contains_regular_posts = is_array( $post_types ) && in_array( 'post', $post_types ) && ! in_array( self::NEWSPACK_NEWSLETTERS_CPT, $post_types );
+
+		if ( $contains_regular_posts ) {
+			$post_types[] = self::NEWSPACK_NEWSLETTERS_CPT;
+			$query->set( 'post_type', $post_types ); // phpcs:ignore
+		}
+	}
+
+	/**
+	 * Custom join to be used in conjunction with filter_non_public_newsletters_where
+	 * so that only public newsletters which are published are displayed in queries.
+	 *
+	 * @param string   $join Join SQL statement.
+	 * @param WP_Query $query WP Query object.
+	 *
+	 * @return string
+	 */
+	public static function filter_non_public_newsletters_join( $join, $query ) {
+		global $wpdb;
+
+		if ( self::should_apply_filter_to_query( $query, true ) ) {
+			$join .= "LEFT JOIN {$wpdb->postmeta} AS cj1 ON (
+                        {$wpdb->posts}.ID = cj1.post_id
+                        AND {$wpdb->posts}.post_type = 'newspack_nl_cpt'
+                        AND cj1.meta_key = 'is_public'
+                        AND cj1.meta_value = '1' ) ";
+			$join .= "LEFT JOIN {$wpdb->postmeta} AS cj2
+                        ON ( {$wpdb->posts}.ID = cj2.post_id AND cj2.meta_key = 'is_public' ) ";
+		}
+
+		return $join;
+	}
+
+	/**
+	 * Custom where to be used in conjunction with filter_non_public_newsletters_join
+	 * so that only public newsletters which are published are displayed in queries.
+	 *
+	 * @param string   $where SQL constraints making up the WHERE statement.
+	 * @param WP_Query $query WP Query object.
+	 *
+	 * @return string
+	 */
+	public static function filter_non_public_newsletters_where( $where, $query ) {
+		global $wpdb;
+
+		if ( self::should_apply_filter_to_query( $query, true ) ) {
+			$where .= 'AND ( ( cj1.post_id IS NOT NULL ) OR ( cj2.post_id IS NULL ) )';
+		}
+
+		return $where;
 	}
 
 	/**
@@ -602,20 +638,6 @@ final class Newspack_Newsletters {
 		}
 
 		return $actions;
-	}
-
-	/**
-	 * Disable Newspack Campaigns on Newsletter posts.
-	 *
-	 * @param array $disabled Disabled status to filter.
-	 * @return array|boolean Unfiltered disabled status, or true to disable.
-	 */
-	public static function disable_campaigns_for_newsletters( $disabled ) {
-		if ( self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() ) {
-			return true;
-		}
-
-		return $disabled;
 	}
 
 	/**
@@ -710,9 +732,8 @@ final class Newspack_Newsletters {
 				'callback'            => [ __CLASS__, 'api_get_mjml' ],
 				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
 				'args'                => [
-					'id'      => [
+					'post_id' => [
 						'required'          => true,
-						'validate_callback' => [ __CLASS__, 'validate_newsletter_id' ],
 						'sanitize_callback' => 'absint',
 					],
 					'content' => [
@@ -728,10 +749,20 @@ final class Newspack_Newsletters {
 	 * retrievable on the backend. The workaround is to set it as an option
 	 * so that it's available to the email renderer.
 	 *
+	 * The editor can send multiple color palettes, so we're merging them.
+	 *
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_set_color_palette( $request ) {
-		update_option( 'newspack_newsletters_color_palette', $request->get_body() );
+		update_option(
+			'newspack_newsletters_color_palette',
+			wp_json_encode(
+				array_merge(
+					json_decode( (string) get_option( 'newspack_newsletters_color_palette', '{}' ), true ) ?? [],
+					json_decode( $request->get_body(), true )
+				)
+			)
+		);
 		return \rest_ensure_response( [] );
 	}
 
@@ -743,7 +774,7 @@ final class Newspack_Newsletters {
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_get_mjml( $request ) {
-		$post = get_post( $request['id'] );
+		$post = get_post( $request['post_id'] );
 		if ( ! empty( $request['title'] ) ) {
 			$post->post_title = $request['title'];
 		}
@@ -782,10 +813,10 @@ final class Newspack_Newsletters {
 	 */
 	public static function api_get_layouts() {
 		$layouts_query = new WP_Query(
-			array(
+			[
 				'post_type'      => Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
 				'posts_per_page' => -1,
-			)
+			]
 		);
 		$user_layouts  = array_map(
 			function ( $post ) {
@@ -864,8 +895,11 @@ final class Newspack_Newsletters {
 			'service_provider' => $service_provider ? $service_provider : '',
 			'status'           => false,
 		];
+		$is_esp_manual    = 'manual' === $service_provider;
 
-		if ( ! self::$provider && get_option( 'newspack_newsletters_mailchimp_api_key', false ) ) {
+		// 'newspack_mailchimp_api_key' is a new option introduced to manage MC API key accross Newspack plugins.
+		// Keeping the old option for backwards compatibility.
+		if ( ! $is_esp_manual && ! self::$provider && get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key' ) ) ) {
 			// Legacy – Mailchimp provider set before multi-provider handling was set up.
 			self::set_service_provider( 'mailchimp' );
 		}
@@ -875,7 +909,7 @@ final class Newspack_Newsletters {
 		}
 
 		if (
-			'manual' === $service_provider ||
+			$is_esp_manual ||
 			( self::$provider && self::$provider->has_api_credentials() )
 		) {
 			$response['status'] = true;
@@ -1146,6 +1180,25 @@ final class Newspack_Newsletters {
 		}
 
 		return $force_js;
+	}
+
+	/**
+	 * Do not display blocks that are configured to be email-only.
+	 *
+	 * @param string $block_content The block content about to be appended.
+	 * @param array  $block         The full block, including name and attributes.
+	 *
+	 * @return string Transformed block content to be apppended.
+	 */
+	public static function remove_email_only_block( $block_content, $block ) {
+		if (
+			self::NEWSPACK_NEWSLETTERS_CPT === get_post_type() &&
+			isset( $block['attrs']['newsletterVisibility'] ) &&
+			'email' === $block['attrs']['newsletterVisibility']
+		) {
+			return '';
+		}
+		return $block_content;
 	}
 
 	/**
