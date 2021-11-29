@@ -82,11 +82,6 @@ final class Newspack_Newsletters {
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_CPT, [ __CLASS__, 'save' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'branding_scripts' ] );
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
-
-		/**
-		 * Set the email service provider, which will instantiate the appropriate class
-		 * (Mailchimp, ConstantContact, etc.).
-		 */
 		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
 		self::set_service_provider( self::service_provider() );
 
