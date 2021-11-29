@@ -123,7 +123,6 @@ export default compose( [
 		const [ activeAdManageUrl, setActiveAdManageUrl ] = useState();
 		const [ activeAdManageUrlRel, setActiveAdManageUrlRel ] = useState();
 		const [ activeAdManageTarget, setActiveAdManageTarget ] = useState();
-		const newspack_ad_post_type_slug = NEWSLETTER_AD_CPT_SLUG;
 
 		let modalSubmitLabel;
 		if ( 'manual' === serviceProviderName ) {
@@ -136,7 +135,7 @@ export default compose( [
 
 		useEffect(() => {
 			apiFetch( {
-				path: `/wp/v2/${ newspack_ad_post_type_slug }/count/?date=${ postDate }`,
+				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
 			} ).then( response => {
 				const {
 					count: countOfActiveAds,
@@ -201,7 +200,7 @@ export default compose( [
 								<Notice isDismissible={ false }>
 									{ adsWarning }{' '}
 									<a
-										href={ `/wp-admin/edit.php?post_type=${ newspack_ad_post_type_slug }&page=newspack-newsletters-ads-admin` }
+										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
 									>
 										{ __( 'Manage ads', 'newspack-newsletters' ) }
 									</a>
