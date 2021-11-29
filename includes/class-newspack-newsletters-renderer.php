@@ -936,7 +936,7 @@ final class Newspack_Newsletters_Renderer {
 	/** Convert a WP post to an array of non-empty blocks.
 	 *
 	 * @param WP_Post $post The post.
-	 * @return object[] Blocks.
+	 * @return array[] Blocks.
 	 */
 	private static function get_valid_post_blocks( $post ) {
 		return array_filter(
