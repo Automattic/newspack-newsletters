@@ -72,16 +72,16 @@ const Editor = compose( [
 ] )( props => {
 	const [ publishEl ] = useState( document.createElement( 'div' ) );
 	// Create alternate publish button
-	useEffect(() => {
+	useEffect( () => {
 		const publishButton = document.getElementsByClassName(
 			'editor-post-publish-button__button'
 		)[ 0 ];
 		publishButton.parentNode.insertBefore( publishEl, publishButton );
-	}, []);
+	}, [] );
 	const { getFetchDataConfig } = getServiceProvider();
 
 	// Set color palette option.
-	useEffect(() => {
+	useEffect( () => {
 		if ( isEmpty( props.colorPalette ) ) {
 			return;
 		}
@@ -90,10 +90,10 @@ const Editor = compose( [
 			data: props.colorPalette,
 			method: 'POST',
 		} );
-	}, [ JSON.stringify( props.colorPalette ) ]);
+	}, [ JSON.stringify( props.colorPalette ) ] );
 
 	// Fetch data from service provider.
-	useEffect(() => {
+	useEffect( () => {
 		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
 			// Exit if provider does not support fetching data.
 			if ( ! getFetchDataConfig ) {
@@ -108,18 +108,18 @@ const Editor = compose( [
 				props.editPost( getEditPostPayload( result ) );
 			} );
 		}
-	}, [ props.isPublishingOrSavingPost ]);
+	}, [ props.isPublishingOrSavingPost ] );
 
 	// Lock or unlock post publishing.
-	useEffect(() => {
+	useEffect( () => {
 		if ( props.isReady ) {
 			props.unlockPostSaving( 'newspack-newsletters-post-lock' );
 		} else {
 			props.lockPostSaving( 'newspack-newsletters-post-lock' );
 		}
-	}, [ props.isReady ]);
+	}, [ props.isReady ] );
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( 'publish' === props.status && ! props.isPublishingOrSavingPost ) {
 			const dateTime = props.sentDate ? new Date( props.sentDate ).toLocaleString() : '';
 
@@ -131,9 +131,9 @@ const Editor = compose( [
 				isDismissible: false,
 			} );
 		}
-	}, [ props.status ]);
+	}, [ props.status ] );
 
-	useEffect(() => {
+	useEffect( () => {
 		// Hide post title if the newsletter is a not a public post.
 		const editorTitleEl = document.querySelector( '.editor-post-title' );
 		if ( editorTitleEl ) {
@@ -141,7 +141,7 @@ const Editor = compose( [
 				'newspack-newsletters-post-title-hidden'
 			);
 		}
-	}, [ props.isPublic ]);
+	}, [ props.isPublic ] );
 
 	return createPortal( <SendButton />, publishEl );
 } );

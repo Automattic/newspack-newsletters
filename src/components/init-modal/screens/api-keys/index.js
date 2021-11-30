@@ -60,7 +60,7 @@ export default ( { onSetupStatus } ) => {
 		setInFlight( false );
 	};
 
-	useEffect(() => {
+	useEffect( () => {
 		lockPostAutosaving( 'newsletters-modal-is-open-lock' );
 		setInFlight( true );
 		apiFetch( { path: `/newspack-newsletters/v1/settings` } )
@@ -70,7 +70,7 @@ export default ( { onSetupStatus } ) => {
 				onSetupStatus( ! results.status );
 			} )
 			.catch( handleErrors );
-	}, []);
+	}, [] );
 
 	const { service_provider: serviceProvider = '', credentials = {} } = settings;
 

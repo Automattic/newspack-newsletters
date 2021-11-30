@@ -40,14 +40,14 @@ const NestedColumnsDetectionBase = ( { blocks, updateBlock } ) => {
 		block.innerBlocks.forEach( warnIfIsGroupBlock );
 	};
 
-	useEffect(() => {
+	useEffect( () => {
 		blocks.forEach( block => {
 			// A column cannot host columns.
 			block.innerBlocks.forEach( warnIfColumnHasColumns );
 			// Group can only be top-level.
 			block.innerBlocks.forEach( warnIfIsGroupBlock );
 		} );
-	}, [ blocks ]);
+	}, [ blocks ] );
 
 	return null;
 };

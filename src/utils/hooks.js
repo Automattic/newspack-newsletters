@@ -19,14 +19,14 @@ export const useLayoutsState = () => {
 	const [ isFetching, setIsFetching ] = useState( true );
 	const [ layouts, setLayouts ] = useState( [] );
 
-	useEffect(() => {
+	useEffect( () => {
 		apiFetch( {
 			path: `/newspack-newsletters/v1/layouts`,
 		} ).then( response => {
 			setLayouts( response );
 			setIsFetching( false );
 		} );
-	}, []);
+	}, [] );
 
 	const deleteLayoutPost = id => {
 		// Optimistic update
