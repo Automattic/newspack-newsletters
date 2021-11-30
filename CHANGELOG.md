@@ -1,3 +1,21 @@
+## [1.36.1](https://github.com/Automattic/newspack-newsletters/compare/v1.36.0...v1.36.1) (2021-11-30)
+
+
+### Bug Fixes
+
+* fix public newsletter queries ([5f403a8](https://github.com/Automattic/newspack-newsletters/commit/5f403a870d3cbb029c1d2cdbe0216c7cca41bf0b))
+* trigger alpha release ([d402640](https://github.com/Automattic/newspack-newsletters/commit/d40264089ff3d7bea5acce51c0ffb4d159b39bb9))
+* trigger release for author archives fix ([#622](https://github.com/Automattic/newspack-newsletters/issues/622)) ([ea51ada](https://github.com/Automattic/newspack-newsletters/commit/ea51ada110775c14b8c747c0759636ba0fc04726))
+
+## [1.36.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.36.0...v1.36.1-alpha.1) (2021-11-30)
+
+
+### Bug Fixes
+
+* fix public newsletter queries ([5f403a8](https://github.com/Automattic/newspack-newsletters/commit/5f403a870d3cbb029c1d2cdbe0216c7cca41bf0b))
+* trigger alpha release ([d402640](https://github.com/Automattic/newspack-newsletters/commit/d40264089ff3d7bea5acce51c0ffb4d159b39bb9))
+* trigger release for author archives fix ([#622](https://github.com/Automattic/newspack-newsletters/issues/622)) ([ea51ada](https://github.com/Automattic/newspack-newsletters/commit/ea51ada110775c14b8c747c0759636ba0fc04726))
+
 # [1.36.0](https://github.com/Automattic/newspack-newsletters/compare/v1.35.1...v1.36.0) (2021-11-18)
 
 
