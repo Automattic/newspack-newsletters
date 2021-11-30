@@ -36,14 +36,14 @@ const ProviderSidebar = ( {
 			method: 'POST',
 		} );
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( campaign ) {
 			updateMeta( {
 				senderName: campaign.activity.from_name,
 				senderEmail: campaign.activity.from_email,
 			} );
 		}
-	}, [ campaign ]);
+	}, [ campaign ] );
 
 	if ( ! campaign ) {
 		return (

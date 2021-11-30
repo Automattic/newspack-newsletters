@@ -21,11 +21,11 @@ import './style.scss';
 
 const ShareBlock = ( { createTheNotice, removeNotice, is_public, attributes, setAttributes } ) => {
 	const { content } = attributes;
-	useEffect(() => {
+	useEffect( () => {
 		// eslint-disable-next-line no-unused-expressions
 		is_public ? removeNotice() : createTheNotice();
 		return removeNotice;
-	}, [ is_public ]);
+	}, [ is_public ] );
 
 	return (
 		<>

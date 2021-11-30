@@ -55,13 +55,13 @@ const NewsletterEdit = ( {
 		} );
 	};
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( ! isConnected && hasOauth ) {
 			verifyToken();
 		} else {
 			setIsConnected( true );
 		}
-	}, [ serviceProviderName ]);
+	}, [ serviceProviderName ] );
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
