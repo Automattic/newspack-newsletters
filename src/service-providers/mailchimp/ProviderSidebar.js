@@ -21,12 +21,12 @@ const SegmentsSelection = ( {
 	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || '' );
 
 	const [ isInitial, setIsInitial ] = useState( true );
-	useEffect(() => {
+	useEffect( () => {
 		if ( ! isInitial ) {
 			onUpdate( targetId );
 		}
 		setIsInitial( false );
-	}, [ targetId ]);
+	}, [ targetId ] );
 
 	let options = [];
 
@@ -55,14 +55,14 @@ const SegmentsSelection = ( {
 		] );
 	}
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
 			const foundOption = options.find(
 				option => option.value && option.value === `${ targetField || '' }:${ targetId }`
 			);
 			if ( foundOption ) setTargetId( foundOption.value );
 		}
-	}, [ targetId ]);
+	}, [ targetId ] );
 
 	return (
 		<Fragment>
@@ -125,7 +125,7 @@ const ProviderSidebar = ( {
 			method: 'POST',
 		} );
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( campaign && campaign.settings ) {
 			const { from_name, reply_to } = campaign.settings;
 			updateMeta( {
@@ -141,7 +141,7 @@ const ProviderSidebar = ( {
 					: {} ),
 			} );
 		}
-	}, [ campaign ]);
+	}, [ campaign ] );
 
 	if ( ! campaign ) {
 		return (

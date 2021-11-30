@@ -62,10 +62,10 @@ const LayoutPicker = ( {
 	};
 
 	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
-	const layoutPreviewProps = useMemo(() => {
+	const layoutPreviewProps = useMemo( () => {
 		const layout = selectedLayoutId && find( layouts, { ID: selectedLayoutId } );
 		return layout ? { blocks: parse( layout.post_content ), meta: layout.meta } : null;
-	}, [ selectedLayoutId, layouts.length ]);
+	}, [ selectedLayoutId, layouts.length ] );
 
 	const canRenderPreview = layoutPreviewProps && layoutPreviewProps.blocks.length > 0;
 
@@ -81,11 +81,11 @@ const LayoutPicker = ( {
 	const displayedLayouts = layouts.filter( activeTab.filter );
 
 	// Switch tab to user layouts if there are any.
-	useEffect(() => {
+	useEffect( () => {
 		if ( layouts.filter( isUserDefinedLayout ).length ) {
 			setActiveTabIndex( 1 );
 		}
-	}, [ layouts.length ]);
+	}, [ layouts.length ] );
 
 	return (
 		<Fragment>

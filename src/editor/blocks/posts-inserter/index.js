@@ -60,7 +60,7 @@ const PostsInserterBlock = ( {
 
 	const stringifiedTemplateBlocks = JSON.stringify( templateBlocks );
 
-	useEffect(() => {
+	useEffect( () => {
 		const { isDisplayingSpecificPosts, specificPosts } = attributes;
 
 		// No spinner if we're not dealing with images.
@@ -95,28 +95,28 @@ const PostsInserterBlock = ( {
 				setIsReady( true );
 			}
 		}
-	}, [ stringifiedPostList, stringifiedTemplateBlocks ]);
+	}, [ stringifiedPostList, stringifiedTemplateBlocks ] );
 
 	const innerBlocksToInsert = templateBlocks.map( convertBlockSerializationFormat );
-	useEffect(() => {
+	useEffect( () => {
 		setAttributes( { innerBlocksToInsert } );
-	}, [ JSON.stringify( innerBlocksToInsert ) ]);
+	}, [ JSON.stringify( innerBlocksToInsert ) ] );
 
 	const handledPostIds = postList.map( post => post.id );
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( attributes.areBlocksInserted ) {
 			replaceBlocks( templateBlocks );
 			setInsertedPostsIds( handledPostIds );
 		}
-	}, [ attributes.areBlocksInserted ]);
+	}, [ attributes.areBlocksInserted ] );
 
-	useEffect(() => {
+	useEffect( () => {
 		if ( ! attributes.preventDeduplication ) {
 			setHandledPostsIds( handledPostIds );
 			return removeBlock;
 		}
-	}, [ handledPostIds.join() ]);
+	}, [ handledPostIds.join() ] );
 
 	const blockControlsImages = [
 		{

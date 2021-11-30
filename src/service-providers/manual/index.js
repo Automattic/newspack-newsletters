@@ -25,7 +25,9 @@ const validateNewsletter = () => {
  * so that it's possible to render e.g. a loader while
  * the data is not yet available.
  *
- * @param {Object} props props
+ * @param {Object} props Component props.
+ * @param {Function} props.renderSubject Function that renders email subject input.
+ * @param {Function} props.renderPreviewText Function that renders preview text input
  */
 const ProviderSidebar = ( { renderSubject, renderPreviewText } ) => {
 	return (

@@ -80,13 +80,13 @@ export default compose( [
 
 		const [ usedLayout, setUsedLayout ] = useState( {} );
 
-		useEffect(() => {
+		useEffect( () => {
 			setUsedLayout( find( layouts, { ID: layoutId } ) || {} );
-		}, [ layouts.length ]);
+		}, [ layouts.length ] );
 
-		const blockPreview = useMemo(() => {
+		const blockPreview = useMemo( () => {
 			return usedLayout.post_content ? parse( usedLayout.post_content ) : null;
-		}, [ usedLayout ]);
+		}, [ usedLayout ] );
 
 		const clearPost = () => {
 			const clientIds = postBlocks.map( ( { clientId } ) => clientId );

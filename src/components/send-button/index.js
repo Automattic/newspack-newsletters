@@ -127,7 +127,7 @@ export default compose( [
 		}
 
 		const [ adsWarning, setAdsWarning ] = useState();
-		useEffect(() => {
+		useEffect( () => {
 			apiFetch( {
 				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }`,
 			} ).then( response => {
@@ -146,7 +146,7 @@ export default compose( [
 					);
 				}
 			} );
-		}, []);
+		}, [] );
 
 		const triggerCampaignSend = () => {
 			editPost( { status: publishStatus } );
@@ -179,7 +179,7 @@ export default compose( [
 						>
 							{ adsWarning ? (
 								<Notice isDismissible={ false }>
-									{ adsWarning }{' '}
+									{ adsWarning }{ ' ' }
 									<a
 										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
 									>
@@ -216,7 +216,7 @@ export default compose( [
 					>
 						{ adsWarning ? (
 							<Notice isDismissible={ false }>
-								{ adsWarning }{' '}
+								{ adsWarning }{ ' ' }
 								<a
 									href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
 								>
