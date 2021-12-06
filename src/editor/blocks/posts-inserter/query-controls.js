@@ -58,13 +58,13 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 
 	const { categoryExclusions, tags, tagExclusions } = attributes;
 
-	useEffect(() => {
+	useEffect( () => {
 		apiFetch( {
 			path: addQueryArgs( `/wp/v2/categories`, {
 				per_page: -1,
 			} ),
 		} ).then( setCategoriesList );
-	}, []);
+	}, [] );
 
 	const categorySuggestions = categoriesList.reduce(
 		( accumulator, category ) => ( {
@@ -143,7 +143,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				orderby: 'count',
 				order: 'desc',
 			} ),
-		} ).then( function( categories ) {
+		} ).then( function ( categories ) {
 			return categories.map( category => ( {
 				value: category.id,
 				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
@@ -158,7 +158,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				_fields: 'id,name',
 				include: categoryIDs.join( ',' ),
 			} ),
-		} ).then( function( categories ) {
+		} ).then( function ( categories ) {
 			return categories.map( category => ( {
 				value: category.id,
 				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
@@ -175,7 +175,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				orderby: 'count',
 				order: 'desc',
 			} ),
-		} ).then( function( fetchedTags ) {
+		} ).then( function ( fetchedTags ) {
 			return fetchedTags.map( tag => ( {
 				value: tag.id,
 				label: decodeEntities( tag.name ) || __( '(no title)', 'newspack-newsletters' ),
@@ -190,7 +190,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				_fields: 'id,name',
 				include: tagIDs.join( ',' ),
 			} ),
-		} ).then( function( fetchedTags ) {
+		} ).then( function ( fetchedTags ) {
 			return fetchedTags.map( tag => ( {
 				value: tag.id,
 				label: decodeEntities( tag.name ) || __( '(no title)', 'newspack-newsletters' ),

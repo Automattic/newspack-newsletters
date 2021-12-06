@@ -103,7 +103,7 @@ const doc = document.implementation.createHTMLDocument( 'Temp' );
  *
  * @param {string} scope The scope to apply to each rule in the CSS.
  * @param {string} css The CSS to scope.
- * @return Scoped CSS string.
+ * @return {string} Scoped CSS string.
  */
 export const getScopedCss = ( scope, css ) => {
 	const style = doc.querySelector( 'style' ) || document.createElement( 'style' );
@@ -125,19 +125,19 @@ export const getScopedCss = ( scope, css ) => {
 
 export const ApplyStyling = withSelect( customStylesSelector )(
 	( { fontBody, fontHeader, backgroundColor, customCss } ) => {
-		useEffect(() => {
+		useEffect( () => {
 			document.documentElement.style.setProperty( '--body-font', fontBody );
-		}, [ fontBody ]);
-		useEffect(() => {
+		}, [ fontBody ] );
+		useEffect( () => {
 			document.documentElement.style.setProperty( '--header-font', fontHeader );
-		}, [ fontHeader ]);
-		useEffect(() => {
+		}, [ fontHeader ] );
+		useEffect( () => {
 			const editorElement = document.querySelector( '.editor-styles-wrapper' );
 			if ( editorElement ) {
 				editorElement.style.backgroundColor = backgroundColor;
 			}
-		}, [ backgroundColor ]);
-		useEffect(() => {
+		}, [ backgroundColor ] );
+		useEffect( () => {
 			const editorElement = document.querySelector( '.edit-post-visual-editor' );
 			if ( editorElement ) {
 				let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
@@ -152,7 +152,7 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 
 				styleEl.textContent = scopedCss;
 			}
-		}, [ customCss ]);
+		}, [ customCss ] );
 
 		return null;
 	}

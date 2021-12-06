@@ -133,7 +133,7 @@ export default compose( [
 			modalSubmitLabel = __( 'Send', 'newspack-newsletters' );
 		}
 
-		useEffect(() => {
+		useEffect( () => {
 			apiFetch( {
 				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
 			} ).then( response => {
@@ -165,7 +165,7 @@ export default compose( [
 					);
 				}
 			} );
-		}, []);
+		}, [] );
 
 		const triggerCampaignSend = () => {
 			editPost( { status: publishStatus } );
@@ -198,7 +198,7 @@ export default compose( [
 						>
 							{ adsWarning ? (
 								<Notice isDismissible={ false }>
-									{ adsWarning }{' '}
+									{ adsWarning }{ ' ' }
 									<a
 										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
 									>
@@ -235,7 +235,7 @@ export default compose( [
 					>
 						{ adsWarning ? (
 							<Notice isDismissible={ false }>
-								{ adsWarning }{' '}
+								{ adsWarning }{ ' ' }
 								<a // eslint-disable-line react/jsx-no-target-blank
 									href={ activeAdManageUrl }
 									rel={ activeAdManageUrlRel }
