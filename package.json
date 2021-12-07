@@ -105,7 +105,7 @@
 		"@wordpress/dom-ready": "^3.2.3",
 		"@wordpress/edit-post": "^5.0.15",
 		"@wordpress/element": "^4.0.4",
-		"@wordpress/hooks": "^2.7.0",
+		"@wordpress/hooks": "^3.2.2",
 		"@wordpress/html-entities": "^3.2.2",
 		"@wordpress/i18n": "^4.2.4",
 		"@wordpress/icons": "^6.1.1",
