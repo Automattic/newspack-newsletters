@@ -613,7 +613,7 @@ final class Newspack_Newsletters {
 		if ( 'public_page' === $column_name ) {
 			$is_public = get_post_meta( $post_id, 'is_public', true );
 			?>
-			<span class="inline_data is_public" data-is_public="<?php echo esc_html( $is_public ); ?>">
+			<span class="inline_data is_public" data-is_public="<?php echo esc_attr( $is_public ); ?>">
 				<?php echo empty( $is_public ) ? esc_html__( 'No', 'newspack-newsletters' ) : esc_html__( 'Yes', 'newspack-newsletters' ); ?>
 			</span>
 			<?php
