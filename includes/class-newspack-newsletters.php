@@ -85,6 +85,7 @@ final class Newspack_Newsletters {
 		add_filter( 'newspack_theme_featured_image_post_types', [ __CLASS__, 'support_featured_image_options' ] );
 		add_filter( 'gform_force_hooks_js_output', [ __CLASS__, 'suppress_gravityforms_js_on_newsletters' ] );
 		add_filter( 'render_block', [ __CLASS__, 'remove_email_only_block' ], 10, 2 );
+		add_filter( 'newspack_campaigns_default_supported_post_types', [ __CLASS__, 'add_campaigns_support' ] );
 		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
@@ -1192,6 +1193,17 @@ final class Newspack_Newsletters {
 				);
 			}
 		}
+	}
+
+	/**
+	 * If using the Newspack Campaigns plugin, add newsletters to the default list of supported post types.
+	 *
+	 * @param string[] $post_types Array of post types supported by Newspack Campaigns.
+	 *
+	 * @return string[] Filtered array of post types.
+	 */
+	public static function add_campaigns_support( $post_types ) {
+		return array_merge( $post_types, [ self::NEWSPACK_NEWSLETTERS_CPT ] );
 	}
 }
 Newspack_Newsletters::instance();
