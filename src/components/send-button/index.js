@@ -18,8 +18,7 @@ import { get } from 'lodash';
  */
 import { getServiceProvider } from '../../service-providers';
 import './style.scss';
-import { NEWSLETTER_AD_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
-import { isAdActive } from '../../ads-admin/utils';
+import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -47,6 +46,7 @@ export default compose( [
 			visibility: getEditedPostVisibility(),
 			meta: getEditedPostAttribute( 'meta' ),
 			isPublished: isCurrentPostPublished(),
+			postDate: getEditedPostAttribute( 'date' ),
 		};
 	} ),
 ] )(
@@ -62,6 +62,7 @@ export default compose( [
 		visibility,
 		meta,
 		isPublished,
+		postDate,
 	} ) => {
 		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
 
@@ -117,6 +118,12 @@ export default compose( [
 			publishStatus = 'publish';
 		}
 
+		const [ adLabel, setAdLabel ] = useState();
+		const [ adsWarning, setAdsWarning ] = useState();
+		const [ activeAdManageUrl, setActiveAdManageUrl ] = useState();
+		const [ activeAdManageUrlRel, setActiveAdManageUrlRel ] = useState();
+		const [ activeAdManageTarget, setActiveAdManageTarget ] = useState();
+
 		let modalSubmitLabel;
 		if ( 'manual' === serviceProviderName ) {
 			modalSubmitLabel = is_public
@@ -126,22 +133,34 @@ export default compose( [
 			modalSubmitLabel = __( 'Send', 'newspack-newsletters' );
 		}
 
-		const [ adsWarning, setAdsWarning ] = useState();
 		useEffect( () => {
 			apiFetch( {
-				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }`,
+				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
 			} ).then( response => {
-				const activeAds = response.filter( isAdActive );
-				if ( activeAds.length ) {
+				const {
+					count: countOfActiveAds,
+					label: adManageLabel,
+					manageUrl,
+					manageUrlRel,
+					manageUrlTarget,
+				} = response;
+
+				setActiveAdManageUrl( manageUrl );
+				setAdLabel( adManageLabel );
+				setActiveAdManageUrlRel( manageUrlRel );
+				setActiveAdManageTarget( manageUrlTarget );
+
+				if ( countOfActiveAds > 0 ) {
 					setAdsWarning(
 						sprintf(
 							_n(
-								'There is %d active ad.',
-								'There are %d active ads.',
-								activeAds.length,
+								'There is %d active %s.',
+								'There are %d active %ss.',
+								countOfActiveAds,
 								'newspack-newsletters'
 							),
-							activeAds.length
+							countOfActiveAds,
+							adManageLabel
 						)
 					);
 				}
@@ -181,7 +200,7 @@ export default compose( [
 								<Notice isDismissible={ false }>
 									{ adsWarning }{ ' ' }
 									<a
-										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
+										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
 									>
 										{ __( 'Manage ads', 'newspack-newsletters' ) }
 									</a>
@@ -217,10 +236,12 @@ export default compose( [
 						{ adsWarning ? (
 							<Notice isDismissible={ false }>
 								{ adsWarning }{ ' ' }
-								<a
-									href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
+								<a // eslint-disable-line react/jsx-no-target-blank
+									href={ activeAdManageUrl }
+									rel={ activeAdManageUrlRel }
+									target={ activeAdManageTarget }
 								>
-									{ __( 'Manage ads', 'newspack-newsletters' ) }
+									{ sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel ) }
 								</a>
 							</Notice>
 						) : null }
