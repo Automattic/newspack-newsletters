@@ -71,7 +71,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'   => $inner_html,
 				]
 			),
-			'<mj-section url="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" padding="0"><mj-column padding="12px" width="100%"><mj-image padding="0" src="https://i.ytimg.com/vi/aIRgcb3cQ1Q/hqdefault.jpg" width="480px" height="360px" href="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" /><mj-text align="center" color="#555d66" font-size="13px" >How to use the Newspack Newsletter plugin - YouTube</mj-text></mj-column></mj-section>',
+			'<mj-section url="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" padding="0"><mj-column padding="12px" width="100%"><mj-image padding="0" src="https://i.ytimg.com/vi/aIRgcb3cQ1Q/hqdefault.jpg" width="480px" height="360px" href="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >How to use the Newspack Newsletter plugin - YouTube</mj-text></mj-column></mj-section>',
 			'Renders image from video embed block with title as caption'
 		);
 
@@ -88,7 +88,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'   => $inner_html,
 				]
 			),
-			'<mj-section url="https://flickr.com/photos/thomashawk/9274246246" padding="0"><mj-column padding="12px" width="100%"><mj-image src="https://live.staticflickr.com/7357/9274246246_201d71cf9a.jpg" alt="Automattic" width="500" height="333" href="https://flickr.com/photos/thomashawk/9274246246" /><mj-text align="center" color="#555d66" font-size="13px" >Automattic - Flickr</mj-text></mj-column></mj-section>',
+			'<mj-section url="https://flickr.com/photos/thomashawk/9274246246" padding="0"><mj-column padding="12px" width="100%"><mj-image src="https://live.staticflickr.com/7357/9274246246_201d71cf9a.jpg" alt="Automattic" width="500" height="333" href="https://flickr.com/photos/thomashawk/9274246246" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >Automattic - Flickr</mj-text></mj-column></mj-section>',
 			'Renders image with inline figcaption as caption'
 		);
 
