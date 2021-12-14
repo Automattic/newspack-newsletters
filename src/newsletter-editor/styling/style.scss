@@ -33,4 +33,8 @@
 	& > &-header {
 		border-top: 0;
 	}
+
+	&__pin-unpin-item {
+		display: none !important;
+	}
 }
