@@ -2,10 +2,10 @@
  * WordPress dependencies
  */
 import { compose, useInstanceId } from '@wordpress/compose';
-import { ColorPicker, BaseControl } from '@wordpress/components';
+import { ColorPicker, BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { Fragment, useEffect } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 /**
@@ -173,49 +173,71 @@ export const Styling = compose( [
 	const id = `inspector-select-control-${ instanceId }`;
 
 	return (
-		<Fragment>
-			<SelectControlWithOptGroup
-				label={ __( 'Headings font', 'newspack-newsletters' ) }
-				value={ fontHeader }
-				optgroups={ fontOptgroups }
-				onChange={ value => updateStyleValue( 'font_header', value ) }
-			/>
-			<SelectControlWithOptGroup
-				label={ __( 'Body font', 'newspack-newsletters' ) }
-				value={ fontBody }
-				optgroups={ fontOptgroups }
-				onChange={ value => updateStyleValue( 'font_body', value ) }
-			/>
-			<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ id }>
-				<ColorPicker
-					id={ id }
-					color={ backgroundColor }
-					onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
-					disableAlpha
-				/>
-			</BaseControl>
-			<BaseControl
-				id={ `inspector-custom-css-control-${ instanceId }` }
-				label={ __( 'Custom CSS', 'newspack-newsletters' ) }
-				help={ __(
-					'This is an advanced feature and may result in unpredictable behavior. Custom CSS will be appended to default styles in sent emails only.',
-					'newspack-newsletters'
-				) }
+		<Panel>
+			<PanelBody
+				name="newsletters-typography-panel"
+				title={ __( 'Typography', 'newspack-newsletters' ) }
 			>
-				<CodeMirror
-					className="components-textarea-control__input"
-					value={ customCss }
-					height={ 250 }
-					onChange={ instance => editPost( { meta: { custom_css: instance.getValue() } } ) }
-					options={ {
-						gutters: [ 'CodeMirror-lint-markers' ],
-						height: 'auto',
-						indentWithTabs: true,
-						mode: 'css',
-						lint: true,
-					} }
-				/>
-			</BaseControl>
-		</Fragment>
+				<PanelRow>
+					<SelectControlWithOptGroup
+						label={ __( 'Headings font', 'newspack-newsletters' ) }
+						value={ fontHeader }
+						optgroups={ fontOptgroups }
+						onChange={ value => updateStyleValue( 'font_header', value ) }
+					/>
+				</PanelRow>
+				<PanelRow>
+					<SelectControlWithOptGroup
+						label={ __( 'Body font', 'newspack-newsletters' ) }
+						value={ fontBody }
+						optgroups={ fontOptgroups }
+						onChange={ value => updateStyleValue( 'font_body', value ) }
+					/>
+				</PanelRow>
+			</PanelBody>
+			<PanelBody name="newsletters-color-panel" title={ __( 'Color', 'newspack-newsletters' ) }>
+				<PanelRow className="newspack-newsletters__color-panel">
+					<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ id }>
+						<ColorPicker
+							id={ id }
+							color={ backgroundColor }
+							onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
+							disableAlpha
+						/>
+					</BaseControl>
+				</PanelRow>
+			</PanelBody>
+			<PanelBody
+				name="newsletters-css-panel"
+				title={ __( 'Custom CSS', 'newspack-newsletters' ) }
+				initialOpen={ false }
+			>
+				<PanelRow className="newspack-newsletters__css-panel">
+					<BaseControl
+						id={ `inspector-custom-css-control-${ instanceId }` }
+						label={ __( 'Custom CSS', 'newspack-newsletters' ) }
+						help={ __(
+							'This is an advanced feature and may result in unpredictable behavior. Custom CSS will be appended to default styles in sent emails only.',
+							'newspack-newsletters'
+						) }
+						hideLabelFromVision
+					>
+						<CodeMirror
+							className="components-textarea-control__input"
+							value={ customCss }
+							height={ 250 }
+							onChange={ instance => editPost( { meta: { custom_css: instance.getValue() } } ) }
+							options={ {
+								gutters: [ 'CodeMirror-lint-markers' ],
+								height: 'auto',
+								indentWithTabs: true,
+								mode: 'css',
+								lint: true,
+							} }
+						/>
+					</BaseControl>
+				</PanelRow>
+			</PanelBody>
+		</Panel>
 	);
 } );

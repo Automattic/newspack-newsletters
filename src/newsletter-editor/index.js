@@ -5,8 +5,13 @@ import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment, useEffect, useState } from '@wordpress/element';
-import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+import {
+	PluginDocumentSettingPanel,
+	PluginSidebar,
+	PluginSidebarMoreMenuItem,
+} from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
+import { styles } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -65,6 +70,9 @@ const NewsletterEdit = ( {
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
+	const stylingId = 'newspack-newsletters-styling';
+	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
+
 	return isDisplayingInitModal ? (
 		<InitModal
 			shouldDisplaySettings={ shouldDisplaySettings }
@@ -72,18 +80,19 @@ const NewsletterEdit = ( {
 		/>
 	) : (
 		<Fragment>
+			<PluginSidebar name={ stylingId } icon={ styles } title={ stylingTitle }>
+				<Styling />
+			</PluginSidebar>
+			<PluginSidebarMoreMenuItem target={ stylingId } icon={ styles }>
+				{ stylingTitle }
+			</PluginSidebarMoreMenuItem>
+
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
 				{ isConnected && <PublicSettings /> }
-			</PluginDocumentSettingPanel>
-			<PluginDocumentSettingPanel
-				name="newsletters-styling-panel"
-				title={ __( 'Styling', 'newspack-newsletters' ) }
-			>
-				<Styling />
 			</PluginDocumentSettingPanel>
 			{ 'manual' !== serviceProviderName && (
 				<PluginDocumentSettingPanel
