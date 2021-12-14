@@ -278,7 +278,7 @@ final class Newspack_Newsletters_Renderer {
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
-						'line-height' => '1.8',
+						'line-height' => '1.5',
 						'font-size'   => '16px',
 						'font-family' => $font_family,
 					),
@@ -356,6 +356,7 @@ final class Newspack_Newsletters_Renderer {
 					$caption_attrs = array(
 						'align'       => 'center',
 						'color'       => '#555d66',
+						'line-height' => '1.56',
 						'font-size'   => '13px',
 						'font-family' => $font_family,
 					);
@@ -394,10 +395,10 @@ final class Newspack_Newsletters_Renderer {
 					$default_button_attrs = array(
 						'padding'       => '0',
 						'inner-padding' => '12px 24px',
-						'line-height'   => '1.8',
+						'line-height'   => '1.5',
 						'href'          => $anchor->getAttribute( 'href' ),
 						'border-radius' => $border_radius . 'px',
-						'font-size'     => '18px',
+						'font-size'     => '16px',
 						'font-family'   => $font_family,
 						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
@@ -431,10 +432,8 @@ final class Newspack_Newsletters_Renderer {
 				$divider_attrs      = array_merge(
 					array(
 						'padding'      => '0',
-						'border-width' => $is_style_default ? '2px' : '1px',
-						'width'        => $is_style_default ? '100px' : '100%',
-						// Default color - will be replaced by get_colors if there are colors set.
-						'border-color' => '#8f98a1',
+						'border-width' => '1px',
+						'width'        => $is_style_default ? '128px' : '100%',
 					),
 					self::get_colors( $attrs )
 				);
@@ -482,11 +481,11 @@ final class Newspack_Newsletters_Renderer {
 				);
 
 				$social_wrapper_attrs = array(
-					'icon-size'     => '22px',
+					'icon-size'     => '24px',
 					'mode'          => 'horizontal',
 					'padding'       => '0',
 					'border-radius' => '999px',
-					'icon-padding'  => '8px',
+					'icon-padding'  => '7px',
 				);
 				if ( isset( $attrs['align'] ) ) {
 					$social_wrapper_attrs['align'] = $attrs['align'];
@@ -608,7 +607,7 @@ final class Newspack_Newsletters_Renderer {
 
 				$text_attrs = array(
 					'padding'     => '0',
-					'line-height' => '1.8',
+					'line-height' => '1.5',
 					'font-size'   => '16px',
 					'font-family' => $font_family,
 				);
@@ -616,6 +615,7 @@ final class Newspack_Newsletters_Renderer {
 				$caption_attrs = array(
 					'align'       => 'center',
 					'color'       => '#555d66',
+					'line-height' => '1.56',
 					'font-size'   => '13px',
 					'font-family' => $font_family,
 				);
