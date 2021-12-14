@@ -1,3 +1,27 @@
+# [1.37.0](https://github.com/Automattic/newspack-newsletters/compare/v1.36.1...v1.37.0) (2021-12-14)
+
+
+### Bug Fixes
+
+* proper escaping function ([ca908c7](https://github.com/Automattic/newspack-newsletters/commit/ca908c7b9b93b1a2a6513ac8818de1f8817cd623))
+
+
+### Features
+
+* Letterhead advertising integration ([#399](https://github.com/Automattic/newspack-newsletters/issues/399)) ([3fc376a](https://github.com/Automattic/newspack-newsletters/commit/3fc376a810d4292697f4682156cf6bedfd931f0b))
+
+# [1.37.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.36.1...v1.37.0-alpha.1) (2021-12-09)
+
+
+### Bug Fixes
+
+* proper escaping function ([ca908c7](https://github.com/Automattic/newspack-newsletters/commit/ca908c7b9b93b1a2a6513ac8818de1f8817cd623))
+
+
+### Features
+
+* Letterhead advertising integration ([#399](https://github.com/Automattic/newspack-newsletters/issues/399)) ([3fc376a](https://github.com/Automattic/newspack-newsletters/commit/3fc376a810d4292697f4682156cf6bedfd931f0b))
+
 ## [1.36.1](https://github.com/Automattic/newspack-newsletters/compare/v1.36.0...v1.36.1) (2021-11-30)
 
 
