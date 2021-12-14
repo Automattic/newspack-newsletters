@@ -93,7 +93,7 @@
 		"url": "https://github.com/Automattic/newspack-newsletters/issues"
 	},
 	"dependencies": {
-		"@uiw/react-codemirror": "^3.2.1",
+		"@uiw/react-codemirror": "^4.2.4",
 		"@wordpress/api-fetch": "^5.2.6",
 		"@wordpress/base-styles": "^4.0.4",
 		"@wordpress/block-editor": "^8.0.5",
