@@ -117,7 +117,7 @@
 		"csslint": "^1.0.5",
 		"lodash": "^4.17.21",
 		"mjml-browser": "^4.11.0",
-		"qs": "^6.9.3"
+		"qs": "^6.10.2"
 	},
 	"devDependencies": {
 		"@automattic/calypso-build": "^10.0.0",
