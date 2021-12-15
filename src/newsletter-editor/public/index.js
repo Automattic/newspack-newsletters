@@ -7,11 +7,6 @@ import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { Fragment } from '@wordpress/element';
 
-/**
- * Internal dependencies
- */
-import './style.scss';
-
 const PublicSettingsComponent = props => {
 	const { meta, updateIsPublic } = props;
 	const { is_public } = meta;

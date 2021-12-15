@@ -68,8 +68,9 @@ const ProviderSidebar = ( { postId, apiFetch, renderSubject, renderFrom, renderP
 	return (
 		<Fragment>
 			{ renderSubject() }
-			{ renderFrom( { handleSenderUpdate } ) }
 			{ renderPreviewText() }
+			<hr />
+			{ renderFrom( { handleSenderUpdate } ) }
 		</Fragment>
 	);
 };
