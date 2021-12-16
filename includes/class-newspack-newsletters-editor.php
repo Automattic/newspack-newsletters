@@ -205,6 +205,15 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		if ( self::is_editing_newsletter() ) {
+			wp_localize_script(
+				'newspack-newsletters-editor',
+				'newspack_newsletters_data',
+				[
+					'is_service_provider_configured' => Newspack_Newsletters::is_service_provider_configured(),
+					'service_provider'               => Newspack_Newsletters::service_provider(),
+					'user_test_emails'               => self::get_current_user_test_emails(),
+				]
+			);
 			wp_register_style(
 				'newspack-newsletters-newsletter-editor',
 				plugins_url( '../dist/newsletterEditor.css', __FILE__ ),
@@ -219,15 +228,6 @@ final class Newspack_Newsletters_Editor {
 				[],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.js' ),
 				true
-			);
-			wp_localize_script(
-				'newspack-newsletters-newsletter-editor',
-				'newspack_newsletters_data',
-				[
-					'is_service_provider_configured' => Newspack_Newsletters::is_service_provider_configured(),
-					'service_provider'               => Newspack_Newsletters::service_provider(),
-					'user_test_emails'               => self::get_current_user_test_emails(),
-				]
 			);
 		}
 
