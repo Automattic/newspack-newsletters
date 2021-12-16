@@ -1,3 +1,16 @@
+# [1.38.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.37.0...v1.38.0-alpha.1) (2021-12-16)
+
+
+### Bug Fixes
+
+* editor script data ([#650](https://github.com/Automattic/newspack-newsletters/issues/650)) ([54f01e7](https://github.com/Automattic/newspack-newsletters/commit/54f01e7a36bad303f110d7f6eefa3b17f7401b5f))
+
+
+### Features
+
+* move styling settings to its own sidebar ([#643](https://github.com/Automattic/newspack-newsletters/issues/643)) ([b610daa](https://github.com/Automattic/newspack-newsletters/commit/b610daae10fbe8398a2da5cdb69d84f50bedd7ec))
+* update vertical rhythm and various blocks to match sent email ([#644](https://github.com/Automattic/newspack-newsletters/issues/644)) ([571c03d](https://github.com/Automattic/newspack-newsletters/commit/571c03d1d8df1c902b138bd5e20bfa4aa027ea8d))
+
 # [1.37.0](https://github.com/Automattic/newspack-newsletters/compare/v1.36.1...v1.37.0) (2021-12-14)
 
 
