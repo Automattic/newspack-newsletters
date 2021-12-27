@@ -98,7 +98,7 @@
 		"@wordpress/base-styles": "^4.0.4",
 		"@wordpress/block-editor": "^8.0.5",
 		"@wordpress/blocks": "^11.1.4",
-		"@wordpress/components": "^19.0.4",
+		"@wordpress/components": "^19.1.6",
 		"@wordpress/compose": "^5.0.6",
 		"@wordpress/data": "^6.1.4",
 		"@wordpress/date": "^4.2.1",
