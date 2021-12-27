@@ -103,7 +103,7 @@
 		"@wordpress/data": "^6.1.4",
 		"@wordpress/date": "^4.2.1",
 		"@wordpress/dom-ready": "^3.2.3",
-		"@wordpress/edit-post": "^5.0.15",
+		"@wordpress/edit-post": "^5.0.19",
 		"@wordpress/element": "^4.0.4",
 		"@wordpress/hooks": "^3.2.2",
 		"@wordpress/html-entities": "^3.2.2",
