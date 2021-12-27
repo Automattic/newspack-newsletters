@@ -96,7 +96,7 @@
 		"@uiw/react-codemirror": "^3.2.1",
 		"@wordpress/api-fetch": "^5.2.6",
 		"@wordpress/base-styles": "^4.0.4",
-		"@wordpress/block-editor": "^8.0.5",
+		"@wordpress/block-editor": "^8.0.12",
 		"@wordpress/blocks": "^11.1.4",
 		"@wordpress/components": "^19.0.4",
 		"@wordpress/compose": "^5.0.6",
