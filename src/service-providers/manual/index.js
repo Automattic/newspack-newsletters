@@ -8,6 +8,7 @@ import { Fragment } from '@wordpress/element';
  * Internal dependencies
  */
 import CopyHTML from '../../components/copy-html';
+import './style.scss';
 
 /**
  * Validation utility.
@@ -31,10 +32,10 @@ const validateNewsletter = () => {
  */
 const ProviderSidebar = ( { renderSubject, renderPreviewText } ) => {
 	return (
-		<Fragment>
+		<div className="newspack-newsletters__manual">
 			{ renderSubject() }
 			{ renderPreviewText() }
-		</Fragment>
+		</div>
 	);
 };
 
