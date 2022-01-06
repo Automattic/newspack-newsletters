@@ -1,3 +1,10 @@
+# [1.39.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.38.0...v1.39.0-alpha.1) (2022-01-06)
+
+
+### Features
+
+* reorganise sidebar ([#655](https://github.com/Automattic/newspack-newsletters/issues/655)) ([cfaa075](https://github.com/Automattic/newspack-newsletters/commit/cfaa0756c0ee7ad485b1fd8cc66f25f6497d7c12))
+
 # [1.38.0](https://github.com/Automattic/newspack-newsletters/compare/v1.37.0...v1.38.0) (2022-01-04)
 
 
