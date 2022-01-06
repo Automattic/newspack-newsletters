@@ -66,6 +66,13 @@ const ProviderSidebar = ( {
 	return (
 		<Fragment>
 			{ renderSubject() }
+			{ renderPreviewText() }
+			<hr />
+			{ renderFrom( { handleSenderUpdate: setSender } ) }
+			<hr />
+			<strong className="newspack-newsletters__label">
+				{ __( 'Send to', 'newspack-newsletters' ) }
+			</strong>
 			<BaseControl
 				id="newspack-newsletters-constant_contact-lists"
 				label={ __( 'Lists', 'newspack-newsletters' ) }
@@ -81,8 +88,6 @@ const ProviderSidebar = ( {
 					/>
 				) ) }
 			</BaseControl>
-			{ renderFrom( { handleSenderUpdate: setSender } ) }
-			{ renderPreviewText() }
 		</Fragment>
 	);
 };

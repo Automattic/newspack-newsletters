@@ -138,6 +138,29 @@ const ProviderSidebarComponent = ( {
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
 			{ renderSubject() }
+			<hr />
+			<strong className="newspack-newsletters__label">
+				{ __( 'From', 'newspack-newsletters' ) }
+			</strong>
+			<TextControl
+				label={ __( 'Name', 'newspack-newsletters' ) }
+				className="newspack-newsletters__name-textcontrol"
+				value={ senderName }
+				disabled={ inFlight }
+				onChange={ value => updateMetaValue( 'cm_from_name', value ) }
+			/>
+			<TextControl
+				label={ __( 'Email', 'newspack-newsletters' ) }
+				className="newspack-newsletters__email-textcontrol"
+				value={ senderEmail }
+				type="email"
+				disabled={ inFlight }
+				onChange={ value => updateMetaValue( 'cm_from_email', value ) }
+			/>
+			<hr />
+			<strong className="newspack-newsletters__label">
+				{ __( 'Send to', 'newspack-newsletters' ) }
+			</strong>
 			<BaseControl className="newspack-newsletters__send-mode">
 				<RadioControl
 					className={
@@ -211,22 +234,6 @@ const ProviderSidebarComponent = ( {
 					) }
 				</p>
 			) }
-			<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
-			<TextControl
-				label={ __( 'Name', 'newspack-newsletters' ) }
-				className="newspack-newsletters__name-textcontrol"
-				value={ senderName }
-				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'cm_from_name', value ) }
-			/>
-			<TextControl
-				label={ __( 'Email', 'newspack-newsletters' ) }
-				className="newspack-newsletters__email-textcontrol"
-				value={ senderEmail }
-				type="email"
-				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'cm_from_email', value ) }
-			/>
 		</div>
 	);
 };

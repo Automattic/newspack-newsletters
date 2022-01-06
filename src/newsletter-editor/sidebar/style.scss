@@ -20,16 +20,6 @@
 		}
 	}
 
-	&__name-textcontrol {
-		margin-top: 8px;
-		&--separated {
-			margin-top: 14px;
-			padding-top: 8px;
-			border-top: 1px solid $gray-300;
-		}
-	}
-
-	&__subject-textcontrol,
 	&__to-selectcontrol,
 	&__sendmode-radiocontrol {
 		.components-base-control__label {
@@ -55,8 +45,10 @@
 		border-color: $alert-red;
 	}
 
-	&__disable-ads {
-		margin-top: 2em;
+	&__label {
+		display: block;
+		margin-bottom: 8px;
+		text-transform: uppercase;
 	}
 }
 
