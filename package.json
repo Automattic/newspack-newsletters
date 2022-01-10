@@ -126,7 +126,7 @@
 		"@commitlint/config-conventional": "^15.0.0",
 		"@semantic-release/changelog": "^6.0.1",
 		"@semantic-release/git": "^10.0.1",
-		"@wordpress/eslint-plugin": "^4.1.0",
+		"@wordpress/eslint-plugin": "^9.3.0",
 		"@wordpress/stylelint-config": "^19.1.0",
 		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^7.32.0",
