@@ -104,7 +104,7 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		$allowed_actions = apply_filters(
-			'newspack_newsletters_allowed_editor_actions', 
+			'newspack_newsletters_allowed_editor_actions',
 			[
 				__CLASS__ . '::enqueue_block_editor_assets',
 				'newspack_enqueue_scripts',
@@ -152,6 +152,9 @@ final class Newspack_Newsletters_Editor {
 			'core/separator',
 			'core/list',
 			'core/quote',
+			'core/site-logo',
+			'core/site-tagline',
+			'core/site-title',
 			'core/social-links',
 			'core/social-link',
 			'newspack-newsletters/posts-inserter',
