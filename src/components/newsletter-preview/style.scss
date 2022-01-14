@@ -4,3 +4,9 @@
 	position: absolute;
 	width: 100%;
 }
+
+.block-editor-block-preview__content-iframe
+	.editor-styles-wrapper
+	.block-editor-block-list__layout.is-root-container {
+	overflow: hidden;
+}
