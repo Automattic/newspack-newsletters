@@ -12,25 +12,49 @@ import { forwardRef } from '@wordpress/element';
 const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 	// Iframe styles are not properly applied when nesting iframed editors.
 	// This fix ensures the iframe is properly styled.
-	const fixIframe = useRefEffect( node => {
+	const useIframeBorderFix = useRefEffect( node => {
 		const updateIframeStyle = () => {
 			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
 			if ( iframe ) {
-				iframe.style.border = 0;
-				observer.disconnect();
+				iframe.addEventListener( 'load', () => {
+					iframe.style.border = 0;
+					observer.disconnect();
+				} );
 			}
 		};
 		const observer = new MutationObserver( updateIframeStyle );
 		observer.observe( node, { childList: true } );
-		// Give up after 3s if the iframe is not loaded.
-		const disconnectTimeout = setTimeout( observer.disconnect, 3000 );
 		return () => {
 			observer.disconnect();
-			clearTimeout( disconnectTimeout );
+		};
+	}, [] );
+	// Append layout style if viewing layout preview.
+	const useLayoutStyle = useRefEffect( node => {
+		const style = document.getElementById( 'newspack-newsletters__layout-css' );
+		if ( ! style ) {
+			return;
+		}
+		const appendLayoutStyle = () => {
+			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
+			if ( iframe ) {
+				iframe.addEventListener( 'load', () => {
+					iframe.contentDocument.body.id = style.dataset.previewid;
+					iframe.contentDocument.head.appendChild( style.cloneNode( true ) );
+					observer.disconnect();
+				} );
+			}
+		};
+		const observer = new MutationObserver( appendLayoutStyle );
+		observer.observe( node, { childList: true } );
+		return () => {
+			observer.disconnect();
 		};
 	}, [] );
 	return (
-		<div className="newspack-posts-inserter__preview" ref={ useMergeRefs( [ ref, fixIframe ] ) }>
+		<div
+			className="newspack-posts-inserter__preview"
+			ref={ useMergeRefs( [ ref, useIframeBorderFix, useLayoutStyle ] ) }
+		>
 			{ isReady ? <BlockPreview blocks={ blocks } viewportWidth={ viewportWidth } /> : <Spinner /> }
 		</div>
 	);
