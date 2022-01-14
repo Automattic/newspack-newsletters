@@ -252,7 +252,8 @@
 					border-color: var( --wp-admin-theme-color );
 				}
 
-				.block-editor-block-preview__container {
+				.block-editor-block-preview__container,
+				.block-editor-block-preview__content-iframe {
 					cursor: pointer;
 					position: absolute;
 					top: 0;
@@ -341,7 +342,8 @@
 }
 
 // Posts Inserter - Preview
-.block-editor-block-preview__container {
+.block-editor-block-preview__container,
+.block-editor-block-preview__content-iframe {
 	background: transparent;
 
 	.wp-block[data-type='newspack-newsletters/posts-inserter'] {
