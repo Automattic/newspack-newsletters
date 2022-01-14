@@ -367,6 +367,7 @@
 		.block-editor-block-preview__container {
 			height: 100% !important;
 			max-height: 100%;
+			overflow: hidden;
 
 			.newspack-newsletters-modal__layouts & {
 				position: relative;
