@@ -28,6 +28,7 @@ const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 			observer.disconnect();
 		};
 	}, [] );
+
 	// Append layout style if viewing layout preview.
 	const useLayoutStyle = useRefEffect( node => {
 		const style = document.getElementById( 'newspack-newsletters__layout-css' );
@@ -50,6 +51,7 @@ const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 			observer.disconnect();
 		};
 	}, [] );
+
 	return (
 		<div
 			className="newspack-posts-inserter__preview"

@@ -277,7 +277,7 @@
 		border-top: none;
 		display: none;
 		justify-content: center;
-		overflow-y: scroll;
+		overflow: hidden;
 		position: relative;
 
 		@media only screen and ( min-width: 600px ) {
