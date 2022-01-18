@@ -12,25 +12,59 @@ import { forwardRef } from '@wordpress/element';
 const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 	// Iframe styles are not properly applied when nesting iframed editors.
 	// This fix ensures the iframe is properly styled.
-	const fixIframe = useRefEffect( node => {
-		const updateIframeStyle = () => {
+	const useIframeBorderFix = useRefEffect( node => {
+		const observerCallback = () => {
 			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
 			if ( iframe ) {
-				iframe.style.border = 0;
-				observer.disconnect();
+				const updateIframeStyle = () => {
+					iframe.style.border = 0;
+					observer.disconnect();
+				};
+				updateIframeStyle();
+				iframe.addEventListener( 'load', updateIframeStyle );
 			}
 		};
-		const observer = new MutationObserver( updateIframeStyle );
+		const observer = new MutationObserver( observerCallback );
 		observer.observe( node, { childList: true } );
-		// Give up after 3s if the iframe is not loaded.
-		const disconnectTimeout = setTimeout( observer.disconnect, 3000 );
 		return () => {
 			observer.disconnect();
-			clearTimeout( disconnectTimeout );
 		};
 	}, [] );
+
+	// Append layout style if viewing layout preview.
+	const useLayoutStyle = useRefEffect( node => {
+		const style = document.getElementById( 'newspack-newsletters__layout-css' );
+		if ( ! style ) {
+			return;
+		}
+		const clonedStyle = style.cloneNode( true );
+		const observerCallback = () => {
+			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
+			if ( iframe ) {
+				const doc = iframe.contentDocument;
+				const appendStyle = () => {
+					doc.body.id = style.dataset.previewid;
+					if ( ! doc.contains( clonedStyle ) ) {
+						doc.head.appendChild( clonedStyle );
+					}
+					observer.disconnect();
+				};
+				appendStyle();
+				iframe.addEventListener( 'load', appendStyle );
+			}
+		};
+		const observer = new MutationObserver( observerCallback );
+		observer.observe( node, { childList: true } );
+		return () => {
+			observer.disconnect();
+		};
+	}, [] );
+
 	return (
-		<div className="newspack-posts-inserter__preview" ref={ useMergeRefs( [ ref, fixIframe ] ) }>
+		<div
+			className="newspack-posts-inserter__preview"
+			ref={ useMergeRefs( [ ref, useIframeBorderFix, useLayoutStyle ] ) }
+		>
 			{ isReady ? <BlockPreview blocks={ blocks } viewportWidth={ viewportWidth } /> : <Spinner /> }
 		</div>
 	);

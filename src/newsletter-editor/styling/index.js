@@ -4,8 +4,8 @@
 import { compose, useInstanceId } from '@wordpress/compose';
 import { ColorPicker, BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { withDispatch, withSelect } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+import { useSelect, withDispatch, withSelect } from '@wordpress/data';
+import { useEffect, useRef } from '@wordpress/element';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 /**
@@ -121,6 +121,45 @@ export const getScopedCss = ( scope, css ) => {
 			return rule.cssText;
 		} )
 		.join( '\n' );
+};
+
+/**
+ * Hook to apply body and header fonts variables in store to an iframe as root
+ * element style property.
+ *
+ * @return {import('react').RefObject} The component to be rendered.
+ */
+export const useCustomFontsInIframe = () => {
+	const ref = useRef();
+	const { fontBody, fontHeader } = useSelect( customStylesSelector );
+	useEffect( () => {
+		const node = ref.current;
+		const updateIframe = () => {
+			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
+			if ( iframe ) {
+				const updateStyleProperties = () => {
+					const element = iframe.contentDocument?.documentElement;
+					if ( element ) {
+						element.style.setProperty( '--body-font', fontBody );
+						element.style.setProperty( '--header-font', fontHeader );
+					}
+				};
+				updateStyleProperties();
+				// Handle Firefox iframe.
+				iframe.addEventListener( 'load', updateStyleProperties );
+				return () => {
+					iframe.removeEventListener( 'load', updateStyleProperties );
+				};
+			}
+		};
+		updateIframe();
+		const observer = new MutationObserver( updateIframe );
+		observer.observe( node, { childList: true } );
+		return () => {
+			observer.disconnect();
+		};
+	}, [ fontBody, fontHeader ] );
+	return ref;
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )(

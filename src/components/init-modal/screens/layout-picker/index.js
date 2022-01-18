@@ -64,7 +64,9 @@ const LayoutPicker = ( {
 	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
 	const layoutPreviewProps = useMemo( () => {
 		const layout = selectedLayoutId && find( layouts, { ID: selectedLayoutId } );
-		return layout ? { blocks: parse( layout.post_content ), meta: layout.meta } : null;
+		return layout
+			? { layoutId: selectedLayoutId, blocks: parse( layout.post_content ), meta: layout.meta }
+			: null;
 	}, [ selectedLayoutId, layouts.length ] );
 
 	const canRenderPreview = layoutPreviewProps && layoutPreviewProps.blocks.length > 0;
