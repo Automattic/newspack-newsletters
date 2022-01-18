@@ -57,7 +57,10 @@ final class Newspack_Newsletters_Renderer {
 			' ',
 			array_map(
 				function( $key ) use ( $attributes ) {
-					if ( isset( $attributes[ $key ] ) ) {
+					if (
+						isset( $attributes[ $key ] ) &&
+						( is_string( $attributes[ $key ] ) || is_numeric( $attributes[ $key ] ) ) // Don't convert values that can't be expressed as a string.
+					) {
 						return $key . '="' . $attributes[ $key ] . '"';
 					} else {
 						return '';
