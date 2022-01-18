@@ -13,16 +13,18 @@ const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 	// Iframe styles are not properly applied when nesting iframed editors.
 	// This fix ensures the iframe is properly styled.
 	const useIframeBorderFix = useRefEffect( node => {
-		const updateIframeStyle = () => {
+		const observerCallback = () => {
 			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
 			if ( iframe ) {
-				iframe.addEventListener( 'load', () => {
+				const updateIframeStyle = () => {
 					iframe.style.border = 0;
 					observer.disconnect();
-				} );
+				};
+				updateIframeStyle();
+				iframe.addEventListener( 'load', updateIframeStyle );
 			}
 		};
-		const observer = new MutationObserver( updateIframeStyle );
+		const observer = new MutationObserver( observerCallback );
 		observer.observe( node, { childList: true } );
 		return () => {
 			observer.disconnect();
@@ -35,17 +37,23 @@ const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 		if ( ! style ) {
 			return;
 		}
-		const appendLayoutStyle = () => {
+		const clonedStyle = style.cloneNode( true );
+		const observerCallback = () => {
 			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
 			if ( iframe ) {
-				iframe.addEventListener( 'load', () => {
-					iframe.contentDocument.body.id = style.dataset.previewid;
-					iframe.contentDocument.head.appendChild( style.cloneNode( true ) );
+				const doc = iframe.contentDocument;
+				const appendStyle = () => {
+					doc.body.id = style.dataset.previewid;
+					if ( ! doc.contains( clonedStyle ) ) {
+						doc.head.appendChild( clonedStyle );
+					}
 					observer.disconnect();
-				} );
+				};
+				appendStyle();
+				iframe.addEventListener( 'load', appendStyle );
 			}
 		};
-		const observer = new MutationObserver( appendLayoutStyle );
+		const observer = new MutationObserver( observerCallback );
 		observer.observe( node, { childList: true } );
 		return () => {
 			observer.disconnect();
