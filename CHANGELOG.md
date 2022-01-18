@@ -1,3 +1,11 @@
+# [1.39.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.39.0-alpha.1...v1.39.0-alpha.2) (2022-01-18)
+
+
+### Bug Fixes
+
+* append layout preview css to iframe head ([#688](https://github.com/Automattic/newspack-newsletters/issues/688)) ([231ebcc](https://github.com/Automattic/newspack-newsletters/commit/231ebccfda6bdab3a54cb3a9a33910d472c7b8b5))
+* **wp5.9:** layout and post inserter previews ([2abb6e2](https://github.com/Automattic/newspack-newsletters/commit/2abb6e224e8898ad0bda044739435664211203ff))
+
 # [1.39.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.38.0...v1.39.0-alpha.1) (2022-01-06)
 
 
