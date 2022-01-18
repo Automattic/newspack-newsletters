@@ -1,3 +1,11 @@
+# [1.39.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.39.0-alpha.2...v1.39.0-alpha.3) (2022-01-18)
+
+
+### Bug Fixes
+
+* php warning when converting non-string attributes to mjml ([#697](https://github.com/Automattic/newspack-newsletters/issues/697)) ([7730e1b](https://github.com/Automattic/newspack-newsletters/commit/7730e1beb1222f19fe312628ded46533b0d424e4))
+* **post-inserter:** preview hook on top level component ([#696](https://github.com/Automattic/newspack-newsletters/issues/696)) ([244bdef](https://github.com/Automattic/newspack-newsletters/commit/244bdefc4ee88abc270c6f53e4261fa50625d74d))
+
 # [1.39.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.39.0-alpha.1...v1.39.0-alpha.2) (2022-01-18)
 
 
