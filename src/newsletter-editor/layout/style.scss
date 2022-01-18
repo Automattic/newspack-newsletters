@@ -32,7 +32,8 @@
 			z-index: 1;
 		}
 
-		.block-editor-block-preview__container {
+		.block-editor-block-preview__container,
+		.block-editor-block-preview__content-iframe {
 			position: absolute;
 			top: 0;
 

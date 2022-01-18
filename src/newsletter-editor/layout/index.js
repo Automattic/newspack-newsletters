@@ -161,6 +161,7 @@ export default compose( [
 						<div className="newspack-newsletters-layouts__item">
 							<div className="newspack-newsletters-layouts__item-preview">
 								<NewsletterPreview
+									layoutId={ layoutId }
 									meta={ usedLayout.meta }
 									blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
 									viewportWidth={ 600 }

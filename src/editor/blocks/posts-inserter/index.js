@@ -17,16 +17,11 @@ import {
 	FontSizePicker,
 	ColorPicker,
 	PanelBody,
-	Spinner,
 	Toolbar,
 } from '@wordpress/components';
-import {
-	InnerBlocks,
-	BlockPreview,
-	InspectorControls,
-	BlockControls,
-} from '@wordpress/block-editor';
+import { InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
+import { useCustomFontsInIframe } from '../../../newsletter-editor/styling';
 
 /**
  * Internal dependencies
@@ -38,6 +33,7 @@ import Icon from './icon';
 import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
+import PostsPreview from './posts-preview';
 
 const PostsInserterBlock = ( {
 	setAttributes,
@@ -235,13 +231,13 @@ const PostsInserterBlock = ( {
 					{ Icon }
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
-				<div className="newspack-posts-inserter__preview">
-					{ isReady ? (
-						<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
-					) : (
-						<Spinner />
-					) }
-				</div>
+				<PostsPreview
+					// eslint-disable-next-line react-hooks/rules-of-hooks
+					ref={ useCustomFontsInIframe() }
+					isReady={ isReady }
+					blocks={ templateBlocks }
+					viewportWidth={ 600 }
+				/>
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 						{ __( 'Insert posts', 'newspack-newsletters' ) }

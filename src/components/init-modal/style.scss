@@ -252,7 +252,8 @@
 					border-color: var( --wp-admin-theme-color );
 				}
 
-				.block-editor-block-preview__container {
+				.block-editor-block-preview__container,
+				.block-editor-block-preview__content-iframe {
 					cursor: pointer;
 					position: absolute;
 					top: 0;
@@ -276,7 +277,7 @@
 		border-top: none;
 		display: none;
 		justify-content: center;
-		overflow-y: scroll;
+		overflow: hidden;
 		position: relative;
 
 		@media only screen and ( min-width: 600px ) {
@@ -341,7 +342,8 @@
 }
 
 // Posts Inserter - Preview
-.block-editor-block-preview__container {
+.block-editor-block-preview__container,
+.block-editor-block-preview__content-iframe {
 	background: transparent;
 
 	.wp-block[data-type='newspack-newsletters/posts-inserter'] {
@@ -365,6 +367,7 @@
 		.block-editor-block-preview__container {
 			height: 100% !important;
 			max-height: 100%;
+			overflow: hidden;
 
 			.newspack-newsletters-modal__layouts & {
 				position: relative;
