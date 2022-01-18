@@ -5,6 +5,7 @@ import { useMergeRefs, useRefEffect } from '@wordpress/compose';
 import { BlockPreview } from '@wordpress/block-editor';
 import { Spinner } from '@wordpress/components';
 import { forwardRef } from '@wordpress/element';
+import { useCustomFontsInIframe } from '../../../newsletter-editor/styling';
 
 /**
  * Posts Preview component.
@@ -63,7 +64,7 @@ const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 	return (
 		<div
 			className="newspack-posts-inserter__preview"
-			ref={ useMergeRefs( [ ref, useIframeBorderFix, useLayoutStyle ] ) }
+			ref={ useMergeRefs( [ ref, useIframeBorderFix, useLayoutStyle, useCustomFontsInIframe() ] ) }
 		>
 			{ isReady ? <BlockPreview blocks={ blocks } viewportWidth={ viewportWidth } /> : <Spinner /> }
 		</div>

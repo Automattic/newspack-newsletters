@@ -21,7 +21,6 @@ import {
 } from '@wordpress/components';
 import { InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
-import { useCustomFontsInIframe } from '../../../newsletter-editor/styling';
 
 /**
  * Internal dependencies
@@ -231,13 +230,7 @@ const PostsInserterBlock = ( {
 					{ Icon }
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
-				<PostsPreview
-					// eslint-disable-next-line react-hooks/rules-of-hooks
-					ref={ useCustomFontsInIframe() }
-					isReady={ isReady }
-					blocks={ templateBlocks }
-					viewportWidth={ 600 }
-				/>
+				<PostsPreview isReady={ isReady } blocks={ templateBlocks } viewportWidth={ 600 } />
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 						{ __( 'Insert posts', 'newspack-newsletters' ) }
