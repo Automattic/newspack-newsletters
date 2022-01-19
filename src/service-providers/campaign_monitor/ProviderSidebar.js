@@ -24,12 +24,12 @@ import './style.scss';
 /**
  * Validation utility.
  *
- * @param {Object} data object data fetched using getFetchDataConfig
+ * @param {Object} data            object data fetched using getFetchDataConfig
  * @param {string} data.from_email Sender email address.
- * @param {string} data.from_name Sender name.
- * @param {number} data.list_id Recipient list ID.
+ * @param {string} data.from_name  Sender name.
+ * @param {number} data.list_id    Recipient list ID.
  * @param {number} data.segment_id Recipient segment ID.
- * @param {string} data.send_mode Whether to send in 'list' or 'segment' mode.
+ * @param {string} data.send_mode  Whether to send in 'list' or 'segment' mode.
  * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
 export const validateNewsletter = ( { from_email, from_name, list_id, segment_id, send_mode } ) => {
@@ -61,15 +61,15 @@ export const validateNewsletter = ( { from_email, from_name, list_id, segment_id
  * so that it's possible to render e.g. a loader while
  * the data is not yet available.
  *
- * @param {Object} props Component props.
- * @param {number} props.postId ID of the edited newsletter post.
- * @param {Function} props.renderSubject Function that renders email subject input.
- * @param {boolean} props.inFlight True if the component is in a loading state.
- * @param {Object} props.cmData Campaign Monitor data.
- * @param {Function} props.updateMetaValue Dispatcher to update post meta.
- * @param {Object} props.newsletterData Newsletter data from the parent components
+ * @param {Object}   props                   Component props.
+ * @param {number}   props.postId            ID of the edited newsletter post.
+ * @param {Function} props.renderSubject     Function that renders email subject input.
+ * @param {boolean}  props.inFlight          True if the component is in a loading state.
+ * @param {Object}   props.cmData            Campaign Monitor data.
+ * @param {Function} props.updateMetaValue   Dispatcher to update post meta.
+ * @param {Object}   props.newsletterData    Newsletter data from the parent components
  * @param {Function} props.createErrorNotice Dispatcher to display an error message in the editor.
- * @param {string} props.status Current post status.
+ * @param {string}   props.status            Current post status.
  */
 const ProviderSidebarComponent = ( {
 	postId,

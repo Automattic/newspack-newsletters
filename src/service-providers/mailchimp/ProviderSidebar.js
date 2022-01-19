@@ -146,7 +146,7 @@ const ProviderSidebar = ( {
 	if ( ! campaign ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
-				{ __( 'Retrieving Mailchimp data...', 'newspack-newsletters' ) }
+				{ __( 'Retrieving Mailchimp data…', 'newspack-newsletters' ) }
 				<Spinner />
 			</div>
 		);

@@ -63,7 +63,8 @@ const withVisibilityControl = createHigherOrderComponent(
 			const currentIcon =
 				visibilityOptions.find( option => option.value === value )?.icon || 'visibility';
 			const menuLabel = value
-				? sprintf( __( 'Currently visible only on "%s" version.', 'newspack-newsletters' ), value )
+				? // Translators: visibility help message.
+				  sprintf( __( 'Currently visible only on "%s" version.', 'newspack-newsletters' ), value )
 				: __( 'Select a visibility option', 'newspack-newsletter' );
 			if ( ! props.is_public && ! value ) {
 				return <BlockEdit { ...props } />;

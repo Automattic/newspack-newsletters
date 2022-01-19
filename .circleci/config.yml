@@ -93,9 +93,7 @@ jobs:
       - checkout_with_workspace
       - run:
           name: Release new version on wordpress.org
-          command: |
-            wget -O release-wporg.sh https://raw.githubusercontent.com/Automattic/newspack-scripts/master/release-wporg.sh
-            chmod 755 ./release-wporg.sh && ./release-wporg.sh
+          command: ./node_modules/newspack-scripts//release-wporg.sh
 
   post_release:
     docker:
@@ -104,9 +102,7 @@ jobs:
       - checkout_with_workspace
       - run:
           name: Perform post-release chores
-          command: |
-            wget -O post-release.sh https://raw.githubusercontent.com/Automattic/newspack-scripts/master/post-release.sh
-            chmod 755 ./post-release.sh && ./post-release.sh
+          command: command: ./node_modules/newspack-scripts/post-release.sh
 
 workflows:
   version: 2
@@ -126,6 +122,7 @@ workflows:
               only:
                 - release
                 - alpha
+                - /^hotfix\/.*/
       - post_release:
           requires:
             - release_github
