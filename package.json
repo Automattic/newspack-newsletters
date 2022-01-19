@@ -12,6 +12,7 @@
 		"lint": "npm run lint:scss && npm run lint:js",
 		"lint:js": "eslint --ext .js,.jsx src",
 		"lint:js:staged": "eslint --ext .js,.jsx",
+		"lint:php": "./vendor/bin/phpcs .",
 		"lint:php:staged": "./vendor/bin/phpcs",
 		"lint:scss": "stylelint '**/*.scss' --syntax scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
 		"lint:scss:staged": "stylelint --syntax scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
