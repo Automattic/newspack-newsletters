@@ -1,3 +1,18 @@
+# [1.39.0](https://github.com/Automattic/newspack-newsletters/compare/v1.38.0...v1.39.0) (2022-01-19)
+
+
+### Bug Fixes
+
+* append layout preview css to iframe head ([#688](https://github.com/Automattic/newspack-newsletters/issues/688)) ([231ebcc](https://github.com/Automattic/newspack-newsletters/commit/231ebccfda6bdab3a54cb3a9a33910d472c7b8b5))
+* php warning when converting non-string attributes to mjml ([#697](https://github.com/Automattic/newspack-newsletters/issues/697)) ([7730e1b](https://github.com/Automattic/newspack-newsletters/commit/7730e1beb1222f19fe312628ded46533b0d424e4))
+* **post-inserter:** preview hook on top level component ([#696](https://github.com/Automattic/newspack-newsletters/issues/696)) ([244bdef](https://github.com/Automattic/newspack-newsletters/commit/244bdefc4ee88abc270c6f53e4261fa50625d74d))
+* **wp5.9:** layout and post inserter previews ([2abb6e2](https://github.com/Automattic/newspack-newsletters/commit/2abb6e224e8898ad0bda044739435664211203ff))
+
+
+### Features
+
+* reorganise sidebar ([#655](https://github.com/Automattic/newspack-newsletters/issues/655)) ([cfaa075](https://github.com/Automattic/newspack-newsletters/commit/cfaa0756c0ee7ad485b1fd8cc66f25f6497d7c12))
+
 # [1.39.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.39.0-alpha.2...v1.39.0-alpha.3) (2022-01-18)
 
 
