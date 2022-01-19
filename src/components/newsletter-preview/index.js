@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { BlockPreview } from '@wordpress/block-editor';
-import { Fragment, useMemo } from '@wordpress/element';
+import { Fragment, useEffect, useRef, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -10,34 +10,62 @@ import { Fragment, useMemo } from '@wordpress/element';
 import './style.scss';
 import { getScopedCss } from '../../newsletter-editor/styling';
 
-const NewsletterPreview = ( { meta = {}, ...props } ) => {
-	const ELEMENT_ID = useMemo( () => `preview-${ Math.round( Math.random() * 1000 ) }`, [] );
+const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
+	const [ elementId, setElementId ] = useState( '' );
+	const [ css, setCss ] = useState( '' );
+
+	// Generate inline layout styles for the preview.
+	useEffect( () => {
+		const _elementId = `preview-${ Math.round( Math.random() * 1000 ) }`;
+		setElementId( _elementId );
+		const cssRules = [];
+		if ( meta.font_body ) {
+			cssRules.push( `*:not( code ) { font-family: ${ meta.font_body }; }` );
+		}
+		if ( meta.font_header ) {
+			cssRules.push( `h1, h2, h3, h4, h5, h6 { font-family: ${ meta.font_header }; }` );
+		}
+		if ( meta.custom_css ) {
+			cssRules.push( meta.custom_css );
+		}
+		setCss( cssRules.length ? getScopedCss( `#${ _elementId }`, cssRules.join( '\n' ) ) : '' );
+	}, [ layoutId ].concat( Object.values( meta ) ) );
+
+	// Apply the styles to the iframe editor.
+	const useInlineStyles = () => {
+		const ref = useRef();
+		useEffect( () => {
+			const node = ref.current;
+			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
+			if ( iframe ) {
+				const appendStyle = () => {
+					const style = document.createElement( 'style' );
+					style.id = `newspack-newsletters__layout-preview-${ layoutId }`;
+					style.textContent = css;
+					if ( iframe.contentDocument?.body ) {
+						iframe.contentDocument.body.id = elementId;
+						iframe.contentDocument.head.appendChild( style );
+					}
+				};
+				appendStyle();
+				// Handle Firefox iframe.
+				iframe.addEventListener( 'load', appendStyle );
+				return () => {
+					iframe.removeEventListener( 'load', appendStyle );
+				};
+			}
+		}, [ layoutId, css ] );
+		return ref;
+	};
 
 	return (
 		<Fragment>
-			<style>{ `${
-				meta.font_body
-					? `
-#${ ELEMENT_ID } *:not( code ) {
-  font-family: ${ meta.font_body };
-}`
-					: ' '
-			}${
-				meta.font_header
-					? `
-#${ ELEMENT_ID } h1, #${ ELEMENT_ID } h2, #${ ELEMENT_ID } h3, #${ ELEMENT_ID } h4, #${ ELEMENT_ID } h5, #${ ELEMENT_ID } h6 {
-  font-family: ${ meta.font_header };
-}`
-					: ' '
-			}${
-				meta.custom_css
-					? `
-${ getScopedCss( `#${ ELEMENT_ID }`, meta.custom_css ) }
-`
-					: ' '
-			}` }</style>
+			<style id="newspack-newsletters__layout-css" data-previewid={ elementId }>
+				{ css }
+			</style>
 			<div
-				id={ ELEMENT_ID }
+				ref={ useInlineStyles() }
+				id={ elementId }
 				className="newspack-newsletters__layout-preview"
 				style={ {
 					backgroundColor: meta.background_color,

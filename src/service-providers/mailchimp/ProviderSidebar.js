@@ -182,7 +182,13 @@ const ProviderSidebar = ( {
 	return (
 		<Fragment>
 			{ renderSubject() }
-
+			{ renderPreviewText() }
+			<hr />
+			{ renderFrom( { handleSenderUpdate: setSender } ) }
+			<hr />
+			<strong className="newspack-newsletters__label">
+				{ __( 'Send to', 'newspack-newsletters' ) }
+			</strong>
 			<SelectControl
 				label={ __( 'Audience', 'newspack-newsletters' ) }
 				className="newspack-newsletters__to-selectcontrol"
@@ -207,7 +213,6 @@ const ProviderSidebar = ( {
 					</ExternalLink>
 				</p>
 			) }
-
 			<SegmentsSelection
 				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
 				targetField={ targetField }
@@ -217,9 +222,6 @@ const ProviderSidebar = ( {
 				inFlight={ inFlight }
 				onUpdate={ updateSegments }
 			/>
-
-			{ renderFrom( { handleSenderUpdate: setSender } ) }
-			{ renderPreviewText() }
 		</Fragment>
 	);
 };

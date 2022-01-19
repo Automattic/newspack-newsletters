@@ -47,13 +47,19 @@ const Sidebar = ( {
 		} );
 
 	const renderSubject = () => (
-		<TextControl
-			label={ __( 'Subject', 'newspack-newsletters' ) }
-			className="newspack-newsletters__subject-textcontrol"
-			value={ title }
-			disabled={ inFlight }
-			onChange={ value => editPost( { title: value } ) }
-		/>
+		<>
+			<strong className="newspack-newsletters__label">
+				{ __( 'Subject', 'newspack-newsletters' ) }
+			</strong>
+			<TextControl
+				label={ __( 'Subject', 'newspack-newsletters' ) }
+				className="newspack-newsletters__subject-textcontrol"
+				value={ title }
+				disabled={ inFlight }
+				onChange={ value => editPost( { title: value } ) }
+				hideLabelFromVision
+			/>
+		</>
 	);
 
 	const senderEmailClasses = classnames(
@@ -63,7 +69,9 @@ const Sidebar = ( {
 
 	const renderFrom = ( { handleSenderUpdate } ) => (
 		<Fragment>
-			<strong>{ __( 'From', 'newspack-newsletters' ) }</strong>
+			<strong className="newspack-newsletters__label">
+				{ __( 'From', 'newspack-newsletters' ) }
+			</strong>
 			<TextControl
 				label={ __( 'Name', 'newspack-newsletters' ) }
 				className="newspack-newsletters__name-textcontrol"
@@ -96,7 +104,7 @@ const Sidebar = ( {
 	const renderPreviewText = () => (
 		<TextareaControl
 			label={ __( 'Preview text', 'newspack-newsletters' ) }
-			className="newspack-newsletters__name-textcontrol newspack-newsletters__name-textcontrol--separated"
+			className="newspack-newsletters__preview-textcontrol"
 			value={ previewText }
 			disabled={ inFlight }
 			onChange={ value => editPost( { meta: { preview_text: value } } ) }
@@ -140,6 +148,7 @@ const Sidebar = ( {
 				renderPreviewText={ renderPreviewText }
 				updateMeta={ meta => editPost( { meta } ) }
 			/>
+			<hr />
 			<ToggleControl
 				label={ __( 'Disable ads for this newsletter?', 'newspack-newsletters' ) }
 				className="newspack-newsletters__disable-ads"
