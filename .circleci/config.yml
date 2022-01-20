@@ -93,7 +93,7 @@ jobs:
       - checkout_with_workspace
       - run:
           name: Release new version on wordpress.org
-          command: ./node_modules/newspack-scripts//release-wporg.sh
+          command: ./node_modules/newspack-scripts/release-wporg.sh
 
   post_release:
     docker:
