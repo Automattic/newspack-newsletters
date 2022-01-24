@@ -3,22 +3,22 @@
 	"version": "1.39.0",
 	"description": "",
 	"scripts": {
-		"cm": "git-cz",
-		"semantic-release": "semantic-release",
-		"start": "npm run dev",
-		"dev": "calypso-build --watch --config='./webpack.config.js'",
-		"build": "calypso-build --config='./webpack.config.js'",
+		"cm": "newspack-scripts commit",
+		"semantic-release": "newspack-scripts release --files=newspack-newsletters.php",
+		"start": "npm ci && newspack-scripts watch",
+		"watch": "newspack-scripts watch",
+		"build": "newspack-scripts build",
 		"clean": "rm -rf dist/",
-		"lint": "npm-run-all --parallel lint:*",
+		"lint": "npm run lint:scss && npm run lint:js",
 		"lint:js": "eslint --ext .js,.jsx src",
-		"lint:scss": "stylelint \"**/*.scss\" --syntax scss",
+		"lint:js:staged": "eslint --ext .js,.jsx",
 		"lint:php": "./vendor/bin/phpcs .",
+		"lint:php:staged": "./vendor/bin/phpcs",
+		"lint:scss": "stylelint '**/*.scss' --syntax scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
+		"lint:scss:staged": "stylelint --syntax scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
 		"format:js": "prettier 'src/**/*.{js,jsx}' --write",
 		"format:scss": "prettier --write 'src/**/*.scss'",
 		"format:php": "./vendor/bin/phpcbf .",
-		"lint:js:staged": "eslint --ext .js,.jsx",
-		"lint:scss:staged": "stylelint --syntax scss",
-		"lint:php:staged": "./vendor/bin/phpcs",
 		"release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-newsletters --exclude-from='./.distignore' && cd release && zip -r newspack-newsletters.zip newspack-newsletters",
 		"release": "npm run build && npm run semantic-release"
 	},
@@ -26,63 +26,6 @@
 		"*.js": "npm run lint:js:staged",
 		"*.scss": "npm run lint:scss:staged",
 		"*.php": "npm run lint:php:staged"
-	},
-	"release": {
-		"branches": [
-			"release",
-			{
-				"name": "alpha",
-				"prerelease": "alpha"
-			}
-		],
-		"prepare": [
-			"@semantic-release/changelog",
-			"@semantic-release/npm",
-			[
-				"semantic-release-version-bump",
-				{
-					"files": "newspack-newsletters.php",
-					"callback": "npm run release:archive"
-				}
-			],
-			{
-				"path": "@semantic-release/git",
-				"assets": [
-					"newspack-newsletters.php",
-					"package.json",
-					"package-lock.json",
-					"CHANGELOG.md"
-				],
-				"message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-			}
-		],
-		"plugins": [
-			"@semantic-release/commit-analyzer",
-			"@semantic-release/release-notes-generator",
-			[
-				"@semantic-release/npm",
-				{
-					"npmPublish": false
-				}
-			],
-			"semantic-release-version-bump",
-			[
-				"@semantic-release/github",
-				{
-					"assets": [
-						{
-							"path": "./release/newspack-newsletters.zip",
-							"label": "newspack-newsletters.zip"
-						}
-					]
-				}
-			]
-		]
-	},
-	"config": {
-		"commitizen": {
-			"path": "./node_modules/cz-conventional-changelog"
-		}
 	},
 	"repository": {
 		"type": "git",
@@ -94,57 +37,20 @@
 	},
 	"dependencies": {
 		"@uiw/react-codemirror": "^3.2.1",
-		"@wordpress/api-fetch": "^5.2.6",
-		"@wordpress/base-styles": "^4.0.4",
-		"@wordpress/block-editor": "^8.0.13",
-		"@wordpress/blocks": "^11.1.4",
-		"@wordpress/components": "^19.1.6",
-		"@wordpress/compose": "^5.0.6",
-		"@wordpress/data": "^6.1.4",
-		"@wordpress/date": "^4.2.1",
-		"@wordpress/dom-ready": "^3.2.3",
-		"@wordpress/edit-post": "^5.0.19",
-		"@wordpress/element": "^4.0.4",
-		"@wordpress/hooks": "^3.2.2",
-		"@wordpress/html-entities": "^3.2.2",
-		"@wordpress/i18n": "^4.2.4",
-		"@wordpress/icons": "^6.1.1",
-		"@wordpress/keycodes": "^3.2.2",
-		"@wordpress/plugins": "^4.0.6",
-		"@wordpress/url": "^3.2.2",
 		"classnames": "^2.3.1",
 		"commitlint": "^15.0.0",
 		"csslint": "^1.0.5",
 		"lodash": "^4.17.21",
 		"mjml-browser": "^4.11.0",
+		"newspack-components": "^2.0.3",
 		"qs": "^6.10.3"
 	},
 	"devDependencies": {
-		"@automattic/calypso-build": "^10.0.0",
-		"@babel/core": "^7.16.7",
-		"@commitlint/cli": "^15.0.0",
-		"@commitlint/config-conventional": "^15.0.0",
-		"@semantic-release/changelog": "^6.0.1",
-		"@semantic-release/git": "^10.0.1",
-		"@wordpress/eslint-plugin": "^4.1.0",
-		"@wordpress/stylelint-config": "^19.1.0",
-		"cz-conventional-changelog": "^3.3.0",
+		"@rushstack/eslint-patch": "^1.1.0",
 		"eslint": "^7.32.0",
-		"eslint-config-prettier": "^8.3.0",
-		"eslint-plugin-import": "^2.25.4",
-		"eslint-plugin-jsdoc": "^37.6.3",
-		"eslint-plugin-prettier": "^4.0.0",
-		"eslint-plugin-react": "^7.27.1",
-		"identity-obj-proxy": "^3.0.0",
 		"lint-staged": "^12.3.1",
-		"npm-run-all": "^4.1.5",
-		"prettier": "npm:wp-prettier@2.2.1-beta-1",
-		"semantic-release": "^18.0.1",
-		"semantic-release-version-bump": "^1.4.1",
-		"stylelint": "^13.3.1",
-		"stylelint-config-prettier": "^9.0.3",
-		"stylelint-prettier": "^1.2.0",
-		"webpack": "^5.67.0",
-		"webpack-cli": "^4.7.2"
+		"newspack-scripts": "^3.0.0",
+		"prettier": "npm:wp-prettier@^2.2.1-beta-1",
+		"stylelint": "^13.13.1"
 	}
 }

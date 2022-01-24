@@ -57,6 +57,7 @@ const renderPreSendInfo = newsletterData => {
 			<br />
 			<strong>
 				{ sprintf(
+					// Translators: subscriber count help message.
 					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
 					subscriberCount
 				) }

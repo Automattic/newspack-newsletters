@@ -100,7 +100,7 @@ export default compose( [
 
 		let updateLabel;
 		if ( isSaving ) {
-			updateLabel = __( 'Updating...', 'newspack-newsletters' );
+			updateLabel = __( 'Updating…', 'newspack-newsletters' );
 		} else if ( 'manual' === serviceProviderName ) {
 			updateLabel = __( 'Update and copy HTML', 'newspack-newsletters' );
 		} else {
@@ -153,9 +153,10 @@ export default compose( [
 				if ( countOfActiveAds > 0 ) {
 					setAdsWarning(
 						sprintf(
+							// Translators: help message showing number of active ads.
 							_n(
-								'There is %d active %s.',
-								'There are %d active %ss.',
+								'There is %1$d active %2$s.',
+								'There are %1$d active %2$ss.',
 								countOfActiveAds,
 								'newspack-newsletters'
 							),
@@ -241,7 +242,8 @@ export default compose( [
 									rel={ activeAdManageUrlRel }
 									target={ activeAdManageTarget }
 								>
-									{ sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel ) }
+									{ // Translators: "manage ad" message.
+									sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel ) }
 								</a>
 							</Notice>
 						) : null }
