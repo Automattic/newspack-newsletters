@@ -4,7 +4,7 @@
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
-		"semantic-release": "newspack-scripts release --files=newspack-new-plugin-boilerplate.php",
+		"semantic-release": "newspack-scripts release --files=newspack-newsletters.php",
 		"start": "npm ci && newspack-scripts watch",
 		"watch": "newspack-scripts watch",
 		"build": "newspack-scripts build",
@@ -26,58 +26,6 @@
 		"*.js": "npm run lint:js:staged",
 		"*.scss": "npm run lint:scss:staged",
 		"*.php": "npm run lint:php:staged"
-	},
-	"release": {
-		"branches": [
-			"release",
-			{
-				"name": "alpha",
-				"prerelease": "alpha"
-			}
-		],
-		"prepare": [
-			"@semantic-release/changelog",
-			"@semantic-release/npm",
-			[
-				"semantic-release-version-bump",
-				{
-					"files": "newspack-newsletters.php",
-					"callback": "npm run release:archive"
-				}
-			],
-			{
-				"path": "@semantic-release/git",
-				"assets": [
-					"newspack-newsletters.php",
-					"package.json",
-					"package-lock.json",
-					"CHANGELOG.md"
-				],
-				"message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-			}
-		],
-		"plugins": [
-			"@semantic-release/commit-analyzer",
-			"@semantic-release/release-notes-generator",
-			[
-				"@semantic-release/npm",
-				{
-					"npmPublish": false
-				}
-			],
-			"semantic-release-version-bump",
-			[
-				"@semantic-release/github",
-				{
-					"assets": [
-						{
-							"path": "./release/newspack-newsletters.zip",
-							"label": "newspack-newsletters.zip"
-						}
-					]
-				}
-			]
-		]
 	},
 	"repository": {
 		"type": "git",

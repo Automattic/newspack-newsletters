@@ -28,7 +28,7 @@
 				"./node_modules/.bin/lint-staged"
 			],
 			"commit-msg": [
-				"cat $1 | ./node_modules/.bin/commitlint"
+				"cat $1 | ./node_modules/.bin/newspack-scripts commitlint"
 			]
 		}
 	}
