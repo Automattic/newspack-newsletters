@@ -242,10 +242,8 @@ export default compose( [
 									rel={ activeAdManageUrlRel }
 									target={ activeAdManageTarget }
 								>
-									{
-										// Translators: "manage ad" message.
-										sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel )
-									}
+									{ // Translators: "manage ad" message.
+									sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel ) }
 								</a>
 							</Notice>
 						) : null }

@@ -5,7 +5,7 @@ if ( 'undefined' !== typeof inlineEditPost ) {
 	const wp_inline_edit_function = inlineEditPost.edit;
 
 	// eslint-disable-next-line no-undef
-	inlineEditPost.edit = function ( post_id ) {
+	inlineEditPost.edit = function( post_id ) {
 		wp_inline_edit_function.apply( this, arguments );
 
 		let id = 0;
