@@ -120,12 +120,23 @@ final class Newspack_Newsletters_Layouts {
 	 * @return string Content.
 	 */
 	public static function layout_token_replacement( $content, $extra = [] ) {
+		$home_url       = get_home_url();
 		$sitename       = get_bloginfo( 'name' );
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
 		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'medium' )[0] : null;
+		$date           = gmdate( get_option( 'date_format' ) );
 
 		$sitename_block = sprintf(
-			'<!-- wp:heading {"align":"center","level":1} --><h1 class="has-text-align-center">%s</h1><!-- /wp:heading -->',
+			'<!-- wp:heading {"level":1} --><h1 id="%s"><a href="%s">%s</a></h1><!-- /wp:heading -->',
+			sanitize_title_with_dashes( $sitename ),
+			esc_url( $home_url ),
+			$sitename
+		);
+
+		$sitename_block_small = sprintf(
+			'<!-- wp:heading {"level":4} --><h4 id="%s"><a href="%s">%s</a></h4><!-- /wp:heading -->',
+			sanitize_title_with_dashes( $sitename ),
+			esc_url( $home_url ),
 			$sitename
 		);
 
@@ -137,19 +148,42 @@ final class Newspack_Newsletters_Layouts {
 			$custom_logo_id
 		) : null;
 
+		$date_block = sprintf(
+			'<!-- wp:paragraph --><p>%s</p><!-- /wp:paragraph -->',
+			$date
+		);
+
+		$date_block_right = sprintf(
+			'<!-- wp:paragraph {"align":"right"} --><p class="has-text-align-right">%s</p><!-- /wp:paragraph -->',
+			$date
+		);
+
+		$date_block_center = sprintf(
+			'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">%s</p><!-- /wp:paragraph -->',
+			$date
+		);
+
 		$search  = array_merge(
 			[
 				'__SITENAME__',
+				'__SITENAME_SMALL__',
 				'__LOGO__',
 				'__LOGO_OR_SITENAME__',
+				'__DATE__',
+				'__DATE_RIGHT__',
+				'__DATE_CENTER__',
 			],
 			array_keys( $extra )
 		);
 		$replace = array_merge(
 			[
-				$sitename,
-				$logo,
-				$logo ? $logo_block : $sitename_block,
+				$sitename ? $sitename_block : null,
+				$sitename ? $sitename_block_small : null,
+				$logo ? $logo_block : null,
+				$logo ? $logo_block : ( $sitename ? $sitename_block : null ),
+				$date_block,
+				$date_block_right,
+				$date_block_center,
 			],
 			array_values( $extra )
 		);
