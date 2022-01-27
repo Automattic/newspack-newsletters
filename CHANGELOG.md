@@ -1,3 +1,16 @@
+# [1.40.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.39.0...v1.40.0-alpha.1) (2022-01-27)
+
+
+### Bug Fixes
+
+* require postcss explicitly ([#708](https://github.com/Automattic/newspack-newsletters/issues/708)) ([624e320](https://github.com/Automattic/newspack-newsletters/commit/624e320c566e1589ed102210f13cab401e2d380f))
+
+
+### Features
+
+* add new keys to settings list ([#694](https://github.com/Automattic/newspack-newsletters/issues/694)) ([d49afd2](https://github.com/Automattic/newspack-newsletters/commit/d49afd216e884ff3a9e977507fab21f89e7fc5e4))
+* update merge tags style ([#680](https://github.com/Automattic/newspack-newsletters/issues/680)) ([2b76f29](https://github.com/Automattic/newspack-newsletters/commit/2b76f29b2538db1df05c9f6e7ad6638986bbb1e6))
+
 # [1.39.0](https://github.com/Automattic/newspack-newsletters/compare/v1.38.0...v1.39.0) (2022-01-19)
 
 
