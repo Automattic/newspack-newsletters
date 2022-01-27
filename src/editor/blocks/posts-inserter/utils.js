@@ -8,6 +8,7 @@ import { omit } from 'lodash';
  */
 import { __, _x } from '@wordpress/i18n';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
+// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
 
 /**

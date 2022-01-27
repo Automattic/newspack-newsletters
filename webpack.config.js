@@ -6,7 +6,7 @@
 /**
  * External dependencies
  */
-const getBaseWebpackConfig = require( '@automattic/calypso-build/webpack.config.js' );
+const getBaseWebpackConfig = require( 'newspack-scripts/config/getWebpackConfig' );
 const path = require( 'path' );
 
 /**

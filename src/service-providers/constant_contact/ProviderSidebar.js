@@ -48,7 +48,7 @@ const ProviderSidebar = ( {
 	if ( ! campaign ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
-				{ __( 'Retrieving Constant Contact data...', 'newspack-newsletters' ) }
+				{ __( 'Retrieving Constant Contact data…', 'newspack-newsletters' ) }
 				<Spinner />
 			</div>
 		);

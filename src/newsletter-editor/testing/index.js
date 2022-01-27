@@ -69,7 +69,7 @@ export default compose( [
 						disabled={ disabled || inFlight || ! hasValidEmail( testEmail ) }
 					>
 						{ inFlight
-							? __( 'Sending Test Email...', 'newspack-newsletters' )
+							? __( 'Sending Test Email…', 'newspack-newsletters' )
 							: __( 'Send a Test Email', 'newspack-newsletters' ) }
 					</Button>
 					{ inFlight && <Spinner /> }

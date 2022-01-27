@@ -15,7 +15,7 @@ import { ProviderSidebar, validateNewsletter } from './ProviderSidebar';
  * Should return apiFetch utility config:
  * https://www.npmjs.com/package/@wordpress/api-fetch
  *
- * @param {Object} data Data to contruct the config.
+ * @param {Object} data        Data to contruct the config.
  * @param {number} data.postId Post ID.
  * @return {Object} Config fetching.
  */

@@ -1,3 +1,5 @@
+/* eslint-disable jsdoc/no-undefined-types, jsdoc/valid-types */
+
 /**
  * WordPress dependencies
  */
@@ -102,7 +104,7 @@ const doc = document.implementation.createHTMLDocument( 'Temp' );
  * Takes a given CSS string, parses it, and scopes all its rules to the given `scope`.
  *
  * @param {string} scope The scope to apply to each rule in the CSS.
- * @param {string} css The CSS to scope.
+ * @param {string} css   The CSS to scope.
  * @return {string} Scoped CSS string.
  */
 export const getScopedCss = ( scope, css ) => {
