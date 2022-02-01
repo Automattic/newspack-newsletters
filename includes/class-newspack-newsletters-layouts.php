@@ -125,6 +125,18 @@ final class Newspack_Newsletters_Layouts {
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
 		$logo           = $custom_logo_id ? wp_get_attachment_image_src( $custom_logo_id, 'medium' )[0] : null;
 		$date           = gmdate( get_option( 'date_format' ) );
+		$bg_color       = '#ffffff';
+		$text_color     = '#000000';
+
+		if ( function_exists( 'newspack_setup' ) ) {
+			$solid_bg          = get_theme_mod( 'header_solid_background' );
+			$header_status     = get_theme_mod( 'header_color' );
+			$primary_color_hex = get_theme_mod( 'primary_color_hex' );
+			$header_color_hex  = get_theme_mod( 'header_color_hex' );
+			$header_color      = 'default' === $header_status ? $primary_color_hex : $header_color_hex;
+			$bg_color          = $solid_bg ? $header_color : '#ffffff';
+			$text_color        = newspack_get_color_contrast( $bg_color );
+		}
 
 		$sitename_block = sprintf(
 			'<!-- wp:heading {"level":1} --><h1 id="%s"><a href="%s">%s</a></h1><!-- /wp:heading -->',
@@ -172,6 +184,8 @@ final class Newspack_Newsletters_Layouts {
 				'__DATE__',
 				'__DATE_RIGHT__',
 				'__DATE_CENTER__',
+				'__BG_COLOR__',
+				'__TEXT_COLOR__',
 			],
 			array_keys( $extra )
 		);
@@ -184,6 +198,8 @@ final class Newspack_Newsletters_Layouts {
 				$date_block,
 				$date_block_right,
 				$date_block_center,
+				$bg_color,
+				$text_color,
 			],
 			array_values( $extra )
 		);
