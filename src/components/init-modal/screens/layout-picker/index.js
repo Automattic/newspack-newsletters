@@ -24,11 +24,11 @@ import SingleLayoutPreview from './SingleLayoutPreview';
 
 const LAYOUTS_TABS = [
 	{
-		title: __( 'Default layouts', 'newspack-newsletters' ),
+		title: __( 'Prebuilt Layouts', 'newspack-newsletters' ),
 		filter: layout => layout.post_author === undefined,
 	},
 	{
-		title: __( 'My layouts', 'newspack-newsletters' ),
+		title: __( 'Saved Layouts', 'newspack-newsletters' ),
 		filter: isUserDefinedLayout,
 		isEditable: true,
 	},
@@ -77,10 +77,7 @@ const LayoutPicker = ( {
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__content__sidebar">
 					<p>
-						{ __(
-							'Pick a pre-defined layout or start with a blank newsletter.',
-							'newspack-newsletters'
-						) }
+						{ __( 'Choose a layout or start with a blank newsletter.', 'newspack-newsletters' ) }
 					</p>
 					<div className="newspack-newsletters-modal__content__layout-buttons">
 						{ LAYOUTS_TABS.map( ( { title }, i ) => (
@@ -106,9 +103,11 @@ const LayoutPicker = ( {
 						<Spinner />
 					) : (
 						<div
-							className={ classnames( {
-								'newspack-newsletters-layouts': displayedLayouts.length > 0,
-							} ) }
+							className={
+								displayedLayouts.length > 0
+									? 'newspack-newsletters-layouts'
+									: 'newspack-newsletters-layouts--empty'
+							}
 						>
 							{ displayedLayouts.length ? (
 								displayedLayouts.map( layout => (
@@ -122,12 +121,17 @@ const LayoutPicker = ( {
 									/>
 								) )
 							) : (
-								<span>
-									{ __(
-										'Turn any newsletter to a layout via the "Layout" sidebar menu in the editor.',
-										'newspack-newsletters'
-									) }
-								</span>
+								<>
+									<h3 className="newspack-newsletters-layouts--empty">
+										{ __( 'You don’t have any saved layouts yet.', 'newspack-newsletters' ) }
+									</h3>
+									<p>
+										{ __(
+											'Turn any newsletter to a layout via the "Layout" sidebar menu in the editor.',
+											'newspack-newsletters'
+										) }
+									</p>
+								</>
 							) }
 						</div>
 					) }
