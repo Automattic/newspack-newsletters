@@ -45,7 +45,7 @@
 			"type": "string",
 			"default": "left"
 		},
-    "featuredImageSize": {
+		"featuredImageSize": {
 			"type": "string",
 			"default": "large"
 		},
