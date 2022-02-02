@@ -17,4 +17,10 @@
 	.editor-post-switch-to-draft {
 		display: none;
 	}
+
+	.newspack-newsletters-buttons-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+	}
 }
