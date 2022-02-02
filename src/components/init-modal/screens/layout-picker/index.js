@@ -8,7 +8,7 @@ import { find } from 'lodash';
  * WordPress dependencies
  */
 import { parse } from '@wordpress/blocks';
-import { Fragment, useMemo, useState, useEffect } from '@wordpress/element';
+import { Fragment, useState, useEffect } from '@wordpress/element';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Button, Spinner } from '@wordpress/components';
@@ -21,15 +21,14 @@ import { BLANK_LAYOUT_ID } from '../../../../utils/consts';
 import { isUserDefinedLayout } from '../../../../utils';
 import { useLayoutsState } from '../../../../utils/hooks';
 import SingleLayoutPreview from './SingleLayoutPreview';
-import NewsletterPreview from '../../../newsletter-preview';
 
 const LAYOUTS_TABS = [
 	{
-		title: __( 'Default layouts', 'newspack-newsletters' ),
+		title: __( 'Prebuilt Layouts', 'newspack-newsletters' ),
 		filter: layout => layout.post_author === undefined,
 	},
 	{
-		title: __( 'My layouts', 'newspack-newsletters' ),
+		title: __( 'Saved Layouts', 'newspack-newsletters' ),
 		filter: isUserDefinedLayout,
 		isEditable: true,
 	},
@@ -62,22 +61,6 @@ const LayoutPicker = ( {
 	};
 
 	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
-	const layoutPreviewProps = useMemo( () => {
-		const layout = selectedLayoutId && find( layouts, { ID: selectedLayoutId } );
-		return layout
-			? { layoutId: selectedLayoutId, blocks: parse( layout.post_content ), meta: layout.meta }
-			: null;
-	}, [ selectedLayoutId, layouts.length ] );
-
-	const canRenderPreview = layoutPreviewProps && layoutPreviewProps.blocks.length > 0;
-
-	const renderPreview = () =>
-		canRenderPreview ? (
-			<NewsletterPreview { ...layoutPreviewProps } viewportWidth={ 600 } />
-		) : (
-			<p>{ __( 'Select a layout to preview.', 'newspack-newsletters' ) }</p>
-		);
-
 	const [ activeTabIndex, setActiveTabIndex ] = useState( 0 );
 	const activeTab = LAYOUTS_TABS[ activeTabIndex ];
 	const displayedLayouts = layouts.filter( activeTab.filter );
@@ -92,20 +75,24 @@ const LayoutPicker = ( {
 	return (
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
-				<div className="newspack-newsletters-tabs newspack-newsletters-buttons-group">
-					{ LAYOUTS_TABS.map( ( { title }, i ) => (
-						<Button
-							key={ i }
-							disabled={ isFetchingLayouts }
-							className={ classnames( 'newspack-newsletters-tabs__button', {
-								'newspack-newsletters-tabs__button--is-active':
-									! isFetchingLayouts && i === activeTabIndex,
-							} ) }
-							onClick={ () => setActiveTabIndex( i ) }
-						>
-							{ title }
-						</Button>
-					) ) }
+				<div className="newspack-newsletters-modal__content__sidebar">
+					<p>
+						{ __( 'Choose a layout or start with a blank newsletter.', 'newspack-newsletters' ) }
+					</p>
+					<div className="newspack-newsletters-modal__content__layout-buttons">
+						{ LAYOUTS_TABS.map( ( { title }, i ) => (
+							<Button
+								key={ i }
+								disabled={ isFetchingLayouts }
+								className={ {
+									'is-active': ! isFetchingLayouts && i === activeTabIndex,
+								} }
+								onClick={ () => setActiveTabIndex( i ) }
+							>
+								{ title }
+							</Button>
+						) ) }
+					</div>
 				</div>
 				<div
 					className={ classnames( 'newspack-newsletters-modal__layouts', {
@@ -116,9 +103,11 @@ const LayoutPicker = ( {
 						<Spinner />
 					) : (
 						<div
-							className={ classnames( {
-								'newspack-newsletters-layouts': displayedLayouts.length > 0,
-							} ) }
+							className={
+								displayedLayouts.length > 0
+									? 'newspack-newsletters-layouts'
+									: 'newspack-newsletters-layouts--empty'
+							}
 						>
 							{ displayedLayouts.length ? (
 								displayedLayouts.map( layout => (
@@ -132,29 +121,29 @@ const LayoutPicker = ( {
 									/>
 								) )
 							) : (
-								<span>
-									{ __(
-										'Turn any newsletter to a layout via the "Layout" sidebar menu in the editor.',
-										'newspack-newsletters'
-									) }
-								</span>
+								<>
+									<h3 className="newspack-newsletters-layouts--empty">
+										{ __( 'You don’t have any saved layouts yet.', 'newspack-newsletters' ) }
+									</h3>
+									<p>
+										{ __(
+											'Turn any newsletter to a layout via the "Layout" sidebar menu in the editor.',
+											'newspack-newsletters'
+										) }
+									</p>
+								</>
 							) }
 						</div>
 					) }
 				</div>
-
-				<div className="newspack-newsletters-modal__preview">
-					{ ! isFetchingLayouts && renderPreview() }
-				</div>
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">
 				<Button isSecondary onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
-					{ __( 'Start From Scratch', 'newspack-newsletters' ) }
+					{ __( 'Blank Newsletter', 'newspack-newsletters' ) }
 				</Button>
-				<span className="separator">{ __( 'or', 'newspack-newsletters' ) }</span>
 				<Button
 					isPrimary
-					disabled={ isFetchingLayouts || ! canRenderPreview }
+					disabled={ isFetchingLayouts || ! selectedLayoutId }
 					onClick={ () => insertLayout( selectedLayoutId ) }
 				>
 					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
