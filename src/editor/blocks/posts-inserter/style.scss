@@ -1,24 +1,31 @@
 @import '~@wordpress/base-styles/colors';
 
+:root {
+	--newspack-post-inserter-width: 786px;
+}
+
 .newspack-posts-inserter {
 	border: 1px solid $gray-900;
 	border-radius: 2px;
-	padding: 1em 0;
+	padding: 0;
 
 	&__header {
 		align-items: center;
+		background: white;
 		display: flex;
-		padding: 0 1em;
+		padding: 1em;
 		position: relative;
 		z-index: 1;
 
-		svg {
-			margin-right: 1ch;
-		}
-
 		span {
 			font-size: 18pt;
+			margin-left: 1ch;
 		}
+	}
+
+	&__footer {
+		background: white;
+		padding: 1em;
 	}
 
 	&__preview {
@@ -27,7 +34,6 @@
 		border-width: 1px 0;
 		display: flex;
 		justify-content: center;
-		margin: 1em 0;
 		min-height: 4rem;
 
 		&:empty {
@@ -43,12 +49,21 @@
 
 			&__content {
 				position: relative;
+
+				@media only screen and ( min-width: 624px ) {
+					margin-left: calc(
+						-1 * ( ( var( --newspack-post-inserter-width ) - var( --newspack-max-width ) ) / 2 +
+									12px )
+					);
+					transform: scale( 1 ) !important;
+					transform-origin: 0 50% 0;
+				}
+
+				.editor-styles-wrapper.wp-embed-responsive {
+					background: transparent;
+				}
 			}
 		}
-	}
-
-	.components-button {
-		margin: 0 1em;
 	}
 }
 
