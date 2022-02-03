@@ -247,7 +247,6 @@ const PostsInserterBlock = ( {
 							attributes.featuredImageAlignment === 'right' ) && (
 							<Toolbar>
 								<ToolbarDropdownMenu
-									label={ __( 'Image Size', 'newspack-newsletters' ) }
 									text={ __( 'Image Size', 'newspack-newsletters' ) }
 									icon={ null }
 								>
@@ -289,7 +288,18 @@ const PostsInserterBlock = ( {
 					<Icon icon={ pages } />
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
-				<PostsPreview isReady={ isReady } blocks={ templateBlocks } viewportWidth={ 786 } />
+				<PostsPreview
+					isReady={ isReady }
+					blocks={ templateBlocks }
+					viewportWidth={
+						'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage
+							? 574
+							: 1148
+					}
+					className={
+						attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null
+					}
+				/>
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 						{ __( 'Insert posts', 'newspack-newsletters' ) }
