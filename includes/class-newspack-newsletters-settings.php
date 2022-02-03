@@ -54,6 +54,7 @@ class Newspack_Newsletters_Settings {
 				),
 				'type'        => 'select',
 				'onboarding'  => true,
+				'default'     => 'mailchimp',
 			),
 			array(
 				'description' => esc_html__( 'Mailchimp API Key', 'newspack-newsletters' ),
