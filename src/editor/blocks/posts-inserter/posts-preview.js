@@ -8,9 +8,14 @@ import { forwardRef } from '@wordpress/element';
 import { useCustomFontsInIframe } from '../../../newsletter-editor/styling';
 
 /**
+ * External dependencies.
+ */
+import classnames from 'classnames';
+
+/**
  * Posts Preview component.
  */
-const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
+const PostsPreview = ( { isReady, blocks, className, viewportWidth }, ref ) => {
 	// Iframe styles are not properly applied when nesting iframed editors.
 	// This fix ensures the iframe is properly styled.
 	const useIframeBorderFix = useRefEffect( node => {
@@ -63,7 +68,7 @@ const PostsPreview = ( { isReady, blocks, viewportWidth }, ref ) => {
 
 	return (
 		<div
-			className="newspack-posts-inserter__preview"
+			className={ classnames( 'newspack-posts-inserter__preview', className ) }
 			ref={ useMergeRefs( [ ref, useIframeBorderFix, useLayoutStyle, useCustomFontsInIframe() ] ) }
 		>
 			{ isReady ? <BlockPreview blocks={ blocks } viewportWidth={ viewportWidth } /> : <Spinner /> }
