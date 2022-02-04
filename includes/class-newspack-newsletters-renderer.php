@@ -1042,7 +1042,7 @@ final class Newspack_Newsletters_Renderer {
 		$current_position = 0;
 		foreach ( $valid_blocks as $block ) {
 			$block_content = '';
-	
+
 			// Convert reusable block to group block.
 			// Reusable blocks are CPTs, where the block's ref attribute is the post ID.
 			if ( 'core/block' === $block['blockName'] && isset( $block['attrs']['ref'] ) ) {
