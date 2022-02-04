@@ -355,7 +355,7 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/site-logo':
 				$custom_logo_id = get_theme_mod( 'custom_logo' );
 				$image          = wp_get_attachment_image_src( $custom_logo_id, 'full' );
-				if ( $image && ! empty( $image ) ) {
+				if ( ! empty( $image ) ) {
 					$img_attrs          = array(
 						'padding' => '0',
 						'width'   => sprintf( '%spx', isset( $attrs['width'] ) ? $attrs['width'] : '125' ),
