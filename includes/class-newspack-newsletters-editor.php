@@ -46,6 +46,7 @@ final class Newspack_Newsletters_Editor {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
+		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
@@ -104,7 +105,7 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		$allowed_actions = apply_filters(
-			'newspack_newsletters_allowed_editor_actions', 
+			'newspack_newsletters_allowed_editor_actions',
 			[
 				__CLASS__ . '::enqueue_block_editor_assets',
 				'newspack_enqueue_scripts',
@@ -125,6 +126,37 @@ final class Newspack_Newsletters_Editor {
 		remove_editor_styles();
 		add_theme_support( 'editor-gradient-presets', array() );
 		add_theme_support( 'disable-custom-gradients' );
+	}
+
+	/**
+	 * Define Editor Font Sizes.
+	 */
+	public static function newspack_font_sizes() {
+		add_theme_support(
+			'editor-font-sizes',
+			[
+				[
+					'name' => _x( 'Small', 'font size name', 'newspack-newsletters' ),
+					'size' => 12,
+					'slug' => 'small',
+				],
+				[
+					'name' => _x( 'Normal', 'font size name', 'newspack-newsletters' ),
+					'size' => 16,
+					'slug' => 'normal',
+				],
+				[
+					'name' => _x( 'Large', 'font size name', 'newspack-newsletters' ),
+					'size' => 24,
+					'slug' => 'large',
+				],
+				[
+					'name' => _x( 'Extra Large', 'font size name', 'newspack-newsletters' ),
+					'size' => 36,
+					'slug' => 'x-large',
+				],
+			]
+		);
 	}
 
 	/**
