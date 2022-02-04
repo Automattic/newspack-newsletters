@@ -120,8 +120,8 @@ final class Newspack_Newsletters_Layouts {
 	 * @return string Content.
 	 */
 	public static function layout_token_replacement( $content, $extra = [] ) {
-		$sitename_block = '<!-- wp:site-title {"textAlign":"center"} /-->';
-		$logo_block     = '<!-- wp:site-logo {"align":"center","width":200} /-->';
+		$sitename_block = '<!-- wp:site-title {"textAlign":"center","newsletterVisibility":"email"} /-->';
+		$logo_block     = '<!-- wp:site-logo {"align":"center","width":200,"newsletterVisibility":"email"} /-->';
 
 		$search = array_merge(
 			[
