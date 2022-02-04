@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { includes, debounce } from 'lodash';
+import { AutocompleteTokenField } from 'newspack-components';
 
 /**
  * WordPress dependencies
@@ -19,11 +20,6 @@ import { addQueryArgs } from '@wordpress/url';
 import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { decodeEntities } from '@wordpress/html-entities';
-
-/**
- * Internal dependencies
- */
-import AutocompleteTokenField from '../../../components/autocomplete-tokenfield';
 
 const fetchPostSuggestions = search =>
 	apiFetch( {
@@ -143,7 +139,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				orderby: 'count',
 				order: 'desc',
 			} ),
-		} ).then( function ( categories ) {
+		} ).then( categories => {
 			return categories.map( category => ( {
 				value: category.id,
 				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
@@ -158,7 +154,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				_fields: 'id,name',
 				include: categoryIDs.join( ',' ),
 			} ),
-		} ).then( function ( categories ) {
+		} ).then( categories => {
 			return categories.map( category => ( {
 				value: category.id,
 				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
@@ -175,7 +171,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				orderby: 'count',
 				order: 'desc',
 			} ),
-		} ).then( function ( fetchedTags ) {
+		} ).then( fetchedTags => {
 			return fetchedTags.map( tag => ( {
 				value: tag.id,
 				label: decodeEntities( tag.name ) || __( '(no title)', 'newspack-newsletters' ),
@@ -190,7 +186,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				_fields: 'id,name',
 				include: tagIDs.join( ',' ),
 			} ),
-		} ).then( function ( fetchedTags ) {
+		} ).then( fetchedTags => {
 			return fetchedTags.map( tag => ( {
 				value: tag.id,
 				label: decodeEntities( tag.name ) || __( '(no title)', 'newspack-newsletters' ),

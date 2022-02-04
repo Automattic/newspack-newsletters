@@ -1,6 +1,13 @@
 @import '~@wordpress/base-styles/colors';
 
-p.newspack-completer-mc-merge-tags-label {
-	color: $gray-700;
-	font-size: 0.8rem;
+.newspack-completer-mc-merge-tags {
+	code {
+		color: $gray-900;
+		display: inline-block;
+	}
+	p {
+		color: $gray-700;
+		font-size: 12px;
+		margin: 8px 0 0;
+	}
 }

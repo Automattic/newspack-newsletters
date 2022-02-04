@@ -64,12 +64,12 @@ export default compose( [
 				/>
 				<div className="newspack-newsletters__testing-controls">
 					<Button
-						isPrimary
+						variant="secondary"
 						onClick={ sendTestEmail }
 						disabled={ disabled || inFlight || ! hasValidEmail( testEmail ) }
 					>
 						{ inFlight
-							? __( 'Sending Test Email...', 'newspack-newsletters' )
+							? __( 'Sending Test Email…', 'newspack-newsletters' )
 							: __( 'Send a Test Email', 'newspack-newsletters' ) }
 					</Button>
 					{ inFlight && <Spinner /> }

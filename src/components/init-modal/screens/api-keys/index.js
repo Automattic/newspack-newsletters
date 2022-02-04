@@ -109,19 +109,18 @@ export default ( { onSetupStatus } ) => {
 								disabled: true,
 								label: __( 'Select service provider', 'newspack-newsletters' ),
 							},
-							{ value: 'manual', label: __( 'Manual', 'newspack-newsletters' ) },
-							{ value: 'mailchimp', label: __( 'Mailchimp', 'newspack-newsletters' ) },
+							{ value: 'mailchimp', label: 'Mailchimp' },
 							{
 								value: 'constant_contact',
-								label: __( 'Constant Contact', 'newspack-newsletters' ),
+								label: 'Constant Contact',
 							},
 							{
 								value: 'campaign_monitor',
-								label: __( 'Campaign Monitor', 'newspack-newsletters' ),
+								label: 'Campaign Monitor',
 							},
+							{ value: 'manual', label: __( 'Manual / Other', 'newspack-newsletters' ) },
 						] }
 					/>
-					<hr />
 					{ 'mailchimp' === serviceProvider && (
 						<Fragment>
 							<h4>{ __( 'Enter your Mailchimp API key', 'newspack-newsletters' ) }</h4>
@@ -138,15 +137,10 @@ export default ( { onSetupStatus } ) => {
 							) }
 
 							<p>
-								<ExternalLink href="https://us1.admin.mailchimp.com/account/api/">
-									{ __( 'Generate Mailchimp API key', 'newspack-newsletters' ) }
-								</ExternalLink>
-								<span className="separator"> | </span>
-								<ExternalLink href="https://mailchimp.com/help/about-api-keys/">
-									{ __( 'About Mailchimp API keys', 'newspack-newsletters' ) }
+								<ExternalLink href="https://mailchimp.com/help/about-api-keys/#Find_or_generate_your_API_key">
+									{ __( 'Find or generate your API key', 'newspack-newsletters' ) }
 								</ExternalLink>
 							</p>
-							<hr />
 						</Fragment>
 					) }
 					{ 'constant_contact' === serviceProvider && (
@@ -186,7 +180,6 @@ export default ( { onSetupStatus } ) => {
 									{ __( 'Get Constant Contact access token', 'newspack-newsletters' ) }
 								</ExternalLink>
 							</p>
-							<hr />
 						</Fragment>
 					) }
 					{ 'campaign_monitor' === serviceProvider && (
@@ -228,7 +221,7 @@ export default ( { onSetupStatus } ) => {
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">
 				<Button isPrimary onClick={ commitSettings } disabled={ inFlight || ! canSubmit }>
-					{ __( 'Save settings', 'newspack-newsletter' ) }
+					{ __( 'Save Settings', 'newspack-newsletter' ) }
 				</Button>
 			</div>
 		</Fragment>

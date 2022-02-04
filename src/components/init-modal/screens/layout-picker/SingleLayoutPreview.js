@@ -76,7 +76,12 @@ const SingleLayoutPreview = ( {
 				aria-label={ title }
 			>
 				{ '' === content ? null : (
-					<NewsletterPreview meta={ meta } blocks={ blockPreviewBlocks } viewportWidth={ 600 } />
+					<NewsletterPreview
+						layoutId={ ID }
+						meta={ meta }
+						blocks={ blockPreviewBlocks }
+						viewportWidth={ 848 }
+					/>
 				) }
 			</div>
 			{ isEditable ? (

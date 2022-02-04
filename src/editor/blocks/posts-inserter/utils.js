@@ -8,6 +8,7 @@ import { omit } from 'lodash';
  */
 import { __, _x } from '@wordpress/i18n';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
+// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
 
 /**
@@ -150,8 +151,34 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 				...( alignCenter ? { align: 'center' } : {} ),
 			},
 		];
-		const imageColumnBlock = [ 'core/column', {}, [ getImageBlock() ] ];
-		const postContentColumnBlock = [ 'core/column', {}, postContentBlocks ];
+
+		let imageColumnBlockSize = '50%';
+		let postContentColumnBlockSize = '50%';
+
+		if ( attributes.featuredImageSize ) {
+			switch ( attributes.featuredImageSize ) {
+				case 'small':
+					imageColumnBlockSize = '25%';
+					postContentColumnBlockSize = '75%';
+					break;
+				case 'medium':
+					imageColumnBlockSize = '33.33%';
+					postContentColumnBlockSize = '66.66%';
+					break;
+			}
+		}
+
+		const imageColumnBlock = [
+			'core/column',
+			{ width: imageColumnBlockSize },
+			[ getImageBlock() ],
+		];
+		const postContentColumnBlock = [
+			'core/column',
+			{ width: postContentColumnBlockSize },
+			postContentBlocks,
+		];
+
 		switch ( attributes.featuredImageAlignment ) {
 			case 'left':
 				return [ [ 'core/columns', {}, [ imageColumnBlock, postContentColumnBlock ] ] ];

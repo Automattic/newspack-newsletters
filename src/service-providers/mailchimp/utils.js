@@ -36,6 +36,7 @@ export const getListInterestsSettings = ( {
 			interests.interests.forEach( interest => {
 				const subscriberCount = parseInt( interest.subscriber_count );
 				const subscriberCountInfo = sprintf(
+					// Translators: subscriber count help message.
 					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
 					subscriberCount
 				);

@@ -17,16 +17,14 @@ import {
 	FontSizePicker,
 	ColorPicker,
 	PanelBody,
-	Spinner,
+	MenuItem,
+	MenuGroup,
 	Toolbar,
+	ToolbarDropdownMenu,
 } from '@wordpress/components';
-import {
-	InnerBlocks,
-	BlockPreview,
-	InspectorControls,
-	BlockControls,
-} from '@wordpress/block-editor';
+import { InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
+import { Icon, check, pages } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -34,10 +32,10 @@ import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
 import './style.scss';
 import './deduplication';
 import blockDefinition from './block.json';
-import Icon from './icon';
 import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
+import PostsPreview from './posts-preview';
 
 const PostsInserterBlock = ( {
 	setAttributes,
@@ -139,6 +137,21 @@ const PostsInserterBlock = ( {
 		},
 	];
 
+	const imageSizeOptions = [
+		{
+			value: 'small',
+			name: __( 'Small', 'newspack-newsletters' ),
+		},
+		{
+			value: 'medium',
+			name: __( 'Medium', 'newspack-newsletters' ),
+		},
+		{
+			value: 'large',
+			name: __( 'Large', 'newspack-newsletters' ),
+		},
+	];
+
 	return attributes.areBlocksInserted ? null : (
 		<Fragment>
 			<InspectorControls>
@@ -227,21 +240,66 @@ const PostsInserterBlock = ( {
 			</InspectorControls>
 
 			<BlockControls>
-				{ attributes.displayFeaturedImage && <Toolbar controls={ blockControlsImages } /> }
+				{ attributes.displayFeaturedImage && (
+					<>
+						<Toolbar controls={ blockControlsImages } />
+						{ ( attributes.featuredImageAlignment === 'left' ||
+							attributes.featuredImageAlignment === 'right' ) && (
+							<Toolbar>
+								<ToolbarDropdownMenu
+									text={ __( 'Image Size', 'newspack-newsletters' ) }
+									icon={ null }
+								>
+									{ ( { onClose } ) => (
+										<MenuGroup>
+											{ imageSizeOptions.map( entry => {
+												return (
+													<MenuItem
+														icon={
+															( attributes.featuredImageSize === entry.value ||
+																( ! attributes.featuredImageSize && entry.value === 'large' ) ) &&
+															check
+														}
+														isSelected={ attributes.featuredImageSize === entry.value }
+														key={ entry.value }
+														onClick={ () => {
+															setAttributes( {
+																featuredImageSize: entry.value,
+															} );
+														} }
+														onClose={ onClose }
+														role="menuitemradio"
+													>
+														{ entry.name }
+													</MenuItem>
+												);
+											} ) }
+										</MenuGroup>
+									) }
+								</ToolbarDropdownMenu>
+							</Toolbar>
+						) }
+					</>
+				) }
 			</BlockControls>
 
 			<div className="newspack-posts-inserter">
 				<div className="newspack-posts-inserter__header">
-					{ Icon }
+					<Icon icon={ pages } />
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
-				<div className="newspack-posts-inserter__preview">
-					{ isReady ? (
-						<BlockPreview blocks={ templateBlocks } viewportWidth={ 558 } />
-					) : (
-						<Spinner />
-					) }
-				</div>
+				<PostsPreview
+					isReady={ isReady }
+					blocks={ templateBlocks }
+					viewportWidth={
+						'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage
+							? 574
+							: 1148
+					}
+					className={
+						attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null
+					}
+				/>
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 						{ __( 'Insert posts', 'newspack-newsletters' ) }
@@ -347,7 +405,7 @@ export default () => {
 	registerBlockType( POSTS_INSERTER_BLOCK_NAME, {
 		...blockDefinition,
 		title: 'Posts Inserter',
-		icon: Icon,
+		icon: <Icon icon={ pages } />,
 		edit: PostsInserterBlockWithSelect,
 		save: () => <InnerBlocks.Content />,
 	} );
