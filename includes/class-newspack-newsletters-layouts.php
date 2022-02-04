@@ -128,6 +128,7 @@ final class Newspack_Newsletters_Layouts {
 		$bg_color       = '#ffffff';
 		$text_color     = '#000000';
 
+		// Check if current theme is a Newspack teme.
 		if ( function_exists( 'newspack_setup' ) ) {
 			$solid_bg          = get_theme_mod( 'header_solid_background' );
 			$header_status     = get_theme_mod( 'header_color' );
