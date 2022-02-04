@@ -289,9 +289,6 @@ final class Newspack_Newsletters_Renderer {
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
 
-		// Initialize block MJML markup.
-		$block_mjml_markup = '';
-
 		switch ( $block_name ) {
 			/**
 			 * Text-based blocks.
@@ -346,7 +343,7 @@ final class Newspack_Newsletters_Renderer {
 					unset( $text_attrs['background-color'] );
 				}
 
-				$block_mjml_markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
+				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
 				break;
 
 			/**
@@ -355,8 +352,9 @@ final class Newspack_Newsletters_Renderer {
 			case 'core/site-logo':
 				$custom_logo_id = get_theme_mod( 'custom_logo' );
 				$image          = wp_get_attachment_image_src( $custom_logo_id, 'full' );
+				$markup         = '';
 				if ( ! empty( $image ) ) {
-					$img_attrs          = array(
+					$img_attrs = array(
 						'padding' => '0',
 						'width'   => sprintf( '%spx', isset( $attrs['width'] ) ? $attrs['width'] : '125' ),
 						'align'   => isset( $attrs['align'] ) ? $attrs['align'] : 'left',
@@ -364,8 +362,9 @@ final class Newspack_Newsletters_Renderer {
 						'href'    => isset( $attrs['isLink'] ) && ! $attrs['isLink'] ? '' : esc_url( home_url( '/' ) ),
 						'target'  => isset( $attrs['linkTarget'] ) && '_blank' === $attrs['linkTarget'] ? '_blank' : '',
 					);
-					$block_mjml_markup .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+					$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
 				}
+				$block_mjml_markup = $markup;
 				break;
 
 			/**
