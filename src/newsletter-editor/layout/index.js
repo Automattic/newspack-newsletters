@@ -164,7 +164,7 @@ export default compose( [
 									layoutId={ layoutId }
 									meta={ usedLayout.meta }
 									blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
-									viewportWidth={ 848 }
+									viewportWidth={ 960 }
 								/>
 							</div>
 							<div className="newspack-newsletters-layouts__item-label">
