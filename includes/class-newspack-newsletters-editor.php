@@ -52,6 +52,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
+		add_action( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
 	}
 
 	/**
@@ -126,6 +127,18 @@ final class Newspack_Newsletters_Editor {
 		remove_editor_styles();
 		add_theme_support( 'editor-gradient-presets', array() );
 		add_theme_support( 'disable-custom-gradients' );
+		unregister_block_pattern( 'core/social-links-shared-background-color' );
+	}
+
+	/**
+	 * Remove Core's Remote Block patterns.
+	 */
+	public static function strip_block_patterns() {
+		if ( ! self::is_editing_email() ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
