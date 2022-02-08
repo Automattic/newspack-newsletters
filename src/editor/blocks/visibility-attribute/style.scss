@@ -43,6 +43,18 @@
 		top: 100%;
 		transition: margin 0.25s ease-in-out;
 		z-index: 10;
+		button {
+			font-family: var( --newspack-system-font );
+			display: inline-block;
+			margin-left: 5px;
+			padding: 0;
+			cursor: pointer;
+			background: transparent;
+			border: 0;
+			text-decoration: underline;
+			color: inherit;
+			pointer-events: all;
+		}
 	}
 	&.newsletters-block-selected {
 		> .newsletters-block-visibility-label {

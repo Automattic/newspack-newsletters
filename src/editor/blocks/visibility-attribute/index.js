@@ -149,10 +149,20 @@ const withVisibilityNotice = createHigherOrderComponent(
 					>
 						<span className="newsletters-block-visibility-label">
 							{ shouldBePublic ? (
-								__(
-									'Newsletter is not public, this block will not be visible.',
-									'newspack-newsletters'
-								)
+								<>
+									{ __(
+										'Newsletter is not public, this block will not be visible.',
+										'newspack-newsletters'
+									) }
+									<button
+										onClick={ () => {
+											props.setAttributes( { [ ATTRIBUTE_NAME ]: '' } );
+										} }
+									>
+										{ __( 'Clear visibility attribute', 'newspack-newsletters' ) }
+									</button>
+									.
+								</>
 							) : (
 								<Fragment>
 									{ value === 'web' &&
