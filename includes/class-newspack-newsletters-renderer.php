@@ -82,14 +82,13 @@ final class Newspack_Newsletters_Renderer {
 			return $block_attrs['customFontSize'] . 'px';
 		}
 		if ( isset( $block_attrs['fontSize'] ) ) {
-			// Gutenberg's default font size presets.
-			// https://github.com/WordPress/gutenberg/blob/359858da0675943d8a759a0a7c03e7b3846536f5/packages/block-editor/src/store/defaults.js#L87-L113 .
 			$sizes = array(
-				'small'  => '13px',
-				'normal' => '16px',
-				'medium' => '20px',
-				'large'  => '36px',
-				'huge'   => '48px',
+				'small'   => '12px',
+				'normal'  => '16px',
+				'medium'  => '16px',
+				'large'   => '24px',
+				'huge'    => '36px',
+				'x-large' => '36px',
 			);
 			return $sizes[ $block_attrs['fontSize'] ];
 		}
