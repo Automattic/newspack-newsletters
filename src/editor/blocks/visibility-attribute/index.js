@@ -20,7 +20,7 @@ import {
 	ToolbarDropdownMenu,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { Icon, check, warning } from '@wordpress/icons';
+import { check } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -148,7 +148,6 @@ const withVisibilityNotice = createHigherOrderComponent(
 						data-align={ props.attributes?.align || null }
 					>
 						<span className="newsletters-block-visibility-label">
-							<Icon icon={ warning } size={ 15 } />
 							{ shouldBePublic ? (
 								__(
 									'Newsletter is not public, this block will not be visible.',
