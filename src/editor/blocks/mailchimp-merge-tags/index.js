@@ -40,9 +40,9 @@ const getCompleter = () => {
 			);
 		},
 		getOptionLabel: ( { tag, label } ) => (
-			<div>
+			<div className="newspack-completer-mc-merge-tags">
 				<code>{ tag }</code>
-				<p className="newspack-completer-mc-merge-tags-label">{ label }</p>
+				<p>{ label }</p>
 			</div>
 		),
 		getOptionKeywords: ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ],
