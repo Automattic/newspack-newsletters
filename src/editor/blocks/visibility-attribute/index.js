@@ -161,7 +161,6 @@ const withVisibilityNotice = createHigherOrderComponent(
 									>
 										{ __( 'Clear visibility attribute', 'newspack-newsletters' ) }
 									</button>
-									.
 								</>
 							) : (
 								<Fragment>

@@ -28,37 +28,42 @@
 
 	.newsletters-block-visibility-label {
 		background: $alert-yellow;
-		border-radius: 1px;
+		border-radius: 2px;
 		color: $gray-900;
 		display: flex;
 		font-family: var( --newspack-system-font );
 		font-size: 10px;
-		height: 16px;
 		line-height: 1.6;
-		margin-top: -18px;
-		padding: 0 4px;
+		margin-top: -23px;
+		padding: 2px 4px;
 		pointer-events: none;
 		position: absolute;
-		right: 2px;
+		right: 3px;
 		top: 100%;
 		transition: margin 0.25s ease-in-out;
 		z-index: 10;
 		button {
-			font-family: var( --newspack-system-font );
-			display: inline-block;
-			margin-left: 5px;
-			padding: 0;
-			cursor: pointer;
-			background: transparent;
 			border: 0;
-			text-decoration: underline;
+			background: transparent;
 			color: inherit;
+			cursor: pointer;
+			display: inline-block;
+			font-family: inherit;
+			font-size: inherit;
+			line-height: inherit;
+			margin-left: 0.25em;
+			padding: 0;
 			pointer-events: all;
+			text-decoration: underline;
+
+			&:focus {
+				outline: 1px solid;
+			}
 		}
 	}
 	&.newsletters-block-selected {
 		> .newsletters-block-visibility-label {
-			margin-top: 2px;
+			margin-top: 3px;
 		}
 	}
 	&.newsletters-block-error {
