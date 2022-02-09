@@ -53,6 +53,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 		add_filter( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
+		add_filter( 'enter_title_here', [ __CLASS__, 'replace_editor_title' ] );
 	}
 
 	/**
@@ -143,6 +144,21 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		return $should_load_remote;
+	}
+
+	/**
+	 * Replace the Title's placeholder.
+	 *
+	 * @param string $should_replace_title Whether to replace the placeholder text.
+	 *
+	 * @return string Whether to replace the placeholder text.
+	 */
+	public static function replace_editor_title( $should_replace_title ) {
+		if ( self::is_editing_email() ) {
+			return __( 'Subject', 'newspack-newsletters' );
+		}
+
+		return $should_replace_title;
 	}
 
 	/**
