@@ -128,8 +128,8 @@ final class Newspack_Newsletters_Editor {
 		add_theme_support( 'editor-gradient-presets', array() );
 		add_theme_support( 'disable-custom-gradients' );
 
-		$block_type_registry = new \WP_Block_Type_Registry();
-		if ( $block_type_registry->is_registered( 'core/social-links-shared-background-color' ) ) {
+		$block_patterns_registry = new \WP_Block_Patterns_Registry();
+		if ( $block_patterns_registry->is_registered( 'core/social-links-shared-background-color' ) ) {
 			unregister_block_pattern( 'core/social-links-shared-background-color' );
 		}
 	}
