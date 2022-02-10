@@ -164,6 +164,11 @@ final class Newspack_Newsletters_Renderer {
 			$attrs['font-size'] = $font_size;
 		}
 
+		if ( isset( $attrs['style']['spacing']['padding'] ) ) {
+			$padding          = $attrs['style']['spacing']['padding'];
+			$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
+		}
+
 		// Remove block-only attributes.
 		array_map(
 			function ( $key ) use ( &$attrs ) {
@@ -174,7 +179,7 @@ final class Newspack_Newsletters_Renderer {
 			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize', 'backgroundColor', 'style' ]
 		);
 
-		if ( isset( $attrs['background-color'] ) ) {
+		if ( ! isset( $attrs['padding'] ) && isset( $attrs['background-color'] ) ) {
 			$attrs['padding'] = '0';
 		}
 
@@ -188,7 +193,7 @@ final class Newspack_Newsletters_Renderer {
 			unset( $attrs['align'] );
 		}
 
-		if ( isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
+		if ( ! isset( $attrs['padding'] ) && isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
 			$attrs['padding'] = '12px 0';
 		}
 
