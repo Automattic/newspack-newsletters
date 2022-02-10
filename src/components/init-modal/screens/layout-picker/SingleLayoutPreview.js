@@ -80,7 +80,7 @@ const SingleLayoutPreview = ( {
 						layoutId={ ID }
 						meta={ meta }
 						blocks={ blockPreviewBlocks }
-						viewportWidth={ 600 }
+						viewportWidth={ 848 }
 					/>
 				) }
 			</div>

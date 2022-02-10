@@ -1,15 +1,27 @@
 :root {
-	--header-font: arial, sans-serif;
-	--body-font: georgia, serif;
+	--newspack-header-font: arial, sans-serif;
+	--newspack-body-font: georgia, serif;
+	--newspack-max-width: 600px;
 }
 
 .wp-block {
-	max-width: 600px;
+	max-width: var( --newspack-max-width );
 	padding: 12px;
 }
 
 .editor-styles-wrapper {
+	&.block-editor-writing-flow {
+		font-size: 16px;
+	}
+
 	.block-editor-block-list__layout {
+		--wp--preset--font-size--small: 12px;
+		--wp--preset--font-size--normal: 16px;
+		--wp--preset--font-size--medium: 16px;
+		--wp--preset--font-size--large: 24px;
+		--wp--preset--font-size--x-large: 36px;
+		--wp--preset--font-size--huge: 36px;
+
 		&.is-root-container {
 			padding-left: 0;
 			padding-right: 0;
@@ -19,7 +31,7 @@
 			line-height: 1.5;
 
 			&:not( code ) {
-				font-family: var( --body-font );
+				font-family: var( --newspack-body-font );
 			}
 		}
 
@@ -36,7 +48,7 @@
 		h4,
 		h5,
 		h6 {
-			font-family: var( --header-font );
+			font-family: var( --newspack-header-font );
 			line-height: 1.5;
 		}
 
@@ -78,7 +90,8 @@
 			color: inherit;
 		}
 
-		.block-editor-block-list__block {
+		.block-editor-block-list__block,
+		.wp-block[data-align='center'] {
 			margin-bottom: 0;
 			margin-top: 0;
 		}
@@ -138,8 +151,7 @@
 		}
 
 		.wp-block-quote {
-			margin: 0;
-			padding-left: 20px;
+			margin: 0 auto;
 
 			p {
 				margin: 0 0 12px;
@@ -150,11 +162,40 @@
 				font-size: inherit;
 				font-style: italic;
 				margin-top: 0;
+				text-align: inherit;
 			}
 
-			&.is-large,
-			&.is-style-large {
+			&:not( .is-style-plain ):not( .is-style-large ) {
+				border: 0;
+				margin: 12px auto;
 				padding: 0;
+				padding-left: calc( 36px + 0.25em );
+				position: relative;
+
+				&::before {
+					background: currentColor;
+					bottom: 0;
+					content: '';
+					display: block;
+					position: absolute;
+					left: 12px;
+					top: 0;
+					width: 0.25em;
+				}
+
+				+ .wp-block-quote:not( .is-style-plain ):not( .is-style-large ) {
+					margin-top: 24px;
+				}
+			}
+
+			&.is-style-large {
+				padding: 12px;
+			}
+		}
+
+		.wp-block-heading {
+			> span {
+				font-family: inherit;
 			}
 		}
 
@@ -211,8 +252,9 @@
 			.wp-block-separator {
 				background: none !important;
 				border-bottom: 1px solid;
+				max-width: calc( var( --newspack-max-width ) - 24px );
+				margin-bottom: 12px;
 				opacity: 1;
-				padding-bottom: 12px;
 				padding-top: 12px;
 
 				&:not( .is-style-wide ):not( .is-style-dots ) {
