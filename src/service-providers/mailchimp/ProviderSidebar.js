@@ -86,7 +86,6 @@ const SegmentsSelection = ( {
 };
 
 const ProviderSidebar = ( {
-	renderSubject,
 	renderFrom,
 	renderPreviewText,
 	inFlight,
@@ -181,7 +180,6 @@ const ProviderSidebar = ( {
 
 	return (
 		<Fragment>
-			{ renderSubject() }
 			{ renderPreviewText() }
 			<hr />
 			{ renderFrom( { handleSenderUpdate: setSender } ) }
