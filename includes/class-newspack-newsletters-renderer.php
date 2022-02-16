@@ -371,7 +371,17 @@ final class Newspack_Newsletters_Renderer {
 						'font-size'   => '13px',
 						'font-family' => $font_family,
 					);
-					$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . wp_kses( $caption_html, Newspack_Newsletters_Embed::$allowed_html ) . '</mj-text>';
+					$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . wp_kses(
+						$caption_html,
+						[
+							'a'      => [
+								'href'  => [],
+								'title' => [],
+							],
+							'em'     => [],
+							'strong' => [],
+						] 
+					) . '</mj-text>';
 				}
 
 				$block_mjml_markup = $markup;
