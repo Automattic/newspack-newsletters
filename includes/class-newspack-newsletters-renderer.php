@@ -314,10 +314,9 @@ final class Newspack_Newsletters_Renderer {
 				$dom = new DomDocument();
 				libxml_use_internal_errors( true );
 				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
-				$xpath      = new DOMXpath( $dom );
-				$img        = $xpath->query( '//img' )[0];
+				$img        = $dom->getElementsByTagName( 'img' )->item( 0 );
 				$img_src    = $img->getAttribute( 'src' );
-				$figcaption = $xpath->query( '//figcaption/text()' )[0];
+				$figcaption = $dom->getElementsByTagName( 'figcaption' )->item( 0 );
 
 				$img_attrs = array(
 					'padding' => '0',
@@ -360,6 +359,11 @@ final class Newspack_Newsletters_Renderer {
 				$markup = '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
 
 				if ( $figcaption ) {
+					$caption_html  = '';
+					$caption_nodes = $figcaption->childNodes; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					foreach ( $caption_nodes as $caption_node ) {
+						$caption_html .= $dom->saveHTML( $caption_node );
+					}
 					$caption_attrs = array(
 						'align'       => 'center',
 						'color'       => '#555d66',
@@ -367,8 +371,7 @@ final class Newspack_Newsletters_Renderer {
 						'font-size'   => '13px',
 						'font-family' => $font_family,
 					);
-					 // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . $figcaption->wholeText . '</mj-text>';
+					$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . wp_kses( $caption_html, Newspack_Newsletters_Embed::$allowed_html ) . '</mj-text>';
 				}
 
 				$block_mjml_markup = $markup;
