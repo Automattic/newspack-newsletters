@@ -47,6 +47,29 @@ final class Newspack_Newsletters_Renderer {
 	protected static $post_permalink = null;
 
 	/**
+	 * Inline tags that are allowed to be rendered in a text block.
+	 * 
+	 * @var bool|array[] Associative array of tag names to allowed attributes.
+	 */
+	public static $allowed_inline_tags = [
+		's'      => true,
+		'b'      => true,
+		'strong' => true,
+		'i'      => true,
+		'em'     => true,
+		'mark'   => true,
+		'u'      => true,
+		'small'  => true,
+		'sub'    => true,
+		'sup'    => true,
+		'a'      => [
+			'href'   => true,
+			'target' => true,
+			'rel'    => true,
+		],
+	];
+
+	/**
 	 * Convert a list to HTML attributes.
 	 *
 	 * @param array $attributes Array of attributes.
@@ -373,14 +396,7 @@ final class Newspack_Newsletters_Renderer {
 					);
 					$markup       .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . wp_kses(
 						$caption_html,
-						[
-							'a'      => [
-								'href'  => [],
-								'title' => [],
-							],
-							'em'     => [],
-							'strong' => [],
-						] 
+						self::$allowed_inline_tags
 					) . '</mj-text>';
 				}
 
