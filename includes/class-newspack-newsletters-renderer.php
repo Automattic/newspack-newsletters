@@ -49,7 +49,7 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Inline tags that are allowed to be rendered in a text block.
 	 * 
-	 * @var bool|array[] Associative array of tag names to allowed attributes.
+	 * @var bool[]|array[] Associative array of tag names to allowed attributes.
 	 */
 	public static $allowed_inline_tags = [
 		's'      => true,
