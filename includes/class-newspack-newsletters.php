@@ -352,6 +352,7 @@ final class Newspack_Newsletters {
 			'new_item'                 => __( 'New Newsletter', 'newspack-newsletters' ),
 			'edit_item'                => __( 'Edit Newsletter', 'newspack-newsletters' ),
 			'view_item'                => __( 'View Newsletter', 'newspack-newsletters' ),
+			'view_items'               => __( 'View Newsletters', 'newspack-newsletters' ),
 			'all_items'                => __( 'All Newsletters', 'newspack-newsletters' ),
 			'search_items'             => __( 'Search Newsletters', 'newspack-newsletters' ),
 			'parent_item_colon'        => __( 'Parent Newsletters:', 'newspack-newsletters' ),
