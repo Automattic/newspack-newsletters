@@ -1,8 +1,11 @@
 .post-type-newspack_nl_cpt {
 	.editor-post-title {
 		&.newspack-newsletters-post-title-hidden {
+			font-size: 1em;
 			height: 0;
+			margin: -4rem 0 calc( -1 * var( --wp--style--block-gap ) );
 			opacity: 0;
+			padding: 0;
 			pointer-events: none;
 		}
 	}
@@ -13,5 +16,11 @@
 
 	.editor-post-switch-to-draft {
 		display: none;
+	}
+
+	.newspack-newsletters-buttons-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
 	}
 }

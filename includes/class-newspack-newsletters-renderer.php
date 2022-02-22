@@ -82,14 +82,13 @@ final class Newspack_Newsletters_Renderer {
 			return $block_attrs['customFontSize'] . 'px';
 		}
 		if ( isset( $block_attrs['fontSize'] ) ) {
-			// Gutenberg's default font size presets.
-			// https://github.com/WordPress/gutenberg/blob/359858da0675943d8a759a0a7c03e7b3846536f5/packages/block-editor/src/store/defaults.js#L87-L113 .
 			$sizes = array(
-				'small'  => '13px',
-				'normal' => '16px',
-				'medium' => '20px',
-				'large'  => '36px',
-				'huge'   => '48px',
+				'small'   => '12px',
+				'normal'  => '16px',
+				'medium'  => '16px',
+				'large'   => '24px',
+				'huge'    => '36px',
+				'x-large' => '36px',
 			);
 			return $sizes[ $block_attrs['fontSize'] ];
 		}
@@ -165,6 +164,11 @@ final class Newspack_Newsletters_Renderer {
 			$attrs['font-size'] = $font_size;
 		}
 
+		if ( isset( $attrs['style']['spacing']['padding'] ) ) {
+			$padding          = $attrs['style']['spacing']['padding'];
+			$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
+		}
+
 		// Remove block-only attributes.
 		array_map(
 			function ( $key ) use ( &$attrs ) {
@@ -175,7 +179,7 @@ final class Newspack_Newsletters_Renderer {
 			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize', 'backgroundColor', 'style' ]
 		);
 
-		if ( isset( $attrs['background-color'] ) ) {
+		if ( ! isset( $attrs['padding'] ) && isset( $attrs['background-color'] ) ) {
 			$attrs['padding'] = '0';
 		}
 
@@ -189,7 +193,7 @@ final class Newspack_Newsletters_Renderer {
 			unset( $attrs['align'] );
 		}
 
-		if ( isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
+		if ( ! isset( $attrs['padding'] ) && isset( $attrs['full-width'] ) && 'full-width' == $attrs['full-width'] && isset( $attrs['background-color'] ) ) {
 			$attrs['padding'] = '12px 0';
 		}
 

@@ -142,8 +142,9 @@ export const useCustomFontsInIframe = () => {
 				const updateStyleProperties = () => {
 					const element = iframe.contentDocument?.documentElement;
 					if ( element ) {
-						element.style.setProperty( '--body-font', fontBody );
-						element.style.setProperty( '--header-font', fontHeader );
+						element.style.setProperty( '--newspack-body-font', fontBody );
+						element.style.setProperty( '--newspack-header-font', fontHeader );
+						element.querySelector( 'body' ).style.setProperty( 'background', 'none' );
 					}
 				};
 				updateStyleProperties();
@@ -167,10 +168,10 @@ export const useCustomFontsInIframe = () => {
 export const ApplyStyling = withSelect( customStylesSelector )(
 	( { fontBody, fontHeader, backgroundColor, customCss } ) => {
 		useEffect( () => {
-			document.documentElement.style.setProperty( '--body-font', fontBody );
+			document.documentElement.style.setProperty( '--newspack-body-font', fontBody );
 		}, [ fontBody ] );
 		useEffect( () => {
-			document.documentElement.style.setProperty( '--header-font', fontHeader );
+			document.documentElement.style.setProperty( '--newspack-header-font', fontHeader );
 		}, [ fontHeader ] );
 		useEffect( () => {
 			const editorElement = document.querySelector( '.editor-styles-wrapper' );

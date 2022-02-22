@@ -64,7 +64,7 @@ export default compose( [
 				/>
 				<div className="newspack-newsletters__testing-controls">
 					<Button
-						isPrimary
+						variant="secondary"
 						onClick={ sendTestEmail }
 						disabled={ disabled || inFlight || ! hasValidEmail( testEmail ) }
 					>

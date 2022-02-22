@@ -3,7 +3,7 @@
  */
 import { unregisterBlockStyle } from '@wordpress/blocks';
 import domReady from '@wordpress/dom-ready';
-import { addFilter } from '@wordpress/hooks';
+import { addFilter, removeFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
 
 /**
@@ -34,9 +34,19 @@ domReady( () => {
 	unregisterBlockStyle( 'core/social-links', 'pill-shape' );
 } );
 
+/* Remove Duotone filters */
+removeFilter( 'blocks.registerBlockType', 'core/editor/duotone/add-attributes' );
+removeFilter( 'editor.BlockEdit', 'core/editor/duotone/with-editor-controls' );
+removeFilter( 'editor.BlockListBlock', 'core/editor/duotone/with-styles' );
+
 addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( settings, name ) => {
 	/* Remove left/right alignment options wherever possible */
-	if ( 'core/paragraph' === name || 'core/buttons' === name || 'core/columns' === name ) {
+	if (
+		'core/paragraph' === name ||
+		'core/buttons' === name ||
+		'core/columns' === name ||
+		'core/separator' === name
+	) {
 		settings.supports = { ...settings.supports, align: [] };
 	}
 	if ( 'core/group' === name ) {
