@@ -1,3 +1,17 @@
+# [1.42.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.41.0...v1.42.0-alpha.1) (2022-02-24)
+
+
+### Bug Fixes
+
+* **mailchimp:** check send status ([#746](https://github.com/Automattic/newspack-newsletters/issues/746)) ([0be0ad9](https://github.com/Automattic/newspack-newsletters/commit/0be0ad9eafeedcfce4763002ec266313cbb0826a))
+* php warning when unregistering a block pattern that isn't registered ([#738](https://github.com/Automattic/newspack-newsletters/issues/738)) ([8a2d0f6](https://github.com/Automattic/newspack-newsletters/commit/8a2d0f601c18733df0068593d768d68b41fa4ed5))
+* support for image caption inner html ([#745](https://github.com/Automattic/newspack-newsletters/issues/745)) ([eed512c](https://github.com/Automattic/newspack-newsletters/commit/eed512c5144822ddd337ebe47af06b3ba081b48b))
+
+
+### Features
+
+* remove subject input (title) from the sidebar ([#735](https://github.com/Automattic/newspack-newsletters/issues/735)) ([969ff3b](https://github.com/Automattic/newspack-newsletters/commit/969ff3bfd1495d15333b1bf1c7d93287c39cffa5))
+
 # [1.41.0](https://github.com/Automattic/newspack-newsletters/compare/v1.40.0...v1.41.0) (2022-02-22)
 
 
