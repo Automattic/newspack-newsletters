@@ -108,8 +108,10 @@ final class Newspack_Newsletters_Editor {
 		$rules = [];
 		// Add `.has-{color-name}-color` rules for each palette color.
 		$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
-		foreach ( $color_palette as $color_name => $color_value ) {
-			$rules[] = '.has-' . esc_html( $color_name ) . '-color { color: ' . esc_html( $color_value ) . '; }';
+		if ( ! empty( $color_palette ) ) {
+			foreach ( $color_palette as $color_name => $color_value ) {
+				$rules[] = '.has-' . esc_html( $color_name ) . '-color { color: ' . esc_html( $color_value ) . '; }';
+			}
 		}
 		if ( $container_selector ) {
 			$rules = array_map(
