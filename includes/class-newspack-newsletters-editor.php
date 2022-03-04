@@ -114,7 +114,8 @@ final class Newspack_Newsletters_Editor {
 			}
 		}
 		if ( $container_selector ) {
-			$rules = array_map(
+			$container_selector = esc_html( $container_selector );
+			$rules              = array_map(
 				function( $rule ) use ( $container_selector ) {
 					return $container_selector . ' ' . $rule;
 				},
