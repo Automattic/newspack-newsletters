@@ -53,6 +53,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 		add_filter( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
+		add_filter( 'enter_title_here', [ __CLASS__, 'placeholder_editor_title' ] );
 	}
 
 	/**
@@ -127,7 +128,11 @@ final class Newspack_Newsletters_Editor {
 		remove_editor_styles();
 		add_theme_support( 'editor-gradient-presets', array() );
 		add_theme_support( 'disable-custom-gradients' );
-		unregister_block_pattern( 'core/social-links-shared-background-color' );
+
+		$block_patterns_registry = \WP_Block_Patterns_Registry::get_instance();
+		if ( $block_patterns_registry->is_registered( 'core/social-links-shared-background-color' ) ) {
+			unregister_block_pattern( 'core/social-links-shared-background-color' );
+		}
 	}
 
 	/**
@@ -143,6 +148,21 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		return $should_load_remote;
+	}
+
+	/**
+	 * Placeholder text for the editor title.
+	 *
+	 * @param string $title_placeholder Placeholder text for the title.
+	 *
+	 * @return string Placeholder text for the title.
+	 */
+	public static function placeholder_editor_title( $title_placeholder ) {
+		if ( self::is_editing_email() ) {
+			return __( 'Subject', 'newspack-newsletters' );
+		}
+
+		return $title_placeholder;
 	}
 
 	/**
