@@ -57,7 +57,7 @@ final class Newspack_Newsletters_Renderer {
 		'strong' => true,
 		'i'      => true,
 		'em'     => true,
-		'mark'   => true,
+		'span'   => true,
 		'u'      => true,
 		'small'  => true,
 		'sub'    => true,
@@ -296,6 +296,22 @@ final class Newspack_Newsletters_Renderer {
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
 
+		// Parse inner HTML.
+		if ( ! empty( $inner_html ) ) {
+			$dom = new DomDocument();
+			libxml_use_internal_errors( true );
+			$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+			$parsed_inner_html = '';
+			$nodes             = $dom->childNodes; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			foreach ( $nodes as $node ) {
+				$node_html = $dom->saveHTML( $node );
+				// Replace <mark /> with <span />.
+				$node_html          = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $node_html );
+				$parsed_inner_html .= $node_html;
+			}
+			$inner_html = $parsed_inner_html;
+		}
+
 		switch ( $block_name ) {
 			/**
 			 * Text-based blocks.
@@ -336,7 +352,7 @@ final class Newspack_Newsletters_Renderer {
 				// Parse block content.
 				$dom = new DomDocument();
 				libxml_use_internal_errors( true );
-				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
+				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 				$img        = $dom->getElementsByTagName( 'img' )->item( 0 );
 				$img_src    = $img->getAttribute( 'src' );
 				$figcaption = $dom->getElementsByTagName( 'figcaption' )->item( 0 );
