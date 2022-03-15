@@ -63,7 +63,7 @@ apiFetch.use( async ( options, next ) => {
 			.then( ( { mjml } ) => {
 				// Once received MJML markup, convert it to email-compliant HTML
 				// and save as post meta for later retrieval.
-				const { html } = mjml2html( mjml );
+				const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
 				return apiFetch( {
 					data: { meta: { [ emailHTMLMetaName ]: html } },
 					method: 'POST',

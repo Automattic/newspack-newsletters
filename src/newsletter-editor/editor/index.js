@@ -6,6 +6,7 @@ import { get, isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
+import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { createPortal, useEffect, useState } from '@wordpress/element';
@@ -60,14 +61,22 @@ const Editor = compose( [
 			status,
 			sentDate,
 			isPublic: meta.is_public,
+			html: meta[ window.newspack_email_editor_data.email_html_meta ],
 		};
 	} ),
 	withDispatch( dispatch => {
 		const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = dispatch(
 			'core/editor'
 		);
-		const { createNotice } = dispatch( 'core/notices' );
-		return { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost, createNotice };
+		const { createNotice, removeNotice } = dispatch( 'core/notices' );
+		return {
+			lockPostAutosaving,
+			lockPostSaving,
+			unlockPostSaving,
+			editPost,
+			createNotice,
+			removeNotice,
+		};
 	} ),
 ] )( props => {
 	const [ publishEl ] = useState( document.createElement( 'div' ) );
@@ -132,6 +141,23 @@ const Editor = compose( [
 			} );
 		}
 	}, [ props.status ] );
+
+	// Notify if email content is larger than ~100kb.
+	useEffect( () => {
+		const noticeId = 'newspack-newsletters-email-content-too-large';
+		const message = __(
+			'Email content is too large and may get clipped by email clients.',
+			'newspack-newsletters'
+		);
+		if ( props.html.length > 100000 ) {
+			props.createNotice( 'warning', message, {
+				id: noticeId,
+				isDismissible: false,
+			} );
+		} else {
+			props.removeNotice( noticeId );
+		}
+	}, [ props.html ] );
 
 	return createPortal( <SendButton />, publishEl );
 } );
