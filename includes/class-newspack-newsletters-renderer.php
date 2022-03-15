@@ -57,7 +57,7 @@ final class Newspack_Newsletters_Renderer {
 		'strong' => true,
 		'i'      => true,
 		'em'     => true,
-		'mark'   => true,
+		'span'   => true,
 		'u'      => true,
 		'small'  => true,
 		'sub'    => true,
@@ -296,6 +296,11 @@ final class Newspack_Newsletters_Renderer {
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
 
+		if ( ! empty( $inner_html ) ) {
+			// Replace <mark /> with <span />.
+			$inner_html = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $inner_html );
+		}
+
 		switch ( $block_name ) {
 			/**
 			 * Text-based blocks.
@@ -336,7 +341,7 @@ final class Newspack_Newsletters_Renderer {
 				// Parse block content.
 				$dom = new DomDocument();
 				libxml_use_internal_errors( true );
-				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
+				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 				$img        = $dom->getElementsByTagName( 'img' )->item( 0 );
 				$img_src    = $img->getAttribute( 'src' );
 				$figcaption = $dom->getElementsByTagName( 'figcaption' )->item( 0 );

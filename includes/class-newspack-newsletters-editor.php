@@ -98,6 +98,34 @@ final class Newspack_Newsletters_Editor {
 	}
 
 	/**
+	 * Get CSS rules for color palette.
+	 *
+	 * @param string $container_selector Optional selector to prefix as a container to every rule.
+	 * 
+	 * @return string CSS rules.
+	 */
+	public static function get_color_palette_css( $container_selector = '' ) {
+		$rules = [];
+		// Add `.has-{color-name}-color` rules for each palette color.
+		$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
+		if ( ! empty( $color_palette ) ) {
+			foreach ( $color_palette as $color_name => $color_value ) {
+				$rules[] = '.has-' . esc_html( $color_name ) . '-color { color: ' . esc_html( $color_value ) . '; }';
+			}
+		}
+		if ( $container_selector ) {
+			$container_selector = esc_html( $container_selector );
+			$rules              = array_map(
+				function( $rule ) use ( $container_selector ) {
+					return $container_selector . ' ' . $rule;
+				},
+				$rules 
+			);
+		}
+		return implode( "\n", $rules );
+	}
+
+	/**
 	 * Remove all editor enqueued assets besides this plugins' and disable some editor features.
 	 * This is to prevent theme styles being loaded in the editor.
 	 */
@@ -241,6 +269,8 @@ final class Newspack_Newsletters_Editor {
 			);
 			wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
 			wp_enqueue_style( 'newspack-newsletters' );
+
+			wp_add_inline_style( 'newspack-newsletters', self::get_color_palette_css( '.editor-styles-wrapper' ) );
 
 			\wp_enqueue_script(
 				'newspack-newsletters-editor',
