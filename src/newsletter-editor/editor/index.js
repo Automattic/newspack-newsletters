@@ -146,7 +146,7 @@ const Editor = compose( [
 	useEffect( () => {
 		const noticeId = 'newspack-newsletters-email-content-too-large';
 		const message = __(
-			'Email content is too large and may get clipped by email clients.',
+			'Email content is too long and may get clipped by email clients.',
 			'newspack-newsletters'
 		);
 		if ( props.html.length > 100000 ) {
