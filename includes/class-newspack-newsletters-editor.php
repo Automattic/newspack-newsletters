@@ -291,6 +291,8 @@ final class Newspack_Newsletters_Editor {
 					'mjml_handling_post_types' => $mjml_handling_post_types,
 				]
 			);
+
+			do_action( 'newspack_newsletters_enqueue_block_editor_assets' );
 		}
 
 		if ( self::is_editing_newsletter_ad() ) {
