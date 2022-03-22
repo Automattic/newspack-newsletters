@@ -1,3 +1,10 @@
+## [1.42.1](https://github.com/Automattic/newspack-newsletters/compare/v1.42.0...v1.42.1) (2022-03-22)
+
+
+### Bug Fixes
+
+* color palette css rules ([#757](https://github.com/Automattic/newspack-newsletters/issues/757)) ([2d929ac](https://github.com/Automattic/newspack-newsletters/commit/2d929ac8277b833aaceada281bd6eae73c465805))
+
 ## [1.42.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.42.0...v1.42.1-alpha.1) (2022-03-15)
 
 
