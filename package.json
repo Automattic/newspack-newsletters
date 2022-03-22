@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "1.42.0",
+	"version": "1.42.1-alpha.1",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -8,6 +8,7 @@
 		"start": "npm ci && newspack-scripts watch",
 		"watch": "newspack-scripts watch",
 		"build": "newspack-scripts build",
+		"test": "echo \"Error: no test specified\" && exit 0",
 		"clean": "rm -rf dist/",
 		"lint": "npm run lint:scss && npm run lint:js",
 		"lint:js": "eslint --ext .js,.jsx src",
@@ -49,9 +50,9 @@
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.1.0",
 		"eslint": "^7.32.0",
-		"lint-staged": "^12.3.4",
-		"newspack-scripts": "^3.1.0",
-		"postcss": "^8.4.6",
+		"lint-staged": "^12.3.5",
+		"newspack-scripts": "^3.1.1",
+		"postcss": "^8.4.8",
 		"prettier": "npm:wp-prettier@^2.2.1-beta-1",
 		"stylelint": "^13.13.1"
 	}
