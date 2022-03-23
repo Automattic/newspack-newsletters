@@ -159,6 +159,16 @@ const Editor = compose( [
 		}
 	}, [ props.html ] );
 
+	useEffect( () => {
+		// Hide post title if the newsletter is a not a public post.
+		const editorTitleEl = document.querySelector( '.editor-post-title' );
+		if ( editorTitleEl ) {
+			editorTitleEl.classList[ props.isPublic ? 'remove' : 'add' ](
+				'newspack-newsletters-post-title-hidden'
+			);
+		}
+	}, [ props.isPublic ] );
+
 	return createPortal( <SendButton />, publishEl );
 } );
 
