@@ -28,6 +28,7 @@ const Sidebar = ( {
 	inFlight,
 	errors,
 	editPost,
+	title,
 	disableAds,
 	senderName,
 	senderEmail,
@@ -44,6 +45,22 @@ const Sidebar = ( {
 				return result;
 			}
 		} );
+
+	const renderSubject = () => (
+		<>
+			<strong className="newspack-newsletters__label">
+				{ __( 'Subject', 'newspack-newsletters' ) }
+			</strong>
+			<TextControl
+				label={ __( 'Subject', 'newspack-newsletters' ) }
+				className="newspack-newsletters__subject-textcontrol"
+				value={ title }
+				disabled={ inFlight }
+				onChange={ value => editPost( { title: value } ) }
+				hideLabelFromVision
+			/>
+		</>
+	);
 
 	const senderEmailClasses = classnames(
 		'newspack-newsletters__email-textcontrol',
@@ -126,6 +143,7 @@ const Sidebar = ( {
 				newsletterData={ newsletterData }
 				inFlight={ inFlight }
 				apiFetch={ apiFetch }
+				renderSubject={ renderSubject }
 				renderFrom={ renderFrom }
 				renderPreviewText={ renderPreviewText }
 				updateMeta={ meta => editPost( { meta } ) }
@@ -152,6 +170,7 @@ export default compose( [
 		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
+			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
 			senderEmail: meta.senderEmail || '',
 			senderName: meta.senderName || '',
