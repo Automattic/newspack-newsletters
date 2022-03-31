@@ -27,10 +27,16 @@ const validateNewsletter = () => {
  * the data is not yet available.
  *
  * @param {Object}   props                   Component props.
+ * @param {Function} props.renderSubject     Function that renders email subject input.
  * @param {Function} props.renderPreviewText Function that renders preview text input
  */
-const ProviderSidebar = ( { renderPreviewText } ) => {
-	return <div className="newspack-newsletters__manual">{ renderPreviewText() }</div>;
+const ProviderSidebar = ( { renderSubject, renderPreviewText } ) => {
+	return (
+		<div className="newspack-newsletters__manual">
+			{ renderSubject() }
+			{ renderPreviewText() }
+		</div>
+	);
 };
 
 const renderPreSendInfo = () => {

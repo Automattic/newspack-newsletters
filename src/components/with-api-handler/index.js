@@ -13,6 +13,7 @@ const successNote = __( 'Campaign sent on ', 'newspack-newsletters' );
 const shouldRemoveNotice = notice => {
 	return (
 		notice.id !== SHARE_BLOCK_NOTICE_ID &&
+		notice.id !== 'newspack-newsletters-email-content-too-large' &&
 		'error' !== notice.status &&
 		( 'success' !== notice.status || -1 === notice.content.indexOf( successNote ) )
 	);
