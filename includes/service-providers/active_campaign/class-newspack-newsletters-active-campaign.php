@@ -17,12 +17,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 */
 	public function __construct() {
 		$this->service    = 'active_campaign';
-		$this->controller = new Newspack_Newsletters_Mailchimp_Controller( $this );
+		$this->controller = new Newspack_Newsletters_Active_Campaign_Controller( $this );
 
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'transition_post_status', [ $this, 'send' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
-		add_filter( 'newspack_newsletters_process_link', [ $this, 'process_link' ], 10, 2 );
 
 		parent::__construct( $this );
 	}
@@ -30,35 +29,64 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Perform API request.
 	 *
-	 * @param string $resource Resource path.
-	 * @param string $method   HTTP method.
-	 * @param array  $options  Request options.
+	 * @param string $action  API Action.
+	 * @param string $method  HTTP method.
+	 * @param array  $options Request options.
 	 *
-	 * @return object|WP_Error The API response body or WP_Error.
+	 * @return array|WP_Error The API response body or WP_Error.
 	 */
-	private function api_request( $resource, $method = 'GET', $options = [] ) {
+	private function api_request( $action, $method = 'GET', $options = [] ) {
 		if ( ! $this->has_api_credentials() ) {
 			return new \WP_Error(
 				'newspack_newsletters_active_campaign_api_credentials_missing',
 				__( 'Active Campaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
-		$credentials = $this->api_credentials();
-		$api_path    = '/api/3/';
-		$url         = rtrim( $credentials['url'], '/' ) . $api_path . $resource;
-		$args        = [
+		$credentials   = $this->api_credentials();
+		$params        = [
+			'api_key'    => $credentials['key'],
+			'api_action' => $action,
+			'api_output' => 'json',
+		];
+		$api_path      = '/admin/api.php';
+		$options_query = [];
+		if ( isset( $options['query'] ) ) {
+			$options_query = $options['query'];
+			unset( $options['query'] );
+		}
+		$content_type = 'application/json';
+		$url          = rtrim( $credentials['url'], '/' ) . $api_path;
+		$body         = null;
+		$params       = wp_parse_args( $options_query, $params );
+		if ( 'POST' === $method ) {
+			$content_type = 'application/x-www-form-urlencoded';
+			$body         = wp_parse_args(
+				isset( $options['body'] ) ? $options['body'] : [],
+				$params
+			);
+		} else {
+			$url = add_query_arg( $params, $url );
+		}
+		$args     = [
 			'method'  => $method,
 			'headers' => [
-				'Content-Type' => 'application/json',
+				'Content-Type' => $content_type,
 				'Accept'       => 'application/json',
-				'api-token'    => $credentials['key'],
 			],
+			'body'    => $body,
 		];
-		$response    = wp_safe_remote_request( $url, $args + $options );
+		$response = wp_safe_remote_request( $url, $args + $options );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
-		return json_decode( $response['body'] );
+		$body = json_decode( $response['body'], true );
+		if ( 1 !== $body['result_code'] ) {
+			return new \WP_Error(
+				'newspack_newsletters_active_campaign_api_error',
+				$body['result_message']
+			);
+		}
+		return $body;
 	}
 
 	/**
@@ -107,11 +135,15 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error List os existing lists or error.
 	 */
 	public function get_lists() {
-		$lists = $this->api_request( 'lists' );
+		$lists = $this->api_request( 'list_list', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
 		}
-		return $lists->lists;
+		// Remove result metadata.
+		unset( $lists['result_code'] );
+		unset( $lists['result_message'] );
+		unset( $lists['result_output'] );
+		return array_values( $lists );
 	}
 
 	/**
@@ -122,7 +154,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error API API Response or error.
 	 */
 	public function list( $post_id, $list_id ) {
-		return null;
+		if ( empty( $post_id ) || empty( $list_id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_invalid_list',
+				__( 'Please input a valid list.', 'newspack-newsletters' )
+			);
+		}
+		update_post_meta( $post_id, 'ac_list_id', $list_id );
+		return $this->sync( get_post( $post_id ) );
 	}
 
 	/**
@@ -146,14 +185,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
 		if ( ! $campaign_id ) {
-			$campaign    = $this->sync( get_post( $post_id ) );
-			$campaign_id = $campaign->campaign->id;
-		} else {
-			$campaign = $this->api_request( 'campaigns/' . $campaign_id );
-			if ( is_wp_error( $campaign ) ) {
-				return $campaign;
+			$sync_result = $this->sync( get_post( $post_id ) );
+			if ( ! is_wp_error( $sync_result ) ) {
+				$campaign_id = $sync_result['campaign_id'];
 			}
-			$campaign = $campaign->campaign;
+		} else {
+			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+			if ( is_wp_error( $campaigns ) ) {
+				return $campaigns;
+			}
+			$campaign = $campaigns[0];
 		}
 		$lists = $this->get_lists();
 		if ( is_wp_error( $lists ) ) {
@@ -161,7 +202,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		return [
 			'campaign_id' => $campaign_id,
-			'campaign'    => $campaign->campaign,
+			'campaign'    => $campaign,
 			'lists'       => $lists,
 		];
 	}
@@ -169,13 +210,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Set sender data.
 	 *
-	 * @param string $post_id Numeric ID of the campaign.
-	 * @param string $from_name Sender name.
-	 * @param string $reply_to Reply to email address.
+	 * @param string $post_id    Numeric ID of the campaign.
+	 * @param string $from_name  Sender name.
+	 * @param string $from_email Sender email address.
+	 *
 	 * @return array|WP_Error API Response or error.
 	 */
-	public function sender( $post_id, $from_name, $reply_to ) {
-		return [];
+	public function sender( $post_id, $from_name, $from_email ) {
+		if ( empty( $post_id ) || empty( $from_name ) || empty( $from_email ) ) {
+			return new WP_Error(
+				'newspack_newsletters_invalid_sender',
+				__( 'Please input sender name and email address.', 'newspack-newsletters' )
+			);
+		}
+		update_post_meta( $post_id, 'ac_from_name', $from_name );
+		update_post_meta( $post_id, 'ac_from_email', $from_email );
+		return $this->sync( get_post( $post_id ) );
 	}
 
 	/**
@@ -186,14 +236,48 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error API Response or error.
 	 */
 	public function test( $post_id, $emails ) {
-		return [];
+		if ( ! $this->has_api_credentials() ) {
+			return new \WP_Error(
+				'newspack_newsletters_active_campaign_api_credentials_missing',
+				__( 'Active Campaign API credentials are missing.', 'newspack-newsletters' )
+			);
+		}
+		$sync_result = $this->sync( get_post( $post_id ) );
+		if ( is_wp_error( $sync_result ) ) {
+			return $sync_result;
+		}
+		$test_result = $this->api_request(
+			'campaign_send',
+			'GET',
+			[
+				'query' => [
+					'type'       => 'html',
+					'action'     => 'test',
+					'campaignid' => $sync_result['campaign_id'],
+					'messageid'  => $sync_result['messages_id'],
+					'email'      => implode( ',', $emails ),
+				],
+			] 
+		);
+		return $test_result;
+	}
+
+	/**
+	 * Get campaign name.
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return String Campaign name.
+	 */
+	private function get_campaign_name( $post ) {
+		return 'Newspack Newsletter #' . $post->ID;
 	}
 
 	/**
 	 * Synchronize post with corresponding ESP campaign.
 	 *
 	 * @param WP_POST $post Post to synchronize.
-	 * @return object|null API Response or error.
+	 *
+	 * @return array|WP_Error Campaign data or error.
 	 */
 	public function sync( $post ) {
 		if ( ! $this->has_api_credentials() ) {
@@ -203,20 +287,108 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			);
 		}
 		$campaign_id = get_post_meta( $post->ID, 'ac_campaign_id', true );
-		$renderer    = new Newspack_Newsletters_Renderer();
-		$content     = $renderer->retrieve_email_html( $post );
+		$from_name   = get_post_meta( $post->ID, 'ac_from_name', true );
+		$from_email  = get_post_meta( $post->ID, 'ac_from_email', true );
+		$list_id     = get_post_meta( $post->ID, 'ac_list_id', true );
+		$is_public   = get_post_meta( $post->ID, 'is_public', true );
 
-		$resource = 'campaigns';
+		$renderer = new Newspack_Newsletters_Renderer();
+		$content  = $renderer->retrieve_email_html( $post );
+
+		$message_action = 'message_add';
+		$message_data   = [];
+
+		$campaign_action = 'campaign_create';
+		$campaign_data   = [];
+		$campaign        = null;
+
 		if ( $campaign_id ) {
-			$resource .= '/' . $campaign_id;
+			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+			if ( is_wp_error( $campaigns ) ) {
+				return $campaigns;
+			}
+
+			$message_action      = 'message_edit';
+			$campaign_action     = 'campaign_edit';
+			$campaign            = $campaigns[0];
+			$message             = $campaign['messages'][0];
+			$message_data['id']  = $message['id'];
+			$campaign_data['id'] = $campaign['id'];
+
+			// If sender data is not available locally, update from ESP.
+			if ( ! $from_name || ! $from_email ) {
+				$from_name  = $message['fromname'];
+				$from_email = $message['fromemail'];
+				update_post_meta( $post->ID, 'ac_from_name', $from_name );
+				update_post_meta( $post->ID, 'ac_from_email', $from_email );
+			}
+
+			// If list is not available locally, update from ESP.
+			if ( ! $list_id ) {
+				$list_id = $campaign['lists'][0]['id'];
+				update_post_meta( $post->ID, 'ac_list_id', $list_id );
+			}
+		} else {
+			// Validate required meta if campaign and message are not yet created.
+			if ( empty( $from_name ) || empty( $from_email ) ) {
+				return new \WP_Error(
+					'newspack_newsletters_active_campaign_invalid_sender',
+					__( 'Please input sender name and email address.', 'newspack-newsletters' )
+				);
+			}
+			if ( empty( $list_id ) ) {
+				return new \WP_Error(
+					'newspack_newsletters_active_campaign_invalid_list',
+					__( 'Please select a list.', 'newspack-newsletters' )
+				);
+			}
 		}
 
-		$response = $this->api_request(
-			$resource,
-			'POST',
-			[]
+		$message_data = wp_parse_args(
+			[
+				'format'              => 'html',
+				'htmlconstructor'     => 'editor',
+				'html'                => $content,
+				'p[' . $list_id . ']' => 1,
+				'fromemail'           => $from_email,
+				'fromname'            => $from_name,
+				'subject'             => $post->post_title,
+			],
+			$message_data
 		);
-		return $response->campaign;
+
+		$message = $this->api_request( $message_action, 'POST', [ 'body' => $message_data ] );
+		if ( is_wp_error( $message ) ) {
+			return $message;
+		}
+
+		/**
+		 * Create campaign if it doesn't exist yet.
+		 */
+		if ( ! $campaign_id ) {
+			$campaign_data = wp_parse_args(
+				[
+					'type'                      => 'single',
+					'status'                    => 0, // 0 = Draft; 1 = Scheduled.
+					'public'                    => (int) $is_public,
+					'name'                      => $this->get_campaign_name( $post ),
+					'fromname'                  => $from_name,
+					'fromemail'                 => $from_email,
+					'p[' . $list_id . ']'       => 1,
+					'm[' . $message['id'] . ']' => 1,
+				],
+				$campaign_data
+			);
+			$campaign      = $this->api_request( $campaign_action, 'POST', [ 'body' => $campaign_data ] );
+			if ( is_wp_error( $campaign ) ) {
+				return $campaign;
+			}
+			update_post_meta( $post->ID, 'ac_campaign_id', $campaign['id'] );
+		}
+		return [
+			'campaign_id' => $campaign['id'],
+			'message_id'  => $message['id'],
+		];
 	}
 
 	/**
@@ -248,6 +420,62 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 */
 	public function send( $new_status, $old_status, $post ) {
 
+		$post_id = $post->ID;
+		
+		// Only run if the current service provider is Active Campaign.
+		if ( 'active_campaign' !== get_option( 'newspack_newsletters_service_provider', false ) ) {
+			return;
+		}
+
+		// Only run if changing to publish.
+		if ( 'publish' !== $new_status || 'publish' === $old_status ) {
+			return;
+		}
+
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+			return new WP_Error(
+				'newspack_newsletters_incorrect_post_type',
+				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
+			);
+		}
+
+		$error = null;
+
+		$sync_result = $this->sync( $post );
+		if ( is_wp_error( $sync_result ) ) {
+			$error = $sync_result;
+		}
+
+		if ( ! $error ) {
+			$send_result = $this->api_request(
+				'campaign_status',
+				'GET',
+				[
+					'query' => [
+						'id'     => $sync_result['campaign_id'],
+						'status' => 1,
+						'sdate'  => gmdate( 'Y-m-d H:i:s' ),
+					],
+				] 
+			);
+			if ( is_wp_error( $send_result ) ) {
+				$error = $send_result;
+			}
+		}
+
+		if ( $error ) {
+			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
+			set_transient( $transient, $error->get_error_message(), 45 );
+			// Reset publish status.
+			wp_update_post(
+				[
+					'ID'          => $post_id,
+					'post_status' => 'draft',
+				],
+				true
+			);
+			wp_die( esc_html( $error->get_error_message() ) );
+		}
 	}
 
 	/**

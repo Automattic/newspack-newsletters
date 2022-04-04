@@ -44,36 +44,6 @@ class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newslette
 		);
 		\register_meta(
 			'post',
-			'ac_segment_id',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'ac_send_mode',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
 			'ac_from_name',
 			[
 				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
@@ -90,21 +60,6 @@ class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newslette
 		\register_meta(
 			'post',
 			'ac_from_email',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
-			'ac_preview_text',
 			[
 				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => [
