@@ -245,8 +245,8 @@ export default ( { onSetupStatus } ) => {
 							) }
 
 							<p>
-								<ExternalLink href="https://help.campaignmonitor.com/api-keys">
-									{ __( 'Get Campaign Monitor API key and Client ID', 'newspack-newsletters' ) }
+								<ExternalLink href="https://help.activecampaign.com/hc/en-us/articles/207317590-Getting-started-with-the-API">
+									{ __( 'Get ActiveCampaign API URL and Key', 'newspack-newsletters' ) }
 								</ExternalLink>
 							</p>
 						</Fragment>
