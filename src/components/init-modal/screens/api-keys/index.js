@@ -118,6 +118,10 @@ export default ( { onSetupStatus } ) => {
 								value: 'campaign_monitor',
 								label: 'Campaign Monitor',
 							},
+							{
+								value: 'active_campaign',
+								label: 'ActiveCampaign',
+							},
 							{ value: 'manual', label: __( 'Manual / Other', 'newspack-newsletters' ) },
 						] }
 					/>
@@ -202,6 +206,36 @@ export default ( { onSetupStatus } ) => {
 								label={ __( 'Campaign Monitor Client ID', 'newspack-newsletters' ) }
 								value={ credentials.client_id }
 								onChange={ setCredentials( 'client_id' ) }
+								disabled={ inFlight }
+								onKeyDown={ handleKeyDown }
+								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+							/>
+							{ errors.newspack_newsletters_invalid_keys && (
+								<p className="error">{ errors.newspack_newsletters_invalid_keys }</p>
+							) }
+
+							<p>
+								<ExternalLink href="https://help.campaignmonitor.com/api-keys">
+									{ __( 'Get Campaign Monitor API key and Client ID', 'newspack-newsletters' ) }
+								</ExternalLink>
+							</p>
+						</Fragment>
+					) }
+					{ 'active_campaign' === serviceProvider && (
+						<Fragment>
+							<h4>{ __( 'Enter your ActiveCampaign API URL and Key', 'newspack-newsletters' ) }</h4>
+							<TextControl
+								label={ __( 'ActiveCampaign API URL', 'newspack-newsletters' ) }
+								value={ credentials.api_key }
+								onChange={ setCredentials( 'url' ) }
+								disabled={ inFlight }
+								onKeyDown={ handleKeyDown }
+								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+							/>
+							<TextControl
+								label={ __( 'ActiveCampaign API Key', 'newspack-newsletters' ) }
+								value={ credentials.client_id }
+								onChange={ setCredentials( 'key' ) }
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
