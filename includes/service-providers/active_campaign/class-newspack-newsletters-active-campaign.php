@@ -427,28 +427,25 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
-			return new WP_Error(
-				'newspack_newsletters_incorrect_post_type',
-				__( 'Post is not a Newsletter.', 'newspack-newsletters' )
-			);
+			return;
 		}
 
-		$error = null;
-
-		$sync_result = $this->sync( $post );
-		if ( is_wp_error( $sync_result ) ) {
-			$error = $sync_result;
-		}
-
-		if ( ! $error ) {
-			$send_result = $this->api_request(
+		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
+		$campaigns   = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+		if ( is_wp_error( $campaigns ) ) {
+			$error = $campaigns;
+		} else {
+			$campaign           = $campaigns[0];
+			$iso_reference_date = new DateTime( $campaign['sdate_iso'] );
+			$schedule_date      = ( new DateTime() )->setTimezone( $iso_reference_date->getTimezone() );
+			$send_result        = $this->api_request(
 				'campaign_status',
 				'GET',
 				[
 					'query' => [
-						'id'     => $sync_result['campaign_id'],
+						'id'     => $campaign_id,
 						'status' => 1,
-						'sdate'  => gmdate( 'Y-m-d H:i:s' ),
+						'sdate'  => $schedule_date->format( 'Y-m-d H:i:s' ),
 					],
 				] 
 			);
