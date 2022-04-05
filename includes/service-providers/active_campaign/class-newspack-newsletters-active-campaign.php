@@ -328,6 +328,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					__( 'Please select a list.', 'newspack-newsletters' )
 				);
 			}
+			// Hold campaign ID to avoid duplicate campaign creation.
+			update_post_meta( $post->ID, 'ac_campaign_id', 'hold' );
 		}
 
 		$message_data = wp_parse_args(
@@ -367,6 +369,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			);
 			$campaign      = $this->api_request( $campaign_action, 'POST', [ 'body' => $campaign_data ] );
 			if ( is_wp_error( $campaign ) ) {
+				// Remove hold in case of creation error.
+				delete_post_meta( $post->ID, 'ac_campaign_id' );
 				return $campaign;
 			}
 			update_post_meta( $post->ID, 'ac_campaign_id', $campaign['id'] );
