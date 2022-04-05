@@ -147,21 +147,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Set list for a campaign.
+	 * List method not used in this ESP, but required by parent class.
 	 *
-	 * @param string $post_id Campaign Id.
-	 * @param string $list_id ID of the list.
-	 * @return array|WP_Error API API Response or error.
+	 * @param string $post_id The post ID.
+	 * @param string $list_id The list ID.
 	 */
 	public function list( $post_id, $list_id ) {
-		if ( empty( $post_id ) || empty( $list_id ) ) {
-			return new WP_Error(
-				'newspack_newsletters_invalid_list',
-				__( 'Please input a valid list.', 'newspack-newsletters' )
-			);
-		}
-		update_post_meta( $post_id, 'ac_list_id', $list_id );
-		return $this->sync( get_post( $post_id ) );
+		return null;
 	}
 
 	/**
@@ -212,24 +204,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Set sender data.
+	 * Sender method not used in this ESP, but required by parent class.
 	 *
 	 * @param string $post_id    Numeric ID of the campaign.
 	 * @param string $from_name  Sender name.
 	 * @param string $from_email Sender email address.
-	 *
-	 * @return array|WP_Error API Response or error.
 	 */
 	public function sender( $post_id, $from_name, $from_email ) {
-		if ( empty( $post_id ) || empty( $from_name ) || empty( $from_email ) ) {
-			return new WP_Error(
-				'newspack_newsletters_invalid_sender',
-				__( 'Please input sender name and email address.', 'newspack-newsletters' )
-			);
-		}
-		update_post_meta( $post_id, 'ac_from_name', $from_name );
-		update_post_meta( $post_id, 'ac_from_email', $from_email );
-		return $this->sync( get_post( $post_id ) );
+		return null;
 	}
 
 	/**
