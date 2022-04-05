@@ -201,6 +201,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		return wp_parse_args(
 			$result,
 			[
+				'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API. 
 				'campaign_id' => $campaign_id,
 				'from_name'   => $from_name,
 				'from_email'  => $from_email,
