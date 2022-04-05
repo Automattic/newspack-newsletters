@@ -45,7 +45,7 @@ const renderPreSendInfo = ( newsletterData = {} ) => {
 		<Fragment>
 			<p>
 				{ __(
-					'You’re about to send an Active Campaign newsletter to the following list:',
+					'You’re about to send an ActiveCampaign newsletter to the following list:',
 					'newspack-newsletters'
 				) }
 				<strong>{ list.name }</strong>

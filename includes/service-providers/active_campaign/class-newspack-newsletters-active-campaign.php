@@ -1,6 +1,6 @@
 <?php
 /**
- * Service Provider: Active Campaign Implementation
+ * Service Provider: ActiveCampaign Implementation
  *
  * @package Newspack
  */
@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Active Campaign ESP Class.
+ * ActiveCampaign ESP Class.
  */
 final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_Service_Provider {
 
@@ -39,7 +39,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! $this->has_api_credentials() ) {
 			return new \WP_Error(
 				'newspack_newsletters_active_campaign_api_credentials_missing',
-				__( 'Active Campaign API credentials are missing.', 'newspack-newsletters' )
+				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
 		$credentials   = $this->api_credentials();
@@ -120,7 +120,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( empty( $credentials['url'] ) || empty( $credentials['key'] ) ) {
 			return new WP_Error(
 				'newspack_newsletters_invalid_keys',
-				__( 'Please input Active Campaign API URL and Key.', 'newspack-newsletters' )
+				__( 'Please input ActiveCampaign API URL and Key.', 'newspack-newsletters' )
 			);
 		} else {
 			$updated_url = update_option( 'newspack_newsletters_active_campaign_url', $credentials['url'] );
@@ -225,7 +225,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! $this->has_api_credentials() ) {
 			return new \WP_Error(
 				'newspack_newsletters_active_campaign_api_credentials_missing',
-				__( 'Active Campaign API credentials are missing.', 'newspack-newsletters' )
+				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
 		$sync_result = $this->sync( get_post( $post_id ) );
@@ -269,7 +269,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! $this->has_api_credentials() ) {
 			return new \WP_Error(
 				'newspack_newsletters_active_campaign_api_credentials_missing',
-				__( 'Active Campaign API credentials are missing.', 'newspack-newsletters' )
+				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
 		$campaign_id = get_post_meta( $post->ID, 'ac_campaign_id', true );
@@ -283,10 +283,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$message_action = 'message_add';
 		$message_data   = [];
-
-		$campaign_action = 'campaign_create';
-		$campaign_data   = [];
-		$campaign        = null;
+		$campaign_data  = [];
+		$campaign       = null;
 
 		if ( $campaign_id ) {
 			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
@@ -295,7 +293,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 
 			$message_action      = 'message_edit';
-			$campaign_action     = 'campaign_edit';
 			$campaign            = $campaigns[0];
 			$message             = $campaign['messages'][0];
 			$message_data['id']  = $message['id'];
@@ -367,7 +364,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				],
 				$campaign_data
 			);
-			$campaign      = $this->api_request( $campaign_action, 'POST', [ 'body' => $campaign_data ] );
+			$campaign      = $this->api_request( 'campaign_create', 'POST', [ 'body' => $campaign_data ] );
 			if ( is_wp_error( $campaign ) ) {
 				// Remove hold in case of creation error.
 				delete_post_meta( $post->ID, 'ac_campaign_id' );
@@ -416,7 +413,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$post_id = $post->ID;
 		
-		// Only run if the current service provider is Active Campaign.
+		// Only run if the current service provider is ActiveCampaign.
 		if ( 'active_campaign' !== get_option( 'newspack_newsletters_service_provider', false ) ) {
 			return;
 		}

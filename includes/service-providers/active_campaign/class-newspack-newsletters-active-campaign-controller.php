@@ -1,6 +1,6 @@
 <?php
 /**
- * Active Campaign ESP Service Controller.
+ * ActiveCampaign ESP Service Controller.
  *
  * @package Newspack
  */
@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * API Controller for Newspack Active Campaign ESP service.
+ * API Controller for Newspack ActiveCampaign ESP service.
  */
 class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newsletters_Service_Provider_Controller {
 	/**
@@ -75,7 +75,7 @@ class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newslette
 	}
 
 	/**
-	 * Register API endpoints unique to Active Campaign.
+	 * Register API endpoints unique to ActiveCampaign.
 	 */
 	public function register_routes() {
 
@@ -158,7 +158,7 @@ class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newslette
 	}
 
 	/**
-	 * Get raw HTML for a campaign. Required for the Active Campaign API.
+	 * Get raw HTML for a campaign. Required for the ActiveCampaign API.
 	 *
 	 * @param WP_REST_Request $request API request object.
 	 * @return void

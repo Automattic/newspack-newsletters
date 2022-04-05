@@ -44,7 +44,7 @@ export const validateNewsletter = ( { from_email, from_name, list_id } ) => {
  * @param {Function} props.renderSubject     Function that renders email subject input.
  * @param {Function} props.renderPreviewText Function that renders email preview text input.
  * @param {boolean}  props.inFlight          True if the component is in a loading state.
- * @param {Object}   props.acData            Active Campaign data.
+ * @param {Object}   props.acData            ActiveCampaign data.
  * @param {Function} props.updateMetaValue   Dispatcher to update post meta.
  * @param {Object}   props.newsletterData    Newsletter data from the parent components
  * @param {Function} props.createErrorNotice Dispatcher to display an error message in the editor.
