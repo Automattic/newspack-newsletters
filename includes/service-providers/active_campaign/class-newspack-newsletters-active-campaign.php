@@ -501,7 +501,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @param array  $contact Contact data.
 	 * @param string $list_id List ID.
+	 *
+	 * @return array|WP_Error API response or error.
 	 */
 	public function add_contact( $contact, $list_id ) {
+		$name_fragments = explode( ' ', $contact['name'], 2 );
+		return $this->api_request(
+			'contact_add',
+			'POST',
+			[
+				'body' => [
+					'p[' . $list_id . ']' => 1,
+					'email'               => $contact['email'],
+					'first_name'          => $name_fragments[0],
+					'last_name'           => $name_fragments[1],
+				],
+			]
+		);
 	}
 }
