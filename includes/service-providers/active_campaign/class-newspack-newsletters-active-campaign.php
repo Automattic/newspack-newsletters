@@ -183,32 +183,32 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				$persisted_error
 			);
 		}
-		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
-		$from_name   = get_post_meta( $post_id, 'ac_from_name', true );
-		$from_email  = get_post_meta( $post_id, 'ac_from_email', true );
-		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
-		$result      = [];
-		if ( ! $campaign_id ) {
-			$sync_result = $this->sync( get_post( $post_id ) );
-			if ( ! is_wp_error( $sync_result ) ) {
-				$result = $sync_result;
-			}
-		}
 		$lists = $this->get_lists();
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
 		}
-		return wp_parse_args(
-			$result,
-			[
-				'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API. 
-				'campaign_id' => $campaign_id,
-				'from_name'   => $from_name,
-				'from_email'  => $from_email,
-				'list_id'     => $list_id,
-				'lists'       => $lists,
-			]
-		);
+		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
+		$from_name   = get_post_meta( $post_id, 'ac_from_name', true );
+		$from_email  = get_post_meta( $post_id, 'ac_from_email', true );
+		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
+		$result      = [
+			'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API. 
+			'campaign_id' => $campaign_id,
+			'from_name'   => $from_name,
+			'from_email'  => $from_email,
+			'list_id'     => $list_id,
+			'lists'       => $lists,
+		];
+		if ( ! $campaign_id ) {
+			$sync_result = $this->sync( get_post( $post_id ) );
+			if ( ! is_wp_error( $sync_result ) ) {
+				$result = wp_parse_args(
+					$sync_result,
+					$result
+				);
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -390,6 +390,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			update_post_meta( $post->ID, 'ac_campaign_id', $campaign['id'] );
 		}
 		return [
+			'campaign'    => true, // Satisfy JS API.
 			'campaign_id' => $campaign['id'],
 			'message_id'  => $message['id'],
 			'list_id'     => $list_id,
