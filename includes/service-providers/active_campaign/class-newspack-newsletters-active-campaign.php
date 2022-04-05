@@ -184,27 +184,30 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			);
 		}
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
+		$from_name   = get_post_meta( $post_id, 'ac_from_name', true );
+		$from_email  = get_post_meta( $post_id, 'ac_from_email', true );
+		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
+		$result      = [];
 		if ( ! $campaign_id ) {
 			$sync_result = $this->sync( get_post( $post_id ) );
 			if ( ! is_wp_error( $sync_result ) ) {
-				$campaign_id = $sync_result['campaign_id'];
+				$result = $sync_result;
 			}
-		} else {
-			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
-			if ( is_wp_error( $campaigns ) ) {
-				return $campaigns;
-			}
-			$campaign = $campaigns[0];
 		}
 		$lists = $this->get_lists();
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
 		}
-		return [
-			'campaign_id' => $campaign_id,
-			'campaign'    => $campaign,
-			'lists'       => $lists,
-		];
+		return wp_parse_args(
+			$result,
+			[
+				'campaign_id' => $campaign_id,
+				'from_name'   => $from_name,
+				'from_email'  => $from_email,
+				'list_id'     => $list_id,
+				'lists'       => $lists,
+			]
+		);
 	}
 
 	/**
@@ -388,6 +391,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		return [
 			'campaign_id' => $campaign['id'],
 			'message_id'  => $message['id'],
+			'list_id'     => $list_id,
+			'from_email'  => $from_email,
+			'from_name'   => $from_name,
 		];
 	}
 
