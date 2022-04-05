@@ -47,13 +47,14 @@ const getFetchDataConfig = ( { postId } ) => ( {
  * @param {Object}   props                   Component props.
  * @param {number}   props.postId            ID of the edited newsletter post.
  * @param {Function} props.apiFetch          Fetching handler. Receives config for @wordpress/api-fetch as argument.
+ * @param {Function} props.renderSubject     Function that renders email subject input.
  * @param {Function} props.renderFrom        Function that renders from inputs - sender name and email.
  *                                           Has to receive an object with `handleSenderUpdate` function,
  *                                           which will receive a `{senderName, senderEmail}` object – so that
  *                                           the data can be sent to the backend.
  * @param {Function} props.renderPreviewText Function that renders preview text input
  */
-const ProviderSidebar = ( { postId, apiFetch, renderFrom, renderPreviewText } ) => {
+const ProviderSidebar = ( { postId, apiFetch, renderSubject, renderFrom, renderPreviewText } ) => {
 	const handleSenderUpdate = ( { senderName, senderEmail } ) =>
 		apiFetch( {
 			path: `/newspack-newsletters/v1/example/${ postId }/sender`,
@@ -66,6 +67,7 @@ const ProviderSidebar = ( { postId, apiFetch, renderFrom, renderPreviewText } ) 
 
 	return (
 		<Fragment>
+			{ renderSubject() }
 			{ renderPreviewText() }
 			<hr />
 			{ renderFrom( { handleSenderUpdate } ) }

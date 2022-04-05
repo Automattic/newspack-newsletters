@@ -63,6 +63,7 @@ export const validateNewsletter = ( { from_email, from_name, list_id, segment_id
  *
  * @param {Object}   props                   Component props.
  * @param {number}   props.postId            ID of the edited newsletter post.
+ * @param {Function} props.renderSubject     Function that renders email subject input.
  * @param {boolean}  props.inFlight          True if the component is in a loading state.
  * @param {Object}   props.cmData            Campaign Monitor data.
  * @param {Function} props.updateMetaValue   Dispatcher to update post meta.
@@ -72,6 +73,7 @@ export const validateNewsletter = ( { from_email, from_name, list_id, segment_id
  */
 const ProviderSidebarComponent = ( {
 	postId,
+	renderSubject,
 	inFlight,
 	cmData,
 	updateMetaValue,
@@ -135,6 +137,8 @@ const ProviderSidebarComponent = ( {
 
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
+			{ renderSubject() }
+			<hr />
 			<strong className="newspack-newsletters__label">
 				{ __( 'From', 'newspack-newsletters' ) }
 			</strong>

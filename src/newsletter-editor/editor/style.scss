@@ -1,31 +1,12 @@
-@import '~@wordpress/base-styles/colors';
-
 .post-type-newspack_nl_cpt {
-	.is-mode-visual {
-		.edit-post-visual-editor__post-title-wrapper {
-			margin-top: var( --wp--style--block-gap );
-		}
-
-		.editor-post-title {
-			background: white;
-			border-radius: 1px;
-			color: $gray-900;
-			font-family: sans-serif;
+	.editor-post-title {
+		&.newspack-newsletters-post-title-hidden {
 			font-size: 1em;
-			font-style: normal;
-			font-weight: normal;
-			line-height: 1.5;
-			position: relative;
-
-			&::before {
-				content: attr( aria-label );
-				display: block;
-				font-size: 13px;
-				font-weight: bold;
-				line-height: 1.5;
-				margin-bottom: 8px;
-				text-transform: uppercase;
-			}
+			height: 0;
+			margin: -4rem 0 calc( -1 * var( --wp--style--block-gap ) );
+			opacity: 0;
+			padding: 0;
+			pointer-events: none;
 		}
 	}
 
