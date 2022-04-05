@@ -478,7 +478,25 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @param string $post_id Numeric ID of the campaign.
 	 */
 	public function trash( $post_id ) {
-
+		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $post_id ) ) {
+			return;
+		}
+		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
+		if ( ! $campaign_id ) {
+			return;
+		}
+		$deletable_statuses = [
+			'0', // Draft.
+			'1', // Scheduled.
+			'6', // Disabled.
+		];
+		$campaigns          = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+		if ( is_wp_error( $campaigns ) ) {
+			return;
+		}
+		if ( in_array( $campaigns[0]['status'], $deletable_statuses ) ) {
+			$this->api_request( 'campaign_delete', 'GET', [ 'query' => [ 'id' => $campaign_id ] ] );
+		}
 	}
 
 	/**
