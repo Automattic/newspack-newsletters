@@ -427,6 +427,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return;
 		}
 
+		$error = null;
+
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
 		$campaigns   = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
 		if ( is_wp_error( $campaigns ) ) {
