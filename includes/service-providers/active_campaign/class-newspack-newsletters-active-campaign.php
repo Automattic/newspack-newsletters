@@ -414,7 +414,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$post_id = $post->ID;
 		
 		// Only run if the current service provider is ActiveCampaign.
-		if ( 'active_campaign' !== get_option( 'newspack_newsletters_service_provider', false ) ) {
+		if ( 'active_campaign' !== Newspack_Newsletters::service_provider() ) {
 			return;
 		}
 
