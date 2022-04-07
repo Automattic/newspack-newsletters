@@ -11,9 +11,16 @@ import { Fragment } from '@wordpress/element';
 import { compose, createHigherOrderComponent } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { BlockControls, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, ToolbarGroup, SelectControl, ToolbarDropdownMenu } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
-import { Icon, warning, globe } from '@wordpress/icons';
+import {
+	MenuGroup,
+	MenuItem,
+	PanelBody,
+	SelectControl,
+	Toolbar,
+	ToolbarDropdownMenu,
+} from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import { check } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -26,17 +33,14 @@ const visibilityOptions = [
 	{
 		label: __( 'Email and Web', 'newspack-newsletters' ),
 		value: '',
-		icon: 'visibility',
 	},
 	{
 		label: __( 'Email only', 'newspack-newsletters' ),
 		value: 'email',
-		icon: 'email',
 	},
 	{
 		label: __( 'Web only', 'newspack-newsletters' ),
 		value: 'web',
-		icon: globe,
 	},
 ];
 
@@ -60,39 +64,47 @@ const withVisibilityControl = createHigherOrderComponent(
 		)( props => {
 			const { attributes, setAttributes } = props;
 			const value = attributes[ ATTRIBUTE_NAME ];
-			const currentIcon =
-				visibilityOptions.find( option => option.value === value )?.icon || 'visibility';
-			const menuLabel = value
-				? // Translators: visibility help message.
-				  sprintf( __( 'Currently visible only on "%s" version.', 'newspack-newsletters' ), value )
-				: __( 'Select a visibility option', 'newspack-newsletter' );
-			if ( ! props.is_public && ! value ) {
+			if ( ! props.is_public ) {
 				return <BlockEdit { ...props } />;
 			}
 			return (
 				<Fragment>
 					<BlockControls>
-						<ToolbarGroup>
+						<Toolbar>
 							<ToolbarDropdownMenu
-								icon={ currentIcon }
-								label={ menuLabel }
-								toggleProps={ {
-									className: classnames( { 'is-pressed': !! value } ),
-								} }
-								controls={ visibilityOptions.map( option => ( {
-									icon: option.icon,
-									title: option.label,
-									onClick: () => setAttributes( { [ ATTRIBUTE_NAME ]: option.value } ),
-								} ) ) }
-							/>
-						</ToolbarGroup>
+								label={ __( 'Visibility', 'newspack-newsletters' ) }
+								icon={ 'visibility' }
+							>
+								{ ( { onClose } ) => (
+									<MenuGroup>
+										{ visibilityOptions.map( entry => {
+											return (
+												<MenuItem
+													icon={
+														( value === entry.value || ( ! value && entry.value === '' ) ) && check
+													}
+													isSelected={ value === entry.value }
+													key={ entry.value }
+													onClick={ () => {
+														setAttributes( {
+															[ ATTRIBUTE_NAME ]: entry.value,
+														} );
+													} }
+													onClose={ onClose }
+													role="menuitemradio"
+												>
+													{ entry.label }
+												</MenuItem>
+											);
+										} ) }
+									</MenuGroup>
+								) }
+							</ToolbarDropdownMenu>
+						</Toolbar>
 					</BlockControls>
 					<BlockEdit { ...props } />
 					<InspectorControls>
-						<PanelBody
-							title={ __( 'Visibility options', 'newspack-newsletters' ) }
-							initialOpen={ true }
-						>
+						<PanelBody title={ __( 'Visibility', 'newspack-newsletters' ) }>
 							<SelectControl
 								label={ __( 'Where should this block be visible?', 'newspack-newsletters' ) }
 								value={ value }
@@ -136,12 +148,20 @@ const withVisibilityNotice = createHigherOrderComponent(
 						data-align={ props.attributes?.align || null }
 					>
 						<span className="newsletters-block-visibility-label">
-							<Icon icon={ warning } size={ 15 } />
 							{ shouldBePublic ? (
-								__(
-									'Newsletter is not public, this block will not be visible.',
-									'newspack-newsletters'
-								)
+								<>
+									{ __(
+										'Newsletter is not public, this block will not be visible.',
+										'newspack-newsletters'
+									) }
+									<button
+										onClick={ () => {
+											props.setAttributes( { [ ATTRIBUTE_NAME ]: '' } );
+										} }
+									>
+										{ __( 'Clear visibility attribute', 'newspack-newsletters' ) }
+									</button>
+								</>
 							) : (
 								<Fragment>
 									{ value === 'web' &&
