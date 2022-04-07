@@ -52,6 +52,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
+		add_filter( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
 	}
 
 	/**
@@ -96,6 +97,34 @@ final class Newspack_Newsletters_Editor {
 	}
 
 	/**
+	 * Get CSS rules for color palette.
+	 *
+	 * @param string $container_selector Optional selector to prefix as a container to every rule.
+	 * 
+	 * @return string CSS rules.
+	 */
+	public static function get_color_palette_css( $container_selector = '' ) {
+		$rules = [];
+		// Add `.has-{color-name}-color` rules for each palette color.
+		$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
+		if ( ! empty( $color_palette ) ) {
+			foreach ( $color_palette as $color_name => $color_value ) {
+				$rules[] = '.has-' . esc_html( $color_name ) . '-color { color: ' . esc_html( $color_value ) . '; }';
+			}
+		}
+		if ( $container_selector ) {
+			$container_selector = esc_html( $container_selector );
+			$rules              = array_map(
+				function( $rule ) use ( $container_selector ) {
+					return $container_selector . ' ' . $rule;
+				},
+				$rules 
+			);
+		}
+		return implode( "\n", $rules );
+	}
+
+	/**
 	 * Remove all editor enqueued assets besides this plugins' and disable some editor features.
 	 * This is to prevent theme styles being loaded in the editor.
 	 */
@@ -126,6 +155,26 @@ final class Newspack_Newsletters_Editor {
 		remove_editor_styles();
 		add_theme_support( 'editor-gradient-presets', array() );
 		add_theme_support( 'disable-custom-gradients' );
+
+		$block_patterns_registry = \WP_Block_Patterns_Registry::get_instance();
+		if ( $block_patterns_registry->is_registered( 'core/social-links-shared-background-color' ) ) {
+			unregister_block_pattern( 'core/social-links-shared-background-color' );
+		}
+	}
+
+	/**
+	 * Remove Core's Remote Block patterns.
+	 *
+	 * @param boolean $should_load_remote Whether to load remote block patterns.
+	 *
+	 * @return boolean Whether to load remote block patterns.
+	 */
+	public static function strip_block_patterns( $should_load_remote ) {
+		if ( self::is_editing_email() ) {
+			return false;
+		}
+
+		return $should_load_remote;
 	}
 
 	/**
@@ -205,6 +254,8 @@ final class Newspack_Newsletters_Editor {
 			wp_style_add_data( 'newspack-newsletters', 'rtl', 'replace' );
 			wp_enqueue_style( 'newspack-newsletters' );
 
+			wp_add_inline_style( 'newspack-newsletters', self::get_color_palette_css( '.editor-styles-wrapper' ) );
+
 			\wp_enqueue_script(
 				'newspack-newsletters-editor',
 				plugins_url( '../dist/editor.js', __FILE__ ),
@@ -224,6 +275,8 @@ final class Newspack_Newsletters_Editor {
 					'mjml_handling_post_types' => $mjml_handling_post_types,
 				]
 			);
+
+			do_action( 'newspack_newsletters_enqueue_block_editor_assets' );
 		}
 
 		if ( self::is_editing_newsletter_ad() ) {

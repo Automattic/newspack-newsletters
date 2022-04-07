@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { unregisterBlockStyle } from '@wordpress/blocks';
+import { unregisterBlockStyle, unregisterBlockVariation } from '@wordpress/blocks';
 import domReady from '@wordpress/dom-ready';
 import { addFilter, removeFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
@@ -27,11 +27,13 @@ registerEmbedBlockEdit();
 registerMergeTagsFilters();
 registerVisibilityFilters();
 
-/* Unregister core block styles that are unsupported in emails */
 domReady( () => {
+	/* Unregister core block styles that are unsupported in emails */
 	unregisterBlockStyle( 'core/separator', 'dots' );
 	unregisterBlockStyle( 'core/social-links', 'logos-only' );
 	unregisterBlockStyle( 'core/social-links', 'pill-shape' );
+	/* Unregister "row" group block variation */
+	unregisterBlockVariation( 'core/group', 'group-row' );
 } );
 
 /* Remove Duotone filters */
