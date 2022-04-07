@@ -255,7 +255,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return String Campaign name.
 	 */
 	private function get_campaign_name( $post ) {
-		return 'Newspack Newsletter #' . $post->ID;
+		return sprintf( 'Newspack Newsletter (%d)', $post->ID );
 	}
 
 	/**
