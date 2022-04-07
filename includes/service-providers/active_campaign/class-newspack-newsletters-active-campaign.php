@@ -438,26 +438,29 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				$campaign_id = $sync_result['campaign_id'];
 			}
 		}
-		$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
-		if ( is_wp_error( $campaigns ) ) {
-			$error = $campaigns;
-		} else {
-			$campaign           = $campaigns[0];
-			$iso_reference_date = new DateTime( $campaign['sdate_iso'] );
-			$schedule_date      = ( new DateTime() )->setTimezone( $iso_reference_date->getTimezone() );
-			$send_result        = $this->api_request(
-				'campaign_status',
-				'GET',
-				[
-					'query' => [
-						'id'     => $campaign_id,
-						'status' => 1,
-						'sdate'  => $schedule_date->format( 'Y-m-d H:i:s' ),
-					],
-				] 
-			);
-			if ( is_wp_error( $send_result ) ) {
-				$error = $send_result;
+
+		if ( ! $error ) {
+			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+			if ( is_wp_error( $campaigns ) ) {
+				$error = $campaigns;
+			} else {
+				$campaign           = $campaigns[0];
+				$iso_reference_date = new DateTime( $campaign['sdate_iso'] );
+				$schedule_date      = ( new DateTime() )->setTimezone( $iso_reference_date->getTimezone() );
+				$send_result        = $this->api_request(
+					'campaign_status',
+					'GET',
+					[
+						'query' => [
+							'id'     => $campaign_id,
+							'status' => 1,
+							'sdate'  => $schedule_date->format( 'Y-m-d H:i:s' ),
+						],
+					] 
+				);
+				if ( is_wp_error( $send_result ) ) {
+					$error = $send_result;
+				}
 			}
 		}
 
