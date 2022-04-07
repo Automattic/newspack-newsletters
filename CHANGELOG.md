@@ -1,3 +1,11 @@
+# [1.44.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.43.0...v1.44.0-alpha.1) (2022-04-07)
+
+
+### Features
+
+* add block support for Site Logo, Site Tagline, and Site Title ([#679](https://github.com/Automattic/newspack-newsletters/issues/679)) ([714b498](https://github.com/Automattic/newspack-newsletters/commit/714b4982b96690f031a9a0c509ebd1fd992d774e))
+* simplify visibility option ([#733](https://github.com/Automattic/newspack-newsletters/issues/733)) ([d7ea865](https://github.com/Automattic/newspack-newsletters/commit/d7ea86546ac0c62728362008669d65aa2e484dca))
+
 # [1.43.0](https://github.com/Automattic/newspack-newsletters/compare/v1.42.1...v1.43.0) (2022-04-05)
 
 
