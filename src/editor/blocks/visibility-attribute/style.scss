@@ -1,47 +1,79 @@
 @import '~@wordpress/base-styles/colors';
 
+:root {
+	/* stylelint-disable value-keyword-case */
+	--newspack-system-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu,
+		Cantarell, 'Helvetica Neue', sans-serif;
+	/* stylelint-enable value-keyword-case */
+}
+
 .newspack-newsletters__editor-block.newsletters-block-visibility__web,
 .newspack-newsletters__editor-block.newsletters-block-visibility__email {
-	box-shadow: 0 0 0 2px $alert-yellow;
-	border-radius: 3px;
 	position: relative;
 	margin-top: 0;
 	margin-bottom: 0;
 	padding: 0 !important;
-	transition: border-radius 0.2s ease-in-out;
-	.newsletters-block-visibility-label {
-		z-index: 10;
-		display: flex;
-		align-items: center;
-		background: $alert-yellow;
-		color: #fff;
-		position: absolute;
-		top: 100%;
-		right: -2px;
-		height: 15px;
-		margin-top: -13px;
-		padding: 0 3px;
-		line-height: 1;
-		font-size: 10px;
-		border-radius: 3px 0 3px 0;
-		transition: border-radius 0.2s ease-in-out, margin 0.2s ease-in-out;
+
+	&::after {
+		border-radius: 1px;
+		bottom: 1px;
+		box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) $alert-yellow;
+		content: '';
+		left: 1px;
 		pointer-events: none;
-		svg {
-			margin-right: 2px;
-			fill: #fff;
+		position: absolute;
+		right: 1px;
+		top: 1px;
+	}
+
+	.newsletters-block-visibility-label {
+		background: $alert-yellow;
+		border-radius: 2px;
+		color: $gray-900;
+		display: flex;
+		font-family: var( --newspack-system-font );
+		font-size: 10px;
+		line-height: 1.6;
+		margin-top: -23px;
+		padding: 2px 4px;
+		pointer-events: none;
+		position: absolute;
+		right: 3px;
+		top: 100%;
+		transition: margin 0.25s ease-in-out;
+		z-index: 10;
+		button {
+			border: 0;
+			background: transparent;
+			color: inherit;
+			cursor: pointer;
+			display: inline-block;
+			font-family: inherit;
+			font-size: inherit;
+			line-height: inherit;
+			margin-left: 0.25em;
+			padding: 0;
+			pointer-events: all;
+			text-decoration: underline;
+
+			&:focus {
+				outline: 1px solid;
+			}
 		}
 	}
 	&.newsletters-block-selected {
-		border-radius: 3px 3px 0 3px;
 		> .newsletters-block-visibility-label {
-			margin-top: 0;
-			border-radius: 3px 0 3px 3px;
+			margin-top: 3px;
 		}
 	}
 	&.newsletters-block-error {
-		box-shadow: 0 0 0 2px $alert-red;
-		.newsletters-block-visibility-label {
+		&::after {
+			box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) $alert-red;
+		}
+
+		> .newsletters-block-visibility-label {
 			background: $alert-red;
+			color: white;
 		}
 	}
 }
