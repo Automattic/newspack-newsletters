@@ -240,7 +240,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'type'       => 'html',
 					'action'     => 'test',
 					'campaignid' => $sync_result['campaign_id'],
-					'messageid'  => $sync_result['messages_id'],
+					'messageid'  => $sync_result['message_id'],
 					'email'      => implode( ',', $emails ),
 				],
 			] 
