@@ -430,7 +430,15 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$error = null;
 
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
-		$campaigns   = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+		if ( ! $campaign_id ) {
+			$sync_result = $this->sync( $post );
+			if ( is_wp_error( $sync_result ) ) {
+				$error = $sync_result;
+			} else {
+				$campaign_id = $sync_result['campaign_id'];
+			}
+		}
+		$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
 		if ( is_wp_error( $campaigns ) ) {
 			$error = $campaigns;
 		} else {
