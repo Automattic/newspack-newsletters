@@ -1,3 +1,10 @@
+# [1.44.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.44.0-alpha.1...v1.44.0-alpha.2) (2022-04-08)
+
+
+### Features
+
+* ActiveCampaign esp integration ([#775](https://github.com/Automattic/newspack-newsletters/issues/775)) ([0d38151](https://github.com/Automattic/newspack-newsletters/commit/0d381510dc86b8eb7c548c5e3c101dd1c3e6a42d))
+
 # [1.44.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.43.0...v1.44.0-alpha.1) (2022-04-07)
 
 
