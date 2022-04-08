@@ -523,7 +523,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'p[' . $list_id . ']' => 1,
 					'email'               => $contact['email'],
 					'first_name'          => $name_fragments[0],
-					'last_name'           => $name_fragments[1],
+					'last_name'           => isset( $name_fragments[1] ) ? $name_fragments[1] : '',
 				],
 			]
 		);
