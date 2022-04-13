@@ -1,3 +1,10 @@
+# [1.44.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.44.0-alpha.2...v1.44.0-alpha.3) (2022-04-13)
+
+
+### Bug Fixes
+
+* **layouts:** ensure selected layout is saved ([#786](https://github.com/Automattic/newspack-newsletters/issues/786)) ([5c659d1](https://github.com/Automattic/newspack-newsletters/commit/5c659d1bc3952c6786d22b89b5022c58fad3777d))
+
 # [1.44.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.44.0-alpha.1...v1.44.0-alpha.2) (2022-04-08)
 
 
