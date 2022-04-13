@@ -56,8 +56,7 @@ const LayoutPicker = ( {
 			template_id: layoutId,
 			...meta,
 		};
-		setNewsletterMeta( metaPayload );
-		setTimeout( savePost, 1 );
+		setNewsletterMeta( metaPayload ).then( savePost );
 	};
 
 	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
