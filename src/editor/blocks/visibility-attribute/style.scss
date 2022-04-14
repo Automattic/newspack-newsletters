@@ -9,10 +9,13 @@
 
 .newspack-newsletters__editor-block.newsletters-block-visibility__web,
 .newspack-newsletters__editor-block.newsletters-block-visibility__email {
-	position: relative;
-	margin-top: 0;
+	height: auto;
 	margin-bottom: 0;
+	margin-top: 0;
+	min-height: calc( 1.5em + 22px );
 	padding: 0 !important;
+	position: relative;
+	transition: min-height 0.25s ease-in-out;
 
 	&::after {
 		border-radius: 1px;
@@ -41,7 +44,7 @@
 		right: 3px;
 		top: 100%;
 		transition: margin 0.25s ease-in-out;
-		z-index: 10;
+		z-index: 22;
 		button {
 			border: 0;
 			background: transparent;
@@ -62,6 +65,8 @@
 		}
 	}
 	&.newsletters-block-selected {
+		min-height: 1.5em;
+
 		> .newsletters-block-visibility-label {
 			margin-top: 3px;
 		}
