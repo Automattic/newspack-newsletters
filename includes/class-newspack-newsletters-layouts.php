@@ -149,17 +149,17 @@ final class Newspack_Newsletters_Layouts {
 		$logo_block_center = '<!-- wp:site-logo {"align":"center","width":192,"newsletterVisibility":"email"} /-->';
 
 		$date_block = sprintf(
-			'<!-- wp:paragraph --><p>%s</p><!-- /wp:paragraph -->',
+			'<!-- {"newsletterVisibility":"email"} wp:paragraph --><p>%s</p><!-- /wp:paragraph -->',
 			$date
 		);
 
 		$date_block_right = sprintf(
-			'<!-- wp:paragraph {"align":"right"} --><p class="has-text-align-right">%s</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph {"align":"right","newsletterVisibility":"email"} --><p class="has-text-align-right">%s</p><!-- /wp:paragraph -->',
 			$date
 		);
 
 		$date_block_center = sprintf(
-			'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">%s</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph {"align":"center","newsletterVisibility":"email"} --><p class="has-text-align-center">%s</p><!-- /wp:paragraph -->',
 			$date
 		);
 
