@@ -17,7 +17,7 @@
 	position: relative;
 	transition: min-height 0.25s ease-in-out;
 
-	&::after {
+	&::before {
 		border-radius: 1px;
 		bottom: 1px;
 		box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) $alert-yellow;
@@ -27,6 +27,12 @@
 		position: absolute;
 		right: 1px;
 		top: 1px;
+	}
+
+	&::after {
+		clear: both;
+		content: '';
+		display: table;
 	}
 
 	.newsletters-block-visibility-label {
