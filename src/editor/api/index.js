@@ -10,6 +10,7 @@ import mjml2html from 'mjml-browser';
 import apiFetch from '@wordpress/api-fetch';
 import { dispatch as globalDispatch, select as globalSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { NEWSLETTER_CPT_SLUG } from '../../utils/consts';
 
 const POST_META_WHITELIST = [
 	'is_public',
@@ -27,8 +28,13 @@ const POST_META_WHITELIST = [
  * to be produced. To do that, MJML (more at mjml.io) is used.
  */
 apiFetch.use( async ( options, next ) => {
-	const { method, data = {} } = options;
-	if ( data.content && data.id && ( method === 'POST' || method === 'PUT' ) ) {
+	const { method, path, data = {} } = options;
+	if (
+		path.indexOf( NEWSLETTER_CPT_SLUG ) > 0 &&
+		data.content &&
+		data.id &&
+		( method === 'POST' || method === 'PUT' )
+	) {
 		const emailHTMLMetaName = window.newspack_email_editor_data.email_html_meta;
 		const mjmlHandlingPostTypes = window.newspack_email_editor_data.mjml_handling_post_types;
 		const editorSelector = globalSelect( 'core/editor' );
@@ -63,7 +69,7 @@ apiFetch.use( async ( options, next ) => {
 			.then( ( { mjml } ) => {
 				// Once received MJML markup, convert it to email-compliant HTML
 				// and save as post meta for later retrieval.
-				const { html } = mjml2html( mjml );
+				const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
 				return apiFetch( {
 					data: { meta: { [ emailHTMLMetaName ]: html } },
 					method: 'POST',

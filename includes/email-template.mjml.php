@@ -17,6 +17,8 @@
 			$css         = $default_css . "\n" . $custom_css;
 
 			echo esc_html( $css );
+			echo Newspack_Newsletters_Editor::get_color_palette_css();
+			do_action( 'newspack_newsletters_editor_mjml_head' );
 		?>
 		</mj-style>
 		<?php if ( isset( $preview_text ) ): ?>

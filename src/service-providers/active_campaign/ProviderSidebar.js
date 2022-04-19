@@ -6,15 +6,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
-import {
-	BaseControl,
-	ExternalLink,
-	RadioControl,
-	SelectControl,
-	Spinner,
-	TextControl,
-	Notice,
-} from '@wordpress/components';
+import { BaseControl, SelectControl, Spinner, TextControl, Notice } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -24,34 +16,20 @@ import './style.scss';
 /**
  * Validation utility.
  *
- * @param {Object} data            object data fetched using getFetchDataConfig
+ * @param {Object} data            Data fetched using getFetchDataConfig.
  * @param {string} data.from_email Sender email address.
  * @param {string} data.from_name  Sender name.
  * @param {number} data.list_id    Recipient list ID.
- * @param {number} data.segment_id Recipient segment ID.
- * @param {string} data.send_mode  Whether to send in 'list' or 'segment' mode.
  * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
-export const validateNewsletter = ( { from_email, from_name, list_id, segment_id, send_mode } ) => {
+export const validateNewsletter = ( { from_email, from_name, list_id } ) => {
 	const messages = [];
 	if ( ! from_email || ! from_name ) {
 		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
 	}
-
-	if ( ! send_mode ) {
-		messages.push( __( 'Must select a send mode', 'newspack-newsletters' ) );
-	}
-
-	if ( 'list' === send_mode && ! list_id ) {
+	if ( ! list_id ) {
 		messages.push( __( 'Must select a list when sending in list mode', 'newspack-newsletters' ) );
 	}
-
-	if ( 'segment' === send_mode && ! segment_id ) {
-		messages.push(
-			__( 'Must select a segment when sending in segment mode', 'newspack-newsletters' )
-		);
-	}
-
 	return messages;
 };
 
@@ -64,8 +42,9 @@ export const validateNewsletter = ( { from_email, from_name, list_id, segment_id
  * @param {Object}   props                   Component props.
  * @param {number}   props.postId            ID of the edited newsletter post.
  * @param {Function} props.renderSubject     Function that renders email subject input.
+ * @param {Function} props.renderPreviewText Function that renders email preview text input.
  * @param {boolean}  props.inFlight          True if the component is in a loading state.
- * @param {Object}   props.cmData            Campaign Monitor data.
+ * @param {Object}   props.acData            ActiveCampaign data.
  * @param {Function} props.updateMetaValue   Dispatcher to update post meta.
  * @param {Object}   props.newsletterData    Newsletter data from the parent components
  * @param {Function} props.createErrorNotice Dispatcher to display an error message in the editor.
@@ -74,8 +53,9 @@ export const validateNewsletter = ( { from_email, from_name, list_id, segment_id
 const ProviderSidebarComponent = ( {
 	postId,
 	renderSubject,
+	renderPreviewText,
 	inFlight,
-	cmData,
+	acData,
 	updateMetaValue,
 	newsletterData,
 	createErrorNotice,
@@ -83,8 +63,7 @@ const ProviderSidebarComponent = ( {
 } ) => {
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ lists, setLists ] = useState( [] );
-	const [ segments, setSegments ] = useState( [] );
-	const { listId, segmentId, sendMode, senderName, senderEmail } = cmData;
+	const { listId, senderName, senderEmail } = acData;
 
 	useEffect( () => {
 		fetchListsAndSegments();
@@ -94,11 +73,9 @@ const ProviderSidebarComponent = ( {
 		setIsLoading( true );
 		try {
 			const response = await apiFetch( {
-				path: `/newspack-newsletters/v1/campaign_monitor/${ postId }/retrieve`,
+				path: `/newspack-newsletters/v1/active_campaign/${ postId }/retrieve`,
 			} );
-
 			setLists( response.lists );
-			setSegments( response.segments );
 		} catch ( e ) {
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
@@ -111,10 +88,7 @@ const ProviderSidebarComponent = ( {
 		const updatedData = {
 			...newsletterData,
 			lists,
-			segments,
-			send_mode: sendMode,
 			list_id: listId,
-			segment_id: segmentId,
 			from_email: senderEmail,
 			from_name: senderName,
 			campaign: true,
@@ -125,7 +99,7 @@ const ProviderSidebarComponent = ( {
 		// Send info to parent components, for send button/validation management.
 		updateMetaValue( 'newsletterValidationErrors', messages );
 		updateMetaValue( 'newsletterData', updatedData );
-	}, [ JSON.stringify( cmData ), lists, segments, status ] );
+	}, [ JSON.stringify( acData ), lists, status ] );
 
 	if ( ! inFlight && 'publish' === status ) {
 		return (
@@ -138,6 +112,7 @@ const ProviderSidebarComponent = ( {
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
 			{ renderSubject() }
+			{ renderPreviewText() }
 			<hr />
 			<strong className="newspack-newsletters__label">
 				{ __( 'From', 'newspack-newsletters' ) }
@@ -147,7 +122,7 @@ const ProviderSidebarComponent = ( {
 				className="newspack-newsletters__name-textcontrol"
 				value={ senderName }
 				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'cm_from_name', value ) }
+				onChange={ value => updateMetaValue( 'ac_from_name', value ) }
 			/>
 			<TextControl
 				label={ __( 'Email', 'newspack-newsletters' ) }
@@ -155,85 +130,32 @@ const ProviderSidebarComponent = ( {
 				value={ senderEmail }
 				type="email"
 				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'cm_from_email', value ) }
+				onChange={ value => updateMetaValue( 'ac_from_email', value ) }
 			/>
 			<hr />
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<BaseControl className="newspack-newsletters__send-mode">
-				<RadioControl
-					className={
-						'newspack-newsletters__sendmode-radiocontrol' + ( inFlight ? ' inFlight' : '' )
-					}
-					label={ __( 'Send Mode', 'newspack-newsletters' ) }
-					selected={ sendMode }
-					onChange={ value => updateMetaValue( 'cm_send_mode', value ) }
+			<BaseControl className="newspack-newsletters__list-select">
+				<SelectControl
+					className="newspack-newsletters__campaign-monitor-send-to"
+					label={ __( 'To', 'newspack-newsletters' ) }
+					value={ listId }
 					options={ [
-						{ label: __( 'List', 'newspack-newsletters' ), value: 'list' },
-						{ label: __( 'Segment', 'newspack-newsletters' ), value: 'segment' },
+						{
+							value: '',
+							label: __( '-- Select a subscriber list --', 'newspack-newsletters' ),
+						},
+						...lists.map( ( { id, name } ) => ( {
+							value: id,
+							label: name,
+						} ) ),
 					] }
-					disabled={ inFlight }
+					onChange={ value => updateMetaValue( 'ac_list_id', value ) }
+					disabled={ isLoading }
 				/>
-				{ inFlight && <Spinner /> }
+				{ isLoading && <Spinner /> }
 			</BaseControl>
-			{ 'list' === sendMode && lists && (
-				<BaseControl className="newspack-newsletters__list-select">
-					<SelectControl
-						className="newspack-newsletters__campaign-monitor-send-to"
-						label={ __( 'To', 'newspack-newsletters' ) }
-						value={ listId }
-						options={ [
-							{
-								value: '',
-								label: __( '-- Select a subscriber list --', 'newspack-newsletters' ),
-							},
-							...lists.map( ( { ListID, Name } ) => ( {
-								value: ListID,
-								label: Name,
-							} ) ),
-						] }
-						onChange={ value => updateMetaValue( 'cm_list_id', value ) }
-						disabled={ isLoading }
-					/>
-					{ isLoading && <Spinner /> }
-				</BaseControl>
-			) }
-			{ 'segment' === sendMode && segments && (
-				<BaseControl className="newspack-newsletters__list-select">
-					<SelectControl
-						label={ __( 'To', 'newspack-newsletters' ) }
-						className="newspack-newsletters__to-selectcontrol"
-						value={ segmentId }
-						options={ [
-							{
-								value: '',
-								label: __( '-- Select a subscriber segment --', 'newspack-newsletters' ),
-							},
-							...segments.map( ( { SegmentID, Title } ) => ( {
-								value: SegmentID,
-								label: Title,
-							} ) ),
-						] }
-						onChange={ value => updateMetaValue( 'cm_segment_id', value ) }
-						disabled={ isLoading }
-					/>
-					{ isLoading && <Spinner /> }
-				</BaseControl>
-			) }
-			{ sendMode && (
-				<p>
-					{ 'segment' === sendMode ? (
-						<ExternalLink href={ 'https://help.campaignmonitor.com/list-segmentation' }>
-							{ __( 'Manage segments on Campaign Monitor', 'newspack-newsletters' ) }
-						</ExternalLink>
-					) : (
-						<ExternalLink href={ 'https://help.campaignmonitor.com/create-a-subscriber-list' }>
-							{ __( 'Manage lists on Campaign Monitor', 'newspack-newsletters' ) }
-						</ExternalLink>
-					) }
-				</p>
-			) }
 		</div>
 	);
 };
@@ -243,12 +165,10 @@ const mapStateToProps = select => {
 	const meta = getEditedPostAttribute( 'meta' );
 
 	return {
-		cmData: {
-			listId: meta.cm_list_id,
-			segmentId: meta.cm_segment_id,
-			sendMode: meta.cm_send_mode,
-			senderName: meta.cm_from_name,
-			senderEmail: meta.cm_from_email,
+		acData: {
+			listId: meta.ac_list_id,
+			senderName: meta.ac_from_name,
+			senderEmail: meta.ac_from_email,
 		},
 		status: getCurrentPostAttribute( 'status' ),
 	};
@@ -259,7 +179,9 @@ const mapDispatchToProps = dispatch => {
 	const { createErrorNotice } = dispatch( 'core/notices' );
 
 	return {
-		updateMetaValue: ( key, value ) => editPost( { meta: { [ key ]: value } } ),
+		updateMetaValue: ( key, value ) => {
+			return editPost( { meta: { [ key ]: value } } );
+		},
 		createErrorNotice,
 	};
 };
