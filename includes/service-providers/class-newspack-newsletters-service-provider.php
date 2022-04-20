@@ -95,6 +95,15 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			return;
 		}
 
+		// Prevent status change if newsletter has been sent.
+		if (
+			'publish' === $old_status &&
+			'publish' !== $new_status &&
+			get_post_meta( $post_id, '_newspack_newsletters_sent', true )
+		) {
+			wp_die( esc_html( __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) ) );
+		}
+
 		// Send if changing from any status to publish.
 		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
 			$result = $this->send_newsletter( $post );
@@ -103,15 +112,6 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 				set_transient( $transient, $result->get_error_message(), 45 );
 				wp_die( esc_html( $result->get_error_message() ) );
 			}
-		}
-
-		// Prevent status change if newsletter has been sent.
-		if (
-			'publish' === $old_status &&
-			'publish' !== $new_status &&
-			get_post_meta( $post_id, '_newspack_newsletters_sent', true )
-		) {
-			wp_die( esc_html( __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) ) );
 		}
 	}
 
