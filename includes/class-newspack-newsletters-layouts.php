@@ -183,8 +183,8 @@ final class Newspack_Newsletters_Layouts {
 				$date_block,
 				$date_block_right,
 				$date_block_center,
-				$bg_color,
-				$text_color,
+				'#ffffff' === $bg_color ? '#fafafa' : $bg_color,
+				'#ffffff' === $bg_color ? '#000000' : $text_color,
 			],
 			array_values( $extra )
 		);
