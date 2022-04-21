@@ -149,7 +149,7 @@ final class Newspack_Newsletters_Layouts {
 		$logo_block_center = '<!-- wp:site-logo {"align":"center","width":192,"newsletterVisibility":"email"} /-->';
 
 		$date_block = sprintf(
-			'<!-- {"newsletterVisibility":"email"} wp:paragraph --><p>%s</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>%s</p><!-- /wp:paragraph -->',
 			$date
 		);
 
