@@ -84,6 +84,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		$post       = get_post( $post_id );
 		$old_status = $post->post_status;
 		$new_status = $data['post_status'];
+		$sent       = Newspack_Newsletters::is_newsletter_sent( $post_id );
 
 		// Only run if it's a newsletter post.
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
@@ -101,11 +102,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 
 		// Prevent status change if newsletter has been sent.
-		if (
-			'publish' === $old_status &&
-			'publish' !== $new_status &&
-			get_post_meta( $post_id, '_newspack_newsletters_sent', true )
-		) {
+		if ( 'publish' === $old_status && 'publish' !== $new_status && $sent ) {
 			wp_die( esc_html( __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) ) );
 		}
 
@@ -130,8 +127,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public function send_newsletter( $post ) {
 		$post_id = $post->ID;
 
-		// Newsletter was already sent.
-		if ( get_post_meta( $post_id, '_newspack_newsletters_sent', true ) ) {
+		if ( Newspack_Newsletters::is_newsletter_sent( $post_id ) ) {
 			return;
 		}
 
@@ -142,7 +138,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 
 		if ( true === $result ) {
-			update_post_meta( $post_id, '_newspack_newsletters_sent', time() );
+			Newspack_Newsletters::set_newsletter_sent( $post_id );
 		}
 
 		return $result;

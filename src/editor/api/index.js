@@ -20,6 +20,7 @@ const POST_META_WHITELIST = [
 	'font_header',
 	'background_color',
 	'custom_css',
+	'newsletter_sent',
 ];
 
 /**
