@@ -95,6 +95,11 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			return;
 		}
 
+		// Don't run if moving to/from trash.
+		if ( 'trash' === $new_status || 'trash' === $old_status ) {
+			return;
+		}
+
 		// Prevent status change if newsletter has been sent.
 		if (
 			'publish' === $old_status &&
