@@ -318,11 +318,21 @@
 					border-color: var( --wp-admin-theme-color );
 				}
 
+				&:hover {
+					.block-editor-block-preview__container {
+						margin-top: -25%;
+					}
+				}
+
 				.block-editor-block-preview__container,
 				.block-editor-block-preview__content-iframe {
 					cursor: pointer;
 					position: absolute;
 					top: 0;
+				}
+
+				.block-editor-block-preview__container {
+					transition: margin 1s ease-in-out;
 				}
 			}
 
