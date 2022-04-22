@@ -43,6 +43,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			add_action( 'rest_api_init', [ $this->controller, 'register_routes' ] );
 		}
 		add_action( 'pre_post_update', [ $this, 'pre_post_update' ], 10, 2 );
+		add_filter( 'wp_insert_post_data', [ $this, 'insert_post_data' ], 10, 2 );
 	}
 
 	/**
@@ -81,27 +82,28 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @param array $data    Unslashed post data.
 	 */
 	public function pre_post_update( $post_id, $data ) {
-		$post       = get_post( $post_id );
-		$old_status = $post->post_status;
-		$new_status = $data['post_status'];
-		$sent       = Newspack_Newsletters::is_newsletter_sent( $post_id );
 
 		// Only run if it's a newsletter post.
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
 			return;
 		}
-
+		
 		// Only run if this is the active provider.
 		if ( Newspack_Newsletters::service_provider() !== $this->service ) {
 			return;
 		}
+
+		$post       = get_post( $post_id );
+		$old_status = $post->post_status;
+		$new_status = $data['post_status'];
+		$sent       = Newspack_Newsletters::is_newsletter_sent( $post_id );
 
 		// Don't run if moving to/from trash.
 		if ( 'trash' === $new_status || 'trash' === $old_status ) {
 			return;
 		}
 
-		// Prevent status change if newsletter has been sent.
+		// Prevent status change from 'publish' if newsletter has been sent.
 		if ( 'publish' === $old_status && 'publish' !== $new_status && $sent ) {
 			wp_die( esc_html( __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) ) );
 		}
@@ -115,6 +117,41 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 				wp_die( esc_html( $result->get_error_message() ) );
 			}
 		}
+	}
+
+	/**
+	 * Handle newsletter post status changes.
+	 *
+	 * @param array $data An array of slashed, sanitized, and processed post data.
+	 * @param array $postarr An array of sanitized (and slashed) but otherwise unmodified post data.
+	 *
+	 * @return array An array of slashed, sanitized, and processed post data.
+	 */
+	public function insert_post_data( $data, $postarr ) {
+		$post_id = $postarr['ID'];
+
+		// Only run if it's a newsletter post.
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+			return $data;
+		}
+
+		// Only run if this is the active provider.
+		if ( Newspack_Newsletters::service_provider() !== $this->service ) {
+			return $data;
+		}
+
+		$post       = get_post( $post_id );
+		$old_status = $post->post_status;
+		$new_status = $data['post_status'];
+		$sent       = Newspack_Newsletters::is_newsletter_sent( $post_id );
+
+		// If the newsletter is being restored from trash and has been sent,
+		// set the status to 'publish'.
+		if ( 'trash' === $old_status && 'trash' !== $new_status && $sent ) {
+			$data['post_status'] = 'publish';
+		}
+
+		return $data;
 	}
 
 	/**
