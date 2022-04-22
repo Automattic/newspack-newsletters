@@ -87,7 +87,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
 			return;
 		}
-		
+
 		// Only run if this is the active provider.
 		if ( Newspack_Newsletters::service_provider() !== $this->service ) {
 			return;
