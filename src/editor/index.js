@@ -1,10 +1,15 @@
 /**
  * WordPress dependencies
  */
-import { unregisterBlockStyle, unregisterBlockVariation } from '@wordpress/blocks';
+import {
+	registerBlockStyle,
+	unregisterBlockStyle,
+	unregisterBlockVariation,
+} from '@wordpress/blocks';
 import domReady from '@wordpress/dom-ready';
 import { addFilter, removeFilter } from '@wordpress/hooks';
 import { registerPlugin } from '@wordpress/plugins';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -55,6 +60,26 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 		settings.supports = { ...settings.supports, align: [ 'full' ] };
 	}
 	return settings;
+} );
+
+registerBlockStyle( 'core/social-links', {
+	name: 'circle-black',
+	label: __( 'Circle Black', 'newspack-newsletters' ),
+} );
+
+registerBlockStyle( 'core/social-links', {
+	name: 'circle-white',
+	label: __( 'Circle White', 'newspack-newsletters' ),
+} );
+
+registerBlockStyle( 'core/social-links', {
+	name: 'filled-black',
+	label: __( 'Black', 'newspack-newsletters' ),
+} );
+
+registerBlockStyle( 'core/social-links', {
+	name: 'filled-white',
+	label: __( 'White', 'newspack-newsletters' ),
 } );
 
 registerPlugin( 'newspack-newsletters-plugin', {

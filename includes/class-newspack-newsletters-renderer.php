@@ -561,30 +561,101 @@ final class Newspack_Newsletters_Renderer {
 			 * Social links block.
 			 */
 			case 'core/social-links':
+				$social_icons_color_facebook  = '#1977f2';
+				$social_icons_color_instagram = '#f00075';
+				$social_icons_color_linkedin  = '#0577b5';
+				$social_icons_color_tiktok    = '#000000';
+				$social_icons_color_tumblr    = '#011835';
+				$social_icons_color_twitter   = '#21a1f3';
+				$social_icons_color_wordpress = '#3499cd';
+				$social_icons_color_youtube   = '#ff0100';
+				$social_icons_icon_facebook   = 'white-facebook.png';
+				$social_icons_icon_instagram  = 'white-instagram.png';
+				$social_icons_icon_linkedin   = 'white-linkedin.png';
+				$social_icons_icon_tiktok     = 'white-tiktok.png';
+				$social_icons_icon_tumblr     = 'white-tumblr.png';
+				$social_icons_icon_twitter    = 'white-twitter.png';
+				$social_icons_icon_wordpress  = 'white-wordpress.png';
+				$social_icons_icon_youtube    = 'white-youtube.png';
+
+				if ( isset( $attrs['className'] ) ) {
+					if ( 'is-style-filled-black' == $attrs['className'] || 'is-style-circle-white' == $attrs['className'] ) {
+						$social_icons_icon_facebook  = 'black-facebook.png';
+						$social_icons_icon_instagram = 'black-instagram.png';
+						$social_icons_icon_linkedin  = 'black-linkedin.png';
+						$social_icons_icon_tiktok    = 'black-tiktok.png';
+						$social_icons_icon_tumblr    = 'black-tumblr.png';
+						$social_icons_icon_twitter   = 'black-twitter.png';
+						$social_icons_icon_wordpress = 'black-wordpress.png';
+						$social_icons_icon_youtube   = 'black-youtube.png';
+					}
+
+					if ( 'is-style-filled-black' == $attrs['className'] || 'is-style-filled-white' == $attrs['className'] ) {
+						$social_icons_color_facebook  = 'transparent';
+						$social_icons_color_instagram = 'transparent';
+						$social_icons_color_linkedin  = 'transparent';
+						$social_icons_color_tiktok    = 'transparent';
+						$social_icons_color_tumblr    = 'transparent';
+						$social_icons_color_twitter   = 'transparent';
+						$social_icons_color_wordpress = 'transparent';
+						$social_icons_color_youtube   = 'transparent';
+					}
+
+					if ( 'is-style-circle-black' == $attrs['className'] ) {
+						$social_icons_color_facebook  = '#000000';
+						$social_icons_color_instagram = '#000000';
+						$social_icons_color_linkedin  = '#000000';
+						$social_icons_color_tiktok    = '#000000';
+						$social_icons_color_tumblr    = '#000000';
+						$social_icons_color_twitter   = '#000000';
+						$social_icons_color_wordpress = '#000000';
+						$social_icons_color_youtube   = '#000000';
+					}
+
+					if ( 'is-style-circle-white' == $attrs['className'] ) {
+						$social_icons_color_facebook  = '#ffffff';
+						$social_icons_color_instagram = '#ffffff';
+						$social_icons_color_linkedin  = '#ffffff';
+						$social_icons_color_tiktok    = '#ffffff';
+						$social_icons_color_tumblr    = '#ffffff';
+						$social_icons_color_twitter   = '#ffffff';
+						$social_icons_color_wordpress = '#ffffff';
+						$social_icons_color_youtube   = '#ffffff';
+					}
+				}
+
 				$social_icons = array(
-					'wordpress' => array(
-						'color' => '#3499cd',
-						'icon'  => 'wordpress.png',
-					),
 					'facebook'  => array(
-						'color' => '#1977f2',
-						'icon'  => 'facebook.png',
-					),
-					'twitter'   => array(
-						'color' => '#21a1f3',
-						'icon'  => 'twitter.png',
+						'color' => $social_icons_color_facebook,
+						'icon'  => $social_icons_icon_facebook,
 					),
 					'instagram' => array(
-						'color' => '#f00075',
-						'icon'  => 'instagram.png',
+						'color' => $social_icons_color_instagram,
+						'icon'  => $social_icons_icon_instagram,
 					),
 					'linkedin'  => array(
-						'color' => '#0577b5',
-						'icon'  => 'linkedin.png',
+						'color' => $social_icons_color_linkedin,
+						'icon'  => $social_icons_icon_linkedin,
+					),
+					'tiktok'    => array(
+						'color' => $social_icons_color_tiktok,
+						'icon'  => $social_icons_icon_tiktok,
+					),
+					'tumblr'    => array(
+						'color' => $social_icons_color_tumblr,
+						'icon'  => $social_icons_icon_tumblr,
+					),
+					'twitter'   => array(
+						'color' => $social_icons_color_twitter,
+						'icon'  => $social_icons_icon_twitter,
+					),
+					'wordpress' => array(
+						'color' => $social_icons_color_wordpress,
+						'icon'  => $social_icons_icon_wordpress,
 					),
 					'youtube'   => array(
-						'color' => '#ff0100',
-						'icon'  => 'youtube.png',
+						'color' => $social_icons_color_youtube,
+						'icon'  => $social_icons_icon_youtube,
 					),
 				);
 
