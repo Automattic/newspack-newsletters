@@ -329,6 +329,10 @@
 			&__item-label {
 				padding: 4px 2px;
 				text-align: center;
+
+				&:empty {
+					display: none;
+				}
 			}
 
 			&--empty {
