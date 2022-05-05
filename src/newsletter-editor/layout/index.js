@@ -108,6 +108,7 @@ export default compose( [
 			// The shape of this data is different than the API response for CPT
 			setUsedLayout( {
 				...updatedLayout,
+				ID: updatedLayout.id,
 				post_content: updatedLayout.content.raw,
 				post_title: updatedLayout.title.raw,
 				post_type: LAYOUT_CPT_SLUG,
