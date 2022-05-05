@@ -488,7 +488,7 @@ final class Newspack_Newsletters {
 				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s ago', 'newspack-newsletters' ), $sent_from_now );
 			} else {
 				/* translators:  Absolute time stamp of sent/published date */
-				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), ( new DateTime( $sent ) )->format( get_option( 'date_format' ) ) );
+				$post_states[ $post_status->name ] = sprintf( __( 'Sent %1$s', 'newspack-newsletters' ), ( new DateTime( '@' . $sent ) )->format( get_option( 'date_format' ) ) );
 			}
 		}
 
