@@ -352,7 +352,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 
 		$cm_campaigns = new CS_REST_Campaigns( null, [ 'api_key' => $api_key ] );
 		$args         = $this->format_campaign_args( $post_id );
-		$send_date    = 'future' === $new_status ? $post->post_date : 'Immediately';
 
 		// Set the current user's email address as the email to receive sent confirmation.
 		$current_user       = wp_get_current_user();
@@ -364,7 +363,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		if ( ! $new_campaign->was_successful() ) {
 			return new WP_Error(
 				'newspack_newsletter_error',
-				__( 'Failed sending Campaign Monitor campaign: ', 'newspack-newsletters' ) . $new_campaign->response->Message
+				__( 'Failed creating Campaign Monitor campaign: ', 'newspack-newsletters' ) . $new_campaign->response->Message
 			);
 		}
 
@@ -374,7 +373,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			$campaign_to_send->send(
 				[
 					'ConfirmationEmail' => $confirmation_email,
-					'SendDate'          => $send_date,
+					'SendDate'          => 'Immediately',
 				]
 			);
 		} catch ( Exception $e ) {
