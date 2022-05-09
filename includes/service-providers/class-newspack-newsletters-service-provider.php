@@ -105,7 +105,8 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 
 		// Prevent status change from 'publish' if newsletter has been sent.
 		if ( 'publish' === $old_status && 'publish' !== $new_status && $sent ) {
-			wp_die( esc_html( __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) ) );
+			$error = new WP_Error( 'newspack_newsletters_error', __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) );
+			wp_die( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		// Send if changing from any status to publish.
@@ -114,7 +115,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			if ( is_wp_error( $result ) ) {
 				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
 				set_transient( $transient, $result->get_error_message(), 45 );
-				wp_die( esc_html( $result->get_error_message() ) );
+				wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 		}
 	}
