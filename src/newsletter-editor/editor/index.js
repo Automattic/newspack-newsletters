@@ -36,7 +36,7 @@ const Editor = compose( [
 		const { getSettings } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		const status = getCurrentPostAttribute( 'status' );
-		const sentDate = getCurrentPostAttribute( 'date' );
+		const sent = getCurrentPostAttribute( 'meta' ).newsletter_sent;
 		const settings = getSettings();
 		const experimentalSettingsColors = get( settings, [
 			'__experimentalFeatures',
@@ -59,7 +59,7 @@ const Editor = compose( [
 				{}
 			),
 			status,
-			sentDate,
+			sent,
 			isPublic: meta.is_public,
 			html: meta[ window.newspack_email_editor_data.email_html_meta ],
 		};
@@ -129,8 +129,9 @@ const Editor = compose( [
 	}, [ props.isReady ] );
 
 	useEffect( () => {
-		if ( 'publish' === props.status && ! props.isPublishingOrSavingPost ) {
-			const dateTime = props.sentDate ? new Date( props.sentDate ).toLocaleString() : '';
+		if ( props.sent ) {
+			const sentDate = 0 < props.sent ? new Date( props.sent * 1000 ) : null;
+			const dateTime = sentDate ? sentDate.toLocaleString() : '';
 
 			// Lock autosaving after a newsletter is sent.
 			props.lockPostAutosaving();
@@ -140,7 +141,7 @@ const Editor = compose( [
 				isDismissible: false,
 			} );
 		}
-	}, [ props.status ] );
+	}, [ props.sent ] );
 
 	// Notify if email content is larger than ~100kb.
 	useEffect( () => {

@@ -8,8 +8,7 @@ import mjml2html from 'mjml-browser';
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { dispatch as globalDispatch, select as globalSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { select as globalSelect } from '@wordpress/data';
 import { NEWSLETTER_CPT_SLUG } from '../../utils/consts';
 
 const POST_META_WHITELIST = [
@@ -20,6 +19,7 @@ const POST_META_WHITELIST = [
 	'font_header',
 	'background_color',
 	'custom_css',
+	'newsletter_sent',
 ];
 
 /**
@@ -76,13 +76,7 @@ apiFetch.use( async ( options, next ) => {
 					path: `/wp/v2/${ postType }/${ data.id }`,
 				} );
 			} )
-			.then( () => next( options ) ) // Proceed with the post update request.
-			.catch( error => {
-				// In case of an error, display notice and proceed with the post update request.
-				const { createErrorNotice } = globalDispatch( 'core/notices' );
-				createErrorNotice( error.message || __( 'Something went wrong', 'newspack-newsletters' ) );
-				return next( options );
-			} );
+			.then( () => next( options ) ); // Proceed with the post update request.
 	}
 	return next( options );
 } );
