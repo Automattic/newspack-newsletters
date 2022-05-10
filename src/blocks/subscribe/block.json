@@ -1,0 +1,15 @@
+{
+	"name": "newspack-newsletters/subscribe",
+	"category": "widgets",
+	"attributes": {
+		"placeholder": {
+			"type": "string",
+			"default": ""
+		},
+		"button_label": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": [ "align" ]
+}
