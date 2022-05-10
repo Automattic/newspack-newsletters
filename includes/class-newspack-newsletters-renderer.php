@@ -119,6 +119,51 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
+	 * Get the social icon and color based on the block attributes.
+	 *
+	 * @param string $service_name The service name.
+	 * @param array  $block_attrs  Block attributes.
+	 *
+	 * @return array[
+	 *   'icon'  => string,
+	 *   'color' => string,
+	 * ] The icon and color or empty array if service not found.
+	 */
+	private static function get_social_icon( $service_name, $block_attrs ) {
+		$services_colors = [
+			'facebook'  => '#1977f2',
+			'instagram' => '#f00075',
+			'linkedin'  => '#0577b5',
+			'tiktok'    => '#000000',
+			'tumblr'    => '#011835',
+			'twitter'   => '#21a1f3',
+			'wordpress' => '#3499cd',
+			'youtube'   => '#ff0100',
+		];
+		if ( ! isset( $services_colors[ $service_name ] ) ) {
+			return [];
+		}
+		$icon  = 'white';
+		$color = $services_colors[ $service_name ];
+		if ( isset( $block_attrs['className'] ) ) {
+			if ( 'is-style-filled-black' === $block_attrs['className'] || 'is-style-circle-white' === $block_attrs['className'] ) {
+				$icon = 'black';
+			}
+			if ( 'is-style-filled-black' === $block_attrs['className'] || 'is-style-filled-white' === $block_attrs['className'] ) {
+				$color = 'transparent';
+			} elseif ( 'is-style-circle-black' === $block_attrs['className'] ) {
+				$color = '#000';
+			} elseif ( 'is-style-circle-white' === $block_attrs['className'] ) {
+				$color = '#fff';
+			}
+		}
+		return [
+			'icon'  => sprintf( '%s-%s.png', $icon, $service_name ),
+			'color' => $color,
+		];
+	}
+
+	/**
 	 * Get colors based on block attributes.
 	 *
 	 * @param array $block_attrs Block attributes.
@@ -561,104 +606,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Social links block.
 			 */
 			case 'core/social-links':
-				$social_icons_color_facebook  = '#1977f2';
-				$social_icons_color_instagram = '#f00075';
-				$social_icons_color_linkedin  = '#0577b5';
-				$social_icons_color_tiktok    = '#000000';
-				$social_icons_color_tumblr    = '#011835';
-				$social_icons_color_twitter   = '#21a1f3';
-				$social_icons_color_wordpress = '#3499cd';
-				$social_icons_color_youtube   = '#ff0100';
-				$social_icons_icon_facebook   = 'white-facebook.png';
-				$social_icons_icon_instagram  = 'white-instagram.png';
-				$social_icons_icon_linkedin   = 'white-linkedin.png';
-				$social_icons_icon_tiktok     = 'white-tiktok.png';
-				$social_icons_icon_tumblr     = 'white-tumblr.png';
-				$social_icons_icon_twitter    = 'white-twitter.png';
-				$social_icons_icon_wordpress  = 'white-wordpress.png';
-				$social_icons_icon_youtube    = 'white-youtube.png';
-
-				if ( isset( $attrs['className'] ) ) {
-					if ( 'is-style-filled-black' == $attrs['className'] || 'is-style-circle-white' == $attrs['className'] ) {
-						$social_icons_icon_facebook  = 'black-facebook.png';
-						$social_icons_icon_instagram = 'black-instagram.png';
-						$social_icons_icon_linkedin  = 'black-linkedin.png';
-						$social_icons_icon_tiktok    = 'black-tiktok.png';
-						$social_icons_icon_tumblr    = 'black-tumblr.png';
-						$social_icons_icon_twitter   = 'black-twitter.png';
-						$social_icons_icon_wordpress = 'black-wordpress.png';
-						$social_icons_icon_youtube   = 'black-youtube.png';
-					}
-
-					if ( 'is-style-filled-black' == $attrs['className'] || 'is-style-filled-white' == $attrs['className'] ) {
-						$social_icons_color_facebook  = 'transparent';
-						$social_icons_color_instagram = 'transparent';
-						$social_icons_color_linkedin  = 'transparent';
-						$social_icons_color_tiktok    = 'transparent';
-						$social_icons_color_tumblr    = 'transparent';
-						$social_icons_color_twitter   = 'transparent';
-						$social_icons_color_wordpress = 'transparent';
-						$social_icons_color_youtube   = 'transparent';
-					}
-
-					if ( 'is-style-circle-black' == $attrs['className'] ) {
-						$social_icons_color_facebook  = '#000000';
-						$social_icons_color_instagram = '#000000';
-						$social_icons_color_linkedin  = '#000000';
-						$social_icons_color_tiktok    = '#000000';
-						$social_icons_color_tumblr    = '#000000';
-						$social_icons_color_twitter   = '#000000';
-						$social_icons_color_wordpress = '#000000';
-						$social_icons_color_youtube   = '#000000';
-					}
-
-					if ( 'is-style-circle-white' == $attrs['className'] ) {
-						$social_icons_color_facebook  = '#ffffff';
-						$social_icons_color_instagram = '#ffffff';
-						$social_icons_color_linkedin  = '#ffffff';
-						$social_icons_color_tiktok    = '#ffffff';
-						$social_icons_color_tumblr    = '#ffffff';
-						$social_icons_color_twitter   = '#ffffff';
-						$social_icons_color_wordpress = '#ffffff';
-						$social_icons_color_youtube   = '#ffffff';
-					}
-				}
-
-				$social_icons = array(
-					'facebook'  => array(
-						'color' => $social_icons_color_facebook,
-						'icon'  => $social_icons_icon_facebook,
-					),
-					'instagram' => array(
-						'color' => $social_icons_color_instagram,
-						'icon'  => $social_icons_icon_instagram,
-					),
-					'linkedin'  => array(
-						'color' => $social_icons_color_linkedin,
-						'icon'  => $social_icons_icon_linkedin,
-					),
-					'tiktok'    => array(
-						'color' => $social_icons_color_tiktok,
-						'icon'  => $social_icons_icon_tiktok,
-					),
-					'tumblr'    => array(
-						'color' => $social_icons_color_tumblr,
-						'icon'  => $social_icons_icon_tumblr,
-					),
-					'twitter'   => array(
-						'color' => $social_icons_color_twitter,
-						'icon'  => $social_icons_icon_twitter,
-					),
-					'wordpress' => array(
-						'color' => $social_icons_color_wordpress,
-						'icon'  => $social_icons_icon_wordpress,
-					),
-					'youtube'   => array(
-						'color' => $social_icons_color_youtube,
-						'icon'  => $social_icons_icon_youtube,
-					),
-				);
-
 				$social_wrapper_attrs = array(
 					'icon-size'     => '24px',
 					'mode'          => 'horizontal',
@@ -677,12 +624,13 @@ final class Newspack_Newsletters_Renderer {
 						$url = $link_block['attrs']['url'];
 						// Handle older version of the block, where innner blocks we named `core/social-link-<service>`.
 						$service_name = isset( $link_block['attrs']['service'] ) ? $link_block['attrs']['service'] : str_replace( 'core/social-link-', '', $link_block['blockName'] );
+						$social_icon  = self::get_social_icon( $service_name, $attrs );
 
-						if ( isset( $social_icons[ $service_name ] ) ) {
+						if ( ! empty( $social_icon ) ) {
 							$img_attrs = array(
 								'href'             => $url,
-								'src'              => plugins_url( 'assets/' . $social_icons[ $service_name ]['icon'], dirname( __FILE__ ) ),
-								'background-color' => $social_icons[ $service_name ]['color'],
+								'src'              => plugins_url( 'assets/' . $social_icon['icon'], dirname( __FILE__ ) ),
+								'background-color' => $social_icon['color'],
 								'css-class'        => 'social-element',
 							);
 
