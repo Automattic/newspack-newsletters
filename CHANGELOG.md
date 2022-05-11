@@ -1,3 +1,15 @@
+# [1.46.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.46.0-alpha.1...v1.46.0-alpha.2) (2022-05-11)
+
+
+### Bug Fixes
+
+* api middleware execution logic ([#817](https://github.com/Automattic/newspack-newsletters/issues/817)) ([089c319](https://github.com/Automattic/newspack-newsletters/commit/089c31981ccf20fceca50826ce005cd7bc9ece4f))
+
+
+### Features
+
+* update social links and add new block styles ([#806](https://github.com/Automattic/newspack-newsletters/issues/806)) ([59ff8b6](https://github.com/Automattic/newspack-newsletters/commit/59ff8b6cbba1c12a87beaddf8cbc9bdc6d6c814d))
+
 # [1.46.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.45.0...v1.46.0-alpha.1) (2022-05-05)
 
 
