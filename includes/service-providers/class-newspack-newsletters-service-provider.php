@@ -146,9 +146,27 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		$new_status = $data['post_status'];
 		$sent       = Newspack_Newsletters::is_newsletter_sent( $post_id );
 
-		// If the newsletter is being restored from trash and has been sent,
-		// set the status to 'publish'.
+		/**
+		 * If the newsletter is being restored from trash and has been sent,
+		 * set the status to 'publish'.
+		 */
 		if ( 'trash' === $old_status && 'trash' !== $new_status && $sent ) {
+			$data['post_status'] = 'publish';
+		}
+
+		/**
+		 * If the newsletter is being published but it's not set to be public,
+		 * force its status to 'private'.
+		 */
+		if ( 'publish' === $new_status && ! get_post_meta( $post->ID, 'is_public', true ) ) {
+			$data['post_status'] = 'private';
+		}
+
+		/**
+		 * If the newsletter has been sent and is marked as public, set the status
+		 * to 'publish'.
+		 */
+		if ( $sent && get_post_meta( $post->ID, 'is_public', true ) ) {
 			$data['post_status'] = 'publish';
 		}
 
