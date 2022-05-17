@@ -72,10 +72,6 @@ final class Newspack_Newsletters {
 		add_action( 'default_title', [ __CLASS__, 'default_title' ], 10, 2 );
 		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
-		add_action( 'pre_get_posts', [ __CLASS__, 'maybe_display_public_archive_posts' ] );
-		add_filter( 'posts_join', [ __CLASS__, 'filter_non_public_newsletters_join' ], 11, 2 );
-		add_filter( 'posts_where', [ __CLASS__, 'filter_non_public_newsletters_where' ], 11, 2 );
-		add_action( 'template_redirect', [ __CLASS__, 'maybe_display_public_post' ] );
 		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
 		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
@@ -514,114 +510,6 @@ final class Newspack_Newsletters {
 		}
 
 		return $maybe_apply_filter && ! is_admin() && $query->is_main_query() && ( $query->is_archive() || $query->is_search() || $query->is_home() );
-	}
-
-	/**
-	 * Allow newsletter posts to appear when regular posts are queried.
-	 *
-	 * @param array $query The WP query object.
-	 */
-	public static function maybe_display_public_archive_posts( $query ) {
-		if ( ! self::should_apply_filter_to_query( $query ) ) {
-			return;
-		}
-
-		$post_types = $query->get( 'post_type' );
-
-		// An 'any' post_types arg means any post type, so no need to add anything.
-		if ( 'any' === $post_types ) {
-			return;
-		}
-
-		// If post_types arg is empty or 'post', we need to convert it to an array so we can add the newsletter post type.
-		if ( empty( $post_types ) || 'post' === $post_types ) {
-			$post_types = [ 'post' ];
-		}
-
-		// If post_types arg is an array and doesn't already contain the newsletter post type, add it.
-		$contains_regular_posts = is_array( $post_types ) && in_array( 'post', $post_types ) && ! in_array( self::NEWSPACK_NEWSLETTERS_CPT, $post_types );
-
-		if ( $contains_regular_posts ) {
-			$post_types[] = self::NEWSPACK_NEWSLETTERS_CPT;
-			$query->set( 'post_type', $post_types ); // phpcs:ignore
-		}
-	}
-
-	/**
-	 * Custom join to be used in conjunction with filter_non_public_newsletters_where
-	 * so that only public newsletters which are published are displayed in queries.
-	 *
-	 * @param string   $join Join SQL statement.
-	 * @param WP_Query $query WP Query object.
-	 *
-	 * @return string
-	 */
-	public static function filter_non_public_newsletters_join( $join, $query ) {
-		global $wpdb;
-
-		if ( self::should_apply_filter_to_query( $query, true ) ) {
-			$join .= "LEFT JOIN {$wpdb->postmeta} AS cj1 ON (
-                        {$wpdb->posts}.ID = cj1.post_id
-                        AND {$wpdb->posts}.post_type = 'newspack_nl_cpt'
-                        AND cj1.meta_key = 'is_public'
-                        AND cj1.meta_value = '1' ) ";
-			$join .= "LEFT JOIN {$wpdb->postmeta} AS cj2
-                        ON ( {$wpdb->posts}.ID = cj2.post_id AND cj2.meta_key = 'is_public' ) ";
-		}
-
-		return $join;
-	}
-
-	/**
-	 * Custom where to be used in conjunction with filter_non_public_newsletters_join
-	 * so that only public newsletters which are published are displayed in queries.
-	 *
-	 * @param string   $where SQL constraints making up the WHERE statement.
-	 * @param WP_Query $query WP Query object.
-	 *
-	 * @return string
-	 */
-	public static function filter_non_public_newsletters_where( $where, $query ) {
-		global $wpdb;
-
-		if ( self::should_apply_filter_to_query( $query, true ) ) {
-			$where .= 'AND ( ( cj1.post_id IS NOT NULL ) OR ( cj2.post_id IS NULL ) )';
-		}
-
-		return $where;
-	}
-
-	/**
-	 * Decide whether this newsletter should be publicly viewable as a post.
-	 * Triggers a 404 if the current page is a single Newsletter and not marked public.
-	 */
-	public static function maybe_display_public_post() {
-		if (
-			current_user_can( 'edit_others_posts' ) ||
-			! is_singular( self::NEWSPACK_NEWSLETTERS_CPT )
-		) {
-			return;
-		}
-
-		$is_public = get_post_meta( get_the_ID(), 'is_public', true );
-
-		// If not marked public, make it a 404 to non-logged-in users.
-		if ( empty( $is_public ) ) {
-			global $wp_query;
-
-			// Replace document title with 'Page not found'.
-			add_filter(
-				'wpseo_title',
-				function( $title ) {
-					return str_replace( get_the_title(), __( 'Page not found', 'newspack-newsletters' ), $title );
-				}
-			);
-
-			status_header( 404 );
-			nocache_headers();
-			include get_query_template( '404' );
-			die();
-		}
 	}
 
 	/**
