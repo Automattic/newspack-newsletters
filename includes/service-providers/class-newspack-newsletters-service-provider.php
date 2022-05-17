@@ -36,6 +36,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	protected static $instances = [];
 
 	/**
+	 * Post statuses controlled by the service provider.
+	 *
+	 * @var string[]
+	 */
+	protected static $controlled_statuses = [ 'publish', 'private' ];
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -104,13 +111,18 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 
 		// Prevent status change from 'publish' if newsletter has been sent.
-		if ( 'publish' === $old_status && 'publish' !== $new_status && $sent ) {
+		if ( ! in_array( $new_status, self::$controlled_statuses, true ) && $old_status !== $new_status && $sent ) {
 			$error = new WP_Error( 'newspack_newsletters_error', __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) );
 			wp_die( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
-		// Send if changing from any status to publish.
-		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
+		// Send if changing from any status to controlled statuses - 'publish' or 'private'.
+		if (
+			! $sent &&
+			$old_status !== $new_status &&
+			in_array( $new_status, self::$controlled_statuses, true ) && 
+			! in_array( $old_status, self::$controlled_statuses, true )
+		) {
 			$result = $this->send_newsletter( $post );
 			if ( is_wp_error( $result ) ) {
 				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
@@ -148,27 +160,22 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		$is_public  = (bool) get_post_meta( $post->ID, 'is_public', true );
 
 		/**
+		 * Control 'publish' and 'private' statuses using the 'is_public' meta.
+		 */
+		$target_status = 'private';
+		if ( $is_public ) {
+			$target_status = 'publish';
+		}
+		if ( in_array( $new_status, self::$controlled_statuses, true ) ) {
+			$data['post_status'] = $target_status;
+		}
+
+		/**
 		 * If the newsletter is being restored from trash and has been sent,
-		 * set the status to 'publish'.
+		 * use controlled status.
 		 */
 		if ( 'trash' === $old_status && 'trash' !== $new_status && $sent ) {
-			$data['post_status'] = 'publish';
-		}
-
-		/**
-		 * If the newsletter is being published but it's not set to be public,
-		 * force its status to 'private'.
-		 */
-		if ( 'publish' === $new_status && ! $is_public ) {
-			$data['post_status'] = 'private';
-		}
-
-		/**
-		 * If the newsletter has been sent and is marked as public, set the status
-		 * to 'publish'.
-		 */
-		if ( $sent && $is_public ) {
-			$data['post_status'] = 'publish';
+			$data['post_status'] = $target_status;
 		}
 
 		return $data;
