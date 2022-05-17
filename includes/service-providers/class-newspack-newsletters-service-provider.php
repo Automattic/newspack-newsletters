@@ -110,7 +110,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			return;
 		}
 
-		// Prevent status change from 'publish' if newsletter has been sent.
+		// Prevent status change from the controlled status if newsletter has been sent.
 		if ( ! in_array( $new_status, self::$controlled_statuses, true ) && $old_status !== $new_status && $sent ) {
 			$error = new WP_Error( 'newspack_newsletters_error', __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ) );
 			wp_die( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
