@@ -171,6 +171,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 
 		/**
+		 * Ensure sent newsletter will not be set to draft.
+		 */
+		if ( $sent && 'draft' === $new_status ) {
+			$data['post_status'] = $target_status;
+		}
+
+		/**
 		 * If the newsletter is being restored from trash and has been sent,
 		 * use controlled status.
 		 */
