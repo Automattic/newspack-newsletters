@@ -28,6 +28,7 @@ export default compose( [
 	withSelect( ( select, { forceIsDirty } ) => {
 		const {
 			getCurrentPost,
+			getCurrentPostAttribute,
 			getEditedPostAttribute,
 			getEditedPostVisibility,
 			isEditedPostPublishable,
@@ -45,6 +46,7 @@ export default compose( [
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
 			meta: getEditedPostAttribute( 'meta' ),
+			sent: getCurrentPostAttribute( 'meta' ).newsletter_sent,
 			isPublished: isCurrentPostPublished(),
 			postDate: getEditedPostAttribute( 'date' ),
 		};
@@ -61,6 +63,7 @@ export default compose( [
 		hasPublishAction,
 		visibility,
 		meta,
+		sent,
 		isPublished,
 		postDate,
 	} ) => {
@@ -176,7 +179,7 @@ export default compose( [
 		const [ modalVisible, setModalVisible ] = useState( false );
 
 		// For sent newsletters, display the generic button text.
-		if ( isPublished ) {
+		if ( isPublished || sent ) {
 			return (
 				<Fragment>
 					<Button
