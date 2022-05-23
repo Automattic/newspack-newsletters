@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { ToggleControl } from '@wordpress/components';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
@@ -15,8 +15,15 @@ const PublicSettingsComponent = props => {
 		<Fragment>
 			<ToggleControl
 				className="newspack-newsletters__public-toggle-control"
-				label={ __( 'Make newsletter page public?', 'newspack-newsletters' ) }
-				help={ __( 'Make this newsletter viewable as a public page once it’s been sent.' ) }
+				label={ __( 'Public newsletter', 'newspack-newsletters' ) }
+				help={ sprintf(
+					// Translators: help message for is_public control.
+					__(
+						'Newsletter post will%s be publicly viewable after being sent.',
+						'newspack-newsletters'
+					),
+					! is_public ? __( ' not', 'newspack-newsletters' ) : ''
+				) }
 				checked={ is_public }
 				onChange={ value => updateIsPublic( value ) }
 			/>
