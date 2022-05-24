@@ -83,9 +83,7 @@ const LayoutPicker = ( {
 							<Button
 								key={ i }
 								disabled={ isFetchingLayouts }
-								className={ {
-									'is-active': ! isFetchingLayouts && i === activeTabIndex,
-								} }
+								variant={ ! isFetchingLayouts && i === activeTabIndex ? 'primary' : 'tertiary' }
 								onClick={ () => setActiveTabIndex( i ) }
 							>
 								{ title }
