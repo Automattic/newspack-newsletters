@@ -97,7 +97,7 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string $service_provider Service provider slug.
 	 */
-	private static function set_service_provider( $service_provider ) {
+	public static function set_service_provider( $service_provider ) {
 		update_option( 'newspack_newsletters_service_provider', $service_provider );
 		switch ( $service_provider ) {
 			case 'mailchimp':
