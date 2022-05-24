@@ -1205,13 +1205,8 @@ final class Newspack_Newsletters {
 			);
 			// Force a page refresh on the front-end.
 			if ( ! is_admin() ) {
-				add_action(
-					'wp_footer',
-					function() {
-						header( 'Refresh:0' );
-						exit;
-					}
-				);
+				header( 'Refresh:0' );
+				exit;
 			}
 		}
 	}
