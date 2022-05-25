@@ -117,8 +117,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			wp_die( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
-		// Send if changing from any status to publish.
-		if ( ! $sent && 'publish' === $new_status && 'publish' !== $old_status ) {
+		// Send if changing from any status to controlled statuses - 'publish' or 'private'.
+		if (
+			! $sent &&
+			$old_status !== $new_status &&
+			in_array( $new_status, self::$controlled_statuses, true ) && 
+			! in_array( $old_status, self::$controlled_statuses, true )
+		) {
 			$result = $this->send_newsletter( $post );
 			if ( is_wp_error( $result ) ) {
 				$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
