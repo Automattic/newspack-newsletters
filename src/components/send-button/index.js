@@ -133,7 +133,7 @@ export default compose( [
 				? __( 'Mark as sent and publish', 'newspack-newsletters' )
 				: __( 'Mark as sent', 'newspack-newsletters' );
 		} else {
-			modalSubmitLabel = __( 'Send', 'newspack-newsletters' );
+			modalSubmitLabel = label;
 		}
 
 		useEffect( () => {

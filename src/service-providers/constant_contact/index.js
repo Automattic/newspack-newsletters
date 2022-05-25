@@ -51,7 +51,7 @@ const renderPreSendInfo = newsletterData => {
 
 	return (
 		<p>
-			{ __( "You're about to send a newsletter to:", 'newspack-newsletters' ) }
+			{ __( "You're sending a newsletter to:", 'newspack-newsletters' ) }
 			<br />
 			<strong>{ campaignLists.map( list => list.name ).join( ', ' ) }</strong>
 			<br />

@@ -1300,6 +1300,10 @@ final class Newspack_Newsletters {
 	 * @return false|int False if not sent, or timestamp of when it was sent.
 	 */
 	public static function is_newsletter_sent( $post_id ) {
+		$scheduling_error = get_transient( sprintf( 'newspack_newsletters_scheduling_error_%s', $post_id ) );
+		if ( $scheduling_error ) {
+			return false;
+		}
 		$sent = get_post_meta( $post_id, 'newsletter_sent', true );
 		if ( 0 < $sent ) {
 			return $sent;
