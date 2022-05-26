@@ -138,6 +138,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
 		if ( 'publish' === $new_status && 'future' === $old_status ) {
+			update_post_meta( $post->ID, 'sending_scheduled', true );
 			$result              = $this->send_newsletter( $post );
 			$error_transient_key = sprintf( 'newspack_newsletters_scheduling_error_%s', $post->ID );
 			if ( is_wp_error( $result ) ) {
@@ -152,6 +153,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			} else {
 				delete_transient( $error_transient_key );
 			}
+			delete_post_meta( $post->ID, 'sending_scheduled' );
 		}
 	}
 
