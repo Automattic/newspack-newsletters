@@ -1,3 +1,17 @@
+## [1.46.2](https://github.com/Automattic/newspack-newsletters/compare/v1.46.1...v1.46.2) (2022-05-26)
+
+
+### Bug Fixes
+
+* ensure scheduled newsletter is sent through a lock meta ([#836](https://github.com/Automattic/newspack-newsletters/issues/836)) ([9f1a2ae](https://github.com/Automattic/newspack-newsletters/commit/9f1a2aedfc4ae3d7571bb228e1551e47fc31c275))
+
+## [1.46.2-hotfix.1](https://github.com/Automattic/newspack-newsletters/compare/v1.46.1...v1.46.2-hotfix.1) (2022-05-26)
+
+
+### Bug Fixes
+
+* ensure scheduled newsletter is sent through a lock meta ([e5bcd89](https://github.com/Automattic/newspack-newsletters/commit/e5bcd89e3204f8df690709ad2b0c2b8563e983e8))
+
 ## [1.46.1](https://github.com/Automattic/newspack-newsletters/compare/v1.46.0...v1.46.1) (2022-05-25)
 
 
