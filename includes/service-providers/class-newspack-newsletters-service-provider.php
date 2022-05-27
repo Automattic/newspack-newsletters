@@ -137,6 +137,16 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @param WP_Post $post       Post object.
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
+		// Only run if it's a newsletter post.
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post->ID ) ) {
+			return;
+		}
+
+		// Only run if this is the active provider.
+		if ( Newspack_Newsletters::service_provider() !== $this->service ) {
+			return;
+		}
+
 		if ( 'publish' === $new_status && 'future' === $old_status ) {
 			update_post_meta( $post->ID, 'sending_scheduled', true );
 			$result              = $this->send_newsletter( $post );
