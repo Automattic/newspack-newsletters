@@ -150,9 +150,6 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @param WP_Post $post       Post object.
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
-<<<<<<< fix/scheduled-controlled-statuses
-		if ( in_array( $new_status, self::$controlled_statuses, true ) && 'future' === $old_status ) {
-=======
 		// Only run if it's a newsletter post.
 		if ( ! Newspack_Newsletters::validate_newsletter_id( $post->ID ) ) {
 			return;
@@ -163,8 +160,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			return;
 		}
 
-		if ( 'publish' === $new_status && 'future' === $old_status ) {
->>>>>>> master
+		if ( in_array( $new_status, self::$controlled_statuses, true ) && 'future' === $old_status ) {
 			update_post_meta( $post->ID, 'sending_scheduled', true );
 			$result              = $this->send_newsletter( $post );
 			$error_transient_key = sprintf( 'newspack_newsletters_scheduling_error_%s', $post->ID );
