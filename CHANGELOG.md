@@ -1,3 +1,17 @@
+## [1.46.4](https://github.com/Automattic/newspack-newsletters/compare/v1.46.3...v1.46.4) (2022-05-30)
+
+
+### Bug Fixes
+
+* allow CoAuthors Plus assets on editor ([#826](https://github.com/Automattic/newspack-newsletters/issues/826)) ([df0fde7](https://github.com/Automattic/newspack-newsletters/commit/df0fde7d1dba5f9d11e7353eadddc2e0e9b89d7a))
+
+## [1.46.4-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.46.3...v1.46.4-alpha.1) (2022-05-27)
+
+
+### Bug Fixes
+
+* allow CoAuthors Plus assets on editor ([#826](https://github.com/Automattic/newspack-newsletters/issues/826)) ([df0fde7](https://github.com/Automattic/newspack-newsletters/commit/df0fde7d1dba5f9d11e7353eadddc2e0e9b89d7a))
+
 ## [1.46.3](https://github.com/Automattic/newspack-newsletters/compare/v1.46.2...v1.46.3) (2022-05-27)
 
 
