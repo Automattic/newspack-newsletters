@@ -51,6 +51,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 		add_action( 'pre_post_update', [ $this, 'pre_post_update' ], 10, 2 );
 		add_action( 'transition_post_status', [ $this, 'transition_post_status' ], 10, 3 );
+		add_action( 'wp_insert_post', [ $this, 'insert_post' ], 10, 3 );
 		add_filter( 'wp_insert_post_data', [ $this, 'insert_post_data' ], 10, 2 );
 	}
 
@@ -159,7 +160,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			return;
 		}
 
-		if ( 'publish' === $new_status && 'future' === $old_status ) {
+		if ( in_array( $new_status, self::$controlled_statuses, true ) && 'future' === $old_status ) {
 			update_post_meta( $post->ID, 'sending_scheduled', true );
 			$result              = $this->send_newsletter( $post );
 			$error_transient_key = sprintf( 'newspack_newsletters_scheduling_error_%s', $post->ID );
@@ -176,6 +177,49 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 				delete_transient( $error_transient_key );
 			}
 			delete_post_meta( $post->ID, 'sending_scheduled' );
+		}
+	}
+
+	/**
+	 * Fix a newsletter controlled status after update.
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 * @param bool    $update  Whether this is an existing post being updated.
+	 */
+	public function insert_post( $post_id, $post, $update ) {
+		// Only run if it's a newsletter post.
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+			return;
+		}
+		
+		// Only run if this is the active provider.
+		if ( Newspack_Newsletters::service_provider() !== $this->service ) {
+			return;
+		}
+
+		// Only run if the post already exists.
+		if ( ! $update ) {
+			return;
+		}
+
+		$is_public = (bool) get_post_meta( $post_id, 'is_public', true );
+
+		/**
+		 * Control 'publish' and 'private' statuses using the 'is_public' meta.
+		 */
+		$target_status = 'private';
+		if ( $is_public ) {
+			$target_status = 'publish';
+		}
+
+		if ( in_array( $post->post_status, self::$controlled_statuses, true ) && $target_status !== $post->post_status ) {
+			wp_update_post(
+				[
+					'ID'          => $post_id,
+					'post_status' => $target_status,
+				] 
+			);
 		}
 	}
 
