@@ -31,13 +31,14 @@ const getFetchDataConfig = ( { postId } ) => ( {
  * @return {any} A React component
  */
 const renderPreSendInfo = ( newsletterData = {} ) => {
-	const { list_id, lists } = newsletterData;
+	const { list_id, segment_id, lists, segments } = newsletterData;
 
 	if ( ! lists?.length ) {
 		return <Spinner />;
 	}
 
 	const list = lists.find( thisList => list_id === thisList.id );
+	const segment = segments?.find( thisSegment => segment_id === thisSegment.id );
 
 	if ( ! list ) return null;
 
@@ -47,8 +48,14 @@ const renderPreSendInfo = ( newsletterData = {} ) => {
 				{ __(
 					'You’re about to send an ActiveCampaign newsletter to the following list:',
 					'newspack-newsletters'
-				) }
+				) }{ ' ' }
 				<strong>{ list.name }</strong>
+				{ segment && (
+					<>
+						{ __( ', segmented to: ', 'newspack-newsletters' ) }
+						<strong> { segment.name }</strong>
+					</>
+				) }
 			</p>
 			<p>{ __( 'Are you sure you want to proceed?', 'newspack-newsletters' ) }</p>
 		</Fragment>

@@ -27,7 +27,41 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Perform API request.
+	 * Perform v3 API request.
+	 *
+	 * @param string $resource Resource path.
+	 * @param string $method   HTTP method.
+	 * @param array  $options  Request options.
+	 *
+	 * @return object|WP_Error The API response body or WP_Error.
+	 */
+	private function api_v3_request( $resource, $method = 'GET', $options = [] ) {
+		if ( ! $this->has_api_credentials() ) {
+			return new \WP_Error(
+				'newspack_newsletters_active_campaign_api_credentials_missing',
+				__( 'Active Campaign API credentials are missing.', 'newspack-newsletters' )
+			);
+		}
+		$credentials = $this->api_credentials();
+		$api_path    = '/api/3/';
+		$url         = rtrim( $credentials['url'], '/' ) . $api_path . $resource;
+		$args        = [
+			'method'  => $method,
+			'headers' => [
+				'Content-Type' => 'application/json',
+				'Accept'       => 'application/json',
+				'api-token'    => $credentials['key'],
+			],
+		];
+		$response    = wp_safe_remote_request( $url, $args + $options );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		return json_decode( $response['body'], true );
+	}
+
+	/**
+	 * Perform v1 API request.
 	 *
 	 * @param string $action  API Action.
 	 * @param string $method  HTTP method.
@@ -35,7 +69,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @return array|WP_Error The API response body or WP_Error.
 	 */
-	private function api_request( $action, $method = 'GET', $options = [] ) {
+	private function api_v1_request( $action, $method = 'GET', $options = [] ) {
 		if ( ! $this->has_api_credentials() ) {
 			return new \WP_Error(
 				'newspack_newsletters_active_campaign_api_credentials_missing',
@@ -135,7 +169,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error List os existing lists or error.
 	 */
 	public function get_lists() {
-		$lists = $this->api_request( 'list_list', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
+		$lists = $this->api_v1_request( 'list_list', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
 		}
@@ -144,6 +178,19 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		unset( $lists['result_message'] );
 		unset( $lists['result_output'] );
 		return array_values( $lists );
+	}
+
+	/**
+	 * Get segments.
+	 *
+	 * @return array|WP_Error List os existing segments or error.
+	 */
+	public function get_segments() {
+		$result = $this->api_v3_request( 'segments' );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		return $result['segments'];
 	}
 
 	/**
@@ -179,17 +226,24 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
 		}
+		$segments = $this->get_segments();
+		if ( is_wp_error( $segments ) ) {
+			return $segments;
+		}
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
 		$from_name   = get_post_meta( $post_id, 'ac_from_name', true );
 		$from_email  = get_post_meta( $post_id, 'ac_from_email', true );
 		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
+		$segment_id  = get_post_meta( $post_id, 'ac_segment_id', true );
 		$result      = [
 			'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API. 
 			'campaign_id' => $campaign_id,
 			'from_name'   => $from_name,
 			'from_email'  => $from_email,
 			'list_id'     => $list_id,
+			'segment_id'  => $segment_id,
 			'lists'       => $lists,
+			'segments'    => $segments,
 		];
 		if ( ! $campaign_id ) {
 			$sync_result = $this->sync( get_post( $post_id ) );
@@ -232,7 +286,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
 		}
-		$test_result = $this->api_request(
+		$test_result = $this->api_v1_request(
 			'campaign_send',
 			'GET',
 			[
@@ -272,11 +326,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
-		$campaign_id = get_post_meta( $post->ID, 'ac_campaign_id', true );
-		$from_name   = get_post_meta( $post->ID, 'ac_from_name', true );
-		$from_email  = get_post_meta( $post->ID, 'ac_from_email', true );
-		$list_id     = get_post_meta( $post->ID, 'ac_list_id', true );
-		$is_public   = get_post_meta( $post->ID, 'is_public', true );
+		$from_name  = get_post_meta( $post->ID, 'ac_from_name', true );
+		$from_email = get_post_meta( $post->ID, 'ac_from_email', true );
+		$list_id    = get_post_meta( $post->ID, 'ac_list_id', true );
+		$is_public  = get_post_meta( $post->ID, 'is_public', true );
+		$message_id = get_post_meta( $post->ID, 'ac_message_id', true );
 
 		$renderer = new Newspack_Newsletters_Renderer();
 		$content  = $renderer->retrieve_email_html( $post );
@@ -286,15 +340,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$campaign_data  = [];
 		$campaign       = null;
 
-		if ( $campaign_id ) {
-			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
-			if ( is_wp_error( $campaigns ) ) {
-				return $campaigns;
+		if ( $message_id ) {
+			$message = $this->api_v1_request( 'message_view', 'GET', [ 'query' => [ 'id' => $message_id ] ] );
+			if ( is_wp_error( $message ) ) {
+				return $message;
 			}
-
 			$message_action      = 'message_edit';
-			$campaign            = $campaigns[0];
-			$message             = $campaign['messages'][0];
 			$message_data['id']  = $message['id'];
 			$campaign_data['id'] = $campaign['id'];
 
@@ -325,8 +376,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					__( 'Please select a list.', 'newspack-newsletters' )
 				);
 			}
-			// Hold campaign ID to avoid duplicate campaign creation.
-			update_post_meta( $post->ID, 'ac_campaign_id', 'hold' );
 		}
 
 		$message_data = wp_parse_args(
@@ -342,43 +391,19 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$message_data
 		);
 
-		$message = $this->api_request( $message_action, 'POST', [ 'body' => $message_data ] );
+		$message = $this->api_v1_request( $message_action, 'POST', [ 'body' => $message_data ] );
 		if ( is_wp_error( $message ) ) {
 			return $message;
 		}
 
-		/**
-		 * Create campaign if it doesn't exist yet.
-		 */
-		if ( ! $campaign_id ) {
-			$campaign_data = wp_parse_args(
-				[
-					'type'                      => 'single',
-					'status'                    => 0, // 0 = Draft; 1 = Scheduled.
-					'public'                    => (int) $is_public,
-					'name'                      => $this->get_campaign_name( $post ),
-					'fromname'                  => $from_name,
-					'fromemail'                 => $from_email,
-					'p[' . $list_id . ']'       => 1,
-					'm[' . $message['id'] . ']' => 1,
-				],
-				$campaign_data
-			);
-			$campaign      = $this->api_request( 'campaign_create', 'POST', [ 'body' => $campaign_data ] );
-			if ( is_wp_error( $campaign ) ) {
-				// Remove hold in case of creation error.
-				delete_post_meta( $post->ID, 'ac_campaign_id' );
-				return $campaign;
-			}
-			update_post_meta( $post->ID, 'ac_campaign_id', $campaign['id'] );
-		}
+		update_post_meta( $post->ID, 'ac_message_id', $message['id'] );
+
 		return [
-			'campaign'    => true, // Satisfy JS API.
-			'campaign_id' => $campaign['id'],
-			'message_id'  => $message['id'],
-			'list_id'     => $list_id,
-			'from_email'  => $from_email,
-			'from_name'   => $from_name,
+			'campaign'   => true, // Satisfy JS API.
+			'message_id' => $message['id'],
+			'list_id'    => $list_id,
+			'from_email' => $from_email,
+			'from_name'  => $from_name,
 		];
 	}
 
@@ -413,40 +438,65 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$error = null;
 
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
+		$segment_id  = get_post_meta( $post->ID, 'ac_segment_id', true );
 
 		$sync_result = $this->sync( $post );
 		if ( is_wp_error( $sync_result ) ) {
-			$error = $sync_result;
-		} else {
-			$campaign_id = $sync_result['campaign_id'];
+			return $sync_result;
 		}
 
-		if ( ! $error ) {
-			$campaigns = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
-			if ( is_wp_error( $campaigns ) ) {
-				$error = $campaigns;
-			} else {
-				$campaign           = $campaigns[0];
-				$iso_reference_date = new DateTime( $campaign['sdate_iso'] );
-				$schedule_date      = ( new DateTime() )->setTimezone( $iso_reference_date->getTimezone() );
-				$send_result        = $this->api_request(
-					'campaign_status',
-					'GET',
-					[
-						'query' => [
-							'id'     => $campaign_id,
-							'status' => 1,
-							'sdate'  => $schedule_date->format( 'Y-m-d H:i:s' ),
-						],
-					] 
-				);
-				if ( is_wp_error( $send_result ) ) {
-					$error = $send_result;
-				}
+		/**
+		 * Create campaign if it doesn't exist yet.
+		 */
+		if ( ! $campaign_id ) {
+			$campaign_data = wp_parse_args(
+				[
+					'type'                               => 'single',
+					'status'                             => 0, // 0 = Draft; 1 = Scheduled.
+					'public'                             => (int) $is_public,
+					'name'                               => $this->get_campaign_name( $post ),
+					'fromname'                           => $sync_result['from_name'],
+					'fromemail'                          => $sync_result['from_email'],
+					'segmentid'                          => $segment_id ?? 0, // 0 = No segment. 
+					'p[' . $sync_result['list_id'] . ']' => 1,
+					'm[' . $sync_result['message_id'] . ']' => 1,
+				],
+				$campaign_data
+			);
+			$campaign      = $this->api_v1_request( 'campaign_create', 'POST', [ 'body' => $campaign_data ] );
+			if ( is_wp_error( $campaign ) ) {
+				// Remove hold in case of creation error.
+				delete_post_meta( $post->ID, 'ac_campaign_id' );
+				return $campaign;
 			}
+			update_post_meta( $post->ID, 'ac_campaign_id', $campaign['id'] );
+			$campaign_id = $campaign['id'];
 		}
 
-		return $error ?? true;
+		$campaigns = $this->api_v1_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+		if ( is_wp_error( $campaigns ) ) {
+			return $campaigns;
+		}
+
+		$campaign           = $campaigns[0];
+		$iso_reference_date = new DateTime( $campaign['sdate_iso'] );
+		$schedule_date      = ( new DateTime() )->setTimezone( $iso_reference_date->getTimezone() );
+		$send_result        = $this->api_v1_request(
+			'campaign_status',
+			'GET',
+			[
+				'query' => [
+					'id'     => $campaign_id,
+					'status' => 1,
+					'sdate'  => $schedule_date->format( 'Y-m-d H:i:s' ),
+				],
+			] 
+		);
+		if ( is_wp_error( $send_result ) ) {
+			return $send_result;
+		}
+
+		return true;
 	}
 
 	/**
@@ -467,12 +517,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'1', // Scheduled.
 			'6', // Disabled.
 		];
-		$campaigns          = $this->api_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+		$campaigns          = $this->api_v1_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
 		if ( is_wp_error( $campaigns ) ) {
 			return;
 		}
 		if ( in_array( $campaigns[0]['status'], $deletable_statuses ) ) {
-			$this->api_request( 'campaign_delete', 'GET', [ 'query' => [ 'id' => $campaign_id ] ] );
+			$this->api_v1_request( 'campaign_delete', 'GET', [ 'query' => [ 'id' => $campaign_id ] ] );
 		}
 	}
 
@@ -486,7 +536,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 */
 	public function add_contact( $contact, $list_id ) {
 		$name_fragments = explode( ' ', $contact['name'], 2 );
-		return $this->api_request(
+		return $this->api_v1_request(
 			'contact_add',
 			'POST',
 			[
