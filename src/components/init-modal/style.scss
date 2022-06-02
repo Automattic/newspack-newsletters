@@ -66,20 +66,17 @@
 	&__content {
 		background: white;
 		height: calc( 100% - 36px );
-		margin: -24px;
+		margin: -24px -32px;
+		width: calc( 100% + 64px );
 
-		@media only screen and ( min-width: 600px ) {
+		@media only screen and ( min-width: 783px ) {
 			display: grid;
 			gap: 0;
-			grid-template-columns: 200px 1fr;
+			grid-template-columns: 280px 1fr;
 			grid-template-rows: 1fr;
-		}
+			margin: -24px;
+			width: 100%;
 
-		@media only screen and ( min-width: 783px ) {
-			grid-template-columns: 320px 1fr;
-		}
-
-		@media only screen and ( min-width: 783px ) {
 			// Fullscreen mode
 			.is-fullscreen-mode & {
 				bottom: 0;
@@ -93,13 +90,13 @@
 		}
 
 		&__sidebar {
+			background: $gray-100;
 			border-bottom: 1px solid $gray-300;
-			padding: 24px 24px 0;
+			padding: 24px;
 
 			@media only screen and ( min-width: 600px ) {
 				border-bottom: none;
 				border-right: 1px solid $gray-300;
-				padding-top: 24px;
 			}
 
 			p {
@@ -113,46 +110,8 @@
 			grid-template-columns: repeat( 2, 1fr );
 			padding: 24px 0 0;
 
-			@media only screen and ( min-width: 600px ) {
+			@media only screen and ( min-width: 783px ) {
 				grid-template-columns: 1fr;
-				width: calc( 100% + 24px );
-			}
-
-			.is-active {
-				box-shadow: 0 0 0 1px $gray-300;
-				font-weight: 700;
-				position: relative;
-
-				&:not( :focus )::before {
-					background: white;
-					bottom: -1px;
-					content: '';
-					display: block;
-					height: 1px;
-					left: 0;
-					position: absolute;
-					right: 0;
-
-					@media only screen and ( min-width: 600px ) {
-						bottom: 0;
-						height: auto;
-						left: auto;
-						right: -1px;
-						top: 0;
-						width: 1px;
-					}
-				}
-			}
-
-			.components-button {
-				border-bottom-left-radius: 0;
-				border-bottom-right-radius: 0;
-				min-height: 40px;
-
-				@media only screen and ( min-width: 600px ) {
-					border-bottom-left-radius: 2px;
-					border-top-right-radius: 0;
-				}
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Fragment } from '@wordpress/element';
@@ -150,13 +150,14 @@ const Sidebar = ( {
 			/>
 			<hr />
 			<ToggleControl
-				label={ __( 'Disable ads for this newsletter?', 'newspack-newsletters' ) }
+				label={ __( 'Disable ads for this newsletter', 'newspack-newsletters' ) }
 				className="newspack-newsletters__disable-ads"
 				checked={ disableAds }
 				disabled={ inFlight }
-				help={ __(
-					'If checked, no ads will be inserted into this newsletter’s content.',
-					'newspack-newsletters'
+				help={ sprintf(
+					// Translators: help message for disable ads control.
+					__( 'Ads will%s be inserted into this newsletter’s content.', 'newspack-newsletters' ),
+					disableAds ? __( ' not', 'newspack-newsletters' ) : ''
 				) }
 				onChange={ value => editPost( { meta: { diable_ads: value } } ) }
 			/>
