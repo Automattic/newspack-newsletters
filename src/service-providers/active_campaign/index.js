@@ -52,8 +52,7 @@ const renderPreSendInfo = ( newsletterData = {} ) => {
 				<strong>{ list.name }</strong>
 				{ segment && (
 					<>
-						{ __( ', segmented to: ', 'newspack-newsletters' ) }
-						<strong> { segment.name }</strong>
+						{ __( ', segmented to:', 'newspack-newsletters' ) } <strong>{ segment.name }</strong>
 					</>
 				) }
 			</p>
