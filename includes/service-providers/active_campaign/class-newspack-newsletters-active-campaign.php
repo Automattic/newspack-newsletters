@@ -261,7 +261,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Synchronize post with corresponding ESP campaign.
 	 *
-	 * @param WP_POST $post Post to synchronize.
+	 * @param WP_Post $post Post to synchronize.
 	 *
 	 * @return array|WP_Error Campaign data or error.
 	 */
@@ -270,6 +270,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return new \WP_Error(
 				'newspack_newsletters_active_campaign_api_credentials_missing',
 				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
+			);
+		}
+		if ( empty( $post->post_title ) ) {
+			return new WP_Error(
+				'newspack_newsletter_error',
+				__( 'The newsletter subject cannot be empty.', 'newspack-newsletters' )
 			);
 		}
 		$campaign_id = get_post_meta( $post->ID, 'ac_campaign_id', true );
