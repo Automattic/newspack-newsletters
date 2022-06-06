@@ -581,12 +581,14 @@ final class Newspack_Newsletters_Renderer {
 			 * Separator block.
 			 */
 			case 'core/separator':
-				$is_style_default = isset( $attrs['className'] ) ? 'is-style-default' == $attrs['className'] : true;
-				$divider_attrs    = array(
+				$is_wide       = isset( $block['attrs']['className'] ) && 'is-style-wide' === $block['attrs']['className'];
+				$divider_attrs = array(
 					'padding'      => '0',
 					'border-width' => '1px',
-					'width'        => $is_style_default ? '128px' : '100%',
+					'width'        => $is_wide ? '100%' : '128px',
 				);
+				// Remove colors from section attrs.
+				unset( $section_attrs['background-color'] );
 				if ( $block['attrs']['backgroundColor'] && isset( self::$color_palette[ $block['attrs']['backgroundColor'] ] ) ) {
 					$divider_attrs['border-color'] = self::$color_palette[ $block['attrs']['backgroundColor'] ];
 				}
