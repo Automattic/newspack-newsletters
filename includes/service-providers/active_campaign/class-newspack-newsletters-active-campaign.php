@@ -236,7 +236,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
 		$segment_id  = get_post_meta( $post_id, 'ac_segment_id', true );
 		$result      = [
-			'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API. 
+			'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API.
 			'campaign_id' => $campaign_id,
 			'from_name'   => $from_name,
 			'from_email'  => $from_email,
@@ -297,7 +297,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'messageid'  => $sync_result['message_id'],
 					'email'      => implode( ',', $emails ),
 				],
-			] 
+			]
 		);
 		return $test_result;
 	}
@@ -337,17 +337,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$message_action = 'message_add';
 		$message_data   = [];
-		$campaign_data  = [];
-		$campaign       = null;
 
 		if ( $message_id ) {
 			$message = $this->api_v1_request( 'message_view', 'GET', [ 'query' => [ 'id' => $message_id ] ] );
 			if ( is_wp_error( $message ) ) {
 				return $message;
 			}
-			$message_action      = 'message_edit';
-			$message_data['id']  = $message['id'];
-			$campaign_data['id'] = $campaign['id'];
+			$message_action     = 'message_edit';
+			$message_data['id'] = $message['id'];
 
 			// If sender data is not available locally, update from ESP.
 			if ( ! $from_name || ! $from_email ) {
@@ -355,12 +352,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				$from_email = $message['fromemail'];
 				update_post_meta( $post->ID, 'ac_from_name', $from_name );
 				update_post_meta( $post->ID, 'ac_from_email', $from_email );
-			}
-
-			// If list is not available locally, update from ESP.
-			if ( ! $list_id ) {
-				$list_id = $campaign['lists'][0]['id'];
-				update_post_meta( $post->ID, 'ac_list_id', $list_id );
 			}
 		} else {
 			// Validate required meta if campaign and message are not yet created.
@@ -449,20 +440,17 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		 * Create campaign if it doesn't exist yet.
 		 */
 		if ( ! $campaign_id ) {
-			$campaign_data = wp_parse_args(
-				[
-					'type'                               => 'single',
-					'status'                             => 0, // 0 = Draft; 1 = Scheduled.
-					'public'                             => (int) $is_public,
-					'name'                               => $this->get_campaign_name( $post ),
-					'fromname'                           => $sync_result['from_name'],
-					'fromemail'                          => $sync_result['from_email'],
-					'segmentid'                          => $segment_id ?? 0, // 0 = No segment. 
-					'p[' . $sync_result['list_id'] . ']' => 1,
-					'm[' . $sync_result['message_id'] . ']' => 1,
-				],
-				$campaign_data
-			);
+			$campaign_data = [
+				'type'                                  => 'single',
+				'status'                                => 0, // 0 = Draft; 1 = Scheduled.
+				'public'                                => (int) $is_public,
+				'name'                                  => $this->get_campaign_name( $post ),
+				'fromname'                              => $sync_result['from_name'],
+				'fromemail'                             => $sync_result['from_email'],
+				'segmentid'                             => $segment_id ?? 0, // 0 = No segment.
+				'p[' . $sync_result['list_id'] . ']'    => 1,
+				'm[' . $sync_result['message_id'] . ']' => 1,
+			];
 			$campaign      = $this->api_v1_request( 'campaign_create', 'POST', [ 'body' => $campaign_data ] );
 			if ( is_wp_error( $campaign ) ) {
 				// Remove hold in case of creation error.
@@ -490,7 +478,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'status' => 1,
 					'sdate'  => $schedule_date->format( 'Y-m-d H:i:s' ),
 				],
-			] 
+			]
 		);
 		if ( is_wp_error( $send_result ) ) {
 			return $send_result;
