@@ -435,6 +435,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
 		$segment_id  = get_post_meta( $post->ID, 'ac_segment_id', true );
+		$is_public   = get_post_meta( $post->ID, 'is_public', true );
 
 		$sync_result = $this->sync( $post );
 		if ( is_wp_error( $sync_result ) ) {
@@ -452,7 +453,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'name'                                  => $this->get_campaign_name( $post ),
 				'fromname'                              => $sync_result['from_name'],
 				'fromemail'                             => $sync_result['from_email'],
-				'segmentid'                             => $segment_id ?? 0, // 0 = No segment.
+				'segmentid'                             => $is_public ?? 0, // 0 = No segment.
 				'p[' . $sync_result['list_id'] . ']'    => 1,
 				'm[' . $sync_result['message_id'] . ']' => 1,
 			];
