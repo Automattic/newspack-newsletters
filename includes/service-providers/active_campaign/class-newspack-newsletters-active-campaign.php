@@ -20,7 +20,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$this->controller = new Newspack_Newsletters_Active_Campaign_Controller( $this );
 
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
-		add_action( 'transition_post_status', [ $this, 'send' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 
 		parent::__construct( $this );
