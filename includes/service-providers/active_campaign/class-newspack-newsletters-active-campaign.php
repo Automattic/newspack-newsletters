@@ -502,20 +502,25 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return;
 		}
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
-		if ( ! $campaign_id ) {
-			return;
+		$message_id  = get_post_meta( $post_id, 'ac_message_id', true );
+		if ( $campaign_id ) {
+			$campaigns = $this->api_v1_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
+			if ( ! is_wp_error( $campaigns ) ) {
+				$deletable_statuses = [
+					'0', // Draft.
+					'1', // Scheduled.
+					'6', // Disabled.
+				];
+				if ( in_array( $campaigns[0]['status'], $deletable_statuses ) ) {
+					$this->api_v1_request( 'campaign_delete', 'GET', [ 'query' => [ 'id' => $campaign_id ] ] );
+				}
+			}
 		}
-		$deletable_statuses = [
-			'0', // Draft.
-			'1', // Scheduled.
-			'6', // Disabled.
-		];
-		$campaigns          = $this->api_v1_request( 'campaign_list', 'GET', [ 'query' => [ 'ids' => $campaign_id ] ] );
-		if ( is_wp_error( $campaigns ) ) {
-			return;
-		}
-		if ( in_array( $campaigns[0]['status'], $deletable_statuses ) ) {
-			$this->api_v1_request( 'campaign_delete', 'GET', [ 'query' => [ 'id' => $campaign_id ] ] );
+		if ( $message_id ) {
+			$message = $this->api_v1_request( 'message_view', 'GET', [ 'query' => [ 'id' => $message_id ] ] );
+			if ( ! is_wp_error( $message ) ) {
+				$this->api_v1_request( 'campaign_delete', 'GET', [ 'query' => [ 'id' => $message_id ] ] );
+			}
 		}
 	}
 
