@@ -1,3 +1,10 @@
+## [1.47.1](https://github.com/Automattic/newspack-newsletters/compare/v1.47.0...v1.47.1) (2022-06-14)
+
+
+### Bug Fixes
+
+* remove reminiscent action hook; handle layouts without titles([#860](https://github.com/Automattic/newspack-newsletters/issues/860)) ([29d777f](https://github.com/Automattic/newspack-newsletters/commit/29d777f78dac0e48ab38b1d71aba3b2f3804313a))
+
 # [1.47.0](https://github.com/Automattic/newspack-newsletters/compare/v1.46.4...v1.47.0) (2022-06-13)
 
 

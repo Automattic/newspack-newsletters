@@ -459,8 +459,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			];
 			$campaign      = $this->api_v1_request( 'campaign_create', 'POST', [ 'body' => $campaign_data ] );
 			if ( is_wp_error( $campaign ) ) {
-				// Remove hold in case of creation error.
-				delete_post_meta( $post->ID, 'ac_campaign_id' );
 				return $campaign;
 			}
 			update_post_meta( $post->ID, 'ac_campaign_id', $campaign['id'] );
