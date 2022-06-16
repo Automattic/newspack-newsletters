@@ -1,3 +1,16 @@
+## [1.47.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.47.1...v1.47.2-alpha.1) (2022-06-16)
+
+
+### Bug Fixes
+
+* separator background rendering ([#853](https://github.com/Automattic/newspack-newsletters/issues/853)) ([a0fb714](https://github.com/Automattic/newspack-newsletters/commit/a0fb714fc033ec0d921c7d8d8ce27c0019bdeb6c))
+* validate newsletter subject ([#852](https://github.com/Automattic/newspack-newsletters/issues/852)) ([da26471](https://github.com/Automattic/newspack-newsletters/commit/da2647176814121933ae9c06631c712210f3df47))
+
+
+### Reverts
+
+* "chore(revert): bump commitlint from 16.2.4 to 17.0.2 ([#856](https://github.com/Automattic/newspack-newsletters/issues/856))" ([755dcb1](https://github.com/Automattic/newspack-newsletters/commit/755dcb1f29de567331fcf0ea14d22a05c8865595))
+
 ## [1.47.1](https://github.com/Automattic/newspack-newsletters/compare/v1.47.0...v1.47.1) (2022-06-14)
 
 
