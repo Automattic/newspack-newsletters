@@ -288,6 +288,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $campaign ) ) {
 			return $campaign;
 		}
+		add_post_meta( $post_id, 'ac_test_campaign', $campaign['id'] );
 		$test_result = $this->api_v1_request(
 			'campaign_send',
 			'GET',
@@ -302,7 +303,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			]
 		);
 		/** Delete the disposable campaign. */
-		$this->delete_campaign( $campaing['id'], true );
+		$delete_res = $this->delete_campaign( $campaing['id'], true );
+		if ( ! is_wp_error( $delete_res ) ) {
+			delete_post_meta( $post_id, 'ac_test_campaign', $campaign['id'] );
+		}
 		return $test_result;
 	}
 
@@ -336,6 +340,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				__( 'The newsletter subject cannot be empty.', 'newspack-newsletters' )
 			);
 		}
+
+		/** Clear existing test campaigns for this post. */
+		$test_campaigns = get_post_meta( $post->ID, 'ac_test_campaign' );
+		if ( ! empty( $test_campaigns ) ) {
+			foreach ( $test_campaigns as $test_campaign_id ) {
+				$delete_res = $this->delete_campaign( $test_campaign_id );
+				if ( ! is_wp_error( $delete_res ) ) {
+					delete_post_meta( $post->ID, 'ac_test_campaign', $test_campaign_id );
+				}
+			}
+		}
+
 		$from_name  = get_post_meta( $post->ID, 'ac_from_name', true );
 		$from_email = get_post_meta( $post->ID, 'ac_from_email', true );
 		$list_id    = get_post_meta( $post->ID, 'ac_list_id', true );
