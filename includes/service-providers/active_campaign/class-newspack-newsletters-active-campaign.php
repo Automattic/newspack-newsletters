@@ -307,7 +307,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! is_wp_error( $delete_res ) ) {
 			delete_post_meta( $post_id, 'ac_test_campaign', $campaign['id'] );
 		}
-		return $test_result;
+		return [
+			'message' => sprintf(
+				// translators: %s are comma-separated emails.
+				__( 'ActiveCampaign test message sent successfully to %s.', 'newspack-newsletters' ),
+				implode( ', ', $emails )
+			),
+			'result'  => $test_result,
+		];
 	}
 
 	/**
