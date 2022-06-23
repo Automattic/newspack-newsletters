@@ -63,7 +63,8 @@ const ProviderSidebarComponent = ( {
 } ) => {
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ lists, setLists ] = useState( [] );
-	const { listId, senderName, senderEmail } = acData;
+	const [ segments, setSegments ] = useState( [] );
+	const { listId, segmentId, senderName, senderEmail } = acData;
 
 	useEffect( () => {
 		fetchListsAndSegments();
@@ -76,6 +77,7 @@ const ProviderSidebarComponent = ( {
 				path: `/newspack-newsletters/v1/active_campaign/${ postId }/retrieve`,
 			} );
 			setLists( response.lists );
+			setSegments( response.segments );
 		} catch ( e ) {
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
@@ -89,6 +91,7 @@ const ProviderSidebarComponent = ( {
 			...newsletterData,
 			lists,
 			list_id: listId,
+			segment_id: segmentId,
 			from_email: senderEmail,
 			from_name: senderName,
 			campaign: true,
@@ -138,13 +141,12 @@ const ProviderSidebarComponent = ( {
 			</strong>
 			<BaseControl className="newspack-newsletters__list-select">
 				<SelectControl
-					className="newspack-newsletters__campaign-monitor-send-to"
 					label={ __( 'To', 'newspack-newsletters' ) }
 					value={ listId }
 					options={ [
 						{
 							value: '',
-							label: __( '-- Select a subscriber list --', 'newspack-newsletters' ),
+							label: __( '-- Select a list --', 'newspack-newsletters' ),
 						},
 						...lists.map( ( { id, name } ) => ( {
 							value: id,
@@ -154,6 +156,24 @@ const ProviderSidebarComponent = ( {
 					onChange={ value => updateMetaValue( 'ac_list_id', value ) }
 					disabled={ isLoading }
 				/>
+				{ listId && (
+					<SelectControl
+						label={ __( 'Segment', 'newspack-newsletters' ) }
+						value={ segmentId }
+						options={ [
+							{
+								value: '',
+								label: __( '-- Select a segment (optional) --', 'newspack-newsletters' ),
+							},
+							...segments.map( ( { id, name } ) => ( {
+								value: id,
+								label: name,
+							} ) ),
+						] }
+						onChange={ value => updateMetaValue( 'ac_segment_id', value ) }
+						disabled={ isLoading }
+					/>
+				) }
 				{ isLoading && <Spinner /> }
 			</BaseControl>
 		</div>
@@ -167,6 +187,7 @@ const mapStateToProps = select => {
 	return {
 		acData: {
 			listId: meta.ac_list_id,
+			segmentId: meta.ac_segment_id,
 			senderName: meta.ac_from_name,
 			senderEmail: meta.ac_from_email,
 		},
