@@ -281,6 +281,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
+		/** Clear existing test campaigns for this post. */
+		$test_campaigns = get_post_meta( $post_id, 'ac_test_campaign' );
+		if ( ! empty( $test_campaigns ) ) {
+			foreach ( $test_campaigns as $test_campaign_id ) {
+				$delete_res = $this->delete_campaign( $test_campaign_id, true );
+				if ( ! is_wp_error( $delete_res ) ) {
+					delete_post_meta( $post_id, 'ac_test_campaign', $test_campaign_id );
+				}
+			}
+		}
 		$post        = get_post( $post_id );
 		$sync_result = $this->sync( $post );
 		if ( is_wp_error( $sync_result ) ) {
@@ -306,11 +316,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				],
 			]
 		);
-		/** Delete the disposable campaign. */
-		$delete_res = $this->delete_campaign( $campaign['id'], true );
-		if ( ! is_wp_error( $delete_res ) ) {
-			delete_post_meta( $post_id, 'ac_test_campaign', $campaign['id'] );
-		}
 		return [
 			'message' => sprintf(
 				// translators: %s are comma-separated emails.
@@ -350,17 +355,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'newspack_newsletter_error',
 				__( 'The newsletter subject cannot be empty.', 'newspack-newsletters' )
 			);
-		}
-
-		/** Clear existing test campaigns for this post. */
-		$test_campaigns = get_post_meta( $post->ID, 'ac_test_campaign' );
-		if ( ! empty( $test_campaigns ) ) {
-			foreach ( $test_campaigns as $test_campaign_id ) {
-				$delete_res = $this->delete_campaign( $test_campaign_id );
-				if ( ! is_wp_error( $delete_res ) ) {
-					delete_post_meta( $post->ID, 'ac_test_campaign', $test_campaign_id );
-				}
-			}
 		}
 
 		$from_name  = get_post_meta( $post->ID, 'ac_from_name', true );
@@ -528,6 +522,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
 		if ( $campaign_id ) {
 			$this->delete_campaign( $campaign_id, true );
+		}
+		/** Clean up existing test campaigns. */
+		$test_campaigns = get_post_meta( $post_id, 'ac_test_campaign' );
+		if ( ! empty( $test_campaigns ) ) {
+			foreach ( $test_campaigns as $test_campaign_id ) {
+				$delete_res = $this->delete_campaign( $test_campaign_id, true );
+				if ( ! is_wp_error( $delete_res ) ) {
+					delete_post_meta( $post_id, 'ac_test_campaign', $test_campaign_id );
+				}
+			}
 		}
 		/** Create new campaign for sending. */
 		$campaign = $this->create_campaign( $post );
