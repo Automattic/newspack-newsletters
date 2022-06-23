@@ -281,7 +281,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				__( 'ActiveCampaign API credentials are missing.', 'newspack-newsletters' )
 			);
 		}
-		$post = get_post( $post_id );
+		$post        = get_post( $post_id );
+		$sync_result = $this->sync( $post );
+		if ( is_wp_error( $sync_result ) ) {
+			return \rest_ensure_response( $sync_result );
+		}
 		/** Create disposable campaign for sending a test. */
 		$campaign_name = sprintf( 'Test for %s', $this->get_campaign_name( $post ) );
 		$campaign      = $this->create_campaign( get_post( $post_id ), $campaign_name );
