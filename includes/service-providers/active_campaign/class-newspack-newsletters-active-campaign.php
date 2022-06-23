@@ -303,7 +303,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			]
 		);
 		/** Delete the disposable campaign. */
-		$delete_res = $this->delete_campaign( $campaing['id'], true );
+		$delete_res = $this->delete_campaign( $campaign['id'], true );
 		if ( ! is_wp_error( $delete_res ) ) {
 			delete_post_meta( $post_id, 'ac_test_campaign', $campaign['id'] );
 		}
