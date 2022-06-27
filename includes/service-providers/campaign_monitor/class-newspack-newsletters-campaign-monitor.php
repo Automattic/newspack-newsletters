@@ -125,9 +125,10 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 
 		return array_map(
 			function ( $item ) {
-				$item->id   = $item->ListID; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				$item->name = $item->Name; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				return $item;
+				return [
+					'id'   => $item->ListID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'name' => $item->Name, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				];
 			},
 			$lists->response
 		);
@@ -352,7 +353,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		if ( ! $client_id ) {
 			return new WP_Error(
 				'newspack_newsletter_error',
-				__( 'No Campaign Monitor Client ID available.', 'newspack-newsletters' ) 
+				__( 'No Campaign Monitor Client ID available.', 'newspack-newsletters' )
 			);
 		}
 

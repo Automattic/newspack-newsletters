@@ -17,6 +17,7 @@ class Newspack_Newsletters_Settings {
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'add_plugin_page' ] );
 		add_action( 'admin_init', [ __CLASS__, 'page_init' ] );
+		add_action( 'admin_head', [ __CLASS__, 'admin_head' ] );
 		add_action( 'update_option_newspack_newsletters_public_posts_slug', [ __CLASS__, 'update_option_newspack_newsletters_public_posts_slug' ], 10, 2 );
 	}
 
@@ -180,17 +181,80 @@ class Newspack_Newsletters_Settings {
 	 * Options page callback
 	 */
 	public static function create_admin_page() {
+		$lists = Newspack_Newsletters_Subscribe::get_lists();
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Newsletters Settings', 'newspack-newsletters' ); ?></h1>
 			<form method="post" action="options.php">
 			<?php
-				settings_fields( 'newspack_newsletters_options_group' );
-				do_settings_sections( 'newspack-newsletters-settings-admin' );
-				submit_button();
+			settings_fields( 'newspack_newsletters_options_group' );
+			do_settings_sections( 'newspack-newsletters-settings-admin' );
+			?>
+			<?php if ( ! is_wp_error( $lists ) && ! empty( $lists ) ) : ?>
+				<h2><?php esc_html_e( 'Lists for subscription', 'newspack-newsletters' ); ?></h2>
+				<p><?php esc_html_e( 'Manage the lists available for subscription.', 'newspack-newsletters' ); ?></p>
+				<table class="newspack-newsletters-lists-table">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Active', 'newspack-newsletters' ); ?></th>
+							<th><?php esc_html_e( 'List name', 'newspack-newsletters' ); ?></th>
+							<th><?php esc_html_e( 'List details', 'newspack-newsletters' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php
+						foreach ( $lists as $list_index => $list ) :
+							if ( ! is_array( $list ) || ! isset( $list['name'] ) ) {
+								continue;
+							}
+							?>
+							<tr>
+								<td>
+									<input type="checkbox" />
+								</td>
+								<td>
+									<strong><?php echo esc_html( $list['name'] ); ?></strong>
+								</td>
+								<td>
+									<input type="text" placeholder="<?php echo esc_attr_e( 'List title', 'newspack-newsletters' ); ?>" name="list[<?php echo esc_attr( $list['id'] ); ?>][title]" />
+									<textarea placeholder="<?php echo esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="list[<?php echo esc_attr( $list['id'] ); ?>][description]"></textarea>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+			<?php
+			submit_button();
 			?>
 			</form>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Print settings page styles.
+	 */
+	public static function admin_head() {
+		?>
+		<style>
+			.newspack-newsletters-lists-table th,
+			.newspack-newsletters-lists-table td {
+				text-align: left;
+				padding-right: 2em;
+				padding-bottom: 1em;
+				vertical-align: top;
+			}
+			.newspack-newsletters-lists-table td input[type=text],
+			.newspack-newsletters-lists-table td textarea {
+				width: 300px;
+				display: block;
+				margin: 0 0 1rem;
+			}
+			.newspack-newsletters-lists-table td textarea {
+				height: 150px;
+			}
+		</style>
 		<?php
 	}
 
