@@ -13,16 +13,16 @@
 		},
 		"label": {
 			"type": "string",
-			"default": "Register"
+			"default": "Subscribe"
+		},
+		"displayDescription": {
+			"type": "boolean",
+			"default": true
 		},
 		"lists": {
 			"type": "array",
 			"default": [],
 			"items": { "type": "string" }
-		},
-		"displayDescription": {
-			"type": "boolean",
-			"default": true
 		}
 	},
 	"supports": {

@@ -95,15 +95,19 @@ export default function SubscribeEdit( {
 							<ul className="newspack-newsletters-lists">
 								{ lists.map( listId => (
 									<li key={ listId }>
-										<div className="list-checkbox">
+										<span className="list-checkbox">
 											<input id={ getListCheckboxId( listId ) } type="checkbox" />
-										</div>
-										<div className="list-details">
+										</span>
+										<span className="list-details">
 											<label htmlFor={ getListCheckboxId( listId ) }>
-												{ listConfig[ listId ]?.title }
+												<span className="list-title">{ listConfig[ listId ]?.title }</span>
+												{ displayDescription && (
+													<span className="list-description">
+														{ listConfig[ listId ]?.description }
+													</span>
+												) }
 											</label>
-											{ displayDescription && <p>{ listConfig[ listId ]?.description }</p> }
-										</div>
+										</span>
 									</li>
 								) ) }
 							</ul>
