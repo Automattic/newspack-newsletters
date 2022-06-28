@@ -31,15 +31,73 @@ class Newspack_Newsletters_Subscribe {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_lists' ],
-				'permission_callback' => '__return_true',
+				'permission_callback' => [ __CLASS__, 'api_permission_callback' ],
+			]
+		);
+		register_rest_route(
+			self::API_NAMESPACE,
+			'/lists',
+			[
+				'methods'             => \WP_REST_Server::EDITABLE,
+				'callback'            => [ __CLASS__, 'api_update_lists' ],
+				'permission_callback' => [ __CLASS__, 'api_permission_callback' ],
+				'args'                => [
+					'lists' => [
+						'type'     => 'array',
+						'required' => true,
+						'items'    => [
+							'type'       => 'object',
+							'properties' => [
+								'id'          => [
+									'type' => 'string',
+								],
+								'active'      => [
+									'type' => 'boolean',
+								],
+								'title'       => [
+									'type' => 'string',
+								],
+								'description' => [
+									'type' => 'string',
+								],
+							],
+						],
+					],
+				],
 			]
 		);
 	}
 
 	/**
+	 * Whether the current user can manage subscription lists.
+	 *
+	 * @return bool Whether the current user can manage subscription lists.
+	 */
+	public static function api_permission_callback() {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
 	 * API method to retrieve lists available for subscription.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
 	 */
 	public static function api_get_lists() {
+		return \rest_ensure_response( self::get_lists() );
+	}
+
+	/**
+	 * API method to retrieve lists available for subscription.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_update_lists( $request ) {
+		$update = self::update_lists( $request['lists'] );
+		if ( is_wp_error( $update ) ) {
+			return \rest_ensure_response( $update );
+		}
 		return \rest_ensure_response( self::get_lists() );
 	}
 
