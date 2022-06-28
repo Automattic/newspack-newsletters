@@ -27,6 +27,15 @@ class Newspack_Newsletters_Subscribe {
 	public static function register_api_endpoints() {
 		register_rest_route(
 			self::API_NAMESPACE,
+			'/lists_config',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_lists_config' ],
+				'permission_callback' => '__return_true',
+			]
+		);
+		register_rest_route(
+			self::API_NAMESPACE,
 			'/lists',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -78,7 +87,16 @@ class Newspack_Newsletters_Subscribe {
 	}
 
 	/**
-	 * API method to retrieve lists available for subscription.
+	 * API method to retrieve the current lists configuration.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_get_lists_config() {
+		return \rest_ensure_response( self::get_lists_config() );
+	}
+
+	/**
+	 * API method to retrieve the current ESP lists.
 	 *
 	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
 	 */
@@ -87,7 +105,7 @@ class Newspack_Newsletters_Subscribe {
 	}
 
 	/**
-	 * API method to retrieve lists available for subscription.
+	 * API method to update the list configuration.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -162,7 +180,13 @@ class Newspack_Newsletters_Subscribe {
 		}
 		$provider_name = $provider->service;
 		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
-		return get_option( $option_name, [] );
+		$config        = get_option( $option_name, [] );
+		return array_filter(
+			$config,
+			function( $item ) {
+				return true === isset( $item['active'] ) && (bool) $item['active'];
+			}
+		);
 	}
 
 	/**

@@ -32,9 +32,9 @@ final class Newspack_Newsletters_Blocks {
 		);
 		wp_enqueue_style(
 			'newspack-newsletters-blocks',
-			plugins_url( '../dist/blocks.js', __FILE__ ),
+			plugins_url( '../dist/blocks.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.js' )
+			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.css' )
 		);
 	}
 }
