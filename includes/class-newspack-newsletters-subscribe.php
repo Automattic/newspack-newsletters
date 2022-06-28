@@ -54,7 +54,35 @@ class Newspack_Newsletters_Subscribe {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set' ) );
 		}
 		try {
-			return $provider->get_lists();
+			$lists  = $provider->get_lists();
+			$config = self::get_lists_config();
+			return array_map(
+				function( $list ) use ( $config ) {
+					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {
+						return;
+					}
+					$item = [
+						'id'          => $list['id'],
+						'name'        => $list['name'],
+						'active'      => false,
+						'title'       => '',
+						'description' => '',
+					];
+					if ( isset( $config[ $list['id'] ] ) ) {
+						$list_config = $config[ $list['id'] ];
+						$item        = array_merge(
+							$item,
+							[
+								'active'      => $list_config['active'],
+								'title'       => $list_config['title'],
+								'description' => $list_config['description'],
+							]
+						);
+					}
+					return $item;
+				},
+				$lists
+			);
 		} catch ( \Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_get_lists',
@@ -62,6 +90,71 @@ class Newspack_Newsletters_Subscribe {
 			);
 		}
 		return [];
+	}
+
+	/**
+	 * Get the lists configuration for the active provider.
+	 *
+	 * @return array[]|WP_Error Associative array with list configuration keyed by list ID or error.
+	 */
+	public static function get_lists_config() {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set' ) );
+		}
+		$provider_name = $provider->service;
+		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
+		return get_option( $option_name, [] );
+	}
+
+	/**
+	 * Update the lists settings.
+	 *
+	 * @param array[] $lists {
+	 *    Array of list configuration.
+	 *
+	 *    @type string  id          The list id.
+	 *    @type boolean active      Whether the list is available for subscription.
+	 *    @type string  title       The list title.
+	 *    @type string  description The list description.
+	 * }
+	 *
+	 * @return boolean|WP_Error Whether the lists were updated or error.
+	 */
+	public static function update_lists( $lists ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set' ) );
+		}
+		$lists = self::sanitize_lists( $lists );
+		if ( empty( $lists ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration' ) );
+		}
+		$provider_name = $provider->service;
+		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
+		return update_option( $option_name, $lists );
+	}
+
+	/**
+	 * Sanitize an array of list configuration.
+	 *
+	 * @param array[] $lists Array of list configuration.
+	 *
+	 * @return array[] Sanitized associative array of list configuration keyed by the list ID.
+	 */
+	public static function sanitize_lists( $lists ) {
+		$sanitized = [];
+		foreach ( $lists as $list ) {
+			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) || empty( $list['title'] ) ) {
+				continue;
+			}
+			$sanitized[ $list['id'] ] = [
+				'active'      => isset( $list['active'] ) ? (bool) $list['active'] : false,
+				'title'       => $list['title'],
+				'description' => isset( $list['description'] ) ? (string) $list['description'] : '',
+			];
+		}
+		return $sanitized;
 	}
 
 	/**
