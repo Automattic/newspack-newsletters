@@ -598,18 +598,20 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 					},
 					$cm_list->get_custom_fields()->response
 				);
-				foreach ( $contact['metadata'] as $key => $value ) {
-					$update_payload['CustomFields'][] = [
-						'Key'   => $key,
-						'Value' => (string) $value,
-					];
-					if ( ! in_array( $key, $custom_fields_keys ) ) {
-						$cm_list->create_custom_field(
-							[
-								'FieldName' => $key,
-								'DataType'  => CS_REST_CUSTOM_FIELD_TYPE_TEXT,
-							]
-						);
+				if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] && ! empty( $contact['metadata'] ) ) ) {
+					foreach ( $contact['metadata'] as $key => $value ) {
+						$update_payload['CustomFields'][] = [
+							'Key'   => $key,
+							'Value' => (string) $value,
+						];
+						if ( ! in_array( $key, $custom_fields_keys ) ) {
+							$cm_list->create_custom_field(
+								[
+									'FieldName' => $key,
+									'DataType'  => CS_REST_CUSTOM_FIELD_TYPE_TEXT,
+								]
+							);
+						}
 					}
 				}
 
