@@ -54,51 +54,85 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
  */
 function render_block( $attrs ) {
 	$list_config = \Newspack_Newsletters_Subscription::get_lists_config();
+	$subscribed  = false;
+	$message     = '';
+	$email       = '';
+	$lists       = array_flip( array_keys( $list_config ) );
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_REQUEST['newspack_newsletters_subscribed'] ) ) {
+		$subscribed = \absint( $_REQUEST['newspack_newsletters_subscribed'] );
+		if ( isset( $_REQUEST['message'] ) ) {
+			$message = \sanitize_text_field( $_REQUEST['message'] );
+		}
+		if ( isset( $_REQUEST['email'] ) ) {
+			$email = \sanitize_text_field( $_REQUEST['email'] );
+		}
+		if ( isset( $_REQUEST['lists'] ) && is_array( $_REQUEST['lists'] ) ) {
+			$lists = array_flip( array_map( 'sanitize_text_field', $_REQUEST['lists'] ) );
+		}
+	}
+	// phpcs:enable
 	ob_start();
 	?>
 	<div class="newspack-newsletters-subscribe <?php echo esc_attr( get_block_classes( $attrs ) ); ?>">
-		<form>
-			<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
-			<div class="newspack-newsletters-email-input">
-				<input type="email" name="email" autocomplete="email" placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>" />
+		<?php if ( $subscribed ) : ?>
+			<p class="message"><?php echo \esc_html( $message ); ?></p>
+		<?php else : ?>
+			<form>
+				<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
+				<div class="newspack-newsletters-email-input">
+					<input
+						type="email"
+						name="email"
+						autocomplete="email"
+						placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>"
+						value="<?php echo esc_attr( $email ); ?>"
+					/>
+				</div>
+				<?php if ( 1 < count( $attrs['lists'] ) ) : ?>
+					<ul class="newspack-newsletters-lists">
+						<?php
+						foreach ( $attrs['lists'] as $list_id ) :
+							if ( ! isset( $list_config[ $list_id ] ) ) {
+								continue;
+							}
+							$list        = $list_config[ $list_id ];
+							$checkbox_id = sprintf( 'newspack-newsletters-list-checkbox-%s', $list_id );
+							?>
+							<li>
+								<span class="list-checkbox">
+									<input
+										type="checkbox"
+										name="lists[]"
+										value="<?php echo \esc_attr( $list_id ); ?>"
+										id="<?php echo \esc_attr( $checkbox_id ); ?>"
+										<?php if ( isset( $lists[ $list_id ] ) ) : ?>
+											checked
+										<?php endif; ?>
+									/>
+								</span>
+								<span class="list-details">
+									<label for="<?php echo \esc_attr( $checkbox_id ); ?>">
+										<span class="list-title"><?php echo \esc_html( $list['title'] ); ?></span>
+										<?php if ( $attrs['displayDescription'] ) : ?>
+											<span class="list-description"><?php echo \esc_html( $list['description'] ); ?></span>
+										<?php endif; ?>
+									</label>
+								</span>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				<?php else : ?>
+					<input type="hidden" name="lists[]" value="<?php echo \esc_attr( $attrs['lists'][0] ); ?>" />
+				<?php endif; ?>
+				<input type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" />
+			</form>
+			<div class="newspack-newsletters-subscribe-response">
+				<?php if ( ! empty( $message ) ) : ?>
+					<p><?php echo \esc_html( $message ); ?></p>
+				<?php endif; ?>
 			</div>
-			<?php if ( 1 < count( $attrs['lists'] ) ) : ?>
-				<ul class="newspack-newsletters-lists">
-					<?php
-					foreach ( $attrs['lists'] as $list_id ) :
-						if ( ! isset( $list_config[ $list_id ] ) ) {
-							continue;
-						}
-						$list        = $list_config[ $list_id ];
-						$checkbox_id = sprintf( 'newspack-newsletters-list-checkbox-%s', $list_id );
-						?>
-						<li>
-							<span class="list-checkbox">
-								<input
-									type="checkbox"
-									name="lists[]"
-									value="<?php echo \esc_attr( $list_id ); ?>"
-									id="<?php echo \esc_attr( $checkbox_id ); ?>"
-									checked
-								/>
-							</span>
-							<span class="list-details">
-								<label for="<?php echo \esc_attr( $checkbox_id ); ?>">
-									<span class="list-title"><?php echo \esc_html( $list['title'] ); ?></span>
-									<?php if ( $attrs['displayDescription'] ) : ?>
-										<span class="list-description"><?php echo \esc_html( $list['description'] ); ?></span>
-									<?php endif; ?>
-								</label>
-							</span>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			<?php else : ?>
-				<input type="hidden" name="lists[]" value="<?php echo \esc_attr( $attrs['lists'][0] ); ?>" />
-			<?php endif; ?>
-			<input type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" />
-		</form>
-		<div class="newspack-newsletters-subscribe-response"></div>
+		<?php endif; ?>
 	</div>
 	<?php
 	return ob_get_clean();
@@ -130,6 +164,42 @@ function get_block_classes( $attrs = [], $extra = [] ) {
 }
 
 /**
+ * Send the form response to the client, whether it's a JSON or GET request.
+ *
+ * @param mixed $data The response to send to the client.
+ */
+function send_form_response( $data ) {
+	$is_error = \is_wp_error( $data );
+	if ( \wp_is_json_request() ) {
+		if ( ! $is_error ) {
+			$message = __( 'Thank you for subscribing!', 'newspack' );
+		} else {
+			$message = $data->get_error_message();
+		}
+		\wp_send_json( compact( 'message', 'data' ), \is_wp_error( $data ) ? 400 : 200 );
+		exit;
+	} elseif ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' === $_SERVER['REQUEST_METHOD'] ) {
+		$args_to_remove = [
+			'_wp_http_referer',
+			'newspack_newsletters_subscribe',
+		];
+		if ( ! $is_error ) {
+			$args_to_remove = array_merge( $args_to_remove, [ 'email', 'lists' ] );
+		}
+		\wp_safe_redirect(
+			\add_query_arg(
+				[
+					'newspack_newsletters_subscribed' => $is_error ? '0' : '1',
+					'message'                         => $is_error ? $data->get_error_message() : __( 'Thank you for subscribing!', 'newspack' ),
+				],
+				\remove_query_arg( $args_to_remove )
+			)
+		);
+		exit;
+	}
+}
+
+/**
  * Process registration form.
  */
 function process_form() {
@@ -138,16 +208,14 @@ function process_form() {
 	}
 
 	if ( ! isset( $_REQUEST['email'] ) || empty( $_REQUEST['email'] ) ) {
-		return;
+		return send_form_response( new \WP_Error( 'invalid_email', __( 'You must enter a valid email address.', 'newspack-newsletters' ) ) );
+	}
+
+	if ( ! isset( $_REQUEST['lists'] ) || empty( $_REQUEST['lists'] ) ) {
+		return send_form_response( new \WP_Error( 'no_lists', __( 'You must select a list.', 'newspack-newsletters' ) ) );
 	}
 
 	$email = \sanitize_email( $_REQUEST['email'] );
-
-	$result = false;
-
-	if ( ! isset( $_REQUEST['lists'] ) || empty( $_REQUEST['lists'] ) ) {
-		$result = new \WP_Error( 'no_lists', __( 'You must select a list.', 'newspack-newsletters' ) );
-	}
 
 	// TODO Subscribe user.
 
@@ -159,22 +227,6 @@ function process_form() {
 	 */
 	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $user_id );
 
-	if ( \wp_is_json_request() ) {
-		if ( ! \is_wp_error( $result ) ) {
-			$message = __( 'Thank you for subscribing!', 'newspack' );
-		} else {
-			$message = $result->get_error_message();
-		}
-		\wp_send_json( compact( 'message', 'email' ), \is_wp_error( $result ) ? 400 : 200 );
-		exit;
-	} elseif ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' === $_SERVER['REQUEST_METHOD'] ) {
-		\wp_safe_redirect(
-			\add_query_arg(
-				[ 'newspack_newsletters_subscribed' => is_wp_error( $result ) ? '0' : '1' ],
-				\remove_query_arg( [ '_wp_http_referer', 'newspack_newsletters_subscribe', 'email' ] )
-			)
-		);
-		exit;
-	}
+	return send_form_response( [] );
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\\process_form' );

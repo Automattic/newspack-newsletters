@@ -127,7 +127,7 @@ class Newspack_Newsletters_Subscription {
 	public static function get_lists() {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 		try {
 			$lists  = $provider->get_lists();
@@ -176,7 +176,7 @@ class Newspack_Newsletters_Subscription {
 	public static function get_lists_config() {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 		$provider_name = $provider->service;
 		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
@@ -206,11 +206,11 @@ class Newspack_Newsletters_Subscription {
 	public static function update_lists( $lists ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 		$lists = self::sanitize_lists( $lists );
 		if ( empty( $lists ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
 		}
 		$provider_name = $provider->service;
 		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
@@ -242,12 +242,25 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Add a contact to a list.
 	 *
-	 * @param string $email   Contact email.
-	 * @param string $list_id List ID.
+	 * @param array    $contact      {
+	 *    Contact information.
 	 *
-	 * @return bool|WP_Error Whether the contact was added or error.
+	 *    @type string email The contact email address.
+	 *    @type string name  The contact name. Optional.
+	 * }
+	 * @param string[] $lists        Array of list IDs to subscribe the contact to.
+	 * @param bool     $double_optin Whether to send a double opt-in confirmation email.
+	 *
+	 * @return bool|WP_Error Whether the email was added or error.
 	 */
-	public static function add_contact( $email, $list_id ) {
+	public static function add_contact( $contact, $lists = [], $double_optin = false ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+		if ( empty( $lists ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'No lists specified.' ) );
+		}
 		return false;
 	}
 

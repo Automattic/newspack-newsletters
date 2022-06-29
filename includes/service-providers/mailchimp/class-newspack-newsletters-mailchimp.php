@@ -565,7 +565,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$this->validate(
 				$mc->post( "campaigns/$mc_campaign_id/actions/send", $payload ),
 				__( 'Error sending campaign.', 'newspack_newsletters' )
-			);  
+			);
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_error',
@@ -790,7 +790,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Add contact to a list.
 	 *
 	 * @param array  $contact Contact data.
-	 * @param strine $list_id List ID.
+	 * @param string $list_id List ID.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {
