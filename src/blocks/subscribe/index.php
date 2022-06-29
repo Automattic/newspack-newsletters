@@ -211,22 +211,28 @@ function process_form() {
 		return send_form_response( new \WP_Error( 'invalid_email', __( 'You must enter a valid email address.', 'newspack-newsletters' ) ) );
 	}
 
-	if ( ! isset( $_REQUEST['lists'] ) || empty( $_REQUEST['lists'] ) ) {
+	if ( ! isset( $_REQUEST['lists'] ) || ! is_array( $_REQUEST['lists'] ) || empty( $_REQUEST['lists'] ) ) {
 		return send_form_response( new \WP_Error( 'no_lists', __( 'You must select a list.', 'newspack-newsletters' ) ) );
 	}
 
 	$email = \sanitize_email( $_REQUEST['email'] );
+	$lists = array_map( 'sanitize_text_field', $_REQUEST['lists'] );
 
-	// TODO Subscribe user.
+	$result = \Newspack_Newsletters_Subscription::add_contact(
+		[
+			'email' => $email,
+		],
+		$lists
+	);
 
 	/**
-	 * Fires after a reader is registered through the Reader Registration Block.
+	 * Fires after subscribing a user to a list.
 	 *
-	 * @param string              $email   Email address of the reader.
-	 * @param int|false|\WP_Error $user_id The created user ID in case of registration, false if not created or a WP_Error object.
+	 * @param string         $email  Email address of the reader.
+	 * @param bool|\WP_Error $result Whether the contact was added or error.
 	 */
-	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $user_id );
+	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result );
 
-	return send_form_response( [] );
+	return send_form_response( $result );
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\\process_form' );

@@ -251,7 +251,7 @@ class Newspack_Newsletters_Subscription {
 	 * @param string[] $lists        Array of list IDs to subscribe the contact to.
 	 * @param bool     $double_optin Whether to send a double opt-in confirmation email.
 	 *
-	 * @return bool|WP_Error Whether the email was added or error.
+	 * @return bool|WP_Error Whether the contact was added or error.
 	 */
 	public static function add_contact( $contact, $lists = [], $double_optin = false ) {
 		$provider = Newspack_Newsletters::get_service_provider();
