@@ -8,9 +8,9 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Manages Settings Subscribe Class.
+ * Manages Settings Subscription Class.
  */
-class Newspack_Newsletters_Subscribe {
+class Newspack_Newsletters_Subscription {
 
 	const API_NAMESPACE = 'newspack-newsletters/v1';
 
@@ -250,5 +250,16 @@ class Newspack_Newsletters_Subscribe {
 	public static function add_contact( $email, $list_id ) {
 		return false;
 	}
+
+	/**
+	 * Get an email subscription status from the current ESP.
+	 *
+	 * @param string $email Email address.
+	 *
+	 * @return array Subscription status.
+	 */
+	public static function get_email_status( $email ) {
+		return [];
+	}
 }
-Newspack_Newsletters_Subscribe::init();
+Newspack_Newsletters_Subscription::init();

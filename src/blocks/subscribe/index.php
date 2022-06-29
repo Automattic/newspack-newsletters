@@ -53,7 +53,7 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
  * @param array[] $attrs Block attributes.
  */
 function render_block( $attrs ) {
-	$list_config = \Newspack_Newsletters_Subscribe::get_lists_config();
+	$list_config = \Newspack_Newsletters_Subscription::get_lists_config();
 	ob_start();
 	?>
 	<div class="newspack-newsletters-subscribe <?php echo esc_attr( get_block_classes( $attrs ) ); ?>">

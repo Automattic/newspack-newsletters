@@ -202,7 +202,7 @@ class Newspack_Newsletters_Settings {
 	 * Render table for subscription lists management.
 	 */
 	private static function render_lists_table() {
-		$lists = Newspack_Newsletters_Subscribe::get_lists();
+		$lists = Newspack_Newsletters_Subscription::get_lists();
 		if ( is_wp_error( $lists ) || empty( $lists ) ) {
 			return;
 		}
@@ -357,7 +357,7 @@ class Newspack_Newsletters_Settings {
 				'description' => isset( $list_data['description'] ) ? sanitize_text_field( $list_data['description'] ) : '',
 			];
 		}
-		Newspack_Newsletters_Subscribe::update_lists( $lists );
+		Newspack_Newsletters_Subscription::update_lists( $lists );
 	}
 
 	/**
