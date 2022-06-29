@@ -60,10 +60,11 @@ export default function SubscribeEdit( {
 					<ToggleControl
 						label={ __( 'Display list description', 'newspack-newsletters' ) }
 						checked={ displayDescription }
+						disabled={ lists.length <= 1 }
 						onChange={ () => setAttributes( { displayDescription: ! displayDescription } ) }
 					/>
 				</PanelBody>
-				<PanelBody title={ __( 'Lists', 'newspack-newsletters' ) }>
+				<PanelBody title={ __( 'Subscription Lists', 'newspack-newsletters' ) }>
 					{ Object.keys( listConfig ).map( listId => (
 						<ToggleControl
 							key={ listId }
@@ -96,7 +97,7 @@ export default function SubscribeEdit( {
 								{ lists.map( listId => (
 									<li key={ listId }>
 										<span className="list-checkbox">
-											<input id={ getListCheckboxId( listId ) } type="checkbox" />
+											<input id={ getListCheckboxId( listId ) } type="checkbox" checked />
 										</span>
 										<span className="list-details">
 											<label htmlFor={ getListCheckboxId( listId ) }>

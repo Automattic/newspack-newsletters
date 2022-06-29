@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { box as icon } from '@wordpress/icons';
+import { inbox as icon } from '@wordpress/icons';
 
 /**
  * Internal dependencies

@@ -31,7 +31,7 @@
 		}
 		.list-checkbox {
 			flex: 0 0 auto;
-			margin: 0.2rem 0.5rem 0 0;
+			margin: 0 0.5rem 0 0;
 		}
 		.list-title {
 			display: block;
@@ -42,5 +42,10 @@
 			color: #777;
 			margin: 0;
 		}
+	}
+	.newspack-newsletters-subscribe-response {
+		margin: 0.5rem 0;
+		font-size: 0.8rem;
+		color: #777;
 	}
 }

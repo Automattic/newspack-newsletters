@@ -4,11 +4,13 @@
 import './style.scss';
 
 ( function () {
-	[ ...document.querySelectorAll( '.newspack-reader-registration' ) ].forEach( container => {
+	[ ...document.querySelectorAll( '.newspack-newsletters-subscribe' ) ].forEach( container => {
 		const form = container.querySelector( 'form' );
 		if ( ! form ) {
 			return;
 		}
+		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe-response' );
+		messageContainer.style.display = 'none';
 		form.addEventListener( 'submit', ev => {
 			ev.preventDefault();
 			const body = new FormData( form );
@@ -26,7 +28,13 @@ import './style.scss';
 					const messageNode = document.createElement( 'p' );
 					messageNode.innerHTML = message;
 					messageNode.className = `message status-${ res.status }`;
-					container.replaceChild( messageNode, form );
+					if ( res.status === 200 ) {
+						container.replaceChild( messageNode, form );
+					} else {
+						messageContainer.innerHTML = '';
+						messageContainer.appendChild( messageNode );
+						messageContainer.style.display = 'block';
+					}
 				} );
 			} );
 		} );

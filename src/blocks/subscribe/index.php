@@ -53,14 +53,52 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
  * @param array[] $attrs Block attributes.
  */
 function render_block( $attrs ) {
+	$list_config = \Newspack_Newsletters_Subscribe::get_lists_config();
 	ob_start();
 	?>
 	<div class="newspack-newsletters-subscribe <?php echo esc_attr( get_block_classes( $attrs ) ); ?>">
 		<form>
 			<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
-			<input type="email" name="email" autocomplete="email" placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>" />
+			<div class="newspack-newsletters-email-input">
+				<input type="email" name="email" autocomplete="email" placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>" />
+			</div>
+			<?php if ( 1 < count( $attrs['lists'] ) ) : ?>
+				<ul class="newspack-newsletters-lists">
+					<?php
+					foreach ( $attrs['lists'] as $list_id ) :
+						if ( ! isset( $list_config[ $list_id ] ) ) {
+							continue;
+						}
+						$list        = $list_config[ $list_id ];
+						$checkbox_id = sprintf( 'newspack-newsletters-list-checkbox-%s', $list_id );
+						?>
+						<li>
+							<span class="list-checkbox">
+								<input
+									type="checkbox"
+									name="lists[]"
+									value="<?php echo \esc_attr( $list_id ); ?>"
+									id="<?php echo \esc_attr( $checkbox_id ); ?>"
+									checked
+								/>
+							</span>
+							<span class="list-details">
+								<label for="<?php echo \esc_attr( $checkbox_id ); ?>">
+									<span class="list-title"><?php echo \esc_html( $list['title'] ); ?></span>
+									<?php if ( $attrs['displayDescription'] ) : ?>
+										<span class="list-description"><?php echo \esc_html( $list['description'] ); ?></span>
+									<?php endif; ?>
+								</label>
+							</span>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php else : ?>
+				<input type="hidden" name="lists[]" value="<?php echo \esc_attr( $attrs['lists'][0] ); ?>" />
+			<?php endif; ?>
 			<input type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" />
 		</form>
+		<div class="newspack-newsletters-subscribe-response"></div>
 	</div>
 	<?php
 	return ob_get_clean();
@@ -82,6 +120,9 @@ function get_block_classes( $attrs = [], $extra = [] ) {
 	if ( isset( $attrs['className'] ) ) {
 		array_push( $classes, $attrs['className'] );
 	}
+	if ( 1 < count( $attrs['lists'] ) ) {
+		$classes[] = 'multiple-lists';
+	}
 	if ( is_array( $extra ) && ! empty( $extra ) ) {
 		$classes = array_merge( $classes, $extra );
 	}
@@ -102,8 +143,13 @@ function process_form() {
 
 	$email = \sanitize_email( $_REQUEST['email'] );
 
-	// TODO Subscribe user.
 	$result = false;
+
+	if ( ! isset( $_REQUEST['lists'] ) || empty( $_REQUEST['lists'] ) ) {
+		$result = new \WP_Error( 'no_lists', __( 'You must select a list.', 'newspack-newsletters' ) );
+	}
+
+	// TODO Subscribe user.
 
 	/**
 	 * Fires after a reader is registered through the Reader Registration Block.
@@ -115,7 +161,7 @@ function process_form() {
 
 	if ( \wp_is_json_request() ) {
 		if ( ! \is_wp_error( $result ) ) {
-			$message = __( 'Thank you for registering!', 'newspack' );
+			$message = __( 'Thank you for subscribing!', 'newspack' );
 		} else {
 			$message = $result->get_error_message();
 		}
