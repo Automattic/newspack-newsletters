@@ -10,7 +10,14 @@ import { intersection } from 'lodash';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
-import { TextControl, ToggleControl, PanelBody, Notice } from '@wordpress/components';
+import {
+	TextControl,
+	ToggleControl,
+	PanelBody,
+	Notice,
+	Placeholder,
+	Spinner,
+} from '@wordpress/components';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
 /**
@@ -29,11 +36,15 @@ export default function SubscribeEdit( {
 	const defaultPlaceholder = __( 'Enter your email address', 'newspack-newsletters' );
 	const defaultLabel = __( 'Register', 'newspack-newsletters' );
 	const blockProps = useBlockProps();
+	const [ inFlight, setInFlight ] = useState( false );
 	const [ listConfig, setListConfig ] = useState( {} );
 	const fetchLists = () => {
+		setInFlight( true );
 		apiFetch( {
 			path: '/newspack-newsletters/v1/lists_config',
-		} ).then( setListConfig );
+		} )
+			.then( setListConfig )
+			.finally( () => setInFlight( false ) );
 	};
 	useEffect( fetchLists, [] );
 	useEffect( () => {
@@ -66,6 +77,12 @@ export default function SubscribeEdit( {
 					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Subscription Lists', 'newspack-newsletters' ) }>
+					{ inFlight && <Spinner /> }
+					{ ! inFlight && ! Object.keys( listConfig ).length && (
+						<Notice isDismissible={ false } status="error">
+							{ __( 'You must enable lists for subscription.', 'newspack-newsletters' ) }
+						</Notice>
+					) }
 					{ lists.length < 1 && (
 						<Notice isDismissible={ false } status="error">
 							{ __( 'You must select at least one list.', 'newspack-newsletters' ) }
@@ -88,40 +105,44 @@ export default function SubscribeEdit( {
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
-				<div
-					className={ classnames( {
-						'newspack-newsletters-subscribe': true,
-						'multiple-lists': lists.length > 1,
-					} ) }
-				>
-					<form onSubmit={ ev => ev.preventDefault() }>
-						<div className="newspack-newsletters-email-input">
-							<input type="email" placeholder={ placeholder || defaultPlaceholder } />
-						</div>
-						{ lists.length > 1 && (
-							<ul className="newspack-newsletters-lists">
-								{ lists.map( listId => (
-									<li key={ listId }>
-										<span className="list-checkbox">
-											<input id={ getListCheckboxId( listId ) } type="checkbox" checked />
-										</span>
-										<span className="list-details">
-											<label htmlFor={ getListCheckboxId( listId ) }>
-												<span className="list-title">{ listConfig[ listId ]?.title }</span>
-												{ displayDescription && (
-													<span className="list-description">
-														{ listConfig[ listId ]?.description }
-													</span>
-												) }
-											</label>
-										</span>
-									</li>
-								) ) }
-							</ul>
-						) }
-						<input type="submit" value={ label || defaultLabel } />
-					</form>
-				</div>
+				{ inFlight ? (
+					<Spinner />
+				) : (
+					<div
+						className={ classnames( {
+							'newspack-newsletters-subscribe': true,
+							'multiple-lists': lists.length > 1,
+						} ) }
+					>
+						<form onSubmit={ ev => ev.preventDefault() }>
+							<div className="newspack-newsletters-email-input">
+								<input type="email" placeholder={ placeholder || defaultPlaceholder } />
+							</div>
+							{ lists.length > 1 && (
+								<ul className="newspack-newsletters-lists">
+									{ lists.map( listId => (
+										<li key={ listId }>
+											<span className="list-checkbox">
+												<input id={ getListCheckboxId( listId ) } type="checkbox" checked />
+											</span>
+											<span className="list-details">
+												<label htmlFor={ getListCheckboxId( listId ) }>
+													<span className="list-title">{ listConfig[ listId ]?.title }</span>
+													{ displayDescription && (
+														<span className="list-description">
+															{ listConfig[ listId ]?.description }
+														</span>
+													) }
+												</label>
+											</span>
+										</li>
+									) ) }
+								</ul>
+							) }
+							<input type="submit" value={ label || defaultLabel } />
+						</form>
+					</div>
+				) }
 			</div>
 		</>
 	);

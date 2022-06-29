@@ -53,7 +53,10 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
  * @param array[] $attrs Block attributes.
  */
 function render_block( $attrs ) {
-	$list_config     = \Newspack_Newsletters_Subscription::get_lists_config();
+	$list_config = \Newspack_Newsletters_Subscription::get_lists_config();
+	if ( empty( $list_config ) ) {
+		return;
+	}
 	$block_id        = \wp_rand( 0, 99999 );
 	$subscribed      = false;
 	$message         = '';
