@@ -53,11 +53,15 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
  * @param array[] $attrs Block attributes.
  */
 function render_block( $attrs ) {
-	$list_config = \Newspack_Newsletters_Subscription::get_lists_config();
-	$subscribed  = false;
-	$message     = '';
-	$email       = '';
-	$lists       = array_flip( array_keys( $list_config ) );
+	$list_config     = \Newspack_Newsletters_Subscription::get_lists_config();
+	$block_id        = \wp_rand( 0, 99999 );
+	$subscribed      = false;
+	$message         = '';
+	$email           = '';
+	$lists           = array_keys( $list_config );
+	$list_map        = array_flip( $lists );
+	$available_lists = array_intersect( $lists, $attrs['lists'] );
+
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_REQUEST['newspack_newsletters_subscribed'] ) ) {
 		$subscribed = \absint( $_REQUEST['newspack_newsletters_subscribed'] );
@@ -68,7 +72,7 @@ function render_block( $attrs ) {
 			$email = \sanitize_text_field( $_REQUEST['email'] );
 		}
 		if ( isset( $_REQUEST['lists'] ) && is_array( $_REQUEST['lists'] ) ) {
-			$lists = array_flip( array_map( 'sanitize_text_field', $_REQUEST['lists'] ) );
+			$list_map = array_flip( array_map( 'sanitize_text_field', $_REQUEST['lists'] ) );
 		}
 	}
 	// phpcs:enable
@@ -89,15 +93,15 @@ function render_block( $attrs ) {
 						value="<?php echo esc_attr( $email ); ?>"
 					/>
 				</div>
-				<?php if ( 1 < count( $attrs['lists'] ) ) : ?>
+				<?php if ( 1 < count( $available_lists ) ) : ?>
 					<ul class="newspack-newsletters-lists">
 						<?php
-						foreach ( $attrs['lists'] as $list_id ) :
+						foreach ( $available_lists as $list_id ) :
 							if ( ! isset( $list_config[ $list_id ] ) ) {
 								continue;
 							}
 							$list        = $list_config[ $list_id ];
-							$checkbox_id = sprintf( 'newspack-newsletters-list-checkbox-%s', $list_id );
+							$checkbox_id = sprintf( 'newspack-newsletters-%s-list-checkbox-%s', $block_id, $list_id );
 							?>
 							<li>
 								<span class="list-checkbox">
@@ -106,7 +110,7 @@ function render_block( $attrs ) {
 										name="lists[]"
 										value="<?php echo \esc_attr( $list_id ); ?>"
 										id="<?php echo \esc_attr( $checkbox_id ); ?>"
-										<?php if ( isset( $lists[ $list_id ] ) ) : ?>
+										<?php if ( isset( $list_map[ $list_id ] ) ) : ?>
 											checked
 										<?php endif; ?>
 									/>

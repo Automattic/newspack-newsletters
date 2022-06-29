@@ -789,19 +789,30 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Add contact to a list.
 	 *
-	 * @param array  $contact Contact data.
-	 * @param string $list_id List ID.
+	 * @param array  $contact      {
+	 *    Contact data.
+	 *
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string $list_id      List to add the contact to.
+	 *
+	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {
-			$mc             = new Mailchimp( $this->api_key() );
-			$email_address  = $contact['email'];
-			$name_fragments = explode( ' ', $contact['name'], 2 );
-			$merge_fields   = [
-				'FNAME' => $name_fragments[0],
-			];
-			if ( isset( $name_fragments[1] ) ) {
-				$merge_fields['LNAME'] = $name_fragments[1];
+			$mc            = new Mailchimp( $this->api_key() );
+			$email_address = $contact['email'];
+			$merged_fields = [];
+			if ( isset( $contact['name'] ) ) {
+				$name_fragments = explode( ' ', $contact['name'], 2 );
+				$merge_fields   = [
+					'FNAME' => $name_fragments[0],
+				];
+				if ( isset( $name_fragments[1] ) ) {
+					$merge_fields['LNAME'] = $name_fragments[1];
+				}
 			}
 			$update_payload = [
 				'email_address' => $email_address,
@@ -810,26 +821,30 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			];
 
 			// Get list merge fields (metadata) to create them if needed.
-			$list_merge_fields = array_reduce(
-				$mc->get( "lists/$list_id/merge-fields" )['merge_fields'],
-				function( $acc, $field ) {
-					$acc[ $field['name'] ] = $field['tag'];
-					return $acc;
-				},
-				[]
-			);
-			foreach ( $contact['metadata'] as $key => $value ) {
-				if ( isset( $list_merge_fields[ $key ] ) ) {
-					$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
-				} else {
-					$created_merge_field = $mc->post(
-						"lists/$list_id/merge-fields",
-						[
-							'name' => $key,
-							'type' => 'text',
-						]
-					);
-					$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
+			if ( ! empty( $merge_fields ) ) {
+				$list_merge_fields = array_reduce(
+					$mc->get( "lists/$list_id/merge-fields" )['merge_fields'],
+					function( $acc, $field ) {
+						$acc[ $field['name'] ] = $field['tag'];
+						return $acc;
+					},
+					[]
+				);
+			}
+			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] && ! empty( $contact['metadata'] ) ) ) {
+				foreach ( $contact['metadata'] as $key => $value ) {
+					if ( isset( $list_merge_fields[ $key ] ) ) {
+						$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
+					} else {
+						$created_merge_field = $mc->post(
+							"lists/$list_id/merge-fields",
+							[
+								'name' => $key,
+								'type' => 'text',
+							]
+						);
+						$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
+					}
 				}
 			}
 
@@ -837,8 +852,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$found_subscribers = $mc->get(
 				'search-members',
 				[
-					'list_id' => $list_id,
-					'query'   => $email_address,
+					'query' => $email_address,
 				]
 			)['exact_matches']['members'];
 			if ( empty( $found_subscribers ) ) {
@@ -853,5 +867,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$e->getMessage()
 			);
 		}
+		return true;
 	}
 }

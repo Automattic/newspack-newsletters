@@ -130,7 +130,10 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 		try {
-			$lists  = $provider->get_lists();
+			$lists = $provider->get_lists();
+			if ( is_wp_error( $lists ) ) {
+				return $lists;
+			}
 			$config = self::get_lists_config();
 			return array_map(
 				function( $list ) use ( $config ) {
@@ -242,18 +245,17 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Add a contact to a list.
 	 *
-	 * @param array    $contact      {
+	 * @param array    $contact {
 	 *    Contact information.
 	 *
 	 *    @type string email The contact email address.
 	 *    @type string name  The contact name. Optional.
 	 * }
-	 * @param string[] $lists        Array of list IDs to subscribe the contact to.
-	 * @param bool     $double_optin Whether to send a double opt-in confirmation email.
+	 * @param string[] $lists   Array of list IDs to subscribe the contact to.
 	 *
 	 * @return bool|WP_Error Whether the contact was added or error.
 	 */
-	public static function add_contact( $contact, $lists = [], $double_optin = false ) {
+	public static function add_contact( $contact, $lists = [] ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
@@ -261,17 +263,28 @@ class Newspack_Newsletters_Subscription {
 		if ( empty( $lists ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'No lists specified.' ) );
 		}
-		return false;
+		$errors = new WP_Error();
+		foreach ( $lists as $list_id ) {
+			try {
+				$result = $provider->add_contact( $contact, $list_id, $double_optin );
+			} catch ( \Exception $e ) {
+				$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
+			}
+			if ( is_wp_error( $result ) ) {
+				$errors->add( $result->get_error_code(), $result->get_error_message() );
+			}
+		}
+		return $errors->has_errors() ? $errors : true;
 	}
 
 	/**
-	 * Get an email subscription status from the current ESP.
+	 * Get a contact subscription status from the current ESP given its email.
 	 *
 	 * @param string $email Email address.
 	 *
 	 * @return array Subscription status.
 	 */
-	public static function get_email_status( $email ) {
+	public static function get_contact_status( $email ) {
 		return [];
 	}
 }

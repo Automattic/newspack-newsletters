@@ -582,24 +582,67 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Add contact to a list.
 	 *
-	 * @param array  $contact Contact data.
-	 * @param string $list_id List ID.
+	 * @param array  $contact      {
+	 *    Contact data.
 	 *
-	 * @return array|WP_Error API response or error.
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string $list_id      List to add the contact to.
+	 *
+	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id ) {
-		$name_fragments = explode( ' ', $contact['name'], 2 );
-		return $this->api_v1_request(
-			'contact_add',
+		$action  = 'contact_add';
+		$payload = [
+			'p[' . $list_id . ']' => $list_id,
+			'email'               => $contact['email'],
+		];
+		$contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
+		if ( ! is_wp_error( $contact ) ) {
+			$action        = 'contact_edit';
+			$payload['id'] = $contact[0]['id'];
+		}
+		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
+			$name_fragments = explode( ' ', $contact['name'], 2 );
+			$payload        = array_merge(
+				$payload,
+				[
+					'first_name' => $name_fragments[0],
+					'last_name'  => isset( $name_fragments[1] ) ? $name_fragments[1] : '',
+				]
+			);
+		}
+		/** Register metadata fields. */
+		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] && ! empty( $contact['metadata'] ) ) ) {
+			foreach ( $metadata as $key => $value ) {
+				$key_tag = strtoupper( str_replace( '-', '_', sanitize_title( $key ) ) );
+				$value   = (string) $value;
+				/** Optimistically add field. The API handles duplicates automatically. */
+				$this->api_v1_request(
+					'list_field_add',
+					'POST',
+					[
+						'body' => [
+							'p[' . $list_id . ']' => $list_id,
+							'title'               => $key,
+							'req'                 => 0, // Whether it's a required field.
+							'type'                => 1, // 1 = Text field.
+							'perstag'             => $key_tag,
+						],
+					]
+				);
+				$payload[ 'field[' . $key_tag . ',0]' ] = $value; // Per ESP documentation, "leave 0 as is".
+			}
+		}
+		$result = $this->api_v1_request(
+			$action,
 			'POST',
 			[
-				'body' => [
-					'p[' . $list_id . ']' => 1,
-					'email'               => $contact['email'],
-					'first_name'          => $name_fragments[0],
-					'last_name'           => isset( $name_fragments[1] ) ? $name_fragments[1] : '',
-				],
+				'body' => $payload,
 			]
 		);
+		return is_wp_error( $result ) ? $result : true;
 	}
 }

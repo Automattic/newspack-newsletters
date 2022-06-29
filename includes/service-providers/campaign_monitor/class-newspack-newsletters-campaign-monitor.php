@@ -563,8 +563,16 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	/**
 	 * Add contact to a list.
 	 *
-	 * @param array  $contact Contact data.
-	 * @param strine $list_id List ID.
+	 * @param array  $contact      {
+	 *    Contact data.
+	 *
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string $list_id      List to add the contact to.
+	 *
+	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {

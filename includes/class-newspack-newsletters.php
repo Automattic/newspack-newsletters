@@ -1141,9 +1141,6 @@ final class Newspack_Newsletters {
 	/**
 	 * Add contact to a mailing list of the configured ESP.
 	 *
-	 * This method has been deprecated, use
-	 * Newspack_Newsletters_Subscribe::subscribe() instead.
-	 *
 	 * @param array  $contact The contact to add to the list.
 	 * @param string $list_id ID of the list to add the contact to.
 	 */

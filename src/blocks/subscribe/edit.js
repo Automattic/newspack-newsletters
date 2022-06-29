@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import classnames from 'classnames';
+import { intersection } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -37,7 +38,7 @@ export default function SubscribeEdit( {
 	useEffect( fetchLists, [] );
 	useEffect( () => {
 		const listIds = Object.keys( listConfig );
-		if ( listIds.length && ! lists.length ) {
+		if ( listIds.length && ( ! lists.length || ! intersection( lists, listIds ).length ) ) {
 			setAttributes( { lists: [ Object.keys( listConfig )[ 0 ] ] } );
 		}
 	}, [ listConfig ] );
