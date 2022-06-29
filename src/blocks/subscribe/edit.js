@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
-import { TextControl, ToggleControl, PanelBody } from '@wordpress/components';
+import { TextControl, ToggleControl, PanelBody, Notice } from '@wordpress/components';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
 /**
@@ -65,6 +65,11 @@ export default function SubscribeEdit( {
 					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Subscription Lists', 'newspack-newsletters' ) }>
+					{ lists.length < 1 && (
+						<Notice isDismissible={ false } status="error">
+							{ __( 'You must select at least one list.', 'newspack-newsletters' ) }
+						</Notice>
+					) }
 					{ Object.keys( listConfig ).map( listId => (
 						<ToggleControl
 							key={ listId }
