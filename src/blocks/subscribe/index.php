@@ -149,11 +149,10 @@ function render_block( $attrs ) {
  * Utility to assemble the class for a server-side rendered block.
  *
  * @param array $attrs Block attributes.
- * @param array $extra Additional classes to be added to the class list.
  *
  * @return string Class list separated by spaces.
  */
-function get_block_classes( $attrs = [], $extra = [] ) {
+function get_block_classes( $attrs = [] ) {
 	$classes = [];
 	if ( isset( $attrs['align'] ) && ! empty( $attrs['align'] ) ) {
 		$classes[] = 'align' . $attrs['align'];
@@ -163,9 +162,6 @@ function get_block_classes( $attrs = [], $extra = [] ) {
 	}
 	if ( 1 < count( $attrs['lists'] ) ) {
 		$classes[] = 'multiple-lists';
-	}
-	if ( is_array( $extra ) && ! empty( $extra ) ) {
-		$classes = array_merge( $classes, $extra );
 	}
 	return implode( ' ', $classes );
 }
@@ -188,7 +184,7 @@ function send_form_response( $data ) {
 	} elseif ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' === $_SERVER['REQUEST_METHOD'] ) {
 		$args_to_remove = [
 			'_wp_http_referer',
-			'newspack_newsletters_subscribe',
+			FORM_ACTION,
 		];
 		if ( ! $is_error ) {
 			$args_to_remove = array_merge( $args_to_remove, [ 'email', 'lists' ] );

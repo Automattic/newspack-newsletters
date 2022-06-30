@@ -10,14 +10,7 @@ import { intersection } from 'lodash';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
-import {
-	TextControl,
-	ToggleControl,
-	PanelBody,
-	Notice,
-	Placeholder,
-	Spinner,
-} from '@wordpress/components';
+import { TextControl, ToggleControl, PanelBody, Notice, Spinner } from '@wordpress/components';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
 /**
@@ -33,8 +26,6 @@ export default function SubscribeEdit( {
 	setAttributes,
 	attributes: { placeholder, label, lists, displayDescription },
 } ) {
-	const defaultPlaceholder = __( 'Enter your email address', 'newspack-newsletters' );
-	const defaultLabel = __( 'Register', 'newspack-newsletters' );
 	const blockProps = useBlockProps();
 	const [ inFlight, setInFlight ] = useState( false );
 	const [ listConfig, setListConfig ] = useState( {} );
@@ -60,13 +51,11 @@ export default function SubscribeEdit( {
 					<TextControl
 						label={ __( 'Input placeholder', 'newspack-newsletters' ) }
 						value={ placeholder }
-						placeholder={ defaultPlaceholder }
 						onChange={ value => setAttributes( { placeholder: value } ) }
 					/>
 					<TextControl
 						label={ __( 'Button label', 'newspack-newsletters' ) }
 						value={ label }
-						placeholder={ defaultLabel }
 						onChange={ value => setAttributes( { label: value } ) }
 					/>
 					<ToggleControl
@@ -116,7 +105,7 @@ export default function SubscribeEdit( {
 					>
 						<form onSubmit={ ev => ev.preventDefault() }>
 							<div className="newspack-newsletters-email-input">
-								<input type="email" placeholder={ placeholder || defaultPlaceholder } />
+								<input type="email" placeholder={ placeholder } />
 							</div>
 							{ lists.length > 1 && (
 								<ul className="newspack-newsletters-lists">
@@ -139,7 +128,7 @@ export default function SubscribeEdit( {
 									) ) }
 								</ul>
 							) }
-							<input type="submit" value={ label || defaultLabel } />
+							<input type="submit" value={ label } />
 						</form>
 					</div>
 				) }
