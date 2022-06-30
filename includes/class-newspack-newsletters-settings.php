@@ -246,7 +246,7 @@ class Newspack_Newsletters_Settings {
 							</td>
 							<td class="details">
 								<input type="text" placeholder="<?php echo esc_attr_e( 'List title', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
-								<textarea placeholder="<?php echo esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]"><?php echo esc_html( $list['description'] ); ?></textarea>
+								<textarea placeholder="<?php echo esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]"><?php echo esc_textarea( $list['description'] ); ?></textarea>
 							</td>
 						</tr>
 					<?php endforeach; ?>
@@ -281,7 +281,7 @@ class Newspack_Newsletters_Settings {
 				margin: 0 0 1rem;
 			}
 			.newspack-newsletters-lists-table td textarea {
-				height: 150px;
+				height: 80px;
 			}
 			.newspack-newsletters-lists-table .active {
 				width: 1%;
@@ -354,7 +354,7 @@ class Newspack_Newsletters_Settings {
 				'id'          => $list_id,
 				'active'      => isset( $list_data['active'] ) ? (bool) $list_data['active'] : false,
 				'title'       => isset( $list_data['title'] ) ? sanitize_text_field( $list_data['title'] ) : '',
-				'description' => isset( $list_data['description'] ) ? sanitize_text_field( $list_data['description'] ) : '',
+				'description' => isset( $list_data['description'] ) ? sanitize_textarea_field( wp_unslash( $list_data['description'] ) ) : '',
 			];
 		}
 		Newspack_Newsletters_Subscription::update_lists( $lists );
