@@ -248,25 +248,32 @@ class Newspack_Newsletters_Subscription {
 	 * @param array    $contact {
 	 *    Contact information.
 	 *
-	 *    @type string email The contact email address.
-	 *    @type string name  The contact name. Optional.
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
 	 * @param string[] $lists   Array of list IDs to subscribe the contact to.
 	 *
 	 * @return bool|WP_Error Whether the contact was added or error.
 	 */
 	public static function add_contact( $contact, $lists = [] ) {
-		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		if ( ! is_array( $lists ) ) {
+			$lists = [ $lists ];
 		}
 		if ( empty( $lists ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'No lists specified.' ) );
 		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+
 		$errors = new WP_Error();
+
 		foreach ( $lists as $list_id ) {
 			try {
-				$result = $provider->add_contact( $contact, $list_id, $double_optin );
+				$result = $provider->add_contact( $contact, $list_id );
 			} catch ( \Exception $e ) {
 				$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
 			}
@@ -274,18 +281,25 @@ class Newspack_Newsletters_Subscription {
 				$errors->add( $result->get_error_code(), $result->get_error_message() );
 			}
 		}
-		return $errors->has_errors() ? $errors : true;
-	}
+		$result = $errors->has_errors() ? $errors : $result;
 
-	/**
-	 * Get a contact subscription status from the current ESP given its email.
-	 *
-	 * @param string $email Email address.
-	 *
-	 * @return array Subscription status.
-	 */
-	public static function get_contact_status( $email ) {
-		return [];
+		/**
+		 * Fires after a contact is added.
+		 *
+		 * @param string        $provider The provider name.
+		 * @param array         $contact  {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]      $lists    Array of list IDs to subscribe the contact to.
+		 * @param bool|WP_Error $result   True if the contact was added or error if failed.
+		 */
+		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
+
+		return $result;
 	}
 }
 Newspack_Newsletters_Subscription::init();
