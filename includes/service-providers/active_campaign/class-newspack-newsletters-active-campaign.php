@@ -594,15 +594,15 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id ) {
-		$action  = 'contact_add';
-		$payload = [
+		$action           = 'contact_add';
+		$payload          = [
 			'p[' . $list_id . ']' => $list_id,
 			'email'               => $contact['email'],
 		];
-		$contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
-		if ( ! is_wp_error( $contact ) ) {
+		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
+		if ( ! is_wp_error( $existing_contact ) ) {
 			$action        = 'contact_edit';
-			$payload['id'] = $contact[0]['id'];
+			$payload['id'] = $existing_contact[0]['id'];
 		}
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
 			$name_fragments = explode( ' ', $contact['name'], 2 );
