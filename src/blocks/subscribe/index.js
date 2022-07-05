@@ -14,6 +14,9 @@ const { name } = metadata;
 export { metadata, name };
 
 export const settings = {
-	icon,
+	icon: {
+		src: icon,
+		foreground: '#36f',
+	},
 	edit,
 };
