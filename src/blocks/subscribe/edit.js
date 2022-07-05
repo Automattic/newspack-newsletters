@@ -73,9 +73,11 @@ export default function SubscribeEdit( {
 						</Notice>
 					) }
 					{ lists.length < 1 && (
-						<Notice isDismissible={ false } status="error">
-							{ __( 'You must select at least one list.', 'newspack-newsletters' ) }
-						</Notice>
+						<div style={ { marginBottom: '1.5rem' } }>
+							<Notice isDismissible={ false } status="error">
+								{ __( 'You must select at least one list.', 'newspack-newsletters' ) }
+							</Notice>
+						</div>
 					) }
 					{ Object.keys( listConfig ).map( listId => (
 						<ToggleControl
