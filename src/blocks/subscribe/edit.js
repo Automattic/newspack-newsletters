@@ -114,7 +114,12 @@ export default function SubscribeEdit( {
 									{ lists.map( listId => (
 										<li key={ listId }>
 											<span className="list-checkbox">
-												<input id={ getListCheckboxId( listId ) } type="checkbox" checked />
+												<input
+													id={ getListCheckboxId( listId ) }
+													type="checkbox"
+													checked
+													readOnly
+												/>
 											</span>
 											<span className="list-details">
 												<label htmlFor={ getListCheckboxId( listId ) }>
