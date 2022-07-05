@@ -27,7 +27,6 @@
 	},
 	"supports": {
 		"html": false,
-		"align": true,
-		"multiple": false
+		"align": true
 	}
 }
