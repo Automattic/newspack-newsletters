@@ -24,6 +24,22 @@ class Newspack_Newsletters_Settings {
 	}
 
 	/**
+	 * Get newsletters settings url.
+	 *
+	 * @return string URL to settings page.
+	 */
+	public static function get_settings_url() {
+		$url = admin_url( 'edit.php?post_type=newspack_nl_cpt&page=newspack-newsletters-settings-admin' );
+
+		/**
+		 * Filters the URL to the Newspack Newsletters settings page.
+		 *
+		 * @param string $url URL to the Newspack Newsletters settings page.
+		 */
+		return apply_filters( 'newspack_newsletters_settings_url', $url );
+	}
+
+	/**
 	 * Retreives list of settings.
 	 *
 	 * @return array Settings list.

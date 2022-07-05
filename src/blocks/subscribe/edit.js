@@ -1,3 +1,5 @@
+/* global newspack_newsletters_blocks */
+
 /**
  * External dependencies.
  */
@@ -21,6 +23,8 @@ import './editor.scss';
 const getListCheckboxId = listId => {
 	return 'newspack-newsletters-list-checkbox-' + listId;
 };
+
+const settingsUrl = window.newspack_newsletters_blocks.settings_url;
 
 export default function SubscribeEdit( {
 	setAttributes,
@@ -68,9 +72,11 @@ export default function SubscribeEdit( {
 				<PanelBody title={ __( 'Subscription Lists', 'newspack-newsletters' ) }>
 					{ inFlight && <Spinner /> }
 					{ ! inFlight && ! Object.keys( listConfig ).length && (
-						<Notice isDismissible={ false } status="error">
-							{ __( 'You must enable lists for subscription.', 'newspack-newsletters' ) }
-						</Notice>
+						<div style={ { marginBottom: '1.5rem' } }>
+							<Notice isDismissible={ false } status="error">
+								{ __( 'You must enable lists for subscription.', 'newspack-newsletters' ) }
+							</Notice>
+						</div>
 					) }
 					{ lists.length < 1 && (
 						<div style={ { marginBottom: '1.5rem' } }>
@@ -93,6 +99,11 @@ export default function SubscribeEdit( {
 							} }
 						/>
 					) ) }
+					<p>
+						<a href={ settingsUrl }>
+							{ __( 'Manage your subscription lists', 'newspack-newsletters' ) }
+						</a>
+					</p>
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>

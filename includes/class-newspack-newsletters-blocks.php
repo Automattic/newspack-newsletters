@@ -23,15 +23,23 @@ final class Newspack_Newsletters_Blocks {
 	 * Enqueue blocks scripts and styles for editor.
 	 */
 	public static function enqueue_block_editor_assets() {
+		$handle = 'newspack-newsletters-blocks';
 		wp_enqueue_script(
-			'newspack-newsletters-blocks',
+			$handle,
 			plugins_url( '../dist/blocks.js', __FILE__ ),
 			[],
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.js' ),
 			true
 		);
+		wp_localize_script(
+			$handle,
+			'newspack_newsletters_blocks',
+			[
+				'settings_url' => Newspack_Newsletters_Settings::get_settings_url(),
+			]
+		);
 		wp_enqueue_style(
-			'newspack-newsletters-blocks',
+			$handle,
 			plugins_url( '../dist/blocks.css', __FILE__ ),
 			[],
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.css' )
