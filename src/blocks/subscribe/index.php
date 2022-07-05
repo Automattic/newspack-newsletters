@@ -65,6 +65,10 @@ function render_block( $attrs ) {
 	$list_map        = array_flip( $lists );
 	$available_lists = array_intersect( $lists, $attrs['lists'] );
 
+	if ( empty( $available_lists ) ) {
+		$available_lists = $lists[0];
+	}
+
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_REQUEST['newspack_newsletters_subscribed'] ) ) {
 		$subscribed = \absint( $_REQUEST['newspack_newsletters_subscribed'] );
