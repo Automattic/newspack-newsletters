@@ -130,7 +130,7 @@ function render_block( $attrs ) {
 						<?php endforeach; ?>
 					</ul>
 				<?php else : ?>
-					<input type="hidden" name="lists[]" value="<?php echo \esc_attr( $attrs['lists'][0] ); ?>" />
+					<input type="hidden" name="lists[]" value="<?php echo \esc_attr( $available_lists[0] ); ?>" />
 				<?php endif; ?>
 				<input type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" />
 			</form>
