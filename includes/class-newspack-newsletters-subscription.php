@@ -144,7 +144,7 @@ class Newspack_Newsletters_Subscription {
 						'id'          => $list['id'],
 						'name'        => $list['name'],
 						'active'      => false,
-						'title'       => '',
+						'title'       => $list['name'],
 						'description' => '',
 					];
 					if ( isset( $config[ $list['id'] ] ) ) {
