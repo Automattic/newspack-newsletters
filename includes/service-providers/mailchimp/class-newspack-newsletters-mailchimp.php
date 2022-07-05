@@ -802,9 +802,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {
-			$mc            = new Mailchimp( $this->api_key() );
-			$email_address = $contact['email'];
-			$merge_fields  = [];
+			$mc             = new Mailchimp( $this->api_key() );
+			$email_address  = $contact['email'];
+			$update_payload = [
+				'email_address' => $email_address,
+				'status'        => 'subscribed',
+			];
+			$merge_fields   = [];
 			if ( isset( $contact['name'] ) ) {
 				$name_fragments = explode( ' ', $contact['name'], 2 );
 				$merge_fields   = [
@@ -813,12 +817,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				if ( isset( $name_fragments[1] ) ) {
 					$merge_fields['LNAME'] = $name_fragments[1];
 				}
+				$update_payload['merge_fields'] = $merge_fields;
 			}
-			$update_payload = [
-				'email_address' => $email_address,
-				'merge_fields'  => $merge_fields,
-				'status'        => 'subscribed',
-			];
 
 			// Get list merge fields (metadata) to create them if needed.
 			if ( ! empty( $merge_fields ) ) {
@@ -856,10 +856,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				]
 			)['exact_matches']['members'];
 			if ( empty( $found_subscribers ) ) {
-				$mc->post( "lists/$list_id/members", $update_payload );
+				$result = $mc->post( "lists/$list_id/members", $update_payload );
 			} else {
 				$member_id = $found_subscribers[0]['id'];
-				$mc->patch( "lists/$list_id/members/$member_id", $update_payload );
+				$result    = $mc->patch( "lists/$list_id/members/$member_id", $update_payload );
+			}
+			if ( ! $result || ( isset( $result['errors'] ) && count( $result['errors'] ) ) ) {
+				return new WP_Error( 'newspack_newsletters_mailchimp_add_contact_failed', __( 'Failed to add contact to list.', 'newspack-newsletters' ) );
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
