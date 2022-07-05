@@ -584,11 +584,14 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				$found_subscriber = $cm_subscribers->get( $email_address, true );
 				$update_payload   = [
 					'EmailAddress'   => $email_address,
-					'Name'           => $contact['name'],
 					'CustomFields'   => [],
 					'ConsentToTrack' => 'yes',
 					'Resubscribe'    => true,
 				];
+
+				if ( isset( $contact['name'] ) ) {
+					$update_payload['Name'] = $contact['name'];
+				}
 
 				// Get custom fields (metadata) to create them if needed.
 				$cm_list            = new CS_REST_Lists( $list_id, [ 'api_key' => $api_key ] );
