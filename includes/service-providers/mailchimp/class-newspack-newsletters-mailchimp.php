@@ -804,7 +804,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		try {
 			$mc            = new Mailchimp( $this->api_key() );
 			$email_address = $contact['email'];
-			$merged_fields = [];
+			$merge_fields = [];
 			if ( isset( $contact['name'] ) ) {
 				$name_fragments = explode( ' ', $contact['name'], 2 );
 				$merge_fields   = [
