@@ -861,8 +861,19 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$member_id = $found_subscribers[0]['id'];
 				$result    = $mc->patch( "lists/$list_id/members/$member_id", $update_payload );
 			}
-			if ( ! $result || ( isset( $result['errors'] ) && count( $result['errors'] ) ) ) {
-				return new WP_Error( 'newspack_newsletters_mailchimp_add_contact_failed', __( 'Failed to add contact to list.', 'newspack-newsletters' ) );
+			if (
+				! $result ||
+				( isset( $result['status'] ) && 400 === absint( $result['status'] ) ) ||
+				( isset( $result['errors'] ) && count( $result['errors'] ) )
+			) {
+				return new WP_Error(
+					'newspack_newsletters_mailchimp_add_contact_failed',
+					sprintf(
+						/* translators: %s: Mailchimp error message */
+						__( 'Failed to add contact to list. %s', 'newspack-newsletters' ),
+						isset( $result['detail'] ) ? $result['detail'] : ''
+					)
+				);
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
