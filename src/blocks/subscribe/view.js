@@ -1,15 +1,10 @@
 /**
- * WordPress dependencies
- */
-import domReady from '@wordpress/dom-ready';
-
-/**
  * Internal dependencies
  */
 import './style.scss';
 
 ( function () {
-	domReady( function () {
+	window.onload = function () {
 		[ ...document.querySelectorAll( '.newspack-newsletters-subscribe' ) ].forEach( container => {
 			const form = container.querySelector( 'form' );
 			if ( ! form ) {
@@ -48,5 +43,5 @@ import './style.scss';
 				} );
 			} );
 		} );
-	} );
+	};
 } )();
