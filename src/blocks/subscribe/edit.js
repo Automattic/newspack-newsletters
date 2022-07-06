@@ -62,12 +62,13 @@ export default function SubscribeEdit( {
 						value={ label }
 						onChange={ value => setAttributes( { label: value } ) }
 					/>
-					<ToggleControl
-						label={ __( 'Display list description', 'newspack-newsletters' ) }
-						checked={ displayDescription }
-						disabled={ lists.length <= 1 }
-						onChange={ () => setAttributes( { displayDescription: ! displayDescription } ) }
-					/>
+					{ lists.length > 1 && (
+						<ToggleControl
+							label={ __( 'Display list description', 'newspack-newsletters' ) }
+							checked={ displayDescription }
+							onChange={ () => setAttributes( { displayDescription: ! displayDescription } ) }
+						/>
+					) }
 				</PanelBody>
 				<PanelBody title={ __( 'Subscription Lists', 'newspack-newsletters' ) }>
 					{ inFlight && <Spinner /> }
