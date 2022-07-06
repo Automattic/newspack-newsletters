@@ -13,6 +13,7 @@ import './style.scss';
 			const messageContainer = container.querySelector(
 				'.newspack-newsletters-subscribe-response'
 			);
+			const emailInput = container.querySelector( 'input[type="email"]' );
 			const submit = container.querySelector( 'input[type="submit"]' );
 			form.addEventListener( 'submit', ev => {
 				ev.preventDefault();
@@ -20,6 +21,7 @@ import './style.scss';
 				if ( ! body.has( 'email' ) || ! body.get( 'email' ) ) {
 					return;
 				}
+				emailInput.disabled = true;
 				submit.disabled = true;
 				messageContainer.innerHTML = '';
 				fetch( form.getAttribute( 'action' ) || window.location.pathname, {
@@ -29,6 +31,7 @@ import './style.scss';
 					},
 					body,
 				} ).then( res => {
+					emailInput.disabled = false;
 					submit.disabled = false;
 					res.json().then( ( { message } ) => {
 						const messageNode = document.createElement( 'p' );
