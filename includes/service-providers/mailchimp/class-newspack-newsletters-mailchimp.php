@@ -863,7 +863,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 			if (
 				! $result ||
-				( isset( $result['status'] ) && 400 === absint( $result['status'] ) ) ||
+				( ! isset( $result['status'] ) || 'subscribed' !== $result['status'] ) ||
 				( isset( $result['errors'] ) && count( $result['errors'] ) )
 			) {
 				return new WP_Error(
