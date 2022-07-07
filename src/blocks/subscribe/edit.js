@@ -1,5 +1,3 @@
-/* global newspack_newsletters_blocks */
-
 /**
  * External dependencies.
  */
