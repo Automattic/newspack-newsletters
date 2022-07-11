@@ -43,7 +43,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		$credentials = $this->api_credentials();
 		$api_path    = '/api/3/';
-		$url         = rtrim( $credentials['url'], '/' ) . $api_path . $resource;
+		$query       = isset( $options['query'] ) ? $options['query'] : [];
+		$url         = add_query_arg(
+			$query,
+			rtrim( $credentials['url'], '/' ) . $api_path . $resource
+		);
 		$args        = [
 			'method'  => $method,
 			'headers' => [
@@ -185,11 +189,41 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error List os existing segments or error.
 	 */
 	public function get_segments() {
-		$result = $this->api_v3_request( 'segments' );
+		$limit  = 100;
+		$offset = 0;
+		$result = $this->api_v3_request(
+			'segments',
+			'GET',
+			[
+				'query' => [
+					'limit'  => $limit,
+					'offset' => $offset,
+				],
+			]
+		);
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		return $result['segments'];
+		$segments = $result['segments'];
+		$total    = $result['meta']['total'];
+		while ( $total > $offset + $limit ) {
+			$offset = $offset + $limit;
+			$result = $this->api_v3_request(
+				'segments',
+				'GET',
+				[
+					'query' => [
+						'limit'  => $limit,
+						'offset' => $offset,
+					],
+				]
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			$segments = array_merge( $segments, $result['segments'] );
+		}
+		return $segments;
 	}
 
 	/**
