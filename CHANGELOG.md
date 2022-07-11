@@ -1,3 +1,10 @@
+# [1.48.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.48.0-alpha.1...v1.48.0-alpha.2) (2022-07-11)
+
+
+### Bug Fixes
+
+* **activecampaign:** paginate through segments ([#886](https://github.com/Automattic/newspack-newsletters/issues/886)) ([f8f839e](https://github.com/Automattic/newspack-newsletters/commit/f8f839e7808e197eb979da7a40b402ea84dc0610))
+
 # [1.48.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.47.2...v1.48.0-alpha.1) (2022-06-30)
 
 
