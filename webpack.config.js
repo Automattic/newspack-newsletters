@@ -2,6 +2,7 @@
  **** WARNING: No ES6 modules here. Not transpiled! ****
  */
 /* eslint-disable import/no-nodejs-modules */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 /**
  * External dependencies
@@ -17,8 +18,10 @@ const admin = path.join( __dirname, 'src', 'admin' );
 const adsEditor = path.join( __dirname, 'src', 'ads-admin', 'editor' );
 const branding = path.join( __dirname, 'src', 'branding' );
 const quickEdit = path.join( __dirname, 'src', 'quick-edit' );
-const blocks = path.join( __dirname, 'src', 'editor', 'blocks' );
+const editorBlocks = path.join( __dirname, 'src', 'editor', 'blocks' );
 const newsletterEditor = path.join( __dirname, 'src', 'newsletter-editor' );
+const blocks = path.join( __dirname, 'src', 'blocks' );
+const subscribeBlock = path.join( __dirname, 'src', 'blocks', 'subscribe', 'view.js' );
 
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
@@ -29,8 +32,10 @@ const webpackConfig = getBaseWebpackConfig(
 			adsEditor,
 			branding,
 			quickEdit,
-			blocks,
+			editorBlocks,
 			newsletterEditor,
+			blocks,
+			subscribeBlock,
 		},
 		'output-path': path.join( __dirname, 'dist' ),
 	}
