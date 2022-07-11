@@ -189,14 +189,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error List os existing segments or error.
 	 */
 	public function get_segments() {
-		$max    = 100;
+		$limit  = 100;
 		$offset = 0;
 		$result = $this->api_v3_request(
 			'segments',
 			'GET',
 			[
 				'query' => [
-					'limit'  => $max,
+					'limit'  => $limit,
 					'offset' => $offset,
 				],
 			]
@@ -206,14 +206,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		$segments = $result['segments'];
 		$total    = $result['meta']['total'];
-		while ( $total > $offset + $max ) {
-			$offset = $offset + $max;
+		while ( $total > $offset + $limit ) {
+			$offset = $offset + $limit;
 			$result = $this->api_v3_request(
 				'segments',
 				'GET',
 				[
 					'query' => [
-						'limit'  => $max,
+						'limit'  => $limit,
 						'offset' => $offset,
 					],
 				]
