@@ -90,10 +90,16 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	/**
 	 * Add contact to a list.
 	 *
-	 * @param array  $contact Contact data.
-	 * @param string $list_id List ID.
+	 * @param array  $contact      {
+	 *    Contact data.
 	 *
-	 * @return array|WP_Error API Response or error.
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string $list_id      List to add the contact to.
+	 *
+	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
-	public function add_contact( $contact, $list_id);
+	public function add_contact( $contact, $list_id );
 }
