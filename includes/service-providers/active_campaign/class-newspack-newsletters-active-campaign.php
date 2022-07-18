@@ -687,7 +687,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @return string[] Contact subscribed lists IDs.
 	 */
-	public function get_contact_status( $email ) {
+	public function get_contact_lists( $email ) {
 		$contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $email ] ] );
 		if ( is_wp_error( $contact ) ) {
 			return [];

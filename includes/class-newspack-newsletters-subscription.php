@@ -14,6 +14,7 @@ class Newspack_Newsletters_Subscription {
 
 	const API_NAMESPACE = 'newspack-newsletters/v1';
 
+	const WC_ENDPOINT      = 'newsletters';
 	const USER_FORM_ACTION = 'newspack_newsletters_subscription';
 
 	/**
@@ -24,7 +25,7 @@ class Newspack_Newsletters_Subscription {
 
 		/** Subscription management through WC's "My Account".  */
 		add_filter( 'woocommerce_get_query_vars', [ __CLASS__, 'add_query_var' ] );
-		add_filter( 'woocommerce_account_menu_items', [ __CLASS__, 'add_menu_items' ], 20 );
+		add_filter( 'woocommerce_account_menu_items', [ __CLASS__, 'add_menu_item' ], 20 );
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 	}
 
@@ -316,12 +317,12 @@ class Newspack_Newsletters_Subscription {
 	 *
 	 * @return string[]|false|WP_Error Contact subscribed list names keyed by ID, false if not found or error.
 	 */
-	public static function get_contact_status( $email ) {
+	public static function get_contact_lists( $email ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
-		return $provider->get_contact_status( $email );
+		return $provider->get_contact_lists( $email );
 	}
 
 	/**
@@ -332,28 +333,21 @@ class Newspack_Newsletters_Subscription {
 	 * @return array
 	 */
 	public static function add_query_var( $vars ) {
-		$vars[] = 'newsletters';
+		$vars[] = self::WC_ENDPOINT;
 		return $vars;
-	}
-
-	/**
-	 * Get WC's endpoint title for newsletters management.
-	 */
-	public static function wc_endpoint_title() {
-		return __( 'Newsletters', 'newspack-newsletters' );
 	}
 
 	/**
 	 * Insert the new endpoint into the My Account menu.
 	 *
 	 * @param array $menu_items Menu items.
+	 *
 	 * @return array
 	 */
-	public static function add_menu_items( $menu_items ) {
-		$position = 1;
-		$slug     = 'newsletters';
-		$name     = __( 'Newsletters', 'newspack-newsletters' );
-		return array_slice( $menu_items, 0, $position, true ) + [ $slug => $name ] + array_slice( $menu_items, $position, null, true );
+	public static function add_menu_item( $menu_items ) {
+		$position       = -1;
+		$menu_item_name = __( 'Newsletters', 'newspack-newsletters' );
+		return array_slice( $menu_items, 0, $position, true ) + [ self::WC_ENDPOINT => $menu_item_name ] + array_slice( $menu_items, $position, null, true );
 	}
 
 	/**
@@ -363,7 +357,7 @@ class Newspack_Newsletters_Subscription {
 		$email       = get_userdata( get_current_user_id() )->user_email;
 		$list_config = self::get_lists_config();
 		$list_map    = [];
-		$user_lists  = array_flip( self::get_contact_status( $email ) );
+		$user_lists  = array_flip( self::get_contact_lists( $email ) );
 		?>
 		<div class="newspack-newsletters__user-subscription">
 			<p>
