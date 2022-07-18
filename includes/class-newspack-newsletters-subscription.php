@@ -350,8 +350,10 @@ class Newspack_Newsletters_Subscription {
 	 * @return array
 	 */
 	public static function add_menu_items( $menu_items ) {
-		$offset = 1;
-		return array_slice( $menu_items, 0, $offset, true ) + [ 'newsletters' => __( 'Newsletters', 'newspack-newsletters' ) ] + array_slice( $menu_items, $offset, null, true );
+		$position = 1;
+		$slug     = 'newsletters';
+		$name     = __( 'Newsletters', 'newspack-newsletters' );
+		return array_slice( $menu_items, 0, $position, true ) + [ $slug => $name ] + array_slice( $menu_items, $position, null, true );
 	}
 
 	/**
