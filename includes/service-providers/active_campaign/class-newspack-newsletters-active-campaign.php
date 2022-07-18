@@ -679,4 +679,25 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		);
 		return is_wp_error( $result ) ? $result : true;
 	}
+
+	/**
+	 * Get a contact status.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return string[] Contact subscribed lists IDs.
+	 */
+	public function get_contact_status( $email ) {
+		$contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $email ] ] );
+		if ( is_wp_error( $contact ) ) {
+			return [];
+		}
+		$lists = [];
+		foreach ( $contact as $contact_list ) {
+			if ( isset( $contact_list['listid'] ) && isset( $contact_list['status'] ) && 1 === absint( $contact_list['status'] ) ) {
+				$lists[] = $contact_list['listid'];
+			}
+		}
+		return $lists;
+	}
 }

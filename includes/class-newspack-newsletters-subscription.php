@@ -14,11 +14,18 @@ class Newspack_Newsletters_Subscription {
 
 	const API_NAMESPACE = 'newspack-newsletters/v1';
 
+	const USER_FORM_ACTION = 'newspack_newsletters_subscription';
+
 	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+
+		/** Subscription management through WC's "My Account".  */
+		add_filter( 'woocommerce_get_query_vars', [ __CLASS__, 'add_query_var' ] );
+		add_filter( 'woocommerce_account_menu_items', [ __CLASS__, 'add_menu_items' ], 20 );
+		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 	}
 
 	/**
@@ -300,6 +307,100 @@ class Newspack_Newsletters_Subscription {
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Get a contact status.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return string[]|false|WP_Error Contact subscribed list names keyed by ID, false if not found or error.
+	 */
+	public static function get_contact_status( $email ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+		return $provider->get_contact_status( $email );
+	}
+
+	/**
+	 * Add query var
+	 *
+	 * @param array $vars Query var.
+	 *
+	 * @return array
+	 */
+	public static function add_query_var( $vars ) {
+		$vars[] = 'newsletters';
+		return $vars;
+	}
+
+	/**
+	 * Get WC's endpoint title for newsletters management.
+	 */
+	public static function wc_endpoint_title() {
+		return __( 'Newsletters', 'newspack-newsletters' );
+	}
+
+	/**
+	 * Insert the new endpoint into the My Account menu.
+	 *
+	 * @param array $menu_items Menu items.
+	 * @return array
+	 */
+	public static function add_menu_items( $menu_items ) {
+		$offset = 1;
+		return array_slice( $menu_items, 0, $offset, true ) + [ 'newsletters' => __( 'Newsletters', 'newspack-newsletters' ) ] + array_slice( $menu_items, $offset, null, true );
+	}
+
+	/**
+	 * Endpoint content.
+	 */
+	public static function endpoint_content() {
+		$email       = get_userdata( get_current_user_id() )->user_email;
+		$list_config = self::get_lists_config();
+		$list_map    = [];
+		$user_lists  = array_flip( self::get_contact_status( $email ) );
+		?>
+		<div class="newspack-newsletters__user-subscription">
+			<p>
+				<?php _e( 'Manage the newsletters you are subscribed to.', 'newspack-newsletters' ); ?>
+			</p>
+			<form method="post">
+				<?php wp_nonce_field( self::USER_FORM_ACTION ); ?>
+				<ul>
+					<?php
+					foreach ( $list_config as $list_id => $list ) :
+						$checkbox_id = sprintf( 'newspack-%s-list-checkbox-%s', $block_id, $list_id );
+						?>
+						<li>
+							<span class="newspack-newsletters__lists__checkbox">
+								<input
+									type="checkbox"
+									name="lists[]"
+									value="<?php echo \esc_attr( $list_id ); ?>"
+									id="<?php echo \esc_attr( $checkbox_id ); ?>"
+									<?php if ( isset( $user_lists[ $list_id ] ) ) : ?>
+										checked
+									<?php endif; ?>
+								/>
+							</span>
+							<span class="newspack-newsletters__lists__details">
+								<label class="newspack-newsletters__lists__label" for="<?php echo \esc_attr( $checkbox_id ); ?>">
+									<span class="newspack-newsletters__lists__title">
+										<?php echo \esc_html( $list['title'] ); ?>
+									</span>
+									<span class="newspack-newsletters__lists__description"><?php echo \esc_html( $list['description'] ); ?></span>
+								</label>
+							</span>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+				<button type="submit"><?php _e( 'Update subscriptions', 'newspack-newsletters' ); ?></button>
+			</form>
+		</div>
+		<?php
 	}
 }
 Newspack_Newsletters_Subscription::init();
