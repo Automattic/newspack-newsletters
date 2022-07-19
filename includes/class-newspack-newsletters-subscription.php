@@ -106,7 +106,7 @@ class Newspack_Newsletters_Subscription {
 		if ( empty( $email ) ) {
 			$email = get_user_by( 'id', $user_id )->user_email;
 		}
-		return sprintf( 'newspack_newsletters_confirm_email_%s_%s', $user_id, wp_hash( $email ) );
+		return sprintf( 'newspack_newsletters_email_verification_%s_%s', $user_id, wp_hash( $email ) );
 	}
 
 	/**
@@ -211,6 +211,8 @@ class Newspack_Newsletters_Subscription {
 		}
 
 		self::set_email_verified( get_current_user_id() );
+
+		delete_transient( $transient_key );
 
 		wp_safe_redirect( remove_query_arg( [ self::EMAIL_VERIFIED_CONFIRM, 'token' ] ) );
 		exit;
