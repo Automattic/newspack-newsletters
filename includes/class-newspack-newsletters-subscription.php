@@ -18,8 +18,8 @@ class Newspack_Newsletters_Subscription {
 	const EMAIL_VERIFIED_REQUEST = 'newspack_newsletters_email_verification_request';
 	const EMAIL_VERIFIED_CONFIRM = 'newspack_newsletters_email_verification';
 
-	const WC_ENDPOINT      = 'newsletters';
-	const USER_FORM_ACTION = 'newspack_newsletters_subscription';
+	const WC_ENDPOINT         = 'newsletters';
+	const SUBSCRIPTION_UPDATE = 'newspack_newsletters_subscription';
 
 	/**
 	 * Initialize hooks.
@@ -36,6 +36,7 @@ class Newspack_Newsletters_Subscription {
 		add_filter( 'woocommerce_get_query_vars', [ __CLASS__, 'add_query_var' ] );
 		add_filter( 'woocommerce_account_menu_items', [ __CLASS__, 'add_menu_item' ], 20 );
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
+		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
 	}
 
 	/**
@@ -260,7 +261,7 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
-	 * Add a contact to a list.
+	 * Upserts a contact to lists.
 	 *
 	 * @param array    $contact {
 	 *    Contact information.
@@ -338,12 +339,19 @@ class Newspack_Newsletters_Subscription {
 	 * Whether the current user has its email verified in order to manage their
 	 * newletters subscriptions.
 	 *
-	 * @param int    $user_id User ID.
-	 * @param string $email   Email address being verified. Default is the current user's email.
+	 * @param int    $user_id User ID. Default is the current user ID.
+	 * @param string $email   Email address being verified. Default is the current user email.
 	 *
 	 * @return bool
 	 */
-	public static function is_email_verified( $user_id, $email = '' ) {
+	public static function is_email_verified( $user_id = 0, $email = '' ) {
+		if ( empty( $user_id ) ) {
+			$user_id = get_current_user_id();
+		}
+		if ( ! $user_id ) {
+			return false;
+		}
+
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
 			return false;
@@ -564,7 +572,7 @@ class Newspack_Newsletters_Subscription {
 	public static function endpoint_content() {
 		$user_id  = get_current_user_id();
 		$email    = get_userdata( $user_id )->user_email;
-		$verified = self::is_email_verified( $user_id, $email );
+		$verified = self::is_email_verified();
 		?>
 		<div class="newspack-newsletters__user-subscription">
 			<?php if ( ! $verified && ! isset( $_GET['verification_sent'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
@@ -587,7 +595,7 @@ class Newspack_Newsletters_Subscription {
 					<?php _e( 'Manage the newsletters you are subscribed to.', 'newspack-newsletters' ); ?>
 				</p>
 				<form method="post">
-					<?php wp_nonce_field( self::USER_FORM_ACTION ); ?>
+					<?php wp_nonce_field( self::SUBSCRIPTION_UPDATE, self::SUBSCRIPTION_UPDATE ); ?>
 					<div class="newspack-newsletters__lists">
 						<ul>
 							<?php
@@ -623,6 +631,21 @@ class Newspack_Newsletters_Subscription {
 			<?php endif; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Process user newsletters subscription update.
+	 */
+	public static function process_subscription_update() {
+		if ( ! isset( $_POST[ self::SUBSCRIPTION_UPDATE ] ) || ! wp_verify_nonce( sanitize_text_field( $_POST[ self::SUBSCRIPTION_UPDATE ] ), self::SUBSCRIPTION_UPDATE ) ) {
+			return;
+		}
+		if ( ! is_user_logged_in() || ! self::is_email_verified() ) {
+			wc_add_notice( __( 'You must be logged in and verified to update your subscriptions.', 'newspack-newsletters' ), 'error' );
+		} else {
+			$lists = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
+			wc_add_notice( __( 'Your subscriptions were updated.', 'newspack-newsletters' ), 'success' );
+		}
 	}
 }
 Newspack_Newsletters_Subscription::init();
