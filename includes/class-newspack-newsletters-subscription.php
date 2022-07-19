@@ -120,7 +120,7 @@ class Newspack_Newsletters_Subscription {
 		}
 
 		if ( ! is_user_logged_in() ) {
-			wp_die( esc_html( __( 'You\'re not logged in.', 'newspack-newsletters' ) ) );
+			wp_die( esc_html( __( 'Invalid request.', 'newspack-newsletters' ) ) );
 		}
 
 		$user               = wp_get_current_user();
@@ -187,7 +187,10 @@ class Newspack_Newsletters_Subscription {
 			\restore_previous_locale();
 		}
 
-		wp_safe_redirect( remove_query_arg( self::EMAIL_VERIFIED_REQUEST, wp_get_referer() ) );
+		if ( function_exists( 'wc_add_notice' ) ) {
+			wc_add_notice( __( 'Check your email address for a verification link.', 'newspack-newsletters' ), 'success' );
+		}
+		wp_safe_redirect( add_query_arg( [ 'verification_sent' => 1 ], remove_query_arg( self::EMAIL_VERIFIED_REQUEST, wp_get_referer() ) ) );
 		exit;
 	}
 
@@ -214,6 +217,9 @@ class Newspack_Newsletters_Subscription {
 
 		delete_transient( $transient_key );
 
+		if ( function_exists( 'wc_add_notice' ) ) {
+			wc_add_notice( __( 'Your email has been verified.', 'newspack-newsletters' ), 'success' );
+		}
 		wp_safe_redirect( remove_query_arg( [ self::EMAIL_VERIFIED_CONFIRM, 'token' ] ) );
 		exit;
 	}
@@ -548,7 +554,7 @@ class Newspack_Newsletters_Subscription {
 		$verified = self::is_email_verified( $user_id, $email );
 		?>
 		<div class="newspack-newsletters__user-subscription">
-			<?php if ( ! $verified ) : ?>
+			<?php if ( ! $verified && ! isset( $_GET['verification_sent'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<p>
 					<?php esc_html_e( 'Please verify your email address before managing your newsletters subscriptions.', 'newspack-newsletters' ); ?>
 				</p>
@@ -557,8 +563,9 @@ class Newspack_Newsletters_Subscription {
 						<?php esc_html_e( 'Verify Email', 'newspack-newsletters' ); ?>
 					</a>
 				</p>
-				<?php
-			else :
+			<?php endif; ?>
+			<?php
+			if ( $verified ) :
 				$list_config = self::get_lists_config();
 				$list_map    = [];
 				$user_lists  = array_flip( self::get_contact_lists( $email ) );
