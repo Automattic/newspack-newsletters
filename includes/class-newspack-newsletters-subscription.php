@@ -146,7 +146,7 @@ class Newspack_Newsletters_Subscription {
 
 		$switched_locale = switch_to_locale( get_user_locale( $user ) );
 
-		/* translators: %s: Site title. */
+		/* translators: %s: User display name. */
 		$message  = sprintf( __( 'Hello, %s!', 'newspack-newsletters' ), $user->display_name ) . "\r\n\r\n";
 		$message .= __( 'Verify your email address by visiting the following address:', 'newspack-newsletters' ) . "\r\n\r\n";
 		$message .= $url . "\r\n";
