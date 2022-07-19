@@ -543,12 +543,9 @@ class Newspack_Newsletters_Subscription {
 	 * Endpoint content.
 	 */
 	public static function endpoint_content() {
-		$user_id     = get_current_user_id();
-		$email       = get_userdata( $user_id )->user_email;
-		$list_config = self::get_lists_config();
-		$list_map    = [];
-		$user_lists  = array_flip( self::get_contact_lists( $email ) );
-		$verified    = self::is_email_verified( $user_id );
+		$user_id  = get_current_user_id();
+		$email    = get_userdata( $user_id )->user_email;
+		$verified = self::is_email_verified( $user_id, $email );
 		?>
 		<div class="newspack-newsletters__user-subscription">
 			<?php if ( ! $verified ) : ?>
@@ -560,7 +557,12 @@ class Newspack_Newsletters_Subscription {
 						<?php esc_html_e( 'Verify Email', 'newspack-newsletters' ); ?>
 					</a>
 				</p>
-			<?php else : ?>
+				<?php
+			else :
+				$list_config = self::get_lists_config();
+				$list_map    = [];
+				$user_lists  = array_flip( self::get_contact_lists( $email ) );
+				?>
 				<p>
 					<?php _e( 'Manage the newsletters you are subscribed to.', 'newspack-newsletters' ); ?>
 				</p>
