@@ -14,6 +14,10 @@ class Newspack_Newsletters_Subscription {
 
 	const API_NAMESPACE = 'newspack-newsletters/v1';
 
+	const EMAIL_VERIFIED_META    = 'newspack_newsletters_email_verified';
+	const EMAIL_VERIFIED_REQUEST = 'newspack_newsletters_email_verification_request';
+	const EMAIL_VERIFIED_CONFIRM = 'newspack_newsletters_email_verification';
+
 	const WC_ENDPOINT      = 'newsletters';
 	const USER_FORM_ACTION = 'newspack_newsletters_subscription';
 
@@ -23,10 +27,193 @@ class Newspack_Newsletters_Subscription {
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 
+		/** User email verification for subscription management. */
+		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification_request' ] );
+		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification' ] );
+
 		/** Subscription management through WC's "My Account".  */
 		add_filter( 'woocommerce_get_query_vars', [ __CLASS__, 'add_query_var' ] );
 		add_filter( 'woocommerce_account_menu_items', [ __CLASS__, 'add_menu_item' ], 20 );
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
+	}
+
+	/**
+	 * Whether the current user has its email verified in order to manage their
+	 * newletters subscriptions.
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $email   Email address being verified. Default is the current user's email.
+	 *
+	 * @return bool
+	 */
+	public static function is_email_verified( $user_id, $email = '' ) {
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return false;
+		}
+
+		if ( empty( $email ) ) {
+			$email = $user->user_email;
+		}
+
+		$verified_emails = get_user_meta( $user_id, self::EMAIL_VERIFIED_META, true );
+		if ( ! is_array( $verified_emails ) ) {
+			$verified_emails = [];
+		}
+
+		$verified = in_array( $email, $verified_emails, true );
+
+		/**
+		 * Filters whether the current user has its email verified.
+		 *
+		 * @param bool    $verified Whether the current user has its email verified.
+		 * @param WP_User $user     User object.
+		 * @param string  $email    Email address being verified.
+		 */
+		return (bool) apply_filters( 'newspack_newsletters_is_email_verified', $verified, $user, $email );
+	}
+
+	/**
+	 * Set email as verified for a user.
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $email   Email address being verified. Default is the current user's email.
+	 *
+	 * @return bool Wether the email was marked as verified successfully.
+	 */
+	public static function set_email_verified( $user_id, $email = '' ) {
+		$verified_emails = get_user_meta( $user_id, self::EMAIL_VERIFIED_META, true );
+		if ( ! is_array( $verified_emails ) ) {
+			$verified_emails = [];
+		}
+		if ( empty( $email ) ) {
+			$email = get_user_by( 'id', $user_id )->user_email;
+		}
+		if ( ! in_array( $email, $verified_emails, true ) ) {
+			$verified_emails[] = $email;
+			return update_user_meta( $user_id, self::EMAIL_VERIFIED_META, $verified_emails );
+		}
+		return false;
+	}
+
+	/**
+	 * Get current user email verification transient key.
+	 *
+	 * @param string $email Email address being verified. Default is the current user's email.
+	 */
+	private static function get_email_verification_transient_key( $email = '' ) {
+		$user_id = get_current_user_id();
+		if ( empty( $email ) ) {
+			$email = get_user_by( 'id', $user_id )->user_email;
+		}
+		return sprintf( 'newspack_newsletters_confirm_email_%s_%s', $user_id, wp_hash( $email ) );
+	}
+
+	/**
+	 * Process request to verify a user's email.
+	 *
+	 * A 1-day transient will hold a token to verify the email.
+	 */
+	public static function process_email_verification_request() {
+		if ( ! isset( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ) || ! wp_verify_nonce( sanitize_text_field( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ), self::EMAIL_VERIFIED_REQUEST ) ) {
+			return;
+		}
+
+		if ( ! is_user_logged_in() ) {
+			wp_die( esc_html( __( 'You\'re not logged in.', 'newspack-newsletters' ) ) );
+		}
+
+		$user               = wp_get_current_user();
+		$transient_key      = self::get_email_verification_transient_key();
+		$token              = \wp_generate_password( 43, false, false );
+		$verification_nonce = wp_create_nonce( self::EMAIL_VERIFIED_CONFIRM );
+
+		$url = home_url();
+		if ( function_exists( 'wc_get_account_endpoint_url' ) ) {
+			$url = wc_get_account_endpoint_url( 'newsletters' );
+		}
+		$url = add_query_arg(
+			[
+				self::EMAIL_VERIFIED_CONFIRM => $verification_nonce,
+				'token'                      => $token,
+			],
+			$url
+		);
+
+		set_transient( $transient_key, $token, DAY_IN_SECONDS );
+
+		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+
+		$switched_locale = switch_to_locale( get_user_locale( $user ) );
+
+		/* translators: %s: Site title. */
+		$message  = sprintf( __( 'Hello, %s!', 'newspack-newsletters' ), $user->display_name ) . "\r\n\r\n";
+		$message .= __( 'Verify your email address by visiting the following address:', 'newspack-newsletters' ) . "\r\n\r\n";
+		$message .= $url . "\r\n";
+
+		$email = [
+			'to'      => $user->user_email,
+			/* translators: %s Site title. */
+			'subject' => __( '[%s] Verify your email', 'newspack' ),
+			'message' => $message,
+			'headers' => '',
+		];
+
+		/**
+		 * Filters the email verification email.
+		 *
+		 * @param array    $email          Email arguments. {
+		 *   Used to build wp_mail().
+		 *
+		 *   @type string $to      The intended recipient - New user email address.
+		 *   @type string $subject The subject of the email.
+		 *   @type string $message The body of the email.
+		 *   @type string $headers The headers of the email.
+		 * }
+		 * @param \WP_User $user           User to send the magic link to.
+		 * @param string   $magic_link_url Magic link url.
+		 */
+		$email = \apply_filters( 'newspack_newsletters_email_verification_email', $email, $user, $url );
+
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+		$sent = \wp_mail(
+			$email['to'],
+			\wp_specialchars_decode( sprintf( $email['subject'], $blogname ) ),
+			$email['message'],
+			$email['headers']
+		);
+
+		if ( $switched_locale ) {
+			\restore_previous_locale();
+		}
+
+		wp_safe_redirect( remove_query_arg( self::EMAIL_VERIFIED_REQUEST, wp_get_referer() ) );
+		exit;
+	}
+
+	/**
+	 * Process email verification.
+	 */
+	public static function process_email_verification() {
+		if ( ! isset( $_GET[ self::EMAIL_VERIFIED_CONFIRM ] ) || ! wp_verify_nonce( sanitize_text_field( $_GET[ self::EMAIL_VERIFIED_CONFIRM ] ), self::EMAIL_VERIFIED_CONFIRM ) ) {
+			return;
+		}
+		if ( ! is_user_logged_in() ) {
+			wp_die( esc_html( __( 'You\'re not logged in.', 'newspack-newsletters' ) ) );
+		}
+		$transient_key = self::get_email_verification_transient_key();
+		$token         = get_transient( $transient_key );
+		if ( ! $token ) {
+			wp_die( esc_html( __( 'Invalid request.', 'newspack-newsletters' ) ) );
+		}
+		if ( ! isset( $_GET['token'] ) || sanitize_text_field( $_GET['token'] ) !== $token ) {
+			wp_die( esc_html( __( 'Invalid request.', 'newspack-newsletters' ) ) );
+		}
+
+		self::set_email_verified( get_current_user_id() );
+
+		wp_safe_redirect( remove_query_arg( [ self::EMAIL_VERIFIED_CONFIRM, 'token' ] ) );
+		exit;
 	}
 
 	/**
@@ -354,47 +541,60 @@ class Newspack_Newsletters_Subscription {
 	 * Endpoint content.
 	 */
 	public static function endpoint_content() {
-		$email       = get_userdata( get_current_user_id() )->user_email;
+		$user_id     = get_current_user_id();
+		$email       = get_userdata( $user_id )->user_email;
 		$list_config = self::get_lists_config();
 		$list_map    = [];
 		$user_lists  = array_flip( self::get_contact_lists( $email ) );
+		$verified    = self::is_email_verified( $user_id );
 		?>
 		<div class="newspack-newsletters__user-subscription">
-			<p>
-				<?php _e( 'Manage the newsletters you are subscribed to.', 'newspack-newsletters' ); ?>
-			</p>
-			<form method="post">
-				<?php wp_nonce_field( self::USER_FORM_ACTION ); ?>
-				<ul>
-					<?php
-					foreach ( $list_config as $list_id => $list ) :
-						$checkbox_id = sprintf( 'newspack-%s-list-checkbox-%s', $block_id, $list_id );
-						?>
-						<li>
-							<span class="newspack-newsletters__lists__checkbox">
-								<input
-									type="checkbox"
-									name="lists[]"
-									value="<?php echo \esc_attr( $list_id ); ?>"
-									id="<?php echo \esc_attr( $checkbox_id ); ?>"
-									<?php if ( isset( $user_lists[ $list_id ] ) ) : ?>
-										checked
-									<?php endif; ?>
-								/>
-							</span>
-							<span class="newspack-newsletters__lists__details">
-								<label class="newspack-newsletters__lists__label" for="<?php echo \esc_attr( $checkbox_id ); ?>">
-									<span class="newspack-newsletters__lists__title">
-										<?php echo \esc_html( $list['title'] ); ?>
-									</span>
-									<span class="newspack-newsletters__lists__description"><?php echo \esc_html( $list['description'] ); ?></span>
-								</label>
-							</span>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-				<button type="submit"><?php _e( 'Update subscriptions', 'newspack-newsletters' ); ?></button>
-			</form>
+			<?php if ( ! $verified ) : ?>
+				<p>
+					<?php esc_html_e( 'Please verify your email address before managing your newsletters subscriptions.', 'newspack-newsletters' ); ?>
+				</p>
+				<p>
+					<a href="<?php echo esc_url( wp_nonce_url( remove_query_arg( self::EMAIL_VERIFIED_REQUEST ), self::EMAIL_VERIFIED_REQUEST, self::EMAIL_VERIFIED_REQUEST ) ); ?>" class="button button-primary">
+						<?php esc_html_e( 'Verify Email', 'newspack-newsletters' ); ?>
+					</a>
+				</p>
+			<?php else : ?>
+				<p>
+					<?php _e( 'Manage the newsletters you are subscribed to.', 'newspack-newsletters' ); ?>
+				</p>
+				<form method="post">
+					<?php wp_nonce_field( self::USER_FORM_ACTION ); ?>
+					<ul>
+						<?php
+						foreach ( $list_config as $list_id => $list ) :
+							$checkbox_id = sprintf( 'newspack-%s-list-checkbox-%s', $block_id, $list_id );
+							?>
+							<li>
+								<span class="newspack-newsletters__lists__checkbox">
+									<input
+										type="checkbox"
+										name="lists[]"
+										value="<?php echo \esc_attr( $list_id ); ?>"
+										id="<?php echo \esc_attr( $checkbox_id ); ?>"
+										<?php if ( isset( $user_lists[ $list_id ] ) ) : ?>
+											checked
+										<?php endif; ?>
+									/>
+								</span>
+								<span class="newspack-newsletters__lists__details">
+									<label class="newspack-newsletters__lists__label" for="<?php echo \esc_attr( $checkbox_id ); ?>">
+										<span class="newspack-newsletters__lists__title">
+											<?php echo \esc_html( $list['title'] ); ?>
+										</span>
+										<span class="newspack-newsletters__lists__description"><?php echo \esc_html( $list['description'] ); ?></span>
+									</label>
+								</span>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<button type="submit"><?php _e( 'Update subscriptions', 'newspack-newsletters' ); ?></button>
+				</form>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
