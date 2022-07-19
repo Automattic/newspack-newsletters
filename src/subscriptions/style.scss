@@ -1,17 +1,14 @@
-@use '~@wordpress/base-styles/colors' as wp-colors;
-
 .newspack-newsletters {
 	&__lists {
 		flex: 1 1 100%;
 		font-size: 0.8rem;
-		border: 1px solid wp-colors.$gray-200;
 		border-radius: 2px;
-		padding: 0.5rem 0 0.5rem 1rem;
 		margin: 0 0 1rem;
 
 		ul {
 			list-style: none;
 			padding: 0;
+			margin: 0;
 			display: flex;
 			flex-wrap: wrap;
 			min-width: 250px;
@@ -32,6 +29,7 @@
 
 		&__title {
 			display: block;
+			font-weight: 600;
 		}
 
 		&__description {
