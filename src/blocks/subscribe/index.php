@@ -69,6 +69,18 @@ function render_block( $attrs ) {
 		$available_lists = [ $lists[0] ];
 	}
 
+	if ( \is_user_logged_in() ) {
+		$email = \wp_get_current_user()->user_email;
+	} elseif ( class_exists( '\Newspack\Reader_Activation' ) ) {
+		try {
+			if ( \Newspack\Reader_Activation::is_enabled() ) {
+				$email = \Newspack\Reader_Activation::get_auth_intention_value();
+			}
+		} catch ( \Throwable $th ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			// Fail silently.
+		}
+	}
+
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
 	if ( isset( $_REQUEST['newspack_newsletters_subscribed'] ) ) {
 		$subscribed = \absint( $_REQUEST['newspack_newsletters_subscribed'] );
