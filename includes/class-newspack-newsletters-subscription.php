@@ -323,6 +323,42 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Update a contact lists subscription.
+	 *
+	 * This method will remove the contact from all subscription lists and add
+	 * them to the specified lists.
+	 *
+	 * @param string   $email Contact email address.
+	 * @param string[] $lists Array of list IDs to subscribe the contact to.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public static function update_contact_lists( $email, $lists = [] ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+		$lists_config    = self::get_lists_config();
+		$lists_to_remove = array_diff( array_keys( $lists_config ), $lists );
+		$lists_to_add    = array_intersect( array_keys( $lists_config ), $lists );
+
+		$result = $provider->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
+
+		/**
+		 * Fires after a contact's lists are updated.
+		 *
+		 * @param string        $provider        The provider name.
+		 * @param string        $email           Contact email address.
+		 * @param string[]      $lists_to_add    Array of list IDs to subscribe the contact to.
+		 * @param string[]      $lists_to_remove Array of list IDs to remove the contact from.
+		 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
+		 */
+		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result );
+
+		return $result;
+	}
+
+	/**
 	 * Get a contact status.
 	 *
 	 * @param string $email The contact email.
@@ -660,8 +696,14 @@ class Newspack_Newsletters_Subscription {
 		if ( ! is_user_logged_in() || ! self::is_email_verified() ) {
 			wc_add_notice( __( 'You must be logged in and verified to update your subscriptions.', 'newspack-newsletters' ), 'error' );
 		} else {
-			$lists = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
-			wc_add_notice( __( 'Your subscriptions were updated.', 'newspack-newsletters' ), 'success' );
+			$email  = get_userdata( get_current_user_id() )->user_email;
+			$lists  = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
+			$result = self::update_contact_lists( $email, $lists );
+			if ( is_wp_error( $result ) ) {
+				wc_add_notice( $result->get_error_message(), 'error' );
+			} else {
+				wc_add_notice( __( 'Your subscriptions were updated.', 'newspack-newsletters' ), 'success' );
+			}
 		}
 	}
 }

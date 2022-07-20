@@ -60,7 +60,15 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
-		return json_decode( $response['body'], true );
+		$response = json_decode( $response['body'], true );
+		if ( isset( $response['errors'] ) && ! empty( $response['errors'] ) ) {
+			$errors = new WP_Error();
+			foreach ( $response['errors'] as $error ) {
+				$errors->add( $error['code'], $error['title'] );
+			}
+			return $errors;
+		}
+		return $response;
 	}
 
 	/**
@@ -703,5 +711,88 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 		}
 		return $lists;
+	}
+
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$contact = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
+		if ( is_wp_error( $contact ) || ! isset( $contact['contacts'], $contact['contacts'][0] ) ) {
+			/** Create contact */
+			$contact = $this->api_v3_request(
+				'contacts',
+				'POST',
+				[
+					'body' => wp_json_encode(
+						[
+							'contact' => [
+								'email' => $email,
+							],
+						]
+					),
+				]
+			);
+			if ( is_wp_error( $contact ) ) {
+				return $contact;
+			}
+			$contact_id = $contact['contact']['id'];
+		} else {
+			$contact         = $contact['contacts'][0];
+			$contact_id      = $contact['id'];
+			$current_lists   = self::get_contact_lists( $email );
+			$lists_to_add    = array_diff( $lists_to_add, $current_lists );
+			$lists_to_remove = array_intersect( $current_lists, $lists_to_remove );
+			/** Set status to "2" (unsubscribed) for lists to remove. */
+			foreach ( $lists_to_remove as $list ) {
+				$result = $this->api_v3_request(
+					'contactLists',
+					'POST',
+					[
+						'body' => wp_json_encode(
+							[
+								'contactList' => [
+									'list'    => $list,
+									'contact' => $contact_id,
+									'status'  => 2,
+								],
+							]
+						),
+					]
+				);
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+			}
+		}
+		/** Set status to "1" (subscribed) for lists to add. */
+		foreach ( $lists_to_add as $list ) {
+			$result = $this->api_v3_request(
+				'contactLists',
+				'POST',
+				[
+					'body' => wp_json_encode(
+						[
+							'contactList' => [
+								'list'     => $list,
+								'contact'  => $contact_id,
+								'status'   => 1,
+								'sourceid' => 4,
+							],
+						]
+					),
+				]
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+		return true;
 	}
 }
