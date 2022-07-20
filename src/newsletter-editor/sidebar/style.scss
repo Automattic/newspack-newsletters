@@ -1,10 +1,10 @@
-@import '~@wordpress/base-styles/colors';
+@use '~@wordpress/base-styles/colors' as wp-colors;
 
 .newspack-newsletters {
 	&__editor-block {
 		&__warning {
 			display: block;
-			color: $gray-900;
+			color: wp-colors.$gray-900;
 			ul {
 				margin: 0 !important;
 			}
@@ -42,7 +42,7 @@
 	}
 
 	&__error input.components-text-control__input {
-		border-color: $alert-red;
+		border-color: wp-colors.$alert-red;
 	}
 
 	&__label {

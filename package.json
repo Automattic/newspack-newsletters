@@ -15,8 +15,8 @@
 		"lint:js:staged": "eslint --ext .js,.jsx",
 		"lint:php": "./vendor/bin/phpcs .",
 		"lint:php:staged": "./vendor/bin/phpcs",
-		"lint:scss": "stylelint '**/*.scss' --syntax scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
-		"lint:scss:staged": "stylelint --syntax scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
+		"lint:scss": "stylelint '**/*.scss' --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
+		"lint:scss:staged": "stylelint --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
 		"format:js": "prettier 'src/**/*.{js,jsx}' --write",
 		"format:scss": "prettier --write 'src/**/*.scss'",
 		"format:php": "./vendor/bin/phpcbf .",
@@ -51,9 +51,10 @@
 		"@rushstack/eslint-patch": "^1.1.4",
 		"eslint": "^7.32.0",
 		"lint-staged": "^13.0.3",
-		"newspack-scripts": "^3.3.2",
+		"newspack-scripts": "^4.3.0",
 		"postcss": "^8.4.14",
-		"prettier": "npm:wp-prettier@^2.2.1-beta-1",
-		"stylelint": "^13.13.1"
+		"postcss-scss": "^4.0.4",
+		"prettier": "npm:wp-prettier@^2.6.2-beta-1",
+		"stylelint": "^14.9.1"
 	}
 }

@@ -1,12 +1,12 @@
-@import '~@wordpress/base-styles/colors';
+@use '~@wordpress/base-styles/colors' as wp-colors;
 
 .newspack-completer-mc-merge-tags {
 	code {
-		color: $gray-900;
+		color: wp-colors.$gray-900;
 		display: inline-block;
 	}
 	p {
-		color: $gray-700;
+		color: wp-colors.$gray-700;
 		font-size: 12px;
 		margin: 8px 0 0;
 	}
