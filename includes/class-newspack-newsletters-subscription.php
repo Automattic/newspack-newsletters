@@ -28,6 +28,8 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 
 		/** User email verification for subscription management. */
+		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
+		add_action( 'password_reset', [ __CLASS__, 'set_current_user_email_verified' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification_request' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification' ] );
 
@@ -399,6 +401,21 @@ class Newspack_Newsletters_Subscription {
 			return update_user_meta( $user_id, self::EMAIL_VERIFIED_META, $verified_emails );
 		}
 		return false;
+	}
+
+	/**
+	 * Set current user's email as verified.
+	 */
+	public static function set_current_user_email_verified() {
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			return;
+		}
+		$email = get_user_by( 'id', $user_id )->user_email;
+		self::set_email_verified( $user_id, $email );
 	}
 
 	/**
