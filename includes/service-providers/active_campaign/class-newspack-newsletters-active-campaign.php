@@ -688,14 +688,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return string[] Contact subscribed lists IDs.
 	 */
 	public function get_contact_lists( $email ) {
-		$contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $email ] ] );
-		if ( is_wp_error( $contact ) ) {
+		$contact = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
+		if ( is_wp_error( $contact ) || ! isset( $contact['contacts'], $contact['contacts'][0] ) ) {
+			return [];
+		}
+		$contact_lists = $this->api_v3_request( 'contacts/' . $contact['contacts'][0]['id'] . '/contactLists' );
+		if ( is_wp_error( $contact_lists ) || ! isset( $contact_lists['contactLists'] ) ) {
 			return [];
 		}
 		$lists = [];
-		foreach ( $contact as $contact_list ) {
-			if ( isset( $contact_list['listid'] ) && isset( $contact_list['status'] ) && 1 === absint( $contact_list['status'] ) ) {
-				$lists[] = $contact_list['listid'];
+		foreach ( $contact_lists['contactLists'] as $list ) {
+			if ( isset( $list['status'] ) && 1 === absint( $list['status'] ) ) {
+				$lists[] = $list['list'];
 			}
 		}
 		return $lists;
