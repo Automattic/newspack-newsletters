@@ -263,6 +263,22 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Whether the current provider setup support subscription management.
+	 *
+	 * @return boolean
+	 */
+	public static function has_subscription_management() {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return false;
+		}
+		if ( ! method_exists( $provider, 'get_contact_lists' ) || ! method_exists( $provider, 'update_contact_lists' ) ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Upserts a contact to lists.
 	 *
 	 * @param array    $contact {
@@ -334,10 +350,10 @@ class Newspack_Newsletters_Subscription {
 	 * @return bool|WP_Error Whether the contact was updated or error.
 	 */
 	public static function update_contact_lists( $email, $lists = [] ) {
-		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		if ( ! self::has_subscription_management() ) {
+			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
+		$provider = Newspack_Newsletters::get_service_provider();
 
 		/** Determine lists to add/remove from existing list config. */
 		$lists_config    = self::get_lists_config();
@@ -377,11 +393,10 @@ class Newspack_Newsletters_Subscription {
 	 * @return string[]|false|WP_Error Contact subscribed list names keyed by ID, false if not found or error.
 	 */
 	public static function get_contact_lists( $email ) {
-		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		if ( ! self::has_subscription_management() ) {
+			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
-		return $provider->get_contact_lists( $email );
+		return Newspack_Newsletters::get_service_provider()->get_contact_lists( $email );
 	}
 
 	/**
@@ -625,6 +640,9 @@ class Newspack_Newsletters_Subscription {
 	 * @return array
 	 */
 	public static function add_menu_item( $menu_items ) {
+		if ( ! self::has_subscription_management() ) {
+			return $menu_items;
+		}
 		$position       = -1;
 		$menu_item_name = __( 'Newsletters', 'newspack-newsletters' );
 		return array_slice( $menu_items, 0, $position, true ) + [ self::WC_ENDPOINT => $menu_item_name ] + array_slice( $menu_items, $position, null, true );
@@ -634,6 +652,9 @@ class Newspack_Newsletters_Subscription {
 	 * Endpoint content.
 	 */
 	public static function endpoint_content() {
+		if ( ! self::has_subscription_management() ) {
+			return;
+		}
 		$user_id  = get_current_user_id();
 		$email    = get_userdata( $user_id )->user_email;
 		$verified = self::is_email_verified();
@@ -702,6 +723,9 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function process_subscription_update() {
 		if ( ! isset( $_POST[ self::SUBSCRIPTION_UPDATE ] ) || ! wp_verify_nonce( sanitize_text_field( $_POST[ self::SUBSCRIPTION_UPDATE ] ), self::SUBSCRIPTION_UPDATE ) ) {
+			return;
+		}
+		if ( ! self::has_subscription_management() ) {
 			return;
 		}
 		if ( ! is_user_logged_in() || ! self::is_email_verified() ) {
