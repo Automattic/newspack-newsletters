@@ -744,11 +744,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 			$contact_id = $contact['contact']['id'];
 		} else {
-			$contact         = $contact['contacts'][0];
-			$contact_id      = $contact['id'];
-			$current_lists   = self::get_contact_lists( $email );
-			$lists_to_add    = array_diff( $lists_to_add, $current_lists );
-			$lists_to_remove = array_intersect( $current_lists, $lists_to_remove );
+			$contact    = $contact['contacts'][0];
+			$contact_id = $contact['id'];
 			/** Set status to "2" (unsubscribed) for lists to remove. */
 			foreach ( $lists_to_remove as $list ) {
 				$result = $this->api_v3_request(

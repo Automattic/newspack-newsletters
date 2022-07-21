@@ -331,16 +331,27 @@ class Newspack_Newsletters_Subscription {
 	 * @param string   $email Contact email address.
 	 * @param string[] $lists Array of list IDs to subscribe the contact to.
 	 *
-	 * @return true|WP_Error True if the contact was updated or error.
+	 * @return bool|WP_Error Whether the contact was updated or error.
 	 */
 	public static function update_contact_lists( $email, $lists = [] ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
+
+		/** Determine lists to add/remove from existing list config. */
 		$lists_config    = self::get_lists_config();
-		$lists_to_remove = array_diff( array_keys( $lists_config ), $lists );
 		$lists_to_add    = array_intersect( array_keys( $lists_config ), $lists );
+		$lists_to_remove = array_diff( array_keys( $lists_config ), $lists );
+
+		/** Clean up lists to add/remove from contact's existing data. */
+		$current_lists   = self::get_contact_lists( $email );
+		$lists_to_add    = array_diff( $lists_to_add, $current_lists );
+		$lists_to_remove = array_intersect( $current_lists, $lists_to_remove );
+
+		if ( empty( $lists_to_add ) && empty( $lists_to_remove ) ) {
+			return false;
+		}
 
 		$result = $provider->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
 
@@ -701,6 +712,8 @@ class Newspack_Newsletters_Subscription {
 			$result = self::update_contact_lists( $email, $lists );
 			if ( is_wp_error( $result ) ) {
 				wc_add_notice( $result->get_error_message(), 'error' );
+			} elseif ( false === $result ) {
+				wc_add_notice( __( 'You must select newsletters to update.', 'newspack-newsletters' ), 'error' );
 			} else {
 				wc_add_notice( __( 'Your subscriptions were updated.', 'newspack-newsletters' ), 'success' );
 			}
