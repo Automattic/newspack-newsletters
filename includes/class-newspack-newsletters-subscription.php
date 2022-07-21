@@ -19,6 +19,7 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
 	}
 
 	/**
@@ -300,6 +301,31 @@ class Newspack_Newsletters_Subscription {
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Handle Newspack's reader registration – add contact to list.
+	 *
+	 * @param string         $email         Email address.
+	 * @param bool           $authenticate  Whether to authenticate after registering.
+	 * @param false|int      $user_id       The created user id.
+	 * @param false|\WP_User $existing_user The existing user object.
+	 * @param false|any      $metadata Metadata.
+	 */
+	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
+		if ( $existing_user ) {
+			// Only sign up if they've just created an account.
+			return;
+		}
+
+		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
+			self::add_contact(
+				[
+					'email' => $email,
+				],
+				$metadata['lists']
+			);
+		}
 	}
 }
 Newspack_Newsletters_Subscription::init();
