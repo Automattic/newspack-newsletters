@@ -313,12 +313,8 @@ class Newspack_Newsletters_Subscription {
 	 * @param array          $metadata      Metadata.
 	 */
 	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
-		if ( $existing_user ) {
-			// Only sign up if they've just created an account.
-			return;
-		}
-
 		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
+			// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 			self::add_contact(
 				[
 					'email' => $email,
