@@ -310,7 +310,7 @@ class Newspack_Newsletters_Subscription {
 	 * @param bool           $authenticate  Whether to authenticate after registering.
 	 * @param false|int      $user_id       The created user id.
 	 * @param false|\WP_User $existing_user The existing user object.
-	 * @param false|any      $metadata Metadata.
+	 * @param array          $metadata      Metadata.
 	 */
 	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
 		if ( $existing_user ) {
