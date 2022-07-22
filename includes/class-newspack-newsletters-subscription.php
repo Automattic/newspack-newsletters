@@ -30,6 +30,7 @@ class Newspack_Newsletters_Subscription {
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
 		add_action( 'password_reset', [ __CLASS__, 'set_current_user_email_verified' ] );
+		add_action( 'newspack_magic_link_authenticated', [ __CLASS__, 'set_current_user_email_verified' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification_request' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification' ] );
 
