@@ -643,8 +643,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		];
 		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
 		if ( ! is_wp_error( $existing_contact ) ) {
-			$action        = 'contact_edit';
-			$payload['id'] = $existing_contact[0]['id'];
+			$action               = 'contact_edit';
+			$payload['id']        = $existing_contact[0]['id'];
+			$payload['overwrite'] = 0;
 		}
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
 			$name_fragments = explode( ' ', $contact['name'], 2 );
