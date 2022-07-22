@@ -686,7 +686,7 @@ class Newspack_Newsletters_Subscription {
 						<ul>
 							<?php
 							foreach ( $list_config as $list_id => $list ) :
-								$checkbox_id = sprintf( 'newspack-%s-list-checkbox-%s', $block_id, $list_id );
+								$checkbox_id = sprintf( 'newspack-newsletters-list-checkbox-%s', $list_id );
 								?>
 								<li>
 									<span class="newspack-newsletters__lists__checkbox">
