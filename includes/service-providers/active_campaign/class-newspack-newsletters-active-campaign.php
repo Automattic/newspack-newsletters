@@ -622,28 +622,32 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Add contact to a list.
+	 * Add contact to a list or update an existing contact.
 	 *
-	 * @param array  $contact      {
-	 *    Contact data.
+	 * @param array        $contact      {
+	 *          Contact data.
 	 *
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string $list_id      List to add the contact to.
+	 * @param string|false $list_id      List to add the contact to.
 	 *
 	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
-	public function add_contact( $contact, $list_id ) {
+	public function add_contact( $contact, $list_id = false ) {
 		if ( ! isset( $contact['metadata'] ) ) {
 			$contact['metadata'] = [];
 		}
-		$action           = 'contact_add';
-		$payload          = [
-			'p[' . $list_id . ']' => $list_id,
-			'email'               => $contact['email'],
+		$action      = 'contact_add';
+		$payload     = [
+			'email' => $contact['email'],
 		];
+
+		$has_list_id = false !== $list_id;
+		if ( $has_list_id ) {
+			$payload[ 'p[' . $list_id . ']' ] = $list_id;
+		}
 		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
 		if ( is_wp_error( $existing_contact ) ) {
 			// Is a new contact.
@@ -697,11 +701,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'POST',
 					[
 						'body' => [
-							'p[' . $list_id . ']' => $list_id,
-							'title'               => $field_title,
-							'req'                 => 0, // Whether it's a required field.
-							'type'                => 1, // 1 = Text field.
-							'perstag'             => $field_pers_tag,
+							'p[0]'    => 0, // Associate with all lists.
+							'title'   => $field_title,
+							'req'     => 0, // Whether it's a required field.
+							'type'    => 1, // 1 = Text field.
+							'perstag' => $field_pers_tag,
 						],
 					]
 				);
