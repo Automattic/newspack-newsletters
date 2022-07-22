@@ -639,8 +639,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! isset( $contact['metadata'] ) ) {
 			$contact['metadata'] = [];
 		}
-		$action      = 'contact_add';
-		$payload     = [
+		$action  = 'contact_add';
+		$payload = [
 			'email' => $contact['email'],
 		];
 
@@ -651,12 +651,15 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
 		if ( is_wp_error( $existing_contact ) ) {
 			// Is a new contact.
-			$contact['metadata']['Registered'] = gmdate( 'm/d/Y' );
+			$existing_contact = false;
 		} else {
 			$action               = 'contact_edit';
 			$payload['id']        = $existing_contact[0]['id'];
 			$payload['overwrite'] = 0;
 		}
+
+		$contact = apply_filters( 'newspack_newsletters_active_campaign_add_contact_data', $contact, $list_id, $existing_contact );
+
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
 			$name_fragments = explode( ' ', $contact['name'], 2 );
 			$payload        = array_merge(
@@ -667,6 +670,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				]
 			);
 		}
+
 		/** Register metadata fields. */
 		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
 			$metadata_prefix = apply_filters( 'newspack_newsletters_active_campaign_metadata_prefix', '' );
