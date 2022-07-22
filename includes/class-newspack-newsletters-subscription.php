@@ -40,6 +40,7 @@ class Newspack_Newsletters_Subscription {
 		add_filter( 'woocommerce_account_menu_items', [ __CLASS__, 'add_menu_item' ], 20 );
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
+		add_action( 'admin_init', [ __CLASS__, 'flush_rewrite_rules' ] );
 	}
 
 	/**
@@ -631,6 +632,17 @@ class Newspack_Newsletters_Subscription {
 	public static function add_query_var( $vars ) {
 		$vars[] = self::WC_ENDPOINT;
 		return $vars;
+	}
+
+	/**
+	 * Flush rewrite rules for WC_ENDPOINT.
+	 */
+	public static function flush_rewrite_rules() {
+		$option_name = 'newspack_newsletters_has_flushed_rewrite_rules';
+		if ( ! get_option( $option_name ) ) {
+			flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
+			update_option( $option_name, true );
+		}
 	}
 
 	/**
