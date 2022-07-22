@@ -657,8 +657,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			);
 		}
 		/** Register metadata fields. */
-		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] && ! empty( $contact['metadata'] ) ) ) {
-			foreach ( $metadata as $key => $value ) {
+		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
+			foreach ( $contact['metadata'] as $key => $value ) {
 				$key_tag = strtoupper( str_replace( '-', '_', sanitize_title( $key ) ) );
 				$value   = (string) $value;
 				/** Optimistically add field. The API handles duplicates automatically. */
@@ -675,7 +675,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 						],
 					]
 				);
-				$payload[ 'field[' . $key_tag . ',0]' ] = $value; // Per ESP documentation, "leave 0 as is".
+				$payload[ 'field[%' . $key_tag . '%,0]' ] = $value; // Per ESP documentation, "leave 0 as is".
 			}
 		}
 		$result = $this->api_v1_request(
