@@ -636,13 +636,19 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id ) {
+		if ( ! isset( $contact['metadata'] ) ) {
+			$contact['metadata'] = [];
+		}
 		$action           = 'contact_add';
 		$payload          = [
 			'p[' . $list_id . ']' => $list_id,
 			'email'               => $contact['email'],
 		];
 		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
-		if ( ! is_wp_error( $existing_contact ) ) {
+		if ( is_wp_error( $existing_contact ) ) {
+			// Is a new contact.
+			$contact['metadata']['Registered'] = gmdate( 'm/d/Y' );
+		} else {
 			$action               = 'contact_edit';
 			$payload['id']        = $existing_contact[0]['id'];
 			$payload['overwrite'] = 0;
@@ -659,9 +665,32 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		/** Register metadata fields. */
 		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-			foreach ( $contact['metadata'] as $key => $value ) {
-				$key_tag = strtoupper( str_replace( '-', '_', sanitize_title( $key ) ) );
-				$value   = (string) $value;
+			$metadata_prefix = 'NP_';
+			foreach ( $contact['metadata'] as $field_title => $value ) {
+				if ( isset( $contact['_metadata_fields_active_campaign_map'], $contact['_metadata_fields_active_campaign_map'][ $field_title ] ) ) {
+					// Allow to override default title to pers. tag mapping.
+					$field_pers_tag = $contact['_metadata_fields_active_campaign_map'][ $field_title ];
+				} else {
+					$field_pers_tag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
+				}
+
+				$field_title    = $metadata_prefix . $field_title;
+				$field_pers_tag = $metadata_prefix . $field_pers_tag;
+
+				// Handle special fields.
+				if ( str_ends_with( $field_pers_tag, 'NEWSLETTER_SELECTION' ) ) {
+					$lists_names = [];
+					$lists       = $this->get_lists();
+					foreach ( explode( ',', $value ) as $selected_list_id ) {
+						foreach ( $lists as $list ) {
+							if ( $list['id'] === $selected_list_id ) {
+								$lists_names[] = $list['name'];
+							}
+						}
+					}
+					$value = implode( ', ', $lists_names );
+				}
+
 				/** Optimistically add field. The API handles duplicates automatically. */
 				$this->api_v1_request(
 					'list_field_add',
@@ -669,14 +698,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					[
 						'body' => [
 							'p[' . $list_id . ']' => $list_id,
-							'title'               => $key,
+							'title'               => $field_title,
 							'req'                 => 0, // Whether it's a required field.
 							'type'                => 1, // 1 = Text field.
-							'perstag'             => $key_tag,
+							'perstag'             => $field_pers_tag,
 						],
 					]
 				);
-				$payload[ 'field[%' . $key_tag . '%,0]' ] = $value; // Per ESP documentation, "leave 0 as is".
+				$payload[ 'field[%' . $field_pers_tag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
 			}
 		}
 		$result = $this->api_v1_request(

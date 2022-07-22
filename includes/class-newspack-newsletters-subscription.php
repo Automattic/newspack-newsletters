@@ -308,6 +308,8 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
+		$contact = apply_filters( 'newspack_newsletters_add_contact_data', $contact, $lists );
+
 		$errors = new WP_Error();
 
 		foreach ( $lists as $list_id ) {
