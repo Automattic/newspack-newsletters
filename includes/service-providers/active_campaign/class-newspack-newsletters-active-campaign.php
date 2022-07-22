@@ -669,7 +669,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		/** Register metadata fields. */
 		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-			$metadata_prefix = 'NP_';
+			$metadata_prefix = apply_filters( 'newspack_newsletters_active_campaign_metadata_prefix', '' );
 			foreach ( $contact['metadata'] as $field_title => $value ) {
 				if ( isset( $contact['_metadata_fields_active_campaign_map'], $contact['_metadata_fields_active_campaign_map'][ $field_title ] ) ) {
 					// Allow to override default title to pers. tag mapping.
