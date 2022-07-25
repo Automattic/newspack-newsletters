@@ -308,6 +308,21 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
+		/**
+		 * Filters the contact before passing on to the API.
+		 *
+		 * @param string        $provider The provider name.
+		 * @param array         $contact  {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]      $lists    Array of list IDs to subscribe the contact to.
+		 */
+		$contact = apply_filters( 'newspack_newsletters_contact_data', $provider->service, $contact, $lists );
+
 		$errors = new WP_Error();
 
 		foreach ( $lists as $list_id ) {

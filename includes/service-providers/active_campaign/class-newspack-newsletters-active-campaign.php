@@ -658,8 +658,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$payload['overwrite'] = 0;
 		}
 
-		$contact = apply_filters( 'newspack_newsletters_active_campaign_add_contact_data', $contact, $list_id, $existing_contact );
-
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
 			$name_fragments = explode( ' ', $contact['name'], 2 );
 			$payload        = array_merge(
@@ -675,21 +673,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
 			foreach ( $contact['metadata'] as $field_title => $value ) {
 				$field_pers_tag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
-
-				// Handle special fields.
-				if ( str_ends_with( $field_pers_tag, 'NEWSLETTER_SELECTION' ) ) {
-					$lists_names = [];
-					$lists       = $this->get_lists();
-					foreach ( explode( ',', $value ) as $selected_list_id ) {
-						foreach ( $lists as $list ) {
-							if ( $list['id'] === $selected_list_id ) {
-								$lists_names[] = $list['name'];
-							}
-						}
-					}
-					$value = implode( ', ', $lists_names );
-				}
-
 				/** Optimistically add field. The API handles duplicates automatically. */
 				$this->api_v1_request(
 					'list_field_add',
