@@ -26,6 +26,7 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
 
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
@@ -338,6 +339,27 @@ class Newspack_Newsletters_Subscription {
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Handle Newspack's reader registration – add contact to list.
+	 *
+	 * @param string         $email         Email address.
+	 * @param bool           $authenticate  Whether to authenticate after registering.
+	 * @param false|int      $user_id       The created user id.
+	 * @param false|\WP_User $existing_user The existing user object.
+	 * @param array          $metadata      Metadata.
+	 */
+	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
+		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
+			// Adding is actually upserting, so no need to check if the hook is called for an existing user.
+			self::add_contact(
+				[
+					'email' => $email,
+				],
+				$metadata['lists']
+			);
+		}
 	}
 
 	/**
