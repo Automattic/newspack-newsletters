@@ -102,4 +102,15 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	 * @return bool|WP_Error True if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id );
+
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] );
 }
