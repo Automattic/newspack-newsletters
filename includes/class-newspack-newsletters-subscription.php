@@ -282,6 +282,30 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Get contact data by email.
+	 *
+	 * @param string $email_address Email address.
+	 *
+	 * @return array|WP_Error Response or error.
+	 */
+	public static function existing_contact_data( $email_address ) {
+		if ( ! $email_address || empty( $email_address ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'No lists specified.' ) );
+		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+
+		if ( ! method_exists( $provider, 'existing_contact_data' ) ) {
+			return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Provider does not handle the contact-exists check.' ) );
+		}
+
+		return $provider->existing_contact_data( $email_address );
+	}
+
+	/**
 	 * Upserts a contact to lists.
 	 *
 	 * @param array    $contact {

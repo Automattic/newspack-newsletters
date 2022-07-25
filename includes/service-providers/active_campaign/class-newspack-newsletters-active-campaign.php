@@ -648,13 +648,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( $has_list_id ) {
 			$payload[ 'p[' . $list_id . ']' ] = $list_id;
 		}
-		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
+		$existing_contact = $this->existing_contact_data( $contact['email'] );
 		if ( is_wp_error( $existing_contact ) ) {
 			// Is a new contact.
 			$existing_contact = false;
 		} else {
 			$action               = 'contact_edit';
-			$payload['id']        = $existing_contact[0]['id'];
+			$payload['id']        = $existing_contact['id'];
 			$payload['overwrite'] = 0;
 		}
 
@@ -803,5 +803,23 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Get contact data by email.
+	 *
+	 * @param string $email_address Email address.
+	 *
+	 * @return array|WP_Error Response or error.
+	 */
+	public function existing_contact_data( $email_address ) {
+		$results = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $email_address ] ] );
+		if ( is_wp_error( $results ) ) {
+			return $results;
+		}
+		if ( empty( $results ) ) {
+			return new WP_Error( 'newspack_newsletters', __( 'No contact data found.' ) );
+		}
+		return $results[0];
 	}
 }
