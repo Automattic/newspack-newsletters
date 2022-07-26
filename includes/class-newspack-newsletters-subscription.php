@@ -315,16 +315,13 @@ class Newspack_Newsletters_Subscription {
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string[] $lists   Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists   Array of list IDs to subscribe the contact to. If empty, contact will be created but not subscribed to any lists.
 	 *
-	 * @return bool|WP_Error Whether the contact was added or error.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public static function add_contact( $contact, $lists = [] ) {
 		if ( ! is_array( $lists ) ) {
 			$lists = [ $lists ];
-		}
-		if ( empty( $lists ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'No lists specified.' ) );
 		}
 
 		$provider = Newspack_Newsletters::get_service_provider();
@@ -349,15 +346,23 @@ class Newspack_Newsletters_Subscription {
 
 		$errors = new WP_Error();
 
-		foreach ( $lists as $list_id ) {
+		if ( empty( $lists ) ) {
 			try {
-				$result = $provider->add_contact( $contact, $list_id );
+				$result = $provider->add_contact( $contact );
 			} catch ( \Exception $e ) {
 				$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
 			}
-			if ( is_wp_error( $result ) ) {
-				$errors->add( $result->get_error_code(), $result->get_error_message() );
+		} else {
+			foreach ( $lists as $list_id ) {
+				try {
+					$result = $provider->add_contact( $contact, $list_id );
+				} catch ( \Exception $e ) {
+					$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
+				}
 			}
+		}
+		if ( is_wp_error( $result ) ) {
+			$errors->add( $result->get_error_code(), $result->get_error_message() );
 		}
 		$result = $errors->has_errors() ? $errors : $result;
 

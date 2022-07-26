@@ -248,7 +248,7 @@ function process_form() {
 	 * Fires after subscribing a user to a list.
 	 *
 	 * @param string         $email  Email address of the reader.
-	 * @param bool|\WP_Error $result Whether the contact was added or error.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result );
 

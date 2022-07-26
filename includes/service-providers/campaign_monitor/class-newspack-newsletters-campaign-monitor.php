@@ -572,7 +572,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
-	 * @return bool|WP_Error True if the contact was added or error if failed.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public function add_contact( $contact, $list_id ) {
 		try {
@@ -623,6 +623,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				} else {
 					$result = $cm_subscribers->add( $update_payload );
 				};
+				return $result;
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(

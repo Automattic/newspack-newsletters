@@ -798,9 +798,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
-	 * @return bool|WP_Error True if the contact was added or error if failed.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	public function add_contact( $contact, $list_id ) {
+	public function add_contact( $contact, $list_id = false ) {
+		if ( false === $list_id ) {
+			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
+		}
 		try {
 			$mc             = new Mailchimp( $this->api_key() );
 			$email_address  = $contact['email'];
@@ -881,6 +884,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$e->getMessage()
 			);
 		}
-		return true;
+		return $result;
 	}
 }
