@@ -1,3 +1,17 @@
+# [1.49.0](https://github.com/Automattic/newspack-newsletters/compare/v1.48.0...v1.49.0) (2022-07-26)
+
+
+### Features
+
+* subscription lists and subscription block ([#873](https://github.com/Automattic/newspack-newsletters/issues/873)) ([815a630](https://github.com/Automattic/newspack-newsletters/commit/815a63049b8abae75d86864d9def37db18a53fd0))
+
+# [1.49.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.48.0...v1.49.0-alpha.1) (2022-07-14)
+
+
+### Features
+
+* subscription lists and subscription block ([#873](https://github.com/Automattic/newspack-newsletters/issues/873)) ([815a630](https://github.com/Automattic/newspack-newsletters/commit/815a63049b8abae75d86864d9def37db18a53fd0))
+
 # [1.48.0](https://github.com/Automattic/newspack-newsletters/compare/v1.47.2...v1.48.0) (2022-07-11)
 
 
