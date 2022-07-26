@@ -145,7 +145,7 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Get the lists available for subscription.
 	 *
-	 * @return array Lists.
+	 * @return array|WP_Error Lists or error.
 	 */
 	public static function get_lists() {
 		$provider = Newspack_Newsletters::get_service_provider();
