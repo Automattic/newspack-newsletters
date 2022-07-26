@@ -239,7 +239,10 @@ function process_form() {
 
 	$result = \Newspack_Newsletters_Subscription::add_contact(
 		[
-			'email' => $email,
+			'email'    => $email,
+			'metadata' => [
+				'current_page_url' => home_url( add_query_arg( array(), \wp_get_referer() ) ),
+			],
 		],
 		$lists
 	);
