@@ -414,7 +414,8 @@ class Newspack_Newsletters_Subscription {
 			// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 			self::add_contact(
 				[
-					'email' => $email,
+					'email'           => $email,
+					'passed_metadata' => $metadata,
 				],
 				$metadata['lists']
 			);
