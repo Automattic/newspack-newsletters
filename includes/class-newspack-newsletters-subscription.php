@@ -290,7 +290,7 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function existing_contact_data( $email_address ) {
 		if ( ! $email_address || empty( $email_address ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'No lists specified.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.' ) );
 		}
 
 		$provider = Newspack_Newsletters::get_service_provider();
