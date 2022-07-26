@@ -330,6 +330,21 @@ class Newspack_Newsletters_Subscription {
 		}
 
 		/**
+		 * Fires before a contact is added.
+		 *
+		 * @param string        $provider The provider name.
+		 * @param array         $contact  {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]      $lists    Array of list IDs to subscribe the contact to.
+		 */
+		do_action( 'newspack_newsletters_before_add_contact', $provider->service, $contact, $lists );
+
+		/**
 		 * Filters the contact before passing on to the API.
 		 *
 		 * @param string        $provider The provider name.
