@@ -401,7 +401,7 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
-	 * Handle Newspack's reader registration – add contact to ESP.
+	 * Add a contact to ESP when a reader is registered.
 	 *
 	 * @param string         $email         Email address.
 	 * @param bool           $authenticate  Whether to authenticate after registering.
