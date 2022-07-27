@@ -401,7 +401,7 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
-	 * Handle Newspack's reader registration – add contact to list.
+	 * Handle Newspack's reader registration – add contact to ESP.
 	 *
 	 * @param string         $email         Email address.
 	 * @param bool           $authenticate  Whether to authenticate after registering.
@@ -413,15 +413,17 @@ class Newspack_Newsletters_Subscription {
 		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
 			$lists = $metadata['lists'];
 			unset( $metadata['lists'] );
-			// Adding is actually upserting, so no need to check if the hook is called for an existing user.
-			self::add_contact(
-				[
-					'email'    => $email,
-					'metadata' => $metadata,
-				],
-				$lists
-			);
+		} else {
+			$lists = [];
 		}
+		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
+		self::add_contact(
+			[
+				'email'    => $email,
+				'metadata' => $metadata,
+			],
+			$lists
+		);
 	}
 
 	/**
