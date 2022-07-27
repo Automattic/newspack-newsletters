@@ -701,18 +701,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Get a contact status.
+	 * Get the lists a contact is subscribed to.
 	 *
 	 * @param string $email The contact email.
 	 *
 	 * @return string[] Contact subscribed lists IDs.
 	 */
 	public function get_contact_lists( $email ) {
-		$contact = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
-		if ( is_wp_error( $contact ) || ! isset( $contact['contacts'], $contact['contacts'][0] ) ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
 			return [];
 		}
-		$contact_lists = $this->api_v3_request( 'contacts/' . $contact['contacts'][0]['id'] . '/contactLists' );
+		$contact_lists = $this->api_v3_request( 'contacts/' . $contact['id'] . '/contactLists' );
 		if ( is_wp_error( $contact_lists ) || ! isset( $contact_lists['contactLists'] ) ) {
 			return [];
 		}
@@ -738,7 +738,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			/** Create contact */
-			// Call Newspack_Newsletters_Subscription's method, so the appropriate hooks are called.
+			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
+			// so the appropriate hooks are called.
 			$contact_id = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ] );
 			if ( is_wp_error( $contact_id ) ) {
 				return $contact_id;
@@ -795,18 +796,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Get contact data by email.
 	 *
-	 * @param string $email_address Email address.
+	 * @param string $email Email address.
 	 *
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
-	public function get_contact_data( $email_address ) {
-		$results = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $email_address ] ] );
-		if ( is_wp_error( $results ) ) {
-			return $results;
+	public function get_contact_data( $email ) {
+		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
-		if ( empty( $results ) ) {
+		if ( ! isset( $result['contacts'], $result['contacts'][0] ) ) {
 			return new WP_Error( 'newspack_newsletters', __( 'No contact data found.' ) );
 		}
-		return $results[0];
+		return $result['contacts'][0];
 	}
 }
