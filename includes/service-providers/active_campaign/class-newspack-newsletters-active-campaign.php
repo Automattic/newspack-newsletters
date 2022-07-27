@@ -798,10 +798,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * Get contact data by email.
 	 *
 	 * @param string $email Email address.
+	 * @param bool   $return_details Fetch full contact data.
 	 *
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
-	public function get_contact_data( $email ) {
+	public function get_contact_data( $email, $return_details = false ) {
 		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -809,6 +810,30 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! isset( $result['contacts'], $result['contacts'][0] ) ) {
 			return new WP_Error( 'newspack_newsletters', __( 'No contact data found.' ) );
 		}
-		return $result['contacts'][0];
+		$contact_data = $result['contacts'][0];
+		if ( $return_details ) {
+			$fields_result            = $this->api_v3_request( 'fields', 'GET' );
+			$fields                   = array_reduce(
+				$fields_result['fields'],
+				function( $acc, $field ) {
+					$acc[ $field['id'] ] = $field['perstag'];
+					return $acc;
+				},
+				[]
+			);
+			$contact_result           = $this->api_v3_request( 'contacts/' . $contact_data['id'], 'GET' );
+			$contact_fields           = array_reduce(
+				$contact_result['fieldValues'],
+				function( $acc, $field ) use ( $fields ) {
+					if ( isset( $field['value'] ) && isset( $fields[ $field['field'] ] ) ) {
+						$acc[ $fields[ $field['field'] ] ] = $field['value'];
+					}
+					return $acc;
+				},
+				[]
+			);
+			$contact_data['metadata'] = $contact_fields;
+		}
+		return $contact_data;
 	}
 }

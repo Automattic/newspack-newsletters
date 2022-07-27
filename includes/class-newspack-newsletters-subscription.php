@@ -285,10 +285,11 @@ class Newspack_Newsletters_Subscription {
 	 * Get contact data by email.
 	 *
 	 * @param string $email_address Email address.
+	 * @param bool   $return_details Fetch full contact data.
 	 *
 	 * @return array|WP_Error Response or error.
 	 */
-	public static function get_contact_data( $email_address ) {
+	public static function get_contact_data( $email_address, $return_details ) {
 		if ( ! $email_address || empty( $email_address ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.' ) );
 		}
@@ -302,7 +303,7 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Provider does not handle the contact-exists check.' ) );
 		}
 
-		return $provider->get_contact_data( $email_address );
+		return $provider->get_contact_data( $email_address, $return_details );
 	}
 
 	/**
