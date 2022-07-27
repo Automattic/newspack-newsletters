@@ -633,7 +633,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * }
 	 * @param string|false $list_id      List to add the contact to.
 	 *
-	 * @return int|WP_Error Contact ID if the contact was added or error if failed.
+	 * @return array|WP_Error Contact data if the contact was added or error if failed.
 	 */
 	public function add_contact( $contact, $list_id = false ) {
 		if ( ! isset( $contact['metadata'] ) ) {
@@ -697,7 +697,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'body' => $payload,
 			]
 		);
-		return is_wp_error( $result ) ? $result : $result['subscriber_id'];
+		return is_wp_error( $result ) ? $result : [ 'id' => $result['subscriber_id'] ];
 	}
 
 	/**
@@ -740,10 +740,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			/** Create contact */
 			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
 			// so the appropriate hooks are called.
-			$contact_id = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ] );
-			if ( is_wp_error( $contact_id ) ) {
-				return $contact_id;
+			$contact_data = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ] );
+			if ( is_wp_error( $contact_data ) ) {
+				return $contact_data;
 			}
+			$contact_id = $contact_data['id'];
 		} else {
 			$contact_id = $existing_contact['id'];
 			/** Set status to "2" (unsubscribed) for lists to remove. */
