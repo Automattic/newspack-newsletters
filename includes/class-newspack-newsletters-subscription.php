@@ -288,7 +288,7 @@ class Newspack_Newsletters_Subscription {
 	 *
 	 * @return array|WP_Error Response or error.
 	 */
-	public static function existing_contact_data( $email_address ) {
+	public static function get_contact_data( $email_address ) {
 		if ( ! $email_address || empty( $email_address ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.' ) );
 		}
@@ -298,11 +298,11 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
-		if ( ! method_exists( $provider, 'existing_contact_data' ) ) {
+		if ( ! method_exists( $provider, 'get_contact_data' ) ) {
 			return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Provider does not handle the contact-exists check.' ) );
 		}
 
-		return $provider->existing_contact_data( $email_address );
+		return $provider->get_contact_data( $email_address );
 	}
 
 	/**

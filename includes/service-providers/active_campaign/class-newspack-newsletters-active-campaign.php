@@ -648,7 +648,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( $has_list_id ) {
 			$payload[ 'p[' . $list_id . ']' ] = $list_id;
 		}
-		$existing_contact = $this->existing_contact_data( $contact['email'] );
+		$existing_contact = $this->get_contact_data( $contact['email'] );
 		if ( is_wp_error( $existing_contact ) ) {
 			// Is a new contact.
 			$existing_contact = false;
@@ -735,7 +735,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return true|WP_Error True if the contact was updated or error.
 	 */
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
-		$existing_contact = $this->existing_contact_data( $email );
+		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			/** Create contact */
 			// Call Newspack_Newsletters_Subscription's method, so the appropriate hooks are called.
@@ -799,7 +799,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
-	public function existing_contact_data( $email_address ) {
+	public function get_contact_data( $email_address ) {
 		$results = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $email_address ] ] );
 		if ( is_wp_error( $results ) ) {
 			return $results;
