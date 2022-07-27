@@ -622,30 +622,42 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Add contact to a list.
+	 * Add contact to a list or update an existing contact.
 	 *
-	 * @param array  $contact      {
-	 *    Contact data.
+	 * @param array        $contact      {
+	 *          Contact data.
 	 *
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string $list_id      List to add the contact to.
+	 * @param string|false $list_id      List to add the contact to.
 	 *
-	 * @return bool|WP_Error True if the contact was added or error if failed.
+	 * @return array|WP_Error Contact data if the contact was added or error if failed.
 	 */
-	public function add_contact( $contact, $list_id ) {
-		$action           = 'contact_add';
-		$payload          = [
-			'p[' . $list_id . ']' => $list_id,
-			'email'               => $contact['email'],
-		];
-		$existing_contact = $this->api_v1_request( 'contact_list', 'GET', [ 'query' => [ 'filters[email]' => $contact['email'] ] ] );
-		if ( ! is_wp_error( $existing_contact ) ) {
-			$action        = 'contact_edit';
-			$payload['id'] = $existing_contact[0]['id'];
+	public function add_contact( $contact, $list_id = false ) {
+		if ( ! isset( $contact['metadata'] ) ) {
+			$contact['metadata'] = [];
 		}
+		$action  = 'contact_add';
+		$payload = [
+			'email' => $contact['email'],
+		];
+
+		$has_list_id = false !== $list_id;
+		if ( $has_list_id ) {
+			$payload[ 'p[' . $list_id . ']' ] = $list_id;
+		}
+		$existing_contact = $this->get_contact_data( $contact['email'] );
+		if ( is_wp_error( $existing_contact ) ) {
+			// Is a new contact.
+			$existing_contact = false;
+		} else {
+			$action               = 'contact_edit';
+			$payload['id']        = $existing_contact['id'];
+			$payload['overwrite'] = 0;
+		}
+
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
 			$name_fragments = explode( ' ', $contact['name'], 2 );
 			$payload        = array_merge(
@@ -656,26 +668,26 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				]
 			);
 		}
+
 		/** Register metadata fields. */
-		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] && ! empty( $contact['metadata'] ) ) ) {
-			foreach ( $metadata as $key => $value ) {
-				$key_tag = strtoupper( str_replace( '-', '_', sanitize_title( $key ) ) );
-				$value   = (string) $value;
+		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
+			foreach ( $contact['metadata'] as $field_title => $value ) {
+				$field_pers_tag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
 				/** Optimistically add field. The API handles duplicates automatically. */
 				$this->api_v1_request(
 					'list_field_add',
 					'POST',
 					[
 						'body' => [
-							'p[' . $list_id . ']' => $list_id,
-							'title'               => $key,
-							'req'                 => 0, // Whether it's a required field.
-							'type'                => 1, // 1 = Text field.
-							'perstag'             => $key_tag,
+							'p[0]'    => 0, // Associate with all lists.
+							'title'   => $field_title,
+							'req'     => 0, // Whether it's a required field.
+							'type'    => 1, // 1 = Text field.
+							'perstag' => $field_pers_tag,
 						],
 					]
 				);
-				$payload[ 'field[' . $key_tag . ',0]' ] = $value; // Per ESP documentation, "leave 0 as is".
+				$payload[ 'field[%' . $field_pers_tag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
 			}
 		}
 		$result = $this->api_v1_request(
@@ -685,22 +697,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'body' => $payload,
 			]
 		);
-		return is_wp_error( $result ) ? $result : true;
+		return is_wp_error( $result ) ? $result : [ 'id' => $result['subscriber_id'] ];
 	}
 
 	/**
-	 * Get a contact status.
+	 * Get the lists a contact is subscribed to.
 	 *
 	 * @param string $email The contact email.
 	 *
 	 * @return string[] Contact subscribed lists IDs.
 	 */
 	public function get_contact_lists( $email ) {
-		$contact = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
-		if ( is_wp_error( $contact ) || ! isset( $contact['contacts'], $contact['contacts'][0] ) ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
 			return [];
 		}
-		$contact_lists = $this->api_v3_request( 'contacts/' . $contact['contacts'][0]['id'] . '/contactLists' );
+		$contact_lists = $this->api_v3_request( 'contacts/' . $contact['id'] . '/contactLists' );
 		if ( is_wp_error( $contact_lists ) || ! isset( $contact_lists['contactLists'] ) ) {
 			return [];
 		}
@@ -723,29 +735,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return true|WP_Error True if the contact was updated or error.
 	 */
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
-		$contact = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
-		if ( is_wp_error( $contact ) || ! isset( $contact['contacts'], $contact['contacts'][0] ) ) {
+		$existing_contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $existing_contact ) ) {
 			/** Create contact */
-			$contact = $this->api_v3_request(
-				'contacts',
-				'POST',
-				[
-					'body' => wp_json_encode(
-						[
-							'contact' => [
-								'email' => $email,
-							],
-						]
-					),
-				]
-			);
-			if ( is_wp_error( $contact ) ) {
-				return $contact;
+			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
+			// so the appropriate hooks are called.
+			$contact_data = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ] );
+			if ( is_wp_error( $contact_data ) ) {
+				return $contact_data;
 			}
-			$contact_id = $contact['contact']['id'];
+			$contact_id = $contact_data['id'];
 		} else {
-			$contact    = $contact['contacts'][0];
-			$contact_id = $contact['id'];
+			$contact_id = $existing_contact['id'];
 			/** Set status to "2" (unsubscribed) for lists to remove. */
 			foreach ( $lists_to_remove as $list ) {
 				$result = $this->api_v3_request(
@@ -791,5 +792,23 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Get contact data by email.
+	 *
+	 * @param string $email Email address.
+	 *
+	 * @return array|WP_Error Response or error if contact was not found.
+	 */
+	public function get_contact_data( $email ) {
+		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( ! isset( $result['contacts'], $result['contacts'][0] ) ) {
+			return new WP_Error( 'newspack_newsletters', __( 'No contact data found.' ) );
+		}
+		return $result['contacts'][0];
 	}
 }

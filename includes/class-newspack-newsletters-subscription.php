@@ -145,7 +145,7 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Get the lists available for subscription.
 	 *
-	 * @return array Lists.
+	 * @return array|WP_Error Lists or error.
 	 */
 	public static function get_lists() {
 		$provider = Newspack_Newsletters::get_service_provider();
@@ -282,6 +282,30 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Get contact data by email.
+	 *
+	 * @param string $email_address Email address.
+	 *
+	 * @return array|WP_Error Response or error.
+	 */
+	public static function get_contact_data( $email_address ) {
+		if ( ! $email_address || empty( $email_address ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.' ) );
+		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+
+		if ( ! method_exists( $provider, 'get_contact_data' ) ) {
+			return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Provider does not handle the contact-exists check.' ) );
+		}
+
+		return $provider->get_contact_data( $email_address );
+	}
+
+	/**
 	 * Upserts a contact to lists.
 	 *
 	 * @param array    $contact {
@@ -291,16 +315,13 @@ class Newspack_Newsletters_Subscription {
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string[] $lists   Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists   Array of list IDs to subscribe the contact to. If empty, contact will be created but not subscribed to any lists.
 	 *
-	 * @return bool|WP_Error Whether the contact was added or error.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public static function add_contact( $contact, $lists = [] ) {
 		if ( ! is_array( $lists ) ) {
 			$lists = [ $lists ];
-		}
-		if ( empty( $lists ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'No lists specified.' ) );
 		}
 
 		$provider = Newspack_Newsletters::get_service_provider();
@@ -308,17 +329,40 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
+		/**
+		 * Filters the contact before passing on to the API.
+		 *
+		 * @param string        $provider The provider name.
+		 * @param array         $contact  {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]      $lists    Array of list IDs to subscribe the contact to.
+		 */
+		$contact = apply_filters( 'newspack_newsletters_contact_data', $provider->service, $contact, $lists );
+
 		$errors = new WP_Error();
 
-		foreach ( $lists as $list_id ) {
+		if ( empty( $lists ) ) {
 			try {
-				$result = $provider->add_contact( $contact, $list_id );
+				$result = $provider->add_contact( $contact );
 			} catch ( \Exception $e ) {
 				$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
 			}
-			if ( is_wp_error( $result ) ) {
-				$errors->add( $result->get_error_code(), $result->get_error_message() );
+		} else {
+			foreach ( $lists as $list_id ) {
+				try {
+					$result = $provider->add_contact( $contact, $list_id );
+				} catch ( \Exception $e ) {
+					$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
+				}
 			}
+		}
+		if ( is_wp_error( $result ) ) {
+			$errors->add( $result->get_error_code(), $result->get_error_message() );
 		}
 		$result = $errors->has_errors() ? $errors : $result;
 
@@ -342,7 +386,7 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
-	 * Handle Newspack's reader registration – add contact to list.
+	 * Add a contact to ESP when a reader is registered.
 	 *
 	 * @param string         $email         Email address.
 	 * @param bool           $authenticate  Whether to authenticate after registering.
@@ -352,14 +396,19 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
 		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
-			// Adding is actually upserting, so no need to check if the hook is called for an existing user.
-			self::add_contact(
-				[
-					'email' => $email,
-				],
-				$metadata['lists']
-			);
+			$lists = $metadata['lists'];
+			unset( $metadata['lists'] );
+		} else {
+			$lists = [];
 		}
+		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
+		self::add_contact(
+			[
+				'email'    => $email,
+				'metadata' => $metadata,
+			],
+			$lists
+		);
 	}
 
 	/**
