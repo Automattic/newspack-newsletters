@@ -25,7 +25,7 @@ class Newspack_Newsletters_Logger {
 		if ( class_exists( '\Newspack\Logger' ) ) {
 			\Newspack\Logger::log( $payload, $header );
 		} else {
-			error_log( '[' . $header . ']: ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( '[' . $header . ']: ' . $payload ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 }
