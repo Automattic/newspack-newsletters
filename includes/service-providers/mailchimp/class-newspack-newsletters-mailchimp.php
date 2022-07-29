@@ -880,7 +880,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
-				'newspack_add_contact',
+				'newspack_newsletters_mailchimp_add_contact_failed',
 				$e->getMessage()
 			);
 		}
