@@ -369,8 +369,8 @@ class Newspack_Newsletters_Subscription {
 		/**
 		 * Fires after a contact is added.
 		 *
-		 * @param string        $provider The provider name.
-		 * @param array         $contact  {
+		 * @param string              $provider The provider name.
+		 * @param array               $contact  {
 		 *    Contact information.
 		 *
 		 *    @type string   $email    Contact email address.
@@ -378,7 +378,7 @@ class Newspack_Newsletters_Subscription {
 		 *    @type string[] $metadata Contact additional metadata. Optional.
 		 * }
 		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
-		 * @param bool|WP_Error $result   True if the contact was added or error if failed.
+		 * @param bool|WP_Error       $result   True if the contact was added or error if failed.
 		 */
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
 
