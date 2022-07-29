@@ -902,15 +902,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		return array_keys( $contact['lists'] );
 	}
 
-		/**
-		 * Update a contact lists subscription.
-		 *
-		 * @param string   $email           Contact email address.
-		 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
-		 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
-		 *
-		 * @return true|WP_Error True if the contact was updated or error.
-		 */
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
 		$contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $contact ) ) {
