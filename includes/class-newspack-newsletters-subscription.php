@@ -308,19 +308,19 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Upserts a contact to lists.
 	 *
-	 * @param array    $contact {
-	 *    Contact information.
+	 * @param array          $contact {
+	 *          Contact information.
 	 *
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string[] $lists   Array of list IDs to subscribe the contact to. If empty, contact will be created but not subscribed to any lists.
+	 * @param string[]|false $lists   Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
 	 *
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	public static function add_contact( $contact, $lists = [] ) {
-		if ( ! is_array( $lists ) ) {
+	public static function add_contact( $contact, $lists = false ) {
+		if ( ! is_array( $lists ) && false !== $lists ) {
 			$lists = [ $lists ];
 		}
 
@@ -340,7 +340,7 @@ class Newspack_Newsletters_Subscription {
 		 *    @type string   $name     Contact name. Optional.
 		 *    @type string[] $metadata Contact additional metadata. Optional.
 		 * }
-		 * @param string[]      $lists    Array of list IDs to subscribe the contact to.
+		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
 		 */
 		$contact = apply_filters( 'newspack_newsletters_contact_data', $provider->service, $contact, $lists );
 
@@ -350,14 +350,14 @@ class Newspack_Newsletters_Subscription {
 			try {
 				$result = $provider->add_contact( $contact );
 			} catch ( \Exception $e ) {
-				$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
+				$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
 			}
 		} else {
 			foreach ( $lists as $list_id ) {
 				try {
 					$result = $provider->add_contact( $contact, $list_id );
 				} catch ( \Exception $e ) {
-					$errors->add( 'newspack_newsletters_add_contact', $e->getMessage() );
+					$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
 				}
 			}
 		}
@@ -369,16 +369,16 @@ class Newspack_Newsletters_Subscription {
 		/**
 		 * Fires after a contact is added.
 		 *
-		 * @param string        $provider The provider name.
-		 * @param array         $contact  {
+		 * @param string              $provider The provider name.
+		 * @param array               $contact  {
 		 *    Contact information.
 		 *
 		 *    @type string   $email    Contact email address.
 		 *    @type string   $name     Contact name. Optional.
 		 *    @type string[] $metadata Contact additional metadata. Optional.
 		 * }
-		 * @param string[]      $lists    Array of list IDs to subscribe the contact to.
-		 * @param bool|WP_Error $result   True if the contact was added or error if failed.
+		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
+		 * @param bool|WP_Error       $result   True if the contact was added or error if failed.
 		 */
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
 
@@ -399,7 +399,7 @@ class Newspack_Newsletters_Subscription {
 			$lists = $metadata['lists'];
 			unset( $metadata['lists'] );
 		} else {
-			$lists = [];
+			$lists = false;
 		}
 		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 		self::add_contact(
