@@ -329,6 +329,8 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
+		Newspack_Newsletters_Logger::log( 'Adding contact to list(s): ' . implode( ', ', $lists ) . '. Provider is ' . $provider->service . '.' );
+
 		/**
 		 * Filters the contact before passing on to the API.
 		 *
@@ -427,6 +429,8 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
+
+		Newspack_Newsletters_Logger::log( 'Updating lists of a contact. List selection: ' . implode( ', ', $lists ) . '. Provider is ' . $provider->service . '.' );
 
 		/** Determine lists to add/remove from existing list config. */
 		$lists_config    = self::get_lists_config();
