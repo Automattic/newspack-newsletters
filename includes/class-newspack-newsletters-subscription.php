@@ -330,22 +330,41 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
-		Newspack_Newsletters_Logger::log( 'Adding contact to list(s): ' . implode( ', ', $lists ) . '. Provider is ' . $provider->service . '.' );
+		if ( false !== $lists ) {
+			Newspack_Newsletters_Logger::log( 'Adding contact to list(s): ' . implode( ', ', $lists ) . '. Provider is ' . $provider->service . '.' );
+		} else {
+			Newspack_Newsletters_Logger::log( 'Adding contact without lists. Provider is ' . $provider->service . '.' );
+		}
 
 		/**
 		 * Filters the contact before passing on to the API.
 		 *
-		 * @param string        $provider The provider name.
-		 * @param array         $contact  {
-		 *    Contact information.
+	 * @param array          $contact           {
+	 *          Contact information.
+	 *
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string[]|false $selected_list_ids Array of list IDs the contact will be subscribed to, or false.
+	 * @param string         $provider          The provider name.
+		 */
+		$contact = apply_filters( 'newspack_newsletters_contact_data', $contact, $lists, $provider->service );
+
+		/**
+		 * Filters the contact selected lists before passing on to the API.
+		 *
+		 * @param string[]|false $lists    Array of list IDs the contact will be subscribed to, or false.
+		 * @param array          $contact  {
+		 *          Contact information.
 		 *
 		 *    @type string   $email    Contact email address.
 		 *    @type string   $name     Contact name. Optional.
 		 *    @type string[] $metadata Contact additional metadata. Optional.
 		 * }
-		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
+		 * @param string         $provider          The provider name.
 		 */
-		$contact = apply_filters( 'newspack_newsletters_contact_data', $provider->service, $contact, $lists );
+		$lists = apply_filters( 'newspack_newsletters_contact_lists', $lists, $contact, $provider->service );
 
 		$errors = new WP_Error();
 
