@@ -899,7 +899,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( is_wp_error( $contact ) ) {
 			return [];
 		}
-		return array_keys( $contact['lists'] );
+		return array_keys(
+			array_filter(
+				$contact['lists'],
+				function( $list ) {
+					return 'subscribed' === $list['status'];
+				}
+			)
+		);
 	}
 
 	/**
@@ -921,7 +928,28 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 			return true;
 		}
-		return new WP_Error( 'not_implemented', __( 'Not implemented.', 'newspack-newsletters' ) );
+		$mc = new Mailchimp( $this->api_key() );
+		try {
+			foreach ( $lists_to_add as $list_id ) {
+				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
+					$this->add_contact( [ 'email' => $email ], $list_id );
+				} else {
+					$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'subscribed' ] );
+				}
+			}
+			foreach ( $lists_to_remove as $list_id ) {
+				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
+					continue;
+				}
+				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
+			}
+		} catch ( \Exception $e ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_update_contact_failed',
+				$e->getMessage()
+			);
+		}
+		return true;
 	}
 
 	/**
@@ -951,7 +979,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					$data[ $key ] = $contact[ $key ];
 				}
 			}
-			$data['lists'][ $contact['list_id'] ] = $contact['contact_id'];
+			$data['lists'][ $contact['list_id'] ] = [
+				'contact_id' => $contact['contact_id'],
+				'status'     => $contact['status'],
+			];
 		}
 		return $data;
 	}
