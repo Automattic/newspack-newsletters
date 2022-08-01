@@ -289,7 +289,7 @@ class Newspack_Newsletters_Subscription {
 	 *
 	 * @return array|WP_Error Response or error.
 	 */
-	public static function get_contact_data( $email_address, $return_details ) {
+	public static function get_contact_data( $email_address, $return_details = false ) {
 		if ( ! $email_address || empty( $email_address ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.' ) );
 		}
