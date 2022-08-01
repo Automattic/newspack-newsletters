@@ -862,7 +862,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$result = $mc->post( "lists/$list_id/members", $update_payload );
 			} else {
 				$member_id = $found_subscribers[0]['id'];
-				$result    = $mc->patch( "lists/$list_id/members/$member_id", $update_payload );
+				$result    = $mc->put( "lists/$list_id/members/$member_id", $update_payload );
 			}
 			if (
 				! $result ||
