@@ -633,7 +633,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		}
 	}
 
-
 	/**
 	 * Get the lists a contact is subscribed to.
 	 *
