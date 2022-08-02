@@ -852,16 +852,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			// Create or update a list member.
-			$found_subscribers = $mc->get(
-				'search-members',
-				[
-					'query' => $email_address,
-				]
-			)['exact_matches']['members'];
-			if ( empty( $found_subscribers ) ) {
+			$existing_contact = self::get_contact_data( $email_address );
+			if ( is_wp_error( $existing_contact ) ) {
 				$result = $mc->post( "lists/$list_id/members", $update_payload );
 			} else {
-				$member_id = $found_subscribers[0]['id'];
+				$member_id = $existing_contact['id'];
 				$result    = $mc->put( "lists/$list_id/members/$member_id", $update_payload );
 			}
 			if (
@@ -971,7 +966,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( empty( $found ) ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
 		}
-		$keys = [ 'full_name', 'email_address' ];
+		$keys = [ 'full_name', 'email_address', 'id' ];
 		$data = [ 'lists' => [] ];
 		foreach ( $found as $contact ) {
 			foreach ( $keys as $key ) {
