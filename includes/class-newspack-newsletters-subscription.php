@@ -336,15 +336,19 @@ class Newspack_Newsletters_Subscription {
 			Newspack_Newsletters_Logger::log( 'Adding contact without lists. Provider is ' . $provider->service . '.' );
 		}
 
+		$existing_contact                 = self::get_contact_data( $contact['email'] );
+		$contact['existing_contact_data'] = \is_wp_error( $existing_contact ) ? false : $existing_contact;
+
 		/**
 		 * Filters the contact before passing on to the API.
 		 *
 		 * @param array          $contact           {
 		 *          Contact information.
 		 *
-		 *    @type string   $email    Contact email address.
-		 *    @type string   $name     Contact name. Optional.
-		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 *    @type string   $email                 Contact email address.
+		 *    @type string   $name                  Contact name. Optional.
+		 *    @type string   $existing_contact_data Existing contact data, if updating a contact. The hook will be also called when
+		 *    @type string[] $metadata              Contact additional metadata. Optional.
 		 * }
 		 * @param string[]|false $selected_list_ids Array of list IDs the contact will be subscribed to, or false.
 		 * @param string         $provider          The provider name.
