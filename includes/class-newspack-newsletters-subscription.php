@@ -336,7 +336,7 @@ class Newspack_Newsletters_Subscription {
 			Newspack_Newsletters_Logger::log( 'Adding contact without lists. Provider is ' . $provider->service . '.' );
 		}
 
-		$existing_contact                 = self::get_contact_data( $contact['email'] );
+		$existing_contact                 = self::get_contact_data( $contact['email'], true );
 		$contact['existing_contact_data'] = \is_wp_error( $existing_contact ) ? false : $existing_contact;
 
 		/**
