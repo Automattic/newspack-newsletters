@@ -736,6 +736,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 */
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
 		$existing_contact = $this->get_contact_data( $email );
+
+		error_log( print_r( $existing_contact, true ) );
+
 		if ( is_wp_error( $existing_contact ) ) {
 			/** Create contact */
 			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
@@ -803,7 +806,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
 	public function get_contact_data( $email, $return_details = false ) {
-		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
+		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => urlencode( $email ) ] ] );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
