@@ -737,8 +737,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
 		$existing_contact = $this->get_contact_data( $email );
 
-		error_log( print_r( $existing_contact, true ) );
-
 		if ( is_wp_error( $existing_contact ) ) {
 			/** Create contact */
 			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
