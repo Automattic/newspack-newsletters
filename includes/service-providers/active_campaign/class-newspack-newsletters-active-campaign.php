@@ -803,7 +803,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
 	public function get_contact_data( $email, $return_details = false ) {
-		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => $email ] ] );
+		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => urlencode( $email ) ] ] );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
