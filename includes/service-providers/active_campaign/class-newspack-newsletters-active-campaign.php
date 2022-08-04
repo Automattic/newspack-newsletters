@@ -622,6 +622,34 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Get data type ID for a given field.
+	 *
+	 * Possible values:
+	 *  1 = Text Field,
+	 *  2 = Text Box (textarea),
+	 *  3 = Checkbox,
+	 *  4 = Radio,
+	 *  5 = Dropdown,
+	 *  6 = Hidden field,
+	 *  7 = List Box,
+	 *  9 = Date
+	 *
+	 * @param string $field_name The field name.
+	 *
+	 * @return int Data type ID.
+	 */
+	private static function get_metadata_type( $field_name ) {
+		switch ( $field_name ) {
+			case 'NP_Registration Date':
+			case 'NP_Last Payment Date':
+			case 'NP_Next Payment Date':
+				return 9;
+			default:
+				return 1;
+		}
+	}
+
+	/**
 	 * Add contact to a list or update an existing contact.
 	 *
 	 * @param array        $contact      {
@@ -682,7 +710,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 							'p[0]'    => 0, // Associate with all lists.
 							'title'   => $field_title,
 							'req'     => 0, // Whether it's a required field.
-							'type'    => 1, // 1 = Text field.
+							'type'    => self::get_metadata_type( $field_title ),
 							'perstag' => $field_pers_tag,
 						],
 					]
