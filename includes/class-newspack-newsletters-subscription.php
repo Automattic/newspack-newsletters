@@ -789,7 +789,7 @@ class Newspack_Newsletters_Subscription {
 				$user_lists  = array_flip( self::get_contact_lists( $email ) );
 				?>
 				<p>
-					<?php _e( 'Manage the newsletters you are subscribed to.', 'newspack-newsletters' ); ?>
+					<?php _e( 'Manage your newsletter preferences.', 'newspack-newsletters' ); ?>
 				</p>
 				<form method="post">
 					<?php wp_nonce_field( self::SUBSCRIPTION_UPDATE, self::SUBSCRIPTION_UPDATE ); ?>
