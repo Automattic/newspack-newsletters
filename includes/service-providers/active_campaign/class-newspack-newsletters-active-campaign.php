@@ -643,6 +643,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			case 'NP_Registration Date':
 			case 'NP_Last Payment Date':
 			case 'NP_Next Payment Date':
+			case 'NP_Current Subscription End Date':
+			case 'NP_Current Subscription Start Date':
 				return 9;
 			default:
 				return 1;
