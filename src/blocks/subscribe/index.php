@@ -54,7 +54,7 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
  */
 function render_block( $attrs ) {
 	$list_config = \Newspack_Newsletters_Subscription::get_lists_config();
-	if ( empty( $list_config ) ) {
+	if ( empty( $list_config ) || \is_wp_error( $list_config ) ) {
 		return;
 	}
 	$block_id        = \wp_rand( 0, 99999 );
@@ -67,6 +67,18 @@ function render_block( $attrs ) {
 
 	if ( empty( $available_lists ) ) {
 		$available_lists = [ $lists[0] ];
+	}
+
+	if ( \is_user_logged_in() ) {
+		$email = \wp_get_current_user()->user_email;
+	} elseif ( class_exists( '\Newspack\Reader_Activation' ) ) {
+		try {
+			if ( \Newspack\Reader_Activation::is_enabled() ) {
+				$email = \Newspack\Reader_Activation::get_auth_intention_value();
+			}
+		} catch ( \Throwable $th ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			// Fail silently.
+		}
 	}
 
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended
@@ -207,7 +219,7 @@ function send_form_response( $data ) {
 }
 
 /**
- * Process registration form.
+ * Process newsletter signup form.
  */
 function process_form() {
 	if ( ! isset( $_REQUEST[ FORM_ACTION ] ) || ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
@@ -227,16 +239,23 @@ function process_form() {
 
 	$result = \Newspack_Newsletters_Subscription::add_contact(
 		[
-			'email' => $email,
+			'email'    => $email,
+			'metadata' => [
+				'current_page_url' => home_url( add_query_arg( array(), \wp_get_referer() ) ),
+			],
 		],
 		$lists
 	);
+
+	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
+		\Newspack\Reader_Activation::register_reader( $email );
+	}
 
 	/**
 	 * Fires after subscribing a user to a list.
 	 *
 	 * @param string         $email  Email address of the reader.
-	 * @param bool|\WP_Error $result Whether the contact was added or error.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result );
 
