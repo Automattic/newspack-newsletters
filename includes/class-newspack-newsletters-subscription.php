@@ -35,6 +35,7 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'newspack_reader_verified', [ __CLASS__, 'set_user_email_verified' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification_request' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification' ] );
+		add_action( 'newspack_registered_reader', [ __CLASS__, 'send_verification_email_on_registration' ], 10, 4 );
 
 		/** Subscription management through WC's "My Account".  */
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
@@ -605,10 +606,15 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Process request to verify a user's email.
 	 *
+	 * @param boolean $direct_request If calling this method directly from the server, no need to verify nonce.
+	 *
 	 * A 1-day transient will hold a token to verify the email.
 	 */
-	public static function process_email_verification_request() {
-		if ( ! isset( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ) || ! wp_verify_nonce( sanitize_text_field( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ), self::EMAIL_VERIFIED_REQUEST ) ) {
+	public static function process_email_verification_request( $direct_request = false ) {
+		if (
+			! $direct_request &&
+			( ! isset( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ) || ! wp_verify_nonce( sanitize_text_field( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ), self::EMAIL_VERIFIED_REQUEST ) )
+		 ) {
 			return;
 		}
 
@@ -640,8 +646,8 @@ class Newspack_Newsletters_Subscription {
 		$switched_locale = switch_to_locale( get_user_locale( $user ) );
 
 		/* translators: %s: User display name. */
-		$message  = sprintf( __( 'Hello, %s!', 'newspack-newsletters' ), $user->display_name ) . "\r\n\r\n";
-		$message .= __( 'Verify your email address by visiting the following address:', 'newspack-newsletters' ) . "\r\n\r\n";
+		$message  = sprintf( __( 'Welcome, %s! Thank you for registering an account.', 'newspack-newsletters' ), $user->display_name ) . "\r\n\r\n";
+		$message .= __( 'To manage your account details, please verify your email address by visiting the following URL:', 'newspack-newsletters' ) . "\r\n\r\n";
 		$message .= $url . "\r\n";
 
 		$email = [
@@ -680,11 +686,13 @@ class Newspack_Newsletters_Subscription {
 			\restore_previous_locale();
 		}
 
-		if ( function_exists( 'wc_add_notice' ) ) {
-			wc_add_notice( __( 'Check your email address for a verification link.', 'newspack-newsletters' ), 'success' );
+		if ( ! $direct_request ) {
+			if ( function_exists( 'wc_add_notice' ) ) {
+				wc_add_notice( __( 'Check your email address for a verification link.', 'newspack-newsletters' ), 'success' );
+			}
+			wp_safe_redirect( add_query_arg( [ 'verification_sent' => 1 ], remove_query_arg( self::EMAIL_VERIFIED_REQUEST, wp_get_referer() ) ) );
+			exit;
 		}
-		wp_safe_redirect( add_query_arg( [ 'verification_sent' => 1 ], remove_query_arg( self::EMAIL_VERIFIED_REQUEST, wp_get_referer() ) ) );
-		exit;
 	}
 
 	/**
@@ -715,6 +723,24 @@ class Newspack_Newsletters_Subscription {
 		}
 		wp_safe_redirect( remove_query_arg( [ self::EMAIL_VERIFIED_CONFIRM, 'token' ] ) );
 		exit;
+	}
+
+	/**
+	 * Upon new reader registration, send a verification email.
+	 *
+	 * @param string         $email         Email address.
+	 * @param bool           $authenticate  Whether to authenticate after registering.
+	 * @param false|int      $user_id       The created user id.
+	 * @param false|\WP_User $existing_user The existing user object.
+	 */
+	public static function send_verification_email_on_registration( $email, $authenticate, $user_id, $existing_user ) {
+		// Only send for new, unverified users.
+		if ( false !== $existing_user || self::is_email_verified( $user_id, $email ) ) {
+			return;
+		}
+
+		self::process_email_verification_request( true );
+		Newspack_Newsletters_Logger::log( 'New reader account registered. Sending verification email to ' . $email . '.' );
 	}
 
 	/**
