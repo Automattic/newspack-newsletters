@@ -676,7 +676,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$has_list_id = false !== $list_id;
 		if ( $has_list_id ) {
-			$payload[ 'p[' . $list_id . ']' ] = $list_id;
+			$payload[ 'p[' . $list_id . ']' ]      = $list_id;
+			$payload[ 'status[' . $list_id . ']' ] = 1;
 		}
 		$existing_contact = $this->get_contact_data( $contact['email'] );
 		if ( is_wp_error( $existing_contact ) ) {
