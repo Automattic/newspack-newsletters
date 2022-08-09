@@ -614,7 +614,7 @@ class Newspack_Newsletters_Subscription {
 		if (
 			! $direct_request &&
 			( ! isset( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ) || ! wp_verify_nonce( sanitize_text_field( $_GET[ self::EMAIL_VERIFIED_REQUEST ] ), self::EMAIL_VERIFIED_REQUEST ) )
-		 ) {
+		) {
 			return;
 		}
 
@@ -629,7 +629,7 @@ class Newspack_Newsletters_Subscription {
 
 		$url = home_url();
 		if ( function_exists( 'wc_get_account_endpoint_url' ) ) {
-			$url = wc_get_account_endpoint_url( 'newsletters' );
+			$url = wc_get_account_endpoint_url( '/' );
 		}
 		$url = add_query_arg(
 			[
