@@ -13,6 +13,27 @@ defined( 'ABSPATH' ) || exit;
 final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_Service_Provider {
 
 	/**
+	 * Cached fields.
+	 *
+	 * @var array
+	 */
+	private $fields = null;
+
+	/**
+	 * Cached lists.
+	 *
+	 * @var array
+	 */
+	private $lists = null;
+
+	/**
+	 * Cached contact data.
+	 *
+	 * @var array
+	 */
+	private $contact_data = [];
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -180,6 +201,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error List os existing lists or error.
 	 */
 	public function get_lists() {
+		if ( null !== $this->lists ) {
+			return $this->lists;
+		}
 		$lists = $this->api_v1_request( 'list_list', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
@@ -188,7 +212,29 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		unset( $lists['result_code'] );
 		unset( $lists['result_message'] );
 		unset( $lists['result_output'] );
-		return array_values( $lists );
+		$this->lists = array_values( $lists );
+		return $this->lists;
+	}
+
+	/**
+	 * Get fields.
+	 *
+	 * @return array|WP_Error List os existing fields or error.
+	 */
+	public function get_fields() {
+		if ( null !== $this->fields ) {
+			return $this->fields;
+		}
+		$fields = $this->api_v1_request( 'list_field_view', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
+		if ( is_wp_error( $fields ) ) {
+			return $fields;
+		}
+		// Remove result metadata.
+		unset( $fields['result_code'] );
+		unset( $fields['result_message'] );
+		unset( $fields['result_output'] );
+		$this->fields = array_values( $fields );
+		return $this->fields;
 	}
 
 	/**
@@ -702,22 +748,25 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		/** Register metadata fields. */
 		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
+			$existing_fields = $this->get_fields();
 			foreach ( $contact['metadata'] as $field_title => $value ) {
 				$field_pers_tag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
-				/** Optimistically add field. The API handles duplicates automatically. */
-				$this->api_v1_request(
-					'list_field_add',
-					'POST',
-					[
-						'body' => [
-							'p[0]'    => 0, // Associate with all lists.
-							'title'   => $field_title,
-							'req'     => 0, // Whether it's a required field.
-							'type'    => self::get_metadata_type( $field_title ),
-							'perstag' => $field_pers_tag,
-						],
-					]
-				);
+				/** For optimization, don't add the field if it already exists. */
+				if ( ! is_wp_error( $existing_fields ) && false === array_search( $field_pers_tag, array_column( $existing_fields, 'perstag' ) ) ) {
+					$this->api_v1_request(
+						'list_field_add',
+						'POST',
+						[
+							'body' => [
+								'p[0]'    => 0, // Associate with all lists.
+								'title'   => $field_title,
+								'req'     => 0, // Whether it's a required field.
+								'type'    => self::get_metadata_type( $field_title ),
+								'perstag' => $field_pers_tag,
+							],
+						]
+					);
+				}
 				$payload[ 'field[%' . $field_pers_tag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
 			}
 		}
@@ -834,7 +883,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
 	public function get_contact_data( $email, $return_details = false ) {
-		$result = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => urlencode( $email ) ] ] );
+		if ( isset( $this->contact_data[ $email ] ) ) {
+			$result = $this->contact_data[ $email ];
+		} else {
+			$result                       = $this->api_v3_request( 'contacts', 'GET', [ 'query' => [ 'email' => urlencode( $email ) ] ] );
+			$this->contact_data[ $email ] = $result;
+		}
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
