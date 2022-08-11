@@ -643,13 +643,24 @@ class Newspack_Newsletters_Subscription {
 		$message  = sprintf( __( 'Hello, %s!', 'newspack-newsletters' ), $user->display_name ) . "\r\n\r\n";
 		$message .= __( 'Verify your email address by visiting the following address:', 'newspack-newsletters' ) . "\r\n\r\n";
 		$message .= $url . "\r\n";
+		$headers  = '';
+
+		if ( method_exists( '\Newspack\Reader_Activation', 'get_from_email' ) && method_exists( '\Newspack\Reader_Activation', 'get_from_name' ) ) {
+			$headers = [
+				sprintf(
+					'From: %1$s <%2$s>',
+					\Newspack\Reader_Activation::get_from_name(),
+					\Newspack\Reader_Activation::get_from_email()
+				),
+			];
+		}
 
 		$email = [
 			'to'      => $user->user_email,
 			/* translators: %s Site title. */
 			'subject' => __( '[%s] Verify your email', 'newspack' ),
 			'message' => $message,
-			'headers' => '',
+			'headers' => $headers,
 		];
 
 		/**
