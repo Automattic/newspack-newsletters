@@ -18,7 +18,7 @@ import './style.scss';
 			form.addEventListener( 'submit', ev => {
 				ev.preventDefault();
 				const body = new FormData( form );
-				if ( ! body.has( 'email' ) || ! body.get( 'email' ) ) {
+				if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
 					return;
 				}
 				emailInput.disabled = true;

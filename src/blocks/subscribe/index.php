@@ -87,8 +87,8 @@ function render_block( $attrs ) {
 		if ( isset( $_REQUEST['message'] ) ) {
 			$message = \sanitize_text_field( $_REQUEST['message'] );
 		}
-		if ( isset( $_REQUEST['email'] ) ) {
-			$email = \sanitize_text_field( $_REQUEST['email'] );
+		if ( isset( $_REQUEST['npe'] ) ) {
+			$email = \sanitize_text_field( $_REQUEST['npe'] );
 		}
 		if ( isset( $_REQUEST['lists'] ) && is_array( $_REQUEST['lists'] ) ) {
 			$list_map = array_flip( array_map( 'sanitize_text_field', $_REQUEST['lists'] ) );
@@ -105,6 +105,16 @@ function render_block( $attrs ) {
 				<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
 				<div class="newspack-newsletters-email-input">
 					<input
+						type="email"
+						name="npe"
+						autocomplete="email"
+						placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>"
+						value="<?php echo esc_attr( $email ); ?>"
+					/>
+					<input
+						class="nphp"
+						tabindex="-1"
+						aria-hidden="true"
 						type="email"
 						name="email"
 						autocomplete="email"
@@ -226,7 +236,12 @@ function process_form() {
 		return;
 	}
 
-	if ( ! isset( $_REQUEST['email'] ) || empty( $_REQUEST['email'] ) ) {
+	// Honeypot trap.
+	if ( ! empty( $_REQUEST['email'] ) ) {
+		return send_form_response( new \WP_Error( 'invalid_request', __( 'Invalid request.', 'newspack-newsletters' ) ) );
+	}
+
+	if ( ! isset( $_REQUEST['npe'] ) || empty( $_REQUEST['npe'] ) ) {
 		return send_form_response( new \WP_Error( 'invalid_email', __( 'You must enter a valid email address.', 'newspack-newsletters' ) ) );
 	}
 
@@ -234,7 +249,7 @@ function process_form() {
 		return send_form_response( new \WP_Error( 'no_lists', __( 'You must select a list.', 'newspack-newsletters' ) ) );
 	}
 
-	$email = \sanitize_email( $_REQUEST['email'] );
+	$email = \sanitize_email( $_REQUEST['npe'] );
 	$lists = array_map( 'sanitize_text_field', $_REQUEST['lists'] );
 
 	$result = \Newspack_Newsletters_Subscription::add_contact(
