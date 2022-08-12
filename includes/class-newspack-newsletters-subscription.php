@@ -32,6 +32,7 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
 		add_action( 'password_reset', [ __CLASS__, 'set_current_user_email_verified' ] );
 		add_action( 'newspack_magic_link_authenticated', [ __CLASS__, 'set_current_user_email_verified' ] );
+		add_action( 'newspack_reader_verified', [ __CLASS__, 'set_user_email_verified' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification_request' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_email_verification' ] );
 
@@ -567,18 +568,25 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Set the user's email as verified.
+	 *
+	 * @param WP_User $user User.
+	 */
+	public static function set_user_email_verified( $user ) {
+		if ( ! $user instanceof WP_User ) {
+			return;
+		}
+		self::set_email_verified( $user->ID, $user->user_email );
+	}
+
+	/**
 	 * Set current user's email as verified.
 	 */
 	public static function set_current_user_email_verified() {
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
-		$user_id = get_current_user_id();
-		if ( ! $user_id ) {
-			return;
-		}
-		$email = get_user_by( 'id', $user_id )->user_email;
-		self::set_email_verified( $user_id, $email );
+		self::set_user_email_verified( wp_get_current_user() );
 	}
 
 	/**
@@ -635,13 +643,24 @@ class Newspack_Newsletters_Subscription {
 		$message  = sprintf( __( 'Hello, %s!', 'newspack-newsletters' ), $user->display_name ) . "\r\n\r\n";
 		$message .= __( 'Verify your email address by visiting the following address:', 'newspack-newsletters' ) . "\r\n\r\n";
 		$message .= $url . "\r\n";
+		$headers  = '';
+
+		if ( method_exists( '\Newspack\Reader_Activation', 'get_from_email' ) && method_exists( '\Newspack\Reader_Activation', 'get_from_name' ) ) {
+			$headers = [
+				sprintf(
+					'From: %1$s <%2$s>',
+					\Newspack\Reader_Activation::get_from_name(),
+					\Newspack\Reader_Activation::get_from_email()
+				),
+			];
+		}
 
 		$email = [
 			'to'      => $user->user_email,
 			/* translators: %s Site title. */
 			'subject' => __( '[%s] Verify your email', 'newspack' ),
 			'message' => $message,
-			'headers' => '',
+			'headers' => $headers,
 		];
 
 		/**
