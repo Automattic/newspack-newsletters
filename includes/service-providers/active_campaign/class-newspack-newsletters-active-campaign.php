@@ -198,7 +198,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Get lists.
 	 *
-	 * @return array|WP_Error List os existing lists or error.
+	 * @return array|WP_Error List of existing lists or error.
 	 */
 	public function get_lists() {
 		if ( null !== $this->lists ) {
