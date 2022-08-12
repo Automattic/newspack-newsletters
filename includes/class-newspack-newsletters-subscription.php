@@ -43,6 +43,7 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
 		add_action( 'init', [ __CLASS__, 'flush_rewrite_rules' ] );
+		add_action( 'newspack_reader_before_delete', [ __CLASS__, 'delete_user_subscription' ], 10, 2 );
 	}
 
 	/**
@@ -410,6 +411,29 @@ class Newspack_Newsletters_Subscription {
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Permanently delete a user subscription.
+	 *
+	 * @param int     $user_id User ID.
+	 * @param WP_User $user    User object.
+	 *
+	 * @return bool|WP_Error Whether the contact was deleted or error.
+	 */
+	public static function delete_user_subscription( $user_id, $user ) {
+		/** Only delete if email ownership is verified. */
+		if ( ! self::is_email_verified( $user_id ) ) {
+			return new \WP_Error( 'newspack_newsletters_email_not_verified', __( 'Email ownership is not verified.' ) );
+		}
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+		if ( ! method_exists( $provider, 'delete_contact' ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider_method', __( 'Provider does not support deleting user subscriptions.' ) );
+		}
+		return $provider->delete_contact( $user->user_email );
 	}
 
 	/**
