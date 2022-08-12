@@ -752,7 +752,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			foreach ( $contact['metadata'] as $field_title => $value ) {
 				$field_pers_tag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
 				/** For optimization, don't add the field if it already exists. */
-				if ( ! is_wp_error( $existing_fields ) && false === array_search( $field_pers_tag, array_column( $existing_fields, 'perstag' ) ) ) {
+				if ( is_wp_error( $existing_fields ) || false === array_search( $field_pers_tag, array_column( $existing_fields, 'perstag' ) ) ) {
 					$this->api_v1_request(
 						'list_field_add',
 						'POST',
