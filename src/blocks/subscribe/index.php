@@ -238,7 +238,7 @@ function process_form() {
 
 	// Honeypot trap.
 	if ( ! empty( $_REQUEST['email'] ) ) {
-		return send_form_response( new \WP_Error( 'invalid_request', __( 'Invalid request.', 'newspack-newsletters' ) ) );
+		return send_form_response( [ 'email' => \sanitize_email( $_REQUEST['email'] ) ] );
 	}
 
 	if ( ! isset( $_REQUEST['npe'] ) || empty( $_REQUEST['npe'] ) ) {
