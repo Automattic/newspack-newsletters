@@ -27,6 +27,7 @@ class Newspack_Newsletters_Subscription {
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
+		add_action( 'newspack_reader_before_delete', [ __CLASS__, 'reader_before_delete' ] );
 
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
@@ -43,7 +44,6 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
 		add_action( 'init', [ __CLASS__, 'flush_rewrite_rules' ] );
-		add_action( 'newspack_reader_before_delete', [ __CLASS__, 'delete_user_subscription' ], 10, 2 );
 	}
 
 	/**
@@ -416,12 +416,15 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Permanently delete a user subscription.
 	 *
-	 * @param int     $user_id User ID.
-	 * @param WP_User $user    User object.
+	 * @param int $user_id User ID.
 	 *
 	 * @return bool|WP_Error Whether the contact was deleted or error.
 	 */
-	public static function delete_user_subscription( $user_id, $user ) {
+	public static function delete_user_subscription( $user_id ) {
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return new WP_Error( 'newspack_newsletters_invalid_user', __( 'Invalid user.' ) );
+		}
 		/** Only delete if email ownership is verified. */
 		if ( ! self::is_email_verified( $user_id ) ) {
 			return new \WP_Error( 'newspack_newsletters_email_not_verified', __( 'Email ownership is not verified.' ) );
@@ -446,6 +449,10 @@ class Newspack_Newsletters_Subscription {
 	 * @param array          $metadata      Metadata.
 	 */
 	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
+		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
+		if ( ! $sync ) {
+			return;
+		}
 		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
 			$lists = $metadata['lists'];
 			unset( $metadata['lists'] );
@@ -460,6 +467,25 @@ class Newspack_Newsletters_Subscription {
 			],
 			$lists
 		);
+	}
+
+	/**
+	 * Delete a contact from ESP when a reader is deleted.
+	 *
+	 * @param int $user_id The user ID.
+	 *
+	 * @return bool|WP_Error Whether the contact was deleted or error.
+	 */
+	public static function reader_before_delete( $user_id ) {
+		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
+		if ( ! $sync ) {
+			return;
+		}
+		$sync_delete = \Newspack\Reader_Activation::get_setting( 'sync_esp_delete' );
+		if ( ! $sync_delete ) {
+			return;
+		}
+		return self::delete_user_subscription( $user_id );
 	}
 
 	/**

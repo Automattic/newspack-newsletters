@@ -898,7 +898,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			try {
 				$member_id = $list['id'];
 				$mc        = new Mailchimp( $this->api_key() );
-				$result    = $mc->post( "lists/$list_id/members/$member_id/actions/delete-permanent" );
+				$mc->delete( "lists/$list_id/members/$member_id" );
 			} catch ( \Exception $e ) {
 				return new \WP_Error(
 					'newspack_newsletters_mailchimp_delete_contact_failed',
