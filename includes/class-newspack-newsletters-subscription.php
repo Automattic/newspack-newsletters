@@ -449,15 +449,16 @@ class Newspack_Newsletters_Subscription {
 	 * @param array          $metadata      Metadata.
 	 */
 	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
-		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
-		if ( ! $sync ) {
-			return;
-		}
 		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
 			$lists = $metadata['lists'];
 			unset( $metadata['lists'] );
 		} else {
 			$lists = false;
+		}
+		/** Don't add contact if reader sync is disabled and there are no lists to subscribe to. */
+		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
+		if ( ! $sync && empty( $lists ) ) {
+			return;
 		}
 		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 		self::add_contact(
