@@ -249,6 +249,7 @@ function process_form() {
 		return send_form_response( new \WP_Error( 'no_lists', __( 'You must select a list.', 'newspack-newsletters' ) ) );
 	}
 
+	// The "true" email address field is called `npe` due to the honeypot strategy.
 	$email = \sanitize_email( $_REQUEST['npe'] );
 	$lists = array_map( 'sanitize_text_field', $_REQUEST['lists'] );
 
