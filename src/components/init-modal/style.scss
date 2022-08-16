@@ -1,4 +1,4 @@
-@import '~@wordpress/base-styles/colors';
+@use '~@wordpress/base-styles/colors' as wp-colors;
 
 // Modal
 .newspack-newsletters-modal {
@@ -90,13 +90,13 @@
 		}
 
 		&__sidebar {
-			background: $gray-100;
-			border-bottom: 1px solid $gray-300;
+			background: wp-colors.$gray-100;
+			border-bottom: 1px solid wp-colors.$gray-300;
 			padding: 24px;
 
 			@media only screen and ( min-width: 600px ) {
 				border-bottom: none;
-				border-right: 1px solid $gray-300;
+				border-right: 1px solid wp-colors.$gray-300;
 			}
 
 			p {
@@ -161,13 +161,13 @@
 		}
 
 		.error {
-			color: $alert-red;
+			color: wp-colors.$alert-red;
 		}
 
 		.components-base-control {
 			&.has-error {
 				input[type='text'] {
-					border-color: $alert-red;
+					border-color: wp-colors.$alert-red;
 				}
 			}
 		}
@@ -224,7 +224,7 @@
 				&.is-active {
 					.newspack-newsletters-layouts__item-preview {
 						pointer-events: none;
-						border-color: currentColor;
+						border-color: currentcolor;
 						position: relative;
 
 						&::before {
@@ -245,7 +245,7 @@
 					margin: 0;
 					height: 20px;
 					&.is-destructive {
-						color: $alert-red;
+						color: wp-colors.$alert-red;
 						height: auto;
 					}
 				}
@@ -253,7 +253,7 @@
 
 			&__item-preview {
 				background: white;
-				border: 1px solid $gray-300;
+				border: 1px solid wp-colors.$gray-300;
 				border-radius: 2px;
 				overflow: hidden;
 				padding: 0 0 75%;
@@ -324,7 +324,7 @@
 		grid-row-end: 3;
 		align-items: center;
 		background: white;
-		border: 1px solid $gray-300;
+		border: 1px solid wp-colors.$gray-300;
 		border-top: none;
 		display: none;
 		justify-content: center;

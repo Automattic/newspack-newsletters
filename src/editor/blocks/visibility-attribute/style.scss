@@ -1,4 +1,4 @@
-@import '~@wordpress/base-styles/colors';
+@use '~@wordpress/base-styles/colors' as wp-colors;
 
 :root {
 	/* stylelint-disable value-keyword-case */
@@ -20,7 +20,7 @@
 	&::before {
 		border-radius: 1px;
 		bottom: 1px;
-		box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) $alert-yellow;
+		box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) wp-colors.$alert-yellow;
 		content: '';
 		left: 1px;
 		pointer-events: none;
@@ -36,9 +36,9 @@
 	}
 
 	.newsletters-block-visibility-label {
-		background: $alert-yellow;
+		background: wp-colors.$alert-yellow;
 		border-radius: 2px;
-		color: $gray-900;
+		color: wp-colors.$gray-900;
 		display: flex;
 		font-family: var( --newspack-system-font );
 		font-size: 10px;
@@ -79,11 +79,11 @@
 	}
 	&.newsletters-block-error {
 		&::after {
-			box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) $alert-red;
+			box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) wp-colors.$alert-red;
 		}
 
 		> .newsletters-block-visibility-label {
-			background: $alert-red;
+			background: wp-colors.$alert-red;
 			color: white;
 		}
 	}

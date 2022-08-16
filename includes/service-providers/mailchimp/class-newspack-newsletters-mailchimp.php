@@ -798,9 +798,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
-	 * @return bool|WP_Error True if the contact was added or error if failed.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	public function add_contact( $contact, $list_id ) {
+	public function add_contact( $contact, $list_id = false ) {
+		if ( false === $list_id ) {
+			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
+		}
 		try {
 			$mc             = new Mailchimp( $this->api_key() );
 			$email_address  = $contact['email'];
@@ -849,17 +852,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			// Create or update a list member.
-			$found_subscribers = $mc->get(
-				'search-members',
-				[
-					'query' => $email_address,
-				]
-			)['exact_matches']['members'];
-			if ( empty( $found_subscribers ) ) {
+			$existing_contact = self::get_contact_data( $email_address );
+			if ( is_wp_error( $existing_contact ) ) {
 				$result = $mc->post( "lists/$list_id/members", $update_payload );
 			} else {
-				$member_id = $found_subscribers[0]['id'];
-				$result    = $mc->patch( "lists/$list_id/members/$member_id", $update_payload );
+				$member_id = $existing_contact['id'];
+				$result    = $mc->put( "lists/$list_id/members/$member_id", $update_payload );
 			}
 			if (
 				! $result ||
@@ -877,10 +875,110 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
-				'newspack_add_contact',
+				'newspack_newsletters_mailchimp_add_contact_failed',
+				$e->getMessage()
+			);
+		}
+		return $result;
+	}
+
+	/**
+	 * Get the lists a contact is subscribed to.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return string[] Contact subscribed lists IDs.
+	 */
+	public function get_contact_lists( $email ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			return [];
+		}
+		return array_keys(
+			array_filter(
+				$contact['lists'],
+				function( $list ) {
+					return 'subscribed' === $list['status'];
+				}
+			)
+		);
+	}
+
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			/** Create contact */
+			$result = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ], $lists_to_add );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			return true;
+		}
+		$mc = new Mailchimp( $this->api_key() );
+		try {
+			foreach ( $lists_to_add as $list_id ) {
+				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
+					$this->add_contact( [ 'email' => $email ], $list_id );
+				} else {
+					$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'subscribed' ] );
+				}
+			}
+			foreach ( $lists_to_remove as $list_id ) {
+				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
+					continue;
+				}
+				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
+			}
+		} catch ( \Exception $e ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_update_contact_failed',
 				$e->getMessage()
 			);
 		}
 		return true;
+	}
+
+	/**
+	 * Get contact data by email.
+	 *
+	 * @param string $email          Email address.
+	 * @param bool   $return_details Fetch full contact data.
+	 *
+	 * @return array|WP_Error Response or error if contact was not found.
+	 */
+	public function get_contact_data( $email, $return_details = false ) {
+		$mc    = new Mailchimp( $this->api_key() );
+		$found = $mc->get(
+			'search-members',
+			[
+				'query' => $email,
+			]
+		)['exact_matches']['members'];
+		if ( empty( $found ) ) {
+			return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
+		}
+		$keys = [ 'full_name', 'email_address', 'id' ];
+		$data = [ 'lists' => [] ];
+		foreach ( $found as $contact ) {
+			foreach ( $keys as $key ) {
+				if ( ! isset( $data[ $key ] ) || empty( $data[ $key ] ) ) {
+					$data[ $key ] = $contact[ $key ];
+				}
+			}
+			$data['lists'][ $contact['list_id'] ] = [
+				'contact_id' => $contact['contact_id'],
+				'status'     => $contact['status'],
+			];
+		}
+		return $data;
 	}
 }

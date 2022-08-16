@@ -1,4 +1,4 @@
-@import '~@wordpress/base-styles/colors';
+@use '~@wordpress/base-styles/colors' as wp-colors;
 
 .newspack-newsletters-layouts {
 	&__spinner {
@@ -13,7 +13,7 @@
 
 	&__item-preview {
 		background: white;
-		border: 1px solid $gray-300;
+		border: 1px solid wp-colors.$gray-300;
 		border-radius: 2px;
 		overflow: hidden;
 		padding: 0 0 75%;
