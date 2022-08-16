@@ -1,3 +1,10 @@
+## [1.49.1](https://github.com/Automattic/newspack-newsletters/compare/v1.49.0...v1.49.1) (2022-08-16)
+
+
+### Bug Fixes
+
+* ensure query post type is an array ([#933](https://github.com/Automattic/newspack-newsletters/issues/933)) ([a179898](https://github.com/Automattic/newspack-newsletters/commit/a179898114e1fc0d0a6e01452e2ca9ec9150d50e))
+
 # [1.49.0](https://github.com/Automattic/newspack-newsletters/compare/v1.48.0...v1.49.0) (2022-07-26)
 
 
