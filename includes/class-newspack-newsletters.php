@@ -1222,6 +1222,9 @@ final class Newspack_Newsletters {
 			if ( empty( $post_type ) ) {
 				$post_type = [ 'post' ];
 			}
+			if ( ! is_array( $post_type ) ) {
+				$post_type = [ $post_type ];
+			}
 			$post_type[] = self::NEWSPACK_NEWSLETTERS_CPT;
 			$query->set( 'post_type', $post_type );
 		}
