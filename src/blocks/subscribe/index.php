@@ -239,7 +239,6 @@ function send_form_response( $data ) {
  * Process newsletter signup form.
  */
 function process_form() {
-	error_log( print_r( $_REQUEST, true ) );
 	if ( ! isset( $_REQUEST[ FORM_ACTION ] ) || ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
 		return;
 	}
@@ -253,7 +252,6 @@ function process_form() {
 	if ( ! empty( $_REQUEST['captcha_token'] ) && method_exists( '\Newspack\Reader_Activation', 'verify_captcha' ) ) {
 		$captcha_token  = \sanitize_text_field( $_REQUEST['captcha_token'] );
 		$captcha_result = \Newspack\Reader_Activation::verify_captcha( $captcha_token );
-		error_log( print_r( $captcha_result, true ) );
 		if ( \is_wp_error( $captcha_result ) ) {
 			return send_form_response( $captcha_result );
 		}
