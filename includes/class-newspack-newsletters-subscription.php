@@ -27,6 +27,7 @@ class Newspack_Newsletters_Subscription {
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
+		add_action( 'delete_user', [ __CLASS__, 'delete_user' ], 10, 3 );
 
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
@@ -413,6 +414,32 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Permanently delete a user subscription.
+	 *
+	 * @param int $user_id User ID.
+	 *
+	 * @return bool|WP_Error Whether the contact was deleted or error.
+	 */
+	public static function delete_user_subscription( $user_id ) {
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return new WP_Error( 'newspack_newsletters_invalid_user', __( 'Invalid user.' ) );
+		}
+		/** Only delete if email ownership is verified. */
+		if ( ! self::is_email_verified( $user_id ) ) {
+			return new \WP_Error( 'newspack_newsletters_email_not_verified', __( 'Email ownership is not verified.' ) );
+		}
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+		if ( ! method_exists( $provider, 'delete_contact' ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider_method', __( 'Provider does not support deleting user subscriptions.' ) );
+		}
+		return $provider->delete_contact( $user->user_email );
+	}
+
+	/**
 	 * Add a contact to ESP when a reader is registered.
 	 *
 	 * @param string         $email         Email address.
@@ -428,6 +455,11 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			$lists = false;
 		}
+		/** Don't add contact if reader sync is disabled and there are no lists to subscribe to. */
+		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
+		if ( ! $sync && empty( $lists ) ) {
+			return;
+		}
 		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 		self::add_contact(
 			[
@@ -436,6 +468,31 @@ class Newspack_Newsletters_Subscription {
 			],
 			$lists
 		);
+	}
+
+	/**
+	 * Delete a contact from ESP when a reader is deleted.
+	 *
+	 * @param int      $user_id  ID of the user to delete.
+	 * @param int|null $reassign ID of the user to reassign posts and links to.
+	 *                           Default null, for no reassignment.
+	 * @param WP_User  $user     WP_User object of the user to delete.
+	 *
+	 * @return bool|WP_Error Whether the contact was deleted or error.
+	 */
+	public static function delete_user( $user_id, $reassign, $user ) {
+		if ( ! \Newspack\Reader_Activation::is_user_reader( $user ) ) {
+			return;
+		}
+		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
+		if ( ! $sync ) {
+			return;
+		}
+		$sync_delete = \Newspack\Reader_Activation::get_setting( 'sync_esp_delete' );
+		if ( ! $sync_delete ) {
+			return;
+		}
+		return self::delete_user_subscription( $user_id );
 	}
 
 	/**

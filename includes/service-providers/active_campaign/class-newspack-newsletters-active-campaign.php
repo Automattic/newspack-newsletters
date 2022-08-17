@@ -781,6 +781,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Delete contact from all lists given its email.
+	 *
+	 * @param string $email Email address.
+	 *
+	 * @return bool|WP_Error True if the contact was deleted, error if failed.
+	 */
+	public function delete_contact( $email ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			return $contact;
+		}
+		$result = $this->api_v1_request( 'contact_delete', 'GET', [ 'query' => [ 'id' => $contact['id'] ] ] );
+		return is_wp_error( $result ) ? $result : true;
+	}
+
+	/**
 	 * Get the lists a contact is subscribed to.
 	 *
 	 * @param string $email The contact email.
