@@ -35,10 +35,17 @@ function enqueue_scripts() {
 		[],
 		filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/subscribeBlock.css' )
 	);
+
+	$use_captcha  = method_exists( '\Newspack\Reader_Activation', 'can_use_captcha' ) && \Newspack\Reader_Activation::can_use_captcha();
+	$dependencies = [ 'wp-polyfill', 'wp-i18n' ];
+	if ( $use_captcha ) {
+		$dependencies[] = \Newspack\Reader_Activation::RECAPTCHA_SCRIPT_HANDLE;
+	}
+
 	\wp_enqueue_script(
 		$handle,
 		plugins_url( '../../../dist/subscribeBlock.js', __FILE__ ),
-		[ 'wp-polyfill' ],
+		$dependencies,
 		filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/subscribeBlock.js' ),
 		true
 	);
@@ -119,7 +126,7 @@ function render_block( $attrs ) {
 						name="email"
 						autocomplete="email"
 						placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>"
-						value="<?php echo esc_attr( $email ); ?>"
+						value=""
 					/>
 				</div>
 				<?php if ( 1 < count( $available_lists ) ) : ?>
@@ -232,6 +239,7 @@ function send_form_response( $data ) {
  * Process newsletter signup form.
  */
 function process_form() {
+	error_log( print_r( $_REQUEST, true ) );
 	if ( ! isset( $_REQUEST[ FORM_ACTION ] ) || ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
 		return;
 	}
@@ -239,6 +247,16 @@ function process_form() {
 	// Honeypot trap.
 	if ( ! empty( $_REQUEST['email'] ) ) {
 		return send_form_response( [ 'email' => \sanitize_email( $_REQUEST['email'] ) ] );
+	}
+
+	// reCAPTCHA test.
+	if ( ! empty( $_REQUEST['captcha_token'] ) && method_exists( '\Newspack\Reader_Activation', 'verify_captcha' ) ) {
+		$captcha_token  = \sanitize_text_field( $_REQUEST['captcha_token'] );
+		$captcha_result = \Newspack\Reader_Activation::verify_captcha( $captcha_token );
+		error_log( print_r( $captcha_result, true ) );
+		if ( \is_wp_error( $captcha_result ) ) {
+			return send_form_response( $captcha_result );
+		}
 	}
 
 	if ( ! isset( $_REQUEST['npe'] ) || empty( $_REQUEST['npe'] ) ) {
