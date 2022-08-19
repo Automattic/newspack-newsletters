@@ -36,10 +36,10 @@ function enqueue_scripts() {
 		filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/subscribeBlock.css' )
 	);
 
-	$use_captcha  = method_exists( '\Newspack\Reader_Activation', 'can_use_captcha' ) && \Newspack\Reader_Activation::can_use_captcha();
+	$use_captcha  = method_exists( '\Newspack\Recaptcha', 'can_use_captcha' ) && \Newspack\Recaptcha::can_use_captcha();
 	$dependencies = [ 'wp-polyfill', 'wp-i18n' ];
 	if ( $use_captcha ) {
-		$dependencies[] = \Newspack\Reader_Activation::RECAPTCHA_SCRIPT_HANDLE;
+		$dependencies[] = \Newspack\Recaptcha::RECAPTCHA_SCRIPT_HANDLE;
 	}
 
 	\wp_enqueue_script(
@@ -249,9 +249,9 @@ function process_form() {
 	}
 
 	// reCAPTCHA test.
-	if ( ! empty( $_REQUEST['captcha_token'] ) && method_exists( '\Newspack\Reader_Activation', 'verify_captcha' ) ) {
-		$captcha_token  = \sanitize_text_field( $_REQUEST['captcha_token'] );
-		$captcha_result = \Newspack\Reader_Activation::verify_captcha( $captcha_token );
+	if ( method_exists( '\Newspack\Recaptcha', 'can_use_captcha' ) && \Newspack\Recaptcha::can_use_captcha() ) {
+		$captcha_token  = isset( $_REQUEST['captcha_token'] ) ? \sanitize_text_field( $_REQUEST['captcha_token'] ) : '';
+		$captcha_result = \Newspack\Recaptcha::verify_captcha( $captcha_token );
 		if ( \is_wp_error( $captcha_result ) ) {
 			return send_form_response( $captcha_result );
 		}
