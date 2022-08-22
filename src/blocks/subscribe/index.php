@@ -39,7 +39,7 @@ function enqueue_scripts() {
 	$use_captcha  = method_exists( '\Newspack\Recaptcha', 'can_use_captcha' ) && \Newspack\Recaptcha::can_use_captcha();
 	$dependencies = [ 'wp-polyfill', 'wp-i18n' ];
 	if ( $use_captcha ) {
-		$dependencies[] = \Newspack\Recaptcha::RECAPTCHA_SCRIPT_HANDLE;
+		$dependencies[] = \Newspack\Recaptcha::SCRIPT_HANDLE;
 	}
 
 	\wp_enqueue_script(
