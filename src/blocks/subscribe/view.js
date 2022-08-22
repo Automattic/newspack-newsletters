@@ -15,7 +15,7 @@ import './style.scss';
 			const messageContainer = container.querySelector(
 				'.newspack-newsletters-subscribe-response'
 			);
-			const getCaptchaToken = async () => {
+			const getCaptchaToken = () => {
 				return new Promise( ( res, rej ) => {
 					const reCaptchaScript = document.getElementById( 'newspack-recaptcha-js' );
 					if ( ! reCaptchaScript ) {
@@ -32,13 +32,11 @@ import './style.scss';
 						rej( __( 'Error loading the reCaptcha library.', 'newspack-newsletters' ) );
 					}
 
-					grecaptcha.ready( async () => {
-						try {
-							const token = await grecaptcha.execute( captchaSiteKey, { action: 'submit' } );
-							return res( token );
-						} catch ( e ) {
-							rej( e );
-						}
+					grecaptcha.ready( () => {
+						grecaptcha
+							.execute( captchaSiteKey, { action: 'submit' } )
+							.then( token => res( token ) )
+							.catch( e => rej( e ) );
 					} );
 				} );
 			};
@@ -56,20 +54,24 @@ import './style.scss';
 					messageContainer.appendChild( messageNode );
 				}
 			};
-			form.addEventListener( 'submit', async ev => {
+			form.addEventListener( 'submit', ev => {
 				ev.preventDefault();
-				try {
-					const captchaToken = await getCaptchaToken();
-					if ( captchaToken ) {
+
+				getCaptchaToken()
+					.then( captchaToken => {
+						if ( ! captchaToken ) {
+							return;
+						}
 						const tokenField = document.createElement( 'input' );
 						tokenField.setAttribute( 'type', 'hidden' );
 						tokenField.setAttribute( 'name', 'captcha_token' );
 						tokenField.value = captchaToken;
 						form.appendChild( tokenField );
-					}
-				} catch ( e ) {
-					form.endFlow( e, 400 );
-				}
+					} )
+					.catch( e => {
+						form.endLoginFlow( e, 400 );
+					} );
+
 				const body = new FormData( form );
 				if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
 					return;
