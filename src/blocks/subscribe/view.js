@@ -32,10 +32,10 @@ import './style.scss';
 						rej( __( 'Error loading the reCaptcha library.', 'newspack-newsletters' ) );
 					}
 
-					grecaptcha.ready( async () => {
-						const token = await grecaptcha
+					grecaptcha.ready( () => {
+						grecaptcha
 							.execute( captchaSiteKey, { action: 'submit' } )
-							.then( () => res( token ) )
+							.then( token => res( token ) )
 							.catch( e => rej( e ) );
 					} );
 				} );
