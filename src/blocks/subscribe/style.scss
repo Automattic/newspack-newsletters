@@ -16,6 +16,9 @@
 	input[type='submit'] {
 		background-color: #d33;
 	}
+	input[disabled] {
+		opacity: 0.5;
+	}
 	.newspack-newsletters-lists {
 		list-style: none;
 		margin: 1rem 0 0;
@@ -48,7 +51,7 @@
 	.newspack-newsletters-subscribe-response {
 		margin: 0.5rem 0;
 		font-size: 0.8rem;
-		color: #777;
+		color: #cc1818;
 	}
 	&.multiple-lists {
 		form {
