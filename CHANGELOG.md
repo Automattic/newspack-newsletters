@@ -1,3 +1,17 @@
+# [1.51.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.50.0...v1.51.0-alpha.1) (2022-08-26)
+
+
+### Bug Fixes
+
+* tweak Subscribe form styles and behavior ([#937](https://github.com/Automattic/newspack-newsletters/issues/937)) ([48b285c](https://github.com/Automattic/newspack-newsletters/commit/48b285c021dc4b572d1e49ab21bb87246db4eb58))
+
+
+### Features
+
+* delete contact on reader account deletion ([#929](https://github.com/Automattic/newspack-newsletters/issues/929)) ([d0619f7](https://github.com/Automattic/newspack-newsletters/commit/d0619f765614e202c7505a52700140f141b7900f))
+* handle reCAPTCHA on Subscribe form ([#935](https://github.com/Automattic/newspack-newsletters/issues/935)) ([d527b60](https://github.com/Automattic/newspack-newsletters/commit/d527b600b3d4d3ecdb126e75a0bb77f6ac73ae3f))
+* honeypot field for Subscribe block form ([#932](https://github.com/Automattic/newspack-newsletters/issues/932)) ([cb836d0](https://github.com/Automattic/newspack-newsletters/commit/cb836d07e8c9cdbab7b1c1688574ad635d33635b))
+
 # [1.50.0](https://github.com/Automattic/newspack-newsletters/compare/v1.49.1...v1.50.0) (2022-08-16)
 
 
