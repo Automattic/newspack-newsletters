@@ -56,17 +56,27 @@ import './style.scss';
 			};
 			form.addEventListener( 'submit', ev => {
 				ev.preventDefault();
+				messageContainer.innerHTML = '';
+				submit.disabled = true;
+				submit.setAttribute( 'disabled', 'true' );
+
+				if ( ! form.npe?.value ) {
+					return form.endFlow( 'Please enter a vaild email address.', 400 );
+				}
 
 				getCaptchaToken()
 					.then( captchaToken => {
 						if ( ! captchaToken ) {
 							return;
 						}
-						const tokenField = document.createElement( 'input' );
-						tokenField.setAttribute( 'type', 'hidden' );
-						tokenField.setAttribute( 'name', 'captcha_token' );
+						let tokenField = form.captcha_token;
+						if ( ! tokenField ) {
+							tokenField = document.createElement( 'input' );
+							tokenField.setAttribute( 'type', 'hidden' );
+							tokenField.setAttribute( 'name', 'captcha_token' );
+							form.appendChild( tokenField );
+						}
 						tokenField.value = captchaToken;
-						form.appendChild( tokenField );
 					} )
 					.catch( e => {
 						form.endFlow( e, 400 );
@@ -74,13 +84,10 @@ import './style.scss';
 					.finally( () => {
 						const body = new FormData( form );
 						if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
-							return;
+							return form.endFlow( 'Please enter a vaild email address.', 400 );
 						}
 						emailInput.disabled = true;
-						submit.disabled = true;
-						messageContainer.innerHTML = '';
 						emailInput.setAttribute( 'disabled', 'true' );
-						submit.setAttribute( 'disabled', 'true' );
 						fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 							method: 'POST',
 							headers: {
