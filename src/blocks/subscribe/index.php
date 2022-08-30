@@ -55,6 +55,15 @@ function enqueue_scripts() {
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
 
 /**
+ * Generate a unique ID for each registration form.
+ *
+ * @return string A unique ID string to identify the form.
+ */
+function get_form_id() {
+	return \wp_unique_id( 'newspack-subscribe-' );
+}
+
+/**
  * Render Registration Block.
  *
  * @param array[] $attrs Block attributes.
@@ -108,7 +117,7 @@ function render_block( $attrs ) {
 		<?php if ( $subscribed ) : ?>
 			<p class="message"><?php echo \esc_html( $message ); ?></p>
 		<?php else : ?>
-			<form>
+			<form id="<?php echo esc_attr( get_form_id() ); ?>">
 				<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
 				<div class="newspack-newsletters-email-input">
 					<input
