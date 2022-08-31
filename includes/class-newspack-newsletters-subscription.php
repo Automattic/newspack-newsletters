@@ -357,6 +357,10 @@ class Newspack_Newsletters_Subscription {
 		 */
 		$contact = apply_filters( 'newspack_newsletters_contact_data', $contact, $lists, $provider->service );
 
+		if ( isset( $contact['metadata'] ) ) {
+			Newspack_Newsletters_Logger::log( 'Adding contact with metadata key(s): ' . implode( ', ', array_keys( $contact['metadata'] ) ) . '.' );
+		}
+
 		/**
 		 * Filters the contact selected lists before passing on to the API.
 		 *
