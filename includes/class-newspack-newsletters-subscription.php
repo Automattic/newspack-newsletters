@@ -357,6 +357,10 @@ class Newspack_Newsletters_Subscription {
 		 */
 		$contact = apply_filters( 'newspack_newsletters_contact_data', $contact, $lists, $provider->service );
 
+		if ( isset( $contact['metadata'] ) ) {
+			Newspack_Newsletters_Logger::log( 'Adding contact with metadata key(s): ' . implode( ', ', array_keys( $contact['metadata'] ) ) . '.' );
+		}
+
 		/**
 		 * Filters the contact selected lists before passing on to the API.
 		 *
@@ -702,12 +706,12 @@ class Newspack_Newsletters_Subscription {
 		$message .= $url . "\r\n";
 		$headers  = '';
 
-		if ( method_exists( '\Newspack\Reader_Activation', 'get_from_email' ) && method_exists( '\Newspack\Reader_Activation', 'get_from_name' ) ) {
+		if ( method_exists( '\Newspack\Emails', 'get_from_email' ) && method_exists( '\Newspack\Emails', 'get_from_name' ) ) {
 			$headers = [
 				sprintf(
 					'From: %1$s <%2$s>',
-					\Newspack\Reader_Activation::get_from_name(),
-					\Newspack\Reader_Activation::get_from_email()
+					\Newspack\Emails::get_from_name(),
+					\Newspack\Emails::get_from_email()
 				),
 			];
 		}
