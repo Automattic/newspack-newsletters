@@ -382,7 +382,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$post        = get_post( $post_id );
 		$sync_result = $this->sync( $post );
 		if ( is_wp_error( $sync_result ) ) {
-			return \rest_ensure_response( $sync_result );
+			return $sync_result;
 		}
 		/** Create disposable campaign for sending a test. */
 		$campaign_name = sprintf( 'Test for %s', $this->get_campaign_name( $post ) );
@@ -404,6 +404,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				],
 			]
 		);
+		if ( is_wp_error( $test_result ) ) {
+			return new WP_Error(
+				'newspack_newsletters_active_campaign_test',
+				sprintf( 'Sending test campaign failed: %s', $test_result->get_error_message() )
+			);
+		}
 		return [
 			'message' => sprintf(
 				// translators: %s are comma-separated emails.
@@ -653,6 +659,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	public function trash( $post_id ) {
 		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== get_post_type( $post_id ) ) {
 			return;
+		}
+		/** Clean up existing test campaigns. */
+		$test_campaigns = get_post_meta( $post_id, 'ac_test_campaign' );
+		if ( ! empty( $test_campaigns ) ) {
+			foreach ( $test_campaigns as $test_campaign_id ) {
+				$delete_res = $this->delete_campaign( $test_campaign_id, true );
+				if ( ! is_wp_error( $delete_res ) ) {
+					delete_post_meta( $post_id, 'ac_test_campaign', $test_campaign_id );
+				}
+			}
 		}
 		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
 		$message_id  = get_post_meta( $post_id, 'ac_message_id', true );
