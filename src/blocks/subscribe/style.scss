@@ -21,6 +21,9 @@
 		@media ( min-width: 782px ) {
 			margin-right: 1rem;
 		}
+		&[aria-hidden='true'] {
+			width: 0;
+		}
 	}
 	input[type='submit'] {
 		background-color: #d33;
