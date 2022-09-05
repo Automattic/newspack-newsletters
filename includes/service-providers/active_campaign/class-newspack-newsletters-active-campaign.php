@@ -929,8 +929,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		$contact_data = $result['contacts'][0];
 		if ( $return_details ) {
-			$fields_result            = $this->api_v3_request( 'fields', 'GET' );
-			$fields                   = array_reduce(
+			$fields_result = $this->api_v3_request( 'fields', 'GET' );
+			if ( \is_wp_error( $fields_result ) ) {
+				return $fields_result;
+			}
+			$fields         = array_reduce(
 				$fields_result['fields'],
 				function( $acc, $field ) {
 					$acc[ $field['id'] ] = $field['perstag'];
@@ -938,7 +941,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				},
 				[]
 			);
-			$contact_result           = $this->api_v3_request( 'contacts/' . $contact_data['id'], 'GET' );
+			$contact_result = $this->api_v3_request( 'contacts/' . $contact_data['id'], 'GET' );
+			if ( \is_wp_error( $contact_result ) ) {
+				return $contact_result;
+			}
 			$contact_fields           = array_reduce(
 				$contact_result['fieldValues'],
 				function( $acc, $field ) use ( $fields ) {
