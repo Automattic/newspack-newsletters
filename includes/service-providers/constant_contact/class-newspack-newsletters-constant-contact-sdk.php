@@ -74,7 +74,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 */
 	private function request( $method, $path, $options = [] ) {
 		$url = $this->base_uri . $path;
-		if ( $options['query'] ) {
+		if ( isset( $options['query'] ) ) {
 			$url = add_query_arg( $options['query'], $url );
 			unset( $options['query'] );
 		}
