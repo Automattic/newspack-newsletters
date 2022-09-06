@@ -706,7 +706,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @param string $list_id List ID.
 	 * @throws Exception Error message.
 	 */
-	public function add_contact( $contact, $list_id ) {
+	public function add_contact( $contact, $list_id = false ) {
 		throw new Exception(
 			__( 'Adding contacts not implemented for Constant Contact.', 'newspack-newsletters' )
 		);
