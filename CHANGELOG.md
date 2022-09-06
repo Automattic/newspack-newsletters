@@ -1,3 +1,17 @@
+# [1.51.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.51.0-alpha.1...v1.51.0-alpha.2) (2022-09-06)
+
+
+### Bug Fixes
+
+* **ActiveCampaing:** handle error on test campaign ([#945](https://github.com/Automattic/newspack-newsletters/issues/945)) ([3a65c82](https://github.com/Automattic/newspack-newsletters/commit/3a65c82bf68e80e2f80a09f02d670cc166c87bf3))
+* only process links with valid url ([#942](https://github.com/Automattic/newspack-newsletters/issues/942)) ([8868fc2](https://github.com/Automattic/newspack-newsletters/commit/8868fc2126e55092b3b8eeb5c0e3f0b703deb679))
+
+
+### Features
+
+* give each subscribe form a unique ID ([#943](https://github.com/Automattic/newspack-newsletters/issues/943)) ([2b52e1a](https://github.com/Automattic/newspack-newsletters/commit/2b52e1a0890af8680778c080de61eeffff729cc2))
+* handle updated from & name settings from Newspack plugin ([#938](https://github.com/Automattic/newspack-newsletters/issues/938)) ([4764a67](https://github.com/Automattic/newspack-newsletters/commit/4764a67024aeb1893deeffba57c0e5cc78652e05))
+
 # [1.51.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.50.0...v1.51.0-alpha.1) (2022-08-26)
 
 
