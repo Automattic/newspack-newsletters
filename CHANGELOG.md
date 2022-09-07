@@ -1,3 +1,11 @@
+# [1.51.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v1.51.0-alpha.2...v1.51.0-alpha.3) (2022-09-07)
+
+
+### Bug Fixes
+
+* **active-campaign:** handle errors when fetching contact data ([5a612e2](https://github.com/Automattic/newspack-newsletters/commit/5a612e28db7fab91e103ca2b8426507ad59a1380))
+* **subscribe-block:** remove horizontal scroll ([f7a36c4](https://github.com/Automattic/newspack-newsletters/commit/f7a36c4dcd72f646f321d02547fa6ce1c89225e0))
+
 # [1.51.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.51.0-alpha.1...v1.51.0-alpha.2) (2022-09-06)
 
 
