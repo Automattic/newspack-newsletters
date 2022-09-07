@@ -377,7 +377,7 @@ class Newspack_Newsletters_Subscription {
 		$lists = apply_filters( 'newspack_newsletters_contact_lists', $lists, $contact, $provider->service );
 
 		$errors = new WP_Error();
-		$result = true;
+		$result = [];
 
 		if ( empty( $lists ) ) {
 			try {
