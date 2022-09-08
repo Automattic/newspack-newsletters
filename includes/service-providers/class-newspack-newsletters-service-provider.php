@@ -318,4 +318,11 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
 		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ) );
 	}
+
+	/**
+	 * Get the URL that webhooks will hit.
+	 */
+	public function get_webhook_url() {
+		return get_rest_url( null, 'newspack-newsletters/v1/' . $this->service . '/webhook/unsubscribe' );
+	}
 }
