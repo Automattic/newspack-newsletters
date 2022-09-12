@@ -37,7 +37,7 @@
 		"url": "https://github.com/Automattic/newspack-newsletters/issues"
 	},
 	"dependencies": {
-		"@uiw/react-codemirror": "^3.2.8",
+		"@uiw/react-codemirror": "^3.2.9",
 		"@wordpress/icons": "^6.3.0",
 		"classnames": "^2.3.1",
 		"commitlint": "^17.1.2",
