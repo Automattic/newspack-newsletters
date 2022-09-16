@@ -1,3 +1,10 @@
+## [1.51.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.51.0...v1.51.1-alpha.1) (2022-09-16)
+
+
+### Bug Fixes
+
+* adding contact w/out lists handling ([#949](https://github.com/Automattic/newspack-newsletters/issues/949)) ([f0513b8](https://github.com/Automattic/newspack-newsletters/commit/f0513b8168de76f65615917b3483371aae366d84))
+
 # [1.51.0](https://github.com/Automattic/newspack-newsletters/compare/v1.50.0...v1.51.0) (2022-09-14)
 
 
