@@ -44,6 +44,8 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
 		add_action( 'init', [ __CLASS__, 'flush_rewrite_rules' ] );
+
+		add_action( 'delete_user', [ __CLASS__, 'unsubscribe_deleted_user' ] );
 	}
 
 	/**
@@ -934,6 +936,19 @@ class Newspack_Newsletters_Subscription {
 			} else {
 				wc_add_notice( __( 'Your subscriptions were updated.', 'newspack-newsletters' ), 'success' );
 			}
+		}
+	}
+
+	/**
+	 * Unsubscribe user from all newsletters.
+	 *
+	 * @param int $user_id User ID.
+	 */
+	public static function unsubscribe_deleted_user( $user_id ) {
+		$user = get_userdata( $user_id );
+		if ( $user ) {
+			Newspack_Newsletters_Logger::log( 'User ' . $user_id . ' is deleted. Unsubscribing them from all lists.' );
+			self::update_contact_lists( $user->user_email, [] );
 		}
 	}
 }
