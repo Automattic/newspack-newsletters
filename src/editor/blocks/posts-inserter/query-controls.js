@@ -21,13 +21,13 @@ import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { decodeEntities } from '@wordpress/html-entities';
 
-const fetchPostSuggestions = search =>
+const fetchPostSuggestions = postType => search =>
 	apiFetch( {
 		path: addQueryArgs( '/wp/v2/search', {
 			search,
 			per_page: 20,
 			_fields: 'id,title',
-			subtype: 'post',
+			subtype: postType,
 		} ),
 	} ).then( posts =>
 		posts.map( post => ( {
@@ -50,6 +50,7 @@ const decodePost = encodedPost => {
 // https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/posts-inserter/edit.js
 const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 	const [ categoriesList, setCategoriesList ] = useState( [] );
+	const [ postTypesList, setPostTypesList ] = useState( [ { value: 'post', label: 'Posts' } ] );
 	const [ showAdvancedFilters, setShowAdvancedFilters ] = useState( false );
 
 	const { categoryExclusions, tags, tagExclusions } = attributes;
@@ -60,6 +61,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				per_page: -1,
 			} ),
 		} ).then( setCategoriesList );
+		fetchPostTypes().then( setPostTypesList );
 	}, [] );
 
 	const categorySuggestions = categoriesList.reduce(
@@ -115,7 +117,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 			return;
 		}
 		setIsFetchingPosts( true );
-		fetchPostSuggestions( search ).then( posts => {
+		fetchPostSuggestions( attributes.postType )( search ).then( posts => {
 			setIsFetchingPosts( false );
 			setFoundPosts( posts );
 		} );
@@ -144,6 +146,19 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				value: category.id,
 				label: decodeEntities( category.name ) || __( '(no title)', 'newspack-newsletters' ),
 			} ) );
+		} );
+	};
+
+	const fetchPostTypes = () => {
+		return apiFetch( {
+			path: addQueryArgs( '/wp/v2/types', { context: 'edit' } ),
+		} ).then( postTypes => {
+			return Object.values( postTypes )
+				.filter( postType => postType.viewable === true && postType.visibility?.show_ui === true )
+				.map( postType => ( {
+					value: postType.slug,
+					label: decodeEntities( postType.name ) || __( '(no title)', 'newspack-newsletters' ),
+				} ) );
 		} );
 	};
 
@@ -196,6 +211,14 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 
 	return (
 		<div className="newspack-newsletters-query-controls">
+			<SelectControl
+				label={ __( 'Post type', 'newspack-newsletters' ) }
+				options={ postTypesList }
+				value={ attributes.postType }
+				onChange={ postType => {
+					setAttributes( { postType } );
+				} }
+			/>
 			<ToggleControl
 				label={ __( 'Display specific posts', 'newspack-newsletters' ) }
 				checked={ attributes.isDisplayingSpecificPosts }
