@@ -215,9 +215,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				label={ __( 'Post type', 'newspack-newsletters' ) }
 				options={ postTypesList }
 				value={ attributes.postType }
-				onChange={ postType => {
-					setAttributes( { postType } );
-				} }
+				onChange={ postType => setAttributes( { postType } ) }
 			/>
 			<ToggleControl
 				label={ __( 'Display specific posts', 'newspack-newsletters' ) }
