@@ -12,7 +12,7 @@ class Newsletter_Controlled_Statuses_Test extends WP_UnitTestCase {
 	/**
 	 * Test set up.
 	 */
-	public function setUp() {
+	public function set_up() {
 		// Set an ESP.
 		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
 	}
