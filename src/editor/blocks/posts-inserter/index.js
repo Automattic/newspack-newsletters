@@ -316,6 +316,7 @@ const PostsInserterBlockWithSelect = compose( [
 			postsToShow,
 			order,
 			orderBy,
+			postType,
 			categories,
 			isDisplayingSpecificPosts,
 			specificPosts,
@@ -353,7 +354,7 @@ const PostsInserterBlockWithSelect = compose( [
 						value => ! isUndefined( value )
 				  );
 
-			posts = getEntityRecords( 'postType', 'post', postListQuery ) || [];
+			posts = getEntityRecords( 'postType', postType, postListQuery ) || [];
 		}
 
 		// Order posts in the order as they appear in the input
