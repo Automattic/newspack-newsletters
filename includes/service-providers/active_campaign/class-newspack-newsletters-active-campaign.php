@@ -731,6 +731,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! isset( $contact['metadata'] ) ) {
 			$contact['metadata'] = [];
 		}
+
+		$contact = apply_filters( 'newspack_activecampaign_add_contact', $contact );
+
 		$action  = 'contact_add';
 		$payload = [
 			'email' => $contact['email'],
