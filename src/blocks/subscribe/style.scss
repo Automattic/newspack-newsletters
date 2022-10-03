@@ -1,3 +1,5 @@
+@use '~@wordpress/base-styles/colors' as wp-colors;
+
 .newspack-newsletters-subscribe {
 	form {
 		width: 100%;
@@ -9,68 +11,121 @@
 		}
 	}
 	.newspack-newsletters-email-input {
+		display: flex;
 		flex: 1 1 100%;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 
 		@media ( min-width: 782px ) {
-			margin-right: 1rem;
+			gap: 0.4rem;
 		}
 	}
 	input[type='email'] {
-		width: 100%;
+		flex: 1 1 100%;
 
 		@media ( min-width: 782px ) {
-			margin-right: 1rem;
+			flex-basis: auto;
 		}
+
 		&[aria-hidden='true'] {
 			width: 0;
 		}
 	}
 	input[type='submit'] {
 		background-color: #d33;
-		color: #fff;
-		margin: 0.5rem 0;
-		width: 100%;
+		color: white;
+		flex: 1 1 100%;
 
 		@media ( min-width: 782px ) {
-			width: auto;
+			flex: 0 0 auto;
 		}
 	}
 	input[disabled] {
 		opacity: 0.5;
 	}
+	// .newspack-newsletters-lists {
+	// 	list-style: none;
+	// 	margin: 0 0 0.8rem;
+	// 	padding: 0;
+	// 	display: flex;
+	// 	font-size: 0.8rem;
+	// 	flex-wrap: wrap;
+	// 	li {
+	// 		flex: 1 1 33.3333%;
+	// 		display: flex;
+	// 		min-width: 200px;
+	// 		box-sizing: border-box;
+	// 		margin: 0;
+	// 		padding: 0 1.4rem 1rem 0;
+	// 	}
+	// 	.list-checkbox {
+	// 		flex: 0 0 auto;
+	// 		margin: 0 0.5rem 0 0;
+	// 	}
+	// 	.list-title {
+	// 		display: block;
+	// 	}
+	// 	.list-description {
+	// 		display: block;
+	// 		font-size: 0.8rem;
+	// 		color: wp-colors.$gray-700;
+	// 		margin: 0;
+	// 	}
+	// }
+
 	.newspack-newsletters-lists {
-		list-style: none;
-		margin: 1rem 0 0;
-		padding: 0;
-		display: flex;
+		border: 1px solid wp-colors.$gray-200;
+		border-radius: 2px;
+		box-sizing: border-box;
+		flex: 1 1 100%;
 		font-size: 0.8rem;
-		flex-wrap: wrap;
-		li {
-			flex: 1 1 33.3333%;
-			display: flex;
-			min-width: 200px;
-			box-sizing: border-box;
+		margin-bottom: 0.8rem;
+		padding: 0.5em;
+
+		ul {
+			list-style: none;
 			margin: 0;
-			padding: 0 1.4rem 1rem 0;
+			padding: 0;
+			display: flex;
+			flex-wrap: wrap;
+			min-width: 100%;
+			li {
+				flex: 1 1 33.3333%;
+				display: flex;
+				min-width: 142px;
+				box-sizing: border-box;
+				margin: 0.5em;
+				padding: 0;
+			}
 		}
+
 		.list-checkbox {
+			align-items: center;
+			display: flex;
 			flex: 0 0 auto;
+			height: 1.6em;
 			margin: 0 0.5rem 0 0;
 		}
+
 		.list-title {
 			display: block;
 		}
+
 		.list-description {
 			display: block;
 			font-size: 0.8rem;
-			color: #777;
+			color: wp-colors.$gray-700;
 			margin: 0;
 		}
 	}
+
 	.newspack-newsletters-subscribe-response {
-		margin: 0.5rem 0;
 		font-size: 0.8rem;
-		color: #cc1818;
+		color: wp-colors.$alert-red;
+
+		p {
+			margin: 0.5rem 0 0;
+		}
 	}
 	&.multiple-lists {
 		form {
