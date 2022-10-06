@@ -116,36 +116,38 @@ export default function SubscribeEdit( {
 						} ) }
 					>
 						<form onSubmit={ ev => ev.preventDefault() }>
+							{ lists.length > 1 && (
+								<div className="newspack-newsletters-lists">
+									<ul>
+										{ lists.map( listId => (
+											<li key={ listId }>
+												<span className="list-checkbox">
+													<input
+														id={ getListCheckboxId( listId ) }
+														type="checkbox"
+														checked
+														readOnly
+													/>
+												</span>
+												<span className="list-details">
+													<label htmlFor={ getListCheckboxId( listId ) }>
+														<span className="list-title">{ listConfig[ listId ]?.title }</span>
+														{ displayDescription && (
+															<span className="list-description">
+																{ listConfig[ listId ]?.description }
+															</span>
+														) }
+													</label>
+												</span>
+											</li>
+										) ) }
+									</ul>
+								</div>
+							) }
 							<div className="newspack-newsletters-email-input">
 								<input type="email" placeholder={ placeholder } />
+								<input type="submit" value={ label } />
 							</div>
-							{ lists.length > 1 && (
-								<ul className="newspack-newsletters-lists">
-									{ lists.map( listId => (
-										<li key={ listId }>
-											<span className="list-checkbox">
-												<input
-													id={ getListCheckboxId( listId ) }
-													type="checkbox"
-													checked
-													readOnly
-												/>
-											</span>
-											<span className="list-details">
-												<label htmlFor={ getListCheckboxId( listId ) }>
-													<span className="list-title">{ listConfig[ listId ]?.title }</span>
-													{ displayDescription && (
-														<span className="list-description">
-															{ listConfig[ listId ]?.description }
-														</span>
-													) }
-												</label>
-											</span>
-										</li>
-									) ) }
-								</ul>
-							) }
-							<input type="submit" value={ label } />
 						</form>
 					</div>
 				) }

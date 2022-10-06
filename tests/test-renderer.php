@@ -187,7 +187,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 		// Add the custom CSS.
 		update_post_meta( $post_object->ID, 'custom_css', $custom_css_str );
 
-		$this->assertContains(
+		$this->assertStringContainsString(
 			$custom_css_str,
 			Newspack_Newsletters_Renderer::render_post_to_mjml( $post_object ),
 			'Rendered email contains the custom CSS.'
