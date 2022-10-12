@@ -69,7 +69,7 @@ export default function SubscribeEdit( {
 			<InspectorControls>
 				<PanelBody title={ __( 'Form settings', 'newspack-newsletters' ) }>
 					<TextControl
-						label={ __( 'Input placeholder', 'newspack-newsletters' ) }
+						label={ __( 'Email placeholder', 'newspack-newsletters' ) }
 						value={ placeholder }
 						onChange={ value => setAttributes( { placeholder: value } ) }
 					/>
@@ -81,7 +81,7 @@ export default function SubscribeEdit( {
 					{ displayNameField && (
 						<>
 							<TextControl
-								label={ __( 'Name field placeholder', 'newspack-newsletters' ) }
+								label={ __( 'Name placeholder', 'newspack-newsletters' ) }
 								value={ namePlaceholder }
 								placeholder={ getNameFieldPlaceholder() }
 								onChange={ value => setAttributes( { namePlaceholder: value } ) }
@@ -93,7 +93,7 @@ export default function SubscribeEdit( {
 							/>
 							{ displayLastNameField && (
 								<TextControl
-									label={ __( '"Last Name" field placeholder', 'newspack-newsletters' ) }
+									label={ __( '"Last Name" placeholder', 'newspack-newsletters' ) }
 									value={ lastNamePlaceholder }
 									onChange={ value => setAttributes( { lastNamePlaceholder: value } ) }
 								/>
