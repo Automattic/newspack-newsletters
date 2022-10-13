@@ -597,7 +597,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				$body['list_memberships'] = array_unique( array_merge( $body['list_memberships'], array_map( 'strval', $data['list_ids'] ) ), SORT_REGULAR );
 			}
 			if ( ! empty( $data['custom_fields'] ) ) {
-				if ( ! $body['custom_fields'] ) {
+				if ( ! isset( $body['custom_fields'] ) ) {
 					$body['custom_fields'] = [];
 				}
 				$keys = array_keys( $data['custom_fields'] );
