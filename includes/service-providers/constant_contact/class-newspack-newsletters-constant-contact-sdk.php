@@ -103,7 +103,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				throw new Exception( $response->get_error_message() );
 			}
 			$body = json_decode( $response['body'] );
-			if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			if ( ! in_array( wp_remote_retrieve_response_code( $response ), [ 200, 201 ] ) ) {
 				if ( is_array( $body ) && isset( $body[0], $body[0]->error_message ) ) {
 					throw new Exception( $body[0]->error_message );
 				} elseif ( is_object( $body ) && isset( $body->error_message ) ) {
