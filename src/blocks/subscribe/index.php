@@ -321,7 +321,7 @@ function process_form() {
 	);
 
 	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
-		\Newspack\Reader_Activation::register_reader( $email );
+		\Newspack\Reader_Activation::register_reader( $email, $name );
 	}
 
 	/**
