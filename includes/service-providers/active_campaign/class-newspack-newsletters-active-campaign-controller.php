@@ -150,6 +150,9 @@ class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newslette
 	 */
 	public function api_retrieve( $request ) {
 		$response = $this->service_provider->retrieve( $request['id'], true );
+		if ( is_wp_error( $response ) ) {
+			$response->add_data( [ 'status' => 400 ] );
+		}
 		return \rest_ensure_response( $response );
 	}
 
@@ -169,6 +172,9 @@ class Newspack_Newsletters_Active_Campaign_Controller extends Newspack_Newslette
 			$request['id'],
 			$emails
 		);
+		if ( is_wp_error( $response ) ) {
+			$response->add_data( [ 'status' => 400 ] );
+		}
 		return \rest_ensure_response( $response );
 	}
 
