@@ -1,3 +1,15 @@
+# [1.54.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.53.0...v1.54.0-alpha.1) (2022-10-21)
+
+
+### Bug Fixes
+
+* register reader with name ([#987](https://github.com/Automattic/newspack-newsletters/issues/987)) ([3315485](https://github.com/Automattic/newspack-newsletters/commit/33154857392b7b4ae86af404dcf546e3f17b49ee))
+
+
+### Features
+
+* name fields options for the subscription block ([#986](https://github.com/Automattic/newspack-newsletters/issues/986)) ([c58816b](https://github.com/Automattic/newspack-newsletters/commit/c58816b9d659927db120835ff2f86808cb9ca38d))
+
 # [1.53.0](https://github.com/Automattic/newspack-newsletters/compare/v1.52.0...v1.53.0) (2022-10-19)
 
 
