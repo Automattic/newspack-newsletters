@@ -156,10 +156,7 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 	 */
 	public function verify_token() {
 		$response = $this->service_provider->verify_token();
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -170,10 +167,7 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 	 */
 	public function api_retrieve( $request ) {
 		$response = $this->service_provider->retrieve( $request['id'] );
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -192,10 +186,7 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 			$request['id'],
 			$emails
 		);
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -210,10 +201,7 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 			$request['from_name'],
 			$request['reply_to']
 		);
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -234,9 +222,6 @@ class Newspack_Newsletters_Constant_Contact_Controller extends Newspack_Newslett
 				$request['list_id']
 			);
 		}
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 }

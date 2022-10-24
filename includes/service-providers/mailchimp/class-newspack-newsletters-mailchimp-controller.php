@@ -165,10 +165,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 	 */
 	public function api_retrieve( $request ) {
 		$response = $this->service_provider->retrieve( $request['id'] );
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -187,10 +184,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			$request['id'],
 			$emails
 		);
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -205,10 +199,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			$request['from_name'],
 			$request['reply_to']
 		);
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -222,10 +213,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			$request['id'],
 			$request['list_id']
 		);
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 
 	/**
@@ -239,9 +227,6 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			$request['id'],
 			$request['target_id']
 		);
-		if ( is_wp_error( $response ) ) {
-			$response->add_data( [ 'status' => 400 ] );
-		}
-		return \rest_ensure_response( $response );
+		return self::get_api_response( $response );
 	}
 }
