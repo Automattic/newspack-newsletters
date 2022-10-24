@@ -1,3 +1,15 @@
+# [1.54.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.54.0-alpha.1...v1.54.0-alpha.2) (2022-10-24)
+
+
+### Bug Fixes
+
+* standardize api error status code ([#992](https://github.com/Automattic/newspack-newsletters/issues/992)) ([b05add4](https://github.com/Automattic/newspack-newsletters/commit/b05add45eb12d842ccd0d229f5d5917f06a451fd))
+
+
+### Features
+
+* constant contact support for the subscription block ([#985](https://github.com/Automattic/newspack-newsletters/issues/985)) ([fdb7d7f](https://github.com/Automattic/newspack-newsletters/commit/fdb7d7f09311c7aceef8b5d96694f478b804403b))
+
 # [1.54.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.53.0...v1.54.0-alpha.1) (2022-10-21)
 
 
