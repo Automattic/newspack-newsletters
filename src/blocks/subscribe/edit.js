@@ -26,7 +26,16 @@ const settingsUrl = window.newspack_newsletters_blocks.settings_url;
 
 export default function SubscribeEdit( {
 	setAttributes,
-	attributes: { placeholder, label, lists, displayDescription },
+	attributes: {
+		placeholder,
+		displayNameField,
+		displayLastNameField,
+		namePlaceholder,
+		lastNamePlaceholder,
+		label,
+		lists,
+		displayDescription,
+	},
 } ) {
 	const blockProps = useBlockProps();
 	const [ inFlight, setInFlight ] = useState( false );
@@ -46,15 +55,51 @@ export default function SubscribeEdit( {
 			setAttributes( { lists: [ Object.keys( listConfig )[ 0 ] ] } );
 		}
 	}, [ listConfig ] );
+	const getNameFieldPlaceholder = () => {
+		if ( namePlaceholder ) {
+			return namePlaceholder;
+		}
+		if ( displayLastNameField ) {
+			return __( 'First Name', 'newspack-newsletters' );
+		}
+		return __( 'Name', 'newspack-newsletters' );
+	};
 	return (
 		<>
 			<InspectorControls>
 				<PanelBody title={ __( 'Form settings', 'newspack-newsletters' ) }>
 					<TextControl
-						label={ __( 'Input placeholder', 'newspack-newsletters' ) }
+						label={ __( 'Email placeholder', 'newspack-newsletters' ) }
 						value={ placeholder }
 						onChange={ value => setAttributes( { placeholder: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Display name field', 'newspack-newsletters' ) }
+						checked={ displayNameField }
+						onChange={ value => setAttributes( { displayNameField: value } ) }
+					/>
+					{ displayNameField && (
+						<>
+							<TextControl
+								label={ __( 'Name placeholder', 'newspack-newsletters' ) }
+								value={ namePlaceholder }
+								placeholder={ getNameFieldPlaceholder() }
+								onChange={ value => setAttributes( { namePlaceholder: value } ) }
+							/>
+							<ToggleControl
+								label={ __( 'Display "Last Name" field', 'newspack-newsletters' ) }
+								checked={ displayLastNameField }
+								onChange={ value => setAttributes( { displayLastNameField: value } ) }
+							/>
+							{ displayLastNameField && (
+								<TextControl
+									label={ __( '"Last Name" placeholder', 'newspack-newsletters' ) }
+									value={ lastNamePlaceholder }
+									onChange={ value => setAttributes( { lastNamePlaceholder: value } ) }
+								/>
+							) }
+						</>
+					) }
 					<TextControl
 						label={ __( 'Button label', 'newspack-newsletters' ) }
 						value={ label }
@@ -142,6 +187,14 @@ export default function SubscribeEdit( {
 											</li>
 										) ) }
 									</ul>
+								</div>
+							) }
+							{ displayNameField && (
+								<div className="newspack-newsletters-name-input">
+									<input type="text" placeholder={ getNameFieldPlaceholder() } />
+									{ displayLastNameField && (
+										<input type="text" placeholder={ lastNamePlaceholder } />
+									) }
 								</div>
 							) }
 							<div className="newspack-newsletters-email-input">
