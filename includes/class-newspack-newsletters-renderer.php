@@ -728,11 +728,14 @@ final class Newspack_Newsletters_Renderer {
 					$attrs
 				);
 
-				$markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_content[0];
-				foreach ( $inner_blocks as $block ) {
-					$markup .= $block['innerHTML'];
+				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_content[0];
+				if ( ! empty( $inner_blocks ) && 1 < count( $inner_content ) ) {
+					foreach ( $inner_blocks as $block ) {
+						$block_mjml_markup .= $block['innerHTML'];
+					}
+					$block_mjml_markup .= $inner_content[ count( $inner_content ) - 1 ];
 				}
-				$block_mjml_markup = $markup . $inner_content[ count( $inner_content ) - 1 ] . '</mj-text>';
+				$block_mjml_markup .= '</mj-text>';
 				break;
 
 			/**

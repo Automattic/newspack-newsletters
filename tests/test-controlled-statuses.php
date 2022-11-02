@@ -22,7 +22,7 @@ class Newsletter_Controlled_Statuses_Test extends WP_UnitTestCase {
 	 */
 	public function test_publish_private_newsletter() {
 		// Create draft.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			[
 				'post_type'   => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'post_status' => 'draft',
@@ -47,7 +47,7 @@ class Newsletter_Controlled_Statuses_Test extends WP_UnitTestCase {
 	 */
 	public function test_publish_public_newsletter() {
 		// Create draft.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			[
 				'post_type'   => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'post_status' => 'draft',
