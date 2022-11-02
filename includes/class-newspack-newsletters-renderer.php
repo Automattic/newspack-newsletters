@@ -332,10 +332,11 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML component.
 	 */
 	public static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [] ) {
-		$block_name   = $block['blockName'];
-		$attrs        = $block['attrs'];
-		$inner_blocks = $block['innerBlocks'];
-		$inner_html   = $block['innerHTML'];
+		$block_name    = $block['blockName'];
+		$attrs         = $block['attrs'];
+		$inner_blocks  = $block['innerBlocks'];
+		$inner_content = $block['innerContent'];
+		$inner_html    = $block['innerHTML'];
 
 		if ( ! isset( $attrs['innerBlocksToInsert'] ) && self::is_empty_block( $block ) ) {
 			return '';
@@ -376,7 +377,6 @@ final class Newspack_Newsletters_Renderer {
 			 * Text-based blocks.
 			 */
 			case 'core/paragraph':
-			case 'core/list':
 			case 'core/heading':
 			case 'core/quote':
 			case 'core/site-title':
@@ -712,6 +712,27 @@ final class Newspack_Newsletters_Renderer {
 					$markup .= self::render_mjml_component( $block );
 				}
 				$block_mjml_markup = $markup;
+				break;
+
+			/**
+			 * List block.
+			 */
+			case 'core/list':
+				$text_attrs = array_merge(
+					array(
+						'padding'     => '0',
+						'line-height' => '1.5',
+						'font-size'   => '16px',
+						'font-family' => $font_family,
+					),
+					$attrs
+				);
+
+				$markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_content[0];
+				foreach ( $inner_blocks as $block ) {
+					$markup .= $block['innerHTML'];
+				}
+				$block_mjml_markup = $markup . $inner_content[ count( $inner_content ) - 1 ] . '</mj-text>';
 				break;
 
 			/**
