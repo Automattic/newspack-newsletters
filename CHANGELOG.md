@@ -1,3 +1,10 @@
+## [1.54.2-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.54.1...v1.54.2-alpha.1) (2022-11-03)
+
+
+### Bug Fixes
+
+* **constant-contact:** validate access token fetch response ([#998](https://github.com/Automattic/newspack-newsletters/issues/998)) ([ad55608](https://github.com/Automattic/newspack-newsletters/commit/ad556086c070966a90eba92bf5e231fc56b4679e))
+
 ## [1.54.1](https://github.com/Automattic/newspack-newsletters/compare/v1.54.0...v1.54.1) (2022-11-03)
 
 
