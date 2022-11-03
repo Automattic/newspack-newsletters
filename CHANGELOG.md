@@ -1,3 +1,10 @@
+## [1.54.1](https://github.com/Automattic/newspack-newsletters/compare/v1.54.0...v1.54.1) (2022-11-03)
+
+
+### Bug Fixes
+
+* lists and list item blocks in WP 6.1 ([#1000](https://github.com/Automattic/newspack-newsletters/issues/1000)) ([ec7ef86](https://github.com/Automattic/newspack-newsletters/commit/ec7ef86f429b81f62c9487c58ecf0a914113702c))
+
 # [1.54.0](https://github.com/Automattic/newspack-newsletters/compare/v1.53.0...v1.54.0) (2022-10-31)
 
 
