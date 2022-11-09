@@ -21,7 +21,7 @@ class Subscription_Lists {
 	/**
 	 * CPT for Newsletter Lists.
 	 */
-	const NEWSPACK_NEWSLETTERS_LIST_CPT = 'newsletter_list';
+	const NEWSPACK_NEWSLETTERS_LIST_CPT = 'newspack_newsletters_list';
 
 	/**
 	 * Initialize this class and register hooks
