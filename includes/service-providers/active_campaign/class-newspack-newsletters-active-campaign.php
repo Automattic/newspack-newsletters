@@ -11,6 +11,7 @@ defined( 'ABSPATH' ) || exit;
  * ActiveCampaign ESP Class.
  */
 final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_Service_Provider {
+	const WEBHOOK_OPTION = 'newspack_newsletters_active_campaign_webhook';
 
 	/**
 	 * Cached fields.
@@ -42,6 +43,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
+		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		add_action( 'pre_update_option_newspack_newsletters_service_provider', [ $this, 'validate_or_create_webhooks' ], 10 );
 
 		parent::__construct( $this );
 	}
@@ -994,5 +997,103 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$contact_data['metadata'] = $contact_fields;
 		}
 		return $contact_data;
+	}
+
+	/**
+	 * Register REST API routes to receive webhook requests.
+	 */
+	public function rest_api_init() {
+		\register_rest_route(
+			'newspack-newsletters/v1/' . $this->service,
+			'webhook/unsubscribe',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'api_receive_webhook' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_authoring_permissions_check' ],
+			]
+		);
+	}
+
+	/**
+	 * Check if we have an unsubscribe webhook. Create it if not.
+	 * Runs when the active ESP is updated in Newspack Newsletters settings.
+	 *
+	 * @param string $value The Active ESP. Will execute only if this value is active-campaign.
+	 *
+	 * @return int|boolean The ID of the webhook in ActiveCampaign, false if none or error.
+	 */
+	public function validate_or_create_webhooks( $value ) {
+		if ( $this->service !== $value ) {
+			return false;
+		}
+
+		$webhook_id = \get_option( self::WEBHOOK_OPTION, false );
+
+		// Get webhook by ID if we have it, otherwise get all webhooks.
+		$webhooks = $this->api_v3_request(
+			'webhooks' . ( $webhook_id ? '/' . $webhook_id : '' ),
+			'GET'
+		);
+
+		if ( ! \is_wp_error( $webhooks ) && isset( $webhooks['webhooks'] ) ) {
+			$webhooks = $webhooks['webhooks'];
+		}
+
+		if ( ! is_array( $webhooks ) ) {
+			return false;
+		}
+
+		$unsubscribe_webhook = array_reduce(
+			$webhooks,
+			function( $acc, $webhook ) {
+				if ( isset( $webhook['name'] ) && $webhook['name'] === self::WEBHOOK_OPTION ) {
+					$acc = $webhook;
+				}
+
+				return $acc;
+			},
+			false
+		);
+
+		// If there's already an unsubscribe webhook but we don't have a record of it, save it as an option.
+		if ( $unsubscribe_webhook && isset( $unsubscribe_webhook['id'] ) ) {
+			\update_option( self::WEBHOOK_OPTION, $unsubscribe_webhook['id'] );
+			return $unsubscribe_webhook['id'];
+		}
+
+		// If we don't have a webhook, create it.
+		$unsubscribe_webhook = $this->api_v3_request(
+			'webhooks',
+			'POST',
+			[
+				'body' => wp_json_encode(
+					[
+						'webhook' => [
+							'name'    => self::WEBHOOK_OPTION,
+							'url'     => $this->get_webhook_url(),
+							'events'  => [ 'unsubscribe' ],
+							'sources' => [ 'public', 'admin', 'api', 'system' ],
+						],
+					],
+				)
+			]
+		);
+
+		// Save the created webhook ID as an option.
+		if ( ! \is_wp_error( $unsubscribe_webhook ) && isset( $unsubscribe_webhook['id'] ) ) {
+			\update_option( self::WEBHOOK_OPTION, $unsubscribe_webhook['id'] );
+			return $unsubscribe_webhook['id'];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Process a request fired by the unsubscribe webhook.
+	 */
+	public function api_receive_webhook( $request ) {
+		error_log( print_r( $request, true ) );
+
+		return \rest_ensure_response( true );
 	}
 }
