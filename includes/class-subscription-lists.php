@@ -10,7 +10,7 @@ namespace Newspack\Newsletters;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Main Newspack Subscription Lists class.
+ * Main Newspack Newsletters Subscription Lists class.
  *
  * Subscriptions Lists are Lists which readers can subscribe to. AKA Newsletters.
  *
