@@ -5,7 +5,7 @@
  * @package Newspack
  */
 
-namespace Newspack\Newsletter;
+namespace Newspack\Newsletters;
 
 defined( 'ABSPATH' ) || exit;
 
