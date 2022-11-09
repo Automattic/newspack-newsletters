@@ -795,6 +795,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 *    @type string[] $tags     Contact tags. Optional.
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
