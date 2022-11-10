@@ -335,8 +335,8 @@ final class Newspack_Newsletters_Renderer {
 		$block_name    = $block['blockName'];
 		$attrs         = $block['attrs'];
 		$inner_blocks  = $block['innerBlocks'];
-		$inner_content = $block['innerContent'];
 		$inner_html    = $block['innerHTML'];
+		$inner_content = isset( $block['innerContent'] ) ? $block['innerContent'] : [ $inner_html ];
 
 		if ( ! isset( $attrs['innerBlocksToInsert'] ) && self::is_empty_block( $block ) ) {
 			return '';
@@ -378,7 +378,6 @@ final class Newspack_Newsletters_Renderer {
 			 */
 			case 'core/paragraph':
 			case 'core/heading':
-			case 'core/quote':
 			case 'core/site-title':
 			case 'core/site-tagline':
 			case 'newspack-newsletters/share':
@@ -715,9 +714,12 @@ final class Newspack_Newsletters_Renderer {
 				break;
 
 			/**
-			 * List block.
+			 * List, list item, and quote blocks.
+			 * These blocks may or may not contain innerBlocks with their actual content.
 			 */
 			case 'core/list':
+			case 'core/list-item':
+			case 'core/quote':
 				$text_attrs = array_merge(
 					array(
 						'padding'     => '0',
@@ -730,8 +732,8 @@ final class Newspack_Newsletters_Renderer {
 
 				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_content[0];
 				if ( ! empty( $inner_blocks ) && 1 < count( $inner_content ) ) {
-					foreach ( $inner_blocks as $block ) {
-						$block_mjml_markup .= $block['innerHTML'];
+					foreach ( $inner_blocks as $inner_block ) {
+						$block_mjml_markup .= self::render_mjml_component( $inner_block );
 					}
 					$block_mjml_markup .= $inner_content[ count( $inner_content ) - 1 ];
 				}
