@@ -795,6 +795,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 *    @type string[] $tags     Contact tags. Optional.
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
@@ -849,6 +850,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
 					}
 				}
+			}
+
+			if ( ! empty( $contact['tags'] ) && is_array( $contact['tags'] ) ) {
+				$update_payload['tags'] = $contact['tags'];
 			}
 
 			// Create or update a list member.
@@ -965,6 +970,53 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
 			}
+		} catch ( \Exception $e ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_update_contact_failed',
+				$e->getMessage()
+			);
+		}
+		return true;
+	}
+
+	/**
+	 * Update a contact tags.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $tags_to_add    Array of tags to add to the contact.
+	 * @param string[] $tags_to_remove Array of tags to remove from contact.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_tags( $email, $tags_to_add = [], $tags_to_remove = [] ) {
+		$contact_lists = $this->get_contact_lists( $email );
+		if ( empty( $contact_lists ) ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_update_contact_failed',
+				'Contact not found'
+			);
+		}
+		$list_id = $contact_lists[0];       
+		$mc      = new Mailchimp( $this->api_key() );
+		try {
+			$tags_param = [];
+			foreach ( $tags_to_add as $tag ) {
+				$tags_param[] = [
+					'name'   => $tag,
+					'status' => 'active',
+				];
+			}
+			foreach ( $tags_to_remove as $tag ) {
+				$tags_param[] = [
+					'name'   => $tag,
+					'status' => 'inactive',
+				];
+			}
+			if ( empty( $tags_param ) ) {
+				return true;
+			}
+			$endpoint = sprintf( 'lists/%s/members/%s/tags', $list_id, md5( strtolower( $email ) ) );
+			$mc->post( $endpoint, [ 'tags' => $tags_param ] );
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_update_contact_failed',
