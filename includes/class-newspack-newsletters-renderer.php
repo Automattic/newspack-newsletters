@@ -329,9 +329,10 @@ final class Newspack_Newsletters_Renderer {
 	 * @param bool     $is_in_column Whether the component is a child of a column component.
 	 * @param bool     $is_in_group Whether the component is a child of a group component.
 	 * @param array    $default_attrs Default attributes for the component.
+	 * @param bool     $is_in_list_or_quote Whether the component is a child of a list or quote block.
 	 * @return string MJML component.
 	 */
-	public static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [] ) {
+	public static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [], $is_in_list_or_quote = false ) {
 		$block_name    = $block['blockName'];
 		$attrs         = $block['attrs'];
 		$inner_blocks  = $block['innerBlocks'];
@@ -731,19 +732,19 @@ final class Newspack_Newsletters_Renderer {
 				);
 
 				// If a wrapper block, wrap in mj-text.
-				if ( ! $is_in_group ) {
+				if ( ! $is_in_list_or_quote ) {
 					$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>';
 				}
 
 				$block_mjml_markup .= $inner_content[0];
 				if ( ! empty( $inner_blocks ) && 1 < count( $inner_content ) ) {
 					foreach ( $inner_blocks as $inner_block ) {
-						$block_mjml_markup .= self::render_mjml_component( $inner_block, false, true );
+						$block_mjml_markup .= self::render_mjml_component( $inner_block, false, false, [], true );
 					}
 					$block_mjml_markup .= $inner_content[ count( $inner_content ) - 1 ];
 				}
 
-				if ( ! $is_in_group ) {
+				if ( ! $is_in_list_or_quote ) {
 					$block_mjml_markup .= '</mj-text>';
 				}
 
@@ -865,7 +866,7 @@ final class Newspack_Newsletters_Renderer {
 
 		if (
 			! $is_in_column &&
-			! $is_in_group &&
+			! $is_in_list_or_quote &&
 			! $is_grouped_block &&
 			'core/columns' != $block_name &&
 			'core/column' != $block_name &&
@@ -876,7 +877,7 @@ final class Newspack_Newsletters_Renderer {
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
-		if ( $is_in_column || $is_in_group || $is_posts_inserter_block ) {
+		if ( $is_in_column || $is_in_list_or_quote || $is_posts_inserter_block ) {
 			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {
