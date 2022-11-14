@@ -730,14 +730,23 @@ final class Newspack_Newsletters_Renderer {
 					$attrs
 				);
 
-				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_content[0];
+				// If a wrapper block, wrap in mj-text.
+				if ( ! $is_in_group ) {
+					$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>';
+				}
+
+				$block_mjml_markup .= $inner_content[0];
 				if ( ! empty( $inner_blocks ) && 1 < count( $inner_content ) ) {
 					foreach ( $inner_blocks as $inner_block ) {
-						$block_mjml_markup .= self::render_mjml_component( $inner_block );
+						$block_mjml_markup .= self::render_mjml_component( $inner_block, false, true );
 					}
 					$block_mjml_markup .= $inner_content[ count( $inner_content ) - 1 ];
 				}
-				$block_mjml_markup .= '</mj-text>';
+
+				if ( ! $is_in_group ) {
+					$block_mjml_markup .= '</mj-text>';
+				}
+
 				break;
 
 			/**
@@ -852,11 +861,12 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
-		$is_group_block          = 'core/group' == $block_name;
+		$is_grouped_block        = in_array( $block_name, [ 'core/group', 'core/list', 'core/list-item', 'core/quote' ], true );
 
 		if (
 			! $is_in_column &&
-			! $is_group_block &&
+			! $is_in_group &&
+			! $is_grouped_block &&
 			'core/columns' != $block_name &&
 			'core/column' != $block_name &&
 			'core/buttons' != $block_name &&
@@ -866,7 +876,7 @@ final class Newspack_Newsletters_Renderer {
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}
-		if ( $is_in_column || $is_group_block || $is_posts_inserter_block ) {
+		if ( $is_in_column || $is_in_group || $is_posts_inserter_block ) {
 			// Render a nested block without a wrapping section.
 			return $block_mjml_markup;
 		} else {
