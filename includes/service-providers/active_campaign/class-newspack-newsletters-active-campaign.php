@@ -34,6 +34,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	private $contact_data = [];
 
 	/**
+	 * Whether the provider has support to tags and tags based Subscription Lists.
+	 *
+	 * @var boolean
+	 */
+	public static $support_tags = true;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -1233,5 +1240,21 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( isset( $this->contact_data[ $email ] ) ) {
 			unset( $this->contact_data[ $email ] );
 		}
+	}
+
+	/**
+	 * Get the provider specific labels
+	 *
+	 * This allows us to make reference to provider specific features in the way the user is used to see them in the provider's UI
+	 *
+	 * @return array
+	 */
+	public static function get_labels() {
+		return array_merge(
+			parent::get_labels(),
+			[
+				'name' => 'Active Campaign',
+			]
+		);
 	}
 }
