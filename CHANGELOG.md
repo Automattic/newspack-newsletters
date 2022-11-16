@@ -1,3 +1,10 @@
+## [1.54.3](https://github.com/Automattic/newspack-newsletters/compare/v1.54.2...v1.54.3) (2022-11-16)
+
+
+### Bug Fixes
+
+* handle exception on reader registration ([#1020](https://github.com/Automattic/newspack-newsletters/issues/1020)) ([a8a5b0f](https://github.com/Automattic/newspack-newsletters/commit/a8a5b0fdc1e93554d75c54ef78add1666431c590))
+
 ## [1.54.2](https://github.com/Automattic/newspack-newsletters/compare/v1.54.1...v1.54.2) (2022-11-04)
 
 
