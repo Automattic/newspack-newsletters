@@ -121,7 +121,7 @@ class Subscription_List {
 	 */
 	public function get_other_configured_providers() {
 		$providers = array_keys( $this->get_all_providers_settings() );
-		return array_diff( $providers, [ Newspack_Newsletters::service_provider() ] );
+		return array_values( array_diff( $providers, [ Newspack_Newsletters::service_provider() ] ) );
 	}
 
 	/**

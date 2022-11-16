@@ -185,6 +185,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$this->assertNotNull( $list->get_current_provider_settings() );
 	}
 
+	/**
+	 * Test get_configured_providers method
+	 */
 	public function test_get_configured_providers() {
 		$list = new Subscription_List( self::$posts['without_settings'] );
 		$this->assertSame( [], $list->get_configured_providers() );
@@ -194,6 +197,114 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'mailchimp', 'active_campaign' ], $list->get_configured_providers() );
+	}
+
+	/**
+	 * Test get_configured_providers_names method
+	 */
+	public function test_get_configured_providers_names() {
+		$list = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertSame( [], $list->get_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( [ 'Mailchimp' ], $list->get_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertSame( [ 'Mailchimp', 'Active Campaign' ], $list->get_configured_providers_names() );
+	}
+
+	/**
+	 * Test get_other_configured_providers method
+	 */
+	public function test_get_other_configured_providers() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
+		$list = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertSame( [], $list->get_other_configured_providers() );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( [], $list->get_other_configured_providers() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertSame( [ 'active_campaign' ], $list->get_other_configured_providers() );
+
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( [ 'mailchimp' ], $list->get_other_configured_providers() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertSame( [ 'mailchimp' ], $list->get_other_configured_providers() );
+	}
+
+	/**
+	 * Test get_other_configured_providers_names method
+	 */
+	public function test_get_other_configured_providers_names() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
+		$list = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertSame( [], $list->get_other_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( [], $list->get_other_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertSame( [ 'Active Campaign' ], $list->get_other_configured_providers_names() );
+
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( [ 'Mailchimp' ], $list->get_other_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertSame( [ 'Mailchimp' ], $list->get_other_configured_providers_names() );
+	}
+
+	/**
+	 * Test has_other_providers_configured method
+	 */ 
+	public function test_has_other_providers_configured() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
+		$list = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertFalse( $list->has_other_providers_configured() );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertFalse( $list->has_other_providers_configured() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertTrue( $list->has_other_providers_configured() );
+
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $list->has_other_providers_configured() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertTrue( $list->has_other_providers_configured() );
+	}
+
+	/**
+	 * Test update_current_provider_settings method
+	 */
+	public function test_update_current_provider_settings() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
+		$list = new Subscription_List( self::$posts['without_settings'] );
+
+		$this->assertFalse( $list->update_current_provider_settings( '', 'test' ) );
+		$this->assertNull( $list->get_current_provider_settings() );
+
+		$this->assertNotFalse( $list->update_current_provider_settings( '123', 'test' ) );
+		$this->assertSame(
+			[
+				'list' => '123',
+				'tag'  => 'test',
+			],
+			$list->get_current_provider_settings()
+		);
+
 	}
 
 }

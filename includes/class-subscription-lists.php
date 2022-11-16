@@ -211,26 +211,32 @@ class Subscription_Lists {
 		</div>
 
 		<div class="misc-pub-section">
-			<label for="newspack_newsletter_tags">
+			<label for="newspack_newsletters_tag">
 				<?php esc_html_e( 'Tag', 'newspack-newsletters' ); ?>:
 			</label>
-			<input type="text" name="newspack_newsletter_tags" id="newspack_newsletter_tags" style="width: 100%" value="<?php echo esc_attr( $current_settings['tag'] ); ?>" />
+			<input type="text" name="newspack_newsletters_tag" id="newspack_newsletters_tag" style="width: 100%" value="<?php echo esc_attr( $current_settings['tag'] ); ?>" />
 		</div>
 		<?php
 	}
 
-	public static function save_post() {
+	/**
+	 * Save post callback
+	 *
+	 * @param int $post_id The ID of the post being saved.
+	 * @return void
+	 */
+	public static function save_post( $post_id ) {
 
-		$post_type = sanitize_text_field( $_POST['post_type'] );
+		$post_type = sanitize_text_field( $_POST['post_type'] ?? '' );
 
 		if ( self::NEWSPACK_NEWSLETTERS_LIST_CPT !== $post_type ) {
-			return $post_id;
+			return;
 		}
 
 		if ( ! isset( $_POST['newspack_newsletters_save_list_nonce'] ) ||
 			! wp_verify_nonce( sanitize_text_field( $_POST['newspack_newsletters_save_list_nonce'] ), 'newspack_newsletters_save_list' )
 		) {
-			return $post_id;
+			return;
 		}
 
 		/*
@@ -238,12 +244,13 @@ class Subscription_Lists {
 		 * so we don't want to do anything.
 		 */
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return $post_id;
+			return;
 		}
 
 		$post_type_object = get_post_type_object( $post_type );
+
 		if ( ! current_user_can( $post_type_object->cap->edit_post, $post_id ) ) {
-			return $post_id;
+			return;
 		}
 
 		$list = sanitize_text_field( $_POST['newspack_newsletters_list'] ?? '' );
