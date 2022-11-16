@@ -24,7 +24,7 @@ class Subscription_Lists {
 	/**
 	 * CPT for Newsletter Lists.
 	 */
-	const NEWSPACK_NEWSLETTERS_LIST_CPT = 'newspack_nl_list';
+	const CPT = 'newspack_nl_list';
 
 	/**
 	 * Initialize this class and register hooks
@@ -39,6 +39,8 @@ class Subscription_Lists {
 		add_action( 'admin_menu', [ __CLASS__, 'add_submenu_item' ] );
 		add_filter( 'wp_editor_settings', [ __CLASS__, 'filter_editor_settings' ], 10, 2 );
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
+		add_filter( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
 	}
 
 	/**
@@ -72,7 +74,7 @@ class Subscription_Lists {
 	 * @return array
 	 */
 	public static function filter_editor_settings( $settings, $editor_id ) {
-		if ( 'content' === $editor_id && get_current_screen()->post_type === self::NEWSPACK_NEWSLETTERS_LIST_CPT ) {
+		if ( 'content' === $editor_id && get_current_screen()->post_type === self::CPT ) {
 			$settings['tinymce']       = false;
 			$settings['quicktags']     = false;
 			$settings['media_buttons'] = false;
@@ -90,7 +92,7 @@ class Subscription_Lists {
 			__( 'Lists', 'newspack-newsletters' ),
 			__( 'Lists', 'newspack-newsletters' ),
 			'edit_others_posts',
-			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_LIST_CPT,
+			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
 		);
@@ -147,7 +149,7 @@ class Subscription_Lists {
 			'delete_with_user'     => false,
 			'register_meta_box_cb' => [ __CLASS__, 'add_metabox' ],
 		);
-		register_post_type( self::NEWSPACK_NEWSLETTERS_LIST_CPT, $args );
+		register_post_type( self::CPT, $args );
 	}
 
 	/**
@@ -161,10 +163,38 @@ class Subscription_Lists {
 			'newspack-newsletters-list-metabox',
 			__( 'Provider settings' ),
 			[ __CLASS__, 'metabox_content' ],
-			self::NEWSPACK_NEWSLETTERS_LIST_CPT,
+			self::CPT,
 			'side',
 			'high'
 		);
+	}
+
+	/**
+	 * Modify columns on post type table
+	 *
+	 * @param array $columns Registered columns.
+	 * @return array
+	 */
+	public static function posts_columns( $columns ) {  
+		unset( $columns['date'] );
+		unset( $columns['stats'] );
+		$columns['active_providers'] = __( 'Service Providers', 'newspack-newsletters' );
+		return $columns;
+		
+	}
+
+	/**
+	 * Add content to the custom column
+	 *
+	 * @param string $column The current column.
+	 * @param int    $post_id The current post ID.
+	 * @return void
+	 */
+	public static function posts_columns_values( $column, $post_id ) {
+		if ( 'active_providers' === $column ) {
+			$list = new Subscription_List( $post_id );
+			echo esc_html( implode( ', ', $list->get_configured_providers_names() ) );
+		}
 	}
 
 	/**
@@ -229,7 +259,7 @@ class Subscription_Lists {
 
 		$post_type = sanitize_text_field( $_POST['post_type'] ?? '' );
 
-		if ( self::NEWSPACK_NEWSLETTERS_LIST_CPT !== $post_type ) {
+		if ( self::CPT !== $post_type ) {
 			return;
 		}
 

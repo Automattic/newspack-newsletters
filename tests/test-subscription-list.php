@@ -71,7 +71,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$data = [
 			'post_title'   => 'Test List ' . $index,
 			'post_content' => 'Description ' . $index,
-			'post_type'    => Subscription_Lists::NEWSPACK_NEWSLETTERS_LIST_CPT,
+			'post_type'    => Subscription_Lists::CPT,
 			'post_status'  => 'publish',
 		];
 		return wp_insert_post( $data );
