@@ -156,7 +156,7 @@ class Subscription_List {
 	 *
 	 * @return boolean
 	 */
-	public function has_other_providers_configured() {
+	public function has_other_configured_providers() {
 		return ! empty( $this->get_other_configured_providers() );
 
 	}

@@ -262,27 +262,27 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test has_other_providers_configured method
+	 * Test has_other_configured_providers method
 	 */ 
-	public function test_has_other_providers_configured() {
+	public function test_has_other_configured_providers() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
 
 		$list = new Subscription_List( self::$posts['without_settings'] );
-		$this->assertFalse( $list->has_other_providers_configured() );
+		$this->assertFalse( $list->has_other_configured_providers() );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
-		$this->assertFalse( $list->has_other_providers_configured() );
+		$this->assertFalse( $list->has_other_configured_providers() );
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
-		$this->assertTrue( $list->has_other_providers_configured() );
+		$this->assertTrue( $list->has_other_configured_providers() );
 
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
-		$this->assertTrue( $list->has_other_providers_configured() );
+		$this->assertTrue( $list->has_other_configured_providers() );
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
-		$this->assertTrue( $list->has_other_providers_configured() );
+		$this->assertTrue( $list->has_other_configured_providers() );
 	}
 
 	/**
