@@ -204,16 +204,19 @@ class Subscription_Lists {
 	 * @return void
 	 */
 	public static function metabox_content( $post ) {
-		$list             = new Subscription_List( $post );
-		$current_settings = $list->get_current_provider_settings();
-		$current_provider = Newspack_Newsletters::get_service_provider();
+		$subscription_list = new Subscription_List( $post );
+		$current_settings  = $subscription_list->get_current_provider_settings();
+		$current_provider  = Newspack_Newsletters::get_service_provider();
+		$empty_message     = '';
 
 		if ( empty( $current_settings ) ) {
-			printf(
+
+			$empty_message = sprintf(
 				// translators: %s is the provider name. Ex: Mailchimp.
-				esc_html__( 'This list is not yet configured for %s. Please use the fields below to configure where readers should be added to.' ),
-				esc_html( $current_provider::label( 'name' ) )
+				__( 'This list is not yet configured for %s. Please use the fields below to configure where readers should be added to.' ),
+				'<b>' . esc_html( $current_provider::label( 'name' ) ) . '</b>'
 			);
+
 			$current_settings = [
 				'list' => '',
 				'tag'  => '',
@@ -223,8 +226,15 @@ class Subscription_Lists {
 		$lists = $current_provider->get_lists();
 
 		wp_nonce_field( 'newspack_newsletters_save_list', 'newspack_newsletters_save_list_nonce' );
+
 		?>
+		
 		<div class="misc-pub-section">
+			<?php if ( ! empty( $empty_message ) ) : ?>
+				<p>
+					<?php echo wp_kses( $empty_message, 'data' ); ?>
+				</p>
+			<?php endif; ?>
 			<label for="newspack_newsletters_list">
 				<?php echo esc_html( $current_provider::label( 'List' ) ); ?>:
 			</label>
@@ -246,6 +256,15 @@ class Subscription_Lists {
 			</label>
 			<input type="text" name="newspack_newsletters_tag" id="newspack_newsletters_tag" style="width: 100%" value="<?php echo esc_attr( $current_settings['tag'] ); ?>" />
 		</div>
+
+		<?php if ( $subscription_list->has_other_configured_providers() ) : ?>
+			<div class="misc-pub-section">
+				<p>
+					<?php esc_html_e( 'Other providers this List is already configured for:', 'newspack-newsletters' ); ?>
+					<?php echo esc_html( implode( ', ', $subscription_list->get_other_configured_providers_names() ) ); ?>
+				</p>
+			</div>
+		<?php endif; ?>
 		<?php
 	}
 
