@@ -8,6 +8,7 @@
 namespace Newspack\Newsletters;
 
 use Newspack_Newsletters;
+use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,7 +24,7 @@ class Subscription_Lists {
 	/**
 	 * CPT for Newsletter Lists.
 	 */
-	const NEWSPACK_NEWSLETTERS_LIST_CPT = 'newspack_nl_list';
+	const CPT = 'newspack_nl_list';
 
 	/**
 	 * Initialize this class and register hooks
@@ -37,6 +38,9 @@ class Subscription_Lists {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_submenu_item' ] );
 		add_filter( 'wp_editor_settings', [ __CLASS__, 'filter_editor_settings' ], 10, 2 );
+		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
+		add_filter( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
 	}
 
 	/**
@@ -70,7 +74,7 @@ class Subscription_Lists {
 	 * @return array
 	 */
 	public static function filter_editor_settings( $settings, $editor_id ) {
-		if ( 'content' === $editor_id && get_current_screen()->post_type === self::NEWSPACK_NEWSLETTERS_LIST_CPT ) {
+		if ( 'content' === $editor_id && get_current_screen()->post_type === self::CPT ) {
 			$settings['tinymce']       = false;
 			$settings['quicktags']     = false;
 			$settings['media_buttons'] = false;
@@ -88,7 +92,7 @@ class Subscription_Lists {
 			__( 'Lists', 'newspack-newsletters' ),
 			__( 'Lists', 'newspack-newsletters' ),
 			'edit_others_posts',
-			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_LIST_CPT,
+			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
 		);
@@ -131,19 +135,177 @@ class Subscription_Lists {
 			'filter_items_list'     => __( 'Filter items list', 'newspack' ),
 		);
 		$args   = array(
-			'label'            => __( 'List', 'newspack' ),
-			'description'      => __( 'Newsletter list', 'newspack' ),
-			'labels'           => $labels,
-			'supports'         => array( 'title', 'editor' ),
-			'hierarchical'     => false,
-			'public'           => false,
-			'show_ui'          => true,
-			'show_in_menu'     => false,
-			'can_export'       => false,
-			'capability_type'  => 'page',
-			'show_in_rest'     => false,
-			'delete_with_user' => false,
+			'label'                => __( 'List', 'newspack' ),
+			'description'          => __( 'Newsletter list', 'newspack' ),
+			'labels'               => $labels,
+			'supports'             => array( 'title', 'editor' ),
+			'hierarchical'         => false,
+			'public'               => false,
+			'show_ui'              => true,
+			'show_in_menu'         => false,
+			'can_export'           => false,
+			'capability_type'      => 'page',
+			'show_in_rest'         => false,
+			'delete_with_user'     => false,
+			'register_meta_box_cb' => [ __CLASS__, 'add_metabox' ],
 		);
-		register_post_type( self::NEWSPACK_NEWSLETTERS_LIST_CPT, $args );
+		register_post_type( self::CPT, $args );
+	}
+
+	/**
+	 * Adds post type metaboxes
+	 *
+	 * @param WP_Post $post The current post.
+	 * @return void
+	 */
+	public static function add_metabox( $post ) {
+		add_meta_box(
+			'newspack-newsletters-list-metabox',
+			__( 'Provider settings' ),
+			[ __CLASS__, 'metabox_content' ],
+			self::CPT,
+			'side',
+			'high'
+		);
+	}
+
+	/**
+	 * Modify columns on post type table
+	 *
+	 * @param array $columns Registered columns.
+	 * @return array
+	 */
+	public static function posts_columns( $columns ) {  
+		unset( $columns['date'] );
+		unset( $columns['stats'] );
+		$columns['active_providers'] = __( 'Service Providers', 'newspack-newsletters' );
+		return $columns;
+		
+	}
+
+	/**
+	 * Add content to the custom column
+	 *
+	 * @param string $column The current column.
+	 * @param int    $post_id The current post ID.
+	 * @return void
+	 */
+	public static function posts_columns_values( $column, $post_id ) {
+		if ( 'active_providers' === $column ) {
+			$list = new Subscription_List( $post_id );
+			echo esc_html( implode( ', ', $list->get_configured_providers_names() ) );
+		}
+	}
+
+	/**
+	 * Outputs metabox content
+	 *
+	 * @param WP_Post $post The current post.
+	 * @return void
+	 */
+	public static function metabox_content( $post ) {
+		$subscription_list = new Subscription_List( $post );
+		$current_settings  = $subscription_list->get_current_provider_settings();
+		$current_provider  = Newspack_Newsletters::get_service_provider();
+		$empty_message     = '';
+
+		if ( empty( $current_settings ) ) {
+
+			$empty_message = sprintf(
+				// translators: %s is the provider name. Ex: Mailchimp.
+				__( 'This list is not yet configured for %s. Please use the fields below to configure where readers should be added to.' ),
+				'<b>' . esc_html( $current_provider::label( 'name' ) ) . '</b>'
+			);
+
+			$current_settings = [
+				'list' => '',
+				'tag'  => '',
+			];
+		}
+
+		$lists = $current_provider->get_lists();
+
+		wp_nonce_field( 'newspack_newsletters_save_list', 'newspack_newsletters_save_list_nonce' );
+
+		?>
+		<div class="misc-pub-section">
+			<?php if ( ! empty( $empty_message ) ) : ?>
+				<p>
+					<?php echo wp_kses( $empty_message, 'data' ); ?>
+				</p>
+			<?php endif; ?>
+			<label for="newspack_newsletters_list">
+				<?php echo esc_html( $current_provider::label( 'List' ) ); ?>:
+			</label>
+			<select name="newspack_newsletters_list" id="newspack_newsletters_list" style="width: 100%">
+				<option value=""></option>
+				<?php foreach ( $lists as $list ) : ?>
+
+					<option value="<?php echo esc_attr( $list['id'] ); ?>" <?php selected( $current_settings['list'], $list['id'] ); ?> >
+						<?php echo esc_html( $list['name'] ); ?>
+					</option>
+
+				<?php endforeach; ?>
+			</select>
+		</div>
+
+		<div class="misc-pub-section">
+			<label for="newspack_newsletters_tag">
+				<?php esc_html_e( 'Tag', 'newspack-newsletters' ); ?>:
+			</label>
+			<input type="text" name="newspack_newsletters_tag" id="newspack_newsletters_tag" style="width: 100%" value="<?php echo esc_attr( $current_settings['tag'] ); ?>" />
+		</div>
+
+		<?php if ( $subscription_list->has_other_configured_providers() ) : ?>
+			<div class="misc-pub-section">
+				<p>
+					<?php esc_html_e( 'Other providers this list is already configured for:', 'newspack-newsletters' ); ?>
+					<?php echo esc_html( implode( ', ', $subscription_list->get_other_configured_providers_names() ) ); ?>
+				</p>
+			</div>
+		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Save post callback
+	 *
+	 * @param int $post_id The ID of the post being saved.
+	 * @return void
+	 */
+	public static function save_post( $post_id ) {
+
+		$post_type = sanitize_text_field( $_POST['post_type'] ?? '' );
+
+		if ( self::CPT !== $post_type ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['newspack_newsletters_save_list_nonce'] ) ||
+			! wp_verify_nonce( sanitize_text_field( $_POST['newspack_newsletters_save_list_nonce'] ), 'newspack_newsletters_save_list' )
+		) {
+			return;
+		}
+
+		/*
+		 * If this is an autosave, our form has not been submitted,
+		 * so we don't want to do anything.
+		 */
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( ! current_user_can( $post_type_object->cap->edit_post, $post_id ) ) {
+			return;
+		}
+
+		$list = sanitize_text_field( $_POST['newspack_newsletters_list'] ?? '' );
+		$tag  = sanitize_text_field( $_POST['newspack_newsletters_tag'] ?? '' );
+
+		$subscription_list = new Subscription_List( $post_id );
+		$subscription_list->update_current_provider_settings( $list, $tag );
+
 	}
 }
