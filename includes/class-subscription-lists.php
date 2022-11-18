@@ -55,7 +55,7 @@ class Subscription_Lists {
 		}
 		
 		// If Service Provider is not configured yet.
-		if ( ! Newspack_Newsletters::is_service_provider_configured() ) {
+		if ( 'manual' === Newspack_Newsletters::service_provider() || ! Newspack_Newsletters::is_service_provider_configured() ) {
 			return false;
 		}
 
