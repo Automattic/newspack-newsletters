@@ -259,7 +259,7 @@ class Subscription_Lists {
 		<?php if ( $subscription_list->has_other_configured_providers() ) : ?>
 			<div class="misc-pub-section">
 				<p>
-					<?php esc_html_e( 'Other providers this List is already configured for:', 'newspack-newsletters' ); ?>
+					<?php esc_html_e( 'Other providers this list is already configured for:', 'newspack-newsletters' ); ?>
 					<?php echo esc_html( implode( ', ', $subscription_list->get_other_configured_providers_names() ) ); ?>
 				</p>
 			</div>
