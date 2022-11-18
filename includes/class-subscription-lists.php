@@ -228,7 +228,6 @@ class Subscription_Lists {
 		wp_nonce_field( 'newspack_newsletters_save_list', 'newspack_newsletters_save_list_nonce' );
 
 		?>
-		
 		<div class="misc-pub-section">
 			<?php if ( ! empty( $empty_message ) ) : ?>
 				<p>
