@@ -15,6 +15,13 @@ use \DrewM\MailChimp\MailChimp;
 final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service_Provider {
 
 	/**
+	 * Whether the provider has support to tags and tags based Subscription Lists.
+	 *
+	 * @var boolean
+	 */
+	public static $support_tags = true;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -1060,5 +1067,22 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			];
 		}
 		return $data;
+	}
+
+	/**
+	 * Get the provider specific labels
+	 *
+	 * This allows us to make reference to provider specific features in the way the user is used to see them in the provider's UI
+	 *
+	 * @return array
+	 */
+	public static function get_labels() {
+		return [
+			'name'  => 'Mailchimp', // The provider name.
+			'list'  => __( 'audience', 'newspack-newsletters' ), // "list" in lower case singular format.
+			'lists' => __( 'audiences', 'newspack-newsletters' ), // "list" in lower case plural format.
+			'List'  => __( 'Audience', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+			'Lists' => __( 'Audiences', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+		];
 	}
 }

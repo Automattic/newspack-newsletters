@@ -43,6 +43,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	protected static $controlled_statuses = [ 'publish', 'private' ];
 
 	/**
+	 * Whether the provider has support to tags and tags based Subscription Lists.
+	 *
+	 * @var boolean
+	 */
+	public static $support_tags = false;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -317,5 +324,33 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
 		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
+	}
+
+	/**
+	 * Get the provider specific labels
+	 *
+	 * This allows us to make reference to provider specific features in the way the user is used to see them in the provider's UI
+	 *
+	 * @return array
+	 */
+	public static function get_labels() {
+		return [
+			'name'  => '', // The provider name.
+			'list'  => __( 'list', 'newspack-newsletters' ), // "list" in lower case singular format.
+			'lists' => __( 'lists', 'newspack-newsletters' ), // "list" in lower case plural format.
+			'List'  => __( 'List', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+			'Lists' => __( 'Lists', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+		];
+	}
+
+	/**
+	 * Get one specific label for the current provider
+	 *
+	 * @param string $key The label key.
+	 * @return string Empty string in case the label is not found.
+	 */
+	public static function label( $key ) {
+		$labels = static::get_labels();
+		return $labels[ $key ] ?? '';
 	}
 }

@@ -7,6 +7,8 @@
 
 namespace Newspack\Newsletters;
 
+use Newspack_Newsletters;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -29,9 +31,35 @@ class Subscription_Lists {
 	 * @return void
 	 */
 	public static function init() {
+		if ( ! self::should_initialize_lists() ) {
+			return;
+		}
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_submenu_item' ] );
 		add_filter( 'wp_editor_settings', [ __CLASS__, 'filter_editor_settings' ], 10, 2 );
+	}
+
+	/**
+	 * Check if we should initialize the Subscription lists
+	 *
+	 * @return boolean
+	 */
+	public static function should_initialize_lists() {
+		// We only need this on admin.
+		if ( ! is_admin() ) {
+			return false;
+		}
+		
+		// If Service Provider is not configured yet.
+		if ( 'manual' === Newspack_Newsletters::service_provider() || ! Newspack_Newsletters::is_service_provider_configured() ) {
+			return false;
+		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+
+		// Only init if current provider supports tags.
+		return $provider::$support_tags;
+
 	}
 
 	/**
@@ -56,7 +84,7 @@ class Subscription_Lists {
 	 */
 	public static function add_submenu_item() {
 		add_submenu_page(
-			'edit.php?post_type=' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			__( 'Lists', 'newspack-newsletters' ),
 			__( 'Lists', 'newspack-newsletters' ),
 			'edit_others_posts',
