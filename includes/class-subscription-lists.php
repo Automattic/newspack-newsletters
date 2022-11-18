@@ -67,6 +67,29 @@ class Subscription_Lists {
 	}
 
 	/**
+	 * Check if we should initialize the Subscription lists
+	 *
+	 * @return boolean
+	 */
+	public static function should_initialize_lists() {
+		// We only need this on admin.
+		if ( ! is_admin() ) {
+			return false;
+		}
+		
+		// If Service Provider is not configured yet.
+		if ( 'manual' === Newspack_Newsletters::service_provider() || ! Newspack_Newsletters::is_service_provider_configured() ) {
+			return false;
+		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+
+		// Only init if current provider supports tags.
+		return $provider::$support_tags;
+
+	}
+
+	/**
 	 * Disable Rich text editing from the editor
 	 *
 	 * @param array  $settings The settings to be filtered.
