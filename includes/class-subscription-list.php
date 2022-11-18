@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Newsletters Subscriptio List
+ * Newspack Newsletters Subscription List
  *
  * @package Newspack
  */
