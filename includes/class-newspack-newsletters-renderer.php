@@ -425,7 +425,8 @@ final class Newspack_Newsletters_Renderer {
 					unset( $text_attrs['background-color'] );
 				}
 
-				$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
+				// Avoid wrapping markup in `mj-text` if the block is an inner block.
+				$block_mjml_markup = $is_in_list_or_quote ? $inner_html : '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
 				break;
 
 			/**
@@ -733,7 +734,7 @@ final class Newspack_Newsletters_Renderer {
 
 				// If a wrapper block, wrap in mj-text.
 				if ( ! $is_in_list_or_quote ) {
-					$block_mjml_markup = '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>';
+					$block_mjml_markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>';
 				}
 
 				$block_mjml_markup .= $inner_content[0];
@@ -1231,6 +1232,7 @@ final class Newspack_Newsletters_Renderer {
 		if ( ! $background_color ) {
 			$background_color = '#ffffff';
 		}
+
 		ob_start();
 		include dirname( __FILE__ ) . '/email-template.mjml.php';
 		return ob_get_clean();
