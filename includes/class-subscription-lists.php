@@ -347,4 +347,77 @@ class Subscription_Lists {
 		$subscription_list->update_current_provider_settings( $list, $tag_id, $tag_name, $error );
 
 	}
+
+	/**
+	 * Methods for fetching Subscription Lists
+	 * 
+	 * Note: This was built under the assumption that there will never be too many (hundreds) of Lists, so these methods will not scale for large lists.
+	 *
+	 * If we see that the number of lists grows too much, we might need to refactor these methods and how we store Lists metadata in order to be able to perform more performatic queries using Meta_Queries.
+	 */
+
+	/**
+	 * Get all Subscription Lists
+	 *
+	 * @return Subscription_List[]
+	 */
+	public static function get_all() {
+		$posts   = get_posts(
+			[
+				'post_type'      => self::CPT,
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+			]
+		);
+		$objects = [];
+		foreach ( $posts as $post ) {
+			$objects[] = new Subscription_List( $post );
+		}
+		return $objects;
+	}
+
+	/**
+	 * Get Subscription Lists based on a callback to filter them
+	 *
+	 * @param callable $callback The callback used to filter Lists. It must be a function that takes a Subscription_List instance as argument and returns a boolean whether to include the list to the results or not.
+	 * @return Subscription_List[]
+	 */
+	public static function get_filtered( $callback ) {
+		$lists = self::get_all();
+		return array_values(
+			array_filter(
+				$lists,
+				function( $list ) use ( $callback ) {
+					return call_user_func( $callback, $list );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Get Lists that are configured to a given provider
+	 *
+	 * @param string $provider_slug The provider slug to get lists configured for.
+	 * @return Subscription_List[]
+	 */
+	public static function get_configured_for_provider( $provider_slug ) {
+		return self::get_filtered(
+			function( $list ) use ( $provider_slug ) {
+				return $list->is_configured_for_provider( $provider_slug );
+			}
+		);
+	}
+
+	/**
+	 * Get Lists that are configured for the current provider
+	 *
+	 * @return Subscription_List[]
+	 */
+	public static function get_configured_for_current_provider() {
+		return self::get_filtered(
+			function( $list ) {
+				return $list->is_configured_for_current_provider();
+			}
+		);
+	}
 }

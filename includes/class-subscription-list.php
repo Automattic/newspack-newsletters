@@ -30,13 +30,53 @@ class Subscription_List {
 	const META_KEY = 'newspack_nl_provider_settings';
 
 	/**
+	 * The prefix used to build the form iD
+	 */
+	const FORM_ID_PREFIX = 'newspack-';
+
+	/**
+	 * Checks if a string $id is in the format of a Subscription List Form ID
+	 *
+	 * @see self::get_form_id
+	 * @param string $id The ID to be checked.
+	 * @return boolean
+	 */
+	public static function is_form_id( $id ) {
+		return (bool) self::get_id_from_form_id( $id );
+	}
+
+	/**
+	 * Extracts the numeric ID from a properly formatted Form ID
+	 *
+	 * @see self::get_form_id
+	 * @param string $form_id The Form id.
+	 * @return ?int The ID on success, NULL on failure
+	 */
+	public static function get_id_from_form_id( $form_id ) {
+		if ( ! is_string( $form_id ) ) {
+			return;
+		}
+		$search = preg_match(
+			'/^' . self::FORM_ID_PREFIX . '([0-9]+)$/',
+			$form_id,
+			$matches
+		);
+		if ( $search && ! empty( $matches[1] ) ) {
+			return (int) $matches[1];
+		}
+	}
+
+	/**
 	 * Initializes a new Subscription List
 	 *
-	 * @param WP_Post|int $post_or_id The post object or ID.
+	 * @param WP_Post|int|string $post_or_id The post object, post ID or Subscription List form ID.
 	 * @throws \InvalidArgumentException In case the post is not found.
 	 */
 	public function __construct( $post_or_id ) {
 		if ( ! $post_or_id instanceof WP_Post ) {
+			if ( self::is_form_id( $post_or_id ) ) {
+				$post_or_id = self::get_id_from_form_id( $post_or_id );
+			}
 			$post_or_id = get_post( (int) $post_or_id );
 			if ( ! $post_or_id instanceof WP_Post ) {
 				throw new \InvalidArgumentException( 'Post not found' );
@@ -52,6 +92,17 @@ class Subscription_List {
 	 */
 	public function get_id() {
 		return $this->post->ID;
+	}
+
+	/**
+	 * Returns the Form ID for this List
+	 *
+	 * Form ID is the ID that will represent this list in all UI forms across the application
+	 *
+	 * @return string
+	 */
+	public function get_form_id() {
+		return self::FORM_ID_PREFIX . $this->get_id();
 	}
 
 	/**
@@ -105,6 +156,29 @@ class Subscription_List {
 	}
 
 	/**
+	 * Checks whether the List is properly configured for the current provider
+	 *
+	 * @return boolean
+	 */
+	public function is_configured_for_current_provider() {
+		return $this->is_configured_for_provider( Newspack_Newsletters::service_provider() );
+	}
+
+	/**
+	 * Checks whether the List is properly configured for a provider
+	 *
+	 * @param string $provider_slug The provider slug.
+	 * @return boolean
+	 */
+	public function is_configured_for_provider( $provider_slug ) {
+		$settings = $this->get_provider_settings( $provider_slug );
+		if ( ! is_array( $settings ) ) {
+			return false;
+		}
+		return empty( $settings['error'] ) && ! empty( $settings['tag_id'] ) && ! empty( $settings['list'] );
+	}
+
+	/**
 	 * Gets all the settings stored for all providers
 	 *
 	 * @return array
@@ -120,7 +194,14 @@ class Subscription_List {
 	 * @return array
 	 */
 	public function get_configured_providers() {
-		return array_keys( $this->get_all_providers_settings() );
+		$providers  = array_keys( $this->get_all_providers_settings() );
+		$configured = [];
+		foreach ( $providers as $provider ) {
+			if ( $this->is_configured_for_provider( $provider ) ) {
+				$configured[] = $provider;
+			}
+		}
+		return $configured;
 	}
 
 	/**
@@ -129,7 +210,7 @@ class Subscription_List {
 	 * @return array
 	 */
 	public function get_other_configured_providers() {
-		$providers = array_keys( $this->get_all_providers_settings() );
+		$providers = $this->get_configured_providers();
 		return array_values( array_diff( $providers, [ Newspack_Newsletters::service_provider() ] ) );
 	}
 
