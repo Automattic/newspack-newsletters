@@ -95,6 +95,170 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Retrieve the ESP's tag ID from its name
+	 *
+	 * @param string  $tag_name The tag.
+	 * @param boolean $create_if_not_found Whether to create a new tag if not found. Default to true.
+	 * @param string  $list_id The List ID.
+	 * @return int|WP_Error The tag ID on success. WP_Error on failure.
+	 */
+	public function get_tag_id( $tag_name, $create_if_not_found = true, $list_id = null ) {
+		$mc     = new Mailchimp( $this->api_key() );
+		$search = $mc->get(
+			sprintf( 'lists/%s/tag-search', $list_id ),
+			[
+				'name' => $tag_name,
+			]
+		);
+		if ( ! empty( $search['total_items'] ) ) {
+			foreach ( $search['tags'] as $found_tag ) {
+				// tag-search is case insensitive.
+				if ( strtolower( $tag_name ) === strtolower( $found_tag['name'] ) ) {
+					return $found_tag['id'];
+				}
+			}
+		}
+
+		// Tag was not found.
+		if ( ! $create_if_not_found ) {
+			return new WP_Error(
+				'newspack_newsletter_tag_not_found'
+			);
+		}
+
+		$created = $this->create_tag( $tag_name, $list_id );
+
+		if ( is_wp_error( $created ) ) {
+			return $created;
+		}
+
+		return (int) $created['id'];
+	}
+
+	/**
+	 * Retrieve the ESP's tag name from its ID
+	 *
+	 * @param int    $tag_id The tag ID.
+	 * @param string $list_id The List ID.
+	 * @return string|WP_Error The tag name on success. WP_Error on failure.
+	 */
+	public function get_tag_by_id( $tag_id, $list_id = null ) {
+		$mc     = new Mailchimp( $this->api_key() );
+		$search = $mc->get(
+			sprintf( 'lists/%s/segments/%d', $list_id, $tag_id )
+		);
+		if ( ! empty( $search['name'] ) ) {
+			return $search['name'];
+		}
+		return new WP_Error(
+			'newspack_newsletter_tag_not_found'
+		);
+	}
+
+	/**
+	 * Create a Tag on the provider
+	 *
+	 * @param string $tag The Tag name.
+	 * @param string $list_id The List ID.
+	 * @return array|WP_Error The tag representation sent from the server on succes. WP_Error on failure.
+	 */
+	public function create_tag( $tag, $list_id = null ) {
+		
+		$mc      = new Mailchimp( $this->api_key() );
+		$created = $mc->post(
+			sprintf( 'lists/%s/segments', $list_id ),
+			[
+				'name'           => $tag,
+				'static_segment' => [],
+			]
+		);
+
+		if ( is_array( $created ) && ! empty( $created['id'] ) && ! empty( $created['name'] ) ) {
+			return $created;
+		}
+		return new WP_Error(
+			'newspack_newsletters_error_creating_tag',
+			! empty( $created['detail'] ) ? $created['detail'] : ''
+		);
+	}
+
+	/**
+	 * Add a tag to a contact
+	 *
+	 * @param string     $email The contact email.
+	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string     $list_id The List ID.
+	 * @return true|WP_Error
+	 */
+	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
+		$existing_contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $existing_contact ) ) {
+			return $existing_contact;
+		}
+		if ( ! is_integer( $tag ) ) {
+			$tag = $this->get_tag_id( (string) $tag, true, $list_id );
+			if ( is_wp_error( $tag ) ) {
+				return $tag;
+			}
+		}
+		$mc      = new Mailchimp( $this->api_key() );
+		$created = $mc->post(
+			sprintf( 'lists/%s/segments/%d', $list_id, $tag ),
+			[
+				'members_to_add' => [ $email ],
+			]
+		);
+
+		if ( is_array( $created ) && ! empty( $created['members_added'] ) ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'newspack_newsletter_error_adding_tag_to_contact',
+			! empty( $created['errors'] ) && ! empty( $created['errors'][0]['error'] ) ? $created['errors'][0]['error'] : ''
+		);
+
+	}
+
+	/**
+	 * Remove a tag from a contact
+	 *
+	 * @param string     $email The contact email.
+	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string     $list_id The List ID.
+	 * @return true|WP_Error
+	 */
+	public function remove_tag_from_contact( $email, $tag, $list_id = null ) {
+		$existing_contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $existing_contact ) ) {
+			return $existing_contact;
+		}
+		if ( ! is_integer( $tag ) ) {
+			$tag = $this->get_tag_id( (string) $tag, false, $list_id );
+			if ( is_wp_error( $tag ) ) {
+				return $tag;
+			}
+		}
+		$mc      = new Mailchimp( $this->api_key() );
+		$created = $mc->post(
+			sprintf( 'lists/%s/segments/%d', $list_id, $tag ),
+			[
+				'members_to_remove' => [ $email ],
+			]
+		);
+
+		if ( is_array( $created ) && ! empty( $created['members_removed'] ) ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'newspack_newsletter_error_adding_tag_to_contact',
+			! empty( $created['errors'] ) && ! empty( $created['errors'][0]['error'] ) ? $created['errors'][0]['error'] : ''
+		);
+
+	}
+
+	/**
 	 * Set list for a campaign.
 	 *
 	 * @param string $post_id Campaign Id.
@@ -802,7 +966,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
-	 *    @type string[] $tags     Contact tags. Optional.
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
@@ -857,10 +1020,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
 					}
 				}
-			}
-
-			if ( ! empty( $contact['tags'] ) && is_array( $contact['tags'] ) ) {
-				$update_payload['tags'] = $contact['tags'];
 			}
 
 			// Create or update a list member.
@@ -977,53 +1136,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
 			}
-		} catch ( \Exception $e ) {
-			return new \WP_Error(
-				'newspack_newsletters_mailchimp_update_contact_failed',
-				$e->getMessage()
-			);
-		}
-		return true;
-	}
-
-	/**
-	 * Update a contact tags.
-	 *
-	 * @param string   $email           Contact email address.
-	 * @param string[] $tags_to_add    Array of tags to add to the contact.
-	 * @param string[] $tags_to_remove Array of tags to remove from contact.
-	 *
-	 * @return true|WP_Error True if the contact was updated or error.
-	 */
-	public function update_contact_tags( $email, $tags_to_add = [], $tags_to_remove = [] ) {
-		$contact_lists = $this->get_contact_lists( $email );
-		if ( empty( $contact_lists ) ) {
-			return new \WP_Error(
-				'newspack_newsletters_mailchimp_update_contact_failed',
-				'Contact not found'
-			);
-		}
-		$list_id = $contact_lists[0];       
-		$mc      = new Mailchimp( $this->api_key() );
-		try {
-			$tags_param = [];
-			foreach ( $tags_to_add as $tag ) {
-				$tags_param[] = [
-					'name'   => $tag,
-					'status' => 'active',
-				];
-			}
-			foreach ( $tags_to_remove as $tag ) {
-				$tags_param[] = [
-					'name'   => $tag,
-					'status' => 'inactive',
-				];
-			}
-			if ( empty( $tags_param ) ) {
-				return true;
-			}
-			$endpoint = sprintf( 'lists/%s/members/%s/tags', $list_id, md5( strtolower( $email ) ) );
-			$mc->post( $endpoint, [ 'tags' => $tags_param ] );
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_update_contact_failed',
