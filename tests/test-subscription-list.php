@@ -293,14 +293,18 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['without_settings'] );
 
-		$this->assertFalse( $list->update_current_provider_settings( '', 'test' ) );
-		$this->assertNull( $list->get_current_provider_settings() );
+		$this->assertNotFalse( $list->update_current_provider_settings( '', 'test', 'test' ) );
+		$this->assertNotEmpty( $list->get_current_provider_settings()['error'] );
 
-		$this->assertNotFalse( $list->update_current_provider_settings( '123', 'test' ) );
+		$this->assertNotFalse( $list->update_current_provider_settings( '', 'test', 'test', 'error' ) );
+		$this->assertSame( 'error', $list->get_current_provider_settings()['error'] );
+
+		$this->assertNotFalse( $list->update_current_provider_settings( '123', 123, 'test' ) );
 		$this->assertSame(
 			[
-				'list' => '123',
-				'tag'  => 'test',
+				'list'     => '123',
+				'tag_id'   => 123,
+				'tag_name' => 'test',
 			],
 			$list->get_current_provider_settings()
 		);

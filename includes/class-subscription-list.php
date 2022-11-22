@@ -73,6 +73,15 @@ class Subscription_List {
 	}
 
 	/**
+	 * Generate the tag name that will be added to the ESP based on the post title
+	 *
+	 * @return string
+	 */
+	public function generate_tag_name() {
+		return 'Newspack: ' . $this->get_title();
+	}
+
+	/**
 	 * Returns the settings stored for a provider
 	 *
 	 * @param string $provider_slug The provider slug.
@@ -165,18 +174,27 @@ class Subscription_List {
 	 * Updates the settings of a provider
 	 *
 	 * @param string $list The list ID readers will be added to when they signup for this List.
-	 * @param string $tag The Tag that will be added readers who signup to this List.
+	 * @param int    $tag_id The ID of the tag that will be added readers who signup to this List.
+	 * @param string $tag_name The name of the tag that will be added readers who signup to this List.
+	 * @param string $error The error message in case there was an error creating the tag on the ESP.
 	 * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure or if the value passed to the function is the same as the one that is already in the database.
 	 */
-	public function update_current_provider_settings( $list, $tag ) {
-		if ( empty( $list ) ) {
-			return false;
-		}
+	public function update_current_provider_settings( $list, $tag_id, $tag_name, $error = '' ) {
 		$settings = $this->get_all_providers_settings();
-		$settings[ Newspack_Newsletters::service_provider() ] = [
-			'list' => $list,
-			'tag'  => $tag,
-		];
+		if ( ! empty( $error ) ) {
+			$settings[ Newspack_Newsletters::service_provider() ] = [
+				'error' => $error,
+			];
+		} elseif ( empty( $list ) || empty( $tag_id ) || empty( $tag_name ) ) {
+			$settings[ Newspack_Newsletters::service_provider() ]['error'] = __( 'Error: Missing information, try updating this list', 'newspack-newsletters' );
+		} else {
+			$settings[ Newspack_Newsletters::service_provider() ] = [
+				'list'     => $list,
+				'tag_id'   => $tag_id,
+				'tag_name' => $tag_name,
+			];
+		}
+		
 		return update_post_meta( $this->get_id(), self::META_KEY, $settings );
 	}
 
