@@ -205,9 +205,17 @@ class Subscription_Lists {
 	 */
 	public static function metabox_content( $post ) {
 		$subscription_list = new Subscription_List( $post );
-		$current_settings  = $subscription_list->get_current_provider_settings();
 		$current_provider  = Newspack_Newsletters::get_service_provider();
 		$empty_message     = '';
+		$current_settings  = array_merge(
+			[
+				'list'     => null,
+				'tag_id'   => null,
+				'tag_name' => null,
+				'error'    => null,
+			],
+			(array) $subscription_list->get_current_provider_settings()
+		);
 
 		if ( empty( $current_settings ) ) {
 
@@ -217,10 +225,6 @@ class Subscription_Lists {
 				'<b>' . esc_html( $current_provider::label( 'name' ) ) . '</b>'
 			);
 
-			$current_settings = [
-				'list' => '',
-				'tag'  => '',
-			];
 		}
 
 		$lists = $current_provider->get_lists();
@@ -234,11 +238,17 @@ class Subscription_Lists {
 					<?php echo wp_kses( $empty_message, 'data' ); ?>
 				</p>
 			<?php endif; ?>
+			<?php if ( ! empty( $current_settings['error'] ) ) : ?>
+				<div class="notice notice-error">
+					<p>
+						<?php echo esc_html( $current_settings['error'] ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
 			<label for="newspack_newsletters_list">
 				<?php echo esc_html( $current_provider::label( 'List' ) ); ?>:
 			</label>
 			<select name="newspack_newsletters_list" id="newspack_newsletters_list" style="width: 100%">
-				<option value=""></option>
 				<?php foreach ( $lists as $list ) : ?>
 
 					<option value="<?php echo esc_attr( $list['id'] ); ?>" <?php selected( $current_settings['list'], $list['id'] ); ?> >
@@ -253,7 +263,9 @@ class Subscription_Lists {
 			<label for="newspack_newsletters_tag">
 				<?php esc_html_e( 'Tag', 'newspack-newsletters' ); ?>:
 			</label>
-			<input type="text" name="newspack_newsletters_tag" id="newspack_newsletters_tag" style="width: 100%" value="<?php echo esc_attr( $current_settings['tag'] ); ?>" />
+			<p>
+				<?php echo esc_html( $current_settings['tag_name'] ?? __( 'Tag was not created yet, please save the list', 'newspack-newsletters' ) ); ?>
+			</p>
 		</div>
 
 		<?php if ( $subscription_list->has_other_configured_providers() ) : ?>
@@ -302,10 +314,37 @@ class Subscription_Lists {
 		}
 
 		$list = sanitize_text_field( $_POST['newspack_newsletters_list'] ?? '' );
-		$tag  = sanitize_text_field( $_POST['newspack_newsletters_tag'] ?? '' );
 
+		if ( empty( $list ) ) {
+			return;
+		}
+
+		$provider          = Newspack_Newsletters::get_service_provider();
 		$subscription_list = new Subscription_List( $post_id );
-		$subscription_list->update_current_provider_settings( $list, $tag );
+		$current_settings  = $subscription_list->get_current_provider_settings();
+		$tag_id            = $current_settings['tag_id'] ?? false;
+		$tag_name          = $current_settings['tag_name'] ?? $subscription_list->generate_tag_name();
+		$error             = '';
+
+		if ( $tag_id ) {
+			// Check if tag still exists on the ESP. Also, update tag_name if it was changed on the ESP.
+			$tag_name = $provider->get_tag_by_id( $current_settings['tag_id'], $list );
+			
+			if ( is_wp_error( $tag_name ) ) {
+				// Tag was not found. We need to create a new one. In Mailchimp, this can happen if you changed the list.
+				$tag_id   = false;
+				$tag_name = $subscription_list->generate_tag_name();
+			}       
+		}
+
+		if ( ! $tag_id ) {
+			$tag_id = $provider->get_tag_id( $tag_name, true, $list );
+			if ( is_wp_error( $tag_id ) ) {
+				$error = $tag_id->get_error_message();
+			}
+		}
+
+		$subscription_list->update_current_provider_settings( $list, $tag_id, $tag_name, $error );
 
 	}
 }
