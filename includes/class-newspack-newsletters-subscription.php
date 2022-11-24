@@ -7,6 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Subscription_Lists;
+
 /**
  * Manages Settings Subscription Class.
  */
@@ -160,6 +162,21 @@ class Newspack_Newsletters_Subscription {
 				return $lists;
 			}
 			$config = self::get_lists_config();
+
+			$local_lists = Subscription_Lists::get_configured_for_current_provider();
+
+			$locals = [];
+			foreach ( $local_lists as $local_list ) {
+				$locals[] = [
+					'id'          => $local_list->get_form_id(),
+					'name'        => $local_list->get_title(),
+					'description' => $local_list->get_description(),
+					'type'        => 'local',
+				];
+			}
+
+			$lists = array_merge( $lists, $locals );
+
 			return array_map(
 				function( $list ) use ( $config ) {
 					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {
@@ -170,7 +187,8 @@ class Newspack_Newsletters_Subscription {
 						'name'        => $list['name'],
 						'active'      => false,
 						'title'       => $list['name'],
-						'description' => '',
+						'description' => $list['description'] ?? '',
+						'type'        => $list['type'] ?? '',
 					];
 					if ( isset( $config[ $list['id'] ] ) ) {
 						$list_config = $config[ $list['id'] ];
@@ -388,7 +406,7 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			foreach ( $lists as $list_id ) {
 				try {
-					$result = $provider->add_contact( $contact, $list_id );
+					$result = $provider->add_contact_handling_local_lists( $contact, $list_id );
 				} catch ( \Exception $e ) {
 					$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
 				}

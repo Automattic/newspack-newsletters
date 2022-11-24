@@ -7,6 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Subscription_List;
+
 /**
  * Main Newspack Newsletters Class.
  */
@@ -352,6 +354,53 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public static function label( $key ) {
 		$labels = static::get_labels();
 		return $labels[ $key ] ?? '';
+	}
+
+	/**
+	 * Add or update contact to a list, but handling local Subscription Lists
+	 *
+	 * The difference between this method and add_contact is that this method will identify and handle local lists
+	 *
+	 * If the $list_id informed is a local list, it will read its settings and call add_contact with the list associated and also add the tag to the contact
+	 *
+	 * @param array  $contact      {
+	 *    Contact data.
+	 *
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string $list_id      List to add the contact to.
+	 *
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
+	 */
+	public function add_contact_handling_local_lists( $contact, $list_id ) {
+		if ( Subscription_List::is_form_id( $list_id ) ) {
+			try {
+				$list = new Subscription_List( $list_id );
+				
+				if ( ! $list->is_configured_for_current_provider() ) {
+					return new WP_Error( 'List not properly configured for the current provider' );
+				}
+				$list_settings = $list->get_current_provider_settings();
+
+				$added_contact = $this->add_contact( $contact, $list_settings['list'] );
+
+				if ( is_wp_error( $added_contact ) ) {
+					return $added_contact;
+				}
+
+				if ( static::$support_tags ) {
+					$this->add_tag_to_contact( $contact['email'], (int) $list_settings['tag_id'], $list_settings['list'] );
+				}
+
+				return $added_contact;
+
+			} catch ( \InvalidArgumentException $e ) {
+				return new WP_Error( 'List not found' );
+			}
+		}
+		return $this->add_contact( $contact, $list_id );
 	}
 
 	/**

@@ -6,7 +6,6 @@
  */
 
 use Newspack\Newsletters\Subscription_List;
-use Newspack\Newsletters\Subscription_Lists;
 use Newspack_Newsletters;
 
 /**
@@ -14,67 +13,91 @@ use Newspack_Newsletters;
  */
 class Subscription_List_Test extends WP_UnitTestCase {
 
-	/**
-	 * Testing posts
-	 *
-	 * @var array
-	 */
-	public static $posts;
+	use Lists_Setup;
 
 	/**
-	 * Sets up testing data
+	 * Data provider for test_static_methods
 	 *
-	 * @return void
+	 * @return array
 	 */
-	public function set_up() {
-
-		$without_settings = self::create_post( 1 );
-
-		$only_mailchimp = self::create_post( 2 );
-		update_post_meta(
-			$only_mailchimp,
-			Subscription_List::META_KEY,
+	public function static_methods_data() {
+		return [
 			[
-				'mailchimp' => [
-					'list' => 'mc_list',
-					'tag'  => 'mc_tag',
-				],
-			]
-		);
-
-		$two_settings = self::create_post( 3 );
-		update_post_meta(
-			$two_settings,
-			Subscription_List::META_KEY,
+				Subscription_List::FORM_ID_PREFIX . '123',
+				true,
+				123,
+			],
 			[
-				'mailchimp'       => [
-					'list' => 'mc_list',
-					'tag'  => 'mc_tag',
-				],
-				'active_campaign' => [
-					'list' => 'ca_list',
-					'tag'  => 'ac_tag',
-				],
-			]
-		);
-
-		self::$posts = compact( 'without_settings', 'only_mailchimp', 'two_settings' );
+				Subscription_List::FORM_ID_PREFIX . '2',
+				true,
+				2,
+			],
+			[
+				Subscription_List::FORM_ID_PREFIX . '0',
+				false,
+				null,
+			],
+			[
+				Subscription_List::FORM_ID_PREFIX . '12d',
+				false,
+				null,
+			],
+			[
+				'a' . Subscription_List::FORM_ID_PREFIX . '2',
+				false,
+				null,
+			],
+			[
+				Subscription_List::FORM_ID_PREFIX . '2.3',
+				false,
+				null,
+				
+			],
+			[
+				'',
+				false,
+				null,
+			],
+			[
+				true,
+				false,
+				null,
+			],
+			[
+				array(),
+				false,
+				null,
+			],
+			[
+				array( 'test' ),
+				false,
+				null,
+			],
+			[
+				(object) array( 'test' ),
+				false,
+				null,
+			],
+			[
+				null,
+				false,
+				null,
+			],
+		];
 	}
 
 	/**
-	 * Create a test post
+	 * Tests the form ID static methods
 	 *
-	 * @param string|int $index An index to identify the post title and description.
-	 * @return int
+	 * @param mixed $input The input for the methods.
+	 * @param mixed $is_form_id The expected result of is_form_id.
+	 * @param mixed $extracted_id The expected result of get_id_from_form_id.
+	 * @return void
+	 * @dataProvider static_methods_data
 	 */
-	public static function create_post( $index ) {
-		$data = [
-			'post_title'   => 'Test List ' . $index,
-			'post_content' => 'Description ' . $index,
-			'post_type'    => Subscription_Lists::CPT,
-			'post_status'  => 'publish',
-		];
-		return wp_insert_post( $data );
+	public function test_static_methods( $input, $is_form_id, $extracted_id ) {
+		$this->assertSame( $is_form_id, Subscription_List::is_form_id( $input ) );
+		$this->assertSame( $extracted_id, Subscription_List::get_id_from_form_id( $input ) );
 	}
 
 	/**
@@ -98,11 +121,29 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests constructor with form_id
+	 */
+	public function test_constructor_with_form_id() {
+		$list = new Subscription_List( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'] );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( self::$posts['without_settings'], $list->get_id() );
+		$this->assertSame( 'Description 1', $list->get_description() );
+	}
+
+	/**
 	 * Tests constructor with object
 	 */
 	public function test_constructor_with_invalid() {
 		$this->expectException( \InvalidArgumentException::class );
 		$list = new Subscription_List( 9999 );
+	}
+
+	/**
+	 * Tests get_form_id
+	 */
+	public function test_get_form_id() {
+		$list = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertSame( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'], $list->get_form_id() );
 	}
 
 	/**
@@ -116,12 +157,14 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$this->assertEquals(
 			[
 				'mailchimp'       => [
-					'list' => 'mc_list',
-					'tag'  => 'mc_tag',
+					'list'     => 'mc_list',
+					'tag_id'   => 12,
+					'tag_name' => 'MC Tag',
 				],
 				'active_campaign' => [
-					'list' => 'ca_list',
-					'tag'  => 'ac_tag',
+					'list'     => 'ac_list',
+					'tag_id'   => 13,
+					'tag_name' => 'AC Tag',
 				],
 			],
 			$list->get_all_providers_settings() 
@@ -149,8 +192,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$this->assertSame(
 			[
-				'list' => 'ca_list',
-				'tag'  => 'ac_tag',
+				'list'     => 'ac_list',
+				'tag_id'   => 13,
+				'tag_name' => 'AC Tag',
 			],
 			$list->get_provider_settings( 'active_campaign' )
 		);
@@ -197,6 +241,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'mailchimp', 'active_campaign' ], $list->get_configured_providers() );
+
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertSame( [ 'active_campaign' ], $list->get_configured_providers() );
 	}
 
 	/**
@@ -211,6 +258,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'Mailchimp', 'Active Campaign' ], $list->get_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertSame( [ 'Active Campaign' ], $list->get_configured_providers_names() );
 	}
 
 	/**
@@ -228,6 +278,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'active_campaign' ], $list->get_other_configured_providers() );
 
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertSame( [ 'active_campaign' ], $list->get_other_configured_providers() );
+
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
@@ -235,6 +288,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'mailchimp' ], $list->get_other_configured_providers() );
+
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertSame( [], $list->get_other_configured_providers() );
 	}
 
 	/**
@@ -252,6 +308,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'Active Campaign' ], $list->get_other_configured_providers_names() );
 
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertSame( [ 'Active Campaign' ], $list->get_other_configured_providers_names() );
+
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
@@ -259,6 +318,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertSame( [ 'Mailchimp' ], $list->get_other_configured_providers_names() );
+
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertSame( [], $list->get_other_configured_providers_names() );
 	}
 
 	/**
@@ -276,6 +338,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertTrue( $list->has_other_configured_providers() );
 
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertTrue( $list->has_other_configured_providers() );
+
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
@@ -283,6 +348,9 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertTrue( $list->has_other_configured_providers() );
+
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertFalse( $list->has_other_configured_providers() );
 	}
 
 	/**
@@ -309,6 +377,71 @@ class Subscription_List_Test extends WP_UnitTestCase {
 			$list->get_current_provider_settings()
 		);
 
+	}
+
+	/**
+	 * Data provider for test_is_configured
+	 */
+	public function is_configured_data() {
+		return [
+			[
+				[
+					'list'     => '123',
+					'tag_id'   => 123,
+					'tag_name' => 'test',
+				],
+				true,
+			],
+			[
+				[
+					'list'     => '123',
+					'tag_id'   => 123,
+					'tag_name' => 'test',
+					'error'    => '',
+				],
+				true,
+			],
+			[
+				[
+					'list'     => '123',
+					'tag_id'   => 123,
+					'tag_name' => 'test',
+					'error'    => 'Error',
+				],
+				false,
+			],
+			[
+				[
+					'list'     => '',
+					'tag_id'   => 123,
+					'tag_name' => 'test',
+				],
+				false,
+			],
+			[
+				[
+					'list'     => '123',
+					'tag_id'   => 0,
+					'tag_name' => 'test',
+				],
+				false,
+			],
+		];
+	}
+
+	/**
+	 * Test is_configured_for_provider
+	 *
+	 * @param mixed $meta The metadata for provider.
+	 * @param mixed $expected The expected value for is_configured_for_provider.
+	 * @return void
+	 * @dataProvider is_configured_data
+	 */
+	public function test_is_configured( $meta, $expected ) {
+		$post_id = self::create_post( 99 );
+		update_post_meta( $post_id, Subscription_List::META_KEY, [ 'mailchimp' => $meta ] );
+		$list = new Subscription_List( $post_id );
+		$this->assertSame( $expected, $list->is_configured_for_provider( 'mailchimp' ) );
 	}
 
 }
