@@ -218,8 +218,9 @@ class Newspack_Newsletters_Settings {
 	 * Render table for subscription lists management.
 	 */
 	private static function render_lists_table() {
-		$lists = Newspack_Newsletters_Subscription::get_lists();
-		if ( is_wp_error( $lists ) || empty( $lists ) ) {
+		$lists    = Newspack_Newsletters_Subscription::get_lists();
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) || is_wp_error( $lists ) || empty( $lists ) ) {
 			return;
 		}
 		?>
@@ -259,10 +260,23 @@ class Newspack_Newsletters_Settings {
 							</td>
 							<td class="name">
 								<label for="<?php echo esc_attr( $checkbox_id ); ?>"><?php echo esc_html( $list['name'] ); ?></strong>
+								<br/>
+								<small>
+									<?php echo esc_html( $list['type_label'] ); ?>
+									<?php if ( $list['edit_link'] ) : ?>
+										(<a href="<?php echo esc_url( $list['edit_link'] ); ?>"><?php esc_html_e( 'Edit', 'newspack-newsletters' ); ?></a>)
+									<?php endif; ?>
+								</small>
 							</td>
 							<td class="details">
-								<input type="text" placeholder="<?php echo esc_attr_e( 'List title', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
-								<textarea placeholder="<?php echo esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]"><?php echo esc_textarea( $list['description'] ); ?></textarea>
+								<?php if ( 'local' === $list['type'] ) : ?>
+									<b><?php echo esc_html( $list['title'] ); ?></b>
+									<p><?php echo esc_html( $list['description'] ); ?></p>
+									<input type="hidden" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
+								<?php else : ?>
+									<input type="text" placeholder="<?php echo esc_attr_e( 'List title', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
+									<textarea placeholder="<?php echo esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]"><?php echo esc_textarea( $list['description'] ); ?></textarea>
+								<?php endif; ?>
 							</td>
 						</tr>
 					<?php endforeach; ?>

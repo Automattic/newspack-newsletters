@@ -172,13 +172,14 @@ class Newspack_Newsletters_Subscription {
 					'name'        => $local_list->get_title(),
 					'description' => $local_list->get_description(),
 					'type'        => 'local',
+					'edit_link'   => $local_list->get_edit_link(),
 				];
 			}
 
 			$lists = array_merge( $lists, $locals );
 
 			return array_map(
-				function( $list ) use ( $config ) {
+				function( $list ) use ( $config, $provider ) {
 					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {
 						return;
 					}
@@ -188,18 +189,19 @@ class Newspack_Newsletters_Subscription {
 						'active'      => false,
 						'title'       => $list['name'],
 						'description' => $list['description'] ?? '',
+						'edit_link'   => $list['edit_link'] ?? '',
 						'type'        => $list['type'] ?? '',
+						'type_label'  => isset( $list['type'] ) && 'local' === $list['type'] ? __( 'Local list', 'newspack-newsletters' ) : $provider::label( 'name' ) . ' ' . $provider::label( 'List' ),
 					];
 					if ( isset( $config[ $list['id'] ] ) ) {
-						$list_config = $config[ $list['id'] ];
-						$item        = array_merge(
-							$item,
-							[
-								'active'      => $list_config['active'],
-								'title'       => $list_config['title'],
-								'description' => $list_config['description'],
-							]
-						);
+						$list_config    = $config[ $list['id'] ];
+						$item['active'] = $list_config['active'];
+						
+						// If it's a local list, ignore what is stored in the option and always use info from the Subscription_List object.
+						if ( 'local' !== $item['type'] ) {
+							$item['title']       = $list_config['title'];
+							$item['description'] = $list_config['description'];
+						}
 					}
 					return $item;
 				},
