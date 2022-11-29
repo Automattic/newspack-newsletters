@@ -124,6 +124,17 @@ class Subscription_List {
 	}
 
 	/**
+	 * Gets the link to edit this list
+	 *
+	 * In some rest requests, the post type is not registered, so we can't use get_edit_post_link
+	 *
+	 * @return string
+	 */
+	public function get_edit_link() {
+		return sprintf( admin_url( 'post.php?post=%d&action=edit' ), $this->get_id() );
+	}
+
+	/**
 	 * Generate the tag name that will be added to the ESP based on the post title
 	 *
 	 * @return string
