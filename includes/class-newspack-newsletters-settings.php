@@ -218,9 +218,8 @@ class Newspack_Newsletters_Settings {
 	 * Render table for subscription lists management.
 	 */
 	private static function render_lists_table() {
-		$lists    = Newspack_Newsletters_Subscription::get_lists();
-		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) || is_wp_error( $lists ) || empty( $lists ) ) {
+		$lists = Newspack_Newsletters_Subscription::get_lists();
+		if ( is_wp_error( $lists ) || empty( $lists ) ) {
 			return;
 		}
 		?>
