@@ -1,3 +1,11 @@
+## [1.55.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.55.0...v1.55.1-alpha.1) (2022-12-01)
+
+
+### Bug Fixes
+
+* **ActiveCampaign:** update fields API version ([#1036](https://github.com/Automattic/newspack-newsletters/issues/1036)) ([e85e0ed](https://github.com/Automattic/newspack-newsletters/commit/e85e0eda55ae752dcdb3cd3eb5def9670e9390d6))
+* attribute types in posts inserter block.json ([#1038](https://github.com/Automattic/newspack-newsletters/issues/1038)) ([85a5606](https://github.com/Automattic/newspack-newsletters/commit/85a5606d0d837e800672386eaa5a5c5dfcf276ed))
+
 # [1.55.0](https://github.com/Automattic/newspack-newsletters/compare/v1.54.4...v1.55.0) (2022-11-28)
 
 
