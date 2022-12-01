@@ -266,6 +266,14 @@ class Subscription_Lists {
 			<p>
 				<?php echo esc_html( $current_settings['tag_name'] ?? __( 'Tag was not created yet, please save the list', 'newspack-newsletters' ) ); ?>
 			</p>
+			<?php 
+			/**
+			 * Fires after the tag field in the list metabox.
+			 *
+			 * @param array $current_settings The current list settings.
+			 */
+			do_action( 'newspack_newsletters_subscription_lists_metabox_after_tag', $current_settings );
+			?>
 		</div>
 
 		<?php if ( $subscription_list->has_other_configured_providers() ) : ?>

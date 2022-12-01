@@ -50,6 +50,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 
+		add_action( 'newspack_newsletters_subscription_lists_metabox_after_tag', [ $this, 'lists_metabox_notice' ] );
+
 		parent::__construct( $this );
 	}
 
@@ -1251,5 +1253,36 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'name' => 'Active Campaign',
 			]
 		);
+	}
+
+	/**
+	 * Add a notice to the Subscription Lists metabox letting the user know that they have to manually create the Segment
+	 *
+	 * @param array $settings The List settings.
+	 * @return void
+	 */
+	public function lists_metabox_notice( $settings ) {
+		if ( $settings['tag_name'] ) {
+			?>
+			<p>
+				<?php
+				echo wp_kses(
+					sprintf(
+						/* translators: %1$s and %2$s are opening and closing link tag to Active Campaign documentation. */
+						__( 'Note for Active Campaign: You need to manually create a segment using the above tag to be able to send campaigns to this list. %1$sLearn more%2$s', 'newspack-newsletters' ),
+						'<a href="https://help.activecampaign.com/hc/en-us/articles/221483407-How-to-create-segments-in-ActiveCampaign" target="_blank">',
+						'</a>'
+					),
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+						],
+					]
+				);
+				?>
+			</p>
+			<?php
+		}
 	}
 }
