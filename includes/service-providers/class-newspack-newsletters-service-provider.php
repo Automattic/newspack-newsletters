@@ -416,6 +416,16 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @return true|WP_Error True if the contact was updated or error.
 	 */
 	public function update_contact_lists_handling_local( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			// Create contact.
+			// Use  Newspack_Newsletters_Subscription::add_contact to trigger hooks and call add_contact_handling_local_lists if needed.
+			$result = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ], $lists_to_add );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			return true;
+		}
 		if ( static::$support_tags ) {
 			$lists_to_add    = $this->update_contact_local_lists( $email, $lists_to_add, 'add' );
 			$lists_to_remove = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove' );
@@ -469,12 +479,12 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * Get the contact local lists IDs
 	 *
 	 * @param string $email The contact email.
-	 * @return WP_Error|array Array of local lists IDs or error.
+	 * @return string[] Array of local lists IDs or error.
 	 */
 	public function get_contact_local_lists( $email ) {
 		$tags = $this->get_contact_tags_ids( $email );
 		if ( is_wp_error( $tags ) ) {
-			return $tags;
+			return [];
 		}
 		$lists = Subscription_Lists::get_configured_for_provider( $this->service );
 		$ids   = [];
