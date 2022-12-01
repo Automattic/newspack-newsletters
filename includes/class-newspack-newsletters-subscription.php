@@ -558,7 +558,7 @@ class Newspack_Newsletters_Subscription {
 			return false;
 		}
 
-		$result = $provider->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
+		$result = $provider->update_contact_lists_handling_local( $email, $lists_to_add, $lists_to_remove );
 
 		/**
 		 * Fires after a contact's lists are updated.
@@ -585,7 +585,7 @@ class Newspack_Newsletters_Subscription {
 		if ( ! self::has_subscription_management() ) {
 			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
-		return Newspack_Newsletters::get_service_provider()->get_contact_lists( $email );
+		return Newspack_Newsletters::get_service_provider()->get_contact_combined_lists( $email );
 	}
 
 	/**
