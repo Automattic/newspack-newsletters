@@ -51,6 +51,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 		add_action( 'pre_post_update', [ $this, 'pre_post_update' ], 10, 2 );
 		add_action( 'transition_post_status', [ $this, 'transition_post_status' ], 10, 3 );
+		add_action( 'updated_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
 		add_action( 'wp_insert_post', [ $this, 'insert_post' ], 10, 3 );
 		add_filter( 'wp_insert_post_data', [ $this, 'insert_post_data' ], 10, 2 );
 	}
@@ -177,6 +178,43 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 				delete_transient( $error_transient_key );
 			}
 			delete_post_meta( $post->ID, 'sending_scheduled' );
+		}
+	}
+
+	/**
+	 * Updated post meta
+	 *
+	 * @param int    $meta_id    ID of updated metadata entry.
+	 * @param int    $post_id    Post ID.
+	 * @param string $meta_key   Metadata key.
+	 * @param mixed  $meta_value Metadata value.
+	 */
+	public function updated_post_meta( $meta_id, $post_id, $meta_key, $meta_value ) {
+		// Only run if it's a newsletter post.
+		if ( ! Newspack_Newsletters::validate_newsletter_id( $post_id ) ) {
+			return;
+		}
+
+		// Only run if this is the active provider.
+		if ( Newspack_Newsletters::service_provider() !== $this->service ) {
+			return;
+		}
+
+		// Only run if the meta key is the one we're interested in.
+		if ( 'is_public' !== $meta_key ) {
+			return;
+		}
+
+		$is_public = $meta_value;
+
+		$post = get_post( $post_id );
+		if ( in_array( $post->post_status, self::$controlled_statuses, true ) ) {
+			wp_update_post(
+				[
+					'ID'          => $post_id,
+					'post_status' => $is_public ? 'publish' : 'private',
+				]
+			);
 		}
 	}
 
