@@ -204,12 +204,34 @@ class Newspack_Newsletters_Settings {
 			<h1><?php esc_html_e( 'Newsletters Settings', 'newspack-newsletters' ); ?></h1>
 			<form method="post" action="options.php">
 				<?php
+				self::render_oauth_authorization();
 				settings_fields( 'newspack_newsletters_options_group' );
 				do_settings_sections( 'newspack-newsletters-settings-admin' );
 				self::render_lists_table();
 				submit_button();
 				?>
 			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render OAuth authorization.
+	 */
+	private static function render_oauth_authorization() {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) || ! method_exists( $provider, 'verify_token' ) ) {
+			return;
+		}
+		$token = $provider->verify_token( true );
+		if ( true === $token['valid'] || ! $token['auth_url'] ) {
+			return;
+		}
+		?>
+		<div class="newspack-newsletters-oauth notice notice-warning">
+			<h2><?php esc_html_e( 'Authorize the application', 'newspack-newsletters' ); ?></h2>
+			<p><?php esc_html_e( 'To use this provider, you need to authorize the application.', 'newspack-newsletters' ); ?></p>
+			<p><a href="<?php echo esc_url( $token['auth_url'] ); ?>" class="button"><?php esc_html_e( 'Authorize', 'newspack-newsletters' ); ?></a></p>
 		</div>
 		<?php
 	}
@@ -339,6 +361,19 @@ class Newspack_Newsletters_Settings {
 							$checkbox.on( 'change', function() {
 								$inputs.attr( 'disabled', ! $checkbox.is( ':checked' ) );
 							} );
+						} );
+					} );
+					$( '.newspack-newsletters-oauth' ).each( function() {
+						var $container = $( this );
+						var $button = $container.find( '.button' );
+						var authWindow;
+						var onAuthorize = function() {
+							location.reload();
+						};
+						$button.on( 'click', function( ev ) {
+							ev.preventDefault();
+							authWindow = window.open( $button.attr( 'href' ), 'newspack_newsletters_oauth', 'width=500,height=600' );
+							authWindow.opener = { verify: onAuthorize };
 						} );
 					} );
 				} );
