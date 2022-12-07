@@ -1164,7 +1164,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( empty( $found ) ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
 		}
-		$keys = [ 'full_name', 'email_address', 'id' ];
+
+		$keys = [ 'full_name', 'email_address', 'id', 'tags' ];
 		$data = [ 'lists' => [] ];
 		foreach ( $found as $contact ) {
 			foreach ( $keys as $key ) {
@@ -1176,9 +1177,30 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'id'         => $contact['id'], // md5 hash of email.
 				'contact_id' => $contact['contact_id'],
 				'status'     => $contact['status'],
-			];
+			];      
 		}
 		return $data;
+	}
+
+	/**
+	 * Get the IDs of the tags associated with a contact.
+	 *
+	 * @param string $email The contact email.
+	 * @return array|WP_Error The tag IDs on success. WP_Error on failure.
+	 */
+	public function get_contact_tags_ids( $email ) {
+		$contact_data = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact_data ) ) {
+			return $contact_data;
+		}
+		
+		$contact_tags = array_map(
+			function( $tag ) {
+				return (int) $tag['id'];
+			},
+			$contact_data['tags']
+		);
+		return $contact_tags;
 	}
 
 	/**
