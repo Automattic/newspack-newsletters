@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use Newspack\Newsletters\Subscription_List;
+use Newspack\Newsletters\Subscription_Lists;
 
 /**
  * Main Newspack Newsletters Class.
@@ -379,10 +380,10 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			try {
 				$list = new Subscription_List( $list_id );
 				
-				if ( ! $list->is_configured_for_current_provider() ) {
-					return new WP_Error( 'List not properly configured for the current provider' );
+				if ( ! $list->is_configured_for_provider( $this->service ) ) {
+					return new WP_Error( 'List not properly configured for the provider' );
 				}
-				$list_settings = $list->get_current_provider_settings();
+				$list_settings = $list->get_provider_settings( $this->service );
 
 				$added_contact = $this->add_contact( $contact, $list_settings['list'] );
 
@@ -401,6 +402,120 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			}
 		}
 		return $this->add_contact( $contact, $list_id );
+	}
+
+	/**
+	 * Update a contact lists subscription, but handling local Subscription Lists
+	 *
+	 * The difference between this method and update_contact_lists is that this method will identify and handle local lists
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists_handling_local( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			// Create contact.
+			// Use  Newspack_Newsletters_Subscription::add_contact to trigger hooks and call add_contact_handling_local_lists if needed.
+			$result = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ], $lists_to_add );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			return true;
+		}
+		if ( static::$support_tags ) {
+			$lists_to_add    = $this->update_contact_local_lists( $email, $lists_to_add, 'add' );
+			$lists_to_remove = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove' );
+			if ( is_wp_error( $lists_to_add ) ) {
+				return $lists_to_add;
+			}
+			if ( is_wp_error( $lists_to_remove ) ) {
+				return $lists_to_remove;
+			}
+		}
+		return $this->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
+
+	}
+
+	/**
+	 * Bulk update a contact local lists, by adding or removing tags
+	 *
+	 * @param string $email The contact email.
+	 * @param array  $lists An array with List IDs, mixing local and providers lists. Only local lists will be handled.
+	 * @param string $action The action to be performed. add or remove.
+	 * @return array|WP_Error The remaining lists that were not handled by this method, because they are not local lists.
+	 */
+	public function update_contact_local_lists( $email, $lists = [], $action = 'add' ) {
+		foreach ( $lists as $key => $list_id ) {
+			if ( Subscription_List::is_form_id( $list_id ) ) {
+				try {
+					$list = new Subscription_List( $list_id );
+					
+					if ( ! $list->is_configured_for_provider( $this->service ) ) {
+						return new WP_Error( 'List not properly configured for the provider' );
+					}
+					$list_settings = $list->get_provider_settings( $this->service );
+
+					if ( 'add' === $action ) {
+						$this->add_tag_to_contact( $email, (int) $list_settings['tag_id'], $list_settings['list'] );
+					} elseif ( 'remove' === $action ) {
+						$this->remove_tag_from_contact( $email, (int) $list_settings['tag_id'], $list_settings['list'] );
+					}
+					
+					unset( $lists[ $key ] );
+
+				} catch ( \InvalidArgumentException $e ) {
+					return new WP_Error( 'List not found' );
+				}
+			}
+		}
+		return $lists;
+	}
+
+	/**
+	 * Get the contact local lists IDs
+	 *
+	 * @param string $email The contact email.
+	 * @return string[] Array of local lists IDs or error.
+	 */
+	public function get_contact_local_lists( $email ) {
+		$tags = $this->get_contact_tags_ids( $email );
+		if ( is_wp_error( $tags ) ) {
+			return [];
+		}
+		$lists = Subscription_Lists::get_configured_for_provider( $this->service );
+		$ids   = [];
+		foreach ( $lists as $list ) {
+			$list_settings = $list->get_provider_settings( $this->service );
+			if ( in_array( $list_settings['tag_id'], $tags, false ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
+				$ids[] = $list->get_form_id();
+			}
+		}
+		return $ids;
+	}
+
+	/**
+	 * Get contact lists combining local lists and provider lists
+	 *
+	 * @param string $email The contact email.
+	 * @return WP_Error|array
+	 */
+	public function get_contact_combined_lists( $email ) {
+		$lists = $this->get_contact_lists( $email );
+		if ( is_wp_error( $lists ) ) {
+			return $lists;
+		}
+		$local_lists = [];
+		if ( static::$support_tags ) {
+			$local_lists = $this->get_contact_local_lists( $email );
+			if ( is_wp_error( $local_lists ) ) {
+				return $local_lists;
+			}
+		}
+		return array_merge( $lists, $local_lists );
 	}
 
 	/**
@@ -458,6 +573,16 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @return true|WP_Error
 	 */
 	public function remove_tag_from_contact( $email, $tag, $list_id = null ) {
+		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
+	}
+
+	/**
+	 * Get the IDs of the tags associated with a contact.
+	 *
+	 * @param string $email The contact email.
+	 * @return array|WP_Error The tag IDs on success. WP_Error on failure.
+	 */
+	public function get_contact_tags_ids( $email ) {
 		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
 	}
 }

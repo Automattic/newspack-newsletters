@@ -249,6 +249,33 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Get the IDs of the tags associated with a contact.
+	 *
+	 * @param string $email The contact email.
+	 * @return array|WP_Error The tag IDs on success. WP_Error on failure.
+	 */
+	public function get_contact_tags_ids( $email ) {
+		$contact_data = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact_data ) ) {
+			return $contact_data;
+		}
+		$result = $this->api_v3_request(
+			sprintf( 'contacts/%d/contactTags', $contact_data['id'] ),
+			'GET'
+		);
+
+		return array_values(
+			array_map(
+				function( $tag ) {
+					return (int) $tag['tag'];
+				},
+				$result['contactTags']
+			)
+		);
+
+	}
+
+	/**
 	 * Create a Tag on the provider
 	 *
 	 * @param string $tag The Tag name.
