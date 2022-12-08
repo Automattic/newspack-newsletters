@@ -1291,7 +1291,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	public function lists_metabox_notice( $settings ) {
 		if ( $settings['tag_name'] ) {
 			?>
-			<p>
+			<p class="subscription-list-warning">
 				<?php
 				echo wp_kses(
 					sprintf(

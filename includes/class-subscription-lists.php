@@ -41,6 +41,21 @@ class Subscription_Lists {
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
 		add_filter( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
+	}
+
+	/**
+	 * Add custom CSS to the List post type edit screen
+	 */
+	public static function admin_enqueue_scripts() {
+		if ( get_current_screen()->post_type === self::CPT ) {
+			wp_enqueue_style(
+				'newspack-newsletters-subscription-list-editor',
+				plugins_url( '../css/subscription-list-editor.css', __FILE__ ),
+				[],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'css/subscription-list-editor.css' )
+			);
+		}
 	}
 
 	/**
@@ -193,7 +208,19 @@ class Subscription_Lists {
 	public static function posts_columns_values( $column, $post_id ) {
 		if ( 'active_providers' === $column ) {
 			$list = new Subscription_List( $post_id );
-			echo esc_html( implode( ', ', $list->get_configured_providers_names() ) );
+			foreach ( $list->get_configured_providers() as $provider ) {
+				$settings     = $list->get_provider_settings( $provider );
+				$provider_obj = Newspack_Newsletters::get_service_provider_instance( $provider );
+				?>
+				<p>
+					<?php echo esc_html( $provider_obj::label( 'name' ) ); ?>:
+					<span class="subscription-list-tag">
+						<?php echo esc_html( $settings['tag_name'] ); ?>
+					</span>
+				</p>
+				<?php
+
+			}
 		}
 	}
 
@@ -260,12 +287,18 @@ class Subscription_Lists {
 		</div>
 
 		<div class="misc-pub-section">
-			<label for="newspack_newsletters_tag">
-				<?php esc_html_e( 'Tag', 'newspack-newsletters' ); ?>:
-			</label>
-			<p>
-				<?php echo esc_html( $current_settings['tag_name'] ?? __( 'Tag was not created yet, please save the list', 'newspack-newsletters' ) ); ?>
-			</p>
+			<?php if ( ! empty( $current_settings['tag_name'] ) ) : ?>
+				<p>
+					<?php esc_html_e( 'Tag created for this list', 'newspack-newsletters' ); ?>:
+				</p>
+				<p class="subscription-list-tag">
+					<?php echo esc_html( $current_settings['tag_name'] ); ?>
+				</p>
+			<?php else : ?>
+				<p>
+					<?php esc_html_e( 'Once this list is saved, a tag will be created for it.', 'newspack-newsletters' ); ?>
+				</p>
+			<?php endif; ?>
 			<?php 
 			/**
 			 * Fires after the tag field in the list metabox.
