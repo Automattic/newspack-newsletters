@@ -34,6 +34,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	private $contact_data = [];
 
 	/**
+	 * Provider name.
+	 *
+	 * @var string
+	 */
+	public $name = 'ActiveCampaign';
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {

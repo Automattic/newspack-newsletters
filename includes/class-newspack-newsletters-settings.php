@@ -230,7 +230,15 @@ class Newspack_Newsletters_Settings {
 		?>
 		<div class="newspack-newsletters-oauth notice notice-warning">
 			<h2><?php esc_html_e( 'Authorize the application', 'newspack-newsletters' ); ?></h2>
-			<p><?php esc_html_e( 'To use this provider, you need to authorize the application.', 'newspack-newsletters' ); ?></p>
+			<p>
+			<?php
+			echo sprintf(
+				/* translators: %s: email service provider name */
+				esc_html__( 'Authorize %s to connect to Newspack.', 'newspack-newsletters' ),
+				esc_html( $provider->name )
+			);
+			?>
+				</p>
 			<p><a href="<?php echo esc_url( $token['auth_url'] ); ?>" class="button"><?php esc_html_e( 'Authorize', 'newspack-newsletters' ); ?></a></p>
 		</div>
 		<?php

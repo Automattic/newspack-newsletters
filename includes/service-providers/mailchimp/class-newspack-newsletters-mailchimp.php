@@ -15,6 +15,13 @@ use \DrewM\MailChimp\MailChimp;
 final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service_Provider {
 
 	/**
+	 * Provider name.
+	 *
+	 * @var string
+	 */
+	public $name = 'Mailchimp';
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {

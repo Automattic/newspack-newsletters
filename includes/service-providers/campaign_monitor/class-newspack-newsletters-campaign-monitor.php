@@ -16,6 +16,13 @@ define( 'CS_REST_CALL_TIMEOUT', 30 );
 final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_Service_Provider {
 
 	/**
+	 * Provider name.
+	 *
+	 * @var string
+	 */
+	public $name = 'Campaign Monitor';
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {

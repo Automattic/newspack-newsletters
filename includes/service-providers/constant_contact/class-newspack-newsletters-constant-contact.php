@@ -27,6 +27,13 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	private $contact_data = [];
 
 	/**
+	 * Provider name.
+	 *
+	 * @var string
+	 */
+	public $name = 'Contant Constact';
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
