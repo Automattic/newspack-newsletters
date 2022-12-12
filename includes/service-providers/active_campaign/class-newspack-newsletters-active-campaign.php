@@ -935,6 +935,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$existing_fields = $this->get_all_contact_fields();
 			foreach ( $contact['metadata'] as $field_title => $value ) {
 				$field_perstag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
+
+				// Phone is a field on the contact, not a metadata field.
+				if ( 'PHONE' === $field_perstag ) {
+					$payload['phone'] = $value;
+					continue;
+				}
+
 				/** For optimization, don't add the field if it already exists. */
 				if ( is_wp_error( $existing_fields ) || false === array_search( $field_perstag, array_column( $existing_fields, 'perstag' ) ) ) {
 					$field_res = $this->api_v3_request(
@@ -953,8 +960,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 							),
 						]
 					);
+					if ( \is_wp_error( $field_res ) ) {
+						Newspack_Newsletters_Logger::log( 'Error when adding an AC field: ' . $field_res->get_error_message() );
+						continue;
+					}
 					/** Set list relation. */
-					$this->api_v3_request(
+					$field_relation_res = $this->api_v3_request(
 						'fieldRels',
 						'POST',
 						[
@@ -968,6 +979,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 							),
 						]
 					);
+					if ( \is_wp_error( $field_relation_res ) ) {
+						Newspack_Newsletters_Logger::log( 'Error when setting field relation on an AC field: ' . $field_relation_res->get_error_message() );
+						continue;
+					}
 				}
 				$payload[ 'field[%' . $field_perstag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
 			}
