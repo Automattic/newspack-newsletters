@@ -642,4 +642,119 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			);
 		}
 	}
+
+	/**
+	 * Get the lists a contact is subscribed to.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return string[] Contact subscribed lists IDs.
+	 */
+	public function get_contact_lists( $email ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			return [];
+		}
+		return array_keys(
+			array_filter(
+				$contact['lists'],
+				function( $list ) {
+					return 'Active' === $list['status'];
+				}
+			)
+		);
+	}
+
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			/** Create contact */
+			$result = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ], $lists_to_add );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			return true;
+		}
+		$api_key = $this->api_key();
+		try {
+			foreach ( $lists_to_add as $list_id ) {
+				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
+					$this->add_contact( [ 'email' => $email ], $list_id );
+				} else {
+					$cs = new CS_REST_Subscribers( $list_id, [ 'api_key' => $api_key ] );
+					$cs->update(
+						$email,
+						[
+							'ConsentToTrack' => 'yes',
+							'Resubscribe'    => true,
+						]
+					);
+				}
+			}
+			foreach ( $lists_to_remove as $list_id ) {
+				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
+					continue;
+				}
+				$cs = new CS_REST_Subscribers( $list_id, [ 'api_key' => $api_key ] );
+				$cs->unsubscribe( $email );
+			}
+		} catch ( \Exception $e ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_update_contact_failed',
+				$e->getMessage()
+			);
+		}
+		return true;
+	}
+
+	/**
+	 * Get contact data by email.
+	 *
+	 * @param string $email          Email address.
+	 * @param bool   $return_details Fetch full contact data.
+	 *
+	 * @return array|WP_Error Response or error if contact was not found.
+	 */
+	public function get_contact_data( $email, $return_details = false ) {
+		$api_key = $this->api_key();
+		$lists   = $this->get_lists();
+		if ( is_wp_error( $lists ) ) {
+			return $lists;
+		}
+		$keys = [ 'Name' ];
+		$data = [ 'lists' => [] ];
+		foreach ( $lists as $list ) {
+			$cs         = new CS_REST_Subscribers( $list['id'], [ 'api_key' => $api_key ] );
+			$subscriber = $cs->get( $email, true );
+			if ( 200 === $subscriber->http_status_code ) {
+				foreach ( $keys as $key ) {
+					if ( ( ! isset( $data[ $key ] ) || empty( $data[ $key ] ) ) && isset( $subscriber->response->$key ) ) {
+						$data[ $key ] = $subscriber->response->$key;
+					}
+				}
+				$data['lists'][ $list['id'] ] = [
+					'status' => $subscriber->response->State,
+				];
+				if ( $return_details ) {
+					$data['lists'][ $list['id'] ]['details'] = (array) $subscriber->response;
+				}
+			}
+		}
+		if ( empty( $data['lists'] ) ) {
+			return new \WP_Error(
+				'newspack_newsletters_mailchimp_contact_not_found',
+				__( 'Contact not found', 'newspack-newsletters' )
+			);
+		}
+		return $data;
+	}
 }
