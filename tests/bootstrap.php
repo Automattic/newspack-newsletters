@@ -32,3 +32,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
+
+// Trait used to test Subscription Lists.
+require_once 'trait-lists-setup.php';
