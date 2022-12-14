@@ -39,6 +39,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @var boolean
 	 */
 	public static $support_tags = true;
+	
+	/**
+	 * Provider name.
+	 *
+	 * @var string
+	 */
+	public $name = 'ActiveCampaign';
 
 	/**
 	 * Class constructor.
@@ -222,14 +229,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$created = $this->create_tag( $tag_name );
 
-		if ( is_wp_error( $created ) ) {
-			return $created;
-		}
-
 		return (int) $created['id'];
 	}
 
 	/**
+
 	 * Retrieve the ESP's tag name from its ID
 	 *
 	 * @param int    $tag_id The tag ID.
@@ -464,27 +468,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		unset( $lists['result_output'] );
 		$this->lists = array_values( $lists );
 		return $this->lists;
-	}
-
-	/**
-	 * Get fields.
-	 *
-	 * @return array|WP_Error List os existing fields or error.
-	 */
-	public function get_fields() {
-		if ( null !== $this->fields ) {
-			return $this->fields;
-		}
-		$fields = $this->api_v1_request( 'list_field_view', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
-		if ( is_wp_error( $fields ) ) {
-			return $fields;
-		}
-		// Remove result metadata.
-		unset( $fields['result_code'] );
-		unset( $fields['result_message'] );
-		unset( $fields['result_output'] );
-		$this->fields = array_values( $fields );
-		return $this->fields;
 	}
 
 	/**
@@ -934,17 +917,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Get data type ID for a given field.
-	 *
-	 * Possible values:
-	 *  1 = Text Field,
-	 *  2 = Text Box (textarea),
-	 *  3 = Checkbox,
-	 *  4 = Radio,
-	 *  5 = Dropdown,
-	 *  6 = Hidden field,
-	 *  7 = List Box,
-	 *  9 = Date
+	 * Get data type for a given field.
 	 *
 	 * @param string $field_name The field name.
 	 *
@@ -957,9 +930,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			case 'NP_Next Payment Date':
 			case 'NP_Current Subscription End Date':
 			case 'NP_Current Subscription Start Date':
-				return 9;
+				return 'date';
 			default:
-				return 1;
+				return 'text';
 		}
 	}
 
@@ -972,6 +945,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 *    @type string[] $tags     Contact tags. Optional.
 	 * }
 	 * @param string|false $list_id      List to add the contact to.
 	 *
@@ -1013,27 +987,45 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 
 		/** Register metadata fields. */
-		if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-			$existing_fields = $this->get_fields();
+		if ( ! empty( $contact['metadata'] ) ) {
+			$existing_fields = $this->get_all_contact_fields();
 			foreach ( $contact['metadata'] as $field_title => $value ) {
-				$field_pers_tag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
+				$field_perstag = strtoupper( str_replace( '-', '_', sanitize_title( $field_title ) ) );
 				/** For optimization, don't add the field if it already exists. */
-				if ( is_wp_error( $existing_fields ) || false === array_search( $field_pers_tag, array_column( $existing_fields, 'perstag' ) ) ) {
-					$this->api_v1_request(
-						'list_field_add',
+				if ( is_wp_error( $existing_fields ) || false === array_search( $field_perstag, array_column( $existing_fields, 'perstag' ) ) ) {
+					$field_res = $this->api_v3_request(
+						'fields',
 						'POST',
 						[
-							'body' => [
-								'p[0]'    => 0, // Associate with all lists.
-								'title'   => $field_title,
-								'req'     => 0, // Whether it's a required field.
-								'type'    => self::get_metadata_type( $field_title ),
-								'perstag' => $field_pers_tag,
-							],
+							'body' => wp_json_encode(
+								[
+									'field' => [
+										'title'   => $field_title,
+										'type'    => self::get_metadata_type( $field_title ),
+										'perstag' => $field_perstag,
+										'visible' => 1,
+									],
+								]
+							),
+						]
+					);
+					/** Set list relation. */
+					$this->api_v3_request(
+						'fieldRels',
+						'POST',
+						[
+							'body' => wp_json_encode(
+								[
+									'fieldRel' => [
+										'field' => $field_res['field']['id'],
+										'relid' => 0,
+									],
+								]
+							),
 						]
 					);
 				}
-				$payload[ 'field[%' . $field_pers_tag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
+				$payload[ 'field[%' . $field_perstag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
 			}
 		}
 		$result = $this->api_v1_request(
@@ -1160,6 +1152,29 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
+		}
+		return true;
+	}
+
+	/**
+	 * Update a contact tags.
+	 *
+	 * @param string   $email          Contact email address.
+	 * @param string[] $tags_to_add    Array of tags to add to the contact.
+	 * @param string[] $tags_to_remove Array of tags to remove from the contact.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_tags( $email, $tags_to_add = [], $tags_to_remove = [] ) {
+		$existing_contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $existing_contact ) ) {
+			return $existing_contact;
+		}
+		foreach ( $tags_to_add as $tag_add ) {
+			$this->add_tag_to_contact( $email, $tag_add );
+		}
+		foreach ( $tags_to_remove as $tag_remove ) {
+			$this->remove_tag_from_contact( $email, $tag_remove );
 		}
 		return true;
 	}
