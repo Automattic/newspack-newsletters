@@ -430,7 +430,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 				}
 
 				if ( static::$support_tags ) {
-					$this->add_tag_to_contact( $contact['email'], (int) $list_settings['tag_id'], $list_settings['list'] );
+					$this->add_tag_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
 				}
 
 				return $added_contact;
@@ -498,9 +498,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 					$list_settings = $list->get_provider_settings( $this->service );
 
 					if ( 'add' === $action ) {
-						$this->add_tag_to_contact( $email, (int) $list_settings['tag_id'], $list_settings['list'] );
+						$this->add_tag_to_contact( $email, $list_settings['tag_id'], $list_settings['list'] );
 					} elseif ( 'remove' === $action ) {
-						$this->remove_tag_from_contact( $email, (int) $list_settings['tag_id'], $list_settings['list'] );
+						$this->remove_tag_from_contact( $email, $list_settings['tag_id'], $list_settings['list'] );
 					}
 					
 					unset( $lists[ $key ] );
@@ -571,8 +571,8 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	/**
 	 * Retrieve the ESP's tag name from its ID
 	 *
-	 * @param int    $tag_id The tag ID.
-	 * @param string $list_id The List ID.
+	 * @param string|int $tag_id The tag ID.
+	 * @param string     $list_id The List ID.
 	 * @return string|WP_Error The tag name on success. WP_Error on failure.
 	 */
 	public function get_tag_by_id( $tag_id, $list_id = null ) {
@@ -594,7 +594,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * Add a tag to a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID.
 	 * @return true|WP_Error
 	 */
@@ -606,7 +606,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * Remove a tag from a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID.
 	 * @return true|WP_Error
 	 */

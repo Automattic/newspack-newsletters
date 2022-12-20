@@ -316,7 +316,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * Add a tag to a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID. Not needed for Active Campaign.
 	 * @return true|WP_Error
 	 */
@@ -324,12 +324,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			return $existing_contact;
-		}
-		if ( ! is_integer( $tag ) ) {
-			$tag = $this->get_tag_id( (string) $tag );
-			if ( is_wp_error( $tag ) ) {
-				return $tag;
-			}
 		}
 
 		$contact_tag = [
@@ -362,7 +356,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * Remove a tag from a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID. Not needed for Active Campaign.
 	 * @return true|WP_Error
 	 */
@@ -370,12 +364,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			return $existing_contact;
-		}
-		if ( ! is_integer( $tag ) ) {
-			$tag = $this->get_tag_id( (string) $tag, false );
-			if ( is_wp_error( $tag ) ) {
-				return $tag;
-			}
 		}
 
 		$contact_tag_id = $this->get_contact_tag_id( $email, $tag );
@@ -1152,29 +1140,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
-		}
-		return true;
-	}
-
-	/**
-	 * Update a contact tags.
-	 *
-	 * @param string   $email          Contact email address.
-	 * @param string[] $tags_to_add    Array of tags to add to the contact.
-	 * @param string[] $tags_to_remove Array of tags to remove from the contact.
-	 *
-	 * @return true|WP_Error True if the contact was updated or error.
-	 */
-	public function update_contact_tags( $email, $tags_to_add = [], $tags_to_remove = [] ) {
-		$existing_contact = $this->get_contact_data( $email );
-		if ( is_wp_error( $existing_contact ) ) {
-			return $existing_contact;
-		}
-		foreach ( $tags_to_add as $tag_add ) {
-			$this->add_tag_to_contact( $email, $tag_add );
-		}
-		foreach ( $tags_to_remove as $tag_remove ) {
-			$this->remove_tag_from_contact( $email, $tag_remove );
 		}
 		return true;
 	}
