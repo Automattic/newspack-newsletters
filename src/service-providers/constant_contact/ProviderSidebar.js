@@ -3,7 +3,13 @@
  */
 import { __ } from '@wordpress/i18n';
 import { Fragment, useEffect } from '@wordpress/element';
-import { BaseControl, CheckboxControl, Spinner, Notice } from '@wordpress/components';
+import {
+	BaseControl,
+	CheckboxControl,
+	SelectControl,
+	Spinner,
+	Notice,
+} from '@wordpress/components';
 
 const ProviderSidebar = ( {
 	renderSubject,
@@ -17,11 +23,25 @@ const ProviderSidebar = ( {
 } ) => {
 	const campaign = newsletterData.campaign;
 	const lists = newsletterData.lists || [];
+	const segments = newsletterData.segments || [];
+
+	let segment_id = '';
+	if ( campaign?.activity?.segment_ids?.length ) {
+		segment_id = campaign.activity.segment_ids[ 0 ];
+	}
 
 	const setList = ( listId, value ) => {
 		const method = value ? 'PUT' : 'DELETE';
 		apiFetch( {
 			path: `/newspack-newsletters/v1/constant_contact/${ postId }/list/${ listId }`,
+			method,
+		} );
+	};
+
+	const setSegment = segmentId => {
+		const method = segmentId ? 'PUT' : 'DELETE';
+		apiFetch( {
+			path: `/newspack-newsletters/v1/constant_contact/${ postId }/segment/${ segmentId }`,
 			method,
 		} );
 	};
@@ -88,6 +108,23 @@ const ProviderSidebar = ( {
 					/>
 				) ) }
 			</BaseControl>
+			<SelectControl
+				label={ __( 'Segment', 'newspack-newsletters' ) }
+				className="newspack-newsletters-constant_contact-segments"
+				value={ segment_id }
+				options={ [
+					{
+						value: null,
+						label: __( '-- Select a segment --', 'newspack-newsletters' ),
+					},
+					...segments.map( ( { segment_id: id, name } ) => ( {
+						value: id,
+						label: name,
+					} ) ),
+				] }
+				onChange={ setSegment }
+				disabled={ inFlight }
+			/>
 		</Fragment>
 	);
 };
