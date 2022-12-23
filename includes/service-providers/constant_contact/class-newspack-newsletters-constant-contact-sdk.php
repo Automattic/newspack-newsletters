@@ -638,16 +638,16 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @return stdClass|WP_Error The tag object or a WP_Error if the tag was not found.
 	 */
 	public function get_tag_by_name( $name ) {
-		$limit_attempts     = 10;
-		$itemps_per_attempt = 100;
-		$cursor             = '';
+		$limit_attempts    = 10;
+		$items_per_attempt = 100;
+		$cursor            = '';
 		for ( $attempt = 1; $attempt <= $limit_attempts; $attempt++ ) {
 			$res = $this->request(
 				'GET',
 				'/contact_tags',
 				[
 					'query' => [
-						'limit'  => $itemps_per_attempt,
+						'limit'  => $items_per_attempt,
 						'cursor' => $cursor,
 					],
 				]
