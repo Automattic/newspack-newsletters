@@ -2,11 +2,12 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect } from '@wordpress/element';
+import { Fragment, useEffect, useState } from '@wordpress/element';
 import {
 	BaseControl,
 	CheckboxControl,
 	SelectControl,
+	RadioControl,
 	Spinner,
 	Notice,
 } from '@wordpress/components';
@@ -24,6 +25,8 @@ const ProviderSidebar = ( {
 	const campaign = newsletterData.campaign;
 	const lists = newsletterData.lists || [];
 	const segments = newsletterData.segments || [];
+
+	const [ sendMode, setSendMode ] = useState( 'list' );
 
 	let segment_id = '';
 	if ( campaign?.activity?.segment_ids?.length ) {
@@ -62,6 +65,11 @@ const ProviderSidebar = ( {
 				senderName: campaign.activity.from_name,
 				senderEmail: campaign.activity.from_email,
 			} );
+			if ( campaign?.activity?.contact_list_ids?.length ) {
+				setSendMode( 'list' );
+			} else if ( campaign?.activity?.segment_ids?.length ) {
+				setSendMode( 'segment' );
+			}
 		}
 	}, [ campaign ] );
 
@@ -93,38 +101,58 @@ const ProviderSidebar = ( {
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<BaseControl
-				id="newspack-newsletters-constant_contact-lists"
-				label={ __( 'Lists', 'newspack-newsletters' ) }
-			>
-				{ lists.map( ( { list_id: id, name } ) => (
-					<CheckboxControl
-						key={ id }
-						label={ name }
-						value={ id }
-						checked={ campaign?.activity?.contact_list_ids?.some( listId => listId === id ) }
-						onChange={ value => setList( id, value ) }
-						disabled={ inFlight }
-					/>
-				) ) }
+			<BaseControl className="newspack-newsletters__send-mode">
+				<RadioControl
+					className={
+						'newspack-newsletters__sendmode-radiocontrol' + ( inFlight ? ' inFlight' : '' )
+					}
+					label={ __( 'Send Mode', 'newspack-newsletters' ) }
+					selected={ sendMode }
+					onChange={ setSendMode }
+					options={ [
+						{ label: __( 'List', 'newspack-newsletters' ), value: 'list' },
+						{ label: __( 'Segment', 'newspack-newsletters' ), value: 'segment' },
+					] }
+					disabled={ inFlight }
+				/>
 			</BaseControl>
-			<SelectControl
-				label={ __( 'Segment', 'newspack-newsletters' ) }
-				className="newspack-newsletters-constant_contact-segments"
-				value={ segment_id }
-				options={ [
-					{
-						value: null,
-						label: __( '-- Select a segment --', 'newspack-newsletters' ),
-					},
-					...segments.map( ( { segment_id: id, name } ) => ( {
-						value: id,
-						label: name,
-					} ) ),
-				] }
-				onChange={ setSegment }
-				disabled={ inFlight }
-			/>
+
+			{ 'list' === sendMode && (
+				<BaseControl
+					id="newspack-newsletters-constant_contact-lists"
+					label={ __( 'Lists', 'newspack-newsletters' ) }
+				>
+					{ lists.map( ( { list_id: id, name } ) => (
+						<CheckboxControl
+							key={ id }
+							label={ name }
+							value={ id }
+							checked={ campaign?.activity?.contact_list_ids?.some( listId => listId === id ) }
+							onChange={ value => setList( id, value ) }
+							disabled={ inFlight }
+						/>
+					) ) }
+				</BaseControl>
+			) }
+			{ 'segment' === sendMode && (
+				<SelectControl
+					label={ __( 'Segment', 'newspack-newsletters' ) }
+					className="newspack-newsletters-constant_contact-segments"
+					value={ segment_id }
+					options={ [
+						{
+							value: null,
+							label: __( '-- Select a segment --', 'newspack-newsletters' ),
+						},
+						...segments.map( ( { segment_id: id, name } ) => ( {
+							value: id,
+							label: name,
+						} ) ),
+					] }
+					onChange={ setSegment }
+					disabled={ inFlight }
+				/>
+			) }
 		</Fragment>
 	);
 };
