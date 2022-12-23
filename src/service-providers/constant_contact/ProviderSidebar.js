@@ -12,6 +12,11 @@ import {
 	Notice,
 } from '@wordpress/components';
 
+/**
+ * Internal dependencies
+ */
+import './style.scss';
+
 const ProviderSidebar = ( {
 	renderSubject,
 	renderFrom,
@@ -119,6 +124,7 @@ const ProviderSidebar = ( {
 
 			{ 'list' === sendMode && (
 				<BaseControl
+					className="newspack-newsletters-constant_contact-lists"
 					id="newspack-newsletters-constant_contact-lists"
 					label={ __( 'Lists', 'newspack-newsletters' ) }
 				>
