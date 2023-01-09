@@ -5,9 +5,10 @@ import { __ } from '@wordpress/i18n';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import {
 	BaseControl,
+	Button,
+	ButtonGroup,
 	CheckboxControl,
 	SelectControl,
-	RadioControl,
 	Spinner,
 	Notice,
 } from '@wordpress/components';
@@ -106,27 +107,26 @@ const ProviderSidebar = ( {
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<BaseControl className="newspack-newsletters__send-mode">
-				<RadioControl
-					className={
-						'newspack-newsletters__sendmode-radiocontrol' + ( inFlight ? ' inFlight' : '' )
-					}
-					label={ __( 'Send Mode', 'newspack-newsletters' ) }
-					selected={ sendMode }
-					onChange={ setSendMode }
-					options={ [
-						{ label: __( 'List', 'newspack-newsletters' ), value: 'list' },
-						{ label: __( 'Segment', 'newspack-newsletters' ), value: 'segment' },
-					] }
-					disabled={ inFlight }
+			<ButtonGroup className="newspack-newsletters-cc__send-mode">
+				<Button
+					className="newspack-newsletters-cc__send-mode-button"
+					variant={ sendMode === 'list' ? 'primary' : 'secondary' }
+					onClick={ () => setSendMode( 'list' ) }
+				>
+					{ __( 'List', 'newspack-newsletters' ) }
+				</Button>
+				<Button
+					className="newspack-newsletters-cc__send-mode-button"
+					variant={ sendMode === 'segment' ? 'primary' : 'secondary' }
+					onClick={ () => setSendMode( 'segment' ) }
+					text={ __( 'Segment', 'newspack-newsletters' ) }
 				/>
-			</BaseControl>
+			</ButtonGroup>
 
 			{ 'list' === sendMode && (
 				<BaseControl
 					className="newspack-newsletters-constant_contact-lists"
 					id="newspack-newsletters-constant_contact-lists"
-					label={ __( 'Lists', 'newspack-newsletters' ) }
 				>
 					{ lists.map( ( { list_id: id, name } ) => (
 						<CheckboxControl
@@ -142,7 +142,6 @@ const ProviderSidebar = ( {
 			) }
 			{ 'segment' === sendMode && (
 				<SelectControl
-					label={ __( 'Segment', 'newspack-newsletters' ) }
 					className="newspack-newsletters-constant_contact-segments"
 					value={ segment_id }
 					options={ [
