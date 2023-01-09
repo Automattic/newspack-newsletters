@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "1.55.1",
+	"version": "1.56.0-alpha.1",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -50,9 +50,9 @@
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.2.0",
 		"eslint": "^7.32.0",
-		"lint-staged": "^13.0.4",
+		"lint-staged": "^13.1.0",
 		"newspack-scripts": "^4.3.8",
-		"postcss": "^8.4.19",
+		"postcss": "^8.4.20",
 		"postcss-scss": "^4.0.6",
 		"prettier": "npm:wp-prettier@^2.6.2-beta-1",
 		"stylelint": "^14.9.1"
