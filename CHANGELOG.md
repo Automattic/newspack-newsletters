@@ -1,3 +1,10 @@
+## [1.56.1](https://github.com/Automattic/newspack-newsletters/compare/v1.56.0...v1.56.1) (2023-01-11)
+
+
+### Bug Fixes
+
+* disable tag based lists ([6fce831](https://github.com/Automattic/newspack-newsletters/commit/6fce83134fa020f235787286b8ae9c110913d4cd))
+
 # [1.56.0](https://github.com/Automattic/newspack-newsletters/compare/v1.55.1...v1.56.0) (2023-01-09)
 
 
