@@ -17,8 +17,8 @@ use \DrewM\MailChimp\MailChimp;
  * The purpose of this class is to implement a non-obstrusive chat, in which refreshing the cache will happen in the background in an async request
  * and will never keep the user waiting.
  *
- * 1. It will check for the information in cache
- * 2. If it does not exist, it will check for the last_cached value, stored as an option
+ * 1. It will check for the information in cache (favor wp_cache because it's faster than options, especially with memcached)
+ * 2. If it does not exist, it will check for the last_cached value, stored as an option (with auto_load as false, to avoid unnecessary queries)
  * 3. It will then dispatch an async request to refresh the cache, while returning the last cached data immediately
  * 4. It will clear the last cached data, to make sure cache will be refreshed eventually, even if the async request fails for any reason
  * 5. The async request will fetch data from the Mailchimp server and pouplate the cache
