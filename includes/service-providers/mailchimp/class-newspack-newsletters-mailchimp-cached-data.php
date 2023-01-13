@@ -14,14 +14,14 @@ use \DrewM\MailChimp\MailChimp;
  *
  * This class handles fetching and caching segments and interests data from Mailchimp
  *
- * The purpose of this class is to implement a non-obstrusive chat, in which refreshing the cache will happen in the background in an async request
+ * The purpose of this class is to implement a non-obstrusive cache, in which refreshing the cache will happen in the background in an async request
  * and will never keep the user waiting.
  *
- * 1. It will check for the information in cache (favor wp_cache because it's faster than options, especially with memcached)
+ * 1. It will check for the information in cache
  * 2. If it does not exist, it will check for the last_cached value, stored as an option (with auto_load as false, to avoid unnecessary queries)
  * 3. It will then dispatch an async request to refresh the cache, while returning the last cached data immediately
  * 4. It will clear the last cached data, to make sure cache will be refreshed eventually, even if the async request fails for any reason
- * 5. The async request will fetch data from the Mailchimp server and pouplate the cache
+ * 5. The async request will fetch data from the Mailchimp server and populate the cache
  * 6. The first time we ask for data in a given list, there will be no cache nor last_cached option, so we'll fetch the data synchronously
  */
 final class Newspack_Newsletters_Mailchimp_Cached_Data {
@@ -102,8 +102,18 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 *
 	 * @return Newspack_Newsletters_Mailchimp
 	 */
-	private static function mc() {
+	private static function get_mc_instance() {
 		return Newspack_Newsletters_Mailchimp::instance();
+	}
+
+	/**
+	 * Get the cache key for a given list
+	 *
+	 * @param string $list_id The List ID.
+	 * @return string The cache key
+	 */
+	private static function get_cache_key( $list_id ) {
+		return self::CACHE_GROUP . '_' . $list_id;
 	}
 
 	/**
@@ -119,7 +129,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			return self::$memoized_data;
 		}
 
-		$data = wp_cache_get( self::CACHE_GROUP, $list_id );
+		$data = get_transient( self::get_cache_key( $list_id ) );
 		if ( $data ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from cache' );
 			self::$memoized_data = $data;
@@ -186,7 +196,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				'blocking'  => false,
 				'body'      => $body,
 				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
-                'cookies'   => $_COOKIE, // phpcs:ignore
+				'cookies'   => $_COOKIE, // phpcs:ignore
 			]
 		);
 
@@ -231,7 +241,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				'interest_categories' => $interest_categories,
 				'merge_fields'        => $merge_fields,
 			];
-			wp_cache_set( self::CACHE_GROUP, $list_data, $list_id, 10 * MINUTE_IN_SECONDS );
+			set_transient( self::get_cache_key( $list_id ), $list_data, 10 * MINUTE_IN_SECONDS );
 
 			$data             = get_option( self::OPTION_NAME );
 			$data[ $list_id ] = $list_data;
@@ -239,7 +249,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			return $list_data;
 		} catch ( Exception $e ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: error fetching data. Clearing cache to surface errors.' );
-			self::clear_cache( $list_id );
+			delete_transient( self::get_cache_key( $list_id ) );
 			throw $e;
 		}
 	}
@@ -252,7 +262,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @return void
 	 */
 	private static function clear_cache( $list_id ) {
-		wp_cache_delete( self::CACHE_GROUP, $list_id );
+		delete_transient( self::get_cache_key( $list_id ) );
 		$option = get_option( self::OPTION_NAME );
 		if ( ! empty( $option[ $list_id ] ) ) {
 			unset( $option[ $list_id ] );
@@ -269,10 +279,10 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @return array The list segments 
 	 */
 	private static function fetch_segments( $list_id ) {
-		$mc       = new Mailchimp( ( self::mc() )->api_key() );
+		$mc       = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$segments = [];
 
-		$saved_segments_response  = ( self::mc() )->validate(
+		$saved_segments_response  = ( self::get_mc_instance() )->validate(
 			$mc->get(
 				"lists/$list_id/segments",
 				[
@@ -283,7 +293,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			),
 			__( 'Error retrieving Mailchimp segments.', 'newspack_newsletters' )
 		);
-		$static_segments_response = ( self::mc() )->validate(
+		$static_segments_response = ( self::get_mc_instance() )->validate(
 			$mc->get(
 				"lists/$list_id/segments",
 				[
@@ -307,8 +317,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @return array The list interest_categories 
 	 */
 	private static function fetch_interest_categories( $list_id ) {
-		$mc                  = new Mailchimp( ( self::mc() )->api_key() );
-		$interest_categories = $list_id ? ( self::mc() )->validate(
+		$mc                  = new Mailchimp( ( self::get_mc_instance() )->api_key() );
+		$interest_categories = $list_id ? ( self::get_mc_instance() )->validate(
 			$mc->get( "lists/$list_id/interest-categories" ),
 			__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
 		) : null;
@@ -316,7 +326,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		if ( $interest_categories && count( $interest_categories['categories'] ) ) {
 			foreach ( $interest_categories['categories'] as &$category ) {
 				$category_id           = $category['id'];
-				$category['interests'] = ( self::mc() )->validate(
+				$category['interests'] = ( self::get_mc_instance() )->validate(
 					$mc->get( "lists/$list_id/interest-categories/$category_id/interests" ),
 					__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
 				);
@@ -334,8 +344,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @return array The list interest_categories 
 	 */
 	private static function fetch_merge_fields( $list_id ) {
-		$mc       = new Mailchimp( ( self::mc() )->api_key() );
-		$response = ( self::mc() )->validate(
+		$mc       = new Mailchimp( ( self::get_mc_instance() )->api_key() );
+		$response = ( self::get_mc_instance() )->validate(
 			$mc->get(
 				"lists/$list_id/merge-fields",
 				[
