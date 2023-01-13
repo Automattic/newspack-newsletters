@@ -129,6 +129,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			return self::$memoized_data;
 		}
 
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: getting data for list ' . $list_id );
+
 		$data = get_transient( self::get_cache_key( $list_id ) );
 		if ( $data ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from cache' );
