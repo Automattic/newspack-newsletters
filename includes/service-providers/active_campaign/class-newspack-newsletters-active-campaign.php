@@ -927,6 +927,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$date_fields = [
 			'Registration Date',
 			'Last Payment Date',
+			'Next Payment Date',
 			'Current Subscription End Date',
 			'Current Subscription Start Date',
 		];
