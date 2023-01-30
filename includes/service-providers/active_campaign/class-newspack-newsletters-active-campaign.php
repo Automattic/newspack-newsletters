@@ -924,16 +924,20 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return int Data type ID.
 	 */
 	private static function get_metadata_type( $field_name ) {
-		switch ( $field_name ) {
-			case 'NP_Registration Date':
-			case 'NP_Last Payment Date':
-			case 'NP_Next Payment Date':
-			case 'NP_Current Subscription End Date':
-			case 'NP_Current Subscription Start Date':
+		$date_fields = [
+			'Registration Date',
+			'Last Payment Date',
+			'Next Payment Date',
+			'Current Subscription End Date',
+			'Current Subscription Start Date',
+		];
+
+		foreach ( $date_fields as $date_field ) {
+			if ( str_contains( $date_field, $field_name ) ) {
 				return 'date';
-			default:
-				return 'text';
+			}
 		}
+		return 'text';
 	}
 
 	/**
