@@ -20,7 +20,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @var boolean
 	 */
 	public static $support_tags = false;
-	
+
 	/**
 	 * Provider name.
 	 *
@@ -171,7 +171,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error The tag representation sent from the server on succes. WP_Error on failure.
 	 */
 	public function create_tag( $tag, $list_id = null ) {
-		
+
 		$mc      = new Mailchimp( $this->api_key() );
 		$created = $mc->post(
 			sprintf( 'lists/%s/segments', $list_id ),
@@ -567,7 +567,23 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			if ( empty( $post->post_title ) ) {
 				throw new Exception( __( 'The newsletter subject cannot be empty.', 'newspack-newsletters' ) );
 			}
-			$mc      = new Mailchimp( $api_key );
+			$mc = new Mailchimp( $api_key );
+
+			// Setup campaign folder.
+			$folder_id = get_option( 'newspack_newsletters_mc_folder_id', false );
+			if ( ! $folder_id ) {
+				try {
+					$folder_result = $this->validate(
+						$mc->post( 'campaign-folders', [ 'name' => 'Newspack' ] ),
+						__( 'Error creating folder.', 'newspack_newsletters' )
+					);
+					$folder_id     = $folder_result['id'];
+					update_option( 'newspack_newsletters_mc_folder_id', $folder_id );
+				} catch ( Exception $e ) {
+					Newspack_Newsletters_Logger::log( 'Failed to create Mailchimp folder: ' . $e->getMessage() );
+				}
+			}
+
 			$payload = [
 				'type'         => 'regular',
 				'content_type' => 'template',
@@ -576,7 +592,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'title'        => $post->post_title,
 				],
 			];
-
+			if ( $folder_id ) {
+				$payload['settings']['folder_id'] = $folder_id;
+			}
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 
 			/**
@@ -1141,7 +1159,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'id'         => $contact['id'], // md5 hash of email.
 				'contact_id' => $contact['contact_id'],
 				'status'     => $contact['status'],
-			];      
+			];
 		}
 		return $data;
 	}
@@ -1157,7 +1175,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( is_wp_error( $contact_data ) ) {
 			return $contact_data;
 		}
-		
+
 		$contact_tags = array_map(
 			function( $tag ) {
 				return (int) $tag['id'];
