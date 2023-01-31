@@ -97,11 +97,18 @@ const ProviderSidebar = ( {
 } ) => {
 	const campaign = newsletterData.campaign;
 	const lists = newsletterData.lists || [];
+	const folders = newsletterData.folders || [];
 	const segments = newsletterData.segments || newsletterData.tags || []; // Keep .tags for backwards compatibility.
 
 	const setList = listId =>
 		apiFetch( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
+			method: 'POST',
+		} );
+
+	const setFolder = folderId =>
+		apiFetch( {
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/folder/${ folderId }`,
 			method: 'POST',
 		} );
 
@@ -184,6 +191,27 @@ const ProviderSidebar = ( {
 			{ renderSubject() }
 			{ renderPreviewText() }
 			<hr />
+			{ folders.length ? (
+				<Fragment>
+					<SelectControl
+						label={ __( 'Folder', 'newspack-newsletters' ) }
+						value={ campaign?.settings?.folder_id }
+						options={ [
+							{
+								label: __( 'No folder', 'newspack-newsletters' ),
+								value: '',
+							},
+							...folders.map( folder => ( {
+								label: folder.name,
+								value: folder.id,
+							} ) ),
+						] }
+						onChange={ setFolder }
+						disabled={ inFlight }
+					/>
+					<hr />
+				</Fragment>
+			) : null }
 			{ renderFrom( { handleSenderUpdate: setSender } ) }
 			<hr />
 			<strong className="newspack-newsletters__label">
