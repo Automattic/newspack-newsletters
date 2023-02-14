@@ -106,10 +106,27 @@ const ProviderSidebar = ( {
 			method: 'POST',
 		} );
 
-	const setFolder = folderId =>
+	const getFolderOptions = () => {
+		const options = folders.map( folder => ( {
+			label: folder.name,
+			value: folder.id,
+		} ) );
+		if ( ! campaign?.settings?.folder_id ) {
+			options.unshift( {
+				label: __( 'No folder', 'newspack-newsletters' ),
+				value: '',
+			} );
+		}
+		return options;
+	};
+
+	const setFolder = folder_id =>
 		apiFetch( {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/folder/${ folderId }`,
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/folder`,
 			method: 'POST',
+			data: {
+				folder_id,
+			},
 		} );
 
 	const updateSegments = target_id => {
@@ -196,16 +213,7 @@ const ProviderSidebar = ( {
 					<SelectControl
 						label={ __( 'Folder', 'newspack-newsletters' ) }
 						value={ campaign?.settings?.folder_id }
-						options={ [
-							{
-								label: __( 'No folder', 'newspack-newsletters' ),
-								value: '',
-							},
-							...folders.map( folder => ( {
-								label: folder.name,
-								value: folder.id,
-							} ) ),
-						] }
+						options={ getFolderOptions() }
 						onChange={ setFolder }
 						disabled={ inFlight }
 					/>

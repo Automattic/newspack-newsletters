@@ -121,17 +121,20 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 		);
 		\register_rest_route(
 			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
-			'(?P<id>[\a-z]+)/folder/(?P<folder_id>[\a-z]+)',
+			'(?P<id>[\a-z]+)/folder',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ $this, 'api_folder' ],
 				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
 				'args'                => [
-					'id'      => [
+					'id'        => [
 						'sanitize_callback' => 'absint',
 						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
-					'list_id' => [
+					'list_id'   => [
+						'sanitize_callback' => 'esc_attr',
+					],
+					'folder_id' => [
 						'sanitize_callback' => 'esc_attr',
 					],
 				],
