@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 use \DrewM\MailChimp\MailChimp;
 
 /**
- * This tratis adds the Mailchimp Groups implementation to the Mailchimp Service Provider.
+ * This trait adds the Mailchimp Groups implementation to the Mailchimp Service Provider.
  *
  * In Mailchimp, Groups are also called Interests. Interests are categorized in Interest Categories.
  *
