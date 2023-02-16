@@ -20,7 +20,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @var boolean
 	 */
 	public static $support_tags = false;
-	
+
 	/**
 	 * Provider name.
 	 *
@@ -171,7 +171,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error The tag representation sent from the server on succes. WP_Error on failure.
 	 */
 	public function create_tag( $tag, $list_id = null ) {
-		
+
 		$mc      = new Mailchimp( $this->api_key() );
 		$created = $mc->post(
 			sprintf( 'lists/%s/segments', $list_id ),
@@ -267,6 +267,46 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Set folder for a campaign.
+	 *
+	 * @param string $post_id Campaign Id.
+	 * @param string $folder_id ID of the folder.
+	 * @return object|WP_Error API API Response or error.
+	 */
+	public function folder( $post_id, $folder_id ) {
+		$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
+		if ( ! $mc_campaign_id ) {
+			return new WP_Error(
+				'newspack_newsletters_no_campaign_id',
+				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
+			);
+		}
+
+		try {
+			$mc      = new Mailchimp( $this->api_key() );
+			$payload = [
+				'settings' => [
+					'folder_id' => $folder_id,
+				],
+			];
+			$result  = $mc->patch( sprintf( 'campaigns/%s', $mc_campaign_id ), $payload );
+
+			$data = $this->retrieve( $post_id );
+			if ( is_wp_error( $data ) ) {
+				return \rest_ensure_response( $data );
+			}
+
+			$data['result'] = $result;
+			return \rest_ensure_response( $data );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_error_setting_folder',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
 	 * Set list for a campaign.
 	 *
 	 * @param string $post_id Campaign Id.
@@ -339,6 +379,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$mc->get( "campaigns/$mc_campaign_id" ),
 				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
+			$folders             = Newspack_Newsletters_Mailchimp_Cached_Data::get_folders();
 			$list_id             = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 			$merge_fields        = $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [];
 			$interest_categories = $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( $list_id ) : null;
@@ -346,6 +387,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			return [
 				'lists'               => $this->get_lists(),
+				'folders'             => $folders,
 				'merge_fields'        => $merge_fields,
 				'campaign'            => $campaign,
 				'campaign_id'         => $mc_campaign_id,
@@ -567,8 +609,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			if ( empty( $post->post_title ) ) {
 				throw new Exception( __( 'The newsletter subject cannot be empty.', 'newspack-newsletters' ) );
 			}
-			$mc      = new Mailchimp( $api_key );
-			$payload = [
+			$mc             = new Mailchimp( $api_key );
+			$payload        = [
 				'type'         => 'regular',
 				'content_type' => 'template',
 				'settings'     => [
@@ -576,7 +618,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'title'        => $post->post_title,
 				],
 			];
-
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 
 			/**
@@ -1141,7 +1182,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'id'         => $contact['id'], // md5 hash of email.
 				'contact_id' => $contact['contact_id'],
 				'status'     => $contact['status'],
-			];      
+			];
 		}
 		return $data;
 	}
@@ -1157,7 +1198,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( is_wp_error( $contact_data ) ) {
 			return $contact_data;
 		}
-		
+
 		$contact_tags = array_map(
 			function( $tag ) {
 				return (int) $tag['id'];
