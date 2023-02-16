@@ -14,6 +14,8 @@ use \DrewM\MailChimp\MailChimp;
  */
 final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service_Provider {
 
+	use Newspack_Newsletters_Mailchimp_Groups;
+
 	/**
 	 * Whether the provider has support to tags and tags based Subscription Lists.
 	 *
@@ -1170,7 +1172,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
 		}
 
-		$keys = [ 'full_name', 'email_address', 'id', 'tags' ];
+		$keys = [ 'full_name', 'email_address', 'id', 'tags', 'interests' ];
 		$data = [ 'lists' => [] ];
 		foreach ( $found as $contact ) {
 			foreach ( $keys as $key ) {
