@@ -21,7 +21,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *
 	 * @var boolean
 	 */
-	public static $support_tags = false;
+	public static $support_local_lists = true;
 
 	/**
 	 * Provider name.
@@ -1219,11 +1219,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public static function get_labels() {
 		return [
-			'name'  => 'Mailchimp', // The provider name.
-			'list'  => __( 'audience', 'newspack-newsletters' ), // "list" in lower case singular format.
-			'lists' => __( 'audiences', 'newspack-newsletters' ), // "list" in lower case plural format.
-			'List'  => __( 'Audience', 'newspack-newsletters' ), // "list" in uppercase case singular format.
-			'Lists' => __( 'Audiences', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+			'name'                    => 'Mailchimp', // The provider name.
+			'list'                    => __( 'audience', 'newspack-newsletters' ), // "list" in lower case singular format.
+			'lists'                   => __( 'audiences', 'newspack-newsletters' ), // "list" in lower case plural format.
+			'List'                    => __( 'Audience', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+			'Lists'                   => __( 'Audiences', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+			'tag_prefix'              => '',
+			'tag_metabox_before_save' => __( 'Once this list is saved, a Group will be created for it.', 'newspack-newsletters' ),
+			// translators: %s is the name of the group category. "Newspack newsletters" by default.
+			'tag_metabox_after_save'  => sprintf( __( 'Group created for this list under %s:', 'newspack-newsletters' ), self::get_group_category_name() ),
 		];
 	}
 }

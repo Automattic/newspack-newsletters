@@ -76,8 +76,8 @@ class Subscription_Lists {
 
 		$provider = Newspack_Newsletters::get_service_provider();
 
-		// Only init if current provider supports tags.
-		return $provider::$support_tags;
+		// Only init if current provider supports local lists.
+		return $provider::$support_local_lists;
 
 	}
 
@@ -289,14 +289,14 @@ class Subscription_Lists {
 		<div class="misc-pub-section">
 			<?php if ( ! empty( $current_settings['tag_name'] ) ) : ?>
 				<p>
-					<?php esc_html_e( 'Tag created for this list', 'newspack-newsletters' ); ?>:
+					<?php echo esc_html( $current_provider::label( 'tag_metabox_after_save' ) ); ?>	
 				</p>
 				<p class="subscription-list-tag">
 					<?php echo esc_html( $current_settings['tag_name'] ); ?>
 				</p>
 			<?php else : ?>
 				<p>
-					<?php esc_html_e( 'Once this list is saved, a tag will be created for it.', 'newspack-newsletters' ); ?>
+					<?php echo esc_html( $current_provider::label( 'tag_metabox_before_save' ) ); ?>
 				</p>
 			<?php endif; ?>
 			<?php 
@@ -361,25 +361,26 @@ class Subscription_Lists {
 		}
 
 		$provider          = Newspack_Newsletters::get_service_provider();
+		$tag_prefix        = $provider::label( 'tag_prefix' );
 		$subscription_list = new Subscription_List( $post_id );
 		$current_settings  = $subscription_list->get_current_provider_settings();
 		$tag_id            = $current_settings['tag_id'] ?? false;
-		$tag_name          = $current_settings['tag_name'] ?? $subscription_list->generate_tag_name();
+		$tag_name          = $current_settings['tag_name'] ?? $subscription_list->generate_tag_name( $tag_prefix );
 		$error             = '';
 
 		if ( $tag_id ) {
 			// Check if tag still exists on the ESP. Also, update tag_name if it was changed on the ESP.
-			$tag_name = $provider->get_tag_by_id( $current_settings['tag_id'], $list );
+			$tag_name = $provider->get_esp_local_list_by_id( $current_settings['tag_id'], $list );
 			
 			if ( is_wp_error( $tag_name ) ) {
-				// Tag was not found. We need to create a new one. In Mailchimp, this can happen if you changed the list.
+				// Tag was not found. We need to create a new one. In Mailchimp, this can happen if you changed the Audience.
 				$tag_id   = false;
-				$tag_name = $subscription_list->generate_tag_name();
+				$tag_name = $subscription_list->generate_tag_name( $tag_prefix );
 			}       
 		}
 
 		if ( ! $tag_id ) {
-			$tag_id = $provider->get_tag_id( $tag_name, true, $list );
+			$tag_id = $provider->get_esp_local_list_id( $tag_name, true, $list );
 			if ( is_wp_error( $tag_id ) ) {
 				$error = $tag_id->get_error_message();
 			}
