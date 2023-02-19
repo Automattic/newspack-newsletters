@@ -124,6 +124,14 @@ function render_block( $attrs ) {
 		<?php else : ?>
 			<form id="<?php echo esc_attr( get_form_id() ); ?>">
 				<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
+				<?php
+				/**
+				 * Action to add custom fields before the form fields of the registration block.
+				 *
+				 * @param array $attrs Block attributes.
+				 */
+				do_action( 'newspack_newsletters_subscribe_block_before_form_fields', $attrs );
+				?>
 				<?php if ( 1 < count( $available_lists ) ) : ?>
 					<div class="newspack-newsletters-lists">
 						<ul>
@@ -308,27 +316,29 @@ function process_form() {
 	);
 	$email     = \sanitize_email( $_REQUEST['npe'] );
 	$lists     = array_map( 'sanitize_text_field', $_REQUEST['lists'] );
+	$metadata  = [
+		'current_page_url' => home_url( add_query_arg( array(), \wp_get_referer() ) ),
+	];
 
 	$result = \Newspack_Newsletters_Subscription::add_contact(
 		[
 			'name'     => $name ?? null,
 			'email'    => $email,
-			'metadata' => [
-				'current_page_url' => home_url( add_query_arg( array(), \wp_get_referer() ) ),
-			],
+			'metadata' => $metadata,
 		],
 		$lists
 	);
 
 	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
-		\Newspack\Reader_Activation::register_reader( $email, $name );
+		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
+		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
 	}
 
 	/**
 	 * Fires after subscribing a user to a list.
 	 *
 	 * @param string         $email  Email address of the reader.
-	 * @return array|WP_Error Contact data if it was added, or error otherwise.
+	 * @param array|WP_Error $result Contact data if it was added, or error otherwise.
 	 */
 	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result );
 
