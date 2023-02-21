@@ -126,7 +126,7 @@ function render_block( $attrs ) {
 				<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
 				<?php
 				/**
-				 * Action to add custom fields before the form fields of the registration block.
+				 * Action to add custom fields before the form fields of the Newsletter Subscription block.
 				 *
 				 * @param array $attrs Block attributes.
 				 */
