@@ -329,8 +329,14 @@ function process_form() {
 		$lists
 	);
 
+	$popup_id = isset( $_REQUEST['newspack_popup_id'] ) ? (int) $_REQUEST['newspack_popup_id'] : false;
+
 	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
 		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
+		if ( $popup_id ) {
+			$metadata['popup_id']            = $popup_id;
+			$metadata['registration_method'] = 'newsletters-subscription-popup';
+		}
 		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
 	}
 
@@ -339,8 +345,9 @@ function process_form() {
 	 *
 	 * @param string         $email  Email address of the reader.
 	 * @param array|WP_Error $result Contact data if it was added, or error otherwise.
+	 * @param int|false $popup_id The ID of the popup that triggered the registration, or false if not triggered by a popup.
 	 */
-	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result );
+	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result, $popup_id );
 
 	return send_form_response( $result );
 }
