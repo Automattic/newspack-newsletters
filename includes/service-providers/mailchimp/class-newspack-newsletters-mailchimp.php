@@ -1244,7 +1244,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			?>
 			<p class="subscription-list-warning">
 				<?php
-				esc_html_e( 'Note for Mailchimp: The group is part of the Audience. When a reader subscribes to this List, they will also be subscribed to the Audience.', 'newspack-newsletters' );
+				esc_html_e( 'Note for Mailchimp: The group is a subset of the Audience selected above. When a reader subscribes to this List, they will also be subscribed to the selected Audience.', 'newspack-newsletters' );
 				?>
 			</p>
 			<?php
