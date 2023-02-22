@@ -38,7 +38,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 *
 	 * @var boolean
 	 */
-	public static $support_tags = true;
+	public static $support_local_lists = true;
 
 	/**
 	 * Class constructor.
