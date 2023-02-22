@@ -21,7 +21,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *
 	 * @var boolean
 	 */
-	public static $support_tags = false;
+	public static $support_local_lists = true;
 
 	/**
 	 * Provider name.
@@ -41,6 +41,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 		add_filter( 'newspack_newsletters_process_link', [ $this, 'process_link' ], 10, 2 );
+
+		add_action( 'newspack_newsletters_subscription_lists_metabox_after_tag', [ $this, 'lists_metabox_notice' ] );
 
 		parent::__construct( $this );
 	}
@@ -1219,11 +1221,33 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public static function get_labels() {
 		return [
-			'name'  => 'Mailchimp', // The provider name.
-			'list'  => __( 'audience', 'newspack-newsletters' ), // "list" in lower case singular format.
-			'lists' => __( 'audiences', 'newspack-newsletters' ), // "list" in lower case plural format.
-			'List'  => __( 'Audience', 'newspack-newsletters' ), // "list" in uppercase case singular format.
-			'Lists' => __( 'Audiences', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+			'name'                    => 'Mailchimp', // The provider name.
+			'list'                    => __( 'audience', 'newspack-newsletters' ), // "list" in lower case singular format.
+			'lists'                   => __( 'audiences', 'newspack-newsletters' ), // "list" in lower case plural format.
+			'List'                    => __( 'Audience', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+			'Lists'                   => __( 'Audiences', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+			'tag_prefix'              => '',
+			'tag_metabox_before_save' => __( 'Once this list is saved, a Group will be created for it.', 'newspack-newsletters' ),
+			// translators: %s is the name of the group category. "Newspack newsletters" by default.
+			'tag_metabox_after_save'  => sprintf( __( 'Group created for this list under %s:', 'newspack-newsletters' ), self::get_group_category_name() ),
 		];
+	}
+
+	/**
+	 * Add a notice to the Subscription Lists metabox letting the user know that readers are also subscribed to the parent Audience
+	 *
+	 * @param array $settings The List settings.
+	 * @return void
+	 */
+	public function lists_metabox_notice( $settings ) {
+		if ( $settings['tag_name'] ) {
+			?>
+			<p class="subscription-list-warning">
+				<?php
+				esc_html_e( 'Note for Mailchimp: The group is a subset of the Audience selected above. When a reader subscribes to this List, they will also be subscribed to the selected Audience.', 'newspack-newsletters' );
+				?>
+			</p>
+			<?php
+		}
 	}
 }
