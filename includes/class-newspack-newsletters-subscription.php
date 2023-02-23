@@ -381,6 +381,11 @@ class Newspack_Newsletters_Subscription {
 			Newspack_Newsletters_Logger::log( 'Adding contact with metadata key(s): ' . implode( ', ', array_keys( $contact['metadata'] ) ) . '.' );
 		}
 
+		if ( ! isset( $contact['metadata'] ) ) {
+			$contact['metadata'] = [];
+		}
+		$contact['metadata']['origin'] = 'newspack';
+
 		/**
 		 * Filters the contact selected lists before passing on to the API.
 		 *
