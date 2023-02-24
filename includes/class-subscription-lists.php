@@ -45,15 +45,23 @@ class Subscription_Lists {
 	}
 
 	/**
-	 * Add custom CSS to the List post type edit screen
+	 * Add custom CSS and JS to the List post type edit screen
 	 */
 	public static function admin_enqueue_scripts() {
-		if ( get_current_screen()->post_type === self::CPT ) {
+		$current_screen = get_current_screen();
+		if ( self::CPT === $current_screen->post_type && 'post' === $current_screen->base ) {
 			wp_enqueue_style(
 				'newspack-newsletters-subscription-list-editor',
 				plugins_url( '../css/subscription-list-editor.css', __FILE__ ),
 				[],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'css/subscription-list-editor.css' )
+			);
+			wp_enqueue_script(
+				'newspack-newsletters-subscription-list-editor',
+				plugins_url( '../js/subscription-list-editor.js', __FILE__ ),
+				[],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'js/subscription-list-editor.js' ),
+				true
 			);
 		}
 	}
