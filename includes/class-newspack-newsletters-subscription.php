@@ -384,7 +384,7 @@ class Newspack_Newsletters_Subscription {
 		if ( ! isset( $contact['metadata'] ) ) {
 			$contact['metadata'] = [];
 		}
-		$contact['metadata']['origin'] = 'newspack';
+		$contact['metadata']['origin_newspack'] = '1';
 
 		/**
 		 * Filters the contact selected lists before passing on to the API.
