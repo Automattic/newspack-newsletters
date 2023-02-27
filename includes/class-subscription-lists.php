@@ -36,7 +36,6 @@ class Subscription_Lists {
 			return;
 		}
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
-		add_action( 'admin_menu', [ __CLASS__, 'add_submenu_item' ] );
 		add_filter( 'wp_editor_settings', [ __CLASS__, 'filter_editor_settings' ], 10, 2 );
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
 		add_filter( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
@@ -68,7 +67,7 @@ class Subscription_Lists {
 		if ( ! is_admin() ) {
 			return false;
 		}
-		
+
 		// If Service Provider is not configured yet.
 		if ( 'manual' === Newspack_Newsletters::service_provider() || ! Newspack_Newsletters::is_service_provider_configured() ) {
 			return false;
@@ -94,23 +93,8 @@ class Subscription_Lists {
 			$settings['quicktags']     = false;
 			$settings['media_buttons'] = false;
 		}
-	
-		return $settings;
-	}
 
-	/**
-	 * Add Submenu item for Lists
-	 */
-	public static function add_submenu_item() {
-		add_submenu_page(
-			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			__( 'Lists', 'newspack-newsletters' ),
-			__( 'Lists', 'newspack-newsletters' ),
-			'edit_others_posts',
-			'/edit.php?post_type=' . self::CPT,
-			null,
-			2
-		);
+		return $settings;
 	}
 
 	/**
@@ -125,10 +109,10 @@ class Subscription_Lists {
 			'singular_name'         => _x( 'List', 'Post Type Singular Name', 'newspack' ),
 			'menu_name'             => __( 'Lists', 'newspack' ),
 			'name_admin_bar'        => __( 'Lists', 'newspack' ),
-			'archives'              => __( 'LIsts', 'newspack' ),
+			'archives'              => __( 'Lists', 'newspack' ),
 			'attributes'            => __( 'Lists', 'newspack' ),
 			'parent_item_colon'     => __( 'Parent List', 'newspack' ),
-			'all_items'             => __( 'All Lists', 'newspack' ),
+			'all_items'             => __( 'Lists', 'newspack' ),
 			'add_new_item'          => __( 'Add new list', 'newspack' ),
 			'add_new'               => __( 'Add New', 'newspack' ),
 			'new_item'              => __( 'New List', 'newspack' ),
@@ -157,7 +141,7 @@ class Subscription_Lists {
 			'hierarchical'         => false,
 			'public'               => false,
 			'show_ui'              => true,
-			'show_in_menu'         => false,
+			'show_in_menu'         => 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			'can_export'           => false,
 			'capability_type'      => 'page',
 			'show_in_rest'         => false,
@@ -190,12 +174,12 @@ class Subscription_Lists {
 	 * @param array $columns Registered columns.
 	 * @return array
 	 */
-	public static function posts_columns( $columns ) {  
+	public static function posts_columns( $columns ) {
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
 		$columns['active_providers'] = __( 'Service Providers', 'newspack-newsletters' );
 		return $columns;
-		
+
 	}
 
 	/**
@@ -289,7 +273,7 @@ class Subscription_Lists {
 		<div class="misc-pub-section">
 			<?php if ( ! empty( $current_settings['tag_name'] ) ) : ?>
 				<p>
-					<?php echo esc_html( $current_provider::label( 'tag_metabox_after_save' ) ); ?>	
+					<?php echo esc_html( $current_provider::label( 'tag_metabox_after_save' ) ); ?>
 				</p>
 				<p class="subscription-list-tag">
 					<?php echo esc_html( $current_settings['tag_name'] ); ?>
@@ -299,7 +283,7 @@ class Subscription_Lists {
 					<?php echo esc_html( $current_provider::label( 'tag_metabox_before_save' ) ); ?>
 				</p>
 			<?php endif; ?>
-			<?php 
+			<?php
 			/**
 			 * Fires after the tag field in the list metabox.
 			 *
@@ -371,12 +355,12 @@ class Subscription_Lists {
 		if ( $tag_id ) {
 			// Check if tag still exists on the ESP. Also, update tag_name if it was changed on the ESP.
 			$tag_name = $provider->get_esp_local_list_by_id( $current_settings['tag_id'], $list );
-			
+
 			if ( is_wp_error( $tag_name ) ) {
 				// Tag was not found. We need to create a new one. In Mailchimp, this can happen if you changed the Audience.
 				$tag_id   = false;
 				$tag_name = $subscription_list->generate_tag_name( $tag_prefix );
-			}       
+			}
 		}
 
 		if ( ! $tag_id ) {
@@ -392,7 +376,7 @@ class Subscription_Lists {
 
 	/**
 	 * Methods for fetching Subscription Lists
-	 * 
+	 *
 	 * Note: This was built under the assumption that there will never be too many (hundreds) of Lists, so these methods will not scale for large lists.
 	 *
 	 * If we see that the number of lists grows too much, we might need to refactor these methods and how we store Lists metadata in order to be able to perform more performatic queries using Meta_Queries.
