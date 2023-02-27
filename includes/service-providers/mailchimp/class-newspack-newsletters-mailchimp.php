@@ -198,7 +198,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Add a tag to a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID.
 	 * @return true|WP_Error
 	 */
@@ -206,12 +206,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			return $existing_contact;
-		}
-		if ( ! is_integer( $tag ) ) {
-			$tag = $this->get_tag_id( (string) $tag, true, $list_id );
-			if ( is_wp_error( $tag ) ) {
-				return $tag;
-			}
 		}
 		$mc      = new Mailchimp( $this->api_key() );
 		$created = $mc->post(
@@ -236,7 +230,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Remove a tag from a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID.
 	 * @return true|WP_Error
 	 */
@@ -244,12 +238,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			return $existing_contact;
-		}
-		if ( ! is_integer( $tag ) ) {
-			$tag = $this->get_tag_id( (string) $tag, false, $list_id );
-			if ( is_wp_error( $tag ) ) {
-				return $tag;
-			}
 		}
 		$mc      = new Mailchimp( $this->api_key() );
 		$created = $mc->post(

@@ -574,8 +574,8 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	/**
 	 * Retrieve the ESP's tag name from its ID
 	 *
-	 * @param int    $tag_id The tag ID.
-	 * @param string $list_id The List ID.
+	 * @param string|int $tag_id The tag ID.
+	 * @param string     $list_id The List ID.
 	 * @return string|WP_Error The tag name on success. WP_Error on failure.
 	 */
 	public function get_tag_by_id( $tag_id, $list_id = null ) {
@@ -597,7 +597,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * Add a tag to a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID.
 	 * @return true|WP_Error
 	 */
@@ -609,7 +609,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * Remove a tag from a contact
 	 *
 	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID retrieved with get_tag_id() or the the tag string.
+	 * @param string|int $tag The tag ID.
 	 * @param string     $list_id The List ID.
 	 * @return true|WP_Error
 	 */
