@@ -261,6 +261,33 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	}
 
 	/**
+	 * Create a Group on Mailchimp
+	 *
+	 * @param string $group_id The group ID.
+	 * @param string $group The Group name.
+	 * @param string $list_id The List ID.
+	 * @return array|WP_Error The group representation sent from the server on succes. WP_Error on failure.
+	 */
+	public function update_group( $group_id, $group, $list_id = null ) {
+		
+		$mc      = new Mailchimp( $this->api_key() );
+		$created = $mc->patch(
+			sprintf( '/lists/%s/interest-categories/%s/interests/%s', $list_id, $this->get_groups_category_id( $list_id ), $group_id ),
+			[
+				'name' => $group,
+			]
+		);
+
+		if ( is_array( $created ) && ! empty( $created['id'] ) && ! empty( $created['name'] ) ) {
+			return $created;
+		}
+		return new WP_Error(
+			'newspack_newsletters_error_updating_group',
+			! empty( $created['detail'] ) ? $created['detail'] : ''
+		);
+	}
+
+	/**
 	 * Add a group to a contact
 	 *
 	 * @param string $email The contact email.
