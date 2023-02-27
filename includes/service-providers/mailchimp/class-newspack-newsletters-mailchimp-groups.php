@@ -43,8 +43,8 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	 *
 	 * Mailchimp overrides it to use Groups instead of Tags
 	 *
-	 * @param int    $esp_local_list_id The esp_local_list ID.
-	 * @param string $list_id The List ID.
+	 * @param int|string $esp_local_list_id The esp_local_list ID.
+	 * @param string     $list_id The List ID.
 	 * @return string|WP_Error The esp_local_list name on success. WP_Error on failure.
 	 */
 	public function get_esp_local_list_by_id( $esp_local_list_id, $list_id = null ) {
@@ -62,6 +62,20 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	 */
 	public function create_esp_local_list( $esp_local_list, $list_id = null ) {
 		return $this->create_group( $esp_local_list, $list_id );
+	}
+
+	/**
+	 * Updates a Local list name on the ESP
+	 *
+	 * Mailchimp overrides it to use Groups instead of Tags
+	 *
+	 * @param int|string $esp_local_list_id The esp_local_list ID.
+	 * @param string     $esp_local_list The Tag name.
+	 * @param string     $list_id The List ID.
+	 * @return array|WP_Error The esp_local_list representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_esp_local_list( $esp_local_list_id, $esp_local_list, $list_id = null ) {
+		return $this->update_group( $esp_local_list_id, $esp_local_list, $list_id );
 	}
 
 	/**

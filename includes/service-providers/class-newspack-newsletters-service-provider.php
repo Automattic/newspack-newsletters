@@ -658,8 +658,8 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 *
 	 * By default it will use Tags, but the provider can override this method to use something else
 	 *
-	 * @param int    $esp_local_list_id The esp_local_list ID.
-	 * @param string $list_id The List ID.
+	 * @param string|int $esp_local_list_id The esp_local_list ID.
+	 * @param string     $list_id The List ID.
 	 * @return string|WP_Error The esp_local_list name on success. WP_Error on failure.
 	 */
 	public function get_esp_local_list_by_id( $esp_local_list_id, $list_id = null ) {
@@ -677,6 +677,20 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function create_esp_local_list( $esp_local_list, $list_id = null ) {
 		return $this->create_tag( $esp_local_list, $list_id );
+	}
+
+	/**
+	 * Update a Local list name on the ESP
+	 *
+	 * By default it will use Tags, but the provider can override this method to use something else
+	 *
+	 * @param string|int $esp_local_list_id The esp_local_list ID.
+	 * @param string     $esp_local_list The Tag name.
+	 * @param string     $list_id The List ID.
+	 * @return array|WP_Error The esp_local_list representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_esp_local_list( $esp_local_list_id, $esp_local_list, $list_id = null ) {
+		return $this->update_tag( $esp_local_list_id, $esp_local_list, $list_id );
 	}
 
 	/**
