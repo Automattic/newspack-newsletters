@@ -1,3 +1,10 @@
+## [1.59.1](https://github.com/Automattic/newspack-newsletters/compare/v1.59.0...v1.59.1) (2023-02-28)
+
+
+### Bug Fixes
+
+* Revert changes in editor ([460199f](https://github.com/Automattic/newspack-newsletters/commit/460199ff7d32adcc4a6d2f6cb361203f46850837))
+
 # [1.59.0](https://github.com/Automattic/newspack-newsletters/compare/v1.58.0...v1.59.0) (2023-02-28)
 
 
