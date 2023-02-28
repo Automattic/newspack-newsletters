@@ -22,45 +22,6 @@ const POST_META_WHITELIST = [
 ];
 
 /**
- * Get the image size given its URL.
- *
- * @param {string} src The image URL.
- * @return {Promise} A promise that resolves with the image size.
- */
-const getImageSize = src => {
-	return new Promise( ( resolve, reject ) => {
-		const img = new Image();
-		img.onload = () => {
-			resolve( { width: img.width, height: img.height } );
-		};
-		img.onerror = reject;
-		img.src = src;
-	} );
-};
-
-/**
- * Ensure that all images have a width attribute so it doesn't default to 100%.
- *
- * @param {string} mjml MJML markup.
- *
- * @return {Promise} A promise that resolves with the HTML markup.
- */
-const fixImagesWidth = async mjml => {
-	const template = document.createElement( 'template' );
-	template.innerHTML = mjml;
-	const images = template.content.querySelectorAll( 'mj-image' );
-	for ( let i = 0; i < images.length; i++ ) {
-		const element = images[ i ];
-		if ( ! element.getAttribute( 'width' ) ) {
-			const src = element.getAttribute( 'src' );
-			const size = await getImageSize( src );
-			element.setAttribute( 'width', size.width );
-		}
-	}
-	return template.innerHTML;
-};
-
-/**
  * Use a middleware to hijack the post update request.
  * When a post is about to be updated, first the email-compliant HTML has
  * to be produced. To do that, MJML (more at mjml.io) is used.
@@ -110,7 +71,7 @@ apiFetch.use( async ( options, next ) => {
 
 	// Then, send the content over to the server to convert the post content
 	// into MJML markup.
-	let { mjml } = await apiFetch( {
+	const { mjml } = await apiFetch( {
 		path: `/newspack-newsletters/v1/post-mjml`,
 		method: 'POST',
 		data: {
@@ -119,9 +80,6 @@ apiFetch.use( async ( options, next ) => {
 			content: data.content,
 		},
 	} );
-
-	// Ensure all images have a width attribute so it doesn't default to 100%.
-	mjml = await fixImagesWidth( mjml );
 
 	// Once received MJML markup, convert it to email-compliant HTML
 	// and save as post meta for later retrieval.
