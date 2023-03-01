@@ -43,8 +43,8 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	 *
 	 * Mailchimp overrides it to use Groups instead of Tags
 	 *
-	 * @param int    $esp_local_list_id The esp_local_list ID.
-	 * @param string $list_id The List ID.
+	 * @param int|string $esp_local_list_id The esp_local_list ID.
+	 * @param string     $list_id The List ID.
 	 * @return string|WP_Error The esp_local_list name on success. WP_Error on failure.
 	 */
 	public function get_esp_local_list_by_id( $esp_local_list_id, $list_id = null ) {
@@ -62,6 +62,20 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	 */
 	public function create_esp_local_list( $esp_local_list, $list_id = null ) {
 		return $this->create_group( $esp_local_list, $list_id );
+	}
+
+	/**
+	 * Updates a Local list name on the ESP
+	 *
+	 * Mailchimp overrides it to use Groups instead of Tags
+	 *
+	 * @param int|string $esp_local_list_id The esp_local_list ID.
+	 * @param string     $esp_local_list The Tag name.
+	 * @param string     $list_id The List ID.
+	 * @return array|WP_Error The esp_local_list representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_esp_local_list( $esp_local_list_id, $esp_local_list, $list_id = null ) {
+		return $this->update_group( $esp_local_list_id, $esp_local_list, $list_id );
 	}
 
 	/**
@@ -256,6 +270,33 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 		}
 		return new WP_Error(
 			'newspack_newsletters_error_creating_group',
+			! empty( $created['detail'] ) ? $created['detail'] : ''
+		);
+	}
+
+	/**
+	 * Create a Group on Mailchimp
+	 *
+	 * @param string $group_id The group ID.
+	 * @param string $group The Group name.
+	 * @param string $list_id The List ID.
+	 * @return array|WP_Error The group representation sent from the server on succes. WP_Error on failure.
+	 */
+	public function update_group( $group_id, $group, $list_id = null ) {
+		
+		$mc      = new Mailchimp( $this->api_key() );
+		$created = $mc->patch(
+			sprintf( '/lists/%s/interest-categories/%s/interests/%s', $list_id, $this->get_groups_category_id( $list_id ), $group_id ),
+			[
+				'name' => $group,
+			]
+		);
+
+		if ( is_array( $created ) && ! empty( $created['id'] ) && ! empty( $created['name'] ) ) {
+			return $created;
+		}
+		return new WP_Error(
+			'newspack_newsletters_error_updating_group',
 			! empty( $created['detail'] ) ? $created['detail'] : ''
 		);
 	}

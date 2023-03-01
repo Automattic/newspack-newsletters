@@ -707,6 +707,32 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	}
 
 	/**
+	 * Updates a Tag name on the provider
+	 *
+	 * @param string|int $tag_id The tag ID.
+	 * @param string     $tag_name The Tag new name.
+	 * @return array|WP_Error The tag representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_tag( $tag_id, $tag_name ) {
+		try {
+			$res = $this->request(
+				'PUT',
+				sprintf( '/contact_tags/%s', $tag_id ),
+				[
+					'body' => wp_json_encode(
+						[
+							'name' => $tag_name,
+						]
+					),
+				]
+			);
+			return $res;
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_newsletter_error_updating_tag', $e->getMessage() );
+		}
+	}
+
+	/**
 	 * Create a Segment that will group users tagged with a given tag
 	 *
 	 * @param string $tag_id The ID of the tag to create a segment for.
