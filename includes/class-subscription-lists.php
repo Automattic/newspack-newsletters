@@ -8,6 +8,7 @@
 namespace Newspack\Newsletters;
 
 use Newspack_Newsletters;
+use Newspack_Newsletters_Subscription;
 use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
@@ -41,6 +42,9 @@ class Subscription_Lists {
 		add_filter( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
+
+		add_action( 'delete_post', [ __CLASS__, 'delete_post' ] );
+		add_action( 'wp_trash_post', [ __CLASS__, 'delete_post' ] );
 	}
 
 	/**
@@ -465,5 +469,49 @@ class Subscription_Lists {
 				return $list->is_configured_for_current_provider();
 			}
 		);
+	}
+
+	/**
+	 * Callback for the delete_post and wp_trash_post actions. Will remove the deleted/trashed list from the config.
+	 *
+	 * @param int           $post_id The Post ID.
+	 * @param false|WP_Post $post Informed by the delete_post action, but not by the wp_trash_post action. The deleted post object.
+	 * @return void
+	 */
+	public static function delete_post( $post_id, $post = false ) {
+		if ( ! $post ) {
+			$post = get_post( $post_id );
+		}
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+		if ( self::CPT !== $post->post_type ) {
+			return;
+		}
+		$list_config = Newspack_Newsletters_Subscription::get_lists_config();
+		if ( empty( $list_config ) || \is_wp_error( $list_config ) ) {
+			return;
+		}
+
+		$id = Subscription_List::FORM_ID_PREFIX . $post_id;
+		
+		if ( ! isset( $list_config[ $id ] ) ) {
+			return;
+		}
+		
+		unset( $list_config[ $id ] );
+
+		$new_list_config = [];
+		// generate a new list config without the deleted list.
+		foreach ( $list_config as $list_id => $list ) {
+			$new_list_config[] = [
+				'id'          => $list_id,
+				'active'      => $list['active'],
+				'title'       => $list['title'],
+				'description' => $list['description'],
+			];
+		}
+
+		Newspack_Newsletters_Subscription::update_lists( $new_list_config );
 	}
 }
