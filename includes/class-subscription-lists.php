@@ -8,6 +8,7 @@
 namespace Newspack\Newsletters;
 
 use Newspack_Newsletters;
+use Newspack_Newsletters_Subscription;
 use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
@@ -41,6 +42,9 @@ class Subscription_Lists {
 		add_filter( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
+
+		add_action( 'delete_post', [ __CLASS__, 'delete_post' ] );
+		add_action( 'wp_trash_post', [ __CLASS__, 'delete_post' ] );
 	}
 
 	/**
@@ -344,33 +348,53 @@ class Subscription_Lists {
 			return;
 		}
 
-		$provider          = Newspack_Newsletters::get_service_provider();
-		$tag_prefix        = $provider::label( 'tag_prefix' );
-		$subscription_list = new Subscription_List( $post_id );
-		$current_settings  = $subscription_list->get_current_provider_settings();
-		$tag_id            = $current_settings['tag_id'] ?? false;
-		$tag_name          = $current_settings['tag_name'] ?? $subscription_list->generate_tag_name( $tag_prefix );
-		$error             = '';
+		$provider            = Newspack_Newsletters::get_service_provider();
+		$tag_prefix          = $provider::label( 'tag_prefix' );
+		$subscription_list   = new Subscription_List( $post_id );
+		$new_tag_name        = $subscription_list->generate_tag_name( $tag_prefix );
+		$current_settings    = $subscription_list->get_current_provider_settings();
+		$tag_id              = $current_settings['tag_id'] ?? false;
+		$current_tag_name    = $current_settings['tag_name'] ?? $subscription_list->generate_tag_name( $tag_prefix );
+		$error               = '';
+		$needs_remote_update = $new_tag_name !== $current_tag_name; // Name was changed locally, needs to be updated on the ESP.
+		$needs_local_update  = false;
 
 		if ( $tag_id ) {
-			// Check if tag still exists on the ESP. Also, update tag_name if it was changed on the ESP.
-			$tag_name = $provider->get_esp_local_list_by_id( $current_settings['tag_id'], $list );
-
-			if ( is_wp_error( $tag_name ) ) {
+			// Check if tag still exists on the ESP. Will return a new name if name was changed on the ESP's dashboard.
+			$esp_tag_name = $provider->get_esp_local_list_by_id( $current_settings['tag_id'], $list );
+			if ( is_wp_error( $esp_tag_name ) ) {
 				// Tag was not found. We need to create a new one. In Mailchimp, this can happen if you changed the Audience.
-				$tag_id   = false;
-				$tag_name = $subscription_list->generate_tag_name( $tag_prefix );
+				$tag_id             = false; // Force create a new tag.
+				$new_tag_name       = $subscription_list->generate_tag_name( $tag_prefix );
+				$needs_local_update = false;
+			} elseif ( $esp_tag_name !== $current_tag_name ) {
+				// Tag name was changed on the ESP's dashboard. We need to update the local tag name.
+				$needs_local_update = true;
 			}
 		}
 
 		if ( ! $tag_id ) {
-			$tag_id = $provider->get_esp_local_list_id( $tag_name, true, $list );
+			// Get an existing tag id in the ESP or create a new one.
+			$tag_id = $provider->get_esp_local_list_id( $new_tag_name, true, $list );
 			if ( is_wp_error( $tag_id ) ) {
 				$error = $tag_id->get_error_message();
 			}
 		}
 
-		$subscription_list->update_current_provider_settings( $list, $tag_id, $tag_name, $error );
+		// Sync tag name with ESP. If tag name was changed on both ends, local changes will have precedence.
+		if ( $needs_remote_update ) {
+			$provider->update_esp_local_list( $tag_id, $new_tag_name, $list );
+		} elseif ( $needs_local_update ) {
+			$new_tag_name = $esp_tag_name;
+			wp_update_post(
+				[
+					'ID'         => $post_id,
+					'post_title' => str_replace( $tag_prefix, '', $new_tag_name ),
+				]
+			);
+		}
+
+		$subscription_list->update_current_provider_settings( $list, $tag_id, $new_tag_name, $error );
 
 	}
 
@@ -445,6 +469,50 @@ class Subscription_Lists {
 				return $list->is_configured_for_current_provider();
 			}
 		);
+	}
+
+	/**
+	 * Callback for the delete_post and wp_trash_post actions. Will remove the deleted/trashed list from the config.
+	 *
+	 * @param int           $post_id The Post ID.
+	 * @param false|WP_Post $post Informed by the delete_post action, but not by the wp_trash_post action. The deleted post object.
+	 * @return void
+	 */
+	public static function delete_post( $post_id, $post = false ) {
+		if ( ! $post ) {
+			$post = get_post( $post_id );
+		}
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+		if ( self::CPT !== $post->post_type ) {
+			return;
+		}
+		$list_config = Newspack_Newsletters_Subscription::get_lists_config();
+		if ( empty( $list_config ) || \is_wp_error( $list_config ) ) {
+			return;
+		}
+
+		$id = Subscription_List::FORM_ID_PREFIX . $post_id;
+		
+		if ( ! isset( $list_config[ $id ] ) ) {
+			return;
+		}
+		
+		unset( $list_config[ $id ] );
+
+		$new_list_config = [];
+		// generate a new list config without the deleted list.
+		foreach ( $list_config as $list_id => $list ) {
+			$new_list_config[] = [
+				'id'          => $list_id,
+				'active'      => $list['active'],
+				'title'       => $list['title'],
+				'description' => $list['description'],
+			];
+		}
+
+		Newspack_Newsletters_Subscription::update_lists( $new_list_config );
 	}
 
 	/**

@@ -594,6 +594,18 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	}
 
 	/**
+	 * Updates a Tag name on the provider
+	 *
+	 * @param string|int $tag_id The tag ID.
+	 * @param string     $tag The Tag new name.
+	 * @param string     $list_id The List ID.
+	 * @return array|WP_Error The tag representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_tag( $tag_id, $tag, $list_id = null ) {
+		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
+	}
+
+	/**
 	 * Add a tag to a contact
 	 *
 	 * @param string     $email The contact email.
@@ -646,8 +658,8 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 *
 	 * By default it will use Tags, but the provider can override this method to use something else
 	 *
-	 * @param int    $esp_local_list_id The esp_local_list ID.
-	 * @param string $list_id The List ID.
+	 * @param string|int $esp_local_list_id The esp_local_list ID.
+	 * @param string     $list_id The List ID.
 	 * @return string|WP_Error The esp_local_list name on success. WP_Error on failure.
 	 */
 	public function get_esp_local_list_by_id( $esp_local_list_id, $list_id = null ) {
@@ -665,6 +677,20 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function create_esp_local_list( $esp_local_list, $list_id = null ) {
 		return $this->create_tag( $esp_local_list, $list_id );
+	}
+
+	/**
+	 * Update a Local list name on the ESP
+	 *
+	 * By default it will use Tags, but the provider can override this method to use something else
+	 *
+	 * @param string|int $esp_local_list_id The esp_local_list ID.
+	 * @param string     $esp_local_list The Tag name.
+	 * @param string     $list_id The List ID.
+	 * @return array|WP_Error The esp_local_list representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_esp_local_list( $esp_local_list_id, $esp_local_list, $list_id = null ) {
+		return $this->update_tag( $esp_local_list_id, $esp_local_list, $list_id );
 	}
 
 	/**

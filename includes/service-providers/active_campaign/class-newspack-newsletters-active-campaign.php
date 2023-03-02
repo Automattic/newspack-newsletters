@@ -318,6 +318,40 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Updates a Tag name on the provider
+	 *
+	 * @param string|int $tag_id The tag ID.
+	 * @param string     $tag The Tag new name.
+	 * @param string     $list_id The List ID. Not needed for Active Campaign.
+	 * @return array|WP_Error The tag representation with at least 'id' and 'name' keys on succes. WP_Error on failure.
+	 */
+	public function update_tag( $tag_id, $tag, $list_id = null ) {
+		$tag_info = [
+			'tag' => [
+				'tag'         => $tag,
+				'tagType'     => 'contact',
+				'description' => 'Created by Newspack Newsletters to manage subscription lists',
+			],
+		];
+
+		$created = $this->api_v3_request(
+			sprintf( 'tags/%d', $tag_id ),
+			'PUT',
+			[
+				'body' => wp_json_encode( $tag_info ),
+			]
+		);
+		if ( is_array( $created ) && ! empty( $created['tag'] ) && ! empty( $created['tag']['id'] ) ) {
+			$created['tag']['name'] = $created['tag']['tag'];
+			return $created['tag'];
+		}
+		return new WP_Error(
+			'newspack_newsletters_error_updating_tag',
+			! empty( $created['error'] ) ? $created['error'] : ''
+		);
+	}
+
+	/**
 	 * Add a tag to a contact
 	 *
 	 * @param string     $email The contact email.
