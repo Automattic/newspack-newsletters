@@ -1035,8 +1035,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 							),
 						]
 					);
-					if ( \is_wp_error( $fields_res ) ) {
-						return $fields_res;
+					if ( \is_wp_error( $field_res ) ) {
+						return $field_res;
 					}
 					/** Set list relation. */
 					$this->api_v3_request(
