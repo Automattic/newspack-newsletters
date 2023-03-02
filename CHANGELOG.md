@@ -1,3 +1,10 @@
+## [1.59.2](https://github.com/Automattic/newspack-newsletters/compare/v1.59.1...v1.59.2) (2023-03-02)
+
+
+### Bug Fixes
+
+* typo causing fatal errors ([63b899d](https://github.com/Automattic/newspack-newsletters/commit/63b899d02297b1b5dec2ae1f78bc5fef98b0a7e5))
+
 ## [1.59.1](https://github.com/Automattic/newspack-newsletters/compare/v1.59.0...v1.59.1) (2023-02-28)
 
 
