@@ -141,7 +141,7 @@ class Subscription_Lists {
 			'hierarchical'         => false,
 			'public'               => false,
 			'show_ui'              => true,
-			'show_in_menu'         => 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			'show_in_menu'         => false,
 			'can_export'           => false,
 			'capability_type'      => 'page',
 			'show_in_rest'         => false,
@@ -445,5 +445,14 @@ class Subscription_Lists {
 				return $list->is_configured_for_current_provider();
 			}
 		);
+	}
+
+	/**
+	 * Get the URL to add a new Subscription List
+	 *
+	 * @return string
+	 */
+	public static function get_add_new_url() {
+		return admin_url( 'post-new.php?post_type=' . self::CPT );
 	}
 }

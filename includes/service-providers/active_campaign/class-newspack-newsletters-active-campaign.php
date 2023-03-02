@@ -1269,7 +1269,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		return array_merge(
 			parent::get_labels(),
 			[
-				'name' => 'Active Campaign',
+				'name'                   => 'Active Campaign',
+				'list_explanation'       => __( 'Active Campaign List', 'newspack-newsletters' ),
+				'local_list_explanation' => __( 'Active Campaign Tag', 'newspack-newsletters' ),
 			]
 		);
 	}

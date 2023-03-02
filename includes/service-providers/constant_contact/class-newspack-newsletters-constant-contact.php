@@ -908,7 +908,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			[
 				'name'                   => 'Constant Contact',
 				'list_explanation'       => __( 'Constant Contact List', 'newspack-newsletters' ),
-				'local_list_explanation' => __( 'Represented by a Tag in Constant Contact', 'newspack-newsletters' ),
+				'local_list_explanation' => __( 'Constant Contact Tag', 'newspack-newsletters' ),
 			]
 		);
 	}
