@@ -212,9 +212,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				],
 			]
 		);
+
 		if ( ! empty( $search['tags'] ) ) {
 			foreach ( $search['tags'] as $found_tag ) {
-				if ( ! empty( $found_tag['tag'] ) && $tag_name === $found_tag['tag'] ) {
+				if ( ! empty( $found_tag['tag'] ) && strtolower( $tag_name ) === strtolower( $found_tag['tag'] ) ) {
 					return (int) $found_tag['id'];
 				}
 			}
@@ -228,6 +229,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 
 		$created = $this->create_tag( $tag_name );
+
+		if ( is_wp_error( $created ) ) {
+			return $created;
+		}
 
 		return (int) $created['id'];
 	}
@@ -1298,7 +1303,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		return array_merge(
 			parent::get_labels(),
 			[
-				'name' => 'Active Campaign',
+				'name'                   => 'Active Campaign',
+				'list_explanation'       => __( 'Active Campaign List', 'newspack-newsletters' ),
+				'local_list_explanation' => __( 'Active Campaign Tag', 'newspack-newsletters' ),
 			]
 		);
 	}

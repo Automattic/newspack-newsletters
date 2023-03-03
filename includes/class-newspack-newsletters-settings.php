@@ -7,6 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Subscription_Lists;
+
 /**
  * Manages Settings page.
  */
@@ -255,6 +257,9 @@ class Newspack_Newsletters_Settings {
 		?>
 		<div class="newspack-newsletters-subscription-lists">
 			<h2><?php esc_html_e( 'Subscription Lists', 'newspack-newsletters' ); ?></h2>
+			<?php if ( Subscription_Lists::get_add_new_url() ) : ?>
+				<a class="primary button" id="newspack-newsletters-create" href="<?php echo esc_url( Subscription_Lists::get_add_new_url() ); ?>"><?php esc_html_e( 'Add new', 'newspack-newsletters' ); ?></a>
+			<?php endif; ?>
 			<div class="notice notice-warning changed-provider">
 				<p><?php esc_html_e( 'Save changes to display the selected provider lists.', 'newspack-newsletters' ); ?></p>
 			</div>

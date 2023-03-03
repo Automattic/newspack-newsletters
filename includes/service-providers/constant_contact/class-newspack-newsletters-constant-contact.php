@@ -906,7 +906,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		return array_merge(
 			parent::get_labels(),
 			[
-				'name' => 'Constant Contact',
+				'name'                   => 'Constant Contact',
+				'list_explanation'       => __( 'Constant Contact List', 'newspack-newsletters' ),
+				'local_list_explanation' => __( 'Constant Contact Tag', 'newspack-newsletters' ),
 			]
 		);
 	}

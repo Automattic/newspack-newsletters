@@ -8,6 +8,7 @@
 namespace Newspack\Newsletters;
 
 use Newspack_Newsletters;
+use Newspack_Newsletters_Settings;
 use Newspack_Newsletters_Subscription;
 use WP_Post;
 
@@ -45,6 +46,9 @@ class Subscription_Lists {
 
 		add_action( 'delete_post', [ __CLASS__, 'delete_post' ] );
 		add_action( 'wp_trash_post', [ __CLASS__, 'delete_post' ] );
+
+		add_action( 'edit_form_before_permalink', [ __CLASS__, 'edit_form_before_permalink' ] );
+		add_action( 'edit_form_top', [ __CLASS__, 'edit_form_top' ] );
 	}
 
 	/**
@@ -145,7 +149,7 @@ class Subscription_Lists {
 			'hierarchical'         => false,
 			'public'               => false,
 			'show_ui'              => true,
-			'show_in_menu'         => 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			'show_in_menu'         => false,
 			'can_export'           => false,
 			'capability_type'      => 'page',
 			'show_in_rest'         => false,
@@ -513,5 +517,39 @@ class Subscription_Lists {
 		}
 
 		Newspack_Newsletters_Subscription::update_lists( $new_list_config );
+	}
+
+	/**
+	 * Get the URL to add a new Subscription List if the current provider supports it Empty string otherwise
+	 *
+	 * @return ?string
+	 */
+	public static function get_add_new_url() {
+		if ( self::should_initialize_lists() ) {
+			return admin_url( 'post-new.php?post_type=' . self::CPT );
+		}
+	}
+
+	/**
+	 * Outputs a title for the description field in the post editor.
+	 */
+	public static function edit_form_before_permalink() {
+		if ( self::CPT === get_post_type() ) {
+			printf( '<h2>%s</h2>', esc_html__( 'Description', 'newspack-newsletters' ) );
+		}
+	}
+	
+	/**
+	 * Outputs a link back to the Settings page above the title in the post editor.
+	 */
+	public static function edit_form_top() {
+		if ( self::CPT === get_post_type() ) {
+			?>
+			<a href="<?php echo esc_url( Newspack_Newsletters_Settings::get_settings_url() ); ?>">
+				&lt;&lt;
+				<?php esc_html_e( 'Back to Subscription Lists management', 'newspack-newsletters' ); ?>
+			</a>
+			<?php
+		}
 	}
 }
