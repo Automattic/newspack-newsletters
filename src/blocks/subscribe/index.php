@@ -316,8 +316,11 @@ function process_form() {
 	);
 	$email     = \sanitize_email( $_REQUEST['npe'] );
 	$lists     = array_map( 'sanitize_text_field', $_REQUEST['lists'] );
+	$popup_id  = isset( $_REQUEST['newspack_popup_id'] ) ? (int) $_REQUEST['newspack_popup_id'] : false;
 	$metadata  = [
-		'current_page_url' => home_url( add_query_arg( array(), \wp_get_referer() ) ),
+		'current_page_url'                => home_url( add_query_arg( array(), \wp_get_referer() ) ),
+		'newspack_popup_id'               => $popup_id,
+		'newsletters_subscription_method' => 'newsletters-subscription-block',
 	];
 
 	$result = \Newspack_Newsletters_Subscription::add_contact(
@@ -329,12 +332,9 @@ function process_form() {
 		$lists
 	);
 
-	$popup_id = isset( $_REQUEST['newspack_popup_id'] ) ? (int) $_REQUEST['newspack_popup_id'] : false;
-
 	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
 		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
 		if ( $popup_id ) {
-			$metadata['popup_id']            = $popup_id;
 			$metadata['registration_method'] = 'newsletters-subscription-popup';
 		}
 		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
