@@ -45,7 +45,7 @@
 		"lodash": "^4.17.21",
 		"mjml-browser": "^4.13.0",
 		"newspack-components": "^2.1.0",
-		"qs": "^6.11.0"
+		"qs": "^6.11.1"
 	},
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.2.0",
