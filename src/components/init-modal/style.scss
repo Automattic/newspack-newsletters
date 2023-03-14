@@ -24,7 +24,7 @@
 
 		@media only screen and ( min-width: 961px ) {
 			// Not folded sidebar
-			body:not( .folded ):not( .is-fullscreen-mode ) & {
+			body:not( .folded, .is-fullscreen-mode ) & {
 				left: 160px;
 			}
 		}
@@ -321,6 +321,7 @@
 	&__preview {
 		grid-column-start: 2;
 		grid-row-start: 1;
+		// stylelint-disable-next-line
 		grid-row-end: 3;
 		align-items: center;
 		background: white;
