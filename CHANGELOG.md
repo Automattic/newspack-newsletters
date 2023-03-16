@@ -1,3 +1,10 @@
+# [1.61.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.60.1...v1.61.0-alpha.1) (2023-03-16)
+
+
+### Features
+
+* adjust data passed by subscription hooks ([#1109](https://github.com/Automattic/newspack-newsletters/issues/1109)) ([641e5bc](https://github.com/Automattic/newspack-newsletters/commit/641e5bcc461da68fc128f251397475c1cd641858))
+
 ## [1.60.1](https://github.com/Automattic/newspack-newsletters/compare/v1.60.0...v1.60.1) (2023-03-15)
 
 
