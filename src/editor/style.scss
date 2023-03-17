@@ -14,6 +14,11 @@
 		font-size: 16px;
 	}
 
+	.editor-post-title {
+		font-family: var( --newspack-header-font );
+		line-height: 1.5;
+	}
+
 	.block-editor-block-list__layout {
 		--wp--preset--font-size--small: 12px;
 		--wp--preset--font-size--normal: 16px;
