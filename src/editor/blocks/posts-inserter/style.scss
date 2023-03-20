@@ -30,11 +30,16 @@
 		padding: 1em;
 	}
 
+	&--loading {
+		.newspack-posts-inserter__preview {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+	}
+
 	&__preview {
-		align-items: center;
-		display: flex;
-		justify-content: center;
-		min-height: 4rem;
+		min-height: 6rem;
 
 		&:empty {
 			border: 0;
@@ -43,7 +48,6 @@
 
 		.block-editor-block-preview {
 			&__container {
-				max-height: 400px;
 				overflow-y: scroll;
 			}
 
