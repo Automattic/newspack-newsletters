@@ -345,9 +345,9 @@ function process_form() {
 	 *
 	 * @param string         $email  Email address of the reader.
 	 * @param array|WP_Error $result Contact data if it was added, or error otherwise.
-	 * @param int|false $popup_id The ID of the popup that triggered the registration, or false if not triggered by a popup.
+	 * @param array          $metadata Some metadata about the subscription. Always contains `current_page_url`, `newspack_popup_id` and `newsletters_subscription_method` keys.
 	 */
-	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result, $popup_id );
+	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result, $metadata );
 
 	return send_form_response( $result );
 }
