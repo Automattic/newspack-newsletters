@@ -1,3 +1,10 @@
+# [1.61.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v1.61.0-alpha.1...v1.61.0-alpha.2) (2023-03-21)
+
+
+### Features
+
+* update hook param ([#1111](https://github.com/Automattic/newspack-newsletters/issues/1111)) ([af6b7dd](https://github.com/Automattic/newspack-newsletters/commit/af6b7dde7288e2cc0df1203ca62480c56d61a833))
+
 # [1.61.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.60.1...v1.61.0-alpha.1) (2023-03-16)
 
 
