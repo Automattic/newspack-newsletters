@@ -65,6 +65,7 @@
 			.block-editor-block-preview__content {
 				@media only screen and ( min-width: 624px ) {
 					margin-left: calc( var( --newspack-post-inserter-width ) / -2 );
+					padding: 14px;
 					transform: scale( 1 ) !important;
 					transform-origin: 0 50% 0;
 				}
