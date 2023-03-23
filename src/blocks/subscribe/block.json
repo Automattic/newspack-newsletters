@@ -29,7 +29,7 @@
 		},
 		"label": {
 			"type": "string",
-			"default": "Subscribe"
+			"default": "Sign up"
 		},
 		"displayDescription": {
 			"type": "boolean",
