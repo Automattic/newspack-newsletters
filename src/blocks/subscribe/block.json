@@ -44,7 +44,7 @@
 		},
 		"successMessage": {
 			"type": "string",
-			"default": "Thank you for subscribing!"
+			"default": "Thank you for signing up!"
 		}
 	},
 	"supports": {
