@@ -101,6 +101,12 @@
 			margin: 0.5rem 0 0;
 		}
 	}
+	.message.status-200 {
+		color: wp-colors.$alert-green;
+	}
+	.message.status-400 {
+		color: wp-colors.$alert-red;
+	}
 	.nphp {
 		border: 0;
 		clip: rect( 1px, 1px, 1px, 1px );
