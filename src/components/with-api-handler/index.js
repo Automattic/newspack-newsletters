@@ -31,7 +31,7 @@ export default () =>
 			};
 			const apiFetchWithErrorHandling = apiRequest => {
 				setInFlight( true );
-				return new Promise( ( resolve, reject ) => {
+				return new Promise( resolve => {
 					apiFetch( apiRequest )
 						.then( response => {
 							getNotices().forEach( notice => {
@@ -55,7 +55,6 @@ export default () =>
 							createErrorNotice( error.message );
 							setInFlight( false );
 							setErrors( { [ error.code ]: true } );
-							reject( error );
 						} );
 				} );
 			};
