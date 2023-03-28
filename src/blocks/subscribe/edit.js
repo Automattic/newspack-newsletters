@@ -33,6 +33,7 @@ export default function SubscribeEdit( {
 		namePlaceholder,
 		lastNamePlaceholder,
 		label,
+		successMessage,
 		lists,
 		displayDescription,
 	},
@@ -104,6 +105,11 @@ export default function SubscribeEdit( {
 						label={ __( 'Button label', 'newspack-newsletters' ) }
 						value={ label }
 						onChange={ value => setAttributes( { label: value } ) }
+					/>
+					<TextControl
+						label={ __( 'Success message', 'newspack-newsletters' ) }
+						value={ successMessage }
+						onChange={ value => setAttributes( { successMessage: value } ) }
 					/>
 					{ lists.length > 1 && (
 						<ToggleControl
