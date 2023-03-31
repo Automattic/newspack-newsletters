@@ -42,11 +42,13 @@ import './style.scss';
 			};
 			const emailInput = container.querySelector( 'input[type="email"]' );
 			const submit = container.querySelector( 'input[type="submit"]' );
-			form.endFlow = ( message, status = 500 ) => {
+			form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
 				const messageNode = document.createElement( 'p' );
 				emailInput.removeAttribute( 'disabled' );
 				submit.removeAttribute( 'disabled' );
-				messageNode.innerHTML = message;
+				messageNode.innerHTML = wasSubscribed
+					? container.getAttribute( 'data-success-message' )
+					: message;
 				messageNode.className = `message status-${ status }`;
 				if ( status === 200 ) {
 					container.replaceChild( messageNode, form );
@@ -97,8 +99,8 @@ import './style.scss';
 						} ).then( res => {
 							emailInput.disabled = false;
 							submit.disabled = false;
-							res.json().then( ( { message } ) => {
-								form.endFlow( message, res.status );
+							res.json().then( ( { message, newspack_newsletters_subscribed: wasSubscribed } ) => {
+								form.endFlow( message, res.status, wasSubscribed );
 							} );
 						} );
 					} );

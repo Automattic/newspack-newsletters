@@ -283,7 +283,11 @@ const PostsInserterBlock = ( {
 				) }
 			</BlockControls>
 
-			<div className="newspack-posts-inserter">
+			<div
+				className={ `newspack-posts-inserter ${
+					! isReady ? 'newspack-posts-inserter--loading' : ''
+				}` }
+			>
 				<div className="newspack-posts-inserter__header">
 					<Icon icon={ pages } />
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
