@@ -14,7 +14,7 @@
 		"lint:js": "eslint --ext .js,.jsx src",
 		"lint:js:staged": "eslint --ext .js,.jsx",
 		"lint:php": "./vendor/bin/phpcs .",
-		"lint:php:staged": "./vendor/bin/phpcs",
+		"lint:php:staged": "./vendor/bin/phpcs --filter=GitStaged",
 		"lint:scss": "stylelint '**/*.scss' --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
 		"lint:scss:staged": "stylelint --customSyntax postcss-scss --config=./node_modules/newspack-scripts/config/stylelint.config.js",
 		"format:js": "prettier 'src/**/*.{js,jsx}' --write",
