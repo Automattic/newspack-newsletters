@@ -1,3 +1,10 @@
+## [1.61.1](https://github.com/Automattic/newspack-newsletters/compare/v1.61.0...v1.61.1) (2023-04-03)
+
+
+### Bug Fixes
+
+* **subscription-block:** use domReady for initializing block js ([#1136](https://github.com/Automattic/newspack-newsletters/issues/1136)) ([cae88f8](https://github.com/Automattic/newspack-newsletters/commit/cae88f8c51abd7a6d3f781c0c5c5c584dd301ca4))
+
 # [1.61.0](https://github.com/Automattic/newspack-newsletters/compare/v1.60.1...v1.61.0) (2023-03-27)
 
 
