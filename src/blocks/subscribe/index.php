@@ -37,7 +37,7 @@ function enqueue_scripts() {
 	);
 
 	$use_captcha  = method_exists( '\Newspack\Recaptcha', 'can_use_captcha' ) && \Newspack\Recaptcha::can_use_captcha();
-	$dependencies = [ 'wp-polyfill', 'wp-i18n' ];
+	$dependencies = [];
 	if ( $use_captcha ) {
 		$dependencies[] = \Newspack\Recaptcha::SCRIPT_HANDLE;
 	}
@@ -49,10 +49,17 @@ function enqueue_scripts() {
 		filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/subscribeBlock.js' ),
 		true
 	);
+	\wp_localize_script(
+		$handle,
+		'newspack_newsletters_subscribe_block',
+		[
+			'recaptcha_error' => __( 'Error loading the reCaptcha library.', 'newspack-newsletters' ),
+			'invalid_email'   => __( 'Please enter a valid email address', 'newspack-newsletter' ),
+		]
+	);
 	\wp_script_add_data( $handle, 'async', true );
 	\wp_script_add_data( $handle, 'amp-plus', true );
 }
-add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
 
 /**
  * Generate a unique ID for each subscription form.
@@ -89,6 +96,9 @@ function render_block( $attrs ) {
 	if ( empty( $available_lists ) ) {
 		$available_lists = [ $lists[0] ];
 	}
+
+	// Enqueue scripts.
+	enqueue_scripts();
 
 	if ( \is_user_logged_in() ) {
 		$email = \wp_get_current_user()->user_email;
