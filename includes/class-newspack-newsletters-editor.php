@@ -193,6 +193,9 @@ final class Newspack_Newsletters_Editor {
 	 * Define Editor Font Sizes.
 	 */
 	public static function newspack_font_sizes() {
+		if ( ! self::is_editing_email() ) {
+			return;
+		}
 		add_theme_support(
 			'editor-font-sizes',
 			[
