@@ -1,3 +1,4 @@
+/* globals newspack_newsletters_blocks */
 /**
  * External dependencies.
  */
@@ -8,7 +9,7 @@ import { intersection } from 'lodash';
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { TextControl, ToggleControl, PanelBody, Notice, Spinner } from '@wordpress/components';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
@@ -22,7 +23,7 @@ const getListCheckboxId = listId => {
 	return 'newspack-newsletters-list-checkbox-' + listId;
 };
 
-const settingsUrl = window.newspack_newsletters_blocks.settings_url;
+const settingsUrl = newspack_newsletters_blocks.settings_url;
 
 export default function SubscribeEdit( {
 	setAttributes,
@@ -155,6 +156,32 @@ export default function SubscribeEdit( {
 						</a>
 					</p>
 				</PanelBody>
+				{ newspack_newsletters_blocks.supports_recaptcha && (
+					<PanelBody title={ __( 'Spam protection', 'newspack' ) }>
+						<p>
+							{ sprintf(
+								// translators: %s is either 'enabled' or 'disabled'.
+								__( 'reCAPTCHA v3 is currently %s.', 'newspack' ),
+								newspack_newsletters_blocks.has_recaptcha
+									? __( 'enabled', 'newspack' )
+									: __( 'disabled', 'newspack' )
+							) }
+						</p>
+						{ ! newspack_newsletters_blocks.has_recaptcha && (
+							<p>
+								{ __(
+									"It's highly recommended that you enable reCAPTCHA v3 protection to prevent spambots from using this form!",
+									'newspack'
+								) }
+							</p>
+						) }
+						<p>
+							<a href={ newspack_newsletters_blocks.recaptcha_url }>
+								{ __( 'Configure your reCAPTCHA settings.', 'newspack' ) }
+							</a>
+						</p>
+					</PanelBody>
+				) }
 			</InspectorControls>
 			<div { ...blockProps }>
 				{ inFlight ? (
