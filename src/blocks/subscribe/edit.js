@@ -1,4 +1,5 @@
 /* globals newspack_newsletters_blocks */
+/* eslint jsx-a11y/label-has-for: 0 */
 /**
  * External dependencies.
  */
@@ -12,7 +13,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { TextControl, ToggleControl, PanelBody, Notice, Spinner } from '@wordpress/components';
-import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 
 /**
  * Internal dependencies
@@ -28,11 +29,15 @@ const settingsUrl = newspack_newsletters_blocks.settings_url;
 export default function SubscribeEdit( {
 	setAttributes,
 	attributes: {
+		displayInputLabels,
 		placeholder,
+		emailLabel,
 		displayNameField,
 		displayLastNameField,
 		namePlaceholder,
+		nameLabel,
 		lastNamePlaceholder,
+		lastNameLabel,
 		label,
 		successMessage,
 		lists,
@@ -57,19 +62,15 @@ export default function SubscribeEdit( {
 			setAttributes( { lists: [ Object.keys( listConfig )[ 0 ] ] } );
 		}
 	}, [ listConfig ] );
-	const getNameFieldPlaceholder = () => {
-		if ( namePlaceholder ) {
-			return namePlaceholder;
-		}
-		if ( displayLastNameField ) {
-			return __( 'First Name', 'newspack-newsletters' );
-		}
-		return __( 'Name', 'newspack-newsletters' );
-	};
 	return (
 		<>
 			<InspectorControls>
 				<PanelBody title={ __( 'Form settings', 'newspack-newsletters' ) }>
+					<ToggleControl
+						label={ __( 'Display input labels', 'newspack-newsletters' ) }
+						checked={ displayInputLabels }
+						onChange={ value => setAttributes( { displayInputLabels: value } ) }
+					/>
 					<TextControl
 						label={ __( 'Email placeholder', 'newspack-newsletters' ) }
 						value={ placeholder }
@@ -85,7 +86,6 @@ export default function SubscribeEdit( {
 							<TextControl
 								label={ __( 'Name placeholder', 'newspack-newsletters' ) }
 								value={ namePlaceholder }
-								placeholder={ getNameFieldPlaceholder() }
 								onChange={ value => setAttributes( { namePlaceholder: value } ) }
 							/>
 							<ToggleControl
@@ -102,11 +102,6 @@ export default function SubscribeEdit( {
 							) }
 						</>
 					) }
-					<TextControl
-						label={ __( 'Button label', 'newspack-newsletters' ) }
-						value={ label }
-						onChange={ value => setAttributes( { label: value } ) }
-					/>
 					<TextControl
 						label={ __( 'Success message', 'newspack-newsletters' ) }
 						value={ successMessage }
@@ -224,15 +219,56 @@ export default function SubscribeEdit( {
 							) }
 							{ displayNameField && (
 								<div className="newspack-newsletters-name-input">
-									<input type="text" placeholder={ getNameFieldPlaceholder() } />
+									<div className="newspack-newsletters-name-input-item">
+										<label>
+											{ displayInputLabels && (
+												<RichText
+													onChange={ value => setAttributes( { nameLabel: value } ) }
+													placeholder={ __( 'Name', 'newspack' ) }
+													value={ nameLabel }
+													tagName="span"
+												/>
+											) }
+										</label>
+										<input type="text" placeholder={ namePlaceholder } />
+									</div>
 									{ displayLastNameField && (
-										<input type="text" placeholder={ lastNamePlaceholder } />
+										<div className="newspack-newsletters-name-input-item">
+											<label>
+												{ displayInputLabels && (
+													<RichText
+														onChange={ value => setAttributes( { lastNameLabel: value } ) }
+														placeholder={ __( 'Last Name', 'newspack' ) }
+														value={ lastNameLabel }
+														tagName="span"
+													/>
+												) }
+											</label>
+											<input type="text" placeholder={ lastNamePlaceholder } />
+										</div>
 									) }
 								</div>
 							) }
 							<div className="newspack-newsletters-email-input">
+								<label>
+									{ displayInputLabels && (
+										<RichText
+											onChange={ value => setAttributes( { emailLabel: value } ) }
+											placeholder={ __( 'Email Address', 'newspack' ) }
+											value={ emailLabel }
+											tagName="span"
+										/>
+									) }
+								</label>
 								<input type="email" placeholder={ placeholder } />
-								<input type="submit" value={ label } />
+								<button type="submit">
+									<RichText
+										onChange={ value => setAttributes( { label: value } ) }
+										placeholder={ __( 'Sign up', 'newspack' ) }
+										value={ label }
+										tagName="span"
+									/>
+								</button>
 							</div>
 						</form>
 					</div>
