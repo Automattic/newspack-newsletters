@@ -23,6 +23,22 @@
 		@media ( min-width: 782px ) {
 			gap: 0.4rem;
 		}
+
+		.newspack-newsletters-name-input-item {
+			display: flex;
+			flex: 1 1 100%;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			@media ( min-width: 782px ) {
+				flex-basis: auto;
+				gap: 0.4rem;
+			}
+		}
+	}
+	label {
+		font-size: 0.9rem;
+		font-weight: 700;
+		flex: 1 1 100%;
 	}
 	input[type='text'],
 	input[type='email'] {
