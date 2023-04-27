@@ -372,9 +372,10 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 *
 	 * This allows us to make reference to provider specific features in the way the user is used to see them in the provider's UI
 	 *
+	 * @param mixed $context The context in which the labels are being applied.
 	 * @return array
 	 */
-	public static function get_labels() {
+	public static function get_labels( $context = '' ) {
 		return [
 			'name'                    => '', // The provider name.
 			'list'                    => __( 'list', 'newspack-newsletters' ), // "list" in lower case singular format.
@@ -391,10 +392,11 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * Get one specific label for the current provider
 	 *
 	 * @param string $key The label key.
+	 * @param mixed  $context The context of the label. Optional.
 	 * @return string Empty string in case the label is not found.
 	 */
-	public static function label( $key ) {
-		$labels = static::get_labels();
+	public static function label( $key, $context = '' ) {
+		$labels = static::get_labels( $context );
 		return $labels[ $key ] ?? '';
 	}
 
