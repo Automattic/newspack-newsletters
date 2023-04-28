@@ -1,5 +1,4 @@
-import { __ } from '@wordpress/i18n';
-
+/* globals newspack_newsletters_subscribe_block */
 /**
  * Internal dependencies
  */
@@ -27,38 +26,44 @@ function domReady( callback ) {
 	document.addEventListener( 'DOMContentLoaded', callback );
 }
 
+function getCaptchaToken() {
+	return new Promise( ( res, rej ) => {
+		const reCaptchaScript = document.getElementById( 'newspack-recaptcha-js' );
+		if ( ! reCaptchaScript ) {
+			return res( '' );
+		}
+
+		const { grecaptcha } = window;
+		if ( ! grecaptcha ) {
+			return res( '' );
+		}
+
+		const captchaSiteKey = reCaptchaScript.getAttribute( 'src' ).split( '?render=' ).pop();
+
+		if ( ! captchaSiteKey ) {
+			return res( '' );
+		}
+
+		if ( ! grecaptcha?.ready ) {
+			rej( newspack_newsletters_subscribe_block.recaptcha_error );
+		}
+
+		grecaptcha.ready( () => {
+			grecaptcha
+				.execute( captchaSiteKey, { action: 'submit' } )
+				.then( token => res( token ) )
+				.catch( e => rej( e ) );
+		} );
+	} );
+}
+
 domReady( function () {
-	[ ...document.querySelectorAll( '.newspack-newsletters-subscribe' ) ].forEach( container => {
+	document.querySelectorAll( '.newspack-newsletters-subscribe' ).forEach( container => {
 		const form = container.querySelector( 'form' );
 		if ( ! form ) {
 			return;
 		}
 		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe-response' );
-		const getCaptchaToken = () => {
-			return new Promise( ( res, rej ) => {
-				const reCaptchaScript = document.getElementById( 'newspack-recaptcha-js' );
-				if ( ! reCaptchaScript ) {
-					return res( '' );
-				}
-
-				const { grecaptcha } = window;
-				if ( ! grecaptcha ) {
-					return res( '' );
-				}
-
-				const captchaSiteKey = reCaptchaScript.getAttribute( 'src' ).split( '?render=' ).pop();
-				if ( ! grecaptcha?.ready || ! captchaSiteKey ) {
-					rej( __( 'Error loading the reCaptcha library.', 'newspack-newsletters' ) );
-				}
-
-				grecaptcha.ready( () => {
-					grecaptcha
-						.execute( captchaSiteKey, { action: 'submit' } )
-						.then( token => res( token ) )
-						.catch( e => rej( e ) );
-				} );
-			} );
-		};
 		const emailInput = container.querySelector( 'input[type="email"]' );
 		const submit = container.querySelector( 'input[type="submit"]' );
 		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
@@ -82,7 +87,7 @@ domReady( function () {
 			submit.setAttribute( 'disabled', 'true' );
 
 			if ( ! form.npe?.value ) {
-				return form.endFlow( 'Please enter a vaild email address.', 400 );
+				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
 			getCaptchaToken()
@@ -105,7 +110,7 @@ domReady( function () {
 				.finally( () => {
 					const body = new FormData( form );
 					if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
-						return form.endFlow( 'Please enter a vaild email address.', 400 );
+						return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 					}
 					emailInput.disabled = true;
 					emailInput.setAttribute( 'disabled', 'true' );
