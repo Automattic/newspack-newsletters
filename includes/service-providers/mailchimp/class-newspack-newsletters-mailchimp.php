@@ -455,7 +455,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				foreach ( $all_categories as $found_category ) {
 					
 					// Do not include groups under the category we use to store "Local" lists.
-					if ( $this->get_groups_category_id( $list['id'] ) === $found_category['id'] ) {
+					if ( $this->get_group_category_name() === $found_category['title'] ) {
 						continue;
 					}
 
