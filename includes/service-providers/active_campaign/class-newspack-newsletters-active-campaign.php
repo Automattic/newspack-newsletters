@@ -1221,7 +1221,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$result     = $response['fields'];
 		$new_offset = count( $result ) + $offset;
 		if ( $new_offset < $response['meta']['total'] ) {
-			$result = array_merge( $result, $this->get_all_contact_fields( $new_offset ) );
+			$fields = $this->get_all_contact_fields( $new_offset );
+			if ( \is_wp_error( $fields ) ) {
+				return $fields;
+			}
+			$result = array_merge( $result, $fields );
 		}
 		return $result;
 	}
