@@ -1037,7 +1037,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
-		$email_address  = $contact['email'];
+		$email_address = $contact['email'];
 
 		// If contact was added in this execution, we can return the previous
 		// result and bail.
@@ -1108,7 +1108,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$existing_contact = self::get_contact_data( $email_address );
 			if ( is_wp_error( $existing_contact ) ) {
 				$update_payload['status'] = $new_contact_status ?? 'subscribed';
-				$result = $mc->post( "lists/$list_id/members", $update_payload );
+				$result                   = $mc->post( "lists/$list_id/members", $update_payload );
 			} else {
 				$member_id = $existing_contact['id'];
 				$result    = $mc->put( "lists/$list_id/members/$member_id", $update_payload );
