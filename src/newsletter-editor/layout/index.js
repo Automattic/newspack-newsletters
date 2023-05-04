@@ -23,6 +23,8 @@ import './style.scss';
 import { setPreventDeduplicationForPostsInserter } from '../../editor/blocks/posts-inserter/utils';
 import NewsletterPreview from '../../components/newsletter-preview';
 
+const EMPTY_OBJECT = {};
+
 export default compose( [
 	withSelect( select => {
 		const { getEditedPostAttribute, isEditedPostEmpty, getCurrentPostId } = select( 'core/editor' );
@@ -81,7 +83,7 @@ export default compose( [
 		const [ usedLayout, setUsedLayout ] = useState( {} );
 
 		useEffect( () => {
-			setUsedLayout( find( layouts, { ID: layoutId } ) || {} );
+			setUsedLayout( find( layouts, { ID: layoutId } ) || EMPTY_OBJECT );
 		}, [ layouts.length ] );
 
 		const blockPreview = useMemo( () => {

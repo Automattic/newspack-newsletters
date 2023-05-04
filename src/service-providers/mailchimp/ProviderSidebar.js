@@ -10,6 +10,8 @@ import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/compone
  */
 import { getListInterestsSettings } from './utils';
 
+const EMPTY_STRING = '';
+
 const SegmentsSelection = ( {
 	onUpdate,
 	inFlight,
@@ -18,7 +20,7 @@ const SegmentsSelection = ( {
 	availableInterests,
 	availableSegments,
 } ) => {
-	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || '' );
+	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || EMPTY_STRING );
 
 	const [ isInitial, setIsInitial ] = useState( true );
 	useEffect( () => {
@@ -212,7 +214,7 @@ const ProviderSidebar = ( {
 				<Fragment>
 					<SelectControl
 						label={ __( 'Folder', 'newspack-newsletters' ) }
-						value={ campaign?.settings?.folder_id }
+						value={ campaign?.settings?.folder_id || EMPTY_STRING }
 						options={ getFolderOptions() }
 						onChange={ setFolder }
 						disabled={ inFlight }
@@ -228,7 +230,7 @@ const ProviderSidebar = ( {
 			<SelectControl
 				label={ __( 'Audience', 'newspack-newsletters' ) }
 				className="newspack-newsletters__to-selectcontrol"
-				value={ list_id }
+				value={ list_id || EMPTY_STRING }
 				options={ [
 					{
 						value: null,

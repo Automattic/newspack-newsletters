@@ -22,7 +22,7 @@ import {
 	Toolbar,
 	ToolbarDropdownMenu,
 } from '@wordpress/components';
-import { InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
+import { InspectorControls, BlockControls } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
 import { Icon, check, pages } from '@wordpress/icons';
 
@@ -36,6 +36,8 @@ import { getTemplateBlocks, convertBlockSerializationFormat } from './utils';
 import QueryControlsSettings from './query-controls';
 import { POSTS_INSERTER_BLOCK_NAME, POSTS_INSERTER_STORE_NAME } from './consts';
 import PostsPreview from './posts-preview';
+
+const EMPTY_STRING = '';
 
 const PostsInserterBlock = ( {
 	setAttributes,
@@ -208,7 +210,7 @@ const PostsInserterBlock = ( {
 						} }
 					/>
 					<ColorPicker
-						color={ attributes.textColor || '' }
+						color={ attributes.textColor || EMPTY_STRING }
 						onChangeComplete={ value => setAttributes( { textColor: value.hex } ) }
 						disableAlpha
 					/>
@@ -220,7 +222,7 @@ const PostsInserterBlock = ( {
 						onChange={ value => setAttributes( { headingFontSize: value } ) }
 					/>
 					<ColorPicker
-						color={ attributes.headingColor || '' }
+						color={ attributes.headingColor || EMPTY_STRING }
 						onChangeComplete={ value => setAttributes( { headingColor: value.hex } ) }
 						disableAlpha
 					/>
@@ -232,7 +234,7 @@ const PostsInserterBlock = ( {
 						onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
 					/>
 					<ColorPicker
-						color={ attributes.subHeadingColor || '' }
+						color={ attributes.subHeadingColor || EMPTY_STRING }
 						onChangeComplete={ value => setAttributes( { subHeadingColor: value.hex } ) }
 						disableAlpha
 					/>
@@ -411,6 +413,6 @@ export default () => {
 		title: 'Posts Inserter',
 		icon: <Icon icon={ pages } />,
 		edit: PostsInserterBlockWithSelect,
-		save: () => <InnerBlocks.Content />,
+		save: () => null,
 	} );
 };

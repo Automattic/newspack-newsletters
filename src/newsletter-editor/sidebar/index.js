@@ -21,6 +21,9 @@ import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
+const EMPTY_STRING = '';
+const EMPTY_OBJECT = {};
+
 const Sidebar = ( {
 	isConnected,
 	oauthUrl,
@@ -173,10 +176,10 @@ export default compose( [
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
-			senderEmail: meta.senderEmail || '',
-			senderName: meta.senderName || '',
-			previewText: meta.preview_text || '',
-			newsletterData: meta.newsletterData || {},
+			senderEmail: meta.senderEmail || EMPTY_STRING,
+			senderName: meta.senderName || EMPTY_STRING,
+			previewText: meta.preview_text || EMPTY_STRING,
+			newsletterData: meta.newsletterData || EMPTY_OBJECT,
 			disableAds: meta.diable_ads,
 		};
 	} ),

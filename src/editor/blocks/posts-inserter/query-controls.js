@@ -36,6 +36,7 @@ const fetchPostSuggestions = postType => search =>
 		} ) )
 	);
 
+const EMPTY_STRING = '';
 const SEPARATOR = '--';
 const encodePosts = posts => posts.map( post => [ post.id, post.title ].join( SEPARATOR ) );
 const decodePost = encodedPost => {
@@ -94,7 +95,6 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 
 	const selectTags = tokens => {
 		const validTags = tokens.filter( token => !! token );
-
 		setAttributes( { tags: validTags } );
 	};
 
@@ -235,7 +235,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 					suggestions={ encodePosts( foundPosts ) }
 					displayTransform={ string => {
 						const [ id, title ] = decodePost( string );
-						return title || id || '';
+						return title || id || EMPTY_STRING;
 					} }
 					onInputChange={ debounce( handleSpecificPostsInput, 400 ) }
 				/>

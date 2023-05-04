@@ -86,14 +86,17 @@ const fontOptgroups = [
 	},
 ];
 
+const EMPTY_STRING = '';
+const WHITE = '#ffffff';
+
 const customStylesSelector = select => {
 	const { getEditedPostAttribute } = select( 'core/editor' );
 	const meta = getEditedPostAttribute( 'meta' );
 	return {
 		fontBody: meta.font_body || fontOptgroups[ 1 ].options[ 0 ].value,
 		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
-		backgroundColor: meta.background_color || '#ffffff',
-		customCss: meta.custom_css || '',
+		backgroundColor: meta.background_color || WHITE,
+		customCss: meta.custom_css || EMPTY_STRING,
 	};
 };
 
