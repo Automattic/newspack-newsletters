@@ -32,6 +32,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	public $name = 'Mailchimp';
 
 	/**
+	 * Cache of contact added on execution. Control to avoid adding the same
+	 * contact multiple times due to optimistic nature of RAS.
+	 *
+	 * @var array[]
+	 */
+	private static $contacts_added = [];
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -448,12 +456,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			// In addition to Audiences, we also automatically fetch all groups and offer them as Subscription Lists.
 			// Build the final list inside the loop so groups are added after the list they belong to and we can then represent the hierarchy in the UI.
 			foreach ( $lists_response['lists'] as $list ) {
-				
+
 				$lists[]        = $list;
 				$all_categories = $this->get_all_categories( $list['id'] );
-				
+
 				foreach ( $all_categories as $found_category ) {
-					
+
 					// Do not include groups under the category we use to store "Local" lists.
 					if ( $this->get_group_category_name() === $found_category['title'] ) {
 						continue;
@@ -1029,18 +1037,27 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
+		$email_address  = $contact['email'];
+
+		// If contact was added in this execution, we can return the previous
+		// result and bail.
+		if ( ! empty( self::$contacts_added[ $list_id . $email_address ] ) ) {
+			return self::$contacts_added[ $list_id . $email_address ];
+		}
+
 		$list = $this->maybe_extract_group_list( $list_id );
 		if ( $list ) {
 			$list_id  = $list['list_id'];
 			$group_id = $list['group_id'];
 		}
+		$new_contact_status = 'subscribed';
+		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
+			$new_contact_status = $contact['metadata']['status'];
+			unset( $contact['metadata']['status'] );
+		}
 		try {
 			$mc             = new Mailchimp( $this->api_key() );
-			$email_address  = $contact['email'];
-			$update_payload = [
-				'email_address' => $email_address,
-				'status'        => 'subscribed',
-			];
+			$update_payload = [ 'email_address' => $email_address ];
 			$merge_fields   = [];
 			if ( isset( $contact['name'] ) ) {
 				$name_fragments = explode( ' ', $contact['name'], 2 );
@@ -1090,6 +1107,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			// Create or update a list member.
 			$existing_contact = self::get_contact_data( $email_address );
 			if ( is_wp_error( $existing_contact ) ) {
+				$update_payload['status'] = $new_contact_status ?? 'subscribed';
 				$result = $mc->post( "lists/$list_id/members", $update_payload );
 			} else {
 				$member_id = $existing_contact['id'];
@@ -1097,7 +1115,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 			if (
 				! $result ||
-				( ! isset( $result['status'] ) || 'subscribed' !== $result['status'] ) ||
+				! isset( $result['status'] ) ||
 				( isset( $result['errors'] ) && count( $result['errors'] ) )
 			) {
 				return new WP_Error(
@@ -1115,6 +1133,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$e->getMessage()
 			);
 		}
+		self::$contacts_added[ $list_id . $email_address ] = $result;
 		return $result;
 	}
 
@@ -1322,7 +1341,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$ids   = [];
 		foreach ( $lists as $list ) {
 			$list_settings = $list->get_provider_settings( $this->service );
-			
+
 			if ( ! empty( $tags[ $list_settings['list'] ] ) ) {
 				if ( in_array( $list_settings['tag_id'], $tags[ $list_settings['list'] ], false ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
 					$ids[] = $list->get_form_id();
