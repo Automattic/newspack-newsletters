@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "1.63.0",
+	"version": "1.64.0-alpha.1",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -37,13 +37,13 @@
 		"url": "https://github.com/Automattic/newspack-newsletters/issues"
 	},
 	"dependencies": {
-		"@uiw/react-codemirror": "^3.2.9",
-		"@wordpress/icons": "^9.21.0",
+		"@uiw/react-codemirror": "^3.2.10",
+		"@wordpress/icons": "^9.22.0",
 		"classnames": "^2.3.2",
-		"commitlint": "^17.5.1",
+		"commitlint": "^17.6.1",
 		"csslint": "^1.0.5",
 		"lodash": "^4.17.21",
-		"mjml-browser": "^4.14.0",
+		"mjml-browser": "^4.14.1",
 		"newspack-components": "^2.1.0",
 		"qs": "^6.11.1"
 	},
