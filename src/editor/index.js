@@ -20,6 +20,7 @@ import registerShareBlock from './blocks/share';
 import registerEmbedBlockEdit from './blocks/embed';
 import registerMergeTagsFilters from './blocks/mailchimp-merge-tags';
 import registerVisibilityFilters from './blocks/visibility-attribute';
+import registerConditionalContent from './blocks/conditional-content';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import './api';
@@ -31,6 +32,7 @@ registerShareBlock();
 registerEmbedBlockEdit();
 registerMergeTagsFilters();
 registerVisibilityFilters();
+registerConditionalContent();
 
 domReady( () => {
 	/* Unregister core block styles that are unsupported in emails */
