@@ -1,3 +1,4 @@
+/* globals newspack_email_editor_data */
 /**
  * External dependencies
  */
@@ -11,12 +12,14 @@ import { Fragment } from '@wordpress/element';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, TextControl } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { sprintf, __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
 import './style.scss';
+
+const config = newspack_email_editor_data.conditional_tag_support;
 
 const addConditionalContentAttributes = settings => {
 	settings.attributes = assign( settings.attributes, {
@@ -50,20 +53,27 @@ const withConditionalContentControl = createHigherOrderComponent(
 							label={ __( 'Opening tag', 'newspack-newsletters' ) }
 							value={ attributes.conditionalBefore }
 							onChange={ value => setAttributes( { conditionalBefore: value } ) }
-							help={ __(
-								'Opening tag for conditional content. E.g.: *|IF:AGE >= 21|*',
-								'newspack-newsletters'
+							help={ sprintf(
+								/* translators: %s: example opening tag */
+								__( 'Opening tag for conditional content. E.g.: %s', 'newspack-newsletters' ),
+								config?.example?.before
 							) }
 						/>
 						<TextControl
 							label={ __( 'Closing tag', 'newspack-newsletters' ) }
 							value={ attributes.conditionalAfter }
 							onChange={ value => setAttributes( { conditionalAfter: value } ) }
-							help={ __(
-								'Closing tag for conditional content. E.g.: *|END:IF|*',
-								'newspack-newsletters'
+							help={ sprintf(
+								/* translators: %s: example closing tag */
+								__( 'Closing tag for conditional content. E.g.: %s', 'newspack-newsletters' ),
+								config?.example?.after
 							) }
 						/>
+						<p>
+							<a href={ config?.support_url } target="_blank" rel="external noreferrer">
+								{ __( 'Click here to learn more.', 'newspack-newsletters' ) }
+							</a>
+						</p>
 					</PanelBody>
 				</InspectorControls>
 			</Fragment>

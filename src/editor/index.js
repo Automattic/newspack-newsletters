@@ -1,3 +1,4 @@
+/* globals newspack_email_editor_data */
 /**
  * WordPress dependencies
  */
@@ -32,7 +33,13 @@ registerShareBlock();
 registerEmbedBlockEdit();
 registerMergeTagsFilters();
 registerVisibilityFilters();
-registerConditionalContent();
+
+if (
+	newspack_email_editor_data.conditional_tag_support &&
+	newspack_email_editor_data.conditional_tag_support.support_url
+) {
+	registerConditionalContent();
+}
 
 domReady( () => {
 	/* Unregister core block styles that are unsupported in emails */
