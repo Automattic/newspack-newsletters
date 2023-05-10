@@ -18,14 +18,11 @@
 
 	&::before {
 		border-radius: 1px;
-		bottom: 1px;
 		box-shadow: 0 0 0 var( --wp-admin-border-width-focus ) wp-colors.$alert-yellow;
 		content: '';
-		left: 1px;
 		pointer-events: none;
 		position: absolute;
-		right: 1px;
-		top: 1px;
+		inset: 1px;
 	}
 
 	&::after {
