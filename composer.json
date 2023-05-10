@@ -4,7 +4,7 @@
 	"type": "wordpress-plugin",
 	"require": {
 		"drewm/mailchimp-api": "^2.5",
-		"campaignmonitor/createsend-php": "^6.1"
+		"campaignmonitor/createsend-php": "^7.0"
 	},
 	"require-dev": {
 		"automattic/vipwpcs": "^2.0",
