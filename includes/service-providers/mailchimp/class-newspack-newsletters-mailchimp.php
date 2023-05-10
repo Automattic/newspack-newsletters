@@ -57,6 +57,21 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Get configuration for conditional tag support.
+	 *
+	 * @return array
+	 */
+	public static function get_conditional_tag_support() {
+		return [
+			'support_url' => 'https://mailchimp.com/help/use-conditional-merge-tag-blocks/',
+			'example'     => [
+				'before' => '*|IF:FNAME|*',
+				'after'  => '*|END:IF|*',
+			],
+		];
+	}
+
+	/**
 	 * Get API credentials for service provider.
 	 *
 	 * @return Object Stored API credentials for the service provider.
