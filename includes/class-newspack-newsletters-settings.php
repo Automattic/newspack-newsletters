@@ -166,7 +166,7 @@ class Newspack_Newsletters_Settings {
 			 */
 			array(
 				'default'           => false,
-				'description'       => esc_html__( 'Support comments in public newsletters posts', 'newspack-newsletters' ),
+				'description'       => esc_html__( 'Allow comments to be enabled for public Newsletters', 'newspack-newsletters' ),
 				'key'               => 'newspack_newsletters_support_comments',
 				'sanitize_callback' => 'boolval',
 				'type'              => 'checkbox',
