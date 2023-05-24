@@ -12,7 +12,14 @@ import { intersection } from 'lodash';
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
-import { TextControl, ToggleControl, PanelBody, Notice, Spinner } from '@wordpress/components';
+import {
+	TextControl,
+	ToggleControl,
+	CheckboxControl,
+	PanelBody,
+	Notice,
+	Spinner,
+} from '@wordpress/components';
 import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 
 /**
@@ -42,6 +49,7 @@ export default function SubscribeEdit( {
 		successMessage,
 		lists,
 		displayDescription,
+		mailchimpDoubleOptIn,
 	},
 } ) {
 	const blockProps = useBlockProps();
@@ -151,6 +159,19 @@ export default function SubscribeEdit( {
 						</a>
 					</p>
 				</PanelBody>
+				{ newspack_newsletters_blocks.provider === 'mailchimp' && (
+					<PanelBody title={ __( 'Mailchimp Settings', 'newspack-newsletters' ) }>
+						<CheckboxControl
+							label={ __( 'Enable double opt-in', 'newspack-newsletters' ) }
+							help={ __(
+								'Whether the new contact will have its status as "pending" until email confirmation',
+								'newspack-newsletters'
+							) }
+							checked={ mailchimpDoubleOptIn }
+							onChange={ value => setAttributes( { mailchimpDoubleOptIn: value } ) }
+						/>
+					</PanelBody>
+				) }
 				{ newspack_newsletters_blocks.supports_recaptcha && (
 					<PanelBody title={ __( 'Spam protection', 'newspack' ) }>
 						<p>

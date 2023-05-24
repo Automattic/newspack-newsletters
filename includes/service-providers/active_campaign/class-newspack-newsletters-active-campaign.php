@@ -63,6 +63,21 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Get configuration for conditional tag support.
+	 *
+	 * @return array
+	 */
+	public static function get_conditional_tag_support() {
+		return [
+			'support_url' => 'https://help.activecampaign.com/hc/en-us/articles/220358207-Use-Conditional-Content',
+			'example'     => [
+				'before' => '%IF in_array(\'Interested in cameras\', $TAGS)%',
+				'after'  => '%/IF%',
+			],
+		];
+	}
+
+	/**
 	 * Perform v3 API request.
 	 *
 	 * @param string $resource Resource path.
@@ -1301,9 +1316,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * This allows us to make reference to provider specific features in the way the user is used to see them in the provider's UI
 	 *
+	 * @param mixed $context The context in which the labels are being applied.
 	 * @return array
 	 */
-	public static function get_labels() {
+	public static function get_labels( $context = '' ) {
 		return array_merge(
 			parent::get_labels(),
 			[

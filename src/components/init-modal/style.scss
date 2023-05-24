@@ -33,19 +33,16 @@
 	&__frame {
 		animation: none;
 		border: 0;
-		bottom: 0;
 		box-shadow: none;
 		height: 100%;
-		left: 0;
 		max-height: 100%;
 		max-width: 100%;
 		min-height: 100%;
 		min-width: 100%;
 		overflow-y: hidden;
-		right: 0;
-		top: 0;
 		transform: none;
 		width: 100%;
+		inset: 0;
 
 		.components-modal__header-heading {
 			display: none;
@@ -79,13 +76,9 @@
 
 			// Fullscreen mode
 			.is-fullscreen-mode & {
-				bottom: 0;
 				height: calc( 100vh - 60px );
-				left: 0;
-				margin: 0;
 				position: fixed;
-				right: 0;
-				top: 60px;
+				inset: 60px 0 0;
 			}
 		}
 
@@ -229,13 +222,10 @@
 
 						&::before {
 							border: 1px solid;
-							bottom: 0;
 							content: '';
 							display: block;
-							left: 0;
 							position: absolute;
-							right: 0;
-							top: 0;
+							inset: 0;
 							z-index: 1;
 						}
 					}
@@ -262,13 +252,10 @@
 
 				&::before {
 					border: 2px solid white;
-					bottom: 0;
 					content: '';
 					display: block;
-					left: 0;
-					right: 0;
 					position: absolute;
-					top: 0;
+					inset: 0;
 					z-index: 1;
 				}
 
@@ -287,7 +274,7 @@
 				.block-editor-block-preview__content-iframe {
 					cursor: pointer;
 					position: absolute;
-					top: 0;
+					inset: 0 auto auto;
 				}
 
 				.block-editor-block-preview__container {
