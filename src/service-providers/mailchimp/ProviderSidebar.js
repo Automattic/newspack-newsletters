@@ -96,7 +96,10 @@ const ProviderSidebar = ( {
 	updateMeta,
 } ) => {
 	const campaign = newsletterData.campaign;
-	const lists = newsletterData.lists || [];
+	const lists =
+		newsletterData.lists && newsletterData.lists.length
+			? newsletterData.lists.filter( list => list.type !== 'mailchimp-group' )
+			: [];
 	const folders = newsletterData.folders || [];
 	const segments = newsletterData.segments || newsletterData.tags || []; // Keep .tags for backwards compatibility.
 

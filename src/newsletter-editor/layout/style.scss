@@ -22,13 +22,10 @@
 
 		&::before {
 			border: 2px solid white;
-			bottom: 0;
 			content: '';
 			display: block;
-			left: 0;
-			right: 0;
 			position: absolute;
-			top: 0;
+			inset: 0;
 			z-index: 1;
 		}
 

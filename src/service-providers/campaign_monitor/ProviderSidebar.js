@@ -188,9 +188,9 @@ const ProviderSidebarComponent = ( {
 								value: '',
 								label: __( '-- Select a subscriber list --', 'newspack-newsletters' ),
 							},
-							...lists.map( ( { ListID, Name } ) => ( {
-								value: ListID,
-								label: Name,
+							...lists.map( ( { id, name } ) => ( {
+								value: id,
+								label: name,
 							} ) ),
 						] }
 						onChange={ value => updateMetaValue( 'cm_list_id', value ) }
