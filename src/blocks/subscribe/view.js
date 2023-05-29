@@ -63,28 +63,30 @@ domReady( function () {
 		if ( ! form ) {
 			return;
 		}
-		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe-response' );
+		const responseContainer = container.querySelector(
+			'.newspack-newsletters-subscribe__response'
+		);
+		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe__message' );
 		const emailInput = container.querySelector( 'input[type="email"]' );
 		const submit = container.querySelector( 'input[type="submit"]' );
 		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
+			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
 			submit.removeAttribute( 'disabled' );
 			messageNode.innerHTML = wasSubscribed
 				? container.getAttribute( 'data-success-message' )
 				: message;
+			messageContainer.appendChild( messageNode );
 			messageNode.className = `message status-${ status }`;
 			if ( status === 200 ) {
-				container.replaceChild( messageNode, form );
-			} else {
-				messageContainer.appendChild( messageNode );
+				container.replaceChild( responseContainer, form );
 			}
 		};
 		form.addEventListener( 'submit', ev => {
 			ev.preventDefault();
 			messageContainer.innerHTML = '';
 			submit.disabled = true;
-			submit.setAttribute( 'disabled', 'true' );
 
 			if ( ! form.npe?.value ) {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
@@ -112,8 +114,9 @@ domReady( function () {
 					if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
 						return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 					}
-					emailInput.disabled = true;
 					emailInput.setAttribute( 'disabled', 'true' );
+					submit.setAttribute( 'disabled', 'true' );
+
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',
 						headers: {
@@ -121,8 +124,6 @@ domReady( function () {
 						},
 						body,
 					} ).then( res => {
-						emailInput.disabled = false;
-						submit.disabled = false;
 						res.json().then( ( { message, newspack_newsletters_subscribed: wasSubscribed } ) => {
 							form.endFlow( message, res.status, wasSubscribed );
 						} );
