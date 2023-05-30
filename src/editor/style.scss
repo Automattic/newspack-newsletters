@@ -341,22 +341,22 @@
 			}
 		}
 		.has-small-font-size {
-			font-size: var( --wp--preset--font-size--small ) !important;
+			font-size: var( --wp--preset--font-size--small );
 		}
 		.has-normal-font-size {
-			font-size: var( --wp--preset--font-size--normal ) !important;
+			font-size: var( --wp--preset--font-size--normal );
 		}
 		.has-medium-font-size {
-			font-size: var( --wp--preset--font-size--medium ) !important;
+			font-size: var( --wp--preset--font-size--medium );
 		}
 		.has-large-font-size {
-			font-size: var( --wp--preset--font-size--large ) !important;
+			font-size: var( --wp--preset--font-size--large );
 		}
 		.has-x-large-font-size {
-			font-size: var( --wp--preset--font-size--x-large ) !important;
+			font-size: var( --wp--preset--font-size--x-large );
 		}
 		.has-huge-font-size {
-			font-size: var( --wp--preset--font-size--huge ) !important;
+			font-size: var( --wp--preset--font-size--huge );
 		}
 	}
 }
