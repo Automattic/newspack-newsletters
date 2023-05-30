@@ -91,9 +91,12 @@ final class Newspack_Newsletters_Editor {
 
 	/**
 	 * Is the editor editing an email?
+	 *
+	 * @param int $post_id Optional post ID to check.
 	 */
-	private static function is_editing_email() {
-		return in_array( get_post_type(), self::get_email_editor_cpts() );
+	private static function is_editing_email( $post_id = null ) {
+		$post_id = empty( $post_id ) ? get_the_ID() : $post_id;
+		return in_array( get_post_type( $post_id ), self::get_email_editor_cpts() );
 	}
 
 	/**
@@ -193,7 +196,8 @@ final class Newspack_Newsletters_Editor {
 	 * Define Editor Font Sizes.
 	 */
 	public static function newspack_font_sizes() {
-		if ( ! self::is_editing_email() ) {
+		global $pagenow;
+		if ( 'post' === $pagenow && isset( $_GET['post'] ) && ! self::is_editing_email( absint( $_GET['post'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 		add_theme_support(
