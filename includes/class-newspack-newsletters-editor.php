@@ -197,7 +197,7 @@ final class Newspack_Newsletters_Editor {
 	 */
 	public static function newspack_font_sizes() {
 		global $pagenow;
-		if ( 'post' === $pagenow && isset( $_GET['post'] ) && ! self::is_editing_email( absint( $_GET['post'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 'post' !== $pagenow || ! isset( $_GET['post'] ) || ! self::is_editing_email( absint( $_GET['post'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 		add_theme_support(
