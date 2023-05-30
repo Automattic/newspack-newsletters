@@ -197,7 +197,9 @@ final class Newspack_Newsletters_Editor {
 	 */
 	public static function newspack_font_sizes() {
 		global $pagenow;
-		if ( 'post.php' !== $pagenow || ! isset( $_GET['post'] ) || ! self::is_editing_email( absint( $_GET['post'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_editing_email  = 'post.php' === $pagenow && isset( $_GET['post'] ) && self::is_editing_email( absint( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_creating_email = 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === $_GET['post_type']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! $is_editing_email && ! $is_creating_email ) {
 			return;
 		}
 		add_theme_support(
