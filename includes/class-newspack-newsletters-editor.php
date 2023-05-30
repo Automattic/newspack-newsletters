@@ -209,11 +209,6 @@ final class Newspack_Newsletters_Editor {
 					'slug' => 'small',
 				],
 				[
-					'name' => _x( 'Normal', 'font size name', 'newspack-newsletters' ),
-					'size' => 16,
-					'slug' => 'normal',
-				],
-				[
 					'name' => _x( 'Medium', 'font size name', 'newspack-newsletters' ),
 					'size' => 16,
 					'slug' => 'medium',
@@ -227,11 +222,6 @@ final class Newspack_Newsletters_Editor {
 					'name' => _x( 'Extra Large', 'font size name', 'newspack-newsletters' ),
 					'size' => 36,
 					'slug' => 'x-large',
-				],
-				[
-					'name' => _x( 'Huge', 'font size name', 'newspack-newsletters' ),
-					'size' => 36,
-					'slug' => 'huge',
 				],
 			]
 		);
