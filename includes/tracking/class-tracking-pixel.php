@@ -1,0 +1,153 @@
+<?php
+/**
+ * Newspack Newsletters Tracking Pixel.
+ *
+ * @package Newspack
+ */
+
+namespace Newspack_Newsletters;
+
+/**
+ * Tracking Pixel Class.
+ */
+final class Tracking_Pixel {
+	const QUERY_VAR = 'np_newsletters_pixel';
+
+	/**
+	 * Initialize hooks.
+	 */
+	public static function init() {
+		add_action( 'newspack_newsletters_editor_mjml_body', [ __CLASS__, 'add_tracking_pixel' ], 100 );
+		add_action( 'init', [ __CLASS__, 'rewrite_rule' ] );
+		add_filter( 'redirect_canonical', [ __CLASS__, 'redirect_canonical' ], 10, 2 );
+		add_filter( 'query_vars', [ __CLASS__, 'query_vars' ] );
+		add_action( 'template_redirect', [ __CLASS__, 'render' ] );
+	}
+
+	/**
+	 * Add tracking pixel.
+	 *
+	 * @param WP_Post $post Post object.
+	 */
+	public static function add_tracking_pixel( $post ) {
+		printf(
+			'<mj-raw><img src="%s" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px; border: none; margin: 0; padding: 0;" /></mj-raw>',
+			esc_url( self::get_pixel_url( $post->ID ) )
+		);
+	}
+
+	/**
+	 * Add rewrite rule for tracking pixel.
+	 */
+	public static function rewrite_rule() {
+		add_rewrite_rule( 'np-newsletters.gif', 'index.php?' . self::QUERY_VAR . '=1', 'top' );
+		add_rewrite_tag( '%' . self::QUERY_VAR . '%', '1' );
+	}
+
+	/**
+	 * Disable canonical redirect for tracking pixel.
+	 *
+	 * @param string $redirect_url  Redirect URL.
+	 * @param string $requested_url Requested URL.
+	 *
+	 * @return string|false
+	 */
+	public static function redirect_canonical( $redirect_url, $requested_url ) {
+		if ( ! get_query_var( self::QUERY_VAR ) ) {
+			return $redirect_url;
+		}
+		return false;
+	}
+
+	/**
+	 * Add query vars.
+	 *
+	 * @param array $vars Query vars.
+	 *
+	 * @return array
+	 */
+	public static function query_vars( $vars = [] ) {
+		$vars[] = 'np_newsletters_pixel';
+		return $vars;
+	}
+
+	/**
+	 * Get the email address tag for the tracking pixel.
+	 */
+	private static function get_email_address_tag() {
+		$provider = \Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return '';
+		}
+		$provider_name = $provider->service;
+		switch ( $provider_name ) {
+			case 'mailchimp':
+				return '*|EMAIL|*';
+			case 'campaign_monitor':
+				return '[email]';
+			case 'constant_contact':
+				return '[[emailAddress]]';
+			case 'active_campaign':
+				return '%EMAIL%';
+			default:
+				return '';
+		}
+	}
+
+	/**
+	 * Get the tracking pixel URL.
+	 *
+	 * @param int $post_id ID of the newsletter.
+	 */
+	public static function get_pixel_url( $post_id ) {
+		$tracking_id = get_post_meta( $post_id, 'tracking_id', true );
+		if ( ! $tracking_id ) {
+			$tracking_id = wp_generate_password( 32, false );
+			update_post_meta( $post_id, 'tracking_id', $tracking_id );
+		}
+		$url = add_query_arg(
+			[
+				'id'  => $post_id,
+				'tid' => $tracking_id,
+				'em'  => self::get_email_address_tag(),
+			],
+			home_url( 'np-newsletters.gif' )
+		);
+		return $url;
+	}
+
+	/**
+	 * Render the tracking pixel.
+	 */
+	public static function render() {
+		if ( ! get_query_var( self::QUERY_VAR ) ) {
+			return;
+		}
+
+		// Set the appropriate content type header.
+		header( 'Content-Type: image/gif' );
+		// Output a transparent 1x1 pixel image.
+		echo base64_decode( 'R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		// Process tracking.
+		$newsletter_id          = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$tracking_id            = isset( $_GET['tid'] ) ? sanitize_text_field( $_GET['tid'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$email_address          = isset( $_GET['em'] ) ? sanitize_email( $_GET['em'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$newsletter_tracking_id = get_post_meta( $newsletter_id, 'tracking_id', true );
+
+		// Tracking ID mismatch.
+		if ( $newsletter_tracking_id !== $tracking_id ) {
+			exit;
+		}
+
+		/**
+		 * Fires when the tracking pixel is seen and valid.
+		 *
+		 * @param int    $newsletter_id ID of the newsletter.
+		 * @param string $email_address Email address of the recipient.
+		 */
+		do_action( 'newspack_newsletters_tracking_pixel_seen', $newsletter_id, $email_address );
+		exit;
+	}
+}
+Tracking_Pixel::init();
