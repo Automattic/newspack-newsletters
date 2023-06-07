@@ -5,12 +5,12 @@
  * @package Newspack
  */
 
-namespace Newspack_Newsletters;
+namespace Newspack_Newsletters\Tracking;
 
 /**
  * Tracking Pixel Class.
  */
-final class Tracking_Pixel {
+final class Pixel {
 	const QUERY_VAR = 'np_newsletters_pixel';
 
 	/**
@@ -140,6 +140,13 @@ final class Tracking_Pixel {
 			exit;
 		}
 
+		$pixel_seen = get_post_meta( $newsletter_id, 'tracking_pixel_seen', true );
+		if ( ! $pixel_seen ) {
+			$pixel_seen = 0;
+		}
+		$pixel_seen++;
+		update_post_meta( $newsletter_id, 'tracking_pixel_seen', $pixel_seen );
+
 		/**
 		 * Fires when the tracking pixel is seen and valid.
 		 *
@@ -150,4 +157,4 @@ final class Tracking_Pixel {
 		exit;
 	}
 }
-Tracking_Pixel::init();
+Pixel::init();
