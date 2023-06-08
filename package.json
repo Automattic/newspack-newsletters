@@ -38,9 +38,9 @@
 	},
 	"dependencies": {
 		"@uiw/react-codemirror": "^3.2.10",
-		"@wordpress/icons": "^9.24.0",
+		"@wordpress/icons": "^9.25.0",
 		"classnames": "^2.3.2",
-		"commitlint": "^17.6.3",
+		"commitlint": "^17.6.5",
 		"csslint": "^1.0.5",
 		"lodash": "^4.17.21",
 		"mjml-browser": "^4.14.1",
@@ -52,9 +52,9 @@
 		"eslint": "^7.32.0",
 		"lint-staged": "^13.2.2",
 		"newspack-scripts": "^5.1.0",
-		"postcss": "^8.4.23",
+		"postcss": "^8.4.24",
 		"postcss-scss": "^4.0.6",
 		"prettier": "npm:wp-prettier@^2.6.2-beta-1",
-		"stylelint": "^15.6.2"
+		"stylelint": "^15.6.3"
 	}
 }
