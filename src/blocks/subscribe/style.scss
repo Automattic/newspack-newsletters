@@ -43,6 +43,7 @@
 	input[type='text'],
 	input[type='email'] {
 		flex: 1 1 100%;
+		width: 100%;
 
 		@media ( min-width: 782px ) {
 			flex-basis: auto;
