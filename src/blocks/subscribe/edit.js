@@ -19,6 +19,7 @@ import {
 	PanelBody,
 	Notice,
 	Spinner,
+	Button,
 } from '@wordpress/components';
 import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 
@@ -32,6 +33,11 @@ const getListCheckboxId = listId => {
 };
 
 const settingsUrl = newspack_newsletters_blocks.settings_url;
+
+const editedStateOptions = [
+	{ label: __( 'Initial', 'newspack-newsletters' ), value: 'initial' },
+	{ label: __( 'Success', 'newspack-newsletters' ), value: 'success' },
+];
 
 export default function SubscribeEdit( {
 	setAttributes,
@@ -53,6 +59,7 @@ export default function SubscribeEdit( {
 	},
 } ) {
 	const blockProps = useBlockProps();
+	const [ editedState, setEditedState ] = useState( editedStateOptions[ 0 ].value );
 	const [ inFlight, setInFlight ] = useState( false );
 	const [ listConfig, setListConfig ] = useState( {} );
 	const fetchLists = () => {
@@ -110,11 +117,6 @@ export default function SubscribeEdit( {
 							) }
 						</>
 					) }
-					<TextControl
-						label={ __( 'Success message', 'newspack-newsletters' ) }
-						value={ successMessage }
-						onChange={ value => setAttributes( { successMessage: value } ) }
-					/>
 					{ lists.length > 1 && (
 						<ToggleControl
 							label={ __( 'Display list description', 'newspack-newsletters' ) }
@@ -200,6 +202,21 @@ export default function SubscribeEdit( {
 				) }
 			</InspectorControls>
 			<div { ...blockProps }>
+				<div className="newspack-newsletters-subscribe__state-bar">
+					<span>{ __( 'Edited State', 'newspack-newsletters' ) }</span>
+					<div>
+						{ editedStateOptions.map( option => (
+							<Button
+								key={ option.value }
+								data-is-active={ editedState === option.value }
+								onClick={ () => setEditedState( option.value ) }
+							>
+								{ option.label }
+							</Button>
+						) ) }
+					</div>
+				</div>
+
 				{ inFlight ? (
 					<Spinner />
 				) : (
@@ -208,90 +225,108 @@ export default function SubscribeEdit( {
 							'newspack-newsletters-subscribe': true,
 							'multiple-lists': lists.length > 1,
 						} ) }
+						data-status="200"
 					>
-						<form onSubmit={ ev => ev.preventDefault() }>
-							{ lists.length > 1 && (
-								<div className="newspack-newsletters-lists">
-									<ul>
-										{ lists.map( listId => (
-											<li key={ listId }>
-												<span className="list-checkbox">
-													<input
-														id={ getListCheckboxId( listId ) }
-														type="checkbox"
-														checked
-														readOnly
-													/>
-												</span>
-												<span className="list-details">
-													<label htmlFor={ getListCheckboxId( listId ) }>
-														<span className="list-title">{ listConfig[ listId ]?.title }</span>
-														{ displayDescription && (
-															<span className="list-description">
-																{ listConfig[ listId ]?.description }
-															</span>
-														) }
-													</label>
-												</span>
-											</li>
-										) ) }
-									</ul>
-								</div>
-							) }
-							{ displayNameField && (
-								<div className="newspack-newsletters-name-input">
-									<div className="newspack-newsletters-name-input-item">
-										<label>
-											{ displayInputLabels && (
-												<RichText
-													onChange={ value => setAttributes( { nameLabel: value } ) }
-													placeholder={ __( 'Name', 'newspack' ) }
-													value={ nameLabel }
-													tagName="span"
-												/>
-											) }
-										</label>
-										<input type="text" placeholder={ namePlaceholder } />
+						{ editedState === 'initial' && (
+							<form onSubmit={ ev => ev.preventDefault() }>
+								{ lists.length > 1 && (
+									<div className="newspack-newsletters-lists">
+										<ul>
+											{ lists.map( listId => (
+												<li key={ listId }>
+													<span className="list-checkbox">
+														<input
+															id={ getListCheckboxId( listId ) }
+															type="checkbox"
+															checked
+															readOnly
+														/>
+													</span>
+													<span className="list-details">
+														<label htmlFor={ getListCheckboxId( listId ) }>
+															<span className="list-title">{ listConfig[ listId ]?.title }</span>
+															{ displayDescription && (
+																<span className="list-description">
+																	{ listConfig[ listId ]?.description }
+																</span>
+															) }
+														</label>
+													</span>
+												</li>
+											) ) }
+										</ul>
 									</div>
-									{ displayLastNameField && (
+								) }
+								{ displayNameField && (
+									<div className="newspack-newsletters-name-input">
 										<div className="newspack-newsletters-name-input-item">
 											<label>
 												{ displayInputLabels && (
 													<RichText
-														onChange={ value => setAttributes( { lastNameLabel: value } ) }
-														placeholder={ __( 'Last Name', 'newspack' ) }
-														value={ lastNameLabel }
+														onChange={ value => setAttributes( { nameLabel: value } ) }
+														placeholder={ __( 'Name', 'newspack' ) }
+														value={ nameLabel }
 														tagName="span"
 													/>
 												) }
 											</label>
-											<input type="text" placeholder={ lastNamePlaceholder } />
+											<input type="text" placeholder={ namePlaceholder } />
 										</div>
-									) }
-								</div>
-							) }
-							<div className="newspack-newsletters-email-input">
-								<label>
-									{ displayInputLabels && (
+										{ displayLastNameField && (
+											<div className="newspack-newsletters-name-input-item">
+												<label>
+													{ displayInputLabels && (
+														<RichText
+															onChange={ value => setAttributes( { lastNameLabel: value } ) }
+															placeholder={ __( 'Last Name', 'newspack' ) }
+															value={ lastNameLabel }
+															tagName="span"
+														/>
+													) }
+												</label>
+												<input type="text" placeholder={ lastNamePlaceholder } />
+											</div>
+										) }
+									</div>
+								) }
+								<div className="newspack-newsletters-email-input">
+									<label>
+										{ displayInputLabels && (
+											<RichText
+												onChange={ value => setAttributes( { emailLabel: value } ) }
+												placeholder={ __( 'Email Address', 'newspack' ) }
+												value={ emailLabel }
+												tagName="span"
+											/>
+										) }
+									</label>
+									<input type="email" placeholder={ placeholder } />
+									<button type="submit">
 										<RichText
-											onChange={ value => setAttributes( { emailLabel: value } ) }
-											placeholder={ __( 'Email Address', 'newspack' ) }
-											value={ emailLabel }
+											onChange={ value => setAttributes( { label: value } ) }
+											placeholder={ __( 'Sign up', 'newspack' ) }
+											value={ label }
 											tagName="span"
 										/>
-									) }
-								</label>
-								<input type="email" placeholder={ placeholder } />
-								<button type="submit">
+									</button>
+								</div>
+							</form>
+						) }
+						{ editedState === 'success' && (
+							<div className="newspack-newsletters-subscribe__response">
+								<div className="newspack-newsletters-subscribe__icon" />
+								<div className="newspack-newsletters-subscribe__message">
 									<RichText
-										onChange={ value => setAttributes( { label: value } ) }
-										placeholder={ __( 'Sign up', 'newspack' ) }
-										value={ label }
-										tagName="span"
+										onChange={ value => setAttributes( { successMessage: value } ) }
+										placeholder={ __( 'Success message', 'newspack-newsletters' ) }
+										value={ successMessage }
+										tagName="p"
+										className="message status-200"
+										allowedFormats={ [ 'core/bold', 'core/italic' ] }
 									/>
-								</button>
+								</div>
 							</div>
-						</form>
+						) }
 					</div>
 				) }
 			</div>
