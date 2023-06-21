@@ -301,7 +301,7 @@ export default function SubscribeEdit( {
 										) }
 									</label>
 									<input type="email" placeholder={ placeholder } />
-									<div className="submit">
+									<div className="submit-button">
 										<RichText
 											onChange={ value => setAttributes( { label: value } ) }
 											placeholder={ __( 'Sign up', 'newspack' ) }
