@@ -301,14 +301,14 @@ export default function SubscribeEdit( {
 										) }
 									</label>
 									<input type="email" placeholder={ placeholder } />
-									<button type="submit">
+									<div className="submit-button">
 										<RichText
 											onChange={ value => setAttributes( { label: value } ) }
 											placeholder={ __( 'Sign up', 'newspack' ) }
 											value={ label }
 											tagName="span"
 										/>
-									</button>
+									</div>
 								</div>
 							</form>
 						) }

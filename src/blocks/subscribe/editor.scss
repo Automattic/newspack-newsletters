@@ -15,7 +15,8 @@
 			border-radius: 0;
 			font-size: 1rem;
 		}
-		[type='submit'] {
+		[type='submit'],
+		.submit-button {
 			transition: background 150ms ease-in-out;
 			background: #d33;
 			border: none;
@@ -23,9 +24,8 @@
 			box-sizing: border-box;
 			display: inline-block;
 			color: #fff;
-			font-family: -apple-system, blinkmacsystemfont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-				'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-			font-size: 0.8rem;
+			font-family: var( --newspack-theme-font-heading );
+			font-size: 1rem;
 			font-weight: 700;
 			line-height: 1.2;
 			outline: none;

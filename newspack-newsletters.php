@@ -4,6 +4,8 @@
  * Plugin URI:      https://newspack.pub
  * Description:     Newsletter authoring using the Gutenberg editor.
  * Author:          Automattic
+ * Author URI:      https://newspack.com/
+ * License: GPL2
  * Text Domain:     newspack-newsletters
  * Domain Path:     /languages
  * Version:         1.67.0
