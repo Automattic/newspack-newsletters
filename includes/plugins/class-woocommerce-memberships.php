@@ -8,6 +8,9 @@
 namespace Newspack_Newsletters\Plugins;
 
 use Newspack\Newsletters\Subscription_List;
+use Newspack\Newsletters\Subscription_Lists;
+use Newspack_Newsletters;
+use Newspack_Newsletters_Logger;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,20 +20,29 @@ defined( 'ABSPATH' ) || exit;
 class Woocommerce_Memberships {
 
 	/** 
-	 * Initialize the hooks
+	 * Initialize the class
 	 */
 	public static function init() {
-		if ( ! class_exists( 'WC_Memberships' ) ) {
+		add_action( 'plugins_loaded', [ __CLASS__, 'init_hooks' ] );
+	}
+	
+	/** 
+	 * Initialize the hooks after all plugins are loaded
+	 */
+	public static function init_hooks() {
+		if ( ! class_exists( 'WC_Memberships_Loader' ) ) {
 			return;
 		}
 		add_filter( 'newspack_newsletters_contact_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_subscription_block_available_lists', [ __CLASS__, 'filter_lists' ] );
-		add_action( 'wc_memberships_user_membership_cancelled', [ __CLASS__, 'remove_user_from_list' ] );
+		add_filter( 'newspack_newsletters_manage_newsletters_available_lists', [ __CLASS__, 'filter_lists_objects' ] );
+		add_action( 'wc_memberships_user_membership_status_changed', [ __CLASS__, 'remove_user_from_list' ], 10, 3 );
+		add_action( 'wc_memberships_user_membership_created', [ __CLASS__, 'add_user_to_list' ], 10, 2 );
 	}
 
 	/**
 	 * Keep users from being added to lists that require a membership plan they dont have
-	 * Also filters lists that require a membership plan to be displayed in the subscription block
+	 * Also filters lists that require a membership plan to be displayed in the subscription block and in the Manage Newsletters page in My Account
 	 *
 	 * @param array $lists The List IDs.
 	 * @return array
@@ -56,12 +68,43 @@ class Woocommerce_Memberships {
 	}
 
 	/**
+	 * Receives an array of Lists and returns only the ones that the user has access to
+	 *
+	 * @param array $lists An array of lists in which the key are the list IDs.
+	 * @return array
+	 */
+	public static function filter_lists_objects( $lists ) {
+		if ( ! is_array( $lists ) || empty( $lists ) ) {
+			return $lists;
+		}
+
+		$list_ids = self::filter_lists( array_keys( $lists ) );
+
+		return array_filter(
+			$lists,
+			function( $list_id ) use ( $list_ids ) {
+				return in_array( $list_id, $list_ids );
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+
+	}
+
+	/**
 	 * Remove lists that require a membership plan when the membership is cancelled
 	 *
 	 * @param WC_Memberships_User_Membership $user_membership The User Membership object.
+	 * @param string                         $old_status old status, without the `wcm-` prefix.
+	 * @param string                         $new_status new status, without the `wcm-` prefix.
 	 * @return void
 	 */
-	public static function remove_user_from_list( $user_membership ) {
+	public static function remove_user_from_list( $user_membership, $old_status, $new_status ) {
+		$status_considered_active = wc_memberships()->get_user_memberships_instance()->get_active_access_membership_statuses();
+
+		if ( in_array( $new_status, $status_considered_active ) ) {
+			return;
+		}
+		
 		$lists_to_remove = [];
 		$user            = $user_membership->get_user();
 		if ( ! $user ) {
@@ -80,7 +123,51 @@ class Woocommerce_Memberships {
 			}
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
-		$provider->update_contact_lists( $user_email, [], $lists_to_remove );
+		$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
+		
+	}
+
+	/**
+	 * Adds user to premium lists when a membership is granted
+	 *
+	 * @param \WC_Memberships_Membership_Plan $plan the plan that user was granted access to.
+	 * @param array                           $args 
+	 * {
+	 *     Array of User Membership arguments.
+	 * 
+	 *     @type int $user_id the user ID the membership is assigned to.
+	 *     @type int $user_membership_id the user membership ID being saved.
+	 *     @type bool $is_update whether this is a post update or a newly created membership.
+	 * }
+	 * @return void
+	 */
+	public static function add_user_to_list( $plan, $args ) {
+				
+		$user_id = $args['user_id'] ?? false;
+		if ( ! $user_id ) {
+			return;
+		}
+		$user = get_user_by( 'ID', $user_id );
+		if ( ! $user ) {
+			return;
+		}
+
+		$lists_to_add = [];
+		$user_email   = $user->user_email;
+		$rules        = $plan->get_content_restriction_rules();
+
+		foreach ( $rules as $rule ) {
+			if ( Subscription_Lists::CPT !== $rule->get_content_type_name() ) {
+				continue;
+			}
+			$object_ids = $rule->get_object_ids();
+			foreach ( $object_ids as $object_id ) {
+				$subscription_list = new Subscription_List( $object_id );
+				$lists_to_add[]    = $subscription_list->get_form_id();
+			}
+		}
+		$provider = Newspack_Newsletters::get_service_provider();
+		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
 		
 	}
 
