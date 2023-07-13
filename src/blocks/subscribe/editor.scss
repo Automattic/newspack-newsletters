@@ -1,7 +1,6 @@
-@use 'style.scss';
 @use '~@wordpress/base-styles/colors' as wp-colors;
 
-.newspack-newsletters-subscribe {
+.editor-styles-wrapper .newspack-newsletters-subscribe {
 	form {
 		input[type='text'],
 		input[type='email'] {
@@ -22,7 +21,6 @@
 			border: none;
 			border-radius: 5px;
 			box-sizing: border-box;
-			display: inline-block;
 			color: #fff;
 			font-family: var( --newspack-theme-font-heading );
 			font-size: 1rem;
@@ -31,7 +29,14 @@
 			outline: none;
 			padding: 0.76rem 1rem;
 			text-decoration: none;
-			vertical-align: bottom;
+			display: block;
+			width: 100%;
+			text-align: center;
+			@media ( min-width: 782px ) {
+				display: inline-block;
+				width: auto;
+				vertical-align: bottom;
+			}
 		}
 	}
 	&__state-bar {
@@ -68,4 +73,9 @@
 			gap: 4px;
 		}
 	}
+}
+
+.editor-styles-wrapper {
+	// stylelint-disable-next-line no-invalid-position-at-import-rule,import-notation
+	@import 'style';
 }
