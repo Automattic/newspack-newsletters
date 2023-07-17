@@ -14,7 +14,7 @@ final class Utils {
 	/**
 	 * Get the email address tag for the tracking pixel.
 	 */
-	private static function get_email_address_tag() {
+	public static function get_email_address_tag() {
 		$provider = \Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return '';
