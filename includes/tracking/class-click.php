@@ -20,7 +20,7 @@ final class Click {
 		\add_action( 'init', [ __CLASS__, 'rewrite_rule' ] );
 		\add_filter( 'query_vars', [ __CLASS__, 'query_vars' ] );
 		\add_action( 'template_redirect', [ __CLASS__, 'handle_url' ] );
-		\add_filter( 'newspack_newsletters_process_link', [ __CLASS__, 'process_link' ], 10, 2 );
+		\add_filter( 'newspack_newsletters_process_link', [ __CLASS__, 'process_link' ], 10, 3 );
 	}
 
 	/**
@@ -74,16 +74,17 @@ final class Click {
 	/**
 	 * Process link.
 	 *
-	 * @param string $url URL.
-	 * @param int    $newsletter_id Newsletter ID.
+	 * @param string   $url           Processed URL.
+	 * @param string   $original_url  Original URL.
+	 * @param \WP_Post $post          Newsletter post object.
 	 *
 	 * @return string
 	 */
-	public static function process_link( $url, $newsletter_id ) {
-		if ( ! $newsletter_id ) {
+	public static function process_link( $url, $original_url, $post ) {
+		if ( ! $post ) {
 			return $url;
 		}
-		return self::get_proxied_url( $newsletter_id, $url );
+		return self::get_proxied_url( $post->ID, $url );
 	}
 
 	/**
