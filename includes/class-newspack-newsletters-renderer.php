@@ -273,10 +273,10 @@ final class Newspack_Newsletters_Renderer {
 	 * Append UTM param to links.
 	 *
 	 * @param string   $html Input HTML.
-	 * @param \WP_Post $post Post object.
+	 * @param \WP_Post $post Optional post object.
 	 * @return string HTML with processed links.
 	 */
-	public static function process_links( $html, $post ) {
+	public static function process_links( $html, $post = null ) {
 		preg_match_all( '/href="([^"]*)"/', $html, $matches );
 		$href_params = $matches[0];
 		$urls        = $matches[1];
