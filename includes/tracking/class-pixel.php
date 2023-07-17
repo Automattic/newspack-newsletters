@@ -106,11 +106,12 @@ final class Pixel {
 		// Output a transparent 1x1 pixel image.
 		echo base64_decode( 'R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
-		// Process tracking.
-		$newsletter_id          = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$tracking_id            = isset( $_GET['tid'] ) ? \sanitize_text_field( $_GET['tid'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$email_address          = isset( $_GET['em'] ) ? \sanitize_email( $_GET['em'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$newsletter_id          = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+		$tracking_id            = isset( $_GET['tid'] ) ? \sanitize_text_field( $_GET['tid'] ) : 0;
+		$email_address          = isset( $_GET['em'] ) ? \sanitize_email( $_GET['em'] ) : '';
 		$newsletter_tracking_id = \get_post_meta( $newsletter_id, 'tracking_id', true );
+		// phpcs:enable
 
 		// Tracking ID mismatch.
 		if ( $newsletter_tracking_id !== $tracking_id ) {
