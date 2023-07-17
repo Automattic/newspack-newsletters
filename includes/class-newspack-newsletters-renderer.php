@@ -291,10 +291,10 @@ final class Newspack_Newsletters_Renderer {
 					[
 						'utm_medium' => 'email',
 					],
-					$url,
-					$post
+					$url
 				),
-				$url
+				$url,
+				$post
 			);
 
 			$html = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
