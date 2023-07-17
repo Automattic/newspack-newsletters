@@ -110,7 +110,7 @@ final class Click {
 				$clicks = 0;
 			}
 			$clicks++;
-			\update_post_meta( $newsletter_id, 'tracking_pixel_seen', $clicks );
+			\update_post_meta( $newsletter_id, 'tracking_clicks', $clicks );
 		}
 
 		/**
