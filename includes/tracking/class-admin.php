@@ -8,7 +8,7 @@
 namespace Newspack_Newsletters\Tracking;
 
 /**
- * Tracking Data Events Class.
+ * Tracking Admin Class.
  */
 final class Admin {
 	/**
@@ -26,6 +26,7 @@ final class Admin {
 	 */
 	public static function manage_columns( $columns ) {
 		$columns['opened'] = __( 'Opened', 'newspack-newsletters' );
+		$columns['clicks'] = __( 'Clicks', 'newspack-newsletters' );
 		return $columns;
 	}
 
@@ -36,10 +37,11 @@ final class Admin {
 	 * @param int   $post_id     Post ID.
 	 */
 	public static function custom_column( $column_name, $post_id ) {
-		if ( 'opened' !== $column_name ) {
-			return;
+		if ( 'opened' === $column_name ) {
+			echo intval( get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true ) );
+		} elseif ( 'clicks' === $column_name ) {
+			echo intval( get_post_meta( $post_id, 'tracking_clicks', true ) );
 		}
-		echo intval( get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true ) );
 	}
 }
 Admin::init();

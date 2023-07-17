@@ -25,10 +25,17 @@ final class Data_Events {
 		if ( ! method_exists( 'Newspack\Data_Events', 'register_listener' ) ) {
 			return;
 		}
+		// Pixel seen.
 		\Newspack\Data_Events::register_listener(
 			'newspack_newsletters_tracking_pixel_seen',
 			'newsletter_opened',
 			[ 'newsletter_id', 'email_address' ]
+		);
+		// Click.
+		\Newspack\Data_Events::register_listener(
+			'newspack_newsletters_tracking_click',
+			'newsletter_clicked',
+			[ 'newsletter_id', 'email_address', 'url' ]
 		);
 	}
 }
