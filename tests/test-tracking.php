@@ -13,26 +13,15 @@ use Newspack_Newsletters\Tracking\Click;
  */
 class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	/**
-	 * Test rendering the tracking pixel.
+	 * Test tracking pixel.
 	 */
-	public function test_tracking_pixel_render() {
+	public function test_tracking_pixel() {
 		$post_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
 		$post    = \get_post( $post_id );
 		ob_start();
 		do_action( 'newspack_newsletters_editor_mjml_body', $post );
 		$mjml_body = ob_get_clean();
-		$this->assertRegexp( '/np-newsletters\.gif\?id=' . $post_id . '/', $mjml_body );
-	}
-
-	/**
-	 * Test tracking pixel seen.
-	 */
-	public function test_tracking_pixel_seen() {
-		$post_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
-		$post    = \get_post( $post_id );
-		ob_start();
-		do_action( 'newspack_newsletters_editor_mjml_body', $post );
-		$mjml_body = ob_get_clean();
+		$this->assertMatchesRegularExpression( '/np-newsletters\.gif\?id=' . $post_id . '/', $mjml_body );
 
 		// Fetch the tracking pixel URL from body.
 		$pattern = '/src="([^"]*np-newsletters\.gif[^"]*)"/i';
@@ -42,15 +31,19 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$parsed_url = \wp_parse_url( $pixel_url );
 		$args       = \wp_parse_args( $parsed_url['query'] );
 
+		$this->assertEquals( $post_id, intval( $args['id'] ) );
+		$this->assertEquals( get_post_meta( $post_id, 'tracking_id', true ), $args['tid'] );
+		$this->assertArrayHasKey( 'em', $args );
+
 		// Call the tracking pixel.
-		Pixel::track_seen( $args['id'], $args['tid'], $args['em'] );
+		Pixel::track_seen( $args['id'], $args['tid'], 'fake@email.com' );
 
 		// Assert seen once.
 		$seen = \get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true );
 		$this->assertEquals( 1, $seen );
 
 		// Call the tracking pixel again.
-		Pixel::track_seen( $args['id'], $args['tid'], $args['em'] );
+		Pixel::track_seen( $args['id'], $args['tid'], 'fake@email.com' );
 
 		// Assert seen twice.
 		$seen = \get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true );
@@ -80,6 +73,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$args       = \wp_parse_args( $parsed_url['query'] );
 
 		$this->assertEquals( $post_id, intval( $args['id'] ) );
+		$this->assertArrayHasKey( 'em', $args );
 
 		$parsed_destination_url = \wp_parse_url( $args['url'] );
 		$this->assertEquals( 'https', $parsed_destination_url['scheme'] );
