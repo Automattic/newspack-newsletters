@@ -15,7 +15,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	 * Test rendering the tracking pixel.
 	 */
 	public function test_tracking_pixel_render() {
-		$post_id = self::factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
+		$post_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
 		$post    = \get_post( $post_id );
 		ob_start();
 		do_action( 'newspack_newsletters_editor_mjml_body', $post );
@@ -27,7 +27,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	 * Test tracking pixel seen.
 	 */
 	public function test_tracking_pixel_seen() {
-		$post_id = self::factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
+		$post_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
 		$post    = \get_post( $post_id );
 		ob_start();
 		do_action( 'newspack_newsletters_editor_mjml_body', $post );
@@ -57,10 +57,10 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test tracking click render.
+	 * Test tracking click.
 	 */
-	public function test_tracking_click_render() {
-		$post_id  = self::factory->post->create(
+	public function test_tracking_click() {
+		$post_id  = $this->factory->post->create(
 			[
 				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'post_title'   => 'A newsletter with link.',
@@ -81,14 +81,14 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$this->assertEquals( $post_id, intval( $args['id'] ) );
 		$this->assertEquals( 'https://google.com', $args['url'] );
 
-		// Call the tracking pixel.
+		// Manually track the click.
 		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
 
 		// Assert clicked once.
 		$clicks = \get_post_meta( $post_id, 'tracking_clicks', true );
 		$this->assertEquals( 1, $clicks );
 
-		// Call the tracking pixel again.
+		// Manually track the click again.
 		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
 
 		// Assert clicked twice.
