@@ -153,6 +153,7 @@ final class Pixel {
 		if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
 			return;
 		}
+
 		self::track_seen( $newsletter_id, $tracking_id, $email_address );
 		exit;
 	}
