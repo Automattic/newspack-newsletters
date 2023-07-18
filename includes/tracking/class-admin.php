@@ -40,7 +40,7 @@ final class Admin {
 	 */
 	public static function custom_column( $column_name, $post_id ) {
 		if ( 'opened' === $column_name ) {
-			echo intval( get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true ) );
+			echo intval( get_post_meta( $post_id, 'tracking_pixel_seen', true ) );
 		} elseif ( 'clicks' === $column_name ) {
 			echo intval( get_post_meta( $post_id, 'tracking_clicks', true ) );
 		}
