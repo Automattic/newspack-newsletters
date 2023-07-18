@@ -27,7 +27,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$pattern = '/src="([^"]*np-newsletters\.gif[^"]*)"/i';
 		$matches = [];
 		preg_match( $pattern, $mjml_body, $matches );
-		$pixel_url  = $matches[1];
+		$pixel_url  = html_entity_decode( $matches[1] );
 		$parsed_url = \wp_parse_url( $pixel_url );
 		$args       = \wp_parse_args( $parsed_url['query'] );
 
