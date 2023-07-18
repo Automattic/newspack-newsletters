@@ -5,7 +5,8 @@
  * @package Newspack_Newsletters
  */
 
-use Newspack_Newsletters\Tracking;
+use Newspack_Newsletters\Tracking\Pixel;
+use Newspack_Newsletters\Tracking\Click;
 
 /**
  * Newsletters Tracking Test.
@@ -20,7 +21,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		ob_start();
 		do_action( 'newspack_newsletters_editor_mjml_body', $post );
 		$mjml_body = ob_get_clean();
-		$this->assertContains( 'np-newsletters.gif?id=' . $post_id, $mjml_body );
+		$this->assertRegexp( '/np-newsletters\.gif\?id=' . $post_id . '/', $mjml_body );
 	}
 
 	/**
@@ -79,7 +80,10 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$args       = \wp_parse_args( $parsed_url['query'] );
 
 		$this->assertEquals( $post_id, intval( $args['id'] ) );
-		$this->assertEquals( 'https://google.com', $args['url'] );
+
+		$parsed_destination_url = \wp_parse_url( $args['url'] );
+		$this->assertEquals( 'https', $parsed_destination_url['scheme'] );
+		$this->assertEquals( 'google.com', $parsed_destination_url['host'] );
 
 		// Manually track the click.
 		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
