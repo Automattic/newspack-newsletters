@@ -39,14 +39,14 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		Pixel::track_seen( $args['id'], $args['tid'], 'fake@email.com' );
 
 		// Assert seen once.
-		$seen = \get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true );
+		$seen = \get_post_meta( $post_id, 'tracking_pixel_seen', true );
 		$this->assertEquals( 1, $seen );
 
 		// Call the tracking pixel again.
 		Pixel::track_seen( $args['id'], $args['tid'], 'fake@email.com' );
 
 		// Assert seen twice.
-		$seen = \get_post_meta( $post_id, 'newspack_newsletters_tracking_pixel_seen', true );
+		$seen = \get_post_meta( $post_id, 'tracking_pixel_seen', true );
 		$this->assertEquals( 2, $seen );
 	}
 
