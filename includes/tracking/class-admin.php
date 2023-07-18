@@ -72,7 +72,7 @@ final class Admin {
 
 		$orderby = $query->get( 'orderby' );
 		if ( 'opened' === $orderby ) {
-			$query->set( 'meta_key', 'newspack_newsletters_tracking_pixel_seen' );
+			$query->set( 'meta_key', 'tracking_pixel_seen' );
 			$query->set( 'orderby', 'meta_value_num' );
 		} elseif ( 'clicks' === $orderby ) {
 			$query->set( 'meta_key', 'tracking_clicks' );

@@ -19,7 +19,7 @@ final class Click {
 	public static function init() {
 		\add_action( 'init', [ __CLASS__, 'rewrite_rule' ] );
 		\add_filter( 'query_vars', [ __CLASS__, 'query_vars' ] );
-		\add_action( 'template_redirect', [ __CLASS__, 'handle_url' ] );
+		\add_action( 'template_redirect', [ __CLASS__, 'handle_click' ] );
 		\add_filter( 'newspack_newsletters_process_link', [ __CLASS__, 'process_link' ], 10, 3 );
 	}
 
@@ -88,9 +88,9 @@ final class Click {
 	}
 
 	/**
-	 * Handle proxied URL and redirect to destination.
+	 * Handle proxied URL click and redirect to destination.
 	 */
-	public static function handle_url() {
+	public static function handle_click() {
 		if ( ! \get_query_var( self::QUERY_VAR ) ) {
 			return;
 		}
@@ -106,7 +106,7 @@ final class Click {
 			exit;
 		}
 
-		if ( $newsletter_id ) {
+		if ( $newsletter_id && $email_address ) {
 			$clicks = \get_post_meta( $newsletter_id, 'tracking_clicks', true );
 			if ( ! $clicks ) {
 				$clicks = 0;
