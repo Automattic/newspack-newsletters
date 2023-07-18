@@ -123,7 +123,7 @@ final class Click {
 		 */
 		do_action( 'newspack_newsletters_tracking_click', $newsletter_id, $email_address, $url );
 
-		\wp_safe_redirect( $url );
+		\wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 		exit;
 	}
 }
