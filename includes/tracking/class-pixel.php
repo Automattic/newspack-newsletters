@@ -94,28 +94,20 @@ final class Pixel {
 	}
 
 	/**
-	 * Render the tracking pixel.
+	 * Track pixel seen.
+	 *
+	 * @param int    $newsletter_id ID of the newsletter.
+	 * @param string $tracking_id   Tracking ID.
+	 * @param string $email_address Email address of the recipient.
+	 *
+	 * @return void
 	 */
-	public static function render() {
-		if ( ! \get_query_var( self::QUERY_VAR ) ) {
-			return;
-		}
-
-		// Set the appropriate content type header.
-		header( 'Content-Type: image/gif' );
-		// Output a transparent 1x1 pixel image.
-		echo base64_decode( 'R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		$newsletter_id          = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
-		$tracking_id            = isset( $_GET['tid'] ) ? \sanitize_text_field( $_GET['tid'] ) : 0;
-		$email_address          = isset( $_GET['em'] ) ? \sanitize_email( $_GET['em'] ) : '';
+	public static function track_seen( $newsletter_id, $tracking_id, $email_address ) {
 		$newsletter_tracking_id = \get_post_meta( $newsletter_id, 'tracking_id', true );
-		// phpcs:enable
 
-		// Tracking ID mismatch.
+		// Bail if tracking ID mismatch.
 		if ( $newsletter_tracking_id !== $tracking_id ) {
-			exit;
+			return;
 		}
 
 		$pixel_seen = \get_post_meta( $newsletter_id, 'tracking_pixel_seen', true );
@@ -132,6 +124,31 @@ final class Pixel {
 		 * @param string $email_address Email address of the recipient.
 		 */
 		\do_action( 'newspack_newsletters_tracking_pixel_seen', $newsletter_id, $email_address );
+	}
+
+	/**
+	 * Render the tracking pixel.
+	 */
+	public static function render() {
+		if ( ! \get_query_var( self::QUERY_VAR ) ) {
+			return;
+		}
+
+		// Set the appropriate content type header.
+		header( 'Content-Type: image/gif' );
+		// Output a transparent 1x1 pixel image.
+		echo base64_decode( 'R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$newsletter_id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+		$tracking_id   = isset( $_GET['tid'] ) ? \sanitize_text_field( $_GET['tid'] ) : 0;
+		$email_address = isset( $_GET['em'] ) ? \sanitize_email( $_GET['em'] ) : '';
+		// phpcs:enable
+
+		if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
+			return;
+		}
+		self::track_seen( $newsletter_id, $tracking_id, $email_address );
 		exit;
 	}
 }

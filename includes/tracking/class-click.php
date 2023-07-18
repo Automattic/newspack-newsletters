@@ -88,6 +88,36 @@ final class Click {
 	}
 
 	/**
+	 * Track click.
+	 *
+	 * @param int    $newsletter_id Newsletter ID.
+	 * @param string $email_address Email address.
+	 * @param string $url           Destination URL.
+	 *
+	 * @return void
+	 */
+	public static function track_click( $newsletter_id, $email_address, $url ) {
+		if ( ! $newsletter_id || ! $email_address ) {
+			return;
+		}
+
+		$clicks = \get_post_meta( $newsletter_id, 'tracking_clicks', true );
+		if ( ! $clicks ) {
+			$clicks = 0;
+		}
+		$clicks++;
+		\update_post_meta( $newsletter_id, 'tracking_clicks', $clicks );
+
+		/**
+		 * Fires when a click is tracked.
+		 *
+		 * @param int    $newsletter_id Newsletter ID.
+		 * @param string $url           Destination URL.
+		 */
+		do_action( 'newspack_newsletters_tracking_click', $newsletter_id, $email_address, $url );
+	}
+
+	/**
 	 * Handle proxied URL click and redirect to destination.
 	 */
 	public static function handle_click() {
@@ -106,22 +136,7 @@ final class Click {
 			exit;
 		}
 
-		if ( $newsletter_id && $email_address ) {
-			$clicks = \get_post_meta( $newsletter_id, 'tracking_clicks', true );
-			if ( ! $clicks ) {
-				$clicks = 0;
-			}
-			$clicks++;
-			\update_post_meta( $newsletter_id, 'tracking_clicks', $clicks );
-		}
-
-		/**
-		 * Fires when a click is tracked.
-		 *
-		 * @param int    $newsletter_id Newsletter ID.
-		 * @param string $url           Destination URL.
-		 */
-		do_action( 'newspack_newsletters_tracking_click', $newsletter_id, $email_address, $url );
+		self::track_click( $newsletter_id, $email_address, $url );
 
 		\wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 		exit;
