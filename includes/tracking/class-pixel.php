@@ -16,9 +16,9 @@ final class Pixel {
 	/**
 	 * Store whether the tracking pixel has been added to the newsletter.
 	 *
-	 * @var bool
+	 * @var bool[] Whether the tracking pixel has been by newsletter ID.
 	 */
-	protected static $pixel_added = false;
+	protected static $pixel_added = [];
 
 	/**
 	 * Initialize hooks.
@@ -37,14 +37,14 @@ final class Pixel {
 	 * @param WP_Post $post Post object.
 	 */
 	public static function add_tracking_pixel( $post ) {
-		if ( self::$pixel_added ) {
+		if ( ! empty( self::$pixel_added[ $post->ID ] ) ) {
 			return;
 		}
 		printf(
 			'<mj-raw><img src="%s" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px; border: none; margin: 0; padding: 0;" /></mj-raw>',
 			esc_url( self::get_pixel_url( $post->ID ) )
 		);
-		self::$pixel_added = true;
+		self::$pixel_added[ $post->ID ] = true;
 	}
 
 	/**
