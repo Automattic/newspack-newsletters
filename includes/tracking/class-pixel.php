@@ -14,6 +14,13 @@ final class Pixel {
 	const QUERY_VAR = 'np_newsletters_pixel';
 
 	/**
+	 * Store whether the tracking pixel has been added to the newsletter.
+	 *
+	 * @var bool
+	 */
+	protected static $pixel_added = false;
+
+	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
@@ -30,10 +37,14 @@ final class Pixel {
 	 * @param WP_Post $post Post object.
 	 */
 	public static function add_tracking_pixel( $post ) {
+		if ( self::$pixel_added ) {
+			return;
+		}
 		printf(
 			'<mj-raw><img src="%s" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px; border: none; margin: 0; padding: 0;" /></mj-raw>',
 			esc_url( self::get_pixel_url( $post->ID ) )
 		);
+		self::$pixel_added = true;
 	}
 
 	/**
