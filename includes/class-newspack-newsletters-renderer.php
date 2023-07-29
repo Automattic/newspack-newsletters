@@ -272,10 +272,11 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Append UTM param to links.
 	 *
-	 * @param string $html input HTML.
+	 * @param string   $html Input HTML.
+	 * @param \WP_Post $post Optional post object.
 	 * @return string HTML with processed links.
 	 */
-	public static function process_links( $html ) {
+	public static function process_links( $html, $post = null ) {
 		preg_match_all( '/href="([^"]*)"/', $html, $matches );
 		$href_params = $matches[0];
 		$urls        = $matches[1];
@@ -292,7 +293,8 @@ final class Newspack_Newsletters_Renderer {
 					],
 					$url
 				),
-				$url
+				$url,
+				$post
 			);
 
 			$html = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
@@ -1229,7 +1231,7 @@ final class Newspack_Newsletters_Renderer {
 			$body = self::insert_ads( $body, INF );
 		}
 
-		return self::process_links( $body );
+		return self::process_links( $body, $post );
 	}
 
 	/**
