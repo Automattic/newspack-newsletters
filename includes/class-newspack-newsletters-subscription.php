@@ -161,52 +161,32 @@ class Newspack_Newsletters_Subscription {
 			if ( is_wp_error( $lists ) ) {
 				return $lists;
 			}
-			$config = self::get_lists_config();
+			$saved_lists = Subscription_Lists::get_configured_for_current_provider();
 
-			$local_lists = Subscription_Lists::get_configured_for_current_provider();
-
-			$locals = [];
-			foreach ( $local_lists as $local_list ) {
-				$locals[] = [
-					'id'          => $local_list->get_form_id(),
-					'name'        => $local_list->get_title(),
-					'description' => $local_list->get_description(),
-					'type'        => 'local',
-					'edit_link'   => $local_list->get_edit_link(),
-				];
-			}
-
-			$lists = array_merge( $lists, $locals );
-
-			return array_map(
+			$return_lists = array_map(
 				function( $list ) use ( $config, $provider ) {
 					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {
 						return;
 					}
-					$item = [
-						'id'          => $list['id'],
-						'name'        => $list['name'],
-						'active'      => false,
-						'title'       => $list['name'],
-						'description' => $list['description'] ?? '',
-						'edit_link'   => $list['edit_link'] ?? '',
-						'type'        => $list['type'] ?? '',
-						'type_label'  => isset( $list['type'] ) && 'local' === $list['type'] ? $provider::label( 'local_list_explanation', $list ) : $provider::label( 'list_explanation', $list ),
-					];
-					if ( isset( $config[ $list['id'] ] ) ) {
-						$list_config    = $config[ $list['id'] ];
-						$item['active'] = $list_config['active'];
-						
-						// If it's a local list, ignore what is stored in the option and always use info from the Subscription_List object.
-						if ( 'local' !== $item['type'] ) {
-							$item['title']       = $list_config['title'];
-							$item['description'] = $list_config['description'];
-						}
+
+					$stored_list = Subscription_Lists::get_remote_list( $list );
+
+					if ( is_wp_error( $stored_list ) ) {
+						return;
 					}
-					return $item;
+
+					return $item->to_array();
 				},
 				$lists
 			);
+
+			// Add local lists to the response.
+			foreach ( $saved_lists as $saved_list ) {
+				if ( $saved_list->is_local() ) {
+					$return_lists[] = $saved_list->to_array();
+				}
+			}
+			return $return_lists;
 		} catch ( \Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_get_lists',
@@ -226,15 +206,18 @@ class Newspack_Newsletters_Subscription {
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
-		$provider_name = $provider->service;
-		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
-		$config        = get_option( $option_name, [] );
-		return array_filter(
-			$config,
-			function( $item ) {
-				return true === isset( $item['active'] ) && (bool) $item['active'];
+
+		$saved_lists  = Subscription_Lists::get_configured_for_current_provider();
+		$active_lists = [];
+
+		foreach ( $saved_lists as $list ) {
+			if ( ! $list->is_active() ) {
+				continue;
 			}
-		);
+			$active_lists[ $list->get_form_id() ] = $list->to_array();
+		}
+
+		return $active_lists;
 	}
 
 	/**
@@ -260,9 +243,8 @@ class Newspack_Newsletters_Subscription {
 		if ( empty( $lists ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
 		}
-		$provider_name = $provider->service;
-		$option_name   = sprintf( '_newspack_newsletters_%s_lists', $provider_name );
-		return update_option( $option_name, $lists );
+
+		return Subscription_List::update_lists( $lists );
 	}
 
 	/**

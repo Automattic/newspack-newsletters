@@ -76,7 +76,20 @@ trait Lists_Setup {
 			]
 		);
 
-		self::$posts = compact( 'without_settings', 'only_mailchimp', 'two_settings', 'mc_invalid' );
+		$remote_mailchimp      = self::create_post( 5 );
+		$remote_mailchimp_list = new Subscription_List( $remote_mailchimp );
+		$remote_mailchimp_list->set_remote_id( 'xyz-' . $remote_mailchimp );
+		$remote_mailchimp_list->set_type( 'remote' );
+		$remote_mailchimp_list->set_provider( 'mailchimp' );
+
+		$remote_mailchimp_inactive      = self::create_post( 6 );
+		$remote_mailchimp_inactive_list = new Subscription_List( $remote_mailchimp_inactive );
+		$remote_mailchimp_inactive_list->set_remote_id( 'xyz-' . $remote_mailchimp_inactive );
+		$remote_mailchimp_inactive_list->set_type( 'remote' );
+		$remote_mailchimp_inactive_list->set_provider( 'mailchimp' );
+		$remote_mailchimp_inactive_list->update( [ 'active' => false ] );
+
+		self::$posts = compact( 'without_settings', 'only_mailchimp', 'two_settings', 'mc_invalid', 'remote_mailchimp', 'remote_mailchimp_inactive' );
 	}
 
 	/**

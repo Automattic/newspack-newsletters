@@ -14,6 +14,9 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Class used to represent one Subscription List
+ *
+ * A list can be either local or remote. Local lists reffer to lists that are created via wp-admin and synced to the ESP as tags or groups.
+ * Remote lists are lists that are created and managed on the ESP and synced to the site. Users can store a local title and description that will be used to represent the list on the site.
  */
 class Subscription_List {
 
@@ -33,6 +36,21 @@ class Subscription_List {
 	 * The prefix used to build the form iD
 	 */
 	const FORM_ID_PREFIX = 'newspack-';
+
+	/**
+	 * The post meta key used to mark a list as local
+	 */
+	const TYPE_META = '_type';
+
+	/**
+	 * The post meta key used to store the list provider, only present for remote lists
+	 */
+	const PROVIDER_META = '_provider';
+
+	/**
+	 * The post meta key used to store the list remote ID (the ID in the ESP), only present for remote lists
+	 */
+	const REMOTE_ID_META = '_remote_id';
 
 	/**
 	 * Checks if a string $id is in the format of a Subscription List Form ID
@@ -102,7 +120,10 @@ class Subscription_List {
 	 * @return string
 	 */
 	public function get_form_id() {
-		return self::FORM_ID_PREFIX . $this->get_id();
+		if ( $this->is_local() ) {
+			return self::FORM_ID_PREFIX . $this->get_id();
+		}
+		return $this->get_remote_id();
 	}
 
 	/**
@@ -124,6 +145,95 @@ class Subscription_List {
 	}
 
 	/**
+	 * Gets the list type. If not defined, defaults to 'local'
+	 *
+	 * @return string
+	 */
+	public function get_type() {
+		$meta = get_post_meta( $this->get_id(), self::TYPE_META, true );
+		return empty( $meta ) || ! is_string( $meta ) || 'remote' !== $meta ? 'local' : 'remote';
+	}
+
+	/**
+	 * Sets the list type
+	 *
+	 * @param string $type The type to be set. Accepts local or remote.
+	 * @return boolean
+	 */
+	public function set_type( $type ) {
+		return update_post_meta( $this->get_id(), self::TYPE_META, 'remote' === $type ? 'remote' : 'local' );
+	}
+
+	/**
+	 * Gets the label for the list type from the provider class
+	 *
+	 * @return string
+	 */
+	public function get_type_label() {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( ! empty( $provider ) ) {
+			return $this->is_local() ? $provider::label( 'local_list_explanation', $this->get_form_id() ) : $provider::label( 'list_explanation', $this->get_form_id() );
+		}
+		return '';
+	}
+
+	/**
+	 * Checks if the list is active
+	 *
+	 * @return boolean
+	 */
+	public function is_active() {
+		return 'publish' === $this->post->post_status;
+	}
+
+	/**
+	 * Checks if the list is local
+	 *
+	 * @return boolean
+	 */
+	public function is_local() {
+		return 'local' === $this->get_type();
+	}
+
+	/**
+	 * Gets the provider slug, only present for remote lists
+	 *
+	 * @return string
+	 */
+	public function get_provider() {
+		return get_post_meta( $this->get_id(), self::PROVIDER_META, true );
+	}
+
+	/**
+	 * Sets the provider slug, only present for remote lists
+	 *
+	 * @param string $provider The provider slug.
+	 * @return boolean
+	 */
+	public function set_provider( $provider ) {
+		return update_post_meta( $this->get_id(), self::PROVIDER_META, $provider );
+	}
+
+	/**
+	 * Gets the remote ID, only present for remote lists
+	 *
+	 * @return string
+	 */
+	public function get_remote_id() {
+		return get_post_meta( $this->get_id(), self::REMOTE_ID_META, true );
+	}
+
+	/**
+	 * Sets the remote ID, only present for remote lists
+	 *
+	 * @param string $remote_id The remote ID.
+	 * @return boolean
+	 */
+	public function set_remote_id( $remote_id ) {
+		return update_post_meta( $this->get_id(), self::REMOTE_ID_META, $remote_id );
+	}
+
+	/**
 	 * Gets the link to edit this list
 	 *
 	 * In some rest requests, the post type is not registered, so we can't use get_edit_post_link
@@ -131,7 +241,7 @@ class Subscription_List {
 	 * @return string
 	 */
 	public function get_edit_link() {
-		return sprintf( admin_url( 'post.php?post=%d&action=edit' ), $this->get_id() );
+		return $this->is_local() ? sprintf( admin_url( 'post.php?post=%d&action=edit' ), $this->get_id() ) : '';
 	}
 
 	/**
@@ -184,6 +294,9 @@ class Subscription_List {
 	 * @return boolean
 	 */
 	public function is_configured_for_provider( $provider_slug ) {
+		if ( ! $this->is_local() ) {
+			return $this->get_provider() === $provider_slug;
+		}
 		$settings = $this->get_provider_settings( $provider_slug );
 		if ( ! is_array( $settings ) ) {
 			return false;
@@ -290,6 +403,59 @@ class Subscription_List {
 		}
 		
 		return update_post_meta( $this->get_id(), self::META_KEY, $settings );
+	}
+
+	/**
+	 * Update the list settings.
+	 *
+	 * This methdos can update three fields: title, description and active.
+	 *
+	 * @param array[] $fields {
+	 *    Array of list configuration. All keys are optional.
+	 *
+	 *    @type boolean active      Whether the list is available for subscription.
+	 *    @type string  title       The list title.
+	 *    @type string  description The list description.
+	 * }
+	 *
+	 * @return boolean|WP_Error Whether the lists were updated or error.
+	 */
+	public function update( $fields ) {
+		$post_data = [];
+		if ( isset( $fields['active'] ) && $fields['active'] !== $this->is_active() ) {
+			$post_data['post_status'] = $fields['active'] ? 'publish' : 'draft';
+		}
+		if ( ! empty( $fields['title'] ) && $this->get_title() !== $fields['title'] ) {
+			$post_data['post_title'] = $fields['title'];
+		}
+		if ( ! empty( $fields['description'] ) && $this->get_description() !== $fields['description'] ) {
+			$post_data['post_content'] = $fields['description'];
+		}
+		if ( ! empty( $post_data ) ) {
+			$post_data['ID'] = $this->get_id();
+			wp_update_post( $post_data );
+			$this->post = get_post( $this->get_id() );
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Converts the list to an array, to be used in the configuration object used by the plugin
+	 *
+	 * @return array
+	 */
+	public function to_array() {
+		return [
+			'id'          => $this->get_id(),
+			'title'       => $this->get_title(),
+			'description' => $this->get_description(),
+			'type'        => $this->get_type(),
+			'type_label'  => $this->get_type_label(),
+			'edit_link'   => $this->get_edit_link(),
+			'form_id'     => $this->get_form_id(),
+			'active'      => $this->is_active(),
+		];
 	}
 
 }
