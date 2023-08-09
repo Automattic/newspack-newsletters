@@ -4,6 +4,8 @@
  */
 import './style.scss';
 
+let nonce;
+
 /**
  * Specify a function to execute when the DOM is fully loaded.
  *
@@ -115,6 +117,9 @@ domReady( function () {
 					if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
 						return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 					}
+					if ( nonce ) {
+						body.set( 'newspack_newsletters_subscribe', nonce );
+					}
 					emailInput.setAttribute( 'disabled', 'true' );
 					submit.setAttribute( 'disabled', 'true' );
 
@@ -125,9 +130,18 @@ domReady( function () {
 						},
 						body,
 					} ).then( res => {
-						res.json().then( ( { message, newspack_newsletters_subscribed: wasSubscribed } ) => {
-							form.endFlow( message, res.status, wasSubscribed );
-						} );
+						res
+							.json()
+							.then(
+								( {
+									message,
+									newspack_newsletters_subscribed: wasSubscribed,
+									newspack_newsletters_subscribe,
+								} ) => {
+									nonce = newspack_newsletters_subscribe;
+									form.endFlow( message, res.status, wasSubscribed );
+								}
+							);
 					} );
 				} );
 		} );
