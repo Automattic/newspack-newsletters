@@ -164,10 +164,13 @@ class Newspack_Newsletters_Subscription {
 			$saved_lists = Subscription_Lists::get_configured_for_current_provider();
 
 			$return_lists = array_map(
-				function( $list ) use ( $config, $provider ) {
+				function( $list ) {
 					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {
 						return;
 					}
+					
+					// This is messy, when the ESP returns lists, it's name, when we get it from our UIs, it's title... we need both.
+					$list['title'] = $list['name'];
 
 					$stored_list = Subscription_Lists::get_remote_list( $list );
 
@@ -175,7 +178,7 @@ class Newspack_Newsletters_Subscription {
 						return;
 					}
 
-					return $item->to_array();
+					return $stored_list->to_array();
 				},
 				$lists
 			);
@@ -244,7 +247,7 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
 		}
 
-		return Subscription_List::update_lists( $lists );
+		return Subscription_Lists::update_lists( $lists );
 	}
 
 	/**
@@ -260,7 +263,8 @@ class Newspack_Newsletters_Subscription {
 			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) || empty( $list['title'] ) ) {
 				continue;
 			}
-			$sanitized[ $list['id'] ] = [
+			$sanitized[] = [
+				'id'          => $list['id'],
 				'active'      => isset( $list['active'] ) ? (bool) $list['active'] : false,
 				'title'       => $list['title'],
 				'description' => isset( $list['description'] ) ? (string) $list['description'] : '',

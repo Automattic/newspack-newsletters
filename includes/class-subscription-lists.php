@@ -450,13 +450,13 @@ class Subscription_Lists {
 	 *    Array of list configuration. Fields are required.
 	 *
 	 *    @type string  id         The list id in the ESP.
-	 *    @type string  name       The list name.
+	 *    @type string  title       The list title.
 	 * }
 	 * @throws \Exception If the list is invalid.
 	 * @return Subscription_List
 	 */
 	public static function get_remote_list( $list ) {
-		if ( empty( $list['id'] ) || empty( $list['name'] ) ) {
+		if ( empty( $list['id'] ) || empty( $list['title'] ) ) {
 			throw new \Exception( 'Invalid list' );
 		}
 
@@ -466,7 +466,7 @@ class Subscription_Lists {
 			return $saved;
 		}
 
-		return self::create_remote_list( $list['id'], $list['name'] );
+		return self::create_remote_list( $list['id'], $list['title'] );
 	}
 
 	/**

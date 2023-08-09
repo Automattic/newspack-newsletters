@@ -449,6 +449,7 @@ class Subscription_List {
 		return [
 			'id'          => $this->get_id(),
 			'title'       => $this->get_title(),
+			'name'        => $this->get_title(),
 			'description' => $this->get_description(),
 			'type'        => $this->get_type(),
 			'type_label'  => $this->get_type_label(),
