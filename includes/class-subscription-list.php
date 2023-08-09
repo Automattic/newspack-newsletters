@@ -447,14 +447,14 @@ class Subscription_List {
 	 */
 	public function to_array() {
 		return [
-			'id'          => $this->get_id(),
+			'id'          => $this->get_form_id(),
+			'db_id'       => $this->get_id(),
 			'title'       => $this->get_title(),
 			'name'        => $this->get_title(),
 			'description' => $this->get_description(),
 			'type'        => $this->get_type(),
 			'type_label'  => $this->get_type_label(),
 			'edit_link'   => $this->get_edit_link(),
-			'form_id'     => $this->get_form_id(),
 			'active'      => $this->is_active(),
 		];
 	}
