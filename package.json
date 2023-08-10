@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "1.67.3",
+	"version": "1.67.4",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
