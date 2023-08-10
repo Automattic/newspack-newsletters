@@ -157,12 +157,19 @@ class Newspack_Newsletters_Subscription {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 		try {
+			/**
+			 * Here we always fetch the lists from the ESP, because we want to make sure we have the latest data.
+			 */
 			$lists = $provider->get_lists();
 			if ( is_wp_error( $lists ) ) {
 				return $lists;
 			}
 			$saved_lists = Subscription_Lists::get_configured_for_current_provider();
 
+			/**
+			 * We loop through the lists returned by the ESP.
+			 * Only remote lists that still exist in the ESP will be returned.
+			 */
 			$return_lists = array_map(
 				function( $list ) {
 					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {

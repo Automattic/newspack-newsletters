@@ -434,7 +434,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public function add_contact_handling_local_lists( $contact, $list_id ) {
-		if ( Subscription_List::is_form_id( $list_id ) ) {
+		if ( Subscription_List::is_local_form_id( $list_id ) ) {
 			try {
 				$list = new Subscription_List( $list_id );
 
@@ -508,7 +508,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function update_contact_local_lists( $email, $lists = [], $action = 'add' ) {
 		foreach ( $lists as $key => $list_id ) {
-			if ( Subscription_List::is_form_id( $list_id ) ) {
+			if ( Subscription_List::is_local_form_id( $list_id ) ) {
 				try {
 					$list = new Subscription_List( $list_id );
 

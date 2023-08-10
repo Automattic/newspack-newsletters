@@ -53,14 +53,14 @@ class Subscription_List {
 	const REMOTE_ID_META = '_remote_id';
 
 	/**
-	 * Checks if a string $id is in the format of a Subscription List Form ID
+	 * Checks if a string $id is in the format of a local Subscription List Form ID
 	 *
 	 * @see self::get_form_id
 	 * @param string $id The ID to be checked.
 	 * @return boolean
 	 */
-	public static function is_form_id( $id ) {
-		return (bool) self::get_id_from_form_id( $id );
+	public static function is_local_form_id( $id ) {
+		return (bool) self::get_id_from_local_form_id( $id );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class Subscription_List {
 	 * @param string $form_id The Form id.
 	 * @return ?int The ID on success, NULL on failure
 	 */
-	public static function get_id_from_form_id( $form_id ) {
+	public static function get_id_from_local_form_id( $form_id ) {
 		if ( ! is_string( $form_id ) ) {
 			return;
 		}
@@ -92,8 +92,8 @@ class Subscription_List {
 	 */
 	public function __construct( $post_or_id ) {
 		if ( ! $post_or_id instanceof WP_Post ) {
-			if ( self::is_form_id( $post_or_id ) ) {
-				$post_or_id = self::get_id_from_form_id( $post_or_id );
+			if ( self::is_local_form_id( $post_or_id ) ) {
+				$post_or_id = self::get_id_from_local_form_id( $post_or_id );
 			}
 			$post_or_id = get_post( (int) $post_or_id );
 			if ( ! $post_or_id instanceof WP_Post ) {
@@ -234,7 +234,7 @@ class Subscription_List {
 	}
 
 	/**
-	 * Gets the link to edit this list
+	 * Gets the link to edit this list. Only local lists can be edited locally.
 	 *
 	 * In some rest requests, the post type is not registered, so we can't use get_edit_post_link
 	 *

@@ -89,14 +89,14 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	 * Tests the form ID static methods
 	 *
 	 * @param mixed $input The input for the methods.
-	 * @param mixed $is_form_id The expected result of is_form_id.
-	 * @param mixed $extracted_id The expected result of get_id_from_form_id.
+	 * @param mixed $is_local_form_id The expected result of is_local_form_id.
+	 * @param mixed $extracted_id The expected result of get_id_from_local_form_id.
 	 * @return void
 	 * @dataProvider static_methods_data
 	 */
-	public function test_static_methods( $input, $is_form_id, $extracted_id ) {
-		$this->assertSame( $is_form_id, Subscription_List::is_form_id( $input ) );
-		$this->assertSame( $extracted_id, Subscription_List::get_id_from_form_id( $input ) );
+	public function test_static_methods( $input, $is_local_form_id, $extracted_id ) {
+		$this->assertSame( $is_local_form_id, Subscription_List::is_local_form_id( $input ) );
+		$this->assertSame( $extracted_id, Subscription_List::get_id_from_local_form_id( $input ) );
 	}
 
 	/**

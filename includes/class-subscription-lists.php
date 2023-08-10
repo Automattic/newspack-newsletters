@@ -556,7 +556,7 @@ class Subscription_Lists {
 		$existing_ids = [];
 
 		foreach ( $lists as $list ) {
-			if ( Subscription_List::is_form_id( $list['id'] ) ) {
+			if ( Subscription_List::is_local_form_id( $list['id'] ) ) {
 				// Local lists will be fetched here.
 				$stored_list = new Subscription_List( $list['id'] );
 			} else {
