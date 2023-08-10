@@ -21,6 +21,13 @@ trait Lists_Setup {
 	public static $posts;
 
 	/**
+	 * Testing a post that could conlfict with the ID of a list
+	 *
+	 * @var int
+	 */
+	public static $conflicting_post_id;
+
+	/**
 	 * Sets up testing data
 	 *
 	 * @return void
@@ -89,7 +96,23 @@ trait Lists_Setup {
 		$remote_mailchimp_inactive_list->set_provider( 'mailchimp' );
 		$remote_mailchimp_inactive_list->update( [ 'active' => false ] );
 
-		self::$posts = compact( 'without_settings', 'only_mailchimp', 'two_settings', 'mc_invalid', 'remote_mailchimp', 'remote_mailchimp_inactive' );
+		/**
+		 * The list and post below make sure that the remote list ID is not confused with the post ID when it is an integer and matches with an existing post.
+		 */
+		self::$conflicting_post_id   = wp_insert_post(
+			[
+				'post_title'  => 'Simple Post',
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			]
+		);
+		$remote_active_campaign      = self::create_post( 7 );
+		$remote_active_campaign_list = new Subscription_List( $remote_active_campaign );
+		$remote_active_campaign_list->set_remote_id( self::$conflicting_post_id ); // Active campaign has integer IDs, lets make sure they dont get messed up with post IDs.
+		$remote_active_campaign_list->set_type( 'remote' );
+		$remote_active_campaign_list->set_provider( 'active_campaign' );
+
+		self::$posts = compact( 'without_settings', 'only_mailchimp', 'two_settings', 'mc_invalid', 'remote_mailchimp', 'remote_mailchimp_inactive', 'remote_active_campaign' );
 	}
 
 	/**

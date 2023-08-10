@@ -535,7 +535,7 @@ class Subscription_Lists {
 	 * @param array[] $lists {
 	 *    Array of list configuration.
 	 *
-	 *    @type string  id          The list id.
+	 *    @type string  id          The list id in the ESP (not the ID in the DB)
 	 *    @type boolean active      Whether the list is available for subscription.
 	 *    @type string  title       The list title.
 	 *    @type string  description The list description.
@@ -556,10 +556,10 @@ class Subscription_Lists {
 		$existing_ids = [];
 
 		foreach ( $lists as $list ) {
-			try {
+			if ( Subscription_List::is_form_id( $list['id'] ) ) {
 				// Local lists will be fetched here.
 				$stored_list = new Subscription_List( $list['id'] );
-			} catch ( \Exception $e ) {
+			} else {
 				// Remote lists will be either fetched or created here.
 				$stored_list = self::get_remote_list( $list );
 			}
@@ -574,15 +574,11 @@ class Subscription_Lists {
 
 		}
 
-		// Clean up. Lists that are not in the new config will be deleted.
+		// Clean up. Lists that are not in the new config deactivated.
 		$all_lists = self::get_all();
 		foreach ( $all_lists as $list ) {
 			if ( ! in_array( $list->get_id(), $existing_ids, true ) ) {
-				if ( $list->is_local() ) {
-					$list->update( [ 'active' => false ] );
-				} else {
-					self::delete_list( $list );
-				}
+				$list->update( [ 'active' => false ] );
 			}
 		}
 

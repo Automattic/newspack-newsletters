@@ -20,7 +20,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	 */
 	public function test_get_all() {
 		$all = Subscription_Lists::get_all();
-		$this->assertSame( 6, count( $all ) );
+		$this->assertSame( 7, count( $all ) );
 	}
 
 	/**
@@ -37,7 +37,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		}
 
 		$all = Subscription_Lists::get_configured_for_provider( 'active_campaign' );
-		$this->assertSame( 2, count( $all ) );
+		$this->assertSame( 3, count( $all ) );
 		foreach ( $all as $list ) {
 			$this->assertInstanceOf( Subscription_List::class, $list );
 			$this->assertTrue( $list->is_configured_for_provider( 'active_campaign' ) );
@@ -61,7 +61,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 		$all = Subscription_Lists::get_configured_for_current_provider();
-		$this->assertSame( 2, count( $all ) );
+		$this->assertSame( 3, count( $all ) );
 		foreach ( $all as $list ) {
 			$this->assertInstanceOf( Subscription_List::class, $list );
 			$this->assertTrue( $list->is_configured_for_provider( 'active_campaign' ) );
@@ -162,15 +162,24 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
 
+		$count                  = count( Subscription_Lists::get_all() );
+		$only_mailchimp         = new Subscription_List( self::$posts['only_mailchimp'] );
+		$remote_active_campaign = new Subscription_List( self::$posts['remote_active_campaign'] );
+
 		$new_lists = [
 			[
-				'id'    => self::$posts['only_mailchimp'],
+				'id'    => $only_mailchimp->get_form_id(),
 				'title' => 'New title',
 			],
 			[
 				'id'     => 'xyz-' . self::$posts['remote_mailchimp'],
 				'title'  => 'Remote mailchimp new title',
 				'active' => false,
+			],
+			[
+				'id'     => $remote_active_campaign->get_form_id(),
+				'title'  => 'New title for AC',
+				'active' => true,
 			],
 			[
 				'id'     => 'xyz-abcde',
@@ -181,11 +190,11 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		Subscription_Lists::update_lists( $new_lists );
 
-		$count = count( Subscription_Lists::get_all() );
+		$new_count = count( Subscription_Lists::get_all() );
 
 		// 3 local lists should be marked as deactivated.
-		// 1 remote list should be deleted and one should be added.
-		$this->assertSame( 6, $count );
+		// 1 remote list should be deactivated and one should be added.
+		$this->assertSame( $count + 1, $new_count );
 
 		$list = new Subscription_List( self::$posts['without_settings'] );
 		$this->assertSame( false, $list->is_active() );
@@ -207,11 +216,17 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
 
 		$list = Subscription_Lists::get_list_by_remote_id( 'xyz-' . self::$posts['remote_mailchimp_inactive'] );
-		$this->assertNull( $list );
+		$this->assertSame( false, $list->is_active() );
+		$this->assertSame( self::$posts['remote_mailchimp_inactive'], $list->get_id() );
 
 		$list = Subscription_Lists::get_list_by_remote_id( 'xyz-abcde' );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( 'New random list', $list->get_title() );
+
+		$list = Subscription_Lists::get_list_by_remote_id( self::$conflicting_post_id );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( 'New title for AC', $list->get_title() );
+		$this->assertSame( self::$posts['remote_active_campaign'], $list->get_id() );
 
 	}
 

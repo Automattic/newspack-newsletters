@@ -229,7 +229,7 @@ class Newspack_Newsletters_Subscription {
 	 * @param array[] $lists {
 	 *    Array of list configuration.
 	 *
-	 *    @type string  id          The list id.
+	 *    @type string  id          The list id in the ESP (not the ID in the DB)
 	 *    @type boolean active      Whether the list is available for subscription.
 	 *    @type string  title       The list title.
 	 *    @type string  description The list description.

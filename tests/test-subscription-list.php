@@ -502,6 +502,16 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$this->assertSame( false, $list->is_local() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
 		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['remote_active_campaign'] );
+		$this->assertTrue( $list->is_configured_for_provider( 'active_campaign' ) );
+		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'remote', $list->get_type() );
+		$this->assertSame( (string) self::$conflicting_post_id, $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( false, $list->is_local() );
+		$this->assertSame( 'active_campaign', $list->get_provider() );
+		$this->assertSame( (string) self::$conflicting_post_id, $list->get_remote_id() );
 	}
 
 	/**
