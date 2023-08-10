@@ -149,6 +149,18 @@
 		}
 	}
 
+	&__message {
+		p {
+			font-size: 0.8em;
+			margin-top: 8px;
+
+			&.status-400,
+			&.status-500 {
+				color: wp-colors.$alert-red;
+			}
+		}
+	}
+
 	.nphp {
 		border: 0;
 		clip: rect( 1px, 1px, 1px, 1px );
