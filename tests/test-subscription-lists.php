@@ -7,7 +7,6 @@
 
 use Newspack\Newsletters\Subscription_List;
 use Newspack\Newsletters\Subscription_Lists;
-use Newspack_Newsletters;
 
 /**
  * Tests the Subscription_List class
@@ -128,8 +127,8 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		// existing.
 		$existing = [
-			'id'   => 'xyz-' . self::$posts['remote_mailchimp'],
-			'name' => 'Remote mailchimp new title',
+			'id'    => 'xyz-' . self::$posts['remote_mailchimp'],
+			'title' => 'Remote mailchimp new title',
 		];
 		$list     = Subscription_Lists::get_remote_list( $existing );
 		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
@@ -142,8 +141,8 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		// new.
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 		$new  = [
-			'id'   => 'xyz-abcde',
-			'name' => 'New random list',
+			'id'    => 'xyz-abcde',
+			'title' => 'New random list',
 		];
 		$list = Subscription_Lists::get_remote_list( $new );
 		$this->assertSame( 'New random list', $list->get_title() );
@@ -160,20 +159,23 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_update() {
-		
+
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
 		$new_lists = [
 			[
-				'id'   => self::$posts['only_mailchimp'],
-				'name' => 'New title',
+				'id'    => self::$posts['only_mailchimp'],
+				'title' => 'New title',
 			],
 			[
 				'id'     => 'xyz-' . self::$posts['remote_mailchimp'],
-				'name'   => 'Remote mailchimp new title',
+				'title'  => 'Remote mailchimp new title',
 				'active' => false,
 			],
 			[
-				'id'   => 'xyz-abcde',
-				'name' => 'New random list',
+				'id'     => 'xyz-abcde',
+				'title'  => 'New random list',
+				'active' => true,
 			],
 		];
 
@@ -195,7 +197,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( false, $list->is_active() );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
-		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( false, $list->is_active(), 'If active is not informed it should be set to false' );
 		$this->assertSame( 'New title', $list->get_title() );
 		$this->assertSame( self::$posts['only_mailchimp'], $list->get_id() );
 

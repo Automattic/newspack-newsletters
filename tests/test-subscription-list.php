@@ -6,7 +6,6 @@
  */
 
 use Newspack\Newsletters\Subscription_List;
-use Newspack_Newsletters;
 
 /**
  * Tests the Subscription_List class
