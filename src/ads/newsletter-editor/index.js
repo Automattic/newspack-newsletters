@@ -22,7 +22,7 @@ function NewslettersAdsSettings() {
 				title={ __( 'Ads Settings', 'newspack-newsletters' ) }
 			>
 				<CheckboxControl
-					label={ __( 'Disable auto ads', 'newspack-newsletters' ) }
+					label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
 					checked={ disableAutoAds }
 					onChange={ disable_auto_ads => editPost( { meta: { disable_auto_ads } } ) }
 				/>
