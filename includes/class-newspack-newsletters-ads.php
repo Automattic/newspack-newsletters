@@ -42,6 +42,7 @@ final class Newspack_Newsletters_Ads {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_ADS_CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 	}
@@ -68,6 +69,23 @@ final class Newspack_Newsletters_Ads {
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_ADS_CPT,
 				'show_in_rest'   => true,
 				'type'           => 'integer',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+	}
+
+	/**
+	 * Register custom fields for newsletters.
+	 */
+	public static function register_newsletter_meta() {
+		\register_meta(
+			'post',
+			'disable_auto_ads',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => true,
+				'type'           => 'boolean',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
 			]
@@ -145,6 +163,26 @@ final class Newspack_Newsletters_Ads {
 			return;
 		}
 		update_post_meta( $post_id, 'position_in_content', 100 );
+	}
+
+	/**
+	 * Whether to render ads in the newsletter
+	 *
+	 * @param int $post_id ID of the newsletter post.
+	 */
+	public static function should_render_ads( $post_id ) {
+		$disable_auto_ads  = get_post_meta( $post_id, 'disable_auto_ads', true );
+		$should_render_ads = true;
+		if ( $disable_auto_ads ) {
+			$should_render_ads = false;
+		}
+		/**
+		 * Filters whether to render ads in the newsletter.
+		 *
+		 * @param bool $should_render_ads Whether to render ads in the newsletter.
+		 * @param int  $post_id           ID of the newsletter post.
+		 */
+		return apply_filters( 'newspack_newsletters_should_render_ads', $should_render_ads, $post_id );
 	}
 }
 Newspack_Newsletters_Ads::instance();

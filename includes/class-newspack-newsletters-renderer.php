@@ -1261,7 +1261,8 @@ final class Newspack_Newsletters_Renderer {
 		/**
 		 * Generate a string of MJML as the body of the email. We include ads at this stage.
 		 */
-		$body             = self::post_to_mjml_components( $post, true ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$include_ads      = Newspack_Newsletters_Ads::should_render_ads( $post->ID );
+		$body             = self::post_to_mjml_components( $post, $include_ads ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$preview_text     = get_post_meta( $post->ID, 'preview_text', true );
 		$custom_css       = get_post_meta( $post->ID, 'custom_css', true );
