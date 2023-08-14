@@ -40,7 +40,7 @@
 		"@uiw/react-codemirror": "^3.2.10",
 		"@wordpress/icons": "^9.29.0",
 		"classnames": "^2.3.2",
-		"commitlint": "^17.6.7",
+		"commitlint": "^17.7.1",
 		"csslint": "^1.0.5",
 		"lodash": "^4.17.21",
 		"mjml-browser": "^4.14.1",
