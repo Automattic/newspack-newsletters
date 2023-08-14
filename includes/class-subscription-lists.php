@@ -36,6 +36,7 @@ class Subscription_Lists {
 	 */
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
+		add_action( 'init', [ __CLASS__, 'migrate_lists' ], 11 );
 
 		if ( ! self::should_initialize_local_lists() ) {
 			return;
@@ -499,9 +500,10 @@ class Subscription_Lists {
 	 *
 	 * @param string $remote_id The ID of the list in the ESP.
 	 * @param string $name The name of the list.
+	 * @param string $provider_slug The provider slug to create the list for. Default is the current configured provider.
 	 * @return Subscription_List|WP_Error
 	 */
-	public static function create_remote_list( $remote_id, $name ) {
+	public static function create_remote_list( $remote_id, $name, $provider_slug = null ) {
 		$post_id = wp_insert_post(
 			[
 				'post_type'   => self::CPT,
@@ -517,7 +519,11 @@ class Subscription_Lists {
 		$list = new Subscription_List( $post_id );
 		$list->set_remote_id( $remote_id );
 		$list->set_type( 'remote' );
-		$provider = Newspack_Newsletters::get_service_provider();
+		if ( is_null( $provider_slug ) ) {
+			$provider = Newspack_Newsletters::get_service_provider();
+		} else {
+			$provider = Newspack_Newsletters::get_service_provider_instance( $provider_slug );
+		}
 		if ( ! empty( $provider ) ) {
 			$list->set_provider( $provider->service );
 		}
@@ -627,5 +633,45 @@ class Subscription_Lists {
 			</a>
 			<?php
 		}
+	}
+
+	/**
+	 * Migrates the lists from the old options to the new CPT.
+	 *
+	 * @return void
+	 */
+	public static function migrate_lists() {
+		$migrated_option_name = '_newspack_newsletters_lists_migrated';
+		if ( get_option( $migrated_option_name ) ) {
+			return;
+		}
+
+		$providers = [ 'active_campaign', 'mailchimp', 'campaign_monitor', 'constant_contact' ];
+
+		foreach ( $providers as $provider ) {
+			$option_name = sprintf( '_newspack_newsletters_%s_lists', $provider );
+			$lists       = get_option( $option_name );
+			if ( empty( $lists ) ) {
+				continue;
+			}
+
+			foreach ( $lists as $list_id => $list ) {
+				
+				if ( Subscription_List::is_local_form_id( $list_id ) ) {
+					continue;
+				}
+
+				$list['id']  = $list_id;
+				$list_object = self::get_remote_list( $list, $provider );
+				$list_object->update( $list );
+				$list_object->set_provider( $provider );
+
+			}
+		}
+
+		add_option( $migrated_option_name, true );
+		// Workaround the options bug on persistent cache.
+		wp_cache_delete( 'notoptions', 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
 	}
 }

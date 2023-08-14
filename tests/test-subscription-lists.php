@@ -230,4 +230,77 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Test the migration method
+	 */
+	public function test_migration() {
+		$active_campaign = [
+			'123' => [
+				'active'      => true,
+				'title'       => 'AC1',
+				'description' => 'ac 1',
+			],
+			'456' => [
+				'active'      => false,
+				'title'       => 'AC2',
+				'description' => 'ac 2',
+			],
+		];
+		$mailchimp       = [
+			'950aaf1a98'                  => [
+				'active'      => true,
+				'title'       => 'MC1',
+				'description' => 'mc 1',
+			],
+			'group-6a822fca1c-950aaf1a98' => [
+				'active'      => false,
+				'title'       => 'MC2',
+				'description' => 'mc 2',
+			],
+			'120aaf1a12'                  => [
+				'active'      => true,
+				'title'       => 'MC3',
+				'description' => 'mc 3',
+			],
+		];
+
+		update_option( '_newspack_newsletters_mailchimp_lists', $mailchimp );
+		update_option( '_newspack_newsletters_active_campaign_lists', $active_campaign );
+
+		delete_option( '_newspack_newsletters_lists_migrated' );
+
+		Subscription_Lists::migrate_lists();
+
+		$list = Subscription_Lists::get_list_by_remote_id( '123' );
+		$this->assertSame( 'AC1', $list->get_title() );
+		$this->assertSame( 'ac 1', $list->get_description() );
+		$this->assertTrue( $list->is_active() );
+		$this->assertSame( 'active_campaign', $list->get_provider() );
+
+		$list = Subscription_Lists::get_list_by_remote_id( '456' );
+		$this->assertSame( 'AC2', $list->get_title() );
+		$this->assertSame( 'ac 2', $list->get_description() );
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( 'active_campaign', $list->get_provider() );
+
+		$list = Subscription_Lists::get_list_by_remote_id( '950aaf1a98' );
+		$this->assertSame( 'MC1', $list->get_title() );
+		$this->assertSame( 'mc 1', $list->get_description() );
+		$this->assertTrue( $list->is_active() );
+		$this->assertSame( 'mailchimp', $list->get_provider() );
+
+		$list = Subscription_Lists::get_list_by_remote_id( 'group-6a822fca1c-950aaf1a98' );
+		$this->assertSame( 'MC2', $list->get_title() );
+		$this->assertSame( 'mc 2', $list->get_description() );
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( 'mailchimp', $list->get_provider() );
+
+		$list = Subscription_Lists::get_list_by_remote_id( '120aaf1a12' );
+		$this->assertSame( 'MC3', $list->get_title() );
+		$this->assertSame( 'mc 3', $list->get_description() );
+		$this->assertTrue( $list->is_active() );
+		$this->assertSame( 'mailchimp', $list->get_provider() );
+
+	}
+
 }
