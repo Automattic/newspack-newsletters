@@ -40,6 +40,9 @@ final class Pixel {
 		if ( ! empty( self::$pixel_added[ $post->ID ] ) ) {
 			return;
 		}
+		if ( empty( get_option( 'newspack_newsletters_use_tracking_pixel', true ) ) ) {
+			return;
+		}
 		printf(
 			'<mj-raw><img src="%s" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px; border: none; margin: 0; padding: 0;" /></mj-raw>',
 			esc_url( self::get_pixel_url( $post->ID ) )
