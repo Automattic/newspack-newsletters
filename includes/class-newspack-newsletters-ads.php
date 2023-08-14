@@ -45,6 +45,7 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_ADS_CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
+		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 	}
 
 	/**
@@ -166,6 +167,32 @@ final class Newspack_Newsletters_Ads {
 	}
 
 	/**
+	 * Migrate 'diable_ads' meta.
+	 *
+	 * @param mixed  $value   The value get_metadata() should return - a single
+	 *                        metadata value, or an array of values. Default null.
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param bool   $single  Whether to return only the first value of the specified $key.
+	 */
+	public static function migrate_diable_ads( $value, $post_id, $key, $single ) {
+		if ( 'disable_auto_ads' !== $key ) {
+			return $value;
+		}
+		remove_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
+		if ( get_post_meta( $post_id, 'diable_ads', true ) ) {
+			delete_post_meta( $post_id, 'diable_ads' );
+			update_post_meta( $post_id, 'disable_auto_ads', true );
+			$value = true;
+			if ( ! $single ) {
+				$value = [ $value ];
+			}
+		}
+		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
+		return $value;
+	}
+
+	/**
 	 * Whether to render ads in the newsletter
 	 *
 	 * @param int $post_id ID of the newsletter post.
@@ -177,13 +204,6 @@ final class Newspack_Newsletters_Ads {
 		 * Disable automated ads insertion.
 		 */
 		if ( get_post_meta( $post_id, 'disable_auto_ads', true ) ) {
-			$should_render_ads = false;
-		}
-
-		/**
-		 * Legacy 'diable_ads'.
-		 */
-		if ( get_post_meta( $post_id, 'diable_ads', true ) ) {
 			$should_render_ads = false;
 		}
 
