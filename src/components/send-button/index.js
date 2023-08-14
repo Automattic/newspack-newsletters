@@ -153,7 +153,7 @@ export default compose( [
 				setActiveAdManageUrlRel( manageUrlRel );
 				setActiveAdManageTarget( manageUrlTarget );
 
-				if ( ! meta.disable_auto_ads && countOfActiveAds > 0 ) {
+				if ( countOfActiveAds > 0 ) {
 					setAdsWarning(
 						sprintf(
 							// Translators: help message showing number of active ads.
@@ -200,7 +200,7 @@ export default compose( [
 							title={ __( 'Newsletter HTML', 'newspack-newsletters' ) }
 							onRequestClose={ () => setModalVisible( false ) }
 						>
-							{ adsWarning ? (
+							{ ! meta.disable_auto_ads && adsWarning ? (
 								<Notice isDismissible={ false }>
 									{ adsWarning }{ ' ' }
 									<a
