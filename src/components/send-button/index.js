@@ -153,7 +153,7 @@ export default compose( [
 				setActiveAdManageUrlRel( manageUrlRel );
 				setActiveAdManageTarget( manageUrlTarget );
 
-				if ( countOfActiveAds > 0 ) {
+				if ( ! meta.disable_auto_ads && countOfActiveAds > 0 ) {
 					setAdsWarning(
 						sprintf(
 							// Translators: help message showing number of active ads.

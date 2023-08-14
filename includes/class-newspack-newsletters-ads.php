@@ -171,11 +171,22 @@ final class Newspack_Newsletters_Ads {
 	 * @param int $post_id ID of the newsletter post.
 	 */
 	public static function should_render_ads( $post_id ) {
-		$disable_auto_ads  = get_post_meta( $post_id, 'disable_auto_ads', true );
 		$should_render_ads = true;
-		if ( $disable_auto_ads ) {
+
+		/**
+		 * Disable automated ads insertion.
+		 */
+		if ( get_post_meta( $post_id, 'disable_auto_ads', true ) ) {
 			$should_render_ads = false;
 		}
+
+		/**
+		 * Legacy 'diable_ads'.
+		 */
+		if ( get_post_meta( $post_id, 'diable_ads', true ) ) {
+			$should_render_ads = false;
+		}
+
 		/**
 		 * Filters whether to render ads in the newsletter.
 		 *

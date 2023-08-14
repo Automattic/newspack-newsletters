@@ -1171,12 +1171,7 @@ final class Newspack_Newsletters_Renderer {
 		$total_length  = self::get_total_newsletter_character_length( $valid_blocks );
 		$is_newsletter = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post->ID );
 
-		/**
-		 * When ads are enabled, we fetch and format them for insertion.
-		 *
-		 * @note "diable_ads" is a typo that's been in production for awhile.
-		 */
-		if ( $include_ads && $is_newsletter && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
+		if ( $include_ads && $is_newsletter ) {
 			self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
 		}
 
