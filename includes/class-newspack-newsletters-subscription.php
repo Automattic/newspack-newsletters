@@ -893,7 +893,12 @@ class Newspack_Newsletters_Subscription {
 			<?php endif; ?>
 			<?php
 			if ( $verified ) :
-				$list_config = self::get_lists_config();
+				/**
+				 * Filters the available lists for the user to manage in the Manage Newsletters page under My Account.
+				 *
+				 * @param array|WP_Error $lists_config Associative array with list configuration keyed by list ID or WP_Error.
+				 */
+				$list_config = apply_filters( 'newspack_newsletters_manage_newsletters_available_lists', self::get_lists_config() );
 				$list_map    = [];
 				$user_lists  = array_flip( self::get_contact_lists( $email ) );
 				?>

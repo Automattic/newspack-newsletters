@@ -97,6 +97,14 @@ function render_block( $attrs ) {
 		$available_lists = [ $lists[0] ];
 	}
 
+	/**
+	 * Fitlers the lists that are about to be dislpayed in the Subscription block
+	 *
+	 * @param array $available_lists The lists that are about to be displayed.
+	 * @param array $attrs           Block attributes.
+	 */
+	$available_lists = apply_filters( 'newspack_newsletters_subscription_block_available_lists', $available_lists, $attrs );
+
 	$provider = \Newspack_Newsletters::get_service_provider();
 
 	// Enqueue scripts.
