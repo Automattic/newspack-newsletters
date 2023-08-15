@@ -54,12 +54,12 @@ class Woocommerce_Memberships {
 		$lists = array_filter(
 			$lists,
 			function( $list ) {
-				if ( Subscription_List::is_local_form_id( $list ) ) {
-					$list_id = Subscription_List::get_id_from_local_form_id( $list );
-					if ( ! wc_memberships_user_can( get_current_user_id(), 'view', [ 'post' => $list_id ] ) ) {
-						Newspack_Newsletters_Logger::log( 'List ' . $list . ' requires a Membership plan. Removing it from the user' );
-						return false;
-					}
+				$list_object = Subscription_List::from_form_id( $list );
+				if ( $list_object &&
+					! wc_memberships_user_can( get_current_user_id(), 'view', [ 'post' => $list_object->get_id() ] )
+				) {
+					Newspack_Newsletters_Logger::log( 'List ' . $list . ' requires a Membership plan. Removing it from the user' );
+					return false;
 				}
 				return true;
 			} 
