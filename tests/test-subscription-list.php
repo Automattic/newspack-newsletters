@@ -123,10 +123,36 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	 * Tests constructor with form_id
 	 */
 	public function test_constructor_with_form_id() {
-		$list = new Subscription_List( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'] );
+		$list = Subscription_List::from_form_id( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'] );
 		$this->assertInstanceOf( Subscription_List::class, $list );
 		$this->assertSame( self::$posts['without_settings'], $list->get_id() );
 		$this->assertSame( 'Description 1', $list->get_description() );
+	}
+
+	/**
+	 * Tests constructor with form_id
+	 */
+	public function test_constructor_with_non_existent_form_id() {
+		$list = Subscription_List::from_form_id( 'asdqwe' );
+		$this->assertNull( $list );
+	}
+
+	/**
+	 * Tests constructor with remote_id
+	 */
+	public function test_constructor_with_remote_id() {
+		$list = Subscription_List::from_remote_id( 'xyz-' . self::$posts['remote_mailchimp'] );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
+		$this->assertSame( 'Description 5', $list->get_description() );
+	}
+
+	/**
+	 * Tests constructor with remote_id
+	 */
+	public function test_constructor_with_non_existent_remote_id() {
+		$list = Subscription_List::from_remote_id( 'asdqwe' );
+		$this->assertNull( $list );
 	}
 
 	/**

@@ -179,7 +179,7 @@ class Newspack_Newsletters_Subscription {
 					// This is messy, when the ESP returns lists, it's name, when we get it from our UIs, it's title... we need both.
 					$list['title'] = $list['name'];
 
-					$stored_list = Subscription_Lists::get_remote_list( $list );
+					$stored_list = Subscription_Lists::get_or_create_remote_list( $list );
 
 					if ( is_wp_error( $stored_list ) ) {
 						return;
