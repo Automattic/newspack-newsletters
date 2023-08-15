@@ -456,43 +456,18 @@ class Subscription_Lists {
 	 * @throws \Exception If the list is invalid.
 	 * @return Subscription_List
 	 */
-	public static function get_remote_list( $list ) {
+	public static function get_or_create_remote_list( $list ) {
 		if ( empty( $list['id'] ) || empty( $list['title'] ) ) {
 			throw new \Exception( 'Invalid list' );
 		}
 
-		$saved = self::get_list_by_remote_id( $list['id'] );
+		$saved = Subscription_List::from_form_id( $list['id'] );
 
 		if ( $saved ) {
 			return $saved;
 		}
 
 		return self::create_remote_list( $list['id'], $list['title'] );
-	}
-
-	/**
-	 * Gets a Subscription_List object by its remote ID
-	 *
-	 * @param string $remote_id The remote ID. The ID of the list in the ESP.
-	 * @return ?Subscription_List
-	 */
-	public static function get_list_by_remote_id( $remote_id ) {
-		$posts = get_posts(
-			[
-				'post_type'      => self::CPT,
-				'posts_per_page' => 1,
-				'post_status'    => 'any',
-				'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					[
-						'key'   => Subscription_List::REMOTE_ID_META,
-						'value' => $remote_id,
-					],
-				],
-			]
-		);
-		if ( 1 === count( $posts ) ) {
-			return new Subscription_List( $posts[0] );
-		}
 	}
 
 	/**
@@ -564,10 +539,10 @@ class Subscription_Lists {
 		foreach ( $lists as $list ) {
 			if ( Subscription_List::is_local_form_id( $list['id'] ) ) {
 				// Local lists will be fetched here.
-				$stored_list = new Subscription_List( $list['id'] );
+				$stored_list = Subscription_List::from_form_id( $list['id'] );
 			} else {
 				// Remote lists will be either fetched or created here.
-				$stored_list = self::get_remote_list( $list );
+				$stored_list = self::get_or_create_remote_list( $list );
 			}
 
 			if ( ! $stored_list instanceof Subscription_List ) {
@@ -662,7 +637,7 @@ class Subscription_Lists {
 				}
 
 				$list['id']  = $list_id;
-				$list_object = self::get_remote_list( $list, $provider );
+				$list_object = self::get_or_create_remote_list( $list, $provider );
 				$list_object->update( $list );
 				$list_object->set_provider( $provider );
 

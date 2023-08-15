@@ -91,13 +91,13 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	 */
 	public function test_get_list_by_remote_id() {
 		$existing = 'xyz-' . self::$posts['remote_mailchimp'];
-		$found    = Subscription_Lists::get_list_by_remote_id( $existing );
+		$found    = Subscription_List::from_form_id( $existing );
 		$this->assertSame( self::$posts['remote_mailchimp'], $found->get_id() );
 		$this->assertSame( 'mailchimp', $found->get_provider() );
 		$this->assertSame( $existing, $found->get_remote_id() );
 
 		$non_existing = 'asdqwe';
-		$found        = Subscription_Lists::get_list_by_remote_id( $non_existing );
+		$found        = Subscription_List::from_form_id( $non_existing );
 		$this->assertNull( $found );
 	}
 
@@ -114,14 +114,14 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( 'remote', $list->get_type() );
 		$this->assertSame( $current_provider->service, $list->get_provider() );
 
-		$check = Subscription_Lists::get_list_by_remote_id( $remote_id );
+		$check = Subscription_List::from_form_id( $remote_id );
 		$this->assertSame( $check->get_id(), $list->get_id() );
 	}
 
 	/**
-	 * Test get_remote_list
+	 * Test get_or_create_remote_list
 	 */
-	public function test_get_remote_list() {
+	public function test_get_or_create_remote_list() {
 
 		$count = count( Subscription_Lists::get_all() );
 
@@ -130,7 +130,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 			'id'    => 'xyz-' . self::$posts['remote_mailchimp'],
 			'title' => 'Remote mailchimp new title',
 		];
-		$list     = Subscription_Lists::get_remote_list( $existing );
+		$list     = Subscription_Lists::get_or_create_remote_list( $existing );
 		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
 		$this->assertSame( 'Test List 5', $list->get_title() );
 
@@ -144,7 +144,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 			'id'    => 'xyz-abcde',
 			'title' => 'New random list',
 		];
-		$list = Subscription_Lists::get_remote_list( $new );
+		$list = Subscription_Lists::get_or_create_remote_list( $new );
 		$this->assertSame( 'New random list', $list->get_title() );
 		$this->assertSame( 'xyz-abcde', $list->get_remote_id() );
 		$this->assertSame( 'active_campaign', $list->get_provider() );
@@ -210,20 +210,20 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( 'New title', $list->get_title() );
 		$this->assertSame( self::$posts['only_mailchimp'], $list->get_id() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( 'xyz-' . self::$posts['remote_mailchimp'] );
+		$list = Subscription_List::from_form_id( 'xyz-' . self::$posts['remote_mailchimp'] );
 		$this->assertSame( false, $list->is_active() );
 		$this->assertSame( 'Remote mailchimp new title', $list->get_title() );
 		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( 'xyz-' . self::$posts['remote_mailchimp_inactive'] );
+		$list = Subscription_List::from_form_id( 'xyz-' . self::$posts['remote_mailchimp_inactive'] );
 		$this->assertSame( false, $list->is_active() );
 		$this->assertSame( self::$posts['remote_mailchimp_inactive'], $list->get_id() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( 'xyz-abcde' );
+		$list = Subscription_List::from_form_id( 'xyz-abcde' );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( 'New random list', $list->get_title() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( self::$conflicting_post_id );
+		$list = Subscription_List::from_form_id( self::$conflicting_post_id );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( 'New title for AC', $list->get_title() );
 		$this->assertSame( self::$posts['remote_active_campaign'], $list->get_id() );
@@ -271,31 +271,31 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		Subscription_Lists::migrate_lists();
 
-		$list = Subscription_Lists::get_list_by_remote_id( '123' );
+		$list = Subscription_List::from_form_id( '123' );
 		$this->assertSame( 'AC1', $list->get_title() );
 		$this->assertSame( 'ac 1', $list->get_description() );
 		$this->assertTrue( $list->is_active() );
 		$this->assertSame( 'active_campaign', $list->get_provider() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( '456' );
+		$list = Subscription_List::from_form_id( '456' );
 		$this->assertSame( 'AC2', $list->get_title() );
 		$this->assertSame( 'ac 2', $list->get_description() );
 		$this->assertFalse( $list->is_active() );
 		$this->assertSame( 'active_campaign', $list->get_provider() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( '950aaf1a98' );
+		$list = Subscription_List::from_form_id( '950aaf1a98' );
 		$this->assertSame( 'MC1', $list->get_title() );
 		$this->assertSame( 'mc 1', $list->get_description() );
 		$this->assertTrue( $list->is_active() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( 'group-6a822fca1c-950aaf1a98' );
+		$list = Subscription_List::from_form_id( 'group-6a822fca1c-950aaf1a98' );
 		$this->assertSame( 'MC2', $list->get_title() );
 		$this->assertSame( 'mc 2', $list->get_description() );
 		$this->assertFalse( $list->is_active() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
 
-		$list = Subscription_Lists::get_list_by_remote_id( '120aaf1a12' );
+		$list = Subscription_List::from_form_id( '120aaf1a12' );
 		$this->assertSame( 'MC3', $list->get_title() );
 		$this->assertSame( 'mc 3', $list->get_description() );
 		$this->assertTrue( $list->is_active() );

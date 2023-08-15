@@ -85,16 +85,57 @@ class Subscription_List {
 	}
 
 	/**
+	 * Gets a Subscription List object by its form_id
+	 *
+	 * @param string $form_id The list's form ID.
+	 * @return ?Subscription_List
+	 */
+	public static function from_form_id( $form_id ) {
+		$form_id = (string) $form_id;
+		if ( self::is_local_form_id( $form_id ) ) {
+			$post_id = self::get_id_from_local_form_id( $form_id );
+			try {
+				return new self( $post_id );
+			} catch ( \InvalidArgumentException $e ) {
+				return;
+			}
+		}
+		return self::from_remote_id( $form_id );
+	}
+
+	/**
+	 * Gets a Subscription_List object by its remote ID
+	 *
+	 * @param string $remote_id The remote ID. The ID of the list in the ESP.
+	 * @return ?Subscription_List
+	 */
+	public static function from_remote_id( $remote_id ) {
+		$posts = get_posts(
+			[
+				'post_type'      => Subscription_Lists::CPT,
+				'posts_per_page' => 1,
+				'post_status'    => 'any',
+				'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[
+						'key'   => self::REMOTE_ID_META,
+						'value' => $remote_id,
+					],
+				],
+			]
+		);
+		if ( 1 === count( $posts ) ) {
+			return new self( $posts[0] );
+		}
+	}
+
+	/**
 	 * Initializes a new Subscription List
 	 *
-	 * @param WP_Post|int|string $post_or_id The post object, post ID or Subscription List form ID.
+	 * @param WP_Post|int $post_or_id The post object or post ID.
 	 * @throws \InvalidArgumentException In case the post is not found.
 	 */
 	public function __construct( $post_or_id ) {
 		if ( ! $post_or_id instanceof WP_Post ) {
-			if ( self::is_local_form_id( $post_or_id ) ) {
-				$post_or_id = self::get_id_from_local_form_id( $post_or_id );
-			}
 			$post_or_id = get_post( (int) $post_or_id );
 			if ( ! $post_or_id instanceof WP_Post ) {
 				throw new \InvalidArgumentException( 'Post not found' );
