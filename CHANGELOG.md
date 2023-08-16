@@ -1,3 +1,10 @@
+## [1.67.5](https://github.com/Automattic/newspack-newsletters/compare/v1.67.4...v1.67.5) (2023-08-16)
+
+
+### Bug Fixes
+
+* update api_v1 calls ([ad12e74](https://github.com/Automattic/newspack-newsletters/commit/ad12e74fe5c5e48591c01139bb76393c41d6d279))
+
 ## [1.67.4](https://github.com/Automattic/newspack-newsletters/compare/v1.67.3...v1.67.4) (2023-08-10)
 
 
