@@ -307,21 +307,6 @@ final class Newspack_Newsletters {
 		);
 		\register_meta(
 			'post',
-			'diable_ads',
-			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'boolean',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
-		\register_meta(
-			'post',
 			'is_public',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,

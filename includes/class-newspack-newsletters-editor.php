@@ -346,6 +346,13 @@ final class Newspack_Newsletters_Editor {
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.js' ),
 				true
 			);
+			\wp_enqueue_script(
+				'newspack-newsletters-ads-editor',
+				plugins_url( '../dist/newsletterAdsEditor.js', __FILE__ ),
+				[ 'wp-components', 'wp-api-fetch' ],
+				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterAdsEditor.js' ),
+				true
+			);
 		}
 
 		// If it's a reusable block, register this plugin's blocks.

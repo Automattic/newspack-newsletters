@@ -200,7 +200,7 @@ export default compose( [
 							title={ __( 'Newsletter HTML', 'newspack-newsletters' ) }
 							onRequestClose={ () => setModalVisible( false ) }
 						>
-							{ adsWarning ? (
+							{ ! meta.disable_auto_ads && adsWarning ? (
 								<Notice isDismissible={ false }>
 									{ adsWarning }{ ' ' }
 									<a
@@ -237,7 +237,7 @@ export default compose( [
 						title={ __( 'Send your newsletter?', 'newspack-newsletters' ) }
 						onRequestClose={ () => setModalVisible( false ) }
 					>
-						{ adsWarning ? (
+						{ ! meta.disable_auto_ads && adsWarning ? (
 							<Notice isDismissible={ false }>
 								{ adsWarning }{ ' ' }
 								<a // eslint-disable-line react/jsx-no-target-blank
