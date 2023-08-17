@@ -67,14 +67,14 @@ final class Admin {
 		);
 		$config = [
 			[
-				'name'              => 'newspack_newsletter_use_tracking_pixel',
+				'name'              => 'newspack_newsletters_use_tracking_pixel',
 				'type'              => 'boolean',
 				'description'       => __( 'Enable tracking pixel', 'newspack-newsletters' ),
 				'sanitize_callback' => 'boolval',
 				'default'           => true,
 			],
 			[
-				'name'              => 'newspack_newsletter_use_click_tracking',
+				'name'              => 'newspack_newsletters_use_click_tracking',
 				'type'              => 'boolean',
 				'description'       => __( 'Enable click-tracking', 'newspack-newsletters' ),
 				'sanitize_callback' => 'boolval',
@@ -140,8 +140,12 @@ final class Admin {
 	 * @param array $columns Columns.
 	 */
 	public static function manage_columns( $columns ) {
-		$columns['opened'] = __( 'Opened', 'newspack-newsletters' );
-		$columns['clicks'] = __( 'Clicks', 'newspack-newsletters' );
+		if ( get_option( 'newspack_newsletters_use_tracking_pixel', true ) ) {
+			$columns['opened'] = __( 'Opened', 'newspack-newsletters' );
+		}
+		if ( get_option( 'newspack_newsletters_use_click_tracking', true ) ) {
+			$columns['clicks'] = __( 'Clicks', 'newspack-newsletters' );
+		}
 		return $columns;
 	}
 
