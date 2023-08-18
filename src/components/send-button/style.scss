@@ -14,6 +14,17 @@
 		flex: 0 1 0;
 		margin-left: 2em;
 		min-width: 300px;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		hr {
+			margin: 1em 0;
+			border: 0;
+			border-bottom: 1px solid #eaeaea;
+		}
+	}
+	&__spacer {
+		flex: 1 1 100%;
 	}
 	.components-notice {
 		margin: 0 0 1em;

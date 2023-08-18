@@ -3,10 +3,11 @@
  */
 import { withDispatch, withSelect, useSelect, useDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { Button, Modal, Notice, Spinner } from '@wordpress/components';
-import { Fragment, useEffect, useState } from '@wordpress/element';
-import { __, sprintf, _n } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
+import { Button, Modal, Spinner } from '@wordpress/components';
+import { Fragment, useState } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import Testing from '../../newsletter-editor/testing';
+import { DisableAutoAds } from '../../ads/newsletter-editor';
 
 /**
  * External dependencies
@@ -18,7 +19,6 @@ import { get } from 'lodash';
  */
 import { getServiceProvider } from '../../service-providers';
 import './style.scss';
-import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 function PreviewHTML() {
 	const { meta, isSavingPost } = useSelect( select => {
@@ -127,7 +127,6 @@ export default compose( [
 		meta,
 		sent,
 		isPublished,
-		postDate,
 	} ) => {
 		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
 
@@ -183,11 +182,9 @@ export default compose( [
 			publishStatus = 'publish';
 		}
 
-		const [ adLabel, setAdLabel ] = useState();
-		const [ adsWarning, setAdsWarning ] = useState();
-		const [ activeAdManageUrl, setActiveAdManageUrl ] = useState();
-		const [ activeAdManageUrlRel, setActiveAdManageUrlRel ] = useState();
-		const [ activeAdManageTarget, setActiveAdManageTarget ] = useState();
+		const [ testEmail, setTestEmail ] = useState(
+			window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || ''
+		);
 
 		let modalSubmitLabel;
 		if ( 'manual' === serviceProviderName ) {
@@ -197,41 +194,6 @@ export default compose( [
 		} else {
 			modalSubmitLabel = label;
 		}
-
-		useEffect( () => {
-			apiFetch( {
-				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
-			} ).then( response => {
-				const {
-					count: countOfActiveAds,
-					label: adManageLabel,
-					manageUrl,
-					manageUrlRel,
-					manageUrlTarget,
-				} = response;
-
-				setActiveAdManageUrl( manageUrl );
-				setAdLabel( adManageLabel );
-				setActiveAdManageUrlRel( manageUrlRel );
-				setActiveAdManageTarget( manageUrlTarget );
-
-				if ( countOfActiveAds > 0 ) {
-					setAdsWarning(
-						sprintf(
-							// Translators: help message showing number of active ads.
-							_n(
-								'There is %1$d active %2$s.',
-								'There are %1$d active %2$ss.',
-								countOfActiveAds,
-								'newspack-newsletters'
-							),
-							countOfActiveAds,
-							adManageLabel
-						)
-					);
-				}
-			} );
-		}, [] );
 
 		const triggerCampaignSend = () => {
 			editPost( { status: publishStatus } );
@@ -270,16 +232,14 @@ export default compose( [
 									<PreviewHTML />
 								</div>
 								<div className="newspack-newsletters__modal__content">
-									{ ! meta.disable_auto_ads && adsWarning ? (
-										<Notice isDismissible={ false }>
-											{ adsWarning }{ ' ' }
-											<a
-												href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
-											>
-												{ __( 'Manage ads', 'newspack-newsletters' ) }
-											</a>
-										</Notice>
-									) : null }
+									<DisableAutoAds saveOnToggle />
+									<hr />
+									<Testing
+										testEmail={ testEmail }
+										onChangeEmail={ setTestEmail }
+										disabled={ isSaving }
+									/>
+									<hr />
 									{ renderPostUpdateInfo( newsletterData ) }
 								</div>
 							</div>
@@ -295,7 +255,7 @@ export default compose( [
 				<Button
 					className="editor-post-publish-button"
 					isBusy={ isSaving && 'publish' === status }
-					isPrimary
+					variant="primary"
 					onClick={ async () => {
 						await savePost();
 						setModalVisible( true );
@@ -317,42 +277,26 @@ export default compose( [
 								<PreviewHTML />
 							</div>
 							<div className="newspack-newsletters__modal__content">
-								{ ! meta.disable_auto_ads && adsWarning ? (
-									<Notice isDismissible={ false }>
-										{ adsWarning }{ ' ' }
-										<a // eslint-disable-line react/jsx-no-target-blank
-											href={ activeAdManageUrl }
-											rel={ activeAdManageUrlRel }
-											target={ activeAdManageTarget }
-										>
-											{
-												// Translators: "manage ad" message.
-												sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel )
-											}
-										</a>
-									</Notice>
-								) : null }
+								<DisableAutoAds saveOnToggle />
+								<hr />
+								<Testing
+									testEmail={ testEmail }
+									onChangeEmail={ setTestEmail }
+									disabled={ isSaving }
+								/>
+								<div className="newspack-newsletters__modal__spacer" />
 								{ renderPreSendInfo( newsletterData ) }
-								{ newsletterValidationErrors.length ? (
-									<Notice status="error" isDismissible={ false }>
-										{ __(
-											'The following errors prevent the newsletter from being sent:',
-											'newspack-newsletters'
-										) }
-										<ul>
-											{ newsletterValidationErrors.map( ( error, i ) => (
-												<li key={ i }>{ error }</li>
-											) ) }
-										</ul>
-									</Notice>
-								) : null }
 								<div className="modal-buttons">
-									<Button isSecondary onClick={ () => setModalVisible( false ) }>
+									<Button
+										variant="secondary"
+										onClick={ () => setModalVisible( false ) }
+										disabled={ isSaving }
+									>
 										{ __( 'Cancel', 'newspack-newsletters' ) }
 									</Button>
 									<Button
-										isPrimary
-										disabled={ newsletterValidationErrors.length > 0 }
+										variant="primary"
+										disabled={ newsletterValidationErrors.length > 0 || isSaving }
 										onClick={ () => {
 											triggerCampaignSend();
 											setModalVisible( false );
