@@ -234,11 +234,13 @@ export default compose( [
 								<div className="newspack-newsletters__modal__content">
 									<DisableAutoAds saveOnToggle />
 									<hr />
-									<Testing
-										testEmail={ testEmail }
-										onChangeEmail={ setTestEmail }
-										disabled={ isSaving }
-									/>
+									{ 'manual' !== serviceProviderName && (
+										<Testing
+											testEmail={ testEmail }
+											onChangeEmail={ setTestEmail }
+											disabled={ isSaving }
+										/>
+									) }
 									<hr />
 									{ renderPostUpdateInfo( newsletterData ) }
 								</div>
@@ -279,11 +281,13 @@ export default compose( [
 							<div className="newspack-newsletters__modal__content">
 								<DisableAutoAds saveOnToggle />
 								<hr />
-								<Testing
-									testEmail={ testEmail }
-									onChangeEmail={ setTestEmail }
-									disabled={ isSaving }
-								/>
+								{ 'manual' !== serviceProviderName && (
+									<Testing
+										testEmail={ testEmail }
+										onChangeEmail={ setTestEmail }
+										disabled={ isSaving }
+									/>
+								) }
 								<div className="newspack-newsletters__modal__spacer" />
 								{ renderPreSendInfo( newsletterData ) }
 								<div className="modal-buttons">
