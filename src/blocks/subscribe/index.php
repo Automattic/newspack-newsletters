@@ -105,6 +105,10 @@ function render_block( $attrs ) {
 	 */
 	$available_lists = apply_filters( 'newspack_newsletters_subscription_block_available_lists', $available_lists, $attrs );
 
+	if ( empty( $available_lists ) ) {
+		return;
+	}
+	
 	$provider = \Newspack_Newsletters::get_service_provider();
 
 	// Enqueue scripts.
