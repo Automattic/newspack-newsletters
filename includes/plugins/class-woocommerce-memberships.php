@@ -55,16 +55,21 @@ class Woocommerce_Memberships {
 			$lists,
 			function( $list ) {
 				$list_object = Subscription_List::from_form_id( $list );
-				if ( $list_object &&
-					! wc_memberships_user_can( get_current_user_id(), 'view', [ 'post' => $list_object->get_id() ] )
-				) {
-					Newspack_Newsletters_Logger::log( 'List ' . $list . ' requires a Membership plan. Removing it from the user' );
+				if ( ! $list_object ) {
 					return false;
 				}
-				return true;
+
+				$is_post_restricted = wc_memberships_is_post_content_restricted( $list_object->get_id() );
+
+				if ( ! $is_post_restricted ) {
+					return true;
+				}
+
+				return wc_memberships_user_can( get_current_user_id(), 'view', [ 'post' => $list_object->get_id() ] );
+
 			} 
 		);
-		return $lists;
+		return array_values( $lists );
 	}
 
 	/**
