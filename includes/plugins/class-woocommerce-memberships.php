@@ -19,6 +19,16 @@ defined( 'ABSPATH' ) || exit;
  */
 class Woocommerce_Memberships {
 
+	/**
+	 * Holds the ID of the user in the scope of the current request.
+	 *
+	 * When a user is granted membership to a plan that requires a registration, the user is not logged in yet,
+	 * so we use this information to add the user to the lists when the user is created.
+	 *
+	 * @var ?int
+	 */
+	protected static $user_id_in_scope;
+
 	/** 
 	 * Initialize the class
 	 */
@@ -66,7 +76,9 @@ class Woocommerce_Memberships {
 					return true;
 				}
 
-				return wc_memberships_user_can( get_current_user_id(), 'view', [ 'post' => $list_object->get_id() ] );
+				$user_id = self::$user_id_in_scope ?? get_current_user_id();
+
+				return wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
 
 			} 
 		);
@@ -148,7 +160,6 @@ class Woocommerce_Memberships {
 	 * @return void
 	 */
 	public static function add_user_to_list( $plan, $args ) {
-				
 		$user_id = $args['user_id'] ?? false;
 		if ( ! $user_id ) {
 			return;
@@ -157,6 +168,8 @@ class Woocommerce_Memberships {
 		if ( ! $user ) {
 			return;
 		}
+
+		self::$user_id_in_scope = $user_id;
 
 		$lists_to_add = [];
 		$user_email   = $user->user_email;
