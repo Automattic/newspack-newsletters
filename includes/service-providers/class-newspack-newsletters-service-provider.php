@@ -547,6 +547,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		$lists = Subscription_Lists::get_configured_for_provider( $this->service );
 		$ids   = [];
 		foreach ( $lists as $list ) {
+			if ( ! $list->is_local() ) {
+				continue;
+			}
 			$list_settings = $list->get_provider_settings( $this->service );
 			if ( in_array( $list_settings['tag_id'], $tags, false ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
 				$ids[] = $list->get_form_id();
