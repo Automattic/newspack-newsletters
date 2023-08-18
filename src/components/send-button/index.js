@@ -1,9 +1,9 @@
 /**
  * WordPress dependencies
  */
-import { withDispatch, withSelect } from '@wordpress/data';
+import { withDispatch, withSelect, useSelect, useDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { Button, Modal, Notice } from '@wordpress/components';
+import { Button, Modal, Notice, Spinner } from '@wordpress/components';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __, sprintf, _n } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
@@ -19,6 +19,55 @@ import { get } from 'lodash';
 import { getServiceProvider } from '../../service-providers';
 import './style.scss';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
+
+function PreviewHTMLButton() {
+	const { meta, isSavingPost } = useSelect( select => {
+		return {
+			meta: select( 'core/editor' ).getCurrentPostAttribute( 'meta' ),
+			isSavingPost: select( 'core/editor' ).isSavingPost(),
+		};
+	} );
+	const { savePost } = useDispatch( 'core/editor' );
+	const [ isModalOpen, setIsModalOpen ] = useState( false );
+	return (
+		<Fragment>
+			<Button
+				className="newsletter-preview-html-button"
+				variant="secondary"
+				disabled={ isSavingPost }
+				onClick={ async () => {
+					savePost();
+					setIsModalOpen( true );
+				} }
+			>
+				{ __( 'Preview email', 'newspack-newsletters' ) }
+			</Button>
+			{ isModalOpen && (
+				<Modal
+					title={ __( 'Preview email', 'newspack-newsletters' ) }
+					onRequestClose={ () => setIsModalOpen( false ) }
+					className="newsletter-preview-html-modal"
+					overlayClassName="newsletter-preview-html-modal__overlay"
+					shouldCloseOnClickOutside={ false }
+					isFullScreen
+				>
+					{ isSavingPost && (
+						<div className="newsletter-preview-html-modal__spinner">
+							<Spinner />
+						</div>
+					) }
+					{ ! isSavingPost && meta?.newspack_email_html ? (
+						<iframe
+							title={ __( 'Preview email', 'newspack-newsletters' ) }
+							srcDoc={ meta.newspack_email_html }
+							className="newsletter-preview-html-modal__iframe"
+						/>
+					) : null }
+				</Modal>
+			) }
+		</Fragment>
+	);
+}
 
 export default compose( [
 	withDispatch( dispatch => {
@@ -182,6 +231,7 @@ export default compose( [
 		if ( isPublished || sent ) {
 			return (
 				<Fragment>
+					<PreviewHTMLButton />
 					<Button
 						className="editor-post-publish-button"
 						isBusy={ isSaving }
@@ -219,6 +269,7 @@ export default compose( [
 
 		return (
 			<Fragment>
+				<PreviewHTMLButton />
 				<Button
 					className="editor-post-publish-button"
 					isBusy={ isSaving && 'publish' === status }
