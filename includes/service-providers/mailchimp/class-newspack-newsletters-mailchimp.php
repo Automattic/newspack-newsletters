@@ -1364,6 +1364,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$lists = Subscription_Lists::get_configured_for_provider( $this->service );
 		$ids   = [];
 		foreach ( $lists as $list ) {
+			if ( ! $list->is_local() ) {
+				continue;
+			}
 			$list_settings = $list->get_provider_settings( $this->service );
 
 			if ( ! empty( $tags[ $list_settings['list'] ] ) ) {
