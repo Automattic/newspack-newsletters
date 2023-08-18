@@ -20,10 +20,34 @@ import { getServiceProvider } from '../../service-providers';
 import './style.scss';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
-function PreviewHTMLButton() {
+function PreviewHTML() {
 	const { meta, isSavingPost } = useSelect( select => {
 		return {
 			meta: select( 'core/editor' ).getCurrentPostAttribute( 'meta' ),
+			isSavingPost: select( 'core/editor' ).isSavingPost(),
+		};
+	} );
+	return (
+		<div className="newsletter-preview-html">
+			{ isSavingPost && (
+				<div className="newsletter-preview-html__spinner">
+					<Spinner />
+				</div>
+			) }
+			{ ! isSavingPost && meta?.newspack_email_html ? (
+				<iframe
+					title={ __( 'Preview email', 'newspack-newsletters' ) }
+					srcDoc={ meta.newspack_email_html }
+					className="newsletter-preview-html__iframe"
+				/>
+			) : null }
+		</div>
+	);
+}
+
+function PreviewHTMLButton() {
+	const { isSavingPost } = useSelect( select => {
+		return {
 			isSavingPost: select( 'core/editor' ).isSavingPost(),
 		};
 	} );
@@ -51,18 +75,7 @@ function PreviewHTMLButton() {
 					shouldCloseOnClickOutside={ false }
 					isFullScreen
 				>
-					{ isSavingPost && (
-						<div className="newsletter-preview-html-modal__spinner">
-							<Spinner />
-						</div>
-					) }
-					{ ! isSavingPost && meta?.newspack_email_html ? (
-						<iframe
-							title={ __( 'Preview email', 'newspack-newsletters' ) }
-							srcDoc={ meta.newspack_email_html }
-							className="newsletter-preview-html-modal__iframe"
-						/>
-					) : null }
+					<PreviewHTML />
 				</Modal>
 			) }
 		</Fragment>
@@ -249,18 +262,27 @@ export default compose( [
 							className="newspack-newsletters__modal"
 							title={ __( 'Newsletter HTML', 'newspack-newsletters' ) }
 							onRequestClose={ () => setModalVisible( false ) }
+							shouldCloseOnClickOutside={ false }
+							isFullScreen
 						>
-							{ ! meta.disable_auto_ads && adsWarning ? (
-								<Notice isDismissible={ false }>
-									{ adsWarning }{ ' ' }
-									<a
-										href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
-									>
-										{ __( 'Manage ads', 'newspack-newsletters' ) }
-									</a>
-								</Notice>
-							) : null }
-							{ renderPostUpdateInfo( newsletterData ) }
+							<div className="newspack-newsletters__modal__container">
+								<div className="newspack-newsletters__modal__preview">
+									<PreviewHTML />
+								</div>
+								<div className="newspack-newsletters__modal__content">
+									{ ! meta.disable_auto_ads && adsWarning ? (
+										<Notice isDismissible={ false }>
+											{ adsWarning }{ ' ' }
+											<a
+												href={ `/wp-admin/edit.php?post_type=${ NEWSLETTER_AD_CPT_SLUG }&page=newspack-newsletters-ads-admin` }
+											>
+												{ __( 'Manage ads', 'newspack-newsletters' ) }
+											</a>
+										</Notice>
+									) : null }
+									{ renderPostUpdateInfo( newsletterData ) }
+								</div>
+							</div>
 						</Modal>
 					) }
 				</Fragment>
@@ -287,50 +309,59 @@ export default compose( [
 						className="newspack-newsletters__modal"
 						title={ __( 'Send your newsletter?', 'newspack-newsletters' ) }
 						onRequestClose={ () => setModalVisible( false ) }
+						shouldCloseOnClickOutside={ false }
+						isFullScreen
 					>
-						{ ! meta.disable_auto_ads && adsWarning ? (
-							<Notice isDismissible={ false }>
-								{ adsWarning }{ ' ' }
-								<a // eslint-disable-line react/jsx-no-target-blank
-									href={ activeAdManageUrl }
-									rel={ activeAdManageUrlRel }
-									target={ activeAdManageTarget }
-								>
-									{
-										// Translators: "manage ad" message.
-										sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel )
-									}
-								</a>
-							</Notice>
-						) : null }
-						{ renderPreSendInfo( newsletterData ) }
-						{ newsletterValidationErrors.length ? (
-							<Notice status="error" isDismissible={ false }>
-								{ __(
-									'The following errors prevent the newsletter from being sent:',
-									'newspack-newsletters'
-								) }
-								<ul>
-									{ newsletterValidationErrors.map( ( error, i ) => (
-										<li key={ i }>{ error }</li>
-									) ) }
-								</ul>
-							</Notice>
-						) : null }
-						<div className="modal-buttons">
-							<Button isSecondary onClick={ () => setModalVisible( false ) }>
-								{ __( 'Cancel', 'newspack-newsletters' ) }
-							</Button>
-							<Button
-								isPrimary
-								disabled={ newsletterValidationErrors.length > 0 }
-								onClick={ () => {
-									triggerCampaignSend();
-									setModalVisible( false );
-								} }
-							>
-								{ modalSubmitLabel }
-							</Button>
+						<div className="newspack-newsletters__modal__container">
+							<div className="newspack-newsletters__modal__preview">
+								<PreviewHTML />
+							</div>
+							<div className="newspack-newsletters__modal__content">
+								{ ! meta.disable_auto_ads && adsWarning ? (
+									<Notice isDismissible={ false }>
+										{ adsWarning }{ ' ' }
+										<a // eslint-disable-line react/jsx-no-target-blank
+											href={ activeAdManageUrl }
+											rel={ activeAdManageUrlRel }
+											target={ activeAdManageTarget }
+										>
+											{
+												// Translators: "manage ad" message.
+												sprintf( __( 'Manage %ss.', 'newspack-newsletters' ), adLabel )
+											}
+										</a>
+									</Notice>
+								) : null }
+								{ renderPreSendInfo( newsletterData ) }
+								{ newsletterValidationErrors.length ? (
+									<Notice status="error" isDismissible={ false }>
+										{ __(
+											'The following errors prevent the newsletter from being sent:',
+											'newspack-newsletters'
+										) }
+										<ul>
+											{ newsletterValidationErrors.map( ( error, i ) => (
+												<li key={ i }>{ error }</li>
+											) ) }
+										</ul>
+									</Notice>
+								) : null }
+								<div className="modal-buttons">
+									<Button isSecondary onClick={ () => setModalVisible( false ) }>
+										{ __( 'Cancel', 'newspack-newsletters' ) }
+									</Button>
+									<Button
+										isPrimary
+										disabled={ newsletterValidationErrors.length > 0 }
+										onClick={ () => {
+											triggerCampaignSend();
+											setModalVisible( false );
+										} }
+									>
+										{ modalSubmitLabel }
+									</Button>
+								</div>
+							</div>
 						</div>
 					</Modal>
 				) }

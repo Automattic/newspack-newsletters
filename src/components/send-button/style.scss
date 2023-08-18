@@ -1,4 +1,20 @@
 .newspack-newsletters__modal {
+	&__container {
+		display: flex;
+		width: 100%;
+		height: 100%;
+		justify-content: baseline;
+	}
+	&__preview {
+		flex: 1 1 100%;
+		display: flex;
+		flex-direction: column;
+	}
+	&__content {
+		flex: 0 1 0;
+		margin-left: 2em;
+		min-width: 300px;
+	}
 	.components-notice {
 		margin: 0 0 1em;
 		ul {
@@ -20,7 +36,9 @@
 	margin-right: 8px;
 }
 
-.newsletter-preview-html-modal {
+.newsletter-preview-html {
+	width: 100%;
+	height: 100%;
 	&__iframe {
 		border: 0;
 		width: 100%;
@@ -34,16 +52,17 @@
 		justify-content: center;
 		align-items: center;
 	}
-	.components-modal {
-		&__content {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			> div {
-				flex-grow: 1;
-				&.components-modal__header {
-					flex-grow: 0;
-				}
+}
+
+.components-modal {
+	&__content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		> div {
+			flex-grow: 1;
+			&.components-modal__header {
+				flex-grow: 0;
 			}
 		}
 	}
