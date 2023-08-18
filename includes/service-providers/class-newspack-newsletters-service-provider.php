@@ -436,7 +436,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public function add_contact_handling_local_lists( $contact, $list_id ) {
 		if ( Subscription_List::is_local_form_id( $list_id ) ) {
 			try {
-				$list = new Subscription_List( $list_id );
+				$list = Subscription_List::from_form_id( $list_id );
 
 				if ( ! $list->is_configured_for_provider( $this->service ) ) {
 					return new WP_Error( 'List not properly configured for the provider' );
@@ -510,7 +510,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		foreach ( $lists as $key => $list_id ) {
 			if ( Subscription_List::is_local_form_id( $list_id ) ) {
 				try {
-					$list = new Subscription_List( $list_id );
+					$list = Subscription_List::from_form_id( $list_id );
 
 					if ( ! $list->is_configured_for_provider( $this->service ) ) {
 						return new WP_Error( 'List not properly configured for the provider' );
