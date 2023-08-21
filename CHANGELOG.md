@@ -1,3 +1,10 @@
+## [1.67.6](https://github.com/Automattic/newspack-newsletters/compare/v1.67.5...v1.67.6) (2023-08-21)
+
+
+### Bug Fixes
+
+* **subscription-form:** return if unable to add contact ([#1242](https://github.com/Automattic/newspack-newsletters/issues/1242)) ([9b6923e](https://github.com/Automattic/newspack-newsletters/commit/9b6923e9dec6aced7fa20aa281a17414c1a8e6fe))
+
 ## [1.67.5](https://github.com/Automattic/newspack-newsletters/compare/v1.67.4...v1.67.5) (2023-08-16)
 
 
