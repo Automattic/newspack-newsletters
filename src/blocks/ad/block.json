@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "newspack-newsletters/ad",
+	"title": "Newsletter Ad",
+	"category": "newspack",
+	"description": "",
+	"textdomain": "newspack-newsletters",
+	"attributes": {
+		"automaticAd": {
+			"type": "boolean",
+			"default": true
+		},
+		"adId": {
+			"type": "integer",
+			"optional": true
+		},
+		"categoryId": {
+			"type": "integer",
+			"optional": true
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": true
+	}
+}
