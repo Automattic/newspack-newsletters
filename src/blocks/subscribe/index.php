@@ -385,6 +385,10 @@ function process_form() {
 		$lists
 	);
 
+	if ( \is_wp_error( $result ) ) {
+		return send_form_response( $result );
+	}
+
 	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
 		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
 		if ( $popup_id ) {
