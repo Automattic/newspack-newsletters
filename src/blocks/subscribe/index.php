@@ -376,6 +376,14 @@ function process_form() {
 		$metadata['status'] = 'pending';
 	}
 
+	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
+		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
+		if ( $popup_id ) {
+			$metadata['registration_method'] = 'newsletters-subscription-popup';
+		}
+		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
+	}
+
 	$result = \Newspack_Newsletters_Subscription::add_contact(
 		[
 			'name'     => $name ?? null,
@@ -387,14 +395,6 @@ function process_form() {
 
 	if ( \is_wp_error( $result ) ) {
 		return send_form_response( $result );
-	}
-
-	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
-		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
-		if ( $popup_id ) {
-			$metadata['registration_method'] = 'newsletters-subscription-popup';
-		}
-		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
 	}
 
 	/**
