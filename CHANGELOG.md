@@ -1,3 +1,24 @@
+## [1.67.6](https://github.com/Automattic/newspack-newsletters/compare/v1.67.5...v1.67.6) (2023-08-21)
+
+
+### Bug Fixes
+
+* **subscription-form:** return if unable to add contact ([#1242](https://github.com/Automattic/newspack-newsletters/issues/1242)) ([9b6923e](https://github.com/Automattic/newspack-newsletters/commit/9b6923e9dec6aced7fa20aa281a17414c1a8e6fe))
+
+## [1.67.5](https://github.com/Automattic/newspack-newsletters/compare/v1.67.4...v1.67.5) (2023-08-16)
+
+
+### Bug Fixes
+
+* update api_v1 calls ([ad12e74](https://github.com/Automattic/newspack-newsletters/commit/ad12e74fe5c5e48591c01139bb76393c41d6d279))
+
+## [1.67.4](https://github.com/Automattic/newspack-newsletters/compare/v1.67.3...v1.67.4) (2023-08-10)
+
+
+### Bug Fixes
+
+* allow multiple subscribe forms to be submitted on one page ([#1231](https://github.com/Automattic/newspack-newsletters/issues/1231)) ([0066ede](https://github.com/Automattic/newspack-newsletters/commit/0066ede0f0aa1fd46535baea97602b2beed4d2af))
+
 ## [1.67.3](https://github.com/Automattic/newspack-newsletters/compare/v1.67.2...v1.67.3) (2023-08-07)
 
 
