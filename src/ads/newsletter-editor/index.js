@@ -26,7 +26,7 @@ function NewslettersAdsSettings() {
 	useEffect( () => {
 		setInFlight( true );
 		apiFetch( {
-			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ date }`,
+			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ date }`,
 		} )
 			.then( response => {
 				setAdsCount( response );

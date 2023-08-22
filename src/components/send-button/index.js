@@ -138,7 +138,7 @@ export default compose( [
 
 		useEffect( () => {
 			apiFetch( {
-				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ postDate }`,
+				path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ postDate }`,
 			} ).then( response => {
 				const {
 					count: countOfActiveAds,
