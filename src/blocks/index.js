@@ -7,9 +7,8 @@ import { registerBlockType } from '@wordpress/blocks';
  * Internal dependencies
  */
 import * as subscribe from './subscribe';
-import * as ad from './ad';
 
-export const blocks = [ subscribe, ad ];
+export const blocks = [ subscribe ];
 
 /**
  * Function to register an individual block.

@@ -7,21 +7,13 @@
 	"description": "",
 	"textdomain": "newspack-newsletters",
 	"attributes": {
-		"automaticAd": {
-			"type": "boolean",
-			"default": true
-		},
 		"adId": {
-			"type": "integer",
-			"optional": true
-		},
-		"categoryId": {
 			"type": "integer",
 			"optional": true
 		}
 	},
 	"supports": {
 		"html": false,
-		"align": true
+		"align": false
 	}
 }

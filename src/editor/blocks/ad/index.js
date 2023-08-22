@@ -1,7 +1,8 @@
 /**
  * WordPress dependencies
  */
-import { inbox as icon } from '@wordpress/icons';
+import { pullquote as icon } from '@wordpress/icons';
+import { registerBlockType } from '@wordpress/blocks';
 
 /**
  * Internal dependencies
@@ -14,9 +15,10 @@ const { name } = metadata;
 export { metadata, name };
 
 export const settings = {
-	icon: {
-		src: icon,
-		foreground: '#36f',
-	},
+	icon,
 	edit,
+};
+
+export default () => {
+	registerBlockType( { name, ...metadata }, settings );
 };

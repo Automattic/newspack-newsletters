@@ -261,6 +261,7 @@ final class Newspack_Newsletters_Editor {
 			'core/site-title',
 			'core/social-links',
 			'core/social-link',
+			'newspack-newsletters/ad',
 			'newspack-newsletters/posts-inserter',
 			'newspack-newsletters/share',
 		);
