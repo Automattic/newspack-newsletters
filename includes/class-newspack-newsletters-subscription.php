@@ -190,6 +190,12 @@ class Newspack_Newsletters_Subscription {
 				$lists
 			);
 
+			/**
+			 * Remove from the local DB lists that no longer exist in the ESP.
+			 * This also cleans up the DB in case we accidentally created more than one list for the same ESP list.
+			 */
+			Subscription_Lists::cleanup_stored_lists( wp_list_pluck( $return_lists, 'db_id' ) );
+
 			// Add local lists to the response.
 			foreach ( $saved_lists as $saved_list ) {
 				if ( $saved_list->is_local() ) {

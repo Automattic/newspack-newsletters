@@ -121,6 +121,8 @@ class Subscription_List {
 						'value' => $remote_id,
 					],
 				],
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
 			]
 		);
 		if ( 1 === count( $posts ) ) {

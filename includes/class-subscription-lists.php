@@ -580,6 +580,26 @@ class Subscription_Lists {
 	}
 
 	/**
+	 * Clean up stored lists that no longer exist in the ESP.
+	 *
+	 * @param array  $existing_ids The list of IDs that exist in the ESP. All other remote lists will be deleted.
+	 * @param string $provider_slug The provider slug to clean up lists for. Default is the current configured provider.
+	 * @return void
+	 */
+	public static function cleanup_stored_lists( $existing_ids, $provider_slug = null ) {
+		if ( is_null( $provider_slug ) ) {
+			$provider      = Newspack_Newsletters::get_service_provider();
+			$provider_slug = $provider->service;
+		}
+		$all_lists = self::get_all();
+		foreach ( $all_lists as $list ) {
+			if ( ! $list->is_local() && $provider_slug === $list->get_provider() && ! in_array( $list->get_id(), $existing_ids ) ) {
+				self::delete_list( $list );
+			}
+		}
+	}
+
+	/**
 	 * Get the URL to add a new Subscription List if the current provider supports it Empty string otherwise
 	 *
 	 * @return ?string
