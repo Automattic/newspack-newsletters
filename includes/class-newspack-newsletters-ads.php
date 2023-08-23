@@ -227,9 +227,17 @@ final class Newspack_Newsletters_Ads {
 		$should_render_ads = true;
 
 		/**
-		 * Disable automated ads insertion.
+		 * Disable automated ads insertion meta.
 		 */
 		if ( get_post_meta( $post_id, 'disable_auto_ads', true ) ) {
+			$should_render_ads = false;
+		}
+
+		/**
+		 * Disable automated ads insertion if the newsletter contains a manual ad block.
+		 */
+		$content = get_the_content( null, false, $post_id );
+		if ( strpos( $content, '<!-- wp:newspack-newsletters/ad' ) !== false ) {
 			$should_render_ads = false;
 		}
 

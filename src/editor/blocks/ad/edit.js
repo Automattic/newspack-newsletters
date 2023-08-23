@@ -38,7 +38,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 			.finally( () => {
 				setInFlight( false );
 			} );
-	}, [] );
+	}, [ date ] );
 	const containerHeight = 200;
 	function getAdTitle() {
 		if ( ! adId ) {
