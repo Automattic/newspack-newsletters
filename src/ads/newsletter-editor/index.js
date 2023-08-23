@@ -18,7 +18,7 @@ function NewslettersAdsSettings() {
 		return { disableAutoAds: meta.disable_auto_ads, date: getEditedPostAttribute( 'date' ) };
 	} );
 	const { editPost } = useDispatch( 'core/editor' );
-	const [ adsCount, setAdsCount ] = useState( {
+	const [ adsConfig, setAdsConfig ] = useState( {
 		count: 0,
 		label: __( 'ads', 'newspack-newsletters' ),
 	} );
@@ -29,7 +29,7 @@ function NewslettersAdsSettings() {
 			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ date }`,
 		} )
 			.then( response => {
-				setAdsCount( response );
+				setAdsConfig( response );
 			} )
 			.catch( e => {
 				console.warn( e ); // eslint-disable-line no-console
@@ -57,22 +57,22 @@ function NewslettersAdsSettings() {
 								_n(
 									'There is %1$d active %2$s.',
 									'There are %1$d active %2$ss.',
-									adsCount.count,
+									adsConfig.count,
 									'newspack-newsletters'
 								),
-								adsCount.count,
-								adsCount.label
+								adsConfig.count,
+								adsConfig.label
 							) }
 						</p>
 						<Button // eslint-disable-line react/jsx-no-target-blank
-							href={ adsCount.manageUrl }
-							rel={ adsCount.manageUrlRel }
-							target={ adsCount.manageUrlTarget }
+							href={ adsConfig.manageUrl }
+							rel={ adsConfig.manageUrlRel }
+							target={ adsConfig.manageUrlTarget }
 							variant="secondary"
 						>
 							{
 								// Translators: "manage ad" message.
-								sprintf( __( 'Manage %ss', 'newspack-newsletters' ), adsCount.label )
+								sprintf( __( 'Manage %ss', 'newspack-newsletters' ), adsConfig.label )
 							}
 						</Button>
 					</>

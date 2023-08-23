@@ -1063,6 +1063,8 @@ final class Newspack_Newsletters_Renderer {
 			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
 
 			return [
+				'id'               => $ad_id,
+				'title'            => $ad->post_title,
 				'is_inserted'      => false,
 				'markup'           => self::post_to_mjml_components( $ad, false ),
 				'percentage'       => $positioning,

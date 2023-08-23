@@ -8,7 +8,7 @@
 	"textdomain": "newspack-newsletters",
 	"attributes": {
 		"adId": {
-			"type": "integer",
+			"type": "string",
 			"optional": true
 		}
 	},
