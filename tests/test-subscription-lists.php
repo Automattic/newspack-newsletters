@@ -304,10 +304,10 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test cleanup method
+	 * Test garbage_collector method
 	 */
-	public function test_cleanup() {
-		Subscription_Lists::cleanup_stored_lists( [ self::$posts['remote_mailchimp'] ] );
+	public function test_garbage_collector() {
+		Subscription_Lists::garbage_collector( [ self::$posts['remote_mailchimp'] ] );
 		$all_lists = Subscription_Lists::get_all();
 		$ids       = array_map(
 			function( $list ) {

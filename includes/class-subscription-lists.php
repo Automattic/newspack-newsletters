@@ -586,7 +586,7 @@ class Subscription_Lists {
 	 * @param string $provider_slug The provider slug to clean up lists for. Default is the current configured provider.
 	 * @return void
 	 */
-	public static function cleanup_stored_lists( $existing_ids, $provider_slug = null ) {
+	public static function garbage_collector( $existing_ids, $provider_slug = null ) {
 		if ( is_null( $provider_slug ) ) {
 			$provider      = Newspack_Newsletters::get_service_provider();
 			$provider_slug = $provider->service;
