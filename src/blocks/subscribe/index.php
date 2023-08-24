@@ -98,7 +98,7 @@ function render_block( $attrs ) {
 	}
 
 	/**
-	 * Fitlers the lists that are about to be dislpayed in the Subscription block
+	 * Filters the lists that are about to be displayed in the Subscription block
 	 *
 	 * @param array $available_lists The lists that are about to be displayed.
 	 * @param array $attrs           Block attributes.
