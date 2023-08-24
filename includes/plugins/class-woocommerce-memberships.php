@@ -48,7 +48,8 @@ class Woocommerce_Memberships {
 		add_filter( 'newspack_newsletters_manage_newsletters_available_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_filter( 'newspack_auth_form_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_action( 'wc_memberships_user_membership_status_changed', [ __CLASS__, 'remove_user_from_list' ], 10, 3 );
-		add_action( 'wc_memberships_user_membership_created', [ __CLASS__, 'add_user_to_list' ], 10, 2 );
+		add_action( 'wc_memberships_user_membership_saved', [ __CLASS__, 'add_user_to_list' ], 10, 2 );
+		add_action( 'wc_memberships_user_membership_deleted', [ __CLASS__, 'deleted_membership' ] );
 	}
 
 	/**
@@ -117,6 +118,7 @@ class Woocommerce_Memberships {
 	 * @return void
 	 */
 	public static function remove_user_from_list( $user_membership, $old_status, $new_status ) {
+		Newspack_Newsletters_Logger::log( 'Membership status changed to ' . $new_status );
 		$status_considered_active = wc_memberships()->get_user_memberships_instance()->get_active_access_membership_statuses();
 
 		if ( in_array( $new_status, $status_considered_active ) ) {
@@ -136,12 +138,17 @@ class Woocommerce_Memberships {
 			}
 			$object_ids = $rule->get_object_ids();
 			foreach ( $object_ids as $object_id ) {
-				$subscription_list = new Subscription_List( $object_id );
-				$lists_to_remove[] = $subscription_list->get_form_id();
+				try {
+					$subscription_list = new Subscription_List( $object_id );
+					$lists_to_remove[] = $subscription_list->get_form_id();
+				} catch ( \InvalidArgumentException $e ) {
+					continue;
+				}
 			}
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
 		$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
+		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
 		
 	}
 
@@ -160,6 +167,20 @@ class Woocommerce_Memberships {
 	 * @return void
 	 */
 	public static function add_user_to_list( $plan, $args ) {
+
+		// When creating the membership via admin panel, this hook is called once before the membership is actually created.
+		if ( ! $plan instanceof \WC_Memberships_Membership_Plan ) {
+			return;
+		}
+
+		$status_considered_active = wc_memberships()->get_user_memberships_instance()->get_active_access_membership_statuses();
+
+		$user_membership = new \WC_Memberships_User_Membership( $args['user_membership_id'] );
+
+		if ( ! in_array( $user_membership->get_status(), $status_considered_active, true ) ) {
+			return;
+		}
+
 		$user_id = $args['user_id'] ?? false;
 		if ( ! $user_id ) {
 			return;
@@ -175,6 +196,8 @@ class Woocommerce_Memberships {
 		$user_email   = $user->user_email;
 		$rules        = $plan->get_content_restriction_rules();
 
+		Newspack_Newsletters_Logger::log( 'New membership granted to ' . $user_email );
+
 		foreach ( $rules as $rule ) {
 			if ( Subscription_Lists::CPT !== $rule->get_content_type_name() ) {
 				continue;
@@ -187,7 +210,18 @@ class Woocommerce_Memberships {
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
 		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
+		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' added to the following lists: ' . implode( ', ', $lists_to_add ) );
 		
+	}
+
+	/**
+	 * Remove lists that require a membership plan when the membership is cancelled
+	 *
+	 * @param WC_Memberships_User_Membership $user_membership The User Membership object.
+	 * @return void
+	 */
+	public static function deleted_membership( $user_membership ) {
+		self::remove_user_from_list( $user_membership, '', 'deleted' );
 	}
 
 }
