@@ -241,6 +241,7 @@ export default compose( [
 											testEmail={ testEmail }
 											onChangeEmail={ setTestEmail }
 											disabled={ isSaving }
+											inlineNotifications
 										/>
 									) }
 									<hr />
@@ -288,6 +289,7 @@ export default compose( [
 										testEmail={ testEmail }
 										onChangeEmail={ setTestEmail }
 										disabled={ isSaving }
+										inlineNotifications
 									/>
 								) }
 								<div className="newspack-newsletters__modal__spacer" />
