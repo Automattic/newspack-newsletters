@@ -21,20 +21,22 @@ import { getServiceProvider } from '../../service-providers';
 import './style.scss';
 
 function PreviewHTML() {
-	const { meta, isSavingPost } = useSelect( select => {
+	const { meta, isSavingPost, isAutoSavingPost } = useSelect( select => {
 		return {
 			meta: select( 'core/editor' ).getCurrentPostAttribute( 'meta' ),
 			isSavingPost: select( 'core/editor' ).isSavingPost(),
+			isAutoSavingPost: select( 'core/editor' ).isAutosavingPost(),
 		};
 	} );
+	const showSpinner = isSavingPost && ! isAutoSavingPost;
 	return (
 		<div className="newsletter-preview-html">
-			{ isSavingPost && (
+			{ showSpinner && (
 				<div className="newsletter-preview-html__spinner">
 					<Spinner />
 				</div>
 			) }
-			{ ! isSavingPost && meta?.newspack_email_html ? (
+			{ ! showSpinner ? (
 				<iframe
 					title={ __( 'Preview email', 'newspack-newsletters' ) }
 					srcDoc={ meta.newspack_email_html }
