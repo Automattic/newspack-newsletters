@@ -12,16 +12,30 @@ import apiFetch from '@wordpress/api-fetch';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 function NewslettersAdsSettings() {
-	const { disableAutoAds, date } = useSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
+	const { disableAutoAds, date, postBlocks } = useSelect( select => {
+		const { getEditedPostAttribute, getBlocks } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { disableAutoAds: meta.disable_auto_ads, date: getEditedPostAttribute( 'date' ) };
+		return {
+			disableAutoAds: meta.disable_auto_ads,
+			date: getEditedPostAttribute( 'date' ),
+			postBlocks: getBlocks(),
+		};
 	} );
 	const { editPost } = useDispatch( 'core/editor' );
 	const [ adsConfig, setAdsConfig ] = useState( {
 		count: 0,
 		label: __( 'ads', 'newspack-newsletters' ),
 	} );
+	const [ forceDisableAutoAds, setForceDisableAutoAds ] = useState( false );
+	useEffect( () => {
+		let hasAdBlock = false;
+		postBlocks.forEach( block => {
+			if ( block.name === 'newspack-newsletters/ad' ) {
+				hasAdBlock = true;
+			}
+		} );
+		setForceDisableAutoAds( hasAdBlock );
+	}, [ postBlocks ] );
 	const [ inFlight, setInFlight ] = useState( false );
 	useEffect( () => {
 		setInFlight( true );
@@ -46,9 +60,18 @@ function NewslettersAdsSettings() {
 			>
 				<ToggleControl
 					label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
-					checked={ disableAutoAds }
+					checked={ disableAutoAds || forceDisableAutoAds }
+					disabled={ inFlight || forceDisableAutoAds }
 					onChange={ disable_auto_ads => editPost( { meta: { disable_auto_ads } } ) }
 				/>
+				{ forceDisableAutoAds ? (
+					<p>
+						{ __(
+							'Automatic ads insertion is disabled because this post contain manually inserted ad blocks.',
+							'newspack-newsletters'
+						) }
+					</p>
+				) : null }
 				{ ! inFlight ? (
 					<>
 						<p>
