@@ -24,6 +24,24 @@ final class Admin {
 	}
 
 	/**
+	 * Whether tracking pixel is enabled.
+	 *
+	 * @return bool True if enabled, false otherwise.
+	 */
+	public static function is_tracking_pixel_enabled() {
+		return (bool) get_option( 'newspack_newsletters_use_tracking_pixel', true );
+	}
+
+	/**
+	 * Whether click tracking is enabled.
+	 *
+	 * @return bool True if enabled, false otherwise.
+	 */
+	public static function is_tracking_click_enabled() {
+		return (bool) get_option( 'newspack_newsletters_use_click_tracking', true );
+	}
+
+	/**
 	 * Add settings page submenu.
 	 */
 	public static function add_settings_page() {
@@ -140,10 +158,10 @@ final class Admin {
 	 * @param array $columns Columns.
 	 */
 	public static function manage_columns( $columns ) {
-		if ( get_option( 'newspack_newsletters_use_tracking_pixel', true ) ) {
+		if ( self::is_tracking_pixel_enabled() ) {
 			$columns['opened'] = __( 'Opened', 'newspack-newsletters' );
 		}
-		if ( get_option( 'newspack_newsletters_use_click_tracking', true ) ) {
+		if ( self::is_tracking_click_enabled() ) {
 			$columns['clicks'] = __( 'Clicks', 'newspack-newsletters' );
 		}
 		return $columns;

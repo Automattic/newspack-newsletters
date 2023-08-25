@@ -86,7 +86,7 @@ final class Click {
 	 * @return string
 	 */
 	public static function process_link( $url, $original_url, $post ) {
-		if ( empty( get_option( 'newspack_newsletters_use_click_tracking', true ) ) ) {
+		if ( ! Admin::is_tracking_click_enabled() ) {
 			return $url;
 		}
 		if ( ! $post ) {

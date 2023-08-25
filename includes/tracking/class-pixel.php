@@ -40,7 +40,7 @@ final class Pixel {
 		if ( ! empty( self::$pixel_added[ $post->ID ] ) ) {
 			return;
 		}
-		if ( empty( get_option( 'newspack_newsletters_use_tracking_pixel', true ) ) ) {
+		if ( ! Admin::is_tracking_pixel_enabled() ) {
 			return;
 		}
 		printf(
