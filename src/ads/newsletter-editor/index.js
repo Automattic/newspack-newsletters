@@ -12,10 +12,10 @@ import apiFetch from '@wordpress/api-fetch';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 function NewslettersAdsSettings() {
-	const { disableAutoAds, date } = useSelect( select => {
+	const { enableAutoAds, date } = useSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { disableAutoAds: meta.disable_auto_ads, date: getEditedPostAttribute( 'date' ) };
+		return { enableAutoAds: meta.enable_auto_ads, date: getEditedPostAttribute( 'date' ) };
 	} );
 	const { editPost } = useDispatch( 'core/editor' );
 	const [ adsCount, setAdsCount ] = useState( {
@@ -45,9 +45,9 @@ function NewslettersAdsSettings() {
 				title={ __( 'Ads Settings', 'newspack-newsletters' ) }
 			>
 				<ToggleControl
-					label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
-					checked={ disableAutoAds }
-					onChange={ disable_auto_ads => editPost( { meta: { disable_auto_ads } } ) }
+					label={ __( 'Enable automatic insertion of ads', 'newspack-newsletters' ) }
+					checked={ enableAutoAds }
+					onChange={ enable_auto_ads => editPost( { meta: { enable_auto_ads } } ) }
 				/>
 				{ ! inFlight ? (
 					<>
