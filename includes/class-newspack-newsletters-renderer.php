@@ -893,10 +893,19 @@ final class Newspack_Newsletters_Renderer {
 				break;
 			case 'newspack-newsletters/ad':
 				if ( empty( $attrs['adId'] ) ) {
+					// Sort ads by percentage.
+					usort(
+						self::$ads_to_insert,
+						function( $a, $b ) {
+							return $a['percentage'] > $b['percentage'];
+						}
+					);
+					// Insert the first ad that hasn't been inserted yet.
 					foreach ( self::$ads_to_insert as &$ad_to_insert ) {
 						if ( ! $ad_to_insert['is_inserted'] ) {
 							$block_mjml_markup          .= $ad_to_insert['markup'];
 							$ad_to_insert['is_inserted'] = true;
+							break;
 						}
 					}
 				} else {

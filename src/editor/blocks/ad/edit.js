@@ -57,7 +57,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 						disabled={ inFlight }
 						options={ [
 							{
-								label: __( 'None (automatic selection)', 'newspack-newsletters' ),
+								label: __( 'Automatic selection', 'newspack-newsletters' ),
 								value: '',
 							},
 						].concat(
@@ -68,12 +68,14 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 						) }
 						onChange={ val => setAttributes( { adId: val } ) }
 					/>
-					<p>
-						{ __(
-							'By not selecting an ad, the system automatically choose which ad should be rendered in this position.',
-							'newspack-newsletters'
-						) }
-					</p>
+					{ ! adId && (
+						<p>
+							{ __(
+								'By not selecting an ad, the system automatically chooses which ad should be rendered in this position.',
+								'newspack-newsletters'
+							) }
+						</p>
+					) }
 				</PanelBody>
 			</InspectorControls>
 			<div
