@@ -59,6 +59,10 @@ final class Admin {
 	 * Create settings page.
 	 */
 	public static function render_settings_page() {
+		// Flush rewrite rules on save.
+		if ( isset( $_GET['settings-updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			\flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
+		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Newsletters Tracking Options', 'newspack-newsletters' ); ?></h1>
