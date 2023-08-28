@@ -17,7 +17,7 @@ final class Admin {
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'add_settings_page' ] );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
-    
+
 		// Newsletters columns.
 		add_action( 'manage_' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'manage_columns' ] );
 		add_action( 'manage_' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'custom_column' ], 10, 2 );
