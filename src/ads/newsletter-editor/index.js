@@ -11,13 +11,17 @@ import apiFetch from '@wordpress/api-fetch';
 
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
-function NewslettersAdsSettings() {
-	const { disableAutoAds, date } = useSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
+export function DisableAutoAds( { saveOnToggle = false } ) {
+	const { disableAutoAds, date, isSaving } = useSelect( select => {
+		const { getEditedPostAttribute, isSavingPost } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		return { disableAutoAds: meta.disable_auto_ads, date: getEditedPostAttribute( 'date' ) };
+		return {
+			disableAutoAds: meta.disable_auto_ads,
+			date: getEditedPostAttribute( 'date' ),
+			isSaving: isSavingPost(),
+		};
 	} );
-	const { editPost } = useDispatch( 'core/editor' );
+	const { editPost, savePost } = useDispatch( 'core/editor' );
 	const [ adsCount, setAdsCount ] = useState( {
 		count: 0,
 		label: __( 'ads', 'newspack-newsletters' ),
@@ -39,46 +43,59 @@ function NewslettersAdsSettings() {
 			} );
 	}, [] );
 	return (
-		<Fragment>
-			<PluginDocumentSettingPanel
-				name="newsletters-ads-settings-panel"
-				title={ __( 'Ads Settings', 'newspack-newsletters' ) }
-			>
-				<ToggleControl
-					label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
-					checked={ disableAutoAds }
-					onChange={ disable_auto_ads => editPost( { meta: { disable_auto_ads } } ) }
-				/>
-				{ ! inFlight ? (
-					<>
-						<p>
-							{ sprintf(
-								// Translators: help message showing number of active ads.
-								_n(
-									'There is %1$d active %2$s.',
-									'There are %1$d active %2$ss.',
-									adsCount.count,
-									'newspack-newsletters'
-								),
+		<div>
+			<ToggleControl
+				label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
+				checked={ disableAutoAds }
+				disabled={ isSaving }
+				onChange={ disable_auto_ads => {
+					editPost( { meta: { disable_auto_ads } } );
+					if ( saveOnToggle ) {
+						savePost();
+					}
+				} }
+			/>
+			{ ! inFlight ? (
+				<>
+					<p>
+						{ sprintf(
+							// Translators: help message showing number of active ads.
+							_n(
+								'There is %1$d active %2$s.',
+								'There are %1$d active %2$ss.',
 								adsCount.count,
-								adsCount.label
-							) }
-						</p>
-						<Button // eslint-disable-line react/jsx-no-target-blank
-							href={ adsCount.manageUrl }
-							rel={ adsCount.manageUrlRel }
-							target={ adsCount.manageUrlTarget }
-							variant="secondary"
-						>
-							{
-								// Translators: "manage ad" message.
-								sprintf( __( 'Manage %ss', 'newspack-newsletters' ), adsCount.label )
-							}
-						</Button>
-					</>
-				) : null }
-			</PluginDocumentSettingPanel>
-		</Fragment>
+								'newspack-newsletters'
+							),
+							adsCount.count,
+							adsCount.label
+						) }
+					</p>
+					<Button // eslint-disable-line react/jsx-no-target-blank
+						href={ adsCount.manageUrl }
+						rel={ adsCount.manageUrlRel }
+						target={ adsCount.manageUrlTarget }
+						variant="secondary"
+						disabled={ isSaving }
+					>
+						{
+							// Translators: "manage ad" message.
+							sprintf( __( 'Manage %ss', 'newspack-newsletters' ), adsCount.label )
+						}
+					</Button>
+				</>
+			) : null }
+		</div>
+	);
+}
+
+function NewslettersAdsSettings() {
+	return (
+		<PluginDocumentSettingPanel
+			name="newsletters-ads-settings-panel"
+			title={ __( 'Ads Settings', 'newspack-newsletters' ) }
+		>
+			<DisableAutoAds />
+		</PluginDocumentSettingPanel>
 	);
 }
 
