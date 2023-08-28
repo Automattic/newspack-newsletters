@@ -40,6 +40,9 @@ final class Pixel {
 		if ( ! empty( self::$pixel_added[ $post->ID ] ) ) {
 			return;
 		}
+		if ( ! Admin::is_tracking_pixel_enabled() ) {
+			return;
+		}
 		printf(
 			'<mj-raw><img src="%s" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px; border: none; margin: 0; padding: 0;" /></mj-raw>',
 			esc_url( self::get_pixel_url( $post->ID ) )
@@ -56,7 +59,7 @@ final class Pixel {
 		$check_option_name = 'newspack_newsletters_tracking_pixel_has_rewrite_rule';
 		if ( ! \get_option( $check_option_name ) ) {
 			\flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
-			\update_option( $check_option_name, true );
+			\add_option( $check_option_name, true );
 		}
 	}
 
