@@ -312,6 +312,8 @@ final class Newspack_Newsletters_Editor {
 					'email_html_meta'          => Newspack_Newsletters::EMAIL_HTML_META,
 					'mjml_handling_post_types' => $mjml_handling_post_types,
 					'conditional_tag_support'  => $conditional_tag_support,
+					'sponsors_flag_hex'        => get_theme_mod( 'sponsored_flag_hex', '#FED850' ),
+					'sponsors_flag_text_color' => function_exists( 'newspack_get_color_contrast' ) ? newspack_get_color_contrast( \get_theme_mod( 'sponsored_flag_hex', '#FED850' ) ) : 'black',
 				]
 			);
 
@@ -411,7 +413,7 @@ final class Newspack_Newsletters_Editor {
 	 * Append author info to the posts REST response so we can append Coauthors, if they exist.
 	 */
 	public static function add_newspack_author_info() {
-		/* Add author info source */
+		// Add author info source.
 		register_rest_field(
 			'post',
 			'newspack_author_info',
@@ -425,6 +427,23 @@ final class Newspack_Newsletters_Editor {
 				],
 			]
 		);
+
+		// Add sponsor info.
+		if ( function_exists( '\Newspack_Sponsors\get_all_sponsors' ) ) {
+			register_rest_field(
+				'post',
+				'newspack_sponsors_info',
+				[
+					'get_callback' => [ __CLASS__, 'newspack_get_sponsors_info' ],
+					'schema'       => [
+						'context' => [
+							'edit',
+						],
+						'type'    => 'array',
+					],
+				]
+			);
+		}
 	}
 
 	/**
@@ -537,6 +556,16 @@ final class Newspack_Newsletters_Editor {
 
 		/* Return the author data */
 		return $author_data;
+	}
+
+	/**
+	 * Append sponsor data to the REST /posts response.
+	 *
+	 * @param object $post Post object for the post being returned.
+	 * @return object Formatted data for all sponsors associated with the post.
+	 */
+	public static function newspack_get_sponsors_info( $post ) {
+		return \Newspack_Sponsors\get_all_sponsors( $post['id'], null, 'post' );
 	}
 }
 Newspack_Newsletters_Editor::instance();
