@@ -87,6 +87,7 @@ final class Admin {
 			[
 				'name'              => 'newspack_newsletters_use_tracking_pixel',
 				'type'              => 'boolean',
+				'label_for'         => 'use_tracking_pixel',
 				'description'       => __( 'Enable tracking pixel', 'newspack-newsletters' ),
 				'sanitize_callback' => 'boolval',
 				'default'           => true,
@@ -94,6 +95,7 @@ final class Admin {
 			[
 				'name'              => 'newspack_newsletters_use_click_tracking',
 				'type'              => 'boolean',
+				'label_for'         => 'use_click_tracking',
 				'description'       => __( 'Enable click-tracking', 'newspack-newsletters' ),
 				'sanitize_callback' => 'boolval',
 				'default'           => true,
@@ -132,6 +134,7 @@ final class Admin {
 			case 'boolean':
 				?>
 				<input
+					id="<?php echo esc_attr( $setting['label_for'] ); ?>"
 					type="checkbox"
 					name="<?php echo esc_attr( $setting['name'] ); ?>"
 					value="1"
@@ -143,6 +146,7 @@ final class Admin {
 			default:
 				?>
 				<input
+					id="<?php echo esc_attr( $setting['label_for'] ); ?>"
 					type="text"
 					name="<?php echo esc_attr( $setting['name'] ); ?>"
 					value="<?php echo esc_attr( get_option( $setting['name'] ) ); ?>"
