@@ -59,7 +59,7 @@ final class Pixel {
 		$check_option_name = 'newspack_newsletters_tracking_pixel_has_rewrite_rule';
 		if ( ! \get_option( $check_option_name ) ) {
 			\flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
-			\update_option( $check_option_name, true );
+			\add_option( $check_option_name, true );
 		}
 	}
 
