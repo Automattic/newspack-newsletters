@@ -50,6 +50,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
+		add_action( 'rest_post_query', [ __CLASS__, 'maybe_exclude_sponsored_posts' ], 10, 2 );
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 		add_filter( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
@@ -404,6 +405,31 @@ final class Newspack_Newsletters_Editor {
 
 		if ( isset( $params['excerpt_length'] ) ) {
 			self::filter_excerpt_length( intval( $params['excerpt_length'] ) );
+		}
+
+		return $args;
+	}
+
+	/**
+	 * If Posts Inserter is set to hide sponsored content, add a tax query to exclude sponsored posts.
+	 * 
+	 * @param array           $args Request arguments.
+	 * @param WP_REST_Request $request The original REST request params.
+	 *
+	 * @return array Filtered request args.
+	 */
+	public static function maybe_exclude_sponsored_posts( $args, $request ) {
+		$params = $request->get_params();
+	
+		if ( ! empty( $params['exclude_sponsors'] ) && class_exists( '\Newspack_Sponsors\Core' ) ) {
+			if ( empty( $args['tax_query'] ) ) {
+				$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			}
+
+			$args['tax_query'][] = [
+				'taxonomy' => \Newspack_Sponsors\Core::NEWSPACK_SPONSORS_TAX,
+				'operator' => 'NOT EXISTS',
+			];
 		}
 
 		return $args;
