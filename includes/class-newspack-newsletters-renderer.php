@@ -1310,6 +1310,15 @@ final class Newspack_Newsletters_Renderer {
 			$background_color = '#ffffff';
 		}
 
+		// Get all the inserted ads.
+		$inserted_ads = [];
+		foreach ( self::$ads_to_insert as $ad_to_insert ) {
+			if ( $ad_to_insert['is_inserted'] ) {
+				$inserted_ads[] = $ad_to_insert['id'];
+			}
+		}
+		update_post_meta( $post->ID, 'inserted_ads', $inserted_ads );
+
 		ob_start();
 		include dirname( __FILE__ ) . '/email-template.mjml.php';
 		return ob_get_clean();
