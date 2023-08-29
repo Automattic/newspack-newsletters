@@ -11,10 +11,10 @@ defined( 'ABSPATH' ) || exit;
  * Newspack Newsletters Ads Class.
  */
 final class Newspack_Newsletters_Ads {
-	/**
-	 * CPT for Newsletter ads.
-	 */
-	const NEWSPACK_NEWSLETTERS_ADS_CPT = 'newspack_nl_ads_cpt';
+
+	const CPT = 'newspack_nl_ads_cpt';
+
+	const ADVERTISER_TAX = 'newspack_nl_advertiser';
 
 	/**
 	 * The single instance of the class.
@@ -43,7 +43,7 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_ADS_CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
+		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 	}
@@ -56,7 +56,7 @@ final class Newspack_Newsletters_Ads {
 			'post',
 			'expiry_date',
 			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+				'object_subtype' => self::CPT,
 				'show_in_rest'   => true,
 				'type'           => 'string',
 				'single'         => true,
@@ -67,7 +67,7 @@ final class Newspack_Newsletters_Ads {
 			'post',
 			'position_in_content',
 			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+				'object_subtype' => self::CPT,
 				'show_in_rest'   => true,
 				'type'           => 'integer',
 				'single'         => true,
@@ -102,7 +102,7 @@ final class Newspack_Newsletters_Ads {
 			__( 'Newsletters Ads', 'newspack-newsletters' ),
 			__( 'Ads', 'newspack-newsletters' ),
 			'edit_others_posts',
-			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
 		);
@@ -146,9 +146,42 @@ final class Newspack_Newsletters_Ads {
 			'show_in_menu' => false,
 			'show_in_rest' => true,
 			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [],
+			'taxonomies'   => [ 'category' ],
 		];
-		\register_post_type( self::NEWSPACK_NEWSLETTERS_ADS_CPT, $cpt_args );
+		register_post_type( self::CPT, $cpt_args );
+
+		register_taxonomy(
+			self::ADVERTISER_TAX,
+			[ self::CPT, Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ],
+			[
+				'labels'            => [
+					'name'                     => __( 'Advertisers', 'newspack-newsletters' ),
+					'singular_name'            => __( 'Advertiser', 'newspack-newsletters' ),
+					'search_items'             => __( 'Search Advertisers', 'newspack-newsletters' ),
+					'popular_items'            => __( 'Popular Advertisers', 'newspack-newsletters' ),
+					'all_items'                => __( 'All Advertisers', 'newspack-newsletters' ),
+					'parent_items'             => __( 'Parent Advertisers', 'newspack-newsletters' ),
+					'parent_item'              => __( 'Parent Advertiser', 'newspack-newsletters' ),
+					'name_field_description'   => __( 'The advertiser name', 'newspack-newsletters' ),
+					'slug_field_description'   => '', // There's no advertiser URL so let's skip slug field description.
+					'parent_field_description' => __( 'Assign a parent advertiser', 'newspack-newsletters' ),
+					'desc_field_description'   => __( 'Optional description for this advertiser', 'newspack-newsletters' ),
+					'edit_item'                => __( 'Edit Advertiser', 'newspack-newsletters' ),
+					'view_item'                => __( 'View Advertiser', 'newspack-newsletters' ),
+					'update_item'              => __( 'Update Advertiser', 'newspack-newsletters' ),
+					'add_new_item'             => __( 'Add New Advertiser', 'newspack-newsletters' ),
+					'new_item_name'            => __( 'New Advertiser Name', 'newspack-newsletters' ),
+					'not_found'                => __( 'No advertisers found', 'newspack-newsletters' ),
+					'no_terms'                 => __( 'No advertisers', 'newspack-newsletters' ),
+					'filter_by_item'           => __( 'Filter by advertiser', 'newspack-newsletters' ),
+				],
+				'description'       => __( 'Newspack Newsletters Ads Advertisers', 'newspack-newsletters' ),
+				'public'            => true,
+				'hierarchical'      => true,
+				'show_in_rest'      => true,
+				'show_admin_column' => true,
+			]
+		);
 	}
 
 	/**

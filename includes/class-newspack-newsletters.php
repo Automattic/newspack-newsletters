@@ -616,7 +616,7 @@ final class Newspack_Newsletters {
 		);
 
 		\register_rest_route(
-			'wp/v2/' . Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'wp/v2/' . Newspack_Newsletters_Ads::CPT,
 			'count',
 			[
 				/**
@@ -965,7 +965,7 @@ final class Newspack_Newsletters {
 		$screen = get_current_screen();
 		if (
 			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
-			Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT !== $screen->post_type &&
+			Newspack_Newsletters_Ads::CPT !== $screen->post_type &&
 			Newspack\Newsletters\Subscription_Lists::CPT !== $screen->post_type
 		) {
 			return;
@@ -1038,7 +1038,7 @@ final class Newspack_Newsletters {
 		$letterhead                 = new Newspack_Newsletters_Letterhead();
 		$has_letterhead_credentials = $letterhead->has_api_credentials();
 		$post_date                  = $request->get_param( 'date' );
-		$newspack_ad_type           = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$newspack_ad_type           = Newspack_Newsletters_Ads::CPT;
 
 		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
 		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}";
