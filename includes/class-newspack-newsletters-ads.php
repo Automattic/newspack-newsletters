@@ -87,7 +87,6 @@ final class Newspack_Newsletters_Ads {
 				'show_in_rest'   => true,
 				'type'           => 'string',
 				'single'         => true,
-				'auth_callback'  => '__return_true',
 			]
 		);
 		\register_meta(
@@ -98,7 +97,6 @@ final class Newspack_Newsletters_Ads {
 				'show_in_rest'   => true,
 				'type'           => 'integer',
 				'single'         => true,
-				'auth_callback'  => '__return_true',
 			]
 		);
 	}
@@ -109,13 +107,13 @@ final class Newspack_Newsletters_Ads {
 	public static function register_newsletter_meta() {
 		\register_meta(
 			'post',
-			'disable_auto_ads',
+			'enable_auto_ads',
 			[
 				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => true,
 				'type'           => 'boolean',
 				'single'         => true,
-				'auth_callback'  => '__return_true',
+				'default'        => 'true',
 			]
 		);
 	}
@@ -236,13 +234,13 @@ final class Newspack_Newsletters_Ads {
 	 * @param bool   $single  Whether to return only the first value of the specified $key.
 	 */
 	public static function migrate_diable_ads( $value, $post_id, $key, $single ) {
-		if ( 'disable_auto_ads' !== $key ) {
+		if ( 'enable_auto_ads' !== $key ) {
 			return $value;
 		}
 		remove_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		if ( get_post_meta( $post_id, 'diable_ads', true ) ) {
 			delete_post_meta( $post_id, 'diable_ads' );
-			update_post_meta( $post_id, 'disable_auto_ads', true );
+			update_post_meta( $post_id, 'enable_auto_ads', false );
 			$value = true;
 			if ( ! $single ) {
 				$value = [ $value ];
@@ -263,7 +261,7 @@ final class Newspack_Newsletters_Ads {
 		/**
 		 * Disable automated ads insertion meta.
 		 */
-		if ( get_post_meta( $post_id, 'disable_auto_ads', true ) ) {
+		if ( false === get_post_meta( $post_id, 'enable_auto_ads', true ) ) {
 			$should_render_ads = false;
 		}
 

@@ -12,11 +12,11 @@ import apiFetch from '@wordpress/api-fetch';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 export function DisableAutoAds( { saveOnToggle = false } ) {
-	const { disableAutoAds, date, isSaving } = useSelect( select => {
+	const { enableAutoAds, date, isSaving } = useSelect( select => {
 		const { getEditedPostAttribute, isSavingPost } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
-			disableAutoAds: meta.disable_auto_ads,
+			enableAutoAds: meta.enable_auto_ads,
 			date: getEditedPostAttribute( 'date' ),
 			isSaving: isSavingPost(),
 		};
@@ -55,11 +55,11 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 	return (
 		<div>
 			<ToggleControl
-				label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
-				checked={ disableAutoAds }
+				label={ __( 'Enable automatic insertion of ads', 'newspack-newsletters' ) }
+				checked={ enableAutoAds && ! forceDisableAutoAds }
 				disabled={ isSaving }
-				onChange={ disable_auto_ads => {
-					editPost( { meta: { disable_auto_ads } } );
+				onChange={ enable_auto_ads => {
+					editPost( { meta: { enable_auto_ads } } );
 					if ( saveOnToggle ) {
 						savePost();
 					}
