@@ -1,3 +1,17 @@
+## [1.67.7](https://github.com/Automattic/newspack-newsletters/compare/v1.67.6...v1.67.7) (2023-08-24)
+
+
+### Bug Fixes
+
+* register before adding contact ([#1250](https://github.com/Automattic/newspack-newsletters/issues/1250)) ([27dce29](https://github.com/Automattic/newspack-newsletters/commit/27dce292036447bb9a4f93a4c555e302b8e2837b))
+
+## [1.67.7-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.67.6...v1.67.7-alpha.1) (2023-08-21)
+
+
+### Bug Fixes
+
+* register before adding contact ([#1250](https://github.com/Automattic/newspack-newsletters/issues/1250)) ([27dce29](https://github.com/Automattic/newspack-newsletters/commit/27dce292036447bb9a4f93a4c555e302b8e2837b))
+
 ## [1.67.6](https://github.com/Automattic/newspack-newsletters/compare/v1.67.5...v1.67.6) (2023-08-21)
 
 
