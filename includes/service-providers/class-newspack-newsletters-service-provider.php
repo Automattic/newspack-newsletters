@@ -434,9 +434,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public function add_contact_handling_local_lists( $contact, $list_id ) {
-		if ( Subscription_List::is_form_id( $list_id ) ) {
+		if ( Subscription_List::is_local_form_id( $list_id ) ) {
 			try {
-				$list = new Subscription_List( $list_id );
+				$list = Subscription_List::from_form_id( $list_id );
 
 				if ( ! $list->is_configured_for_provider( $this->service ) ) {
 					return new WP_Error( 'List not properly configured for the provider' );
@@ -508,9 +508,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function update_contact_local_lists( $email, $lists = [], $action = 'add' ) {
 		foreach ( $lists as $key => $list_id ) {
-			if ( Subscription_List::is_form_id( $list_id ) ) {
+			if ( Subscription_List::is_local_form_id( $list_id ) ) {
 				try {
-					$list = new Subscription_List( $list_id );
+					$list = Subscription_List::from_form_id( $list_id );
 
 					if ( ! $list->is_configured_for_provider( $this->service ) ) {
 						return new WP_Error( 'List not properly configured for the provider' );
@@ -547,6 +547,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		$lists = Subscription_Lists::get_configured_for_provider( $this->service );
 		$ids   = [];
 		foreach ( $lists as $list ) {
+			if ( ! $list->is_local() ) {
+				continue;
+			}
 			$list_settings = $list->get_provider_settings( $this->service );
 			if ( in_array( $list_settings['tag_id'], $tags, false ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
 				$ids[] = $list->get_form_id();

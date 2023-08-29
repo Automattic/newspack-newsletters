@@ -6,7 +6,6 @@
  */
 
 use Newspack\Newsletters\Subscription_List;
-use Newspack_Newsletters;
 
 /**
  * Tests the Subscription_List class
@@ -90,14 +89,14 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	 * Tests the form ID static methods
 	 *
 	 * @param mixed $input The input for the methods.
-	 * @param mixed $is_form_id The expected result of is_form_id.
-	 * @param mixed $extracted_id The expected result of get_id_from_form_id.
+	 * @param mixed $is_local_form_id The expected result of is_local_form_id.
+	 * @param mixed $extracted_id The expected result of get_id_from_local_form_id.
 	 * @return void
 	 * @dataProvider static_methods_data
 	 */
-	public function test_static_methods( $input, $is_form_id, $extracted_id ) {
-		$this->assertSame( $is_form_id, Subscription_List::is_form_id( $input ) );
-		$this->assertSame( $extracted_id, Subscription_List::get_id_from_form_id( $input ) );
+	public function test_static_methods( $input, $is_local_form_id, $extracted_id ) {
+		$this->assertSame( $is_local_form_id, Subscription_List::is_local_form_id( $input ) );
+		$this->assertSame( $extracted_id, Subscription_List::get_id_from_local_form_id( $input ) );
 	}
 
 	/**
@@ -124,10 +123,36 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	 * Tests constructor with form_id
 	 */
 	public function test_constructor_with_form_id() {
-		$list = new Subscription_List( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'] );
+		$list = Subscription_List::from_form_id( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'] );
 		$this->assertInstanceOf( Subscription_List::class, $list );
 		$this->assertSame( self::$posts['without_settings'], $list->get_id() );
 		$this->assertSame( 'Description 1', $list->get_description() );
+	}
+
+	/**
+	 * Tests constructor with form_id
+	 */
+	public function test_constructor_with_non_existent_form_id() {
+		$list = Subscription_List::from_form_id( 'asdqwe' );
+		$this->assertNull( $list );
+	}
+
+	/**
+	 * Tests constructor with remote_id
+	 */
+	public function test_constructor_with_remote_id() {
+		$list = Subscription_List::from_remote_id( 'xyz-' . self::$posts['remote_mailchimp'] );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
+		$this->assertSame( 'Description 5', $list->get_description() );
+	}
+
+	/**
+	 * Tests constructor with remote_id
+	 */
+	public function test_constructor_with_non_existent_remote_id() {
+		$list = Subscription_List::from_remote_id( 'asdqwe' );
+		$this->assertNull( $list );
 	}
 
 	/**
@@ -442,6 +467,196 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		update_post_meta( $post_id, Subscription_List::META_KEY, [ 'mailchimp' => $meta ] );
 		$list = new Subscription_List( $post_id );
 		$this->assertSame( $expected, $list->is_configured_for_provider( 'mailchimp' ) );
+	}
+
+	/**
+	 * Test some methods that behave differently with local and remote lists
+	 */
+	public function test_is_configured_for_provider_2() {
+		$list = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'local', $list->get_type() );
+		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( true, $list->is_local() );
+		$this->assertSame( '', $list->get_provider() );
+		$this->assertSame( '', $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'local', $list->get_type() );
+		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( true, $list->is_local() );
+		$this->assertSame( '', $list->get_provider() );
+		$this->assertSame( '', $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['two_settings'] );
+		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'local', $list->get_type() );
+		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( true, $list->is_local() );
+		$this->assertSame( '', $list->get_provider() );
+		$this->assertSame( '', $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'local', $list->get_type() );
+		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( true, $list->is_local() );
+		$this->assertSame( '', $list->get_provider() );
+		$this->assertSame( '', $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['remote_mailchimp'] );
+		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'remote', $list->get_type() );
+		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( false, $list->is_local() );
+		$this->assertSame( 'mailchimp', $list->get_provider() );
+		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['remote_mailchimp_inactive'] );
+		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertFalse( $list->is_configured_for_provider( 'active_campaign' ) );
+		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'remote', $list->get_type() );
+		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( false, $list->is_active() );
+		$this->assertSame( false, $list->is_local() );
+		$this->assertSame( 'mailchimp', $list->get_provider() );
+		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_remote_id() );
+
+		$list = new Subscription_List( self::$posts['remote_active_campaign'] );
+		$this->assertTrue( $list->is_configured_for_provider( 'active_campaign' ) );
+		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
+		$this->assertSame( 'remote', $list->get_type() );
+		$this->assertSame( (string) self::$conflicting_post_id, $list->get_form_id() );
+		$this->assertSame( true, $list->is_active() );
+		$this->assertSame( false, $list->is_local() );
+		$this->assertSame( 'active_campaign', $list->get_provider() );
+		$this->assertSame( (string) self::$conflicting_post_id, $list->get_remote_id() );
+	}
+
+	/**
+	 * Data provider for tests type handling
+	 *
+	 * @return array
+	 */
+	public function type_data_provider() {
+		return [
+			[
+				'local',
+				'local',
+			],
+			[
+				'asd',
+				'local',
+			],
+			[
+				[ 'array' ],
+				'local',
+			],
+			[
+				'',
+				'local',
+			],
+			[
+				null,
+				'local',
+			],
+			[
+				false,
+				'local',
+			],
+			[
+				'remote',
+				'remote',
+			],
+		];
+	}
+
+	/**
+	 * Ensures that lists are considered local by default
+	 *
+	 * @param mixed  $db_value The value present in the database.
+	 * @param string $expected The expected output.
+	 * @return void
+	 * @dataProvider type_data_provider
+	 */
+	public function test_get_type_returns_local_by_default( $db_value, $expected ) {
+		$post_id = self::create_post( 99 );
+		if ( $db_value ) {
+			update_post_meta( $post_id, Subscription_List::TYPE_META, $db_value );
+		}
+		$list = new Subscription_List( $post_id );
+		$this->assertSame( $expected, $list->get_type() );
+	}
+
+	/**
+	 * Ensures that lists types default to local when saving
+	 *
+	 * @param mixed  $value The value to be saved.
+	 * @param string $expected The expected value on the DB.
+	 * @return void
+	 * @dataProvider type_data_provider
+	 */
+	public function test_get_type_saves_local_by_default( $value, $expected ) {
+		$post_id = self::create_post( 99 );
+		$list    = new Subscription_List( $post_id );
+		$list->set_type( $value );
+		$db_value = get_post_meta( $post_id, Subscription_List::TYPE_META, true );
+		$this->assertSame( $expected, $db_value );
+	}
+
+	/**
+	 * Tests the update method
+	 */
+	public function test_update() {
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+
+		// only active.
+		$this->assertTrue( $list->update( [ 'active' => false ] ) );
+		$this->assertFalse( $list->is_active() );
+		// make sure it persisted.
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( 'Test List 2', $list->get_title() );
+
+		// active and title.
+		$this->assertTrue(
+			$list->update(
+				[
+					'active' => true,
+					'title'  => 'New Title',
+				] 
+			) 
+		);
+		$this->assertTrue( $list->is_active() );
+		$this->assertSame( 'New Title', $list->get_title() );
+		// make sure it persisted.
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $list->is_active() );
+
+		// active, title and description.
+		$this->assertTrue(
+			$list->update(
+				[
+					'active'      => false,
+					'title'       => 'Super New Title',
+					'description' => 'New Description',
+				] 
+			) 
+		);
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( 'Super New Title', $list->get_title() );
+		$this->assertSame( 'New Description', $list->get_description() );
+		// make sure it persisted.
+		$list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertFalse( $list->is_active() );
+		
 	}
 
 }
