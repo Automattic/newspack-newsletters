@@ -55,7 +55,7 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public static function rest_api_init() {
 		\register_rest_route(
-			'wp/v2/' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'wp/v2/' . self::CPT,
 			'config',
 			[
 				'callback'            => [ __CLASS__, 'get_ads_config' ],
@@ -251,6 +251,34 @@ final class Newspack_Newsletters_Ads {
 	}
 
 	/**
+	 * Whether the ad matches the newsletter post.
+	 *
+	 * @param int $ad_id         Ad ID.
+	 * @param int $newsletter_id Newsletter ID.
+	 *
+	 * @return bool
+	 */
+	public static function does_ad_match_newsletter( $ad_id, $newsletter_id ) {
+		$ad_categories = wp_get_post_terms( $ad_id, 'category' );
+		// Skip if the ad is not in the same category as the post.
+		if ( ! empty( $ad_categories ) ) {
+			$post_categories = wp_get_post_terms( $newsletter_id, 'category' );
+			if ( empty( array_intersect( wp_list_pluck( $ad_categories, 'term_id' ), wp_list_pluck( $post_categories, 'term_id' ) ) ) ) {
+				return false;
+			}
+		}
+		$newsletter_advertisers = wp_get_post_terms( $newsletter_id, self::ADVERTISER_TAX );
+		// Skip if the post has an advertiser and the ad is not from the same advertiser.
+		if ( ! empty( $newsletter_advertisers ) ) {
+			$ad_advertisers = wp_get_post_terms( $ad_id, self::ADVERTISER_TAX );
+			if ( empty( array_intersect( wp_list_pluck( $newsletter_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Whether to render ads in the newsletter
 	 *
 	 * @param int $post_id ID of the newsletter post.
@@ -322,13 +350,13 @@ final class Newspack_Newsletters_Ads {
 	public static function get_ads_config( $request ) {
 		$letterhead                 = new Newspack_Newsletters_Letterhead();
 		$has_letterhead_credentials = $letterhead->has_api_credentials();
-		$post_date                  = $request->get_param( 'date' );
-		$newspack_ad_type           = self::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$post_id                    = $request->get_param( 'id' );
+		$newspack_ad_type           = self::CPT;
 
 		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
 		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}";
 
-		$ads                   = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
+		$ads                   = Newspack_Newsletters_Renderer::get_ads( get_post( (int) $post_id ), 0 );
 		$ads_label             = $has_letterhead_credentials ? __( 'promotion', 'newspack-newsletters' ) : __( 'ad', 'newspack-newsletters' );
 		$ads_manage_url        = $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads;
 		$ads_manage_url_rel    = $has_letterhead_credentials ? 'noreferrer' : '';

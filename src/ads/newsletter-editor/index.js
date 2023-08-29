@@ -12,17 +12,19 @@ import apiFetch from '@wordpress/api-fetch';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 export function DisableAutoAds( { saveOnToggle = false } ) {
-	const { enableAutoAds, date, isSaving } = useSelect( select => {
-		const { getEditedPostAttribute, isSavingPost } = select( 'core/editor' );
+	const { postId, enableAutoAds, isSaving, postBlocks } = useSelect( select => {
+		const { getEditedPostAttribute, isSavingPost, getBlocks, getCurrentPostId } =
+			select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
+			postId: getCurrentPostId(),
 			enableAutoAds: meta.enable_auto_ads,
-			date: getEditedPostAttribute( 'date' ),
 			isSaving: isSavingPost(),
+			postBlocks: getBlocks(),
 		};
 	} );
 	const { editPost, savePost } = useDispatch( 'core/editor' );
-	const [ adsCount, setAdsCount ] = useState( {
+	const [ adsConfig, setAdsConfig ] = useState( {
 		count: 0,
 		label: __( 'ads', 'newspack-newsletters' ),
 	} );
@@ -40,7 +42,7 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 	useEffect( () => {
 		setInFlight( true );
 		apiFetch( {
-			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ date }`,
+			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?id=${ postId }`,
 		} )
 			.then( response => {
 				setAdsConfig( response );
@@ -51,13 +53,13 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 			.finally( () => {
 				setInFlight( false );
 			} );
-	}, [] );
+	}, [ postId ] );
 	return (
 		<div>
 			<ToggleControl
 				label={ __( 'Enable automatic insertion of ads', 'newspack-newsletters' ) }
 				checked={ enableAutoAds && ! forceDisableAutoAds }
-				disabled={ isSaving }
+				disabled={ isSaving || forceDisableAutoAds }
 				onChange={ enable_auto_ads => {
 					editPost( { meta: { enable_auto_ads } } );
 					if ( saveOnToggle ) {
@@ -65,6 +67,14 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 					}
 				} }
 			/>
+			{ forceDisableAutoAds ? (
+				<p>
+					{ __(
+						'Automatic ads insertion is disabled because this post contain manually inserted ad blocks.',
+						'newspack-newsletters'
+					) }
+				</p>
+			) : null }
 			{ ! inFlight ? (
 				<>
 					<p>
@@ -73,23 +83,23 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 							_n(
 								'There is %1$d active %2$s.',
 								'There are %1$d active %2$ss.',
-								adsCount.count,
+								adsConfig.count,
 								'newspack-newsletters'
 							),
-							adsCount.count,
-							adsCount.label
+							adsConfig.count,
+							adsConfig.label
 						) }
 					</p>
 					<Button // eslint-disable-line react/jsx-no-target-blank
-						href={ adsCount.manageUrl }
-						rel={ adsCount.manageUrlRel }
-						target={ adsCount.manageUrlTarget }
+						href={ adsConfig.manageUrl }
+						rel={ adsConfig.manageUrlRel }
+						target={ adsConfig.manageUrlTarget }
 						variant="secondary"
 						disabled={ isSaving }
 					>
 						{
 							// Translators: "manage ad" message.
-							sprintf( __( 'Manage %ss', 'newspack-newsletters' ), adsCount.label )
+							sprintf( __( 'Manage %s', 'newspack-newsletters' ), adsConfig.label )
 						}
 					</Button>
 				</>

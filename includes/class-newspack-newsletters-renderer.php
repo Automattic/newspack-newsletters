@@ -919,7 +919,7 @@ final class Newspack_Newsletters_Renderer {
 					);
 					// Insert the first ad that hasn't been inserted yet.
 					foreach ( self::$ads_to_insert as &$ad_to_insert ) {
-						if ( ! $ad_to_insert['is_inserted'] ) {
+						if ( Newspack_Newsletters_Ads::does_ad_match_newsletter( $ad_to_insert['id'], $ad_to_insert['newsletter_id'] ) && ! $ad_to_insert['is_inserted'] ) {
 							$block_mjml_markup          .= $ad_to_insert['markup'];
 							$ad_to_insert['is_inserted'] = true;
 							break;
@@ -990,29 +990,15 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Insert ads in a piece of markup.
 	 *
-	 * @param WP_Post $post The post object.
-	 * @param string  $markup The markup.
-	 * @param number  $current_position Current position, as character offset.
+	 * @param string $markup The markup.
+	 * @param number $current_position Current position, as character offset.
 	 *
 	 * @return string Markup with ads inserted.
 	 */
-	private static function insert_ads( $post, $markup, $current_position ) {
+	private static function insert_ads( $markup, $current_position ) {
 		foreach ( self::$ads_to_insert as &$ad_to_insert ) {
-			$ad_categories = wp_get_post_terms( $ad_to_insert['id'], 'category' );
-			// Skip if the ad is not in the same category as the post.
-			if ( ! empty( $ad_categories ) ) {
-				$post_categories = wp_get_post_terms( $post->ID, 'category' );
-				if ( empty( array_intersect( wp_list_pluck( $ad_categories, 'term_id' ), wp_list_pluck( $post_categories, 'term_id' ) ) ) ) {
-					continue;
-				}
-			}
-			$post_advertisers = wp_get_post_terms( $post->ID, Newspack_Newsletters_Ads::ADVERTISER_TAX );
-			// Skip if the post has an advertiser and the ad is not from the same advertiser.
-			if ( ! empty( $post_advertisers ) ) {
-				$ad_advertisers = wp_get_post_terms( $ad_to_insert['id'], Newspack_Newsletters_Ads::ADVERTISER_TAX );
-				if ( empty( array_intersect( wp_list_pluck( $post_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
-					continue;
-				}
+			if ( ! Newspack_Newsletters_Ads::does_ad_match_newsletter( $ad_to_insert['id'], $ad_to_insert['newsletter_id'] ) ) {
+				continue;
 			}
 			if (
 				! $ad_to_insert['is_inserted'] &&
@@ -1034,10 +1020,11 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Return an array of Newspack-native ads.
 	 *
-	 * @param int $total_length_of_content The total length of content.
+	 * @param WP_Post $post The post object.
+	 * @param int     $total_length_of_content The total length of content.
 	 * @return array
 	 */
-	private static function generate_array_of_newspack_native_ads_to_insert( $total_length_of_content ) {
+	private static function generate_array_of_newspack_native_ads_to_insert( $post, $total_length_of_content ) {
 		$ad_post_type          = Newspack_Newsletters_Ads::CPT;
 		$all_ads_no_pagination = -1;
 
@@ -1060,7 +1047,7 @@ final class Newspack_Newsletters_Renderer {
 				continue;
 			}
 
-			$ad_prepared_for_insertion = self::get_ad_prepared_for_insertion( $ad, $total_length_of_content );
+			$ad_prepared_for_insertion = self::get_ad_prepared_for_insertion( $ad, $post, $total_length_of_content );
 			if ( ! empty( $ad_prepared_for_insertion ) ) {
 				$published_ads_to_insert[] = $ad_prepared_for_insertion;
 			}
@@ -1074,18 +1061,18 @@ final class Newspack_Newsletters_Renderer {
 	 * author has Letterhead enabled, we'll prefer fetching ads from that API. If not, we'll
 	 * prefer Newspack ad types.
 	 *
-	 * @param string $post_date The WP Post date.
-	 * @param int    $total_length The total length of the content.
+	 * @param WP_Post $post         The post object.
+	 * @param int     $total_length The total length of the content.
 	 * @return array
 	 */
-	public static function get_ads( $post_date, $total_length ) {
+	public static function get_ads( $post, $total_length ) {
 		/**
 		 * The Letterhead API just likes dates that look like this.
 		 *
 		 * @example '2021-04-12'
 		 * @var string $publication_date_formatted_for_letterhead_api
 		 */
-		$publication_date_formatted_for_letterhead_api = gmdate( 'Y-m-d', strtotime( $post_date ) );
+		$publication_date_formatted_for_letterhead_api = gmdate( 'Y-m-d', strtotime( $post->post_date ) );
 		$letterhead                                    = new Newspack_Newsletters_Letterhead();
 
 		/**
@@ -1100,7 +1087,7 @@ final class Newspack_Newsletters_Renderer {
 		 * any native ads they might have.
 		 */
 		if ( $prefer_newspack_native_ads ) {
-			return self::generate_array_of_newspack_native_ads_to_insert( $total_length );
+			return self::generate_array_of_newspack_native_ads_to_insert( $post, $total_length );
 		}
 
 		/**
@@ -1113,10 +1100,11 @@ final class Newspack_Newsletters_Renderer {
 	 * Gets a newspack ad and formats it for insertion.
 	 *
 	 * @param WP_Post $ad The Ad newsletter post.
+	 * @param WP_Post $post The newsletter post.
 	 * @param int     $total_length_of_content The length of content.
 	 * @return array|null
 	 */
-	private static function get_ad_prepared_for_insertion( $ad, $total_length_of_content ) {
+	private static function get_ad_prepared_for_insertion( $ad, $post, $total_length_of_content ) {
 		$ad_id                  = $ad->ID;
 		$is_published_ad_active = self::is_published_ad_active( $ad_id );
 
@@ -1125,6 +1113,7 @@ final class Newspack_Newsletters_Renderer {
 			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
 
 			return [
+				'newsletter_id'    => $post->ID,
 				'id'               => $ad_id,
 				'title'            => $ad->post_title,
 				'is_inserted'      => false,
@@ -1263,7 +1252,7 @@ final class Newspack_Newsletters_Renderer {
 					$inner_block_content = self::render_mjml_component( $block, false, true, $default_attrs );
 					if ( $include_ads ) {
 						$current_position += strlen( wp_strip_all_tags( $inner_block_content ) );
-						$mjml_markup       = self::insert_ads( $post, $mjml_markup, $current_position );
+						$mjml_markup       = self::insert_ads( $mjml_markup, $current_position );
 					}
 					$mjml_markup .= $inner_block_content;
 				}
@@ -1273,7 +1262,7 @@ final class Newspack_Newsletters_Renderer {
 				$block_content = self::render_mjml_component( $block );
 				if ( $include_ads ) {
 					$current_position += strlen( wp_strip_all_tags( $block_content ) );
-					$body              = self::insert_ads( $post, $body, $current_position );
+					$body              = self::insert_ads( $body, $current_position );
 				}
 			}
 
@@ -1282,7 +1271,7 @@ final class Newspack_Newsletters_Renderer {
 
 		// Insert any remaining ads at the end.
 		if ( $include_ads ) {
-			$body = self::insert_ads( $post, $body, INF );
+			$body = self::insert_ads( $body, INF );
 		}
 
 		return self::process_links( $body, $post );
@@ -1317,7 +1306,7 @@ final class Newspack_Newsletters_Renderer {
 		 */
 		$valid_blocks        = self::get_valid_post_blocks( $post );
 		$total_length        = self::get_total_newsletter_character_length( $valid_blocks );
-		self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
+		self::$ads_to_insert = self::get_ads( $post, $total_length );
 		$include_ads         = Newspack_Newsletters_Ads::should_render_ads( $post->ID );
 
 		$body             = self::post_to_mjml_components( $post, $include_ads ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
