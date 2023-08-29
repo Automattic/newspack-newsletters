@@ -26,14 +26,24 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 		count: 0,
 		label: __( 'ads', 'newspack-newsletters' ),
 	} );
+	const [ forceDisableAutoAds, setForceDisableAutoAds ] = useState( false );
+	useEffect( () => {
+		let hasAdBlock = false;
+		postBlocks.forEach( block => {
+			if ( block.name === 'newspack-newsletters/ad' ) {
+				hasAdBlock = true;
+			}
+		} );
+		setForceDisableAutoAds( hasAdBlock );
+	}, [ postBlocks ] );
 	const [ inFlight, setInFlight ] = useState( false );
 	useEffect( () => {
 		setInFlight( true );
 		apiFetch( {
-			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/count/?date=${ date }`,
+			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ date }`,
 		} )
 			.then( response => {
-				setAdsCount( response );
+				setAdsConfig( response );
 			} )
 			.catch( e => {
 				console.warn( e ); // eslint-disable-line no-console

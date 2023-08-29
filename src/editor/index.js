@@ -16,6 +16,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import './style.scss';
+import registerAdBlock from './blocks/ad';
 import registerPostsInserterBlock from './blocks/posts-inserter';
 import registerShareBlock from './blocks/share';
 import registerEmbedBlockEdit from './blocks/embed';
@@ -27,6 +28,7 @@ import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import './api';
 
 addBlocksValidationFilter();
+registerAdBlock();
 registerPostsInserterBlock();
 registerShareBlock();
 
