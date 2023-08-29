@@ -1063,7 +1063,7 @@ final class Newspack_Newsletters_Renderer {
 			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
 
 			return [
-				'ad_id'            => $ad_id,
+				'id'               => $ad_id,
 				'is_inserted'      => false,
 				'markup'           => self::post_to_mjml_components( $ad, false ),
 				'percentage'       => $positioning,
@@ -1270,7 +1270,7 @@ final class Newspack_Newsletters_Renderer {
 		$inserted_ads = [];
 		foreach ( self::$ads_to_insert as $ad_to_insert ) {
 			if ( $ad_to_insert['is_inserted'] ) {
-				$inserted_ads[] = $ad_to_insert['ad_id'];
+				$inserted_ads[] = $ad_to_insert['id'];
 			}
 		}
 		update_post_meta( $post->ID, 'inserted_ads', $inserted_ads );
