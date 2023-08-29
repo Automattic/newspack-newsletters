@@ -954,7 +954,7 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function insert_ads( $post, $markup, $current_position ) {
 		foreach ( self::$ads_to_insert as &$ad_to_insert ) {
-			$ad_categories = wp_get_post_terms( $ad_to_insert['ad_id'], 'category' );
+			$ad_categories = wp_get_post_terms( $ad_to_insert['id'], 'category' );
 			// Skip if the ad is not in the same category as the post.
 			if ( ! empty( $ad_categories ) ) {
 				$post_categories = wp_get_post_terms( $post->ID, 'category' );
@@ -965,7 +965,7 @@ final class Newspack_Newsletters_Renderer {
 			$post_advertisers = wp_get_post_terms( $post->ID, Newspack_Newsletters_Ads::ADVERTISER_TAX );
 			// Skip if the post has an advertiser and the ad is not from the same advertiser.
 			if ( ! empty( $post_advertisers ) ) {
-				$ad_advertisers = wp_get_post_terms( $ad_to_insert['ad_id'], Newspack_Newsletters_Ads::ADVERTISER_TAX );
+				$ad_advertisers = wp_get_post_terms( $ad_to_insert['id'], Newspack_Newsletters_Ads::ADVERTISER_TAX );
 				if ( empty( array_intersect( wp_list_pluck( $post_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
 					continue;
 				}
@@ -1081,7 +1081,7 @@ final class Newspack_Newsletters_Renderer {
 			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
 
 			return [
-				'ad_id'            => $ad_id,
+				'id'               => $ad_id,
 				'is_inserted'      => false,
 				'markup'           => self::post_to_mjml_components( $ad, false ),
 				'percentage'       => $positioning,
