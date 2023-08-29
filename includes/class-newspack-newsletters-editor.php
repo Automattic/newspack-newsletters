@@ -240,7 +240,7 @@ final class Newspack_Newsletters_Editor {
 		if ( ! self::is_editing_email() ) {
 			return $allowed_block_types;
 		}
-		return array(
+		$allowed_block_types = array(
 			'core/spacer',
 			'core/block',
 			'core/group',
@@ -264,6 +264,13 @@ final class Newspack_Newsletters_Editor {
 			'newspack-newsletters/posts-inserter',
 			'newspack-newsletters/share',
 		);
+		/**
+		 * Filters the allowed block types for the Newsletter CPT.
+		 *
+		 * @param array   $allowed_block_types default block types.
+		 * @param WP_Post $post the post to consider.
+		 */
+		return apply_filters( 'newspack_newsletters_allowed_block_types', $allowed_block_types, $post );
 	}
 
 	/**
