@@ -54,6 +54,17 @@ final class Newspack_Newsletters_Ads {
 	public static function register_meta() {
 		\register_meta(
 			'post',
+			'start_date',
+			[
+				'object_subtype' => self::CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
 			'expiry_date',
 			[
 				'object_subtype' => self::CPT,
