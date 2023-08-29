@@ -336,6 +336,23 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML component.
 	 */
 	public static function render_mjml_component( $block, $is_in_column = false, $is_in_group = false, $default_attrs = [], $is_in_list_or_quote = false ) {
+		/**
+		 * Filter to short-circuit the markup generation for a block.
+		 *
+		 * @param string|null $markup The markup to return. If null, the default markup will be generated.
+		 * @param WP_Block    $block The block.
+		 * @param bool        $is_in_column Whether the component is a child of a column component.
+		 * @param bool        $is_in_group Whether the component is a child of a group component.
+		 * @param array       $default_attrs Default attributes for the component.
+		 * @param bool        $is_in_list_or_quote Whether the component is a child of a list or quote block.
+		 *
+		 * @return string|null The markup to return. If null, the default markup will be generated.
+		 */
+		$markup = apply_filters( 'newspack_newsletters_render_mjml_component', null, $block, $is_in_column, $is_in_group, $default_attrs, $is_in_list_or_quote );
+		if ( null !== $markup ) {
+			return $markup;
+		}
+
 		$block_name    = $block['blockName'];
 		$attrs         = $block['attrs'];
 		$inner_blocks  = $block['innerBlocks'];
