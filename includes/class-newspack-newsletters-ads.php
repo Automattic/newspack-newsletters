@@ -46,6 +46,7 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
+		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
 	}
 
 	/**
@@ -258,6 +259,36 @@ final class Newspack_Newsletters_Ads {
 		 * @param int  $post_id           ID of the newsletter post.
 		 */
 		return apply_filters( 'newspack_newsletters_should_render_ads', $should_render_ads, $post_id );
+	}
+
+	/**
+	 * Track ad impression.
+	 *
+	 * @param int    $newsletter_id Newsletter ID.
+	 * @param string $email_address Email address.
+	 */
+	public static function track_ad_impression( $newsletter_id, $email_address ) {
+		$inserted_ads = get_post_meta( $newsletter_id, 'inserted_ads', true );
+		if ( empty( $inserted_ads ) ) {
+			return;
+		}
+		foreach ( $inserted_ads as $ad_id ) {
+			$impressions = get_post_meta( $ad_id, 'tracking_impressions', true );
+			if ( ! $impressions ) {
+				$impressions = 0;
+			}
+			$impressions++;
+			update_post_meta( $ad_id, 'tracking_impressions', $impressions );
+
+			/**
+			 * Fires when an ad impression is tracked.
+			 *
+			 * @param int    $ad_id         Ad ID.
+			 * @param int    $newsletter_id Newsletter ID.
+			 * @param string $email_address Email address.
+			 */
+			do_action( 'newspack_newsletters_tracking_ad_impression', $ad_id, $newsletter_id, $email_address );
+		}
 	}
 }
 Newspack_Newsletters_Ads::instance();
