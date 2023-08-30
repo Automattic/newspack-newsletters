@@ -24,9 +24,9 @@ final class Admin {
 		add_action( 'manage_edit-' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_sortable_columns', [ __CLASS__, 'sortable_columns' ] );
 
 		// Newsletters Ads columns.
-		add_action( 'manage_' . \Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT . '_posts_columns', [ __CLASS__, 'manage_ads_columns' ] );
-		add_action( 'manage_' . \Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT . '_posts_custom_column', [ __CLASS__, 'custom_ads_column' ], 10, 2 );
-		add_action( 'manage_edit-' . \Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT . '_sortable_columns', [ __CLASS__, 'sortable_ads_columns' ] );
+		add_action( 'manage_' . \Newspack_Newsletters_Ads::CPT . '_posts_columns', [ __CLASS__, 'manage_ads_columns' ] );
+		add_action( 'manage_' . \Newspack_Newsletters_Ads::CPT . '_posts_custom_column', [ __CLASS__, 'custom_ads_column' ], 10, 2 );
+		add_action( 'manage_edit-' . \Newspack_Newsletters_Ads::CPT . '_sortable_columns', [ __CLASS__, 'sortable_ads_columns' ] );
 
 		// Sorting.
 		add_action( 'pre_get_posts', [ __CLASS__, 'handle_sorting' ] );
@@ -265,7 +265,7 @@ final class Admin {
 			}
 		}
 
-		if ( \Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT === $query->get( 'post_type' ) ) {
+		if ( \Newspack_Newsletters_Ads::CPT === $query->get( 'post_type' ) ) {
 			$orderby = $query->get( 'orderby' );
 			if ( 'impressions' === $orderby ) {
 				$query->set( 'meta_key', 'tracking_impressions' );
