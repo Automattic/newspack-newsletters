@@ -1136,46 +1136,35 @@ final class Newspack_Newsletters_Renderer {
 
 
 	/**
-	 * Whether the newspack native ad is active or expired.
+	 * Whether the newspack native ad is active.
 	 *
-	 * @param int $ad_id ID of the Ad post type.
+	 * @param int $ad_id ID of the Ad post.
+	 *
 	 * @return bool
 	 */
 	private static function is_published_ad_active( $ad_id ) {
-		$expiration_date = self::get_ad_expiration_date( $ad_id );
 
-		if ( ! $expiration_date ) {
+		$start_date  = get_post_meta( $ad_id, 'start_date', true );
+		$expiry_date = get_post_meta( $ad_id, 'expiry_date', true );
+
+		if ( ! $start_date && ! $expiry_date ) {
 			return true;
 		}
 
-		return self::is_ad_unexpired( $expiration_date );
-	}
+		$date_format = 'Y-m-d';
+		$today       = gmdate( $date_format );
 
-	/**
-	 * Determines whetherthe newspack native ad is expired.
-	 *
-	 * @param string $expiration_date_as_datetime The expiration date as datetime.
-	 * @return bool
-	 */
-	private static function is_ad_unexpired( $expiration_date_as_datetime ) {
-		$date_format               = 'Y-m-d';
-		$formatted_expiration_date = $expiration_date_as_datetime->format( $date_format );
-		$today                     = gmdate( $date_format );
+		if ( $start_date ) {
+			$formatted_start_date = ( new DateTime( $start_date ) )->format( $date_format );
+			return $formatted_start_date <= $today;
+		}
 
-		return $formatted_expiration_date >= $today;
-	}
+		if ( $expiry_date ) {
+			$formatted_expiry_date = ( new DateTime( $expiry_date ) )->format( $date_format );
+			return $formatted_expiry_date >= $today;
+		}
 
-	/**
-	 * Returns the ad expiration date of a native Ad post type from the post meta.
-	 *
-	 * @param int $ad_id The ad id.
-	 * @return DateTime
-	 */
-	private static function get_ad_expiration_date( $ad_id ) {
-		$expiration_date_meta_key   = 'expiry_date';
-		$expiration_date_meta_value = get_post_meta( $ad_id, $expiration_date_meta_key, true );
-
-		return new DateTime( $expiration_date_meta_value );
+		return true;
 	}
 
 	/** Convert a WP post to an array of non-empty blocks.
