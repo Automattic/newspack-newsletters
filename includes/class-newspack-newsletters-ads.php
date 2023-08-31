@@ -345,7 +345,12 @@ final class Newspack_Newsletters_Ads {
 				echo '—';
 			}
 		} elseif ( 'price' === $column_name ) {
-			echo floatval( get_post_meta( $post_id, 'price', true ) );
+			$price = get_post_meta( $post_id, 'price', true );
+			if ( ! empty( $price ) ) {
+				echo esc_html( $price );
+			} else {
+				echo '—';
+			}
 		}
 	}
 
