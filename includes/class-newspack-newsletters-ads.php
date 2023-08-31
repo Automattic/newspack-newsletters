@@ -47,6 +47,13 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
+
+		// Columns.
+		add_action( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'manage_columns' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'custom_column' ], 10, 2 );
+		add_action( 'manage_edit-' . self::CPT . '_sortable_columns', [ __CLASS__, 'sortable_columns' ] );
+		// Sorting.
+		add_action( 'pre_get_posts', [ __CLASS__, 'handle_sorting' ] );
 	}
 
 	/**
@@ -71,6 +78,17 @@ final class Newspack_Newsletters_Ads {
 				'object_subtype' => self::CPT,
 				'show_in_rest'   => true,
 				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'price',
+			[
+				'object_subtype' => self::CPT,
+				'show_in_rest'   => true,
+				'type'           => 'number',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
 			]
@@ -288,6 +306,56 @@ final class Newspack_Newsletters_Ads {
 			 * @param string $email_address Email address.
 			 */
 			do_action( 'newspack_newsletters_tracking_ad_impression', $ad_id, $newsletter_id, $email_address );
+		}
+	}
+
+	/**
+	 * Manage ads columns.
+	 *
+	 * @param array $columns Columns.
+	 */
+	public static function manage_columns( $columns ) {
+		$columns['price'] = __( 'Price', 'newspack-newsletters' );
+		return $columns;
+	}
+
+	/**
+	 * Custom ads column content.
+	 *
+	 * @param array $column_name Column name.
+	 * @param int   $post_id     Post ID.
+	 */
+	public static function custom_column( $column_name, $post_id ) {
+		if ( 'price' === $column_name ) {
+			echo floatval( get_post_meta( $post_id, 'price', true ) );
+		}
+	}
+
+	/**
+	 * Sortable columns.
+	 *
+	 * @param array $columns Columns.
+	 */
+	public static function sortable_columns( $columns ) {
+		$columns['price'] = 'price';
+		return $columns;
+	}
+
+	/**
+	 * Handle sorting.
+	 *
+	 * @param \WP_Query $query Query.
+	 */
+	public static function handle_sorting( $query ) {
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return;
+		}
+		if ( self::CPT === $query->get( 'post_type' ) ) {
+			$orderby = $query->get( 'orderby' );
+			if ( 'price' === $orderby ) {
+				$query->set( 'meta_key', 'price' );
+				$query->set( 'orderby', 'meta_value_num' );
+			}
 		}
 	}
 }

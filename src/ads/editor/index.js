@@ -7,10 +7,16 @@ import { compose } from '@wordpress/compose';
 import { Fragment } from '@wordpress/element';
 import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
-import { ToggleControl, DatePicker, Notice, RangeControl } from '@wordpress/components';
+import {
+	ToggleControl,
+	TextControl,
+	DatePicker,
+	Notice,
+	RangeControl,
+} from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
 
-const AdEdit = ( { startDate, expiryDate, positionInContent, editPost } ) => {
+const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } ) => {
 	let noticeProps;
 	if ( expiryDate ) {
 		const formattedExpiryDate = format( 'M j Y', expiryDate );
@@ -32,6 +38,15 @@ const AdEdit = ( { startDate, expiryDate, positionInContent, editPost } ) => {
 				name="newsletters-ads-settings-panel"
 				title={ __( 'Ad settings', 'newspack-newsletters' ) }
 			>
+				<TextControl
+					type="number"
+					label={ __( 'Price', 'newspack-newsletters' ) }
+					value={ price }
+					onChange={ val => editPost( { meta: { price: val } } ) }
+					min={ 0 }
+					step={ 0.01 }
+				/>
+				<hr />
 				<RangeControl
 					label={ __( 'Approximate position (in percent)' ) }
 					value={ positionInContent }
@@ -39,6 +54,7 @@ const AdEdit = ( { startDate, expiryDate, positionInContent, editPost } ) => {
 					min={ 0 }
 					max={ 100 }
 				/>
+				<hr />
 				<ToggleControl
 					label={ __( 'Custom Start Date', 'newspack-newsletters' ) }
 					checked={ !! startDate }
@@ -93,6 +109,7 @@ const AdEditWithSelect = compose( [
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
+			price: meta.price,
 			startDate: meta.start_date,
 			expiryDate: meta.expiry_date,
 			positionInContent: meta.position_in_content,
