@@ -15,7 +15,8 @@ const path = require( 'path' );
  */
 const editor = path.join( __dirname, 'src', 'editor' );
 const admin = path.join( __dirname, 'src', 'admin' );
-const adsEditor = path.join( __dirname, 'src', 'ads-admin', 'editor' );
+const adsEditor = path.join( __dirname, 'src', 'ads', 'editor' );
+const newsletterAdsEditor = path.join( __dirname, 'src', 'ads', 'newsletter-editor' );
 const branding = path.join( __dirname, 'src', 'branding' );
 const quickEdit = path.join( __dirname, 'src', 'quick-edit' );
 const editorBlocks = path.join( __dirname, 'src', 'editor', 'blocks' );
@@ -31,6 +32,7 @@ const webpackConfig = getBaseWebpackConfig(
 			editor,
 			admin,
 			adsEditor,
+			newsletterAdsEditor,
 			branding,
 			quickEdit,
 			editorBlocks,

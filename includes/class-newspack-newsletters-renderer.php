@@ -272,10 +272,11 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Append UTM param to links.
 	 *
-	 * @param string $html input HTML.
+	 * @param string   $html Input HTML.
+	 * @param \WP_Post $post Optional post object.
 	 * @return string HTML with processed links.
 	 */
-	public static function process_links( $html ) {
+	public static function process_links( $html, $post = null ) {
 		preg_match_all( '/href="([^"]*)"/', $html, $matches );
 		$href_params = $matches[0];
 		$urls        = $matches[1];
@@ -292,7 +293,8 @@ final class Newspack_Newsletters_Renderer {
 					],
 					$url
 				),
-				$url
+				$url,
+				$post
 			);
 
 			$html = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
@@ -1078,6 +1080,7 @@ final class Newspack_Newsletters_Renderer {
 			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
 
 			return [
+				'id'               => $ad_id,
 				'is_inserted'      => false,
 				'markup'           => self::post_to_mjml_components( $ad, false ),
 				'percentage'       => $positioning,
@@ -1186,12 +1189,7 @@ final class Newspack_Newsletters_Renderer {
 		$total_length  = self::get_total_newsletter_character_length( $valid_blocks );
 		$is_newsletter = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post->ID );
 
-		/**
-		 * When ads are enabled, we fetch and format them for insertion.
-		 *
-		 * @note "diable_ads" is a typo that's been in production for awhile.
-		 */
-		if ( $include_ads && $is_newsletter && ! get_post_meta( $post->ID, 'diable_ads', true ) ) {
+		if ( $include_ads && $is_newsletter ) {
 			self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
 		}
 
@@ -1246,7 +1244,7 @@ final class Newspack_Newsletters_Renderer {
 			$body = self::insert_ads( $body, INF );
 		}
 
-		return self::process_links( $body );
+		return self::process_links( $body, $post );
 	}
 
 	/**
@@ -1276,13 +1274,23 @@ final class Newspack_Newsletters_Renderer {
 		/**
 		 * Generate a string of MJML as the body of the email. We include ads at this stage.
 		 */
-		$body             = self::post_to_mjml_components( $post, true ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$include_ads      = Newspack_Newsletters_Ads::should_render_ads( $post->ID );
+		$body             = self::post_to_mjml_components( $post, $include_ads ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$preview_text     = get_post_meta( $post->ID, 'preview_text', true );
 		$custom_css       = get_post_meta( $post->ID, 'custom_css', true );
 		if ( ! $background_color ) {
 			$background_color = '#ffffff';
 		}
+
+		// Get all the inserted ads.
+		$inserted_ads = [];
+		foreach ( self::$ads_to_insert as $ad_to_insert ) {
+			if ( $ad_to_insert['is_inserted'] ) {
+				$inserted_ads[] = $ad_to_insert['id'];
+			}
+		}
+		update_post_meta( $post->ID, 'inserted_ads', $inserted_ads );
 
 		ob_start();
 		include dirname( __FILE__ ) . '/email-template.mjml.php';
