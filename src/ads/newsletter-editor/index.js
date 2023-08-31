@@ -45,11 +45,11 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 	return (
 		<div>
 			<ToggleControl
-				label={ __( 'Disable automatic insertion of ads', 'newspack-newsletters' ) }
-				checked={ disableAutoAds }
+				label={ __( 'Enable automatic insertion of ads', 'newspack-newsletters' ) }
+				checked={ ! disableAutoAds }
 				disabled={ isSaving }
-				onChange={ disable_auto_ads => {
-					editPost( { meta: { disable_auto_ads } } );
+				onChange={ enable => {
+					editPost( { meta: { disable_auto_ads: ! enable } } );
 					if ( saveOnToggle ) {
 						savePost();
 					}
