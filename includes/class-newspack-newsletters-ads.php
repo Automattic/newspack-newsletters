@@ -316,7 +316,7 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public static function manage_columns( $columns ) {
 		$columns['start_date']  = __( 'Start Date', 'newspack-newsletters' );
-		$columns['expiry_date'] = __( 'Expiry Date', 'newspack-newsletters' );
+		$columns['expiry_date'] = __( 'Expiration Date', 'newspack-newsletters' );
 		$columns['price']       = __( 'Price', 'newspack-newsletters' );
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
@@ -331,10 +331,19 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public static function custom_column( $column_name, $post_id ) {
 		if ( 'start_date' === $column_name ) {
-			// Echo date in readable format.
-			echo esc_html( wp_date( get_option( 'date_format' ), strtotime( get_post_meta( $post_id, 'start_date', true ) ) ) );
+			$start_date = get_post_meta( $post_id, 'start_date', true );
+			if ( ! empty( $start_date ) ) {
+				echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $start_date ) ) );
+			} else {
+				echo '—';
+			}
 		} elseif ( 'expiry_date' === $column_name ) {
-			echo esc_html( wp_date( get_option( 'date_format' ), strtotime( get_post_meta( $post_id, 'expiry_date', true ) ) ) );
+			$expiry_date = get_post_meta( $post_id, 'expiry_date', true );
+			if ( ! empty( $expiry_date ) ) {
+				echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $expiry_date ) ) );
+			} else {
+				echo '—';
+			}
 		} elseif ( 'price' === $column_name ) {
 			echo floatval( get_post_meta( $post_id, 'price', true ) );
 		}
