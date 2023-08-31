@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Fragment } from '@wordpress/element';
@@ -17,18 +17,56 @@ import {
 import { format, isInTheFuture } from '@wordpress/date';
 
 const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } ) => {
+	const messages = [];
+	if ( expiryDate && ! isInTheFuture( expiryDate ) ) {
+		messages.push(
+			__(
+				'The expiration date is set in the past. This ad will not be displayed.',
+				'newspack-newsletters'
+			)
+		);
+	}
+	if ( startDate && startDate > expiryDate ) {
+		messages.push(
+			sprintf(
+				// translators: %s: date.
+				__(
+					'The expiration date is set before the start date (%s). This ad will not be displayed.',
+					'newspack-newsletters'
+				),
+				format( 'M j Y', startDate )
+			)
+		);
+	}
+	let defaultMessage;
+	if ( startDate && expiryDate ) {
+		defaultMessage = sprintf(
+			// translators: %1$s: date, %2$s: date.
+			__( 'This ad will be displayed between %1$s and %2$s.', 'newspack-newsletters' ),
+			format( 'M j Y', startDate ),
+			format( 'M j Y', expiryDate )
+		);
+	} else if ( startDate ) {
+		defaultMessage = sprintf(
+			// translators: %s: date.
+			__( 'This ad will be displayed starting %s.', 'newspack-newsletters' ),
+			format( 'M j Y', startDate )
+		);
+	} else if ( expiryDate ) {
+		defaultMessage = sprintf(
+			// translators: %s: date.
+			__( 'This ad will be displayed until %s.', 'newspack-newsletters' ),
+			format( 'M j Y', expiryDate )
+		);
+	}
+
 	let noticeProps;
-	if ( expiryDate ) {
-		const formattedExpiryDate = format( 'M j Y', expiryDate );
-		const isExpiryInTheFuture = isInTheFuture( expiryDate );
+	if ( defaultMessage || messages.length ) {
 		noticeProps = {
-			children: isExpiryInTheFuture
-				? `${ __( 'This ad will expire on ', 'newspack-newsletters' ) } ${ formattedExpiryDate }.`
-				: __(
-						'The expiration date is set in the past. This ad will not be displayed.',
-						'newspack-newsletters'
-				  ),
-			status: isExpiryInTheFuture ? 'info' : 'warning',
+			children: messages.length
+				? messages.map( ( message, index ) => <p key={ index }>{ message }</p> )
+				: defaultMessage,
+			status: messages.length ? 'warning' : 'info',
 		};
 	}
 
