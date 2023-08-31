@@ -315,7 +315,11 @@ final class Newspack_Newsletters_Ads {
 	 * @param array $columns Columns.
 	 */
 	public static function manage_columns( $columns ) {
-		$columns['price'] = __( 'Price', 'newspack-newsletters' );
+		$columns['start_date']  = __( 'Start Date', 'newspack-newsletters' );
+		$columns['expiry_date'] = __( 'Expiry Date', 'newspack-newsletters' );
+		$columns['price']       = __( 'Price', 'newspack-newsletters' );
+		unset( $columns['date'] );
+		unset( $columns['stats'] );
 		return $columns;
 	}
 
@@ -326,7 +330,12 @@ final class Newspack_Newsletters_Ads {
 	 * @param int   $post_id     Post ID.
 	 */
 	public static function custom_column( $column_name, $post_id ) {
-		if ( 'price' === $column_name ) {
+		if ( 'start_date' === $column_name ) {
+			// Echo date in readable format.
+			echo esc_html( wp_date( get_option( 'date_format' ), strtotime( get_post_meta( $post_id, 'start_date', true ) ) ) );
+		} elseif ( 'expiry_date' === $column_name ) {
+			echo esc_html( wp_date( get_option( 'date_format' ), strtotime( get_post_meta( $post_id, 'expiry_date', true ) ) ) );
+		} elseif ( 'price' === $column_name ) {
 			echo floatval( get_post_meta( $post_id, 'price', true ) );
 		}
 	}
@@ -337,7 +346,9 @@ final class Newspack_Newsletters_Ads {
 	 * @param array $columns Columns.
 	 */
 	public static function sortable_columns( $columns ) {
-		$columns['price'] = 'price';
+		$columns['start_date']  = 'start_date';
+		$columns['expiry_date'] = 'expiry_date';
+		$columns['price']       = 'price';
 		return $columns;
 	}
 
@@ -355,6 +366,12 @@ final class Newspack_Newsletters_Ads {
 			if ( 'price' === $orderby ) {
 				$query->set( 'meta_key', 'price' );
 				$query->set( 'orderby', 'meta_value_num' );
+			} elseif ( 'start_date' === $orderby ) {
+				$query->set( 'meta_key', 'start_date' );
+				$query->set( 'orderby', 'meta_value' );
+			} elseif ( 'expiry_date' === $orderby ) {
+				$query->set( 'meta_key', 'expiry_date' );
+				$query->set( 'orderby', 'meta_value' );
 			}
 		}
 	}
