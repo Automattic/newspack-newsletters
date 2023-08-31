@@ -17,12 +17,12 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		return { date: getEditedPostAttribute( 'date' ) };
 	} );
-	const blockProps = useBlockProps();
 	const [ adsConfig, setAdsConfig ] = useState( {
 		count: 0,
 		label: __( 'ads', 'newspack-newsletters' ),
 		ads: [],
 	} );
+	const [ isEmpty, setIsEmpty ] = useState( false );
 	const [ inFlight, setInFlight ] = useState( false );
 	useEffect( () => {
 		setInFlight( true );
@@ -31,6 +31,11 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 		} )
 			.then( response => {
 				setAdsConfig( response );
+				if ( ! response.ads.length ) {
+					setIsEmpty( true );
+				} else {
+					setIsEmpty( false );
+				}
 			} )
 			.catch( e => {
 				console.warn( e ); // eslint-disable-line no-console
@@ -47,6 +52,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 		const ad = adsConfig.ads.find( _ad => _ad.id.toString() === adId );
 		return ad ? ad.title : '';
 	}
+	const blockProps = useBlockProps();
 	return (
 		<div { ...blockProps }>
 			<InspectorControls>
@@ -54,7 +60,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 					<SelectControl
 						label={ __( 'Ad' ) }
 						value={ adId }
-						disabled={ inFlight }
+						disabled={ inFlight || isEmpty }
 						options={ [
 							{
 								label: __( 'Automatic selection', 'newspack-newsletters' ),
@@ -68,7 +74,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 						) }
 						onChange={ val => setAttributes( { adId: val } ) }
 					/>
-					{ ! adId && (
+					{ ! adId && ! isEmpty && (
 						<p>
 							{ __(
 								'By not selecting an ad, the system automatically chooses which ad should be rendered in this position.',
@@ -76,6 +82,14 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 							) }
 						</p>
 					) }
+					{ isEmpty ? (
+						<p>
+							{ __(
+								"No ads are available. Make sure you have created ads and that they are scheduled to run on the newsletter's publish date.",
+								'newspack-newsletters'
+							) }
+						</p>
+					) : null }
 				</PanelBody>
 			</InspectorControls>
 			<div
