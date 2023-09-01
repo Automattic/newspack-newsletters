@@ -433,10 +433,24 @@ final class Newspack_Newsletters_Editor {
 				$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 			}
 
+			// Exclude posts with direct sponsors.
 			$args['tax_query'][] = [
 				'taxonomy' => \Newspack_Sponsors\Core::NEWSPACK_SPONSORS_TAX,
 				'operator' => 'NOT EXISTS',
 			];
+
+			// Exclude posts with sponsored terms, too.
+			$sponsored_terms = \Newspack_Sponsors\get_all_sponsored_terms();
+			if ( ! empty( $sponsored_terms ) ) {
+				$args['tax_query']['relation'] = 'AND';
+				foreach ( $sponsored_terms as $taxonomy => $term_ids ) {
+					$args['tax_query'][] = [
+						'taxonomy' => $taxonomy,
+						'terms'    => $term_ids,
+						'operator' => 'NOT IN',
+					];
+				}
+			}
 		}
 
 		return $args;
