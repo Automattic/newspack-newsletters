@@ -119,10 +119,11 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 
 const getSponsorFlagBlockTemplate = ( content, { textFontSize } ) => {
 	return [
-		'core/paragraph',
+		'core/heading',
 		assignFontSize( textFontSize, {
 			className: 'newspack-sponsors-flag',
 			content: `<span style="background-color:${ newspack_email_editor_data.sponsors_flag_hex };color:${ newspack_email_editor_data.sponsors_flag_text_color };font-weight:700;padding:2px 4px;text-transform:uppercase">${ content }</span>`,
+			level: 6,
 			fontSize: 'small',
 		} ),
 	];
