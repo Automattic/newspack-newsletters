@@ -314,6 +314,7 @@ final class Newspack_Newsletters_Renderer {
 			'core/site-logo',
 			'core/site-title',
 			'core/site-tagline',
+			'newspack-newsletters/ad',
 		];
 
 		$empty_block_name = empty( $block['blockName'] );
@@ -907,6 +908,32 @@ final class Newspack_Newsletters_Renderer {
 				}
 				$block_mjml_markup = $markup;
 				break;
+			case 'newspack-newsletters/ad':
+				if ( empty( $attrs['adId'] ) ) {
+					// Sort ads by percentage.
+					usort(
+						self::$ads_to_insert,
+						function( $a, $b ) {
+							return $a['percentage'] > $b['percentage'];
+						}
+					);
+					// Insert the first ad that hasn't been inserted yet.
+					foreach ( self::$ads_to_insert as &$ad_to_insert ) {
+						if ( ! $ad_to_insert['is_inserted'] ) {
+							$block_mjml_markup          .= $ad_to_insert['markup'];
+							$ad_to_insert['is_inserted'] = true;
+							break;
+						}
+					}
+				} else {
+					$index = array_search( (int) $attrs['adId'], array_column( self::$ads_to_insert, 'id' ) );
+					if ( false !== $index ) {
+						$block_mjml_markup                            = self::$ads_to_insert[ $index ]['markup'];
+						self::$ads_to_insert[ $index ]['is_inserted'] = true;
+					}
+				}
+				break;
+
 		}
 
 		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
@@ -1099,6 +1126,7 @@ final class Newspack_Newsletters_Renderer {
 
 			return [
 				'id'               => $ad_id,
+				'title'            => $ad->post_title,
 				'is_inserted'      => false,
 				'markup'           => self::post_to_mjml_components( $ad, false ),
 				'percentage'       => $positioning,
@@ -1193,12 +1221,7 @@ final class Newspack_Newsletters_Renderer {
 	public static function post_to_mjml_components( $post, $include_ads = false ) {
 		$body          = '';
 		$valid_blocks  = self::get_valid_post_blocks( $post );
-		$total_length  = self::get_total_newsletter_character_length( $valid_blocks );
 		$is_newsletter = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post->ID );
-
-		if ( $include_ads && $is_newsletter ) {
-			self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
-		}
 
 		// Build MJML body and insert ads.
 		$current_position = 0;
@@ -1281,7 +1304,11 @@ final class Newspack_Newsletters_Renderer {
 		/**
 		 * Generate a string of MJML as the body of the email. We include ads at this stage.
 		 */
-		$include_ads      = Newspack_Newsletters_Ads::should_render_ads( $post->ID );
+		$valid_blocks        = self::get_valid_post_blocks( $post );
+		$total_length        = self::get_total_newsletter_character_length( $valid_blocks );
+		self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
+		$include_ads         = Newspack_Newsletters_Ads::should_render_ads( $post->ID );
+
 		$body             = self::post_to_mjml_components( $post, $include_ads ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$preview_text     = get_post_meta( $post->ID, 'preview_text', true );
