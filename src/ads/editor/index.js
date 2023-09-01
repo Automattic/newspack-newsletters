@@ -15,8 +15,17 @@ import {
 	RangeControl,
 } from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
+import { SelectControl } from 'newspack-components';
 
-const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } ) => {
+const AdEdit = ( {
+	price,
+	startDate,
+	expiryDate,
+	insertionStrategy,
+	positionInContent,
+	positionBlockCount,
+	editPost,
+} ) => {
 	const messages = [];
 	if ( expiryDate && ! isInTheFuture( expiryDate ) ) {
 		messages.push(
@@ -85,13 +94,61 @@ const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } )
 					step={ 0.01 }
 				/>
 				<hr />
-				<RangeControl
-					label={ __( 'Approximate position (in percent)' ) }
-					value={ positionInContent }
-					onChange={ position_in_content => editPost( { meta: { position_in_content } } ) }
-					min={ 0 }
-					max={ 100 }
+				<SelectControl
+					label={ __( 'Insertion strategy', 'newspack-newsletters' ) }
+					help={ __(
+						'Whether to calculation the ad insertion by percentage or block count.',
+						'newspack-newsletters'
+					) }
+					value={ insertionStrategy }
+					onChange={ insertion_strategy => editPost( { meta: { insertion_strategy } } ) }
+					options={ [
+						{ value: 'percentage', label: __( 'Percentage', 'newspack-newsletters' ) },
+						{ value: 'block_count', label: __( 'Block count', 'newspack-newsletters' ) },
+					] }
 				/>
+				{ insertionStrategy === 'percentage' && (
+					<Fragment>
+						<RangeControl
+							label={ __( 'Approximate position (in percent)' ) }
+							value={ positionInContent }
+							onChange={ position_in_content => editPost( { meta: { position_in_content } } ) }
+							min={ 0 }
+							max={ 100 }
+						/>
+						<p>
+							{ sprintf(
+								// translators: %d: number.
+								__(
+									'The ad will be automatically inserted about %s into the newsletter content.',
+									'newspack-newsletters'
+								),
+								positionInContent + '%'
+							) }
+						</p>
+					</Fragment>
+				) }
+				{ insertionStrategy === 'block_count' && (
+					<Fragment>
+						<RangeControl
+							label={ __( 'Approximate position (in blocks)' ) }
+							value={ positionBlockCount }
+							onChange={ position_block_count => editPost( { meta: { position_block_count } } ) }
+							min={ 0 }
+							max={ 30 }
+						/>
+						<p>
+							{ sprintf(
+								// translators: %d: number.
+								__(
+									'The ad will be automatically inserted after %d blocks of newsletter content.',
+									'newspack-newsletters'
+								),
+								positionBlockCount
+							) }
+						</p>
+					</Fragment>
+				) }
 				<hr />
 				<ToggleControl
 					label={ __( 'Custom Start Date', 'newspack-newsletters' ) }
@@ -150,7 +207,9 @@ const AdEditWithSelect = compose( [
 			price: meta.price,
 			startDate: meta.start_date,
 			expiryDate: meta.expiry_date,
+			insertionStrategy: meta.insertion_strategy,
 			positionInContent: meta.position_in_content,
+			positionBlockCount: meta.position_block_count,
 		};
 	} ),
 	withDispatch( dispatch => {
