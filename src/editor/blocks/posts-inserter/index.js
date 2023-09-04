@@ -329,6 +329,7 @@ const PostsInserterBlockWithSelect = compose( [
 			tagExclusions,
 			categoryExclusions,
 			excerptLength,
+			displaySponsoredPosts,
 		} = props.attributes;
 		const { getEntityRecords, getMedia } = select( 'core' );
 		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
@@ -339,24 +340,23 @@ const PostsInserterBlockWithSelect = compose( [
 
 		let posts = [];
 		const isHandlingSpecificPosts = isDisplayingSpecificPosts && specificPosts.length > 0;
+		const query = {
+			categories: catIds,
+			tags,
+			order,
+			orderby: orderBy,
+			per_page: postsToShow,
+			exclude: preventDeduplication ? [] : exclude,
+			categories_exclude: categoryExclusions,
+			tags_exclude: tagExclusions,
+			excerpt_length: excerptLength,
+			exclude_sponsors: displaySponsoredPosts ? 0 : 1,
+		};
 
 		if ( ! isDisplayingSpecificPosts || isHandlingSpecificPosts ) {
 			const postListQuery = isDisplayingSpecificPosts
 				? { include: specificPosts.map( post => post.id ) }
-				: pickBy(
-						{
-							categories: catIds,
-							tags,
-							order,
-							orderby: orderBy,
-							per_page: postsToShow,
-							exclude: preventDeduplication ? [] : exclude,
-							categories_exclude: categoryExclusions,
-							tags_exclude: tagExclusions,
-							excerpt_length: excerptLength,
-						},
-						value => ! isUndefined( value )
-				  );
+				: pickBy( query, value => ! isUndefined( value ) );
 
 			posts = getEntityRecords( 'postType', postType, postListQuery ) || [];
 		}
