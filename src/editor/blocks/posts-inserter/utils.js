@@ -1,3 +1,5 @@
+/* globals newspack_email_editor_data */
+
 /**
  * External dependencies
  */
@@ -115,13 +117,98 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	return null;
 };
 
+const getSponsorFlagBlockTemplate = ( content, { textFontSize } ) => {
+	return [
+		'core/heading',
+		assignFontSize( textFontSize, {
+			className: 'newspack-sponsors-flag',
+			content: `<span style="background-color:${ newspack_email_editor_data.sponsors_flag_hex };color:${ newspack_email_editor_data.sponsors_flag_text_color };font-weight:700;padding:2px 4px;text-transform:uppercase">${ content }</span>`,
+			level: 6,
+			fontSize: 'small',
+		} ),
+	];
+};
+
+const getSponsorAttributionTemplate = ( sponsors, { textFontSize, textColor } ) => {
+	const sponsorsToShow = sponsors.filter( sponsor => 'native' === sponsor.sponsor_scope );
+	if ( ! sponsorsToShow.length ) {
+		return [];
+	}
+
+	const sponsorNames = [];
+
+	sponsorsToShow.forEach( sponsor => {
+		const sponsorName = sponsor.sponsor_url
+			? `<a href="${ sponsor.sponsor_url }">${ sponsor.sponsor_name }</a>`
+			: sponsor.sponsor_name;
+		sponsorNames.push( sponsorName );
+	} );
+
+	return [
+		'core/heading',
+		assignFontSize( textFontSize, {
+			content: sponsorsToShow[ 0 ].sponsor_byline + ' ' + sponsorNames.join( ', ' ),
+			fontSize: 'normal',
+			level: 6,
+			style: { color: { text: textColor } },
+		} ),
+	];
+};
+
 const createBlockTemplatesForSinglePost = ( post, attributes ) => {
-	const postContentBlocks = [ getHeadingBlockTemplate( post, attributes ) ];
+	const postContentBlocks = [];
+	let displayAuthor = attributes.displayAuthor;
+
+	const hasSponsors = post.newspack_sponsors_info && 0 < post.newspack_sponsors_info.length;
+	if ( hasSponsors ) {
+		// If the post is set to show sponsors with native sponsor styling, OR at least one sponsor is a native sponsor, show the "sponsored" flag.
+		const showSponsorFlag =
+			'native' === post.meta.newspack_sponsor_sponsorship_scope ||
+			post.newspack_sponsors_info.reduce( ( acc, sponsor ) => {
+				if ( 'native' === sponsor.sponsor_scope ) {
+					return true;
+				}
+				return acc;
+			}, false );
+
+		if ( showSponsorFlag ) {
+			const sponsorFlag = post.newspack_sponsors_info[ 0 ].sponsor_flag;
+			postContentBlocks.push( getSponsorFlagBlockTemplate( sponsorFlag, attributes ) );
+		}
+	}
+
+	postContentBlocks.push( getHeadingBlockTemplate( post, attributes ) );
 
 	if ( attributes.displayPostSubtitle && post.meta?.newspack_post_subtitle ) {
 		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
 	}
-	if ( attributes.displayAuthor ) {
+
+	if ( hasSponsors && 'underwritten' !== post.meta.newspack_sponsor_sponsorship_scope ) {
+		// If the post is set to show only sponsor, OR set to inherit and all sponsors are set to show only sponsor, hide the byline.
+		if (
+			'sponsor' === post.meta.newspack_sponsor_native_byline_display ||
+			( 'inherit' === post.meta.newspack_sponsor_native_byline_display &&
+				false ===
+					post.newspack_sponsors_info.reduce( ( acc, sponsor ) => {
+						if ( 'author' === sponsor.sponsor_byline_display ) {
+							return true;
+						}
+						return acc;
+					}, false ) )
+		) {
+			displayAuthor = false;
+		}
+
+		const sponsorAttributions = getSponsorAttributionTemplate(
+			post.newspack_sponsors_info,
+			attributes
+		);
+		if ( sponsorAttributions ) {
+			postContentBlocks.push( sponsorAttributions );
+		}
+	}
+
+	if ( displayAuthor ) {
 		const author = getAuthorBlockTemplate( post, attributes );
 
 		if ( author ) {
