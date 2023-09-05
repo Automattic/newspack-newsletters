@@ -43,10 +43,36 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
+		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_ADS_CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
+	}
+
+	/**
+	 * API endpoints.
+	 */
+	public static function rest_api_init() {
+		\register_rest_route(
+			'wp/v2/' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'config',
+			[
+				'callback'            => [ __CLASS__, 'get_ads_config' ],
+				'methods'             => 'GET',
+				'permission_callback' => [ __CLASS__, 'permission_callback' ],
+			]
+		);
+	}
+
+	/**
+	 * Check capabilities for using the API for authoring tasks.
+	 *
+	 * @param WP_REST_Request $request API request object.
+	 * @return bool|WP_Error
+	 */
+	public static function permission_callback( $request ) {
+		return current_user_can( 'edit_posts' );
 	}
 
 	/**
@@ -202,9 +228,16 @@ final class Newspack_Newsletters_Ads {
 		$should_render_ads = true;
 
 		/**
-		 * Disable automated ads insertion.
+		 * Disable automated ads insertion meta.
 		 */
 		if ( get_post_meta( $post_id, 'disable_auto_ads', true ) ) {
+			$should_render_ads = false;
+		}
+
+		/**
+		 * Disable automated ads insertion if the newsletter contains a manual ad block.
+		 */
+		if ( has_block( 'newspack-newsletters/ad', $post_id ) ) {
 			$should_render_ads = false;
 		}
 
@@ -215,6 +248,38 @@ final class Newspack_Newsletters_Ads {
 		 * @param int  $post_id           ID of the newsletter post.
 		 */
 		return apply_filters( 'newspack_newsletters_should_render_ads', $should_render_ads, $post_id );
+	}
+
+	/**
+	 * Get properties required to render a useful modal in the editor that alerts
+	 * users of ads they're sending.
+	 *
+	 * @param WP_REST_REQUEST $request The WP Request Object.
+	 * @return array
+	 */
+	public static function get_ads_config( $request ) {
+		$letterhead                 = new Newspack_Newsletters_Letterhead();
+		$has_letterhead_credentials = $letterhead->has_api_credentials();
+		$post_date                  = $request->get_param( 'date' );
+		$newspack_ad_type           = self::NEWSPACK_NEWSLETTERS_ADS_CPT;
+
+		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
+		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}";
+
+		$ads                   = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
+		$ads_label             = $has_letterhead_credentials ? __( 'promotion', 'newspack-newsletters' ) : __( 'ad', 'newspack-newsletters' );
+		$ads_manage_url        = $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads;
+		$ads_manage_url_rel    = $has_letterhead_credentials ? 'noreferrer' : '';
+		$ads_manage_url_target = $has_letterhead_credentials ? '_blank' : '_self';
+
+		return [
+			'count'           => count( $ads ),
+			'label'           => $ads_label,
+			'manageUrl'       => $ads_manage_url,
+			'manageUrlRel'    => $ads_manage_url_rel,
+			'manageUrlTarget' => $ads_manage_url_target,
+			'ads'             => $ads,
+		];
 	}
 
 	/**
