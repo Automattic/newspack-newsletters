@@ -237,8 +237,7 @@ final class Newspack_Newsletters_Ads {
 		/**
 		 * Disable automated ads insertion if the newsletter contains a manual ad block.
 		 */
-		$content = get_the_content( null, false, $post_id );
-		if ( strpos( $content, '<!-- wp:newspack-newsletters/ad' ) !== false ) {
+		if ( has_block( 'newspack-newsletters/ad', $post_id ) ) {
 			$should_render_ads = false;
 		}
 
