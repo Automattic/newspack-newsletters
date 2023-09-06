@@ -62,7 +62,7 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public static function rest_api_init() {
 		\register_rest_route(
-			'wp/v2/' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'wp/v2/' . self::CPT,
 			'config',
 			[
 				'callback'            => [ __CLASS__, 'get_ads_config' ],
@@ -323,7 +323,7 @@ final class Newspack_Newsletters_Ads {
 		$letterhead                 = new Newspack_Newsletters_Letterhead();
 		$has_letterhead_credentials = $letterhead->has_api_credentials();
 		$post_date                  = $request->get_param( 'date' );
-		$newspack_ad_type           = self::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$newspack_ad_type           = self::CPT;
 
 		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
 		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}";
