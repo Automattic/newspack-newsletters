@@ -215,6 +215,21 @@ final class Newspack_Newsletters {
 	public static function register_meta() {
 		\register_meta(
 			'post',
+			'campaign_name',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
 			'template_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,

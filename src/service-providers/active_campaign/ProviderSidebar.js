@@ -39,19 +39,21 @@ export const validateNewsletter = ( { from_email, from_name, list_id } ) => {
  * so that it's possible to render e.g. a loader while
  * the data is not yet available.
  *
- * @param {Object}   props                   Component props.
- * @param {number}   props.postId            ID of the edited newsletter post.
- * @param {Function} props.renderSubject     Function that renders email subject input.
- * @param {Function} props.renderPreviewText Function that renders email preview text input.
- * @param {boolean}  props.inFlight          True if the component is in a loading state.
- * @param {Object}   props.acData            ActiveCampaign data.
- * @param {Function} props.updateMetaValue   Dispatcher to update post meta.
- * @param {Object}   props.newsletterData    Newsletter data from the parent components
- * @param {Function} props.createErrorNotice Dispatcher to display an error message in the editor.
- * @param {string}   props.status            Current post status.
+ * @param {Object}   props                    Component props.
+ * @param {number}   props.postId             ID of the edited newsletter post.
+ * @param {Function} props.renderCampaignName Function that renders campaign name input.
+ * @param {Function} props.renderSubject      Function that renders email subject input.
+ * @param {Function} props.renderPreviewText  Function that renders email preview text input.
+ * @param {boolean}  props.inFlight           True if the component is in a loading state.
+ * @param {Object}   props.acData             ActiveCampaign data.
+ * @param {Function} props.updateMetaValue    Dispatcher to update post meta.
+ * @param {Object}   props.newsletterData     Newsletter data from the parent components
+ * @param {Function} props.createErrorNotice  Dispatcher to display an error message in the editor.
+ * @param {string}   props.status             Current post status.
  */
 const ProviderSidebarComponent = ( {
 	postId,
+	renderCampaignName,
 	renderSubject,
 	renderPreviewText,
 	inFlight,
@@ -114,6 +116,7 @@ const ProviderSidebarComponent = ( {
 
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
+			{ renderCampaignName() }
 			{ renderSubject() }
 			{ renderPreviewText() }
 			<hr />

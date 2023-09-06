@@ -86,6 +86,7 @@ const SegmentsSelection = ( {
 };
 
 const ProviderSidebar = ( {
+	renderCampaignName,
 	renderSubject,
 	renderFrom,
 	renderPreviewText,
@@ -208,6 +209,7 @@ const ProviderSidebar = ( {
 
 	return (
 		<Fragment>
+			{ renderCampaignName() }
 			{ renderSubject() }
 			{ renderPreviewText() }
 			<hr />

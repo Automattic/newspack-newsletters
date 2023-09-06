@@ -31,6 +31,7 @@ const Sidebar = ( {
 	title,
 	senderName,
 	senderEmail,
+	campaignName,
 	previewText,
 	newsletterData,
 	apiFetchWithErrorHandling,
@@ -45,20 +46,32 @@ const Sidebar = ( {
 			}
 		} );
 
+	const getCampaignName = () => {
+		if ( typeof campaignName === 'string' ) {
+			return campaignName;
+		}
+		return 'Newspack Newsletter (' + postId + ')';
+	};
+
+	const renderCampaignName = () => (
+		<TextControl
+			label={ __( 'Campaign Name', 'newspack-newsletters' ) }
+			className="newspack-newsletters__campaign-name-textcontrol"
+			value={ getCampaignName() }
+			placeholder={ 'Newspack Newsletter (' + postId + ')' }
+			disabled={ inFlight }
+			onChange={ value => editPost( { meta: { campaign_name: value } } ) }
+		/>
+	);
+
 	const renderSubject = () => (
-		<>
-			<strong className="newspack-newsletters__label">
-				{ __( 'Subject', 'newspack-newsletters' ) }
-			</strong>
-			<TextControl
-				label={ __( 'Subject', 'newspack-newsletters' ) }
-				className="newspack-newsletters__subject-textcontrol"
-				value={ title }
-				disabled={ inFlight }
-				onChange={ value => editPost( { title: value } ) }
-				hideLabelFromVision
-			/>
-		</>
+		<TextControl
+			label={ __( 'Subject', 'newspack-newsletters' ) }
+			className="newspack-newsletters__subject-textcontrol"
+			value={ title }
+			disabled={ inFlight }
+			onChange={ value => editPost( { title: value } ) }
+		/>
 	);
 
 	const senderEmailClasses = classnames(
@@ -142,6 +155,7 @@ const Sidebar = ( {
 				newsletterData={ newsletterData }
 				inFlight={ inFlight }
 				apiFetch={ apiFetch }
+				renderCampaignName={ renderCampaignName }
 				renderSubject={ renderSubject }
 				renderFrom={ renderFrom }
 				renderPreviewText={ renderPreviewText }
@@ -161,6 +175,7 @@ export default compose( [
 			postId: getCurrentPostId(),
 			senderEmail: meta.senderEmail || '',
 			senderName: meta.senderName || '',
+			campaignName: meta.campaign_name,
 			previewText: meta.preview_text || '',
 			newsletterData: meta.newsletterData || {},
 		};
