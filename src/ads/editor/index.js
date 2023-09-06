@@ -107,14 +107,6 @@ function AdEdit() {
 					step={ 0.01 }
 				/>
 				<hr />
-				<RangeControl
-					label={ __( 'Approximate position (in percent)' ) }
-					value={ positionInContent }
-					onChange={ position_in_content => editPost( { meta: { position_in_content } } ) }
-					min={ 0 }
-					step={ 0.01 }
-				/>
-				<hr />
 				<SelectControl
 					label={ __( 'Insertion strategy', 'newspack-newsletters' ) }
 					help={ __(
