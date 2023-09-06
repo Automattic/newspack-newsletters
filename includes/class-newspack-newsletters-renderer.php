@@ -929,10 +929,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 				}
 				if ( $ad_post ) {
-					$ad_blocks = self::get_valid_post_blocks( $ad_post );
-					foreach ( $ad_blocks as $ad_block ) {
-						$block_mjml_markup .= self::render_mjml_component( $ad_block, $is_in_column, $is_in_group, $default_attrs );
-					}
+					$block_mjml_markup = self::post_to_mjml_components( $ad_post );
 					if ( ! empty( self::$newsletter_id ) ) {
 						Newspack_Newsletters_Ads::mark_ad_inserted( self::$newsletter_id, $ad_post->ID );
 					}
