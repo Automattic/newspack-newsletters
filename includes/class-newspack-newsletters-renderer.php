@@ -990,12 +990,30 @@ final class Newspack_Newsletters_Renderer {
 	/**
 	 * Insert ads in a piece of markup.
 	 *
-	 * @param string $markup The markup.
-	 * @param number $current_position Current position, as character offset.
+	 * @param WP_Post $post The post object.
+	 * @param string  $markup The markup.
+	 * @param number  $current_position Current position, as character offset.
+	 *
 	 * @return string Markup with ads inserted.
 	 */
-	private static function insert_ads( $markup, $current_position ) {
+	private static function insert_ads( $post, $markup, $current_position ) {
 		foreach ( self::$ads_to_insert as &$ad_to_insert ) {
+			$ad_categories = wp_get_post_terms( $ad_to_insert['id'], 'category' );
+			// Skip if the ad is not in the same category as the post.
+			if ( ! empty( $ad_categories ) ) {
+				$post_categories = wp_get_post_terms( $post->ID, 'category' );
+				if ( empty( array_intersect( wp_list_pluck( $ad_categories, 'term_id' ), wp_list_pluck( $post_categories, 'term_id' ) ) ) ) {
+					continue;
+				}
+			}
+			$post_advertisers = wp_get_post_terms( $post->ID, Newspack_Newsletters_Ads::ADVERTISER_TAX );
+			// Skip if the post has an advertiser and the ad is not from the same advertiser.
+			if ( ! empty( $post_advertisers ) ) {
+				$ad_advertisers = wp_get_post_terms( $ad_to_insert['id'], Newspack_Newsletters_Ads::ADVERTISER_TAX );
+				if ( empty( array_intersect( wp_list_pluck( $post_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
+					continue;
+				}
+			}
 			if (
 				! $ad_to_insert['is_inserted'] &&
 				(
@@ -1020,7 +1038,7 @@ final class Newspack_Newsletters_Renderer {
 	 * @return array
 	 */
 	private static function generate_array_of_newspack_native_ads_to_insert( $total_length_of_content ) {
-		$ad_post_type          = Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$ad_post_type          = Newspack_Newsletters_Ads::CPT;
 		$all_ads_no_pagination = -1;
 
 		$query_to_fetch_published_ads = new WP_Query(
@@ -1146,46 +1164,35 @@ final class Newspack_Newsletters_Renderer {
 
 
 	/**
-	 * Whether the newspack native ad is active or expired.
+	 * Whether the newspack native ad is active.
 	 *
-	 * @param int $ad_id ID of the Ad post type.
+	 * @param int $ad_id ID of the Ad post.
+	 *
 	 * @return bool
 	 */
 	private static function is_published_ad_active( $ad_id ) {
-		$expiration_date = self::get_ad_expiration_date( $ad_id );
 
-		if ( ! $expiration_date ) {
+		$start_date  = get_post_meta( $ad_id, 'start_date', true );
+		$expiry_date = get_post_meta( $ad_id, 'expiry_date', true );
+
+		if ( ! $start_date && ! $expiry_date ) {
 			return true;
 		}
 
-		return self::is_ad_unexpired( $expiration_date );
-	}
+		$date_format = 'Y-m-d';
+		$today       = gmdate( $date_format );
 
-	/**
-	 * Determines whetherthe newspack native ad is expired.
-	 *
-	 * @param string $expiration_date_as_datetime The expiration date as datetime.
-	 * @return bool
-	 */
-	private static function is_ad_unexpired( $expiration_date_as_datetime ) {
-		$date_format               = 'Y-m-d';
-		$formatted_expiration_date = $expiration_date_as_datetime->format( $date_format );
-		$today                     = gmdate( $date_format );
+		if ( $start_date ) {
+			$formatted_start_date = ( new DateTime( $start_date ) )->format( $date_format );
+			return $formatted_start_date <= $today;
+		}
 
-		return $formatted_expiration_date >= $today;
-	}
+		if ( $expiry_date ) {
+			$formatted_expiry_date = ( new DateTime( $expiry_date ) )->format( $date_format );
+			return $formatted_expiry_date >= $today;
+		}
 
-	/**
-	 * Returns the ad expiration date of a native Ad post type from the post meta.
-	 *
-	 * @param int $ad_id The ad id.
-	 * @return DateTime
-	 */
-	private static function get_ad_expiration_date( $ad_id ) {
-		$expiration_date_meta_key   = 'expiry_date';
-		$expiration_date_meta_value = get_post_meta( $ad_id, $expiration_date_meta_key, true );
-
-		return new DateTime( $expiration_date_meta_value );
+		return true;
 	}
 
 	/** Convert a WP post to an array of non-empty blocks.
@@ -1245,7 +1252,7 @@ final class Newspack_Newsletters_Renderer {
 					$inner_block_content = self::render_mjml_component( $block, false, true, $default_attrs );
 					if ( $include_ads ) {
 						$current_position += strlen( wp_strip_all_tags( $inner_block_content ) );
-						$mjml_markup       = self::insert_ads( $mjml_markup, $current_position );
+						$mjml_markup       = self::insert_ads( $post, $mjml_markup, $current_position );
 					}
 					$mjml_markup .= $inner_block_content;
 				}
@@ -1255,7 +1262,7 @@ final class Newspack_Newsletters_Renderer {
 				$block_content = self::render_mjml_component( $block );
 				if ( $include_ads ) {
 					$current_position += strlen( wp_strip_all_tags( $block_content ) );
-					$body              = self::insert_ads( $body, $current_position );
+					$body              = self::insert_ads( $post, $body, $current_position );
 				}
 			}
 
@@ -1264,7 +1271,7 @@ final class Newspack_Newsletters_Renderer {
 
 		// Insert any remaining ads at the end.
 		if ( $include_ads ) {
-			$body = self::insert_ads( $body, INF );
+			$body = self::insert_ads( $post, $body, INF );
 		}
 
 		return self::process_links( $body, $post );

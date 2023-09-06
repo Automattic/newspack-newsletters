@@ -11,10 +11,10 @@ defined( 'ABSPATH' ) || exit;
  * Newspack Newsletters Ads Class.
  */
 final class Newspack_Newsletters_Ads {
-	/**
-	 * CPT for Newsletter ads.
-	 */
-	const NEWSPACK_NEWSLETTERS_ADS_CPT = 'newspack_nl_ads_cpt';
+
+	const CPT = 'newspack_nl_ads_cpt';
+
+	const ADVERTISER_TAX = 'newspack_nl_advertiser';
 
 	/**
 	 * The single instance of the class.
@@ -43,11 +43,18 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
+		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		add_action( 'save_post_' . self::NEWSPACK_NEWSLETTERS_ADS_CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
+
+		// Columns.
+		add_action( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'manage_columns' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'custom_column' ], 10, 2 );
+		add_action( 'manage_edit-' . self::CPT . '_sortable_columns', [ __CLASS__, 'sortable_columns' ] );
+		// Sorting.
+		add_action( 'pre_get_posts', [ __CLASS__, 'handle_sorting' ] );
 	}
 
 	/**
@@ -55,7 +62,7 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public static function rest_api_init() {
 		\register_rest_route(
-			'wp/v2/' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'wp/v2/' . self::CPT,
 			'config',
 			[
 				'callback'            => [ __CLASS__, 'get_ads_config' ],
@@ -81,9 +88,9 @@ final class Newspack_Newsletters_Ads {
 	public static function register_meta() {
 		\register_meta(
 			'post',
-			'expiry_date',
+			'start_date',
 			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+				'object_subtype' => self::CPT,
 				'show_in_rest'   => true,
 				'type'           => 'string',
 				'single'         => true,
@@ -92,9 +99,31 @@ final class Newspack_Newsletters_Ads {
 		);
 		\register_meta(
 			'post',
+			'expiry_date',
+			[
+				'object_subtype' => self::CPT,
+				'show_in_rest'   => true,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'price',
+			[
+				'object_subtype' => self::CPT,
+				'show_in_rest'   => true,
+				'type'           => 'number',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
 			'position_in_content',
 			[
-				'object_subtype' => self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+				'object_subtype' => self::CPT,
 				'show_in_rest'   => true,
 				'type'           => 'integer',
 				'single'         => true,
@@ -129,7 +158,7 @@ final class Newspack_Newsletters_Ads {
 			__( 'Newsletters Ads', 'newspack-newsletters' ),
 			__( 'Ads', 'newspack-newsletters' ),
 			'edit_others_posts',
-			'/edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_ADS_CPT,
+			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
 		);
@@ -173,9 +202,42 @@ final class Newspack_Newsletters_Ads {
 			'show_in_menu' => false,
 			'show_in_rest' => true,
 			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [],
+			'taxonomies'   => [ 'category' ],
 		];
-		\register_post_type( self::NEWSPACK_NEWSLETTERS_ADS_CPT, $cpt_args );
+		register_post_type( self::CPT, $cpt_args );
+
+		register_taxonomy(
+			self::ADVERTISER_TAX,
+			[ self::CPT, Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ],
+			[
+				'labels'            => [
+					'name'                     => __( 'Advertisers', 'newspack-newsletters' ),
+					'singular_name'            => __( 'Advertiser', 'newspack-newsletters' ),
+					'search_items'             => __( 'Search Advertisers', 'newspack-newsletters' ),
+					'popular_items'            => __( 'Popular Advertisers', 'newspack-newsletters' ),
+					'all_items'                => __( 'All Advertisers', 'newspack-newsletters' ),
+					'parent_items'             => __( 'Parent Advertisers', 'newspack-newsletters' ),
+					'parent_item'              => __( 'Parent Advertiser', 'newspack-newsletters' ),
+					'name_field_description'   => __( 'The advertiser name', 'newspack-newsletters' ),
+					'slug_field_description'   => '', // There's no advertiser URL so let's skip slug field description.
+					'parent_field_description' => __( 'Assign a parent advertiser', 'newspack-newsletters' ),
+					'desc_field_description'   => __( 'Optional description for this advertiser', 'newspack-newsletters' ),
+					'edit_item'                => __( 'Edit Advertiser', 'newspack-newsletters' ),
+					'view_item'                => __( 'View Advertiser', 'newspack-newsletters' ),
+					'update_item'              => __( 'Update Advertiser', 'newspack-newsletters' ),
+					'add_new_item'             => __( 'Add New Advertiser', 'newspack-newsletters' ),
+					'new_item_name'            => __( 'New Advertiser Name', 'newspack-newsletters' ),
+					'not_found'                => __( 'No advertisers found', 'newspack-newsletters' ),
+					'no_terms'                 => __( 'No advertisers', 'newspack-newsletters' ),
+					'filter_by_item'           => __( 'Filter by advertiser', 'newspack-newsletters' ),
+				],
+				'description'       => __( 'Newspack Newsletters Ads Advertisers', 'newspack-newsletters' ),
+				'public'            => true,
+				'hierarchical'      => true,
+				'show_in_rest'      => true,
+				'show_admin_column' => true,
+			]
+		);
 	}
 
 	/**
@@ -261,7 +323,7 @@ final class Newspack_Newsletters_Ads {
 		$letterhead                 = new Newspack_Newsletters_Letterhead();
 		$has_letterhead_credentials = $letterhead->has_api_credentials();
 		$post_date                  = $request->get_param( 'date' );
-		$newspack_ad_type           = self::NEWSPACK_NEWSLETTERS_ADS_CPT;
+		$newspack_ad_type           = self::CPT;
 
 		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
 		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}";
@@ -309,6 +371,87 @@ final class Newspack_Newsletters_Ads {
 			 * @param string $email_address Email address.
 			 */
 			do_action( 'newspack_newsletters_tracking_ad_impression', $ad_id, $newsletter_id, $email_address );
+		}
+	}
+
+	/**
+	 * Manage ads columns.
+	 *
+	 * @param array $columns Columns.
+	 */
+	public static function manage_columns( $columns ) {
+		$columns['start_date']  = __( 'Start Date', 'newspack-newsletters' );
+		$columns['expiry_date'] = __( 'Expiration Date', 'newspack-newsletters' );
+		$columns['price']       = __( 'Price', 'newspack-newsletters' );
+		unset( $columns['date'] );
+		unset( $columns['stats'] );
+		return $columns;
+	}
+
+	/**
+	 * Custom ads column content.
+	 *
+	 * @param array $column_name Column name.
+	 * @param int   $post_id     Post ID.
+	 */
+	public static function custom_column( $column_name, $post_id ) {
+		if ( 'start_date' === $column_name ) {
+			$start_date = get_post_meta( $post_id, 'start_date', true );
+			if ( ! empty( $start_date ) ) {
+				echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $start_date ) ) );
+			} else {
+				echo '—';
+			}
+		} elseif ( 'expiry_date' === $column_name ) {
+			$expiry_date = get_post_meta( $post_id, 'expiry_date', true );
+			if ( ! empty( $expiry_date ) ) {
+				echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $expiry_date ) ) );
+			} else {
+				echo '—';
+			}
+		} elseif ( 'price' === $column_name ) {
+			$price = get_post_meta( $post_id, 'price', true );
+			if ( ! empty( $price ) ) {
+				echo esc_html( $price );
+			} else {
+				echo '—';
+			}
+		}
+	}
+
+	/**
+	 * Sortable columns.
+	 *
+	 * @param array $columns Columns.
+	 */
+	public static function sortable_columns( $columns ) {
+		$columns['start_date']  = 'start_date';
+		$columns['expiry_date'] = 'expiry_date';
+		$columns['price']       = 'price';
+		return $columns;
+	}
+
+	/**
+	 * Handle sorting.
+	 *
+	 * @param \WP_Query $query Query.
+	 */
+	public static function handle_sorting( $query ) {
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return;
+		}
+		if ( self::CPT === $query->get( 'post_type' ) ) {
+			$orderby = $query->get( 'orderby' );
+			if ( 'price' === $orderby ) {
+				$query->set( 'meta_key', 'price' );
+				$query->set( 'orderby', 'meta_value_num' );
+			} elseif ( 'start_date' === $orderby ) {
+				$query->set( 'meta_key', 'start_date' );
+				$query->set( 'orderby', 'meta_value' );
+			} elseif ( 'expiry_date' === $orderby ) {
+				$query->set( 'meta_key', 'expiry_date' );
+				$query->set( 'orderby', 'meta_value' );
+			}
 		}
 	}
 }

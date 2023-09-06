@@ -959,7 +959,7 @@ final class Newspack_Newsletters {
 		$screen = get_current_screen();
 		if (
 			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
-			Newspack_Newsletters_Ads::NEWSPACK_NEWSLETTERS_ADS_CPT !== $screen->post_type &&
+			Newspack_Newsletters_Ads::CPT !== $screen->post_type &&
 			Newspack\Newsletters\Subscription_Lists::CPT !== $screen->post_type
 		) {
 			return;
