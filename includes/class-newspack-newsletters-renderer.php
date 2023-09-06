@@ -19,6 +19,13 @@ final class Newspack_Newsletters_Renderer {
 	public static $color_palette = null;
 
 	/**
+	 * Newsletter ID being rendered.
+	 *
+	 * @var int
+	 */
+	public static $newsletter_id = null;
+
+	/**
 	 * The header font.
 	 *
 	 * @var String
@@ -909,31 +916,25 @@ final class Newspack_Newsletters_Renderer {
 				$block_mjml_markup = $markup;
 				break;
 			case 'newspack-newsletters/ad':
-				if ( empty( $attrs['adId'] ) ) {
-					// Sort ads by percentage.
-					usort(
-						self::$ads_to_insert,
-						function( $a, $b ) {
-							return $a['percentage'] > $b['percentage'];
-						}
-					);
-					// Insert the first ad that hasn't been inserted yet.
-					foreach ( self::$ads_to_insert as &$ad_to_insert ) {
-						if ( ! $ad_to_insert['is_inserted'] ) {
-							$block_mjml_markup          .= $ad_to_insert['markup'];
-							$ad_to_insert['is_inserted'] = true;
+				$ad_post = false;
+				if ( ! empty( $attrs['adId'] ) ) {
+					$ad_post = get_post( $attrs['adId'] );
+				} elseif ( ! empty( self::$newsletter_id ) ) {
+					$ads = Newspack_Newsletters_Ads::get_newsletter_ads( self::$newsletter_id );
+					foreach ( $ads as $ad ) {
+						if ( ! Newspack_Newsletters_Ads::is_ad_inserted( self::$newsletter_id, $ad->ID ) ) {
+							$ad_post = $ad;
 							break;
 						}
 					}
-				} else {
-					$index = array_search( (int) $attrs['adId'], array_column( self::$ads_to_insert, 'id' ) );
-					if ( false !== $index ) {
-						$block_mjml_markup                            = self::$ads_to_insert[ $index ]['markup'];
-						self::$ads_to_insert[ $index ]['is_inserted'] = true;
+				}
+				if ( $ad_post ) {
+					$block_mjml_markup = self::post_to_mjml_components( $ad_post );
+					if ( ! empty( self::$newsletter_id ) ) {
+						Newspack_Newsletters_Ads::mark_ad_inserted( self::$newsletter_id, $ad_post->ID );
 					}
 				}
 				break;
-
 		}
 
 		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
@@ -964,237 +965,6 @@ final class Newspack_Newsletters_Renderer {
 		return $block_mjml_markup;
 	}
 
-	/**
-	 * Get total length of newsletter's content.
-	 *
-	 * @param array $blocks Array of post blocks.
-	 * @return number Total length of the newsletter content.
-	 */
-	private static function get_total_newsletter_character_length( $blocks ) {
-		return array_reduce(
-			$blocks,
-			function( $length, $block ) {
-				if ( 'newspack-newsletters/posts-inserter' === $block['blockName'] ) {
-					$length += self::get_total_newsletter_character_length( $block['attrs']['innerBlocksToInsert'] );
-				} elseif ( isset( $block['innerBlocks'] ) && count( $block['innerBlocks'] ) ) {
-					$length += self::get_total_newsletter_character_length( $block['innerBlocks'] );
-				} else {
-					$length += strlen( wp_strip_all_tags( $block['innerHTML'] ) );
-				}
-				return $length;
-			},
-			0
-		);
-	}
-
-	/**
-	 * Insert ads in a piece of markup.
-	 *
-	 * @param WP_Post $post The post object.
-	 * @param string  $markup The markup.
-	 * @param number  $current_position Current position, as character offset.
-	 *
-	 * @return string Markup with ads inserted.
-	 */
-	private static function insert_ads( $post, $markup, $current_position ) {
-		foreach ( self::$ads_to_insert as &$ad_to_insert ) {
-			$ad_categories = wp_get_post_terms( $ad_to_insert['id'], 'category' );
-			// Skip if the ad is not in the same category as the post.
-			if ( ! empty( $ad_categories ) ) {
-				$post_categories = wp_get_post_terms( $post->ID, 'category' );
-				if ( empty( array_intersect( wp_list_pluck( $ad_categories, 'term_id' ), wp_list_pluck( $post_categories, 'term_id' ) ) ) ) {
-					continue;
-				}
-			}
-			$post_advertisers = wp_get_post_terms( $post->ID, Newspack_Newsletters_Ads::ADVERTISER_TAX );
-			// Skip if the post has an advertiser and the ad is not from the same advertiser.
-			if ( ! empty( $post_advertisers ) ) {
-				$ad_advertisers = wp_get_post_terms( $ad_to_insert['id'], Newspack_Newsletters_Ads::ADVERTISER_TAX );
-				if ( empty( array_intersect( wp_list_pluck( $post_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
-					continue;
-				}
-			}
-			if (
-				! $ad_to_insert['is_inserted'] &&
-				(
-					// If ad is at 100%, insert it only in the last pass, which appends ads to the bottom of the newsletter.
-					// Otherwise, such ad might end up right before the last block because of the `>=` check below.
-					1 === $ad_to_insert['percentage']
-						? INF === $current_position
-						: $current_position >= $ad_to_insert['precise_position']
-				)
-			) {
-				$markup                     .= $ad_to_insert['markup'];
-				$ad_to_insert['is_inserted'] = true;
-			}
-		}
-		return $markup;
-	}
-
-	/**
-	 * Return an array of Newspack-native ads.
-	 *
-	 * @param int $total_length_of_content The total length of content.
-	 * @return array
-	 */
-	private static function generate_array_of_newspack_native_ads_to_insert( $total_length_of_content ) {
-		$ad_post_type          = Newspack_Newsletters_Ads::CPT;
-		$all_ads_no_pagination = -1;
-
-		$query_to_fetch_published_ads = new WP_Query(
-			[
-				'post_type'      => $ad_post_type,
-				'posts_per_page' => $all_ads_no_pagination,
-			]
-		);
-
-		$ads = $query_to_fetch_published_ads->get_posts();
-
-		$published_ads_to_insert = [];
-
-		foreach ( $ads as $ad ) {
-			$ad_post_status      = $ad->post_status;
-			$ad_is_not_published = 'publish' !== $ad_post_status;
-
-			if ( $ad_is_not_published ) {
-				continue;
-			}
-
-			$ad_prepared_for_insertion = self::get_ad_prepared_for_insertion( $ad, $total_length_of_content );
-			if ( ! empty( $ad_prepared_for_insertion ) ) {
-				$published_ads_to_insert[] = $ad_prepared_for_insertion;
-			}
-		}
-
-		return $published_ads_to_insert;
-	}
-
-	/**
-	 * Return an array of ads prepared to be inserted into the email template. If the Newspack
-	 * author has Letterhead enabled, we'll prefer fetching ads from that API. If not, we'll
-	 * prefer Newspack ad types.
-	 *
-	 * @param string $post_date The WP Post date.
-	 * @param int    $total_length The total length of the content.
-	 * @return array
-	 */
-	public static function get_ads( $post_date, $total_length ) {
-		/**
-		 * The Letterhead API just likes dates that look like this.
-		 *
-		 * @example '2021-04-12'
-		 * @var string $publication_date_formatted_for_letterhead_api
-		 */
-		$publication_date_formatted_for_letterhead_api = gmdate( 'Y-m-d', strtotime( $post_date ) );
-		$letterhead                                    = new Newspack_Newsletters_Letterhead();
-
-		/**
-		 * Whether when getting ads we should load Newspack's ad post type.
-		 *
-		 * @var bool $prefer_newspack_native_ads
-		 */
-		$prefer_newspack_native_ads = ! $letterhead->has_api_credentials();
-
-		/**
-		 * If our Newspack user isn't connected to Letterhead, no worries. We will return
-		 * any native ads they might have.
-		 */
-		if ( $prefer_newspack_native_ads ) {
-			return self::generate_array_of_newspack_native_ads_to_insert( $total_length );
-		}
-
-		/**
-		 * Otherwise, we will fetch Letterhead ads ("promotions") from that API.
-		 */
-		return $letterhead->get_and_prepare_promotions_for_insertion( $publication_date_formatted_for_letterhead_api, $total_length );
-	}
-
-	/**
-	 * Gets a newspack ad and formats it for insertion.
-	 *
-	 * @param WP_Post $ad The Ad newsletter post.
-	 * @param int     $total_length_of_content The length of content.
-	 * @return array|null
-	 */
-	private static function get_ad_prepared_for_insertion( $ad, $total_length_of_content ) {
-		$ad_id                  = $ad->ID;
-		$is_published_ad_active = self::is_published_ad_active( $ad_id );
-
-		if ( $is_published_ad_active ) {
-			$positioning      = self::get_ad_position_percentage( $ad_id );
-			$precise_position = self::get_ad_placement_precise_position( $positioning, $total_length_of_content );
-
-			return [
-				'id'               => $ad_id,
-				'title'            => $ad->post_title,
-				'is_inserted'      => false,
-				'markup'           => self::post_to_mjml_components( $ad, false ),
-				'percentage'       => $positioning,
-				'precise_position' => $precise_position,
-			];
-		}
-
-		return null;
-	}
-
-	/**
-	 * Given the position preference on the ad object and the total length of newsletter content, we'll return
-	 * a specific number to indicate where the ad should be inserted in the body of the newsletter.
-	 *
-	 * @param int $position_percentage The position preference on an ad.
-	 * @param int $total_length_of_newsletter_content The total length of newsletter content.
-	 * @return float|int
-	 */
-	public static function get_ad_placement_precise_position( $position_percentage, $total_length_of_newsletter_content ) {
-		return $total_length_of_newsletter_content * $position_percentage;
-	}
-
-	/**
-	 * Gets the position preference of a newspack native ad from post meta.
-	 *
-	 * @param int $ad_id The id of the ad post type.
-	 * @return float|int
-	 */
-	private static function get_ad_position_percentage( $ad_id ) {
-		$position_key   = 'position_in_content';
-		$position_value = get_post_meta( $ad_id, $position_key, true );
-
-		return intval( $position_value ) / 100;
-	}
-
-
-	/**
-	 * Whether the newspack native ad is active.
-	 *
-	 * @param int $ad_id ID of the Ad post.
-	 *
-	 * @return bool
-	 */
-	private static function is_published_ad_active( $ad_id ) {
-
-		$start_date  = get_post_meta( $ad_id, 'start_date', true );
-		$expiry_date = get_post_meta( $ad_id, 'expiry_date', true );
-
-		if ( ! $start_date && ! $expiry_date ) {
-			return true;
-		}
-
-		$date_format = 'Y-m-d';
-		$today       = gmdate( $date_format );
-
-		if ( $start_date ) {
-			$formatted_start_date = ( new DateTime( $start_date ) )->format( $date_format );
-			return $formatted_start_date <= $today;
-		}
-
-		if ( $expiry_date ) {
-			$formatted_expiry_date = ( new DateTime( $expiry_date ) )->format( $date_format );
-			return $formatted_expiry_date >= $today;
-		}
-
-		return true;
-	}
-
 	/** Convert a WP post to an array of non-empty blocks.
 	 *
 	 * @param WP_Post $post The post.
@@ -1203,8 +973,15 @@ final class Newspack_Newsletters_Renderer {
 	private static function get_valid_post_blocks( $post ) {
 		// Disable photon for newsletter images (webp is not supported on some email clients).
 		add_filter( 'jetpack_photon_skip_image', '__return_true' );
+		/**
+		 * Filters the newsletter post content before parsing it into blocks.
+		 *
+		 * @param string  $content The post content.
+		 * @param WP_Post $post    The post object.
+		 */
+		$content = apply_filters( 'newspack_newsletters_newsletter_content', $post->post_content, $post );
 		return array_filter(
-			parse_blocks( $post->post_content ),
+			parse_blocks( $content ),
 			function ( $block ) {
 				return null !== $block['blockName'];
 			}
@@ -1215,16 +992,14 @@ final class Newspack_Newsletters_Renderer {
 	 * Convert a WP post to MJML components.
 	 *
 	 * @param WP_Post $post The post.
-	 * @param Boolean $include_ads Whether to include ads.
+	 *
 	 * @return string MJML markup to be injected into the template.
 	 */
-	public static function post_to_mjml_components( $post, $include_ads = false ) {
-		$body          = '';
-		$valid_blocks  = self::get_valid_post_blocks( $post );
-		$is_newsletter = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $post->ID );
+	public static function post_to_mjml_components( $post ) {
+		$body         = '';
+		$valid_blocks = self::get_valid_post_blocks( $post );
 
-		// Build MJML body and insert ads.
-		$current_position = 0;
+		// Build MJML body.
 		foreach ( $valid_blocks as $block ) {
 			$block_content = '';
 
@@ -1240,7 +1015,6 @@ final class Newspack_Newsletters_Renderer {
 				}
 			}
 
-			// Insert ads between top-level group blocks' inner blocks.
 			if ( 'core/group' === $block['blockName'] ) {
 				$default_attrs = [];
 				$attrs         = self::process_attributes( $block['attrs'] );
@@ -1250,28 +1024,14 @@ final class Newspack_Newsletters_Renderer {
 				$mjml_markup = '<mj-wrapper ' . self::array_to_attributes( $attrs ) . '>';
 				foreach ( $block['innerBlocks'] as $block ) {
 					$inner_block_content = self::render_mjml_component( $block, false, true, $default_attrs );
-					if ( $include_ads ) {
-						$current_position += strlen( wp_strip_all_tags( $inner_block_content ) );
-						$mjml_markup       = self::insert_ads( $post, $mjml_markup, $current_position );
-					}
-					$mjml_markup .= $inner_block_content;
+					$mjml_markup        .= $inner_block_content;
 				}
 				$block_content = $mjml_markup . '</mj-wrapper>';
 			} else {
-				// Insert ads between other blocks.
 				$block_content = self::render_mjml_component( $block );
-				if ( $include_ads ) {
-					$current_position += strlen( wp_strip_all_tags( $block_content ) );
-					$body              = self::insert_ads( $post, $body, $current_position );
-				}
 			}
 
 			$body .= $block_content;
-		}
-
-		// Insert any remaining ads at the end.
-		if ( $include_ads ) {
-			$body = self::insert_ads( $post, $body, INF );
 		}
 
 		return self::process_links( $body, $post );
@@ -1284,6 +1044,7 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup.
 	 */
 	public static function render_post_to_mjml( $post ) {
+		self::$newsletter_id = $post->ID;
 		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
@@ -1304,27 +1065,13 @@ final class Newspack_Newsletters_Renderer {
 		/**
 		 * Generate a string of MJML as the body of the email. We include ads at this stage.
 		 */
-		$valid_blocks        = self::get_valid_post_blocks( $post );
-		$total_length        = self::get_total_newsletter_character_length( $valid_blocks );
-		self::$ads_to_insert = self::get_ads( $post->post_date, $total_length );
-		$include_ads         = Newspack_Newsletters_Ads::should_render_ads( $post->ID );
-
-		$body             = self::post_to_mjml_components( $post, $include_ads ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$body             = self::post_to_mjml_components( $post ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$preview_text     = get_post_meta( $post->ID, 'preview_text', true );
 		$custom_css       = get_post_meta( $post->ID, 'custom_css', true );
 		if ( ! $background_color ) {
 			$background_color = '#ffffff';
 		}
-
-		// Get all the inserted ads.
-		$inserted_ads = [];
-		foreach ( self::$ads_to_insert as $ad_to_insert ) {
-			if ( $ad_to_insert['is_inserted'] ) {
-				$inserted_ads[] = $ad_to_insert['id'];
-			}
-		}
-		update_post_meta( $post->ID, 'inserted_ads', $inserted_ads );
 
 		ob_start();
 		include dirname( __FILE__ ) . '/email-template.mjml.php';

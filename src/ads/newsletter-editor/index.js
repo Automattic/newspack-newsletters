@@ -12,12 +12,13 @@ import apiFetch from '@wordpress/api-fetch';
 import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 export function DisableAutoAds( { saveOnToggle = false } ) {
-	const { disableAutoAds, date, isSaving, postBlocks } = useSelect( select => {
-		const { getEditedPostAttribute, isSavingPost, getBlocks } = select( 'core/editor' );
+	const { disableAutoAds, postId, isSaving, postBlocks } = useSelect( select => {
+		const { getEditedPostAttribute, getCurrentPostId, isSavingPost, getBlocks } =
+			select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			disableAutoAds: meta.disable_auto_ads,
-			date: getEditedPostAttribute( 'date' ),
+			postId: getCurrentPostId(),
 			isSaving: isSavingPost(),
 			postBlocks: getBlocks(),
 		};
@@ -41,7 +42,7 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 	useEffect( () => {
 		setInFlight( true );
 		apiFetch( {
-			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ date }`,
+			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?postId=${ postId }`,
 		} )
 			.then( response => {
 				setAdsConfig( response );
@@ -52,7 +53,7 @@ export function DisableAutoAds( { saveOnToggle = false } ) {
 			.finally( () => {
 				setInFlight( false );
 			} );
-	}, [] );
+	}, [ postId ] );
 	return (
 		<div>
 			<ToggleControl

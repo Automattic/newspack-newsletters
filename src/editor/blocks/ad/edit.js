@@ -13,9 +13,9 @@ import { NEWSLETTER_AD_CPT_SLUG } from '../../../utils/consts';
 import './editor.scss';
 
 export default function SubscribeEdit( { setAttributes, attributes: { adId } } ) {
-	const { date } = useSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
-		return { date: getEditedPostAttribute( 'date' ) };
+	const { postId } = useSelect( select => {
+		const { getCurrentPostId } = select( 'core/editor' );
+		return { postId: getCurrentPostId() };
 	} );
 	const [ adsConfig, setAdsConfig ] = useState( {
 		count: 0,
@@ -27,7 +27,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 	useEffect( () => {
 		setInFlight( true );
 		apiFetch( {
-			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?date=${ date }`,
+			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?post_id=${ postId }`,
 		} )
 			.then( response => {
 				setAdsConfig( response );
@@ -43,7 +43,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 			.finally( () => {
 				setInFlight( false );
 			} );
-	}, [ date ] );
+	}, [ postId ] );
 	const containerHeight = 200;
 	function getAdTitle() {
 		if ( ! adId ) {
