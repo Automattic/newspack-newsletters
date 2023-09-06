@@ -2,10 +2,13 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { withSelect, withDispatch } from '@wordpress/data';
-import { compose } from '@wordpress/compose';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment } from '@wordpress/element';
-import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
+import {
+	PluginDocumentSettingPanel,
+	PluginPrePublishPanel,
+	store as editPostStore,
+} from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import {
 	ToggleControl,
@@ -16,7 +19,19 @@ import {
 } from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
 
-const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } ) => {
+function AdEdit() {
+	const { price, startDate, expiryDate, positionInContent } = useSelect( select => {
+		const { getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			price: meta.price,
+			startDate: meta.start_date,
+			expiryDate: meta.expiry_date,
+			positionInContent: meta.position_in_content,
+		};
+	} );
+	const { editPost } = useDispatch( 'core/editor' );
+	const { removeEditorPanel } = useDispatch( editPostStore );
 	const messages = [];
 	if ( expiryDate && ! isInTheFuture( expiryDate ) ) {
 		messages.push(
@@ -69,6 +84,9 @@ const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } )
 			status: messages.length ? 'warning' : 'info',
 		};
 	}
+
+	// Remove the "post-status" (Summary) panel.
+	removeEditorPanel( 'post-status' );
 
 	return (
 		<Fragment>
@@ -140,26 +158,9 @@ const AdEdit = ( { price, startDate, expiryDate, positionInContent, editPost } )
 			) : null }
 		</Fragment>
 	);
-};
-
-const AdEditWithSelect = compose( [
-	withSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
-		const meta = getEditedPostAttribute( 'meta' );
-		return {
-			price: meta.price,
-			startDate: meta.start_date,
-			expiryDate: meta.expiry_date,
-			positionInContent: meta.position_in_content,
-		};
-	} ),
-	withDispatch( dispatch => {
-		const { editPost } = dispatch( 'core/editor' );
-		return { editPost };
-	} ),
-] )( AdEdit );
+}
 
 registerPlugin( 'newspack-newsletters-sidebar', {
-	render: AdEditWithSelect,
+	render: AdEdit,
 	icon: null,
 } );
