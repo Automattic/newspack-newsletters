@@ -12,8 +12,9 @@ import { select as globalSelect } from '@wordpress/data';
 
 const POST_META_WHITELIST = [
 	'is_public',
+	'campaign_name',
 	'preview_text',
-	'diable_ads',
+	'disable_auto_ads',
 	'font_body',
 	'font_header',
 	'background_color',
