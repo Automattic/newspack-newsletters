@@ -673,21 +673,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
-	 * Get campaign name.
-	 *
-	 * @param WP_Post $post Post object.
-	 *
-	 * @return string Campaign name.
-	 */
-	private function get_campaign_name( $post ) {
-		$campaign_name = get_post_meta( $post->ID, 'campaign_name', true );
-		if ( $campaign_name ) {
-			return $campaign_name;
-		}
-		return sprintf( 'Newspack Newsletter (%d)', $post->ID );
-	}
-
-	/**
 	 * Synchronize post with corresponding ESP campaign.
 	 *
 	 * @param WP_Post $post Post to synchronize.

@@ -289,21 +289,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
-	 * Get campaign name.
-	 *
-	 * @param WP_Post $post Post object.
-	 *
-	 * @return string Campaign name.
-	 */
-	private function get_campaign_name( $post ) {
-		$campaign_name = get_post_meta( $post->ID, 'campaign_name', true );
-		if ( $campaign_name ) {
-			return $campaign_name;
-		}
-		return sprintf( 'Newspack Newsletter (%d)', $post->ID );
-	}
-
-	/**
 	 * Set list for a campaign.
 	 *
 	 * A campaign can not use segments and lists at the same time, so we also unset all segments.
