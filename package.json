@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "1.67.7",
+	"version": "1.68.0",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -38,7 +38,7 @@
 	},
 	"dependencies": {
 		"@uiw/react-codemirror": "^3.2.10",
-		"@wordpress/icons": "^9.31.0",
+		"@wordpress/icons": "^9.32.0",
 		"classnames": "^2.3.2",
 		"commitlint": "^17.7.1",
 		"csslint": "^1.0.5",
@@ -52,7 +52,7 @@
 		"eslint": "^7.32.0",
 		"lint-staged": "^13.2.3",
 		"newspack-scripts": "^5.1.0",
-		"postcss": "^8.4.28",
+		"postcss": "^8.4.29",
 		"postcss-scss": "^4.0.7",
 		"prettier": "npm:wp-prettier@^2.6.2-beta-1",
 		"stylelint": "^15.10.3"

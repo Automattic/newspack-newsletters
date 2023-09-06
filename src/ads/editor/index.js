@@ -2,10 +2,13 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { withSelect, withDispatch } from '@wordpress/data';
-import { compose } from '@wordpress/compose';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment } from '@wordpress/element';
-import { PluginDocumentSettingPanel, PluginPrePublishPanel } from '@wordpress/edit-post';
+import {
+	PluginDocumentSettingPanel,
+	PluginPrePublishPanel,
+	store as editPostStore,
+} from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import {
 	ToggleControl,
@@ -17,15 +20,22 @@ import {
 import { format, isInTheFuture } from '@wordpress/date';
 import { SelectControl } from 'newspack-components';
 
-const AdEdit = ( {
-	price,
-	startDate,
-	expiryDate,
-	insertionStrategy,
-	positionInContent,
-	positionBlockCount,
-	editPost,
-} ) => {
+function AdEdit() {
+	const { price, startDate, expiryDate, insertionStrategy, positionInContent, positionBlockCount } =
+		useSelect( select => {
+			const { getEditedPostAttribute } = select( 'core/editor' );
+			const meta = getEditedPostAttribute( 'meta' );
+			return {
+				price: meta.price,
+				startDate: meta.start_date,
+				expiryDate: meta.expiry_date,
+				insertionStrategy: meta.insertion_strategy,
+				positionInContent: meta.position_in_content,
+				positionBlockCount: meta.position_block_count,
+			};
+		} );
+	const { editPost } = useDispatch( 'core/editor' );
+	const { removeEditorPanel } = useDispatch( editPostStore );
 	const messages = [];
 	if ( expiryDate && ! isInTheFuture( expiryDate ) ) {
 		messages.push(
@@ -79,6 +89,9 @@ const AdEdit = ( {
 		};
 	}
 
+	// Remove the "post-status" (Summary) panel.
+	removeEditorPanel( 'post-status' );
+
 	return (
 		<Fragment>
 			<PluginDocumentSettingPanel
@@ -90,6 +103,14 @@ const AdEdit = ( {
 					label={ __( 'Price', 'newspack-newsletters' ) }
 					value={ price }
 					onChange={ val => editPost( { meta: { price: val } } ) }
+					min={ 0 }
+					step={ 0.01 }
+				/>
+				<hr />
+				<RangeControl
+					label={ __( 'Approximate position (in percent)' ) }
+					value={ positionInContent }
+					onChange={ position_in_content => editPost( { meta: { position_in_content } } ) }
 					min={ 0 }
 					step={ 0.01 }
 				/>
@@ -197,28 +218,9 @@ const AdEdit = ( {
 			) : null }
 		</Fragment>
 	);
-};
-
-const AdEditWithSelect = compose( [
-	withSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
-		const meta = getEditedPostAttribute( 'meta' );
-		return {
-			price: meta.price,
-			startDate: meta.start_date,
-			expiryDate: meta.expiry_date,
-			insertionStrategy: meta.insertion_strategy,
-			positionInContent: meta.position_in_content,
-			positionBlockCount: meta.position_block_count,
-		};
-	} ),
-	withDispatch( dispatch => {
-		const { editPost } = dispatch( 'core/editor' );
-		return { editPost };
-	} ),
-] )( AdEdit );
+}
 
 registerPlugin( 'newspack-newsletters-sidebar', {
-	render: AdEditWithSelect,
+	render: AdEdit,
 	icon: null,
 } );

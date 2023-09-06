@@ -55,9 +55,7 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
-
 		add_filter( 'newspack_newsletters_newsletter_content', [ __CLASS__, 'filter_newsletter_content' ], 10, 2 );
-
 		// Columns.
 		add_action( 'manage_' . self::CPT . '_posts_columns', [ __CLASS__, 'manage_columns' ] );
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ __CLASS__, 'custom_column' ], 10, 2 );
@@ -333,8 +331,7 @@ final class Newspack_Newsletters_Ads {
 		/**
 		 * Disable automated ads insertion if the newsletter contains a manual ad block.
 		 */
-		$content = get_the_content( null, false, $post_id );
-		if ( strpos( $content, '<!-- wp:newspack-newsletters/ad' ) !== false ) {
+		if ( has_block( 'newspack-newsletters/ad', $post_id ) ) {
 			$should_render_ads = false;
 		}
 

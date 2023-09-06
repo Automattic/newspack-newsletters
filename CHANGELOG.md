@@ -1,3 +1,10 @@
+# [1.68.0](https://github.com/Automattic/newspack-newsletters/compare/v1.67.7...v1.68.0) (2023-09-06)
+
+
+### Features
+
+* add filters to support additional custom blocks ([#1270](https://github.com/Automattic/newspack-newsletters/issues/1270)) ([2fda0aa](https://github.com/Automattic/newspack-newsletters/commit/2fda0aaab9dfae2a82190187f8635efc7a21fafe))
+
 ## [1.67.7](https://github.com/Automattic/newspack-newsletters/compare/v1.67.6...v1.67.7) (2023-08-24)
 
 
