@@ -616,27 +616,6 @@ final class Newspack_Newsletters {
 		);
 
 		\register_rest_route(
-			'wp/v2/' . Newspack_Newsletters_Ads::CPT,
-			'count',
-			[
-				/**
-				 * Return an array of properties required to render a useful ads warning.
-				 *
-				 * @uses Newspack_Newsletters::get_ads_warning_in_editor()
-				 */
-				'callback'            => [ __CLASS__, 'get_ads_warning_in_editor' ],
-				'methods'             => 'GET',
-
-				/**
-				 * Ensure the user can call this route.
-				 *
-				 * @uses Newspack_Newsletters::api_administration_permissions_check()
-				 */
-				'permission_callback' => [ __CLASS__, 'api_administration_permissions_check' ],
-			]
-		);
-
-		\register_rest_route(
 			'newspack-newsletters/v1',
 			'post-mjml',
 			[
@@ -1025,39 +1004,6 @@ final class Newspack_Newsletters {
 	public static function debug_mode() {
 		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
-
-
-	/**
-	 * Get properties required to render a useful modal in the editor that alerts
-	 * users of ads they're sending.
-	 *
-	 * @param WP_REST_REQUEST $request The WP Request Object.
-	 * @return array
-	 */
-	public static function get_ads_warning_in_editor( $request ) {
-		$letterhead                 = new Newspack_Newsletters_Letterhead();
-		$has_letterhead_credentials = $letterhead->has_api_credentials();
-		$post_date                  = $request->get_param( 'date' );
-		$newspack_ad_type           = Newspack_Newsletters_Ads::CPT;
-
-		$url_to_manage_promotions   = 'https://app.tryletterhead.com/promotions';
-		$url_to_manage_newspack_ads = "/wp-admin/edit.php?post_type={$newspack_ad_type}";
-
-		$ads                   = Newspack_Newsletters_Renderer::get_ads( $post_date, 0 );
-		$ads_label             = $has_letterhead_credentials ? __( 'promotion', 'newspack-newsletters' ) : __( 'ad', 'newspack-newsletters' );
-		$ads_manage_url        = $has_letterhead_credentials ? $url_to_manage_promotions : $url_to_manage_newspack_ads;
-		$ads_manage_url_rel    = $has_letterhead_credentials ? 'noreferrer' : '';
-		$ads_manage_url_target = $has_letterhead_credentials ? '_blank' : '_self';
-
-		return [
-			'count'           => count( $ads ),
-			'label'           => $ads_label,
-			'manageUrl'       => $ads_manage_url,
-			'manageUrlRel'    => $ads_manage_url_rel,
-			'manageUrlTarget' => $ads_manage_url_target,
-		];
-	}
-
 
 	/**
 	 * Which Email Service Provider should be used.
