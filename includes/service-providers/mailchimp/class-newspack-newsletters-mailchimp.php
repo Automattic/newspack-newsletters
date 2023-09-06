@@ -696,7 +696,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_type' => 'template',
 				'settings'     => [
 					'subject_line' => $post->post_title,
-					'title'        => $post->post_title,
+					'title'        => $this->get_campaign_name( $post ),
 				],
 			];
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
