@@ -825,7 +825,7 @@ final class Newspack_Newsletters_Ads {
 		foreach ( $parsed_blocks_groups as $block_index => $block_group ) {
 			// Compute the length of the blocks in the group.
 			foreach ( $block_group as $block ) {
-				$pos += strlen( wp_strip_all_tags( $block['innerHTML'] ) );
+				$pos += strlen( wp_strip_all_tags( self::get_block_content( $block ) ) );
 			}
 
 			// Inject ads before the group.
