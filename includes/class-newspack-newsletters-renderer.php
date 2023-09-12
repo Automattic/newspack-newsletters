@@ -637,7 +637,7 @@ final class Newspack_Newsletters_Renderer {
 						'line-height'   => '1.5',
 						'href'          => $anchor->getAttribute( 'href' ),
 						'border-radius' => $border_radius,
-						'font-size'     => $attrs['font-size'],
+						'font-size'     => ! empty( $attrs['font-size'] ) ? $attrs['font-size'] : '16px',
 						'font-family'   => $font_family,
 						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
@@ -648,16 +648,16 @@ final class Newspack_Newsletters_Renderer {
 					} else {
 						$default_button_attrs['background-color'] = '#32373c';
 					}
-					if ( $attrs['background-color'] ) {
+					if ( ! empty( $attrs['background-color'] ) ) {
 						$default_button_attrs['background-color'] = $attrs['background-color'];
 					}
-					if ( $attrs['color'] ) {
+					if ( ! empty( $attrs['color'] ) ) {
 						$default_button_attrs['color'] = $attrs['color'];
 					}
-					if ( $attrs['width'] ) {
+					if ( ! empty( $attrs['width'] ) ) {
 						$default_button_attrs['width'] = $attrs['width'] . '%';
 					}
-					if ( $attrs['padding'] ) {
+					if ( ! empty( $attrs['padding'] ) ) {
 						$default_button_attrs['inner-padding'] = $attrs['padding'];
 					}
 					$button_attrs = array_merge(
