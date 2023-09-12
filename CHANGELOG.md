@@ -1,3 +1,11 @@
+# [2.0.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2023-09-12)
+
+
+### Bug Fixes
+
+* avoid reprocessing links ([#1277](https://github.com/Automattic/newspack-newsletters/issues/1277)) ([f1822d3](https://github.com/Automattic/newspack-newsletters/commit/f1822d3a12ff18e579d987b201af20a434caf60d))
+* PHP warning if block is missing backgroundColor attribute ([afa4859](https://github.com/Automattic/newspack-newsletters/commit/afa48595fc69ed0c2ce3501d16f3bda1f5e33b6b))
+
 # [2.0.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.68.0...v2.0.0-alpha.1) (2023-09-06)
 
 
