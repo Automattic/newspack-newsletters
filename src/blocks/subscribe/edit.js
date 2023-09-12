@@ -1,5 +1,6 @@
 /* globals newspack_newsletters_blocks */
 /* eslint jsx-a11y/label-has-for: 0 */
+/* eslint-disable @wordpress/no-unsafe-wp-apis */
 /**
  * External dependencies.
  */
@@ -21,7 +22,12 @@ import {
 	Spinner,
 	Button,
 } from '@wordpress/components';
-import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
+import {
+	useBlockProps,
+	InspectorControls,
+	RichText,
+	__experimentalUseColorProps as useColorProps,
+} from '@wordpress/block-editor';
 
 /**
  * Internal dependencies
@@ -39,9 +45,9 @@ const editedStateOptions = [
 	{ label: __( 'Success', 'newspack-newsletters' ), value: 'success' },
 ];
 
-export default function SubscribeEdit( {
-	setAttributes,
-	attributes: {
+export default function SubscribeEdit( props ) {
+	const { attributes, setAttributes } = props;
+	const {
 		displayInputLabels,
 		placeholder,
 		emailLabel,
@@ -56,9 +62,10 @@ export default function SubscribeEdit( {
 		lists,
 		displayDescription,
 		mailchimpDoubleOptIn,
-	},
-} ) {
+	} = attributes;
+
 	const blockProps = useBlockProps();
+	const colorProps = useColorProps( attributes );
 	const [ editedState, setEditedState ] = useState( editedStateOptions[ 0 ].value );
 	const [ inFlight, setInFlight ] = useState( false );
 	const [ listConfig, setListConfig ] = useState( {} );
@@ -300,8 +307,14 @@ export default function SubscribeEdit( {
 											/>
 										) }
 									</label>
+
 									<input type="email" placeholder={ placeholder } />
-									<div className="submit-button">
+									<div
+										className={ classnames( 'submit-button', colorProps.className ) }
+										style={ {
+											...colorProps.style,
+										} }
+									>
 										<RichText
 											onChange={ value => setAttributes( { label: value } ) }
 											placeholder={ __( 'Sign up', 'newspack' ) }

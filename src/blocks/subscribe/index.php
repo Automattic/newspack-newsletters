@@ -97,18 +97,6 @@ function render_block( $attrs ) {
 		$available_lists = [ $lists[0] ];
 	}
 
-	/**
-	 * Filters the lists that are about to be displayed in the Subscription block
-	 *
-	 * @param array $available_lists The lists that are about to be displayed.
-	 * @param array $attrs           Block attributes.
-	 */
-	$available_lists = apply_filters( 'newspack_newsletters_subscription_block_available_lists', $available_lists, $attrs );
-
-	if ( empty( $available_lists ) ) {
-		return;
-	}
-	
 	$provider = \Newspack_Newsletters::get_service_provider();
 
 	// Enqueue scripts.
@@ -251,7 +239,27 @@ function render_block( $attrs ) {
 					<?php if ( $provider && 'mailchimp' === $provider->service && $attrs['mailchimpDoubleOptIn'] ) : ?>
 						<input type="hidden" name="double_optin" value="1" />
 					<?php endif; ?>
-					<input type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" />
+
+					<?php
+					$button_css_class = 'submit-button';
+					$button_style     = '';
+
+					// Doesn't output the default inline styles so Custom CSS still works.
+					if ( array_key_exists( 'backgroundColor', $attrs ) ) {
+						$button_css_class .= ' has-' . $attrs['backgroundColor'] . '-background-color';
+					} elseif ( '#dd3333' !== $attrs['style']['color']['background'] ) {
+						$button_style .= 'background-color: ' . $attrs['style']['color']['background'] . ';';
+					}
+
+					if ( array_key_exists( 'textColor', $attrs ) ) {
+						$button_css_class .= ' has-' . $attrs['textColor'] . '-color';
+					} elseif ( '#ffffff' !== $attrs['style']['color']['text'] ) {
+						$button_style .= 'color: ' . $attrs['style']['color']['text'] . ';';
+					}
+
+					?>
+
+					<input class="<?php echo \esc_attr( $button_css_class ); ?>"type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" style="<?php echo \esc_attr( $button_style ); ?>" />
 				</div>
 			</form>
 		<?php endif; ?>
@@ -334,12 +342,8 @@ function send_form_response( $data ) {
  * Process newsletter signup form.
  */
 function process_form() {
-	if ( ! isset( $_REQUEST[ FORM_ACTION ] ) ) {
+	if ( ! isset( $_REQUEST[ FORM_ACTION ] ) || ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
 		return;
-	}
-
-	if ( ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
-		return send_form_response( new \WP_Error( 'invalid_nonce', __( 'Invalid request.', 'newspack-newsletters' ) ) );
 	}
 
 	// Honeypot trap.
@@ -388,14 +392,6 @@ function process_form() {
 		$metadata['status'] = 'pending';
 	}
 
-	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
-		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
-		if ( $popup_id ) {
-			$metadata['registration_method'] = 'newsletters-subscription-popup';
-		}
-		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
-	}
-
 	$result = \Newspack_Newsletters_Subscription::add_contact(
 		[
 			'name'     => $name ?? null,
@@ -405,8 +401,12 @@ function process_form() {
 		$lists
 	);
 
-	if ( \is_wp_error( $result ) ) {
-		return send_form_response( $result );
+	if ( ! \is_user_logged_in() && \class_exists( '\Newspack\Reader_Activation' ) && \Newspack\Reader_Activation::is_enabled() ) {
+		$metadata = array_merge( $metadata, [ 'registration_method' => 'newsletters-subscription' ] );
+		if ( $popup_id ) {
+			$metadata['registration_method'] = 'newsletters-subscription-popup';
+		}
+		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
 	}
 
 	/**
@@ -417,9 +417,6 @@ function process_form() {
 	 * @param array          $metadata Some metadata about the subscription. Always contains `current_page_url`, `newspack_popup_id` and `newsletters_subscription_method` keys.
 	 */
 	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result, $metadata );
-
-	// Generate a new nonce for subsequent form submissions.
-	$result[ FORM_ACTION ] = \wp_create_nonce( FORM_ACTION );
 
 	return send_form_response( $result );
 }

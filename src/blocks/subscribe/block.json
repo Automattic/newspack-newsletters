@@ -65,10 +65,30 @@
 		"successMessage": {
 			"type": "string",
 			"default": "Thank you for signing up!"
+		},
+		"style": {
+			"type": "object",
+			"default": {
+				"color": {
+					"background": "#dd3333",
+					"text": "#ffffff"
+				}
+			}
+		},
+		"className": {
+			"type": "string"
 		}
 	},
 	"supports": {
 		"html": false,
-		"align": true
+		"align": true,
+		"color": {
+			"__experimentalSkipSerialization": true,
+			"gradients": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		}
 	}
 }
