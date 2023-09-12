@@ -225,6 +225,30 @@ final class Newspack_Newsletters_Renderer {
 	}
 
 	/**
+	 * Get spacing value.
+	 *
+	 * @param string $value Spacing value.
+	 *
+	 * @return string Spacing value.
+	 */
+	private static function get_spacing_value( $value ) {
+		$presets = [
+			'50' => 'clamp( 1.25rem, 1rem + 0.8333vw, 1.5rem )',
+			'60' => 'clamp( 1.5rem, 0.75rem + 2.5vw, 2.25rem )',
+			'70' => 'clamp( 1.75rem, 0.12rem + 5.4333vw, 3.38rem )',
+			'80' => 'clamp( 2rem, -1.06rem + 10.2vw, 5.06rem )',
+		];
+		if ( 0 === strpos( $value, 'var' ) ) {
+			$preset = end( explode( '|', $value ) );
+			if ( isset( $presets[ $preset ] ) ) {
+				return $presets[ $preset ];
+			}
+			return '';
+		}
+		return $value;
+	}
+
+	/**
 	 * Add color attributes and a padding, if component has a background color.
 	 *
 	 * @param array $attrs Block attributes.
@@ -241,8 +265,18 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		if ( isset( $attrs['style']['spacing']['padding'] ) ) {
-			$padding          = $attrs['style']['spacing']['padding'];
+			$padding = $attrs['style']['spacing']['padding'];
+			foreach ( $padding as $key => $value ) {
+				$padding[ $key ] = self::get_spacing_value( $value, $key );
+			}
 			$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
+		}
+
+		if ( ! empty( $attrs['borderRadius'] ) ) {
+			$attrs['borderRadius'] = $attrs['borderRadius'] . 'px';
+		}
+		if ( isset( $attrs['style']['border']['radius'] ) ) {
+			$attrs['borderRadius'] = $attrs['style']['border']['radius'];
 		}
 
 		// Remove block-only attributes.
@@ -588,9 +622,9 @@ final class Newspack_Newsletters_Renderer {
 					$dom->loadHTML( mb_convert_encoding( $button_block['innerHTML'], 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
 					$xpath         = new DOMXpath( $dom );
 					$anchor        = $xpath->query( '//a' )[0];
-					$attrs         = $button_block['attrs'];
+					$attrs         = self::process_attributes( $button_block['attrs'] );
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : 999;
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '999px';
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					if ( ! $anchor ) {
@@ -602,8 +636,8 @@ final class Newspack_Newsletters_Renderer {
 						'inner-padding' => '12px 24px',
 						'line-height'   => '1.5',
 						'href'          => $anchor->getAttribute( 'href' ),
-						'border-radius' => $border_radius . 'px',
-						'font-size'     => '16px',
+						'border-radius' => $border_radius,
+						'font-size'     => $attrs['font-size'],
 						'font-family'   => $font_family,
 						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
@@ -613,6 +647,18 @@ final class Newspack_Newsletters_Renderer {
 						$default_button_attrs['background-color'] = 'transparent';
 					} else {
 						$default_button_attrs['background-color'] = '#32373c';
+					}
+					if ( $attrs['background-color'] ) {
+						$default_button_attrs['background-color'] = $attrs['background-color'];
+					}
+					if ( $attrs['color'] ) {
+						$default_button_attrs['color'] = $attrs['color'];
+					}
+					if ( $attrs['width'] ) {
+						$default_button_attrs['width'] = $attrs['width'] . '%';
+					}
+					if ( $attrs['padding'] ) {
+						$default_button_attrs['inner-padding'] = $attrs['padding'];
 					}
 					$button_attrs = array_merge(
 						$default_button_attrs,
