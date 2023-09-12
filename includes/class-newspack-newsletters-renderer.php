@@ -641,7 +641,7 @@ final class Newspack_Newsletters_Renderer {
 				);
 				// Remove colors from section attrs.
 				unset( $section_attrs['background-color'] );
-				if ( $block['attrs']['backgroundColor'] && isset( self::$color_palette[ $block['attrs']['backgroundColor'] ] ) ) {
+				if ( isset( $block['attrs']['backgroundColor'] ) && isset( self::$color_palette[ $block['attrs']['backgroundColor'] ] ) ) {
 					$divider_attrs['border-color'] = self::$color_palette[ $block['attrs']['backgroundColor'] ];
 				}
 				if ( isset( $block['attrs']['style']['color']['background'] ) ) {
