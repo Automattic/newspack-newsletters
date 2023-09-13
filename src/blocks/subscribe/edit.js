@@ -164,7 +164,7 @@ export default function SubscribeEdit( {
 				>
 					<p>
 						{ __(
-							"Pick a button color that will contrast against the rest of your site's color scheme.",
+							"Make sure to pick a color that will contrast against the rest of your site's color scheme, to help this block stand out!",
 							'newspack-newsletters'
 						) }
 					</p>
