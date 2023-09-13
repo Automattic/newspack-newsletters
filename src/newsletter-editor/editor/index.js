@@ -62,6 +62,7 @@ const Editor = compose( [
 			sent,
 			isPublic: meta.is_public,
 			html: meta[ window.newspack_email_editor_data.email_html_meta ],
+			campaignName: meta.campaign_name,
 		};
 	} ),
 	withDispatch( dispatch => {
