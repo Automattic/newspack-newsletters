@@ -218,15 +218,17 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				onChange={ postType => setAttributes( { postType } ) }
 			/>
 			<ToggleControl
-				label={ __( 'Display sponsored posts', 'newspack-newsletters' ) }
-				checked={ attributes.displaySponsoredPosts }
-				onChange={ value => setAttributes( { displaySponsoredPosts: value } ) }
-			/>
-			<ToggleControl
 				label={ __( 'Display specific posts', 'newspack-newsletters' ) }
 				checked={ attributes.isDisplayingSpecificPosts }
 				onChange={ value => setAttributes( { isDisplayingSpecificPosts: value } ) }
 			/>
+			{ ! attributes.isDisplayingSpecificPosts && (
+				<ToggleControl
+					label={ __( 'Display sponsored posts', 'newspack-newsletters' ) }
+					checked={ attributes.displaySponsoredPosts }
+					onChange={ value => setAttributes( { displaySponsoredPosts: value } ) }
+				/>
+			) }
 			{ attributes.isDisplayingSpecificPosts ? (
 				<FormTokenField
 					label={
