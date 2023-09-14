@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use Newspack\Newsletters\Subscription_Lists;
+use Newspack\Newsletters\Reader_Activation;
 
 /**
  * Manages Settings Subscription Class.
