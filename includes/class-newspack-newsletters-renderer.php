@@ -40,11 +40,11 @@ final class Newspack_Newsletters_Renderer {
 	protected static $font_body = null;
 
 	/**
-	 * Ads to insert.
+	 * Cache of already processed links (avoid recursive processing).
 	 *
-	 * @var Array
+	 * @var boolean[] Map of link URLs to whether they were processed.
 	 */
-	protected static $ads_to_insert = [];
+	protected static $processed_links = [];
 
 	/**
 	 * The post permalink, if the post is public.
@@ -323,6 +323,10 @@ final class Newspack_Newsletters_Renderer {
 		$href_params = $matches[0];
 		$urls        = $matches[1];
 		foreach ( $urls as $index => $url ) {
+			/** Skip if link was already processed. */
+			if ( ! empty( self::$processed_links[ $url ] ) ) {
+				continue;
+			}
 			/** Link href content can be invalid (placeholder) so we must skip it. */
 			if ( ! wp_http_validate_url( $url ) ) {
 				continue;
@@ -338,6 +342,8 @@ final class Newspack_Newsletters_Renderer {
 				$url,
 				$post
 			);
+
+			self::$processed_links[ $url_with_params ] = true;
 
 			$html = str_replace( $href_params[ $index ], 'href="' . $url_with_params . '"', $html );
 		}
@@ -688,7 +694,7 @@ final class Newspack_Newsletters_Renderer {
 				);
 				// Remove colors from section attrs.
 				unset( $section_attrs['background-color'] );
-				if ( $block['attrs']['backgroundColor'] && isset( self::$color_palette[ $block['attrs']['backgroundColor'] ] ) ) {
+				if ( isset( $block['attrs']['backgroundColor'] ) && isset( self::$color_palette[ $block['attrs']['backgroundColor'] ] ) ) {
 					$divider_attrs['border-color'] = self::$color_palette[ $block['attrs']['backgroundColor'] ];
 				}
 				if ( isset( $block['attrs']['style']['color']['background'] ) ) {
