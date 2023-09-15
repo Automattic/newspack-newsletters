@@ -1,3 +1,10 @@
+## [2.0.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.0.0...v2.0.1-alpha.1) (2023-09-15)
+
+
+### Bug Fixes
+
+* buttons' border radius, width, padding and colors ([#1276](https://github.com/Automattic/newspack-newsletters/issues/1276)) ([7b3e0f3](https://github.com/Automattic/newspack-newsletters/commit/7b3e0f38f64e5a8cdf75873872f5928b10a94d9d))
+
 # [2.0.0](https://github.com/Automattic/newspack-newsletters/compare/v1.68.0...v2.0.0) (2023-09-13)
 
 
