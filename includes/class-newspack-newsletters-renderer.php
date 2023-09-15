@@ -617,8 +617,31 @@ final class Newspack_Newsletters_Renderer {
 			 * Buttons block.
 			 */
 			case 'core/buttons':
-				foreach ( $inner_blocks as $button_block ) {
+				// Total percentage of button colunns with defined widths.
+				$total_defined_width = array_reduce(
+					$inner_blocks,
+					function( $acc, $block ) {
+						if ( isset( $block['attrs']['width'] ) ) {
+							$acc .= intval( $block['attrs']['width'] );
+						}
+						return $acc;
+					},
+					0
+				);
 
+				// Number of button columns with no defined width.
+				$no_widths = count(
+					array_filter(
+						$inner_blocks,
+						function( $block ) {
+							return empty( $block['attrs']['width'] );
+						}
+					)
+				);
+
+				// Default width is total amount of undefined width divided by number of undefined width columns, or a minimum of 10%.
+				$default_width = ! $no_widths ? 10 : max( 10, ( ( 100 - $total_defined_width ) / $no_widths ) );
+				foreach ( $inner_blocks as $button_block ) {
 					if ( empty( $button_block['innerHTML'] ) ) {
 						break;
 					}
@@ -661,9 +684,14 @@ final class Newspack_Newsletters_Renderer {
 					if ( ! empty( $attrs['color'] ) ) {
 						$default_button_attrs['color'] = $attrs['color'];
 					}
+					
+					$column_attrs['css-class'] = 'mj-column-has-width';
+					$column_attrs['width']     = $default_width . '%';
 					if ( ! empty( $attrs['width'] ) ) {
-						$default_button_attrs['width'] = $attrs['width'] . '%';
+						$column_attrs['width']         = $attrs['width'] . '%';
+						$default_button_attrs['width'] = '100%'; // Buttons with defined width should fill their column.
 					}
+					
 					if ( ! empty( $attrs['padding'] ) ) {
 						$default_button_attrs['inner-padding'] = $attrs['padding'];
 					}
