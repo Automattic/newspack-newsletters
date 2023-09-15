@@ -239,7 +239,8 @@ final class Newspack_Newsletters_Renderer {
 			'80' => 'clamp( 2rem, -1.06rem + 10.2vw, 5.06rem )',
 		];
 		if ( 0 === strpos( $value, 'var' ) ) {
-			$preset = end( explode( '|', $value ) );
+			$preset_key = explode( '|', $value );
+			$preset     = end( $preset_key );
 			if ( isset( $presets[ $preset ] ) ) {
 				return $presets[ $preset ];
 			}
