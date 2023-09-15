@@ -119,11 +119,6 @@ const ProviderSidebarComponent = ( {
 			from_name: senderName,
 			campaign: true,
 		};
-
-		const messages = validateNewsletter( updatedData );
-
-		// Send info to parent components, for send button/validation management.
-		updateMetaValue( 'newsletterValidationErrors', messages );
 		updateMetaValue( 'newsletterData', updatedData );
 	}, [ JSON.stringify( cmData ), lists, segments, status ] );
 

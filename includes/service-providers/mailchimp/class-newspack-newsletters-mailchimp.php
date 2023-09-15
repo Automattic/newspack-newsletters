@@ -740,6 +740,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$mc->put( "campaigns/$mc_campaign_id/content", $content_payload ),
 				__( 'Error updating campaign content.', 'newspack_newsletters' )
 			);
+
+			// Retrieve and store campaign data.
+			$data = $this->retrieve( $post->ID );
+			if ( ! is_wp_error( $data ) ) {
+				update_post_meta( $post->ID, 'newsletterData', $data );
+			}
+
 			return [
 				'campaign_result' => $campaign_result,
 				'content_result'  => $content_result,

@@ -680,6 +680,11 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$campaign_result = $cc->create_campaign( $campaign );
 			}
 			update_post_meta( $post->ID, 'cc_campaign_id', $campaign_result->campaign_id );
+			// Retrieve and store campaign data.
+			$data = $this->retrieve( $post->ID );
+			if ( ! is_wp_error( $data ) ) {
+				update_post_meta( $post->ID, 'newsletterData', $data );
+			}
 			return $campaign_result;
 
 		} catch ( Exception $e ) {

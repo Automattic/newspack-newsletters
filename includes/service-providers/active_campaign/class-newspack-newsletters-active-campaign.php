@@ -780,6 +780,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		update_post_meta( $post->ID, 'ac_message_id', $message['id'] );
 
+		// Retrieve and store campaign data.
+		$data = $this->retrieve( $post->ID );
+		if ( ! is_wp_error( $data ) ) {
+			update_post_meta( $post->ID, 'newsletterData', $data );
+		}
+
 		return [
 			'campaign'   => true, // Satisfy JS API.
 			'message_id' => $message['id'],
