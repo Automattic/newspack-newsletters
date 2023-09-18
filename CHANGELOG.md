@@ -1,3 +1,10 @@
+## [2.0.1-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.0.1-alpha.1...v2.0.1-alpha.2) (2023-09-18)
+
+
+### Bug Fixes
+
+* crash when adding underwritten posts to Posts Inserter ([#1289](https://github.com/Automattic/newspack-newsletters/issues/1289)) ([9964766](https://github.com/Automattic/newspack-newsletters/commit/996476689dd763a9010214151e921347f7744e0b))
+
 ## [2.0.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.0.0...v2.0.1-alpha.1) (2023-09-15)
 
 
