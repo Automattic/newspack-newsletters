@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use Newspack\Newsletters\Subscription_Lists;
+use Newspack\Newsletters\Reader_Activation;
 
 /**
  * Manages Settings Subscription Class.
@@ -520,7 +521,7 @@ class Newspack_Newsletters_Subscription {
 	 * @return bool|WP_Error Whether the contact was deleted or error.
 	 */
 	public static function delete_user( $user_id, $reassign, $user ) {
-		if ( ! \Newspack\Reader_Activation::is_user_reader( $user ) ) {
+		if ( ! class_exists( '\Newspack\Reader_Activation' ) || ! \Newspack\Reader_Activation::is_user_reader( $user ) ) {
 			return;
 		}
 		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
