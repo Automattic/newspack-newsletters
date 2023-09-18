@@ -203,7 +203,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			post.newspack_sponsors_info,
 			attributes
 		);
-		if ( sponsorAttributions ) {
+		if ( sponsorAttributions?.length ) {
 			postContentBlocks.push( sponsorAttributions );
 		}
 	}
