@@ -47,7 +47,6 @@ export const validateNewsletter = ( { from_email, from_name, list_id } ) => {
  * @param {boolean}  props.inFlight           True if the component is in a loading state.
  * @param {Object}   props.acData             ActiveCampaign data.
  * @param {Function} props.updateMetaValue    Dispatcher to update post meta.
- * @param {Object}   props.newsletterData     Newsletter data from the parent components
  * @param {Function} props.createErrorNotice  Dispatcher to display an error message in the editor.
  * @param {string}   props.status             Current post status.
  */
@@ -59,7 +58,6 @@ const ProviderSidebarComponent = ( {
 	inFlight,
 	acData,
 	updateMetaValue,
-	newsletterData,
 	createErrorNotice,
 	status,
 } ) => {
@@ -87,19 +85,6 @@ const ProviderSidebarComponent = ( {
 		}
 		setIsLoading( false );
 	};
-
-	useEffect( () => {
-		const updatedData = {
-			...newsletterData,
-			lists,
-			list_id: listId,
-			segment_id: segmentId,
-			from_email: senderEmail,
-			from_name: senderName,
-			campaign: true,
-		};
-		updateMetaValue( 'newsletterData', updatedData );
-	}, [ JSON.stringify( acData ), lists, status ] );
 
 	if ( ! inFlight && 'publish' === status ) {
 		return (
