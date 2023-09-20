@@ -393,10 +393,11 @@ final class Newspack_Newsletters_Renderer {
 		 * @param bool        $is_in_group Whether the component is a child of a group component.
 		 * @param array       $default_attrs Default attributes for the component.
 		 * @param bool        $is_in_list_or_quote Whether the component is a child of a list or quote block.
+		 * @param int         $newsletter_id The newsletter post ID.
 		 *
 		 * @return string|null The markup to return. If null, the default markup will be generated.
 		 */
-		$markup = apply_filters( 'newspack_newsletters_render_mjml_component', null, $block, $is_in_column, $is_in_group, $default_attrs, $is_in_list_or_quote );
+		$markup = apply_filters( 'newspack_newsletters_render_mjml_component', null, $block, $is_in_column, $is_in_group, $default_attrs, $is_in_list_or_quote, self::$newsletter_id );
 		if ( null !== $markup ) {
 			return $markup;
 		}
