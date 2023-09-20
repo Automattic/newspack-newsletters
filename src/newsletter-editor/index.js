@@ -29,7 +29,7 @@ registerEditorPlugin();
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
 	const layoutId = useSelect(
-		select => select( 'core/editor' ).getEditedPostAttribute( 'meta' ).layout_id
+		select => select( 'core/editor' ).getEditedPostAttribute( 'meta' ).template_id
 	);
 	const savePost = useDispatch( 'core/editor' ).savePost;
 
