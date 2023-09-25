@@ -403,15 +403,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( ! $this->has_api_credentials() ) {
 			return [];
 		}
-		$transient       = sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
-		$persisted_error = get_transient( $transient );
-		if ( $persisted_error ) {
-			delete_transient( $transient );
-			return new WP_Error(
-				'newspack_newsletters_mailchimp_error',
-				$persisted_error
-			);
-		}
 		try {
 			$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
 			if ( ! $mc_campaign_id ) {

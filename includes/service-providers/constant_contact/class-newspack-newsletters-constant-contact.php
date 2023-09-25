@@ -447,15 +447,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		if ( ! $this->has_api_credentials() || ! $this->has_valid_connection() ) {
 			return [];
 		}
-		$transient       = sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
-		$persisted_error = get_transient( $transient );
-		if ( $persisted_error ) {
-			delete_transient( $transient );
-			return new WP_Error(
-				'newspack_newsletters_constant_contact_error',
-				$persisted_error
-			);
-		}
 		try {
 			$cc             = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );

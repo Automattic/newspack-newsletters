@@ -6,7 +6,7 @@ import { get, isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { createPortal, useEffect, useState } from '@wordpress/element';
@@ -63,6 +63,7 @@ const Editor = compose( [
 			isPublic: meta.is_public,
 			html: meta[ window.newspack_email_editor_data.email_html_meta ],
 			campaignName: meta.campaign_name,
+			newsletterSendErrors: meta.newsletter_send_errors,
 		};
 	} ),
 	withDispatch( dispatch => {
@@ -140,8 +141,27 @@ const Editor = compose( [
 			props.createNotice( 'success', props.successNote + dateTime, {
 				isDismissible: false,
 			} );
+
+			// Remove error notice.
+			props.removeNotice( 'newspack-newsletters-newsletter-send-error' );
 		}
 	}, [ props.sent ] );
+
+	useEffect( () => {
+		if ( ! props.sent && props.newsletterSendErrors ) {
+			const message = sprintf(
+				/* translators: %s: error message */
+				__( 'Error sending newsletter: %s', 'newspack-newsletters' ),
+				Object.values( props.newsletterSendErrors ).pop()
+			);
+			props.createNotice( 'error', message, {
+				id: 'newspack-newsletters-newsletter-send-error',
+				isDismissible: true,
+			} );
+		} else {
+			props.removeNotice( 'newspack-newsletters-newsletter-send-error' );
+		}
+	}, [ props.newsletterSendError ] );
 
 	// Notify if email content is larger than ~100kb.
 	useEffect( () => {
