@@ -74,6 +74,27 @@ function enqueue_scripts() {
 function get_form_id() {
 	return \wp_unique_id( 'newspack-subscribe-' );
 }
+/**
+ * Render a honeypot field to guard against bot form submissions. Note that
+ * this field is named `email` to hopefully catch more bots who might be
+ * looking for such fields, where as the "real" field is named "npe".
+ * 
+ * Not rendered if reCAPTCHA is enabled as it's a superior spam protection.
+ *
+ * @param string $placeholder Placeholder text to render in the field.
+ */
+function render_honeypot_field( $placeholder = '' ) {
+	if ( method_exists( 'Newspack\Recaptcha', 'can_use_captcha' ) && \Newspack\Recaptcha::can_use_captcha() ) {
+		return;
+	}
+
+	if ( empty( $placeholder ) ) {
+		$placeholder = __( 'Enter your email address', 'newspack-plugin' );
+	}
+	?>
+	<input class="nphp" tabindex="-1" aria-hidden="true" name="email" type="email" autocomplete="off" placeholder="<?php echo \esc_attr( $placeholder ); ?>" />
+	<?php
+}
 
 /**
  * Render Registration Block.
@@ -238,16 +259,7 @@ function render_block( $attrs ) {
 						placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>"
 						value="<?php echo esc_attr( $email ); ?>"
 					/>
-					<input
-						class="nphp"
-						tabindex="-1"
-						aria-hidden="true"
-						type="email"
-						name="email"
-						autocomplete="email"
-						placeholder="<?php echo \esc_attr( $attrs['placeholder'] ); ?>"
-						value=""
-					/>
+					<?php render_honeypot_field( $attrs['placeholder'] ); ?>
 					<?php if ( $provider && 'mailchimp' === $provider->service && $attrs['mailchimpDoubleOptIn'] ) : ?>
 						<input type="hidden" name="double_optin" value="1" />
 					<?php endif; ?>
