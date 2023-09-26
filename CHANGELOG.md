@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/Automattic/newspack-newsletters/compare/v2.1.0...v2.1.1) (2023-09-26)
+
+
+### Bug Fixes
+
+* avoid duplicate firing of add_contact ([#1300](https://github.com/Automattic/newspack-newsletters/issues/1300)) ([80fe4c4](https://github.com/Automattic/newspack-newsletters/commit/80fe4c4e5e779c4a625ee8964fc3d47aed880a6b))
+
 # [2.1.0](https://github.com/Automattic/newspack-newsletters/compare/v2.0.1...v2.1.0) (2023-09-25)
 
 
