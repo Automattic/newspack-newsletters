@@ -481,6 +481,11 @@ class Newspack_Newsletters_Subscription {
 	 * @param array          $metadata      Metadata.
 	 */
 	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
+		// Prevent double-syncing to audience if the registration method was through a Newsletter Subscription Form block.
+		if ( isset( $metadata['registration_method'] ) && 'newsletters-subscription' === $metadata['registration_method'] ) {
+			return;
+		}
+
 		if ( isset( $metadata['lists'] ) && ! empty( $metadata['lists'] ) ) {
 			$lists = $metadata['lists'];
 			unset( $metadata['lists'] );
