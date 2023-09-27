@@ -365,9 +365,11 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			if ( ! is_array( $errors ) ) {
 				$errors = [];
 			}
-			$errors[ time() ] = $result->get_error_message();
-			// Limit to 10 errors.
-			$errors = array_slice( $errors, -10, 10, true );
+			$errors[] = [
+				'timestamp' => time(),
+				'message'   => $result->get_error_message(),
+			];
+			$errors   = array_slice( $errors, -10, 10, true );
 			update_post_meta( $post_id, 'newsletter_send_errors', $errors );
 		}
 

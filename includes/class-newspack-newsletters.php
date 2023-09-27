@@ -197,14 +197,24 @@ final class Newspack_Newsletters {
 				'register_meta_args' => [
 					'show_in_rest' => [
 						'schema' => [
-							'type'    => 'array',
 							'context' => [ 'edit' ],
+							'type'    => 'array',
 							'items'   => [
-								'type' => 'string',
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => [
+									'timestamp' => [
+										'name' => 'timestamp',
+										'type' => 'integer',
+									],
+									'message'   => [
+										'name' => 'message',
+										'type' => 'string',
+									],
+								],
 							],
 						],
 					],
-					'type'         => 'array',
 				],
 			],
 		];

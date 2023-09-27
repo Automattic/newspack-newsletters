@@ -148,11 +148,11 @@ const Editor = compose( [
 	}, [ props.sent ] );
 
 	useEffect( () => {
-		if ( ! props.sent && props.newsletterSendErrors ) {
+		if ( ! props.sent && props.newsletterSendErrors?.length ) {
 			const message = sprintf(
 				/* translators: %s: error message */
 				__( 'Error sending newsletter: %s', 'newspack-newsletters' ),
-				Object.values( props.newsletterSendErrors ).pop()
+				props.newsletterSendErrors[ props.newsletterSendErrors.length - 1 ].message
 			);
 			props.createNotice( 'error', message, {
 				id: 'newspack-newsletters-newsletter-send-error',
