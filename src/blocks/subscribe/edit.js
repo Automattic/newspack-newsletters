@@ -157,11 +157,7 @@ export default function SubscribeEdit( {
 						/>
 					) }
 				</PanelBody>
-				<PanelBody
-					title={ __( 'Styles', 'newspack-newsletters' ) }
-					initialOpen={ false }
-					className="styles-container"
-				>
+				<PanelBody title={ __( 'Styles', 'newspack-newsletters' ) } className="styles-container">
 					<p>
 						{ __(
 							"Make sure to pick a color that will contrast against the rest of your site's color scheme, to help this block stand out!",
