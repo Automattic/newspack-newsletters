@@ -7,7 +7,7 @@ import { Button, Modal, Spinner } from '@wordpress/components';
 import { Fragment, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import Testing from '../../newsletter-editor/testing';
-import { DisableAutoAds } from '../../ads/newsletter-editor';
+import DisableAutoAds from '../../ads/newsletter-editor/disable-auto-ads';
 
 /**
  * External dependencies
