@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/Automattic/newspack-newsletters/compare/v2.1.1...v2.1.2) (2023-09-28)
+
+
+### Bug Fixes
+
+* **activecampaign:** allow link tracking to be disabled ([#1302](https://github.com/Automattic/newspack-newsletters/issues/1302)) ([670d856](https://github.com/Automattic/newspack-newsletters/commit/670d856591cd861741c2d10c901a651b71c2c489))
+
 ## [2.1.1](https://github.com/Automattic/newspack-newsletters/compare/v2.1.0...v2.1.1) (2023-09-26)
 
 
