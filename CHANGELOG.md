@@ -1,3 +1,10 @@
+## [2.1.3](https://github.com/Automattic/newspack-newsletters/compare/v2.1.2...v2.1.3) (2023-09-29)
+
+
+### Bug Fixes
+
+* remove honeypot field if using reCAPTCHA ([#1301](https://github.com/Automattic/newspack-newsletters/issues/1301)) ([772ca53](https://github.com/Automattic/newspack-newsletters/commit/772ca53847a8d1f6864a2ec9afc830ca0bd5a189))
+
 ## [2.1.2](https://github.com/Automattic/newspack-newsletters/compare/v2.1.1...v2.1.2) (2023-09-28)
 
 
