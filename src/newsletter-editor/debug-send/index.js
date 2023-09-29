@@ -43,6 +43,9 @@ function NewslettersDebugSend() {
 						</li>
 					) ) }
 			</ul>
+			{ sendErrors.length === 10 && (
+				<p>{ __( 'Only the last 10 errors are stored.', 'newspack-newsletters' ) }</p>
+			) }
 		</PluginDocumentSettingPanel>
 	);
 }
