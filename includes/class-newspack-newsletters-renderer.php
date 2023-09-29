@@ -110,16 +110,17 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string A value for the alt attribute.
 	 */
 	private static function get_image_alt( $attachment_id ) {
-		$alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+		$alt        = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+		$attachment = get_post( $attachment_id );
 
 		if ( empty( $alt ) ) {
-			$alt = get_the_content( $attachment_id );
+			$alt = $attachment->post_content;
 		}
 		if ( empty( $alt ) ) {
-			$alt = get_the_excerpt( $attachment_id );
+			$alt = $attachment->post_excerpt;
 		}
 		if ( empty( $alt ) ) {
-			$alt = get_the_title( $attachment_id );
+			$alt = $attachment->post_title;
 		}
 
 		return $alt;
