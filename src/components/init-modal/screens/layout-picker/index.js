@@ -9,8 +9,7 @@ import { find } from 'lodash';
  */
 import { parse } from '@wordpress/blocks';
 import { Fragment, useState, useEffect } from '@wordpress/element';
-import { compose } from '@wordpress/compose';
-import { withSelect, withDispatch } from '@wordpress/data';
+import { useDispatch } from '@wordpress/data';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
@@ -34,29 +33,15 @@ const LAYOUTS_TABS = [
 	},
 ];
 
-const LayoutPicker = ( {
-	getBlocks,
-	insertBlocks,
-	replaceBlocks,
-	savePost,
-	setNewsletterMeta,
-} ) => {
+export default function LayoutPicker() {
+	const { savePost, editPost, resetEditorBlocks } = useDispatch( 'core/editor' );
 	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayoutsState();
 
 	const insertLayout = layoutId => {
-		const { post_content: content, meta = {} } = find( layouts, { ID: layoutId } ) || {};
-		const blocksToInsert = content ? parse( content ) : [];
-		const existingBlocksIds = getBlocks().map( ( { clientId } ) => clientId );
-		if ( existingBlocksIds.length ) {
-			replaceBlocks( existingBlocksIds, blocksToInsert );
-		} else {
-			insertBlocks( blocksToInsert );
-		}
-		const metaPayload = {
-			template_id: layoutId,
-			...meta,
-		};
-		setNewsletterMeta( metaPayload ).then( savePost );
+		const { post_content } = find( layouts, { ID: layoutId } ) || {};
+		editPost( { meta: { template_id: layoutId } } );
+		resetEditorBlocks( post_content ? parse( post_content ) : [] );
+		savePost();
 	};
 
 	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
@@ -148,23 +133,4 @@ const LayoutPicker = ( {
 			</div>
 		</Fragment>
 	);
-};
-
-export default compose( [
-	withSelect( select => {
-		const { getBlocks } = select( 'core/block-editor' );
-		return {
-			getBlocks,
-		};
-	} ),
-	withDispatch( dispatch => {
-		const { savePost, editPost } = dispatch( 'core/editor' );
-		const { insertBlocks, replaceBlocks } = dispatch( 'core/block-editor' );
-		return {
-			savePost,
-			insertBlocks,
-			replaceBlocks,
-			setNewsletterMeta: meta => editPost( { meta } ),
-		};
-	} ),
-] )( LayoutPicker );
+}

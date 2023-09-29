@@ -18,6 +18,7 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
+import { validateNewsletter } from '../../newsletter-editor/utils';
 import './style.scss';
 
 function PreviewHTML() {
@@ -130,7 +131,9 @@ export default compose( [
 		sent,
 		isPublished,
 	} ) => {
-		const { newsletterData = {}, newsletterValidationErrors = [], is_public } = meta;
+		const { newsletterData = {}, is_public } = meta;
+
+		const newsletterValidationErrors = validateNewsletter( newsletterData );
 
 		const {
 			name: serviceProviderName,

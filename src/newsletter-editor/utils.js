@@ -4,15 +4,19 @@
 import { getServiceProvider } from '../service-providers';
 
 export const getEditPostPayload = newsletterData => {
-	const { validateNewsletter } = getServiceProvider();
 	return {
 		meta: {
-			// These meta fields do not have to be registered on the back end,
-			// as they are not used there.
-			newsletterValidationErrors: validateNewsletter( newsletterData ),
 			newsletterData,
 		},
 	};
+};
+
+export const validateNewsletter = newsletterData => {
+	const { validateNewsletter: validate } = getServiceProvider();
+	if ( ! validate ) {
+		return [];
+	}
+	return validate( newsletterData );
 };
 
 /**

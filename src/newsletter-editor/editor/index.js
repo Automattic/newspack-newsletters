@@ -15,11 +15,10 @@ import { registerPlugin } from '@wordpress/plugins';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
-import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import SendButton from '../../components/send-button';
 import './style.scss';
+import { validateNewsletter } from '../utils';
 
 const Editor = compose( [
 	withApiHandler(),
@@ -46,12 +45,12 @@ const Editor = compose( [
 		] );
 		const colors = settings.colors || experimentalSettingsColors || [];
 
+		const newsletterValidationErrors = validateNewsletter( meta.newsletterData );
+
 		return {
 			isCleanNewPost: isCleanNewPost(),
 			postId: getCurrentPostId(),
-			isReady: meta.newsletterValidationErrors
-				? meta.newsletterValidationErrors.length === 0
-				: false,
+			isReady: newsletterValidationErrors.length === 0,
 			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
 			colorPalette: colors.reduce(
@@ -87,7 +86,6 @@ const Editor = compose( [
 		)[ 0 ];
 		publishButton.parentNode.insertBefore( publishEl, publishButton );
 	}, [] );
-	const { getFetchDataConfig } = getServiceProvider();
 
 	// Set color palette option.
 	useEffect( () => {
@@ -100,24 +98,6 @@ const Editor = compose( [
 			method: 'POST',
 		} );
 	}, [ JSON.stringify( props.colorPalette ) ] );
-
-	// Fetch data from service provider.
-	useEffect( () => {
-		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
-			// Exit if provider does not support fetching data.
-			if ( ! getFetchDataConfig ) {
-				return;
-			}
-			const params = getFetchDataConfig( { postId: props.postId } );
-			// Exit if data config is example or does not provide path
-			if ( ! params?.path || 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
-				return;
-			}
-			props.apiFetchWithErrorHandling( params ).then( result => {
-				props.editPost( getEditPostPayload( result ) );
-			} );
-		}
-	}, [ props.isPublishingOrSavingPost ] );
 
 	// Lock or unlock post publishing.
 	useEffect( () => {

@@ -569,10 +569,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Retrieve a campaign.
 	 *
-	 * @param integer $post_id Numeric ID of the Newsletter post.
+	 * @param int  $post_id    Numeric ID of the Newsletter post.
+	 * @param bool $skip_sync Whether to skip syncing the campaign.
+
 	 * @return array|WP_Error API Response or error.
 	 */
-	public function retrieve( $post_id ) {
+	public function retrieve( $post_id, $skip_sync = false ) {
 		if ( ! $this->has_api_credentials() ) {
 			return [];
 		}
@@ -608,7 +610,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'lists'       => $lists,
 			'segments'    => $segments,
 		];
-		if ( ! $campaign_id ) {
+		if ( ! $campaign_id && true !== $skip_sync ) {
 			$sync_result = $this->sync( get_post( $post_id ) );
 			if ( ! is_wp_error( $sync_result ) ) {
 				$result = wp_parse_args(
@@ -780,13 +782,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		update_post_meta( $post->ID, 'ac_message_id', $message['id'] );
 
-		return [
+		$sync_data = [
 			'campaign'   => true, // Satisfy JS API.
 			'message_id' => $message['id'],
 			'list_id'    => $list_id,
 			'from_email' => $from_email,
 			'from_name'  => $from_name,
 		];
+
+		// Retrieve and store campaign data.
+		$data = $this->retrieve( $post->ID, true );
+		if ( ! is_wp_error( $data ) ) {
+			$data = array_merge( $data, $sync_data );
+			update_post_meta( $post->ID, 'newsletterData', $data );
+		}
+
+		return $sync_data;
 	}
 
 	/**
