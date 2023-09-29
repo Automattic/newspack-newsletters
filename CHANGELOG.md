@@ -1,3 +1,10 @@
+## [2.1.4-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.1.3...v2.1.4-alpha.1) (2023-09-29)
+
+
+### Bug Fixes
+
+* prevent duplicate js plugin registration ([#1298](https://github.com/Automattic/newspack-newsletters/issues/1298)) ([11efaa7](https://github.com/Automattic/newspack-newsletters/commit/11efaa7841374e0b8abe52a44bbe77f30f645e23))
+
 ## [2.1.3](https://github.com/Automattic/newspack-newsletters/compare/v2.1.2...v2.1.3) (2023-09-29)
 
 
