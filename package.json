@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "2.1.3-alpha.1",
+	"version": "2.1.3",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
