@@ -22,7 +22,7 @@ function NewslettersDebugSend() {
 	return (
 		<PluginDocumentSettingPanel
 			name="newsletters-ads-settings-panel"
-			title={ __( 'Debug Send Errors', 'newspack-newsletters' ) }
+			title={ __( 'Send Errors', 'newspack-newsletters' ) }
 		>
 			<p>
 				{ __(
