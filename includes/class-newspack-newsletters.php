@@ -156,21 +156,6 @@ final class Newspack_Newsletters {
 				],
 			],
 			[
-				'name'               => 'newsletterValidationErrors',
-				'register_meta_args' => [
-					'show_in_rest' => [
-						'schema' => [
-							'type'    => 'array',
-							'context' => [ 'edit' ],
-							'items'   => [
-								'type' => 'string',
-							],
-						],
-					],
-					'type'         => 'array',
-				],
-			],
-			[
 				'name'               => 'senderName',
 				'register_meta_args' => [
 					'show_in_rest' => [
