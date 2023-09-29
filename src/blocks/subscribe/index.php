@@ -74,11 +74,12 @@ function enqueue_scripts() {
 function get_form_id() {
 	return \wp_unique_id( 'newspack-subscribe-' );
 }
+
 /**
  * Render a honeypot field to guard against bot form submissions. Note that
  * this field is named `email` to hopefully catch more bots who might be
  * looking for such fields, where as the "real" field is named "npe".
- * 
+ *
  * Not rendered if reCAPTCHA is enabled as it's a superior spam protection.
  *
  * @param string $placeholder Placeholder text to render in the field.
@@ -129,7 +130,7 @@ function render_block( $attrs ) {
 	if ( empty( $available_lists ) ) {
 		return;
 	}
-	
+
 	$provider = \Newspack_Newsletters::get_service_provider();
 
 	// Enqueue scripts.
