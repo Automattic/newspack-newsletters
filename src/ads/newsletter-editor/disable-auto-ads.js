@@ -3,7 +3,7 @@
  */
 import { __, sprintf, _n } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { useState, useEffect, Fragment } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { ToggleControl, Button } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 
