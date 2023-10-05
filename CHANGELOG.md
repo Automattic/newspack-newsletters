@@ -1,3 +1,10 @@
+# [2.2.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.2.0-alpha.1...v2.2.0-alpha.2) (2023-10-05)
+
+
+### Bug Fixes
+
+* execute tracking in an earlier hook ([#1314](https://github.com/Automattic/newspack-newsletters/issues/1314)) ([e48aeab](https://github.com/Automattic/newspack-newsletters/commit/e48aeabeacd0adc8892db054b9c2299abdb0f913))
+
 ## [2.1.4](https://github.com/Automattic/newspack-newsletters/compare/v2.1.3...v2.1.4) (2023-10-05)
 
 
