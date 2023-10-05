@@ -21,7 +21,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		ob_start();
 		do_action( 'newspack_newsletters_editor_mjml_body', $post );
 		$mjml_body = ob_get_clean();
-		$this->assertMatchesRegularExpression( '\?np_newsletters_pixel=1&id=' . $post_id . '/', $mjml_body );
+		$this->assertMatchesRegularExpression( '/\?np_newsletters_pixel=1&id=' . $post_id . '/', $mjml_body );
 
 		// Fetch the tracking pixel URL from body.
 		$pattern = '/src="([^"]*np_newsletters_pixel[^"]*)"/i';
