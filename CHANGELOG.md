@@ -1,21 +1,9 @@
-# [2.2.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.1.4-alpha.1...v2.2.0-alpha.1) (2023-09-29)
+## [2.1.4](https://github.com/Automattic/newspack-newsletters/compare/v2.1.3...v2.1.4) (2023-10-05)
 
 
 ### Bug Fixes
 
-* newsletterData handling and editor improvements ([#1287](https://github.com/Automattic/newspack-newsletters/issues/1287)) ([f42b387](https://github.com/Automattic/newspack-newsletters/commit/f42b387cbac7ea4bca8d6f5d9524e634a7edd523))
-
-
-### Features
-
-* add color picker for the subscribe block button ([#1283](https://github.com/Automattic/newspack-newsletters/issues/1283)) ([000188a](https://github.com/Automattic/newspack-newsletters/commit/000188a13d67dbb41c9756f6e4e87c7d476d3403))
-
-## [2.1.4-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.1.3...v2.1.4-alpha.1) (2023-09-29)
-
-
-### Bug Fixes
-
-* prevent duplicate js plugin registration ([#1298](https://github.com/Automattic/newspack-newsletters/issues/1298)) ([11efaa7](https://github.com/Automattic/newspack-newsletters/commit/11efaa7841374e0b8abe52a44bbe77f30f645e23))
+* execute tracking in an earlier hook ([#1314](https://github.com/Automattic/newspack-newsletters/issues/1314)) ([e48aeab](https://github.com/Automattic/newspack-newsletters/commit/e48aeabeacd0adc8892db054b9c2299abdb0f913))
 
 ## [2.1.3](https://github.com/Automattic/newspack-newsletters/compare/v2.1.2...v2.1.3) (2023-09-29)
 
