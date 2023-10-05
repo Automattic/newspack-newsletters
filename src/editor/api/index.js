@@ -20,6 +20,7 @@ const POST_META_WHITELIST = [
 	'background_color',
 	'custom_css',
 	'newsletter_sent',
+	'newsletterData',
 ];
 
 const emailHTMLMetaName = window.newspack_email_editor_data.email_html_meta;
