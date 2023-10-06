@@ -250,10 +250,10 @@ final class Pixel {
 						[
 							'id'  => $post_id,
 							'tid' => $tracking_id,
-							'em'  => $email_tag,
 						]
 					)
 				),
+				'em'   => $email_tag,
 			],
 			\content_url( '/np-newsletters-pixel.php' )
 		);
@@ -275,13 +275,17 @@ final class Pixel {
 				if ( ! $item ) {
 					continue;
 				}
-				$item = json_decode( base64_decode( $item ), true );
-				if ( ! $item ) {
+				$item = explode( '|', $item );
+				if ( 2 !== count( $item ) ) {
 					continue;
 				}
-				$newsletter_id = isset( $item['id'] ) ? intval( $item['id'] ) : 0;
-				$tracking_id   = isset( $item['tid'] ) ? \sanitize_text_field( $item['tid'] ) : 0;
-				$email_address = isset( $item['em'] ) ? \sanitize_email( $item['em'] ) : '';
+				$data = json_decode( base64_decode( $item[1] ), true );
+				if ( ! $data || ! is_array( $data ) ) {
+					continue;
+				}
+				$newsletter_id = isset( $data['id'] ) ? intval( $data['id'] ) : 0;
+				$tracking_id   = isset( $data['tid'] ) ? \sanitize_text_field( $data['tid'] ) : 0;
+				$email_address = isset( $item[0] ) ? \sanitize_email( $item[0] ) : '';
 				if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
 					continue;
 				}
@@ -313,9 +317,13 @@ final class Pixel {
 		if ( ! empty( $_SERVER["HTTP_USER_AGENT"] ) && "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246 Mozilla/5.0" === $_SERVER["HTTP_USER_AGENT"] ) {
 			exit;
 		}
+		if ( ! isset( $_GET["data"] ) || ! isset( $_GET["em"] ) ) {
+			exit;
+		}
 		$file = "' . $log_file_path . '";
 		$data = $_GET["data"];
-		file_put_contents( $file, $data . PHP_EOL, FILE_APPEND );
+		$email_address = $_GET["em"];
+		file_put_contents( $file, $email_address . "|" . $data . PHP_EOL, FILE_APPEND );
 		header( "Cache-Control: no-cache, no-store, must-revalidate" );
 		header( "Pragma: no-cache" );
 		header( "Expires: 0" );
