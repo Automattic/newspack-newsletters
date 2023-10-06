@@ -292,7 +292,7 @@ final class Pixel {
 			unlink( $current_log_file, null ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
 		}
 
-		// Generate a random log file name.
+		// Generate a new log file.
 		$log_dir       = \wp_get_upload_dir()['path'];
 		$log_file_path = tempnam( $log_dir, 'newspack_newsletters_pixel_log_' ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_tempnam
 
@@ -323,7 +323,7 @@ final class Pixel {
 		echo base64_decode( "R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" );
 		?>';
 
-		// Save the track.php file.
+		// Save the updated np-newsletters-pixel.php file.
 		file_put_contents( WP_CONTENT_DIR . '/np-newsletters-pixel.php', $pixel_code ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents
 
 		// Update the log file path option.
