@@ -16,7 +16,7 @@ import './style.scss';
 /**
  * Validation utility.
  *
- * @param {Object} data            Data fetched using getFetchDataConfig.
+ * @param {Object} data            Data returned from the ESP retrieve method.
  * @param {string} data.from_email Sender email address.
  * @param {string} data.from_name  Sender name.
  * @param {number} data.list_id    Recipient list ID.
