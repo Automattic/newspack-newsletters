@@ -592,7 +592,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
 		$segment_id  = get_post_meta( $post_id, 'ac_segment_id', true );
 		$result      = [
-			'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API.
+			'campaign'    => true, // satisfy the JS API.
 			'campaign_id' => $campaign_id,
 			'from_name'   => $from_name,
 			'from_email'  => $from_email,
