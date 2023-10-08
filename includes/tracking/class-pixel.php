@@ -283,6 +283,7 @@ final class Pixel {
 				if ( ! $data || ! is_array( $data ) ) {
 					continue;
 				}
+				// Values must be sanitized as they are stored in the logs without sanitization.
 				$newsletter_id = isset( $data['id'] ) ? intval( $data['id'] ) : 0;
 				$tracking_id   = isset( $data['tid'] ) ? \sanitize_text_field( $data['tid'] ) : 0;
 				$email_address = isset( $item[0] ) ? \sanitize_email( $item[0] ) : '';
