@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
@@ -16,7 +15,7 @@ import './style.scss';
 /**
  * Validation utility.
  *
- * @param {Object} data            Data fetched using getFetchDataConfig.
+ * @param {Object} data            Data returned from the ESP retrieve method.
  * @param {string} data.from_email Sender email address.
  * @param {string} data.from_name  Sender name.
  * @param {number} data.list_id    Recipient list ID.
@@ -40,6 +39,7 @@ export const validateNewsletter = ( { from_email, from_name, list_id } ) => {
  * the data is not yet available.
  *
  * @param {Object}   props                    Component props.
+ * @param {Function} props.apiFetch           Function to fetch data from the API.
  * @param {number}   props.postId             ID of the edited newsletter post.
  * @param {Function} props.renderCampaignName Function that renders campaign name input.
  * @param {Function} props.renderSubject      Function that renders email subject input.
@@ -53,6 +53,7 @@ export const validateNewsletter = ( { from_email, from_name, list_id } ) => {
  */
 const ProviderSidebarComponent = ( {
 	postId,
+	apiFetch,
 	renderCampaignName,
 	renderSubject,
 	renderPreviewText,
@@ -63,7 +64,6 @@ const ProviderSidebarComponent = ( {
 	createErrorNotice,
 	status,
 } ) => {
-	const [ isLoading, setIsLoading ] = useState( false );
 	const [ lists, setLists ] = useState( [] );
 	const [ segments, setSegments ] = useState( [] );
 	const { listId, segmentId, senderName, senderEmail } = acData;
@@ -73,7 +73,6 @@ const ProviderSidebarComponent = ( {
 	}, [] );
 
 	const fetchListsAndSegments = async () => {
-		setIsLoading( true );
 		try {
 			const response = await apiFetch( {
 				path: `/newspack-newsletters/v1/active_campaign/${ postId }/retrieve`,
@@ -85,7 +84,6 @@ const ProviderSidebarComponent = ( {
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
 			);
 		}
-		setIsLoading( false );
 	};
 
 	useEffect( () => {
@@ -98,11 +96,6 @@ const ProviderSidebarComponent = ( {
 			from_name: senderName,
 			campaign: true,
 		};
-
-		const messages = validateNewsletter( updatedData );
-
-		// Send info to parent components, for send button/validation management.
-		updateMetaValue( 'newsletterValidationErrors', messages );
 		updateMetaValue( 'newsletterData', updatedData );
 	}, [ JSON.stringify( acData ), lists, status ] );
 
@@ -157,7 +150,7 @@ const ProviderSidebarComponent = ( {
 						} ) ),
 					] }
 					onChange={ value => updateMetaValue( 'ac_list_id', value ) }
-					disabled={ isLoading }
+					disabled={ inFlight }
 				/>
 				{ listId && (
 					<SelectControl
@@ -174,10 +167,10 @@ const ProviderSidebarComponent = ( {
 							} ) ),
 						] }
 						onChange={ value => updateMetaValue( 'ac_segment_id', value ) }
-						disabled={ isLoading }
+						disabled={ inFlight }
 					/>
 				) }
-				{ isLoading && <Spinner /> }
+				{ inFlight && <Spinner /> }
 			</BaseControl>
 		</div>
 	);

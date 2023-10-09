@@ -41,9 +41,8 @@ const Sidebar = ( {
 		apiFetchWithErrorHandling( config ).then( result => {
 			if ( typeof result === 'object' && result.campaign ) {
 				editPost( getEditPostPayload( result ) );
-			} else {
-				return result;
 			}
+			return result;
 		} );
 
 	const getCampaignName = () => {
