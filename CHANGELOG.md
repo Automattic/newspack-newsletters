@@ -1,3 +1,16 @@
+# [2.2.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.2.0-alpha.2...v2.2.0-alpha.3) (2023-10-09)
+
+
+### Bug Fixes
+
+* newsletterData and ActiveCampaign editor tweaks ([#1316](https://github.com/Automattic/newspack-newsletters/issues/1316)) ([574b5e0](https://github.com/Automattic/newspack-newsletters/commit/574b5e0640212b35f90bddce5f761c21aa74e89b))
+
+
+### Features
+
+* add alt attr to mj-image elements ([#1306](https://github.com/Automattic/newspack-newsletters/issues/1306)) ([f7f1fa5](https://github.com/Automattic/newspack-newsletters/commit/f7f1fa558307aac2a0d88b38eed66f23cff43c38))
+* log send errors ([#1299](https://github.com/Automattic/newspack-newsletters/issues/1299)) ([3c12596](https://github.com/Automattic/newspack-newsletters/commit/3c12596e2787703a93066f193a847a9e9e605e8c))
+
 # [2.2.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.2.0-alpha.1...v2.2.0-alpha.2) (2023-10-05)
 
 
