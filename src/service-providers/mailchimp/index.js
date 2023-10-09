@@ -41,10 +41,6 @@ const validateNewsletter = ( { campaign } ) => {
 	return messages;
 };
 
-const getFetchDataConfig = ( { postId } ) => ( {
-	path: `/newspack-newsletters/v1/mailchimp/${ postId }`,
-} );
-
 const renderPreSendInfo = newsletterData => {
 	if ( ! newsletterData.campaign ) {
 		return null;
@@ -90,7 +86,6 @@ const renderPreSendInfo = newsletterData => {
 
 export default {
 	validateNewsletter,
-	getFetchDataConfig,
 	ProviderSidebar,
 	renderPreSendInfo,
 };

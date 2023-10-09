@@ -24,7 +24,7 @@ import './style.scss';
 /**
  * Validation utility.
  *
- * @param {Object} data            object data fetched using getFetchDataConfig
+ * @param {Object} data            Data returned from the ESP retrieve method.
  * @param {string} data.from_email Sender email address.
  * @param {string} data.from_name  Sender name.
  * @param {number} data.list_id    Recipient list ID.
@@ -119,11 +119,6 @@ const ProviderSidebarComponent = ( {
 			from_name: senderName,
 			campaign: true,
 		};
-
-		const messages = validateNewsletter( updatedData );
-
-		// Send info to parent components, for send button/validation management.
-		updateMetaValue( 'newsletterValidationErrors', messages );
 		updateMetaValue( 'newsletterData', updatedData );
 	}, [ JSON.stringify( cmData ), lists, segments, status ] );
 

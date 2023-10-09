@@ -17,7 +17,7 @@ import { Button, Modal, TextControl, Spinner } from '@wordpress/components';
  * Internal dependencies
  */
 import { useLayoutsState } from '../../utils/hooks';
-import { LAYOUT_CPT_SLUG, NEWSLETTER_CPT_SLUG } from '../../utils/consts';
+import { LAYOUT_CPT_SLUG } from '../../utils/consts';
 import { isUserDefinedLayout } from '../../utils';
 import './style.scss';
 import { setPreventDeduplicationForPostsInserter } from '../../editor/blocks/posts-inserter/utils';
@@ -43,20 +43,11 @@ export default compose( [
 			},
 		};
 	} ),
-	withDispatch( ( dispatch, { currentPostId, stylingMeta } ) => {
-		const { replaceBlocks } = dispatch( 'core/block-editor' );
+	withDispatch( dispatch => {
 		const { editPost } = dispatch( 'core/editor' );
 		const { saveEntityRecord } = dispatch( 'core' );
 		return {
-			replaceBlocks,
-			saveLayoutIdMeta: id => {
-				// Edit, so the change is picked up by the selector in NewsletterEditWithSelect
-				editPost( { meta: { template_id: id } } );
-				saveEntityRecord( 'postType', NEWSLETTER_CPT_SLUG, {
-					id: currentPostId,
-					meta: { template_id: id, ...stylingMeta },
-				} );
-			},
+			editPost,
 			saveLayout: payload =>
 				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
 					status: 'publish',
@@ -65,16 +56,7 @@ export default compose( [
 		};
 	} ),
 ] )(
-	( {
-		saveLayoutIdMeta,
-		layoutId,
-		replaceBlocks,
-		saveLayout,
-		postBlocks,
-		postTitle,
-		isEditedPostEmpty,
-		stylingMeta,
-	} ) => {
+	( { editPost, layoutId, saveLayout, postBlocks, postTitle, isEditedPostEmpty, stylingMeta } ) => {
 		const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 		const { layouts, isFetchingLayouts } = useLayoutsState();
 
@@ -88,13 +70,6 @@ export default compose( [
 			return usedLayout.post_content ? parse( usedLayout.post_content ) : null;
 		}, [ usedLayout ] );
 
-		const clearPost = () => {
-			const clientIds = postBlocks.map( ( { clientId } ) => clientId );
-			if ( clientIds && clientIds.length ) {
-				replaceBlocks( clientIds, [] );
-			}
-		};
-
 		const [ isSavingLayout, setIsSavingLayout ] = useState( false );
 		const [ isManageModalVisible, setIsManageModalVisible ] = useState( null );
 		const [ newLayoutName, setNewLayoutName ] = useState( postTitle );
@@ -102,7 +77,7 @@ export default compose( [
 		const handleLayoutUpdate = updatedLayout => {
 			setIsSavingLayout( false );
 			// Set this new layout as the newsletter's layout
-			saveLayoutIdMeta( updatedLayout.id );
+			editPost( { meta: { template_id: updatedLayout.id } } );
 
 			// Update the layout preview
 			// The shape of this data is different than the API response for CPT
@@ -128,7 +103,6 @@ export default compose( [
 			};
 			saveLayout( updatePayload ).then( newLayout => {
 				setIsManageModalVisible( false );
-
 				handleLayoutUpdate( newLayout );
 			} );
 		};
@@ -242,8 +216,7 @@ export default compose( [
 						<Button
 							isPrimary
 							onClick={ () => {
-								clearPost();
-								saveLayoutIdMeta( -1 );
+								editPost( { content: '', meta: { template_id: -1 } } );
 								setWarningModalVisible( false );
 							} }
 						>

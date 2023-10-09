@@ -12,7 +12,7 @@ const hasOauth = false;
 /**
  * Validation utility.
  *
- * @param {Object} data        Data fetched using getFetchDataConfig
+ * @param {Object} data        Data returned from the ESP retrieve method.
  * @param {string} data.status Status of the newsletter being validated.
  * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
@@ -24,19 +24,6 @@ const validateNewsletter = ( { status } ) => {
 
 	return messages;
 };
-
-/**
- * Get config used to fetch newsletter data.
- * Should return apiFetch utility config:
- * https://www.npmjs.com/package/@wordpress/api-fetch
- *
- * @param {Object} data        Data to contruct the config.
- * @param {number} data.postId Post ID.
- * @return {Object} Config fetching.
- */
-const getFetchDataConfig = ( { postId } ) => ( {
-	path: `/newspack-newsletters/v1/example/${ postId }`,
-} );
 
 /**
  * Component to be rendered in the sidebar panel.
@@ -79,7 +66,7 @@ const ProviderSidebar = ( { postId, apiFetch, renderSubject, renderFrom, renderP
  * A function to render additional info in the pre-send confirmation modal.
  * Can return null if no additional info is to be presented.
  *
- * @param {Object} newsletterData the data returned by getFetchDataConfig handler
+ * @param {Object} newsletterData the data returned from the ESP retrieve method
  * @return {any} A React component
  */
 const renderPreSendInfo = ( newsletterData = {} ) => (
@@ -91,7 +78,6 @@ const renderPreSendInfo = ( newsletterData = {} ) => (
 export default {
 	hasOauth,
 	validateNewsletter,
-	getFetchDataConfig,
 	ProviderSidebar,
 	renderPreSendInfo,
 };

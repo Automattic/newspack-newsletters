@@ -2,8 +2,7 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { withSelect, withDispatch } from '@wordpress/data';
-import { compose } from '@wordpress/compose';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import {
 	PluginDocumentSettingPanel,
@@ -25,15 +24,16 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
+import './debug-send';
 
 registerEditorPlugin();
 
-const NewsletterEdit = ( {
-	apiFetchWithErrorHandling,
-	setInFlightForAsync,
-	savePost,
-	layoutId,
-} ) => {
+function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
+	const layoutId = useSelect(
+		select => select( 'core/editor' ).getEditedPostAttribute( 'meta' ).template_id
+	);
+	const savePost = useDispatch( 'core/editor' ).savePost;
+
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
 		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
 	);
@@ -116,24 +116,9 @@ const NewsletterEdit = ( {
 			<ApplyStyling />
 		</Fragment>
 	);
-};
-
-const NewsletterEditWithSelect = compose( [
-	withApiHandler(),
-	withSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
-		const meta = getEditedPostAttribute( 'meta' );
-		return { layoutId: meta.template_id };
-	} ),
-	withDispatch( dispatch => {
-		const { savePost } = dispatch( 'core/editor' );
-		return {
-			savePost,
-		};
-	} ),
-] )( NewsletterEdit );
+}
 
 registerPlugin( 'newspack-newsletters-sidebar', {
-	render: NewsletterEditWithSelect,
+	render: withApiHandler()( NewsletterEdit ),
 	icon: null,
 } );

@@ -6,7 +6,7 @@ import { get, isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { createPortal, useEffect, useState } from '@wordpress/element';
@@ -15,11 +15,10 @@ import { registerPlugin } from '@wordpress/plugins';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload } from '../utils';
-import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import SendButton from '../../components/send-button';
 import './style.scss';
+import { validateNewsletter } from '../utils';
 
 const Editor = compose( [
 	withApiHandler(),
@@ -46,12 +45,12 @@ const Editor = compose( [
 		] );
 		const colors = settings.colors || experimentalSettingsColors || [];
 
+		const newsletterValidationErrors = validateNewsletter( meta.newsletterData );
+
 		return {
 			isCleanNewPost: isCleanNewPost(),
 			postId: getCurrentPostId(),
-			isReady: meta.newsletterValidationErrors
-				? meta.newsletterValidationErrors.length === 0
-				: false,
+			isReady: newsletterValidationErrors.length === 0,
 			activeSidebarName: getActiveGeneralSidebarName(),
 			isPublishingOrSavingPost: isSavingPost() || isPublishingPost(),
 			colorPalette: colors.reduce(
@@ -63,6 +62,7 @@ const Editor = compose( [
 			isPublic: meta.is_public,
 			html: meta[ window.newspack_email_editor_data.email_html_meta ],
 			campaignName: meta.campaign_name,
+			newsletterSendErrors: meta.newsletter_send_errors,
 		};
 	} ),
 	withDispatch( dispatch => {
@@ -87,7 +87,6 @@ const Editor = compose( [
 		)[ 0 ];
 		publishButton.parentNode.insertBefore( publishEl, publishButton );
 	}, [] );
-	const { getFetchDataConfig } = getServiceProvider();
 
 	// Set color palette option.
 	useEffect( () => {
@@ -100,24 +99,6 @@ const Editor = compose( [
 			method: 'POST',
 		} );
 	}, [ JSON.stringify( props.colorPalette ) ] );
-
-	// Fetch data from service provider.
-	useEffect( () => {
-		if ( ! props.isCleanNewPost && ! props.isPublishingOrSavingPost ) {
-			// Exit if provider does not support fetching data.
-			if ( ! getFetchDataConfig ) {
-				return;
-			}
-			const params = getFetchDataConfig( { postId: props.postId } );
-			// Exit if data config is example or does not provide path
-			if ( ! params?.path || 0 === params.path.indexOf( '/newspack-newsletters/v1/example/' ) ) {
-				return;
-			}
-			props.apiFetchWithErrorHandling( params ).then( result => {
-				props.editPost( getEditPostPayload( result ) );
-			} );
-		}
-	}, [ props.isPublishingOrSavingPost ] );
 
 	// Lock or unlock post publishing.
 	useEffect( () => {
@@ -140,8 +121,27 @@ const Editor = compose( [
 			props.createNotice( 'success', props.successNote + dateTime, {
 				isDismissible: false,
 			} );
+
+			// Remove error notice.
+			props.removeNotice( 'newspack-newsletters-newsletter-send-error' );
 		}
 	}, [ props.sent ] );
+
+	useEffect( () => {
+		if ( ! props.sent && props.newsletterSendErrors?.length ) {
+			const message = sprintf(
+				/* translators: %s: error message */
+				__( 'Error sending newsletter: %s', 'newspack-newsletters' ),
+				props.newsletterSendErrors[ props.newsletterSendErrors.length - 1 ].message
+			);
+			props.createNotice( 'error', message, {
+				id: 'newspack-newsletters-newsletter-send-error',
+				isDismissible: true,
+			} );
+		} else {
+			props.removeNotice( 'newspack-newsletters-newsletter-send-error' );
+		}
+	}, [ props.newsletterSendError ] );
 
 	// Notify if email content is larger than ~100kb.
 	useEffect( () => {

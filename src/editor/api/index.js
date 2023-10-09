@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { pick, omit, includes } from 'lodash';
+import { pick, includes } from 'lodash';
 import mjml2html from 'mjml-browser';
 
 /**
@@ -21,6 +21,8 @@ const POST_META_WHITELIST = [
 	'custom_css',
 	'newsletter_sent',
 ];
+
+const emailHTMLMetaName = window.newspack_email_editor_data.email_html_meta;
 
 /**
  * Use a middleware to hijack the post update request.
@@ -55,17 +57,12 @@ apiFetch.use( async ( options, next ) => {
 		return next( options );
 	}
 
-	const emailHTMLMetaName = window.newspack_email_editor_data.email_html_meta;
-	// Strip the meta which will be updated explicitly from post update payload.
-	if ( options.data.meta ) {
-		options.data.meta = omit( options.data.meta, [ ...POST_META_WHITELIST, emailHTMLMetaName ] );
-	}
+	const meta = pick( editorSelector.getEditedPostAttribute( 'meta' ), POST_META_WHITELIST );
 
 	// First, save post meta. It is not saved when saving a draft, so
 	// it's saved here in order for the backend to have access to these.
-	const postMeta = editorSelector.getEditedPostAttribute( 'meta' );
 	await apiFetch( {
-		data: { meta: pick( postMeta, POST_META_WHITELIST ) },
+		data: { meta },
 		method: 'POST',
 		path: `/wp/v2/${ postType }/${ data.id }`,
 	} );

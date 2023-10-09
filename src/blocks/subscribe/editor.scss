@@ -79,3 +79,9 @@
 	// stylelint-disable-next-line no-invalid-position-at-import-rule,import-notation
 	@import 'style';
 }
+
+// Remove padding around the nested Color Palette
+.components-panel__body.styles-container .components-tools-panel {
+	border: 0;
+	padding: 0;
+}
