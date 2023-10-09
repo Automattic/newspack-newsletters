@@ -177,6 +177,32 @@ final class Newspack_Newsletters {
 					'type'         => 'string',
 				],
 			],
+			[
+				'name'               => 'newsletter_send_errors',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'context' => [ 'edit' ],
+							'type'    => 'array',
+							'items'   => [
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => [
+									'timestamp' => [
+										'name' => 'timestamp',
+										'type' => 'integer',
+									],
+									'message'   => [
+										'name' => 'message',
+										'type' => 'string',
+									],
+								],
+							],
+						],
+					],
+					'type'         => 'object',
+				],
+			],
 		];
 		foreach ( $fields as $field ) {
 			\register_meta(
@@ -1114,7 +1140,7 @@ final class Newspack_Newsletters {
 		}
 
 		/** Handle scheduled newsletter error. */
-		$scheduling_error = get_transient( sprintf( 'newspack_newsletters_scheduling_error_%s', $post_id ) );
+		$scheduling_error = get_post_meta( $post_id, 'scheduling_error', true );
 		if ( $scheduling_error ) {
 			return false;
 		}

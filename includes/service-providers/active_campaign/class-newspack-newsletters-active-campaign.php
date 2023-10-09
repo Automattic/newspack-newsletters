@@ -578,15 +578,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! $this->has_api_credentials() ) {
 			return [];
 		}
-		$transient       = sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
-		$persisted_error = get_transient( $transient );
-		if ( $persisted_error ) {
-			delete_transient( $transient );
-			return new WP_Error(
-				'newspack_newsletters_active_campaign_error',
-				$persisted_error
-			);
-		}
 		$lists = $this->get_lists();
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
@@ -601,7 +592,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
 		$segment_id  = get_post_meta( $post_id, 'ac_segment_id', true );
 		$result      = [
-			'campaign'    => (bool) $campaign_id, // Whether campaign exists, to satisfy the JS API.
+			'campaign'    => true, // Satisfy the JS API.
 			'campaign_id' => $campaign_id,
 			'from_name'   => $from_name,
 			'from_email'  => $from_email,

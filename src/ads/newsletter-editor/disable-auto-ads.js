@@ -3,7 +3,7 @@
  */
 import { __, sprintf, _n } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { useState, useEffect, Fragment } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { ToggleControl, Button } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 
@@ -11,8 +11,8 @@ import { NEWSLETTER_AD_CPT_SLUG } from '../../utils/consts';
 
 export default function DisableAutoAds( { saveOnToggle = false } ) {
 	const { disableAutoAds, postId, isSaving, postBlocks } = useSelect( select => {
-		const { getEditedPostAttribute, getCurrentPostId, isSavingPost, getBlocks } =
-			select( 'core/editor' );
+		const { getEditedPostAttribute, getCurrentPostId, isSavingPost } = select( 'core/editor' );
+		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			disableAutoAds: meta.disable_auto_ads,

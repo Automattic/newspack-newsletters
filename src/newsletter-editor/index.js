@@ -24,6 +24,7 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
+import './debug-send';
 
 registerEditorPlugin();
 
