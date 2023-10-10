@@ -1,7 +1,7 @@
 # newspack-newsletters
 Author email newsletters in WordPress
 
-Visit [the documentation]([https://newspack.pub/support/engagement/newsletters/](https://help.newspack.com/engagement/newspack-newsletters/)) for more guidance.
+Visit [the documentation](https://help.newspack.com/engagement/newspack-newsletters/) for more guidance.
 
 ## Development
 
