@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/Automattic/newspack-newsletters/compare/v2.2.0...v2.2.1) (2023-10-10)
+
+
+### Bug Fixes
+
+* **tracking:** exit on pixel validation checks ([#1315](https://github.com/Automattic/newspack-newsletters/issues/1315)) ([83fd227](https://github.com/Automattic/newspack-newsletters/commit/83fd227d92e1b24e6e49309eddc7ba7d755086f5))
+
 # [2.2.0](https://github.com/Automattic/newspack-newsletters/compare/v2.1.4...v2.2.0) (2023-10-09)
 
 
