@@ -517,7 +517,6 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			}
 		}
 		return $this->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
-
 	}
 
 	/**
@@ -773,5 +772,14 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 */
 	public function get_contact_esp_local_lists_ids( $email ) {
 		return $this->get_contact_tags_ids( $email );
+	}
+
+	/**
+	 * Get usage data.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function get_usage_report() {
+		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
 	}
 }

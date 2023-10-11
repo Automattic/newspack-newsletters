@@ -1467,4 +1467,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 		return false;
 	}
+
+	/**
+	 * Get usage report.
+	 */
+	public function get_usage_report() {
+		return Newspack_Newsletters_Mailchimp_Usage_Reports::get_usage_report();
+	}
 }
