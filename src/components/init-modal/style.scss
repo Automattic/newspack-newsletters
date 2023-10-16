@@ -13,7 +13,7 @@
 
 			// Fullscreen mode
 			.is-fullscreen-mode & {
-				left: 0;
+				left: 60px;
 				top: 0;
 			}
 		}
@@ -35,6 +35,13 @@
 			justify-content: start;
 			margin-top: 60px;
 			padding: 0;
+
+			@media only screen and ( min-width: 783px ) {
+				.is-fullscreen-mode & {
+					margin-left: -60px;
+					width: calc(100% + 60px);
+				}
+			}
 		}
 	}
 
@@ -52,6 +59,12 @@
 		transform: none;
 		width: 100%;
 		inset: 0;
+
+		@media only screen and ( min-width: 783px ) {
+			.is-fullscreen-mode & {
+				overflow: visible;
+			}
+		}
 
 		.components-modal__header-heading {
 			display: none;
