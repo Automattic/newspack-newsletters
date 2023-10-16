@@ -13,7 +13,7 @@
 
 			// Fullscreen mode
 			.is-fullscreen-mode & {
-				left: 60px;
+				left: 0;
 				top: 0;
 			}
 		}
@@ -28,13 +28,13 @@
 		.components-modal__header {
 			border-color: wp-colors.$gray-300;
 			height: 60px;
-			padding-bottom: 0;
-			padding-top: 0;
+			padding: 0 24px;
 		}
 
 		.components-modal__content {
+			justify-content: start;
 			margin-top: 60px;
-			padding-top: 0;
+			padding: 0;
 		}
 	}
 
@@ -74,8 +74,6 @@
 		height: 100%;
 		left: 0;
 		margin: 0;
-		overflow-y: scroll;
-		position: fixed;
 		width: 100%;
 
 		@media only screen and ( min-width: 783px ) {
@@ -83,29 +81,21 @@
 			gap: 0;
 			grid-template-columns: 280px 1fr;
 			grid-template-rows: 1fr;
-			overflow-y: hidden;
-			position: initial;
-
-			// Fullscreen mode
-			.is-fullscreen-mode & {
-				height: calc( 100vh - 60px );
-				position: fixed;
-				inset: 60px 0 0;
-			}
 		}
 
 		&__sidebar {
 			background: wp-colors.$gray-100;
 			border-bottom: 1px solid wp-colors.$gray-300;
-			padding: 24px;
-
-			@media only screen and ( min-width: 600px ) {
-				padding: 32px;
-			}
 
 			@media only screen and ( min-width: 783px ) {
 				border-bottom: none;
 				border-right: 1px solid wp-colors.$gray-300;
+			}
+
+			&-wrapper {
+				padding: 24px;
+				position: sticky;
+				top: 0;
 			}
 
 			p {
@@ -134,10 +124,6 @@
 		right: 24px;
 		top: 12px;
 		z-index: 11;
-
-		@media only screen and ( min-width: 600px ) {
-			right: 32px;
-		}
 
 		.components-button + .components-button {
 			margin-left: 8px;
@@ -204,10 +190,6 @@
 	&__layouts {
 		max-height: 100%;
 		padding: 24px;
-
-		@media only screen and ( min-width: 600px ) {
-			padding: 32px;
-		}
 
 		@media only screen and ( min-width: 783px ) {
 			overflow-y: scroll;
