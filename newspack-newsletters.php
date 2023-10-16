@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:     Newspack Newsletters
- * Plugin URI:      https://newspack.pub
+ * Plugin URI:      https://newspack.com
  * Description:     Newsletter authoring using the Gutenberg editor.
  * Author:          Automattic
  * Author URI:      https://newspack.com/

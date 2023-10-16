@@ -73,6 +73,7 @@ export default function SubscribeEdit( {
 		label,
 		successMessage,
 		lists,
+		listsCheckboxes,
 		displayDescription,
 		mailchimpDoubleOptIn,
 		textColor,
@@ -107,6 +108,15 @@ export default function SubscribeEdit( {
 	const onChangeTextColor = newTextColor => {
 		setAttributes( { textColorName: getColorName( newTextColor ) } );
 		setAttributes( { textColor: newTextColor } );
+	};
+
+	const isListSelected = listId => {
+		return ! listsCheckboxes.hasOwnProperty( listId ) || listsCheckboxes[ listId ];
+	};
+	const toggleListCheckbox = listId => () => {
+		const newListsCheckboxes = { ...listsCheckboxes };
+		newListsCheckboxes[ listId ] = ! isListSelected( listId );
+		setAttributes( { listsCheckboxes: newListsCheckboxes } );
 	};
 
 	return (
@@ -293,8 +303,8 @@ export default function SubscribeEdit( {
 														<input
 															id={ getListCheckboxId( listId ) }
 															type="checkbox"
-															checked
-															readOnly
+															checked={ isListSelected( listId ) }
+															onChange={ toggleListCheckbox( listId ) }
 														/>
 													</span>
 													<span className="list-details">
