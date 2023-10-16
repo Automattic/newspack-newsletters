@@ -1,3 +1,15 @@
+# [2.3.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.2.1...v2.3.0-alpha.1) (2023-10-16)
+
+
+### Bug Fixes
+
+* correct newsletter editor alignment with FSE ([#1311](https://github.com/Automattic/newspack-newsletters/issues/1311)) ([2b44248](https://github.com/Automattic/newspack-newsletters/commit/2b4424852471ea791a0c3df97acb192ebec947c2))
+
+
+### Features
+
+* **subscription-form:** custom checkbox state for lists ([#1313](https://github.com/Automattic/newspack-newsletters/issues/1313)) ([ba27609](https://github.com/Automattic/newspack-newsletters/commit/ba2760987013f50f57ed1871f037c8cdea158c5c))
+
 ## [2.2.1](https://github.com/Automattic/newspack-newsletters/compare/v2.2.0...v2.2.1) (2023-10-10)
 
 
