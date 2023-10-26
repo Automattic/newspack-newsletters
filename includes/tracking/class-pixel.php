@@ -290,7 +290,7 @@ final class Pixel {
 				if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
 					continue;
 				}
-				self::track_seen( $newsletter_id, $newsletter_id, $email_address );
+				self::track_seen( $newsletter_id, $tracking_id, $email_address );
 			}
 
 			// Remove the log file after processing.
