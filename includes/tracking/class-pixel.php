@@ -274,9 +274,9 @@ final class Pixel {
 					continue;
 				}
 				// Values must be sanitized as they are stored in the logs without sanitization.
-				$email_address = isset( $item[0] ) ? \sanitize_email( $item[0] ) : '';
-				$newsletter_id = isset( $item[1] ) ? intval( $item[1] ) : 0;
-				$tracking_id   = isset( $item[2] ) ? \sanitize_text_field( $item[2] ) : 0;
+				$newsletter_id = isset( $item[0] ) ? intval( $item[0] ) : 0;
+				$tracking_id   = isset( $item[1] ) ? \sanitize_text_field( $item[1] ) : 0;
+				$email_address = isset( $item[2] ) ? \sanitize_email( $item[2] ) : '';
 				if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
 					continue;
 				}
@@ -308,14 +308,14 @@ final class Pixel {
 		if ( ! empty( $_SERVER["HTTP_USER_AGENT"] ) && "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246 Mozilla/5.0" === $_SERVER["HTTP_USER_AGENT"] ) {
 			exit;
 		}
-		if ( ! isset( $_GET["data"] ) || ! isset( $_GET["em"] ) ) {
+		if ( ! isset( $_GET["id"] ) || ! isset( $_GET["tid"] ) || ! isset( $_GET["em"] ) ) {
 			exit;
 		}
 		$file = "' . $log_file_path . '";
 		$id = $_GET["id"];
 		$tid = $_GET["tid"];
 		$email_address = $_GET["em"];
-		file_put_contents( $file, $email_address . "|" . $id . "|" . $tid . PHP_EOL, FILE_APPEND );
+		file_put_contents( $file, $id . "|" . $tid . "|" $email_address . PHP_EOL, FILE_APPEND );
 		header( "Cache-Control: no-cache, no-store, must-revalidate" );
 		header( "Pragma: no-cache" );
 		header( "Expires: 0" );
