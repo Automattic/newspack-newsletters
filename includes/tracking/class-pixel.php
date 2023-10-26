@@ -315,7 +315,7 @@ final class Pixel {
 		$id = $_GET["id"];
 		$tid = $_GET["tid"];
 		$email_address = $_GET["em"];
-		file_put_contents( $file, $id . "|" . $tid . "|" $email_address . PHP_EOL, FILE_APPEND );
+		file_put_contents( $file, $id . "|" . $tid . "|" . $email_address . PHP_EOL, FILE_APPEND );
 		header( "Cache-Control: no-cache, no-store, must-revalidate" );
 		header( "Pragma: no-cache" );
 		header( "Expires: 0" );
