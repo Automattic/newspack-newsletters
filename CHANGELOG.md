@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/Automattic/newspack-newsletters/compare/v2.2.1...v2.3.0) (2023-10-26)
+
+
+### Features
+
+* **tracking:** experimental pixel tracking through log files ([#1332](https://github.com/Automattic/newspack-newsletters/issues/1332)) ([b48d154](https://github.com/Automattic/newspack-newsletters/commit/b48d1546e64d5dca7297fb07ff3de47b02640b51))
+
 ## [2.2.1](https://github.com/Automattic/newspack-newsletters/compare/v2.2.0...v2.2.1) (2023-10-10)
 
 
