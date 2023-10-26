@@ -32,10 +32,6 @@ const validateNewsletter = ( { campaign } ) => {
 	return messages;
 };
 
-const getFetchDataConfig = ( { postId } ) => ( {
-	path: `/newspack-newsletters/v1/constant_contact/${ postId }`,
-} );
-
 const renderPreSendInfo = newsletterData => {
 	if ( ! newsletterData.campaign ) {
 		return null;
@@ -69,7 +65,6 @@ const renderPreSendInfo = newsletterData => {
 export default {
 	hasOauth,
 	validateNewsletter,
-	getFetchDataConfig,
 	ProviderSidebar,
 	renderPreSendInfo,
 };

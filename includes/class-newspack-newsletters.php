@@ -200,6 +200,7 @@ final class Newspack_Newsletters {
 							],
 						],
 					],
+					'type'         => 'object',
 				],
 			],
 		];
