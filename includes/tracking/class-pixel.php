@@ -245,15 +245,9 @@ final class Pixel {
 	public static function log_pixel_url( $url, $post_id, $tracking_id, $email_tag ) {
 		return \add_query_arg(
 			[
-				'data' => \base64_encode(
-					\wp_json_encode(
-						[
-							'id'  => $post_id,
-							'tid' => $tracking_id,
-						]
-					)
-				),
-				'em'   => $email_tag,
+				'id'  => $post_id,
+				'tid' => $tracking_id,
+				'em'  => $email_tag,
 			],
 			\content_url( '/np-newsletters-pixel.php' )
 		);
@@ -276,17 +270,13 @@ final class Pixel {
 					continue;
 				}
 				$item = explode( '|', $item );
-				if ( 2 !== count( $item ) ) {
-					continue;
-				}
-				$data = json_decode( base64_decode( $item[1] ), true );
-				if ( ! $data || ! is_array( $data ) ) {
+				if ( 3 !== count( $item ) ) {
 					continue;
 				}
 				// Values must be sanitized as they are stored in the logs without sanitization.
-				$newsletter_id = isset( $data['id'] ) ? intval( $data['id'] ) : 0;
-				$tracking_id   = isset( $data['tid'] ) ? \sanitize_text_field( $data['tid'] ) : 0;
 				$email_address = isset( $item[0] ) ? \sanitize_email( $item[0] ) : '';
+				$newsletter_id = isset( $item[1] ) ? intval( $item[1] ) : 0;
+				$tracking_id   = isset( $item[2] ) ? \sanitize_text_field( $item[2] ) : 0;
 				if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
 					continue;
 				}
@@ -322,9 +312,10 @@ final class Pixel {
 			exit;
 		}
 		$file = "' . $log_file_path . '";
-		$data = $_GET["data"];
+		$id = $_GET["id"];
+		$tid = $_GET["tid"];
 		$email_address = $_GET["em"];
-		file_put_contents( $file, $email_address . "|" . $data . PHP_EOL, FILE_APPEND );
+		file_put_contents( $file, $email_address . "|" . $id . "|" . $tid . PHP_EOL, FILE_APPEND );
 		header( "Cache-Control: no-cache, no-store, must-revalidate" );
 		header( "Pragma: no-cache" );
 		header( "Expires: 0" );
