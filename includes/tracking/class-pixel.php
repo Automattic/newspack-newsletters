@@ -35,7 +35,7 @@ final class Pixel {
 		if ( defined( 'NEWSPACK_NEWSLETTERS_PIXEL_LOG_PROCESSING' ) && NEWSPACK_NEWSLETTERS_PIXEL_LOG_PROCESSING ) {
 			\add_action( 'wp', [ __CLASS__, 'schedule_log_processing' ] );
 			\add_action( 'newspack_newsletters_tracking_pixel_process_log', [ __CLASS__, 'process_logs' ] );
-			\add_filter( 'newspack_newsletters_tracking_pixel_url', [ __ClASS__, 'log_pixel_url' ], 10, 4 );
+			\add_filter( 'newspack_newsletters_tracking_pixel_url', [ __CLASS__, 'log_pixel_url' ], 10, 4 );
 		}
 	}
 
