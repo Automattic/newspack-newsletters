@@ -25,9 +25,11 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	/**
 	 * Creates a usage report.
 	 *
+	 * @param int $last_n_days Number of days to get the report for.
+	 *
 	 * @return array Usage report.
 	 */
-	public static function get_usage_report() {
+	public static function get_usage_report( $last_n_days ) {
 		$mailchimp_instance = self::get_mc_instance();
 		$mc_api             = new Mailchimp( $mailchimp_instance->api_key() );
 
@@ -37,7 +39,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 			$activity_response = $mc_api->get(
 				'lists/' . $list['id'] . '/activity',
 				[
-					'count' => 1, // Last day only.
+					'count' => $last_n_days,
 				]
 			);
 			$list['activity']  = $activity_response['activity'];
