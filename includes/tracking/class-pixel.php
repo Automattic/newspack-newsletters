@@ -38,6 +38,8 @@ final class Pixel {
 		 *
 		 * The new pixel URL appends the tracking data to a log file, and then the
 		 * log file is processed in batches by the `newspack_newsletters_tracking_pixel_process_log`
+		 *
+		 * Unhooking the following restores the original approach.
 		 */
 		\add_action( 'wp', [ __CLASS__, 'schedule_log_processing' ] );
 		\add_action( 'newspack_newsletters_tracking_pixel_process_log', [ __CLASS__, 'process_logs' ] );
