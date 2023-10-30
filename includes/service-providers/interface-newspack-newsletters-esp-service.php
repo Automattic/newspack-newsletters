@@ -175,7 +175,9 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	/**
 	 * Get usage report (no. of subscribers etc.)
 	 *
+	 * @param int $last_n_days Number of days to get the report for.
+	 *
 	 * @return array|WP_Error
 	 */
-	public function get_usage_report();
+	public function get_usage_report( $last_n_days );
 }
