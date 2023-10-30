@@ -7,8 +7,8 @@
 		"campaignmonitor/createsend-php": "^7.0"
 	},
 	"require-dev": {
-		"automattic/vipwpcs": "^2.0",
-		"wp-coding-standards/wpcs": "^2.2",
+		"automattic/vipwpcs": "^3.0",
+		"wp-coding-standards/wpcs": "^3.0",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",
 		"brainmaestro/composer-git-hooks": "^2.8",
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
