@@ -31,12 +31,17 @@ final class Pixel {
 		\add_action( 'init', [ __CLASS__, 'render' ], 2, 0 ); // Run on priority 2 to allow Data Events and ActionScheduler to initialize first.
 		\add_action( 'template_redirect', [ __CLASS__, 'render' ] );
 
-		// Experimental approach by processing cycled log files.
-		if ( defined( 'NEWSPACK_NEWSLETTERS_PIXEL_LOG_PROCESSING' ) && NEWSPACK_NEWSLETTERS_PIXEL_LOG_PROCESSING ) {
-			\add_action( 'wp', [ __CLASS__, 'schedule_log_processing' ] );
-			\add_action( 'newspack_newsletters_tracking_pixel_process_log', [ __CLASS__, 'process_logs' ] );
-			\add_filter( 'newspack_newsletters_tracking_pixel_url', [ __CLASS__, 'log_pixel_url' ], 10, 4 );
-		}
+		/**
+		 * Replace the default approach, which processes each request in the pixel
+		 * hit, to an approach that processes requests in batches by cycling log
+		 * files.
+		 *
+		 * The new pixel URL appends the tracking data to a log file, and then the
+		 * log file is processed in batches by the `newspack_newsletters_tracking_pixel_process_log`
+		 */
+		\add_action( 'wp', [ __CLASS__, 'schedule_log_processing' ] );
+		\add_action( 'newspack_newsletters_tracking_pixel_process_log', [ __CLASS__, 'process_logs' ] );
+		\add_filter( 'newspack_newsletters_tracking_pixel_url', [ __CLASS__, 'log_pixel_url' ], 10, 4 );
 	}
 
 	/**
