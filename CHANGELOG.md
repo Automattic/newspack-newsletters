@@ -1,14 +1,9 @@
-# [2.4.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.3.0...v2.4.0-alpha.1) (2023-10-26)
+## [2.3.1](https://github.com/Automattic/newspack-newsletters/compare/v2.3.0...v2.3.1) (2023-10-30)
 
 
 ### Bug Fixes
 
-* correct newsletter editor alignment with FSE ([#1311](https://github.com/Automattic/newspack-newsletters/issues/1311)) ([2b44248](https://github.com/Automattic/newspack-newsletters/commit/2b4424852471ea791a0c3df97acb192ebec947c2))
-
-
-### Features
-
-* **subscription-form:** custom checkbox state for lists ([#1313](https://github.com/Automattic/newspack-newsletters/issues/1313)) ([ba27609](https://github.com/Automattic/newspack-newsletters/commit/ba2760987013f50f57ed1871f037c8cdea158c5c))
+* **activecampaign:** increase request timeout for APIs v1 and v3 ([#1333](https://github.com/Automattic/newspack-newsletters/issues/1333)) ([42545b2](https://github.com/Automattic/newspack-newsletters/commit/42545b22172c2b6ef56c2f7a720b304cb6d6203f))
 
 # [2.3.0](https://github.com/Automattic/newspack-newsletters/compare/v2.2.1...v2.3.0) (2023-10-26)
 
