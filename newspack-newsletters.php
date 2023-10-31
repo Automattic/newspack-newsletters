@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name:     Newspack Newsletters
- * Plugin URI:      https://newspack.pub
+ * Plugin URI:      https://newspack.com
  * Description:     Newsletter authoring using the Gutenberg editor.
  * Author:          Automattic
  * Author URI:      https://newspack.com/
  * License: GPL2
  * Text Domain:     newspack-newsletters
  * Domain Path:     /languages
- * Version:         2.3.2
+ * Version:         2.4.0-alpha.3
  *
  * @package         Newspack_Newsletters
  */
