@@ -37,7 +37,7 @@ class Newsletters_Newsletter_Ads_Test extends WP_UnitTestCase {
 		$this->assertTrue( Newspack_Newsletters_Ads::is_ad_active( self::$ad_id ) );
 
 		// Set start date to tomorrow.
-		update_post_meta( self::$ad_id, 'start_date', dgmate( 'Y-m-d', strtotime( '+1 day' ) ) );
+		update_post_meta( self::$ad_id, 'start_date', gmdate( 'Y-m-d', strtotime( '+1 day' ) ) );
 		$this->assertFalse( Newspack_Newsletters_Ads::is_ad_active( self::$ad_id ) );
 
 		// Set start date to yesterday.
