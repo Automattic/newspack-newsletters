@@ -408,17 +408,19 @@ final class Newspack_Newsletters_Ads {
 			$date = get_the_date( $date_format, $post_id );
 		}
 
+		$started = true;
 		if ( $start_date ) {
 			$formatted_start_date = ( new DateTime( $start_date ) )->format( $date_format );
-			return $formatted_start_date <= $date;
+			$started              = $formatted_start_date <= $date;
 		}
 
+		$ended = false;
 		if ( $expiry_date ) {
 			$formatted_expiry_date = ( new DateTime( $expiry_date ) )->format( $date_format );
-			return $formatted_expiry_date >= $date;
+			$ended                 = $formatted_expiry_date < $date;
 		}
 
-		return true;
+		return $started && ! $ended;
 	}
 
 	/**
