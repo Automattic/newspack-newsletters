@@ -1,3 +1,10 @@
+# [2.4.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.4.0-alpha.2...v2.4.0-alpha.3) (2023-10-31)
+
+
+### Bug Fixes
+
+* **tracking:** make the log cycling strategy default for pixel tracking ([#1336](https://github.com/Automattic/newspack-newsletters/issues/1336)) ([e08dd3a](https://github.com/Automattic/newspack-newsletters/commit/e08dd3a024eb62734377c154cb8065b40deb6fad))
+
 ## [2.3.2](https://github.com/Automattic/newspack-newsletters/compare/v2.3.1...v2.3.2) (2023-10-31)
 
 
