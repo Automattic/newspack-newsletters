@@ -393,7 +393,7 @@ final class Newspack_Newsletters_Ads {
 	 *
 	 * @return bool
 	 */
-	private static function is_ad_active( $ad_id, $post_id = null ) {
+	public static function is_ad_active( $ad_id, $post_id = null ) {
 
 		$start_date  = get_post_meta( $ad_id, 'start_date', true );
 		$expiry_date = get_post_meta( $ad_id, 'expiry_date', true );
