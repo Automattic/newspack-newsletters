@@ -1,9 +1,9 @@
-# [2.4.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.4.0-alpha.1...v2.4.0-alpha.2) (2023-10-30)
+## [2.3.2](https://github.com/Automattic/newspack-newsletters/compare/v2.3.1...v2.3.2) (2023-10-31)
 
 
 ### Bug Fixes
 
-* **activecampaign:** increase request timeout for APIs v1 and v3 ([#1333](https://github.com/Automattic/newspack-newsletters/issues/1333)) ([42545b2](https://github.com/Automattic/newspack-newsletters/commit/42545b22172c2b6ef56c2f7a720b304cb6d6203f))
+* **tracking:** make the log cycling strategy default for pixel tracking ([#1336](https://github.com/Automattic/newspack-newsletters/issues/1336)) ([e08dd3a](https://github.com/Automattic/newspack-newsletters/commit/e08dd3a024eb62734377c154cb8065b40deb6fad))
 
 ## [2.3.1](https://github.com/Automattic/newspack-newsletters/compare/v2.3.0...v2.3.1) (2023-10-30)
 
