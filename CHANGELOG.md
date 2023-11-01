@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/Automattic/newspack-newsletters/compare/v2.4.0...v2.4.1) (2023-11-01)
+
+
+### Bug Fixes
+
+* active ad start/end date check ([#1337](https://github.com/Automattic/newspack-newsletters/issues/1337)) ([ebdad86](https://github.com/Automattic/newspack-newsletters/commit/ebdad869a690a06d6f276723628b6e7f5ba9234c))
+
 # [2.4.0](https://github.com/Automattic/newspack-newsletters/compare/v2.3.2...v2.4.0) (2023-10-31)
 
 
