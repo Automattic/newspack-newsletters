@@ -502,7 +502,8 @@ function process_form() {
 			'email'    => $email,
 			'metadata' => $metadata,
 		],
-		$lists
+		$lists,
+		true // Async.
 	);
 
 	if ( \is_wp_error( $result ) ) {

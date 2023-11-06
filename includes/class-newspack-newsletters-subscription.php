@@ -24,6 +24,8 @@ class Newspack_Newsletters_Subscription {
 	const WC_ENDPOINT         = 'newsletters';
 	const SUBSCRIPTION_UPDATE = 'newspack_newsletters_subscription';
 
+	const ASYNC_ACTION = 'newspack_newsletters_subscription_add_contact';
+
 	/**
 	 * Initialize hooks.
 	 */
@@ -47,6 +49,10 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'woocommerce_account_newsletters_endpoint', [ __CLASS__, 'endpoint_content' ] );
 		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
 		add_action( 'init', [ __CLASS__, 'flush_rewrite_rules' ] );
+
+		/** Async `add_contact` handling */
+		add_action( 'wp_ajax_' . self::ASYNC_ACTION, [ __CLASS__, 'handle_async_subscribe' ] );
+		add_action( 'wp_ajax_nopriv_' . self::ASYNC_ACTION, [ __CLASS__, 'handle_async_subscribe' ] );
 	}
 
 	/**
@@ -176,7 +182,7 @@ class Newspack_Newsletters_Subscription {
 					if ( ! isset( $list['id'], $list['name'] ) || empty( $list['id'] ) || empty( $list['name'] ) ) {
 						return;
 					}
-					
+
 					// This is messy, when the ESP returns lists, it's name, when we get it from our UIs, it's title... we need both.
 					$list['title'] = $list['name'];
 
@@ -331,6 +337,10 @@ class Newspack_Newsletters_Subscription {
 	/**
 	 * Upserts a contact to lists.
 	 *
+	 * A contact can be added asynchronously, which means the request will return
+	 * immediately and the contact will be added in the background. In this case
+	 * the response will be `true` and the caller must handle it optimistically.
+	 *
 	 * @param array          $contact {
 	 *          Contact information.
 	 *
@@ -339,10 +349,11 @@ class Newspack_Newsletters_Subscription {
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
 	 * @param string[]|false $lists   Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
+	 * @param bool           $async   Whether to add the contact asynchronously. Default is false.
 	 *
-	 * @return array|WP_Error Contact data if it was added, or error otherwise.
+	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
-	public static function add_contact( $contact, $lists = false ) {
+	public static function add_contact( $contact, $lists = false, $async = false ) {
 		if ( ! is_array( $lists ) && false !== $lists ) {
 			$lists = [ $lists ];
 		}
@@ -402,8 +413,65 @@ class Newspack_Newsletters_Subscription {
 		 */
 		$lists = apply_filters( 'newspack_newsletters_contact_lists', $lists, $contact, $provider->service );
 
-		$errors = new WP_Error();
-		$result = [];
+		if ( true !== $async ) {
+			return self::add_contact_to_provider( $contact, $lists, $is_updating );
+		} else {
+			$nonce = wp_create_nonce( self::ASYNC_ACTION );
+			$url   = admin_url( 'admin-ajax.php?action=' . self::ASYNC_ACTION . '&nonce=' . $nonce );
+			$args  = [
+				'timeout'   => 0.01,
+				'blocking'  => false,
+				'cookies'   => $_COOKIE, // phpcs:ignore
+				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
+				'body'      => [
+					'action_name' => self::ASYNC_ACTION,
+					'contact'     => $contact,
+					'lists'       => $lists,
+				],
+			];
+			wp_remote_post( $url, $args );
+			return true;
+		}
+	}
+
+	/**
+	 * Handle async strategy for `add_contact` method.
+	 */
+	public static function handle_async_subscribe() {
+		// Don't lock up other requests while processing.
+		session_write_close(); // phpcs:ignore
+
+		if ( ! isset( $_REQUEST['nonce'] ) || ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST['nonce'] ), self::ASYNC_ACTION ) ) {
+			\wp_die();
+		}
+
+		$contact     = $_POST['contact'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$lists       = $_POST['lists'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$is_updating = $_POST['is_updating'] ?? false; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		if ( ! $contact || ! $lists ) {
+			\wp_die();
+		}
+
+		self::add_contact_to_provider( $contact, $lists, $is_updating );
+
+		\wp_die();
+	}
+
+	/**
+	 * Internal method to add a contact to lists. Should be called by the
+	 * `add_contact` method or `handle_async_subscribe` for the async strategy.
+	 *
+	 * @param array $contact     Contact information.
+	 * @param array $lists       Array of list IDs to subscribe the contact to.
+	 * @param bool  $is_updating Whether the contact is being updated. If false, the contact is being created.
+	 *
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
+	 */
+	private static function add_contact_to_provider( $contact, $lists, $is_updating = false ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+		$errors   = new WP_Error();
+		$result   = [];
 
 		if ( empty( $lists ) ) {
 			try {
@@ -414,7 +482,7 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			foreach ( $lists as $list_id ) {
 				try {
-					$result = $provider->add_contact_handling_local_lists( $contact, $list_id );
+					$result = $provider->add_contact_handling_local_list( $contact, $list_id );
 				} catch ( \Exception $e ) {
 					$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
 				}
