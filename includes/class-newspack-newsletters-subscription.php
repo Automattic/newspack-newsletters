@@ -575,7 +575,8 @@ class Newspack_Newsletters_Subscription {
 					'email'    => $email,
 					'metadata' => $metadata,
 				],
-				$lists
+				$lists,
+				true // Async.
 			);
 		} catch ( \Exception $e ) {
 			// Avoid breaking the registration process.
