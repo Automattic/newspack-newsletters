@@ -41,18 +41,18 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 				'created_after' => gmdate( 'Y-m-d', $created_after ),
 			];
 		}
-		$active_contacts_result = $ac->api_v3_request( 'contacts', 'GET', $params );
-		if ( \is_wp_error( $active_contacts_result ) ) {
-			return $active_contacts_result;
+		$contacts_result = $ac->api_v3_request( 'contacts', 'GET', $params );
+		if ( \is_wp_error( $contacts_result ) ) {
+			return $contacts_result;
 		}
-		$total    = intval( $active_contacts_result['meta']['total'] );
+		$total    = intval( $contacts_result['meta']['total'] );
 		$contacts = array_map(
 			function( $contact ) {
 				return array_intersect_key( $contact, array_flip( [ 'cdate', 'udate', 'email', 'id' ] ) );
 			},
-			array_merge( $contacts, $active_contacts_result['contacts'] )
+			array_merge( $contacts, $contacts_result['contacts'] )
 		);
-		Newspack_Newsletters_Logger::log( 'Fetching all contacts with status ' . $status . ' (' . count( $contacts ) . '/' . $total . ')' );
+		Newspack_Newsletters_Logger::log( 'Fetched contacts with status ' . $status . ' (' . count( $contacts ) . '/' . $total . ')' );
 		if ( count( $contacts ) === $total ) {
 			return $contacts;
 		}
