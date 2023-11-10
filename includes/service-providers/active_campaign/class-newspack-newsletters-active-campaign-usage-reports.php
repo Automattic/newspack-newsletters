@@ -143,7 +143,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 			// If the send date is before the cutoff date, skip.
 			$campaign_send_date = strtotime( $campaign['sdate'] );
 			if ( $campaign_send_date < $cutoff_datetime ) {
-				continue;
+				break;
 			}
 			$report[ gmdate( 'Y-m-d', $campaign_send_date ) ] = [
 				'emails_sent' => $campaign['send_amt'],
