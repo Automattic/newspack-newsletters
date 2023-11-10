@@ -145,11 +145,18 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 			if ( $campaign_send_date < $cutoff_datetime ) {
 				break;
 			}
-			$report[ gmdate( 'Y-m-d', $campaign_send_date ) ] = [
-				'emails_sent' => $campaign['send_amt'],
-				'opens'       => $campaign['uniqueopens'],
-				'clicks'      => $campaign['uniquelinkclicks'],
-			];
+			$report_date = gmdate( 'Y-m-d', $campaign_send_date );
+			if ( isset( $report[ $report_date ] ) ) {
+				$report[ $report_date ]['emails_sent'] += $campaign['send_amt'];
+				$report[ $report_date ]['opens']       += $campaign['uniqueopens'];
+				$report[ $report_date ]['clicks']      += $campaign['uniquelinkclicks'];
+			} else {
+				$report[ $report_date ] = [
+					'emails_sent' => $campaign['send_amt'],
+					'opens'       => $campaign['uniqueopens'],
+					'clicks'      => $campaign['uniquelinkclicks'],
+				];
+			}
 		}
 		return $report;
 	}
