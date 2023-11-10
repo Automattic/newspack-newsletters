@@ -158,9 +158,9 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 				$report[ $report_date ]['clicks']      += $campaign['uniquelinkclicks'];
 			} else {
 				$report[ $report_date ] = [
-					'emails_sent' => $campaign['send_amt'],
-					'opens'       => $campaign['uniqueopens'],
-					'clicks'      => $campaign['uniquelinkclicks'],
+					'emails_sent' => intval( $campaign['send_amt'] ),
+					'opens'       => intval( $campaign['uniqueopens'] ),
+					'clicks'      => intval( $campaign['uniquelinkclicks'] ),
 				];
 			}
 		}
