@@ -506,6 +506,11 @@ function process_form() {
 		true // Async.
 	);
 
+	// The async subscription strategy returns true.
+	if ( true === $result ) {
+		$result = [];
+	}
+
 	if ( \is_wp_error( $result ) ) {
 		return send_form_response( $result );
 	}
