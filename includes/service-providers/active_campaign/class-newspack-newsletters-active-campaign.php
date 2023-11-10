@@ -656,8 +656,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return $sync_result;
 		}
 		/** Create disposable campaign for sending a test. */
-		$campaign_name = sprintf( 'Test for %s', $this->get_campaign_name( $post ) );
-		$campaign      = $this->create_campaign( get_post( $post_id ), $campaign_name );
+		$campaign_name            = sprintf( 'Test for %s', $this->get_campaign_name( $post ) );
+		$additional_campaign_data = [
+			'tracklinks' => 'none', // Disable link tracking for test sends.
+		];
+		$campaign                 = $this->create_campaign( get_post( $post_id ), $campaign_name, $additional_campaign_data );
 		if ( is_wp_error( $campaign ) ) {
 			return $campaign;
 		}
@@ -796,12 +799,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Create a campaign for the given post.
 	 *
-	 * @param WP_Post $post          Post to create campaign for.
-	 * @param string  $campaign_name Optional custom title for this campaign.
+	 * @param WP_Post $post                     Post to create campaign for.
+	 * @param string  $campaign_name            Optional custom title for this campaign.
+	 * @param array   $additional_campaign_data Optional additional campaign data to send to the API.
 	 *
 	 * @return array|WP_Error Campaign data or error.
 	 */
-	private function create_campaign( $post, $campaign_name = '' ) {
+	private function create_campaign( $post, $campaign_name = '', $additional_campaign_data = [] ) {
 		$sync_result = $this->sync( $post );
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
@@ -825,6 +829,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( defined( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING' ) && NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING ) {
 			$campaign_data['tracklinks'] = 'none';
 		}
+		$campaign_data = wp_parse_args( $additional_campaign_data, $campaign_data );
 		return $this->api_v1_request( 'campaign_create', 'POST', [ 'body' => $campaign_data ] );
 	}
 
