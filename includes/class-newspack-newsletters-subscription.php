@@ -416,6 +416,7 @@ class Newspack_Newsletters_Subscription {
 		if ( true !== $async ) {
 			return self::add_contact_to_provider( $contact, $lists, $is_updating );
 		} else {
+			self::add_subscription_intent( $contact, $lists, $is_updating );
 			$nonce = wp_create_nonce( self::ASYNC_ACTION );
 			$url   = admin_url( 'admin-ajax.php?action=' . self::ASYNC_ACTION . '&nonce=' . $nonce );
 			$args  = [
@@ -425,12 +426,99 @@ class Newspack_Newsletters_Subscription {
 				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
 				'body'      => [
 					'action_name' => self::ASYNC_ACTION,
-					'contact'     => $contact,
-					'lists'       => $lists,
+					'email'       => $contact['email'],
 				],
 			];
 			wp_remote_post( $url, $args );
 			return true;
+		}
+	}
+
+	/**
+	 * Get subscription intent option name.
+	 *
+	 * @param string $email Email address.
+	 *
+	 * @return string
+	 */
+	private static function get_subscription_intent_option_name( $email ) {
+		return 'newspack_newsletters_subscription_intent_' . wp_hash( $email );
+	}
+
+	/**
+	 * Register a subscription intent.
+	 *
+	 * @param array $contact     Contact information.
+	 * @param array $lists       Array of list IDs to subscribe the contact to.
+	 * @param bool  $is_updating Whether the contact is being updated. If false, the contact is being created.
+	 *
+	 * @return void
+	 */
+	private static function add_subscription_intent( $contact, $lists, $is_updating ) {
+		$intents = get_option( 'newspack_newsletters_subscription_intents', [] );
+		if ( ! is_array( $intents ) ) {
+			$intents = [];
+		}
+		$intents[ wp_hash( $contact['email'] ) ] = [
+			'contact'     => $contact,
+			'lists'       => $lists,
+			'is_updating' => $is_updating,
+		];
+		update_option( 'newspack_newsletters_subscription_intents', $intents );
+	}
+
+	/**
+	 * Get subscription intent.
+	 *
+	 * @param string $email Email address.
+	 *
+	 * @return array|false Subscription intent data or false if not found.
+	 */
+	private static function get_subscription_intent( $email ) {
+		$option_name = self::get_subscription_intent_option_name( $email );
+		return get_option( $option_name );
+	}
+
+	/**
+	 * Remove subscription intent.
+	 *
+	 * @param string $email Email address.
+	 *
+	 * @return void
+	 */
+	private static function remove_subscription_intent( $email ) {
+		$intents = get_option( 'newspack_newsletters_subscription_intents', [] );
+		if ( ! is_array( $intents ) ) {
+			$intents = [];
+		}
+		unset( $intents[ wp_hash( $email ) ] );
+		update_option( 'newspack_newsletters_subscription_intents', $intents );
+	}
+
+	/**
+	 * Process subscription intent.
+	 *
+	 * @param string $email Optional email address to process. It'll process all
+	 *                      intents with email is not provided.
+	 *
+	 * @return void
+	 */
+	private static function process_subscription_intents( $email = null ) {
+		$subscription_intents = self::get_subscription_intents();
+		if ( empty( $subscription_intents ) ) {
+			return;
+		}
+		if ( $email && isset( $subscription_intents[ wp_hash( $email ) ] ) ) {
+			$intents = [ $subscription_intents[ wp_hash( $email ) ] ) ];
+		}
+		foreach ( $intents as $intent ) {
+			$contact     = $subscription_intent['contact'];
+			$lists       = $subscription_intent['lists'];
+			$is_updating = $subscription_intent['is_updating'];
+			$result      = self::add_contact_to_provider( $contact, $lists, $is_updating );
+			if ( ! is_wp_error( $result ) ) {
+				self::remove_subscription_intent( $email );
+			}
 		}
 	}
 
@@ -445,16 +533,17 @@ class Newspack_Newsletters_Subscription {
 			\wp_die();
 		}
 
-		$contact     = $_POST['contact'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$lists       = $_POST['lists'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$is_updating = $_POST['is_updating'] ?? false; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$email = $_POST['email'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( ! $contact || ! $lists ) {
 			\wp_die();
 		}
 
-		self::add_contact_to_provider( $contact, $lists, $is_updating );
+		$result = self::add_contact_to_provider( $contact, $lists, $is_updating );
+		if ( is_wp_error( $result ) ) {
+			Newspack_Newsletters_Logger::log( 'Error adding contact: ' . $result->get_error_message() );
 
+		}
 		\wp_die();
 	}
 
