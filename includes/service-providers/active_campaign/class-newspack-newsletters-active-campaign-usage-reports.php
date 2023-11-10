@@ -45,12 +45,18 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		if ( \is_wp_error( $active_contacts_result ) ) {
 			return $active_contacts_result;
 		}
-		$total = intval( $active_contacts_result['meta']['total'] );
+		$total    = intval( $active_contacts_result['meta']['total'] );
+		$contacts = array_map(
+			function( $contact ) {
+				return array_intersect_key( $contact, array_flip( [ 'cdate', 'udate', 'email', 'id' ] ) );
+			},
+			array_merge( $contacts, $active_contacts_result['contacts'] )
+		);
 		Newspack_Newsletters_Logger::log( 'Fetching all contacts with status ' . $status . ' (' . count( $contacts ) . '/' . $total . ')' );
 		if ( count( $contacts ) === $total ) {
 			return $contacts;
 		}
-		return self::get_all_contacts( $status, $created_after, array_merge( $contacts, $active_contacts_result['contacts'] ) );
+		return self::get_all_contacts( $status, $created_after, $contacts );
 	}
 
 	/**
