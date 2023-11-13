@@ -1124,7 +1124,7 @@ class Newspack_Newsletters_Subscription {
 							<?php
 							echo sprintf(
 								// translators: %s: Error message.
-								esc_html__( 'Error when attempting to subscribe: %s', 'newspack-newsletters' ),
+								esc_html__( 'Error while attempting to subscribe: %s', 'newspack-newsletters' ),
 								esc_html( $intent_error )
 							);
 							?>
