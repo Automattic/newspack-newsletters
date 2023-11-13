@@ -15,10 +15,6 @@
 			.is-fullscreen-mode & {
 				left: 60px;
 				top: 0;
-
-				.components-modal__header {
-					height: 60px;
-				}
 			}
 		}
 
@@ -28,6 +24,25 @@
 				left: 160px;
 			}
 		}
+
+		.components-modal__header {
+			border-color: wp-colors.$gray-300;
+			height: 60px;
+			padding: 0 24px;
+		}
+
+		.components-modal__content {
+			justify-content: start;
+			margin-top: 60px;
+			padding: 0;
+
+			@media only screen and ( min-width: 783px ) {
+				.is-fullscreen-mode & {
+					margin-left: -60px;
+					width: calc( 100% + 60px );
+				}
+			}
+		}
 	}
 
 	&__frame {
@@ -35,6 +50,7 @@
 		border: 0;
 		box-shadow: none;
 		height: 100%;
+		margin: 0;
 		max-height: 100%;
 		max-width: 100%;
 		min-height: 100%;
@@ -43,6 +59,12 @@
 		transform: none;
 		width: 100%;
 		inset: 0;
+
+		@media only screen and ( min-width: 783px ) {
+			.is-fullscreen-mode & {
+				overflow: visible;
+			}
+		}
 
 		.components-modal__header-heading {
 			display: none;
@@ -62,34 +84,31 @@
 
 	&__content {
 		background: white;
-		height: calc( 100% - 36px );
-		margin: -24px -32px;
-		width: calc( 100% + 64px );
+		height: 100%;
+		left: 0;
+		margin: 0;
+		width: 100%;
 
 		@media only screen and ( min-width: 783px ) {
 			display: grid;
 			gap: 0;
 			grid-template-columns: 280px 1fr;
 			grid-template-rows: 1fr;
-			margin: -24px;
-			width: 100%;
-
-			// Fullscreen mode
-			.is-fullscreen-mode & {
-				height: calc( 100vh - 60px );
-				position: fixed;
-				inset: 60px 0 0;
-			}
 		}
 
 		&__sidebar {
 			background: wp-colors.$gray-100;
 			border-bottom: 1px solid wp-colors.$gray-300;
-			padding: 24px;
 
-			@media only screen and ( min-width: 600px ) {
+			@media only screen and ( min-width: 783px ) {
 				border-bottom: none;
 				border-right: 1px solid wp-colors.$gray-300;
+			}
+
+			&-wrapper {
+				padding: 24px;
+				position: sticky;
+				top: 0;
 			}
 
 			p {
@@ -182,9 +201,12 @@
 	}
 
 	&__layouts {
-		overflow-y: scroll;
 		max-height: 100%;
 		padding: 24px;
+
+		@media only screen and ( min-width: 783px ) {
+			overflow-y: scroll;
+		}
 
 		&--loading {
 			display: flex;

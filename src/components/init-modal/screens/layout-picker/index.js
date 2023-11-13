@@ -60,20 +60,22 @@ export default function LayoutPicker() {
 		<Fragment>
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__content__sidebar">
-					<p>
-						{ __( 'Choose a layout or start with a blank newsletter.', 'newspack-newsletters' ) }
-					</p>
-					<div className="newspack-newsletters-modal__content__layout-buttons">
-						{ LAYOUTS_TABS.map( ( { title }, i ) => (
-							<Button
-								key={ i }
-								disabled={ isFetchingLayouts }
-								variant={ ! isFetchingLayouts && i === activeTabIndex ? 'primary' : 'tertiary' }
-								onClick={ () => setActiveTabIndex( i ) }
-							>
-								{ title }
-							</Button>
-						) ) }
+					<div className="newspack-newsletters-modal__content__sidebar-wrapper">
+						<p>
+							{ __( 'Choose a layout or start with a blank newsletter.', 'newspack-newsletters' ) }
+						</p>
+						<div className="newspack-newsletters-modal__content__layout-buttons">
+							{ LAYOUTS_TABS.map( ( { title }, i ) => (
+								<Button
+									key={ i }
+									disabled={ isFetchingLayouts }
+									variant={ ! isFetchingLayouts && i === activeTabIndex ? 'primary' : 'tertiary' }
+									onClick={ () => setActiveTabIndex( i ) }
+								>
+									{ title }
+								</Button>
+							) ) }
+						</div>
 					</div>
 				</div>
 				<div
