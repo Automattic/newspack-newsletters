@@ -36,7 +36,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 
 		foreach ( $lists['lists'] as &$list ) {
 			$report->total_contacts += $list['stats']['member_count'];
-			
+
 			// Get daily activity for each list.
 			$activity_response = $mc_api->get(
 				'lists/' . $list['id'] . '/activity',
@@ -46,7 +46,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 			);
 			$list['activity']  = $activity_response['activity'];
 			$yesterday         = gmdate( 'Y-m-d', strtotime( '-1 day' ) );
-			
+
 			if ( ! empty( $activity_response['activity'][1] ) && $yesterday === $activity_response['activity'][1]['day'] ) {
 				$report->emails_sent  += $activity_response['activity'][1]['emails_sent'];
 				$report->opens        += $activity_response['activity'][1]['unique_opens'];
