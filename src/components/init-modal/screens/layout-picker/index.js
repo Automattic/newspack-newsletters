@@ -38,8 +38,8 @@ export default function LayoutPicker() {
 	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayoutsState();
 
 	const insertLayout = layoutId => {
-		const { post_content } = find( layouts, { ID: layoutId } ) || {};
-		editPost( { meta: { template_id: layoutId } } );
+		const { post_content, meta = {} } = find( layouts, { ID: layoutId } ) || {};
+		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
 		savePost();
 	};
