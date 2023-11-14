@@ -26,6 +26,8 @@ class Newspack_Newsletters_Subscription {
 
 	const ASYNC_ACTION = 'newspack_newsletters_subscription_add_contact';
 
+	const SUBSCRIPTION_INTENT_CPT = 'np_nl_sub_intent';
+
 	/**
 	 * Initialize hooks.
 	 */
@@ -50,10 +52,10 @@ class Newspack_Newsletters_Subscription {
 		add_action( 'template_redirect', [ __CLASS__, 'process_subscription_update' ] );
 		add_action( 'init', [ __CLASS__, 'flush_rewrite_rules' ] );
 
-		/** Async `add_contact` handling */
+		/** Subscription intents */
 		add_action( 'wp_ajax_' . self::ASYNC_ACTION, [ __CLASS__, 'handle_async_subscribe' ] );
 		add_action( 'wp_ajax_nopriv_' . self::ASYNC_ACTION, [ __CLASS__, 'handle_async_subscribe' ] );
-		add_action( 'init', [ __CLASS__, 'schedule_subscription_intents_processing' ] );
+		add_action( 'init', [ __CLASS__, 'register_subscription_intents' ] );
 	}
 
 	/**
@@ -417,17 +419,17 @@ class Newspack_Newsletters_Subscription {
 		if ( true !== $async ) {
 			return self::add_contact_to_provider( $contact, $lists, $is_updating );
 		} else {
-			self::add_subscription_intent( $contact, $lists, $is_updating );
-			$nonce = wp_create_nonce( self::ASYNC_ACTION );
-			$url   = admin_url( 'admin-ajax.php?action=' . self::ASYNC_ACTION . '&nonce=' . $nonce );
-			$args  = [
+			$intent_id = self::add_subscription_intent( $contact, $lists, $is_updating );
+			$nonce     = wp_create_nonce( self::ASYNC_ACTION );
+			$url       = admin_url( 'admin-ajax.php?action=' . self::ASYNC_ACTION . '&nonce=' . $nonce );
+			$args      = [
 				'timeout'   => 0.01,
 				'blocking'  => false,
 				'cookies'   => $_COOKIE, // phpcs:ignore
 				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
 				'body'      => [
 					'action_name' => self::ASYNC_ACTION,
-					'email'       => $contact['email'],
+					'intent_id'   => $intent_id,
 				],
 			];
 			wp_remote_post( $url, $args );
@@ -442,78 +444,99 @@ class Newspack_Newsletters_Subscription {
 	 * @param array $lists       Array of list IDs to subscribe the contact to.
 	 * @param bool  $is_updating Whether the contact is being updated. If false, the contact is being created.
 	 *
-	 * @return void
+	 * @return int|WP_Error Subscription intent ID or error.
 	 */
 	private static function add_subscription_intent( $contact, $lists, $is_updating ) {
-		$intents = get_option( 'newspack_newsletters_subscription_intents', [] );
-		if ( ! is_array( $intents ) ) {
-			$intents = [];
+		$intent_id = \wp_insert_post(
+			[
+				'post_type'   => self::SUBSCRIPTION_INTENT_CPT,
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'contact'     => $contact,
+					'lists'       => $lists,
+					'is_updating' => $is_updating,
+					'errors'      => [],
+				],
+			]
+		);
+		if ( is_wp_error( $intent_id ) ) {
+			Newspack_Newsletters_Logger::log( 'Error adding subscription intent: ' . $intent_id->get_error_message() );
 		}
-		$intents[ wp_hash( $contact['email'] ) ] = [
-			'contact'     => $contact,
-			'lists'       => $lists,
-			'is_updating' => $is_updating,
-			'attempts'    => 0,
-			'errors'      => [],
-		];
-		update_option( 'newspack_newsletters_subscription_intents', $intents );
+		return $intent_id;
 	}
 
 	/**
 	 * Get subscription intent.
 	 *
-	 * @param string $email Email address.
+	 * @param int|\WP_Post $intent_id_or_post Intent ID or post object.
 	 *
 	 * @return array|false Subscription intent data or false if not found.
 	 */
-	private static function get_subscription_intent( $email ) {
-		$intents = get_option( 'newspack_newsletters_subscription_intents', [] );
-		if ( empty( $intents ) ) {
-			return $intents;
+	private static function get_subscription_intent( $intent_id_or_post ) {
+		if ( is_numeric( $intent_id_or_post ) ) {
+			$intent = \get_post( $intent_id_or_post );
+		} else {
+			$intent = $intent_id_or_post;
 		}
-		return $intents[ wp_hash( $email ) ] ?? false;
+		if ( ! $intent ) {
+			return false;
+		}
+		return [
+			'id'          => $intent->ID,
+			'contact'     => get_post_meta( $intent->ID, 'contact', true ),
+			'lists'       => get_post_meta( $intent->ID, 'lists', true ),
+			'is_updating' => get_post_meta( $intent->ID, 'is_updating', true ),
+			'errors'      => get_post_meta( $intent->ID, 'errors', true ),
+		];
 	}
 
 	/**
 	 * Remove subscription intent.
 	 *
-	 * @param string $email Email address.
+	 * @param int $intent_id Intent ID.
 	 *
 	 * @return void
 	 */
-	private static function remove_subscription_intent( $email ) {
-		$intents = get_option( 'newspack_newsletters_subscription_intents', [] );
-		if ( ! is_array( $intents ) ) {
-			$intents = [];
+	private static function remove_subscription_intent( $intent_id ) {
+		$intent = \get_post( $intent_id );
+		if ( ! $intent || self::SUBSCRIPTION_INTENT_CPT !== $intent->post_type ) {
+			return;
 		}
-		unset( $intents[ wp_hash( $email ) ] );
-		update_option( 'newspack_newsletters_subscription_intents', $intents );
+		\wp_delete_post( $intent_id, true );
 	}
 
 	/**
 	 * Process subscription intent.
 	 *
-	 * @param string $email Optional email address to process. It'll process all
-	 *                      intents if email is not provided.
+	 * @param int|null $intent_id Optional intent ID. If not provided, all intents will be processed.
 	 *
 	 * @return void
 	 */
-	public static function process_subscription_intents( $email = null ) {
-		if ( $email ) {
-			$intents = [ self::get_subscription_intent( $email ) ];
+	public static function process_subscription_intents( $intent_id = null ) {
+		if ( $intent_id ) {
+			$intents = [ self::get_subscription_intent( $intent_id ) ];
 		} else {
-			$intents = get_option( 'newspack_newsletters_subscription_intents', [] );
+			$intents = \get_posts(
+				[
+					'post_type'   => self::SUBSCRIPTION_INTENT_CPT,
+					'numberposts' => 3, // Limit to 3 intents per request.
+				]
+			);
 		}
 		foreach ( $intents as $intent ) {
 			if ( empty( $intent ) ) {
 				continue;
 			}
+			if ( is_object( $intent ) || is_numeric( $intent ) ) {
+				$intent = self::get_subscription_intent( $intent );
+			}
 			if ( count( $intent['errors'] ) > 3 ) {
 				Newspack_Newsletters_Logger::log( 'Too many errors for contact ' . $intent['contact']['email'] . '. Removing intent.' );
-				self::remove_subscription_intent( $intent['contact']['email'] );
+				self::remove_subscription_intent( $intent['id'] );
 				continue;
 			}
 			$contact     = $intent['contact'];
+			$email       = $contact['email'];
 			$lists       = $intent['lists'];
 			$is_updating = $intent['is_updating'];
 			$result      = self::add_contact_to_provider( $contact, $lists, $is_updating );
@@ -525,9 +548,10 @@ class Newspack_Newsletters_Subscription {
 					update_user_meta( $user->ID, 'newspack_newsletters_subscription_error', $result->get_error_message() );
 				}
 				$intent['errors'][] = $result->get_error_message();
+				\update_post_meta( $intent['id'], 'errors', $intent['errors'] );
 				Newspack_Newsletters_Logger::log( 'Error adding contact: ' . $result->get_error_message() );
 			} else {
-				self::remove_subscription_intent( $email );
+				self::remove_subscription_intent( $intent['id'] );
 				if ( $user ) {
 					delete_user_meta( $user->ID, 'newspack_newsletters_subscription_error' );
 				}
@@ -547,14 +571,13 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
-	 * Schedule subscription intents processing.
+	 * Register subscription intent custom post type
 	 */
-	public static function schedule_subscription_intents_processing() {
-		if (
-			! empty( get_option( 'newspack_newsletters_subscription_intents', [] ) ) &&
-			! \wp_next_scheduled( 'newspack_newsletters_process_subscription_intents' )
-		) {
-			\wp_schedule_single_event( time() + 60, 'newspack_newsletters_process_subscription_intents' );
+	public static function register_subscription_intents() {
+		\register_post_type( self::SUBSCRIPTION_INTENT_CPT );
+		$intents = get_posts( [ 'post_type' => self::SUBSCRIPTION_INTENT_CPT ] );
+		if ( ! empty( $intents ) && ! \wp_next_scheduled( 'newspack_newsletters_process_subscription_intents' ) ) {
+			\wp_schedule_single_event( time() + 5 * 60, 'newspack_newsletters_process_subscription_intents' );
 		}
 		add_action( 'newspack_newsletters_process_subscription_intents', [ __CLASS__, 'process_subscription_intents' ] );
 	}
@@ -570,14 +593,14 @@ class Newspack_Newsletters_Subscription {
 			\wp_die();
 		}
 
-		$email = $_POST['email'] ?? ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$email = \sanitize_email( $email );
+		$intent_id = $_POST['intent_id'] ?? ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$intent_id = \absint( $intent_id );
 
-		if ( empty( $email ) ) {
+		if ( empty( $intent_id ) ) {
 			\wp_die();
 		}
 
-		self::process_subscription_intents( $email );
+		self::process_subscription_intents( $intent_id );
 		\wp_die();
 	}
 
@@ -613,9 +636,6 @@ class Newspack_Newsletters_Subscription {
 		}
 		if ( is_wp_error( $result ) ) {
 			$errors->add( $result->get_error_code(), $result->get_error_message() );
-		} else {
-			// Remove existing intent.
-			self::remove_subscription_intent( $contact['email'] );
 		}
 		$result = $errors->has_errors() ? $errors : $result;
 
