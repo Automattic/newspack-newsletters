@@ -57,6 +57,13 @@ class Newspack_Newsletters_Service_Provider_Usage_Report {
 	private $total_contacts = 0;
 
 	/**
+	 * The date of the report.
+	 *
+	 * @var string YYYY-MM-DD format.
+	 */
+	private $date;
+
+	/**
 	 * The properties allowed to be informed.
 	 *
 	 * @var array
@@ -108,6 +115,29 @@ class Newspack_Newsletters_Service_Provider_Usage_Report {
 	}
 
 	/**
+	 * Gets the report date. Yesterday by default.
+	 *
+	 * @return string
+	 */
+	public function get_date() {
+		return $this->date ? $this->date : gmdate( 'Y-m-d', strtotime( '-1 day' ) );
+	}
+
+	/**
+	 * Sets the report date. Use this if you want to set a date other than yesterday.
+	 *
+	 * @param string $date The date in YYYY-MM-DD format.
+	 * @return bool True if the date was set, false otherwise.
+	 */
+	public function set_date( $date ) {
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
+			return false;
+		}
+		$this->date = $date;
+		return true;
+	}
+
+	/**
 	 * Calculates and returns the growth rate of the contacts list.
 	 *
 	 * @return float The growth rate of the contacts list.
@@ -125,7 +155,8 @@ class Newspack_Newsletters_Service_Provider_Usage_Report {
 	 * @return array The report as an array.
 	 */
 	public function to_array() {
-		$array = [];
+		$array         = [];
+		$array['date'] = $this->get_date();
 		foreach ( $this->allowed_properties as $property ) {
 			$array[ $property ] = $this->$property;
 		}
