@@ -21,7 +21,7 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 	 * @param string $list_id List ID.
 	 * @return CS_REST_Lists|WP_Error CS_REST_Lists instance or error.
 	 */
-	public static function get_lists_client( $list_id ) {
+	private static function get_lists_client( $list_id ) {
 		$cm      = Newspack_Newsletters_Campaign_Monitor::instance();
 		$api_key = $cm->api_key();
 
@@ -40,7 +40,7 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 	 *
 	 * @return CS_REST_Clients|WP_Error CS_REST_Clients instance or error.
 	 */
-	public static function get_clients_client() {
+	private static function get_clients_client() {
 		$cm        = Newspack_Newsletters_Campaign_Monitor::instance();
 		$api_key   = $cm->api_key();
 		$client_id = $cm->client_id();
@@ -62,11 +62,28 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 	}
 
 	/**
+	 * Gets the full report
+	 *
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report
+	 */
+	public static function get_report() {
+		$subs      = self::get_subscribers_info();
+		$campaigns = self::get_campaigns_info();
+		if ( is_wp_error( $subs ) ) {
+			return $subs;
+		}
+		if ( is_wp_error( $campaigns ) ) {
+			return $campaigns;
+		}
+		return new Newspack_Newsletters_Service_Provider_Usage_Report( array_merge( $subs, $campaigns ) );
+	}
+
+	/**
 	 * Get subscribers and unsubscribers for the last $days days.
 	 *
 	 * @return array|WP_Error Array of subscribers and unsubscribers for the last $days days, or WP_Error on failure.
 	 */
-	public static function get_subscribers_info() {
+	private static function get_subscribers_info() {
 		$cm    = Newspack_Newsletters_Campaign_Monitor::instance();
 		$lists = $cm->get_lists();
 
@@ -103,7 +120,7 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 	 *
 	 * @return WP_Error|array Array of campaigns stats, or WP_Error on failure.
 	 */
-	public static function get_campaigns_info() {
+	private static function get_campaigns_info() {
 		$api = self::get_clients_client();
 		if ( is_wp_error( $api ) ) {
 			return $api;
@@ -153,7 +170,7 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 
 		return $results;
 	}
-	
+
 	/**
 	 * Get subscribers stats for a given list
 	 *
@@ -177,8 +194,8 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 		}
 		return [
 			'total_contacts' => $response->response->TotalActiveSubscribers,
-			'subs'           => $response->response->NewActiveSubscribersYesterday,
-			'unsubs'         => $response->response->UnsubscribesYesterday,
+			'subscribes'     => $response->response->NewActiveSubscribersYesterday,
+			'unsubscribes'   => $response->response->UnsubscribesYesterday,
 		];
 
 	}
@@ -205,7 +222,7 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 		}
 
 		$campaign_last_data_option_name = 'np_newsletters_campaign_data_' . $campaign_id;
-		
+
 		$campaign_data = [
 			'opens'  => $summary->UniqueOpened,
 			'clicks' => $summary->Clicks,
