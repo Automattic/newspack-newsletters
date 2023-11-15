@@ -775,13 +775,11 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	}
 
 	/**
-	 * Get usage data.
+	 * Get usage data for yesterday.
 	 *
-	 * @param int $last_n_days Number of days to get the report for.
-	 *
-	 * @return array|WP_Error
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report|WP_Error
 	 */
-	public function get_usage_report( $last_n_days ) {
+	public function get_usage_report() {
 		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
 	}
 }
