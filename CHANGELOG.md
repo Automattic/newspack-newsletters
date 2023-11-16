@@ -1,11 +1,9 @@
-# [2.6.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.5.0...v2.6.0-alpha.1) (2023-11-16)
+## [2.5.1](https://github.com/Automattic/newspack-newsletters/compare/v2.5.0...v2.5.1) (2023-11-16)
 
 
-### Features
+### Bug Fixes
 
-* add editorconfig file ([#1352](https://github.com/Automattic/newspack-newsletters/issues/1352)) ([0be9449](https://github.com/Automattic/newspack-newsletters/commit/0be94491f164bed436bf7a1cbd19eda6fa6703ee))
-* change usage report signature ([#1349](https://github.com/Automattic/newspack-newsletters/issues/1349)) ([1db6532](https://github.com/Automattic/newspack-newsletters/commit/1db6532aeb0462354362eac201e18847bce59c6d))
-* **subscription:** support async `add_contact()` ([#1344](https://github.com/Automattic/newspack-newsletters/issues/1344)) ([82e9dc1](https://github.com/Automattic/newspack-newsletters/commit/82e9dc1da26ca009f1f320f88f4b729df287b908))
+* **ras:** contact syncing to mailchimp ([#1355](https://github.com/Automattic/newspack-newsletters/issues/1355)) ([3068d51](https://github.com/Automattic/newspack-newsletters/commit/3068d511b9f5e5632c22c7a964c970c968e66308))
 
 # [2.5.0](https://github.com/Automattic/newspack-newsletters/compare/v2.4.2...v2.5.0) (2023-11-13)
 
