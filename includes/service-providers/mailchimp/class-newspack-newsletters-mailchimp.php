@@ -1054,7 +1054,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public function add_contact( $contact, $list_id = false ) {
-		if ( false === $list_id ) {
+		// If RAS is available and a default audience is set.
+		if ( false === $list_id && method_exists( 'Newspack\Reader_Activation', 'get_setting' ) ) {
+			$list_id = \Newspack\Reader_Activation::get_setting( 'mailchimp_audience_id' );
+		}
+
+		if ( empty( $list_id ) ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
 		$email_address = $contact['email'];
@@ -1093,7 +1098,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			// Get list merge fields (metadata) to create them if needed.
 			if ( ! empty( $merge_fields ) ) {
 				$list_merge_fields = array_reduce(
-					$mc->get( "lists/$list_id/merge-fields" )['merge_fields'],
+					$mc->get( "lists/$list_id/merge-fields", [ 'count' => 100 ] )['merge_fields'],
 					function( $acc, $field ) {
 						$acc[ $field['name'] ] = $field['tag'];
 						return $acc;
@@ -1101,7 +1106,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					[]
 				);
 			}
-			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] && ! empty( $contact['metadata'] ) ) ) {
+			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
 				foreach ( $contact['metadata'] as $key => $value ) {
 					if ( isset( $list_merge_fields[ $key ] ) ) {
 						$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
@@ -1113,6 +1118,17 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 								'type' => 'text',
 							]
 						);
+						if ( isset( $created_merge_field['status'] ) && '4' === substr( $created_merge_field['status'], 0, 1 ) ) {
+							Newspack_Newsletters_Logger::log(
+								sprintf(
+									// Translators: %1$s is the merge field key, %2$s is the error message.
+									__( 'Failed to create merge field %1$s. Reason: %2$s', 'newspack-newsletters' ),
+									$key,
+									$created_merge_field['detail'] ?? $created_merge_field['title']
+								)
+							);
+							continue;
+						}
 						$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
 					}
 				}
