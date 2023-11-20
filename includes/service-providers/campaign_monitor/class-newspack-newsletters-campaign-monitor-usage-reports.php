@@ -79,9 +79,9 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 	}
 
 	/**
-	 * Get subscribers and unsubscribers for the last $days days.
+	 * Get total active subscribers and new subscribers and unsubscribers for yesterday.
 	 *
-	 * @return array|WP_Error Array of subscribers and unsubscribers for the last $days days, or WP_Error on failure.
+	 * @return array|WP_Error Array of total active subscribers and new subscribers and unsubscribers for yesterday, or WP_Error on failure.
 	 */
 	private static function get_subscribers_info() {
 		$cm    = Newspack_Newsletters_Campaign_Monitor::instance();
@@ -175,9 +175,9 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 	 * Get subscribers stats for a given list
 	 *
 	 * @param string $list_id List ID.
-	 * @return array|WP_Error Array of subscribers and unsubscribers for the last $days days, or WP_Error on failure.
+	 * @return array|WP_Error Array of total active subscribers and new subscribers and unsubscribers for yesterday, or WP_Error on failure.
 	 */
-	private static function get_subscribers_for_list( $list_id, ) {
+	private static function get_subscribers_for_list( $list_id ) {
 		$api = self::get_lists_client( $list_id );
 		if ( is_wp_error( $api ) ) {
 			return $api;
