@@ -232,7 +232,7 @@ class Newspack_Newsletters_Campaign_Monitor_Usage_Reports {
 		update_option( $campaign_last_data_option_name, $campaign_data );
 
 		if ( $on_target_day ) {
-			// This campaign was just sent. All the data refers from yesterday.
+			// This campaign was just sent. All the data is from yesterday.
 			return $campaign_data;
 		}
 
