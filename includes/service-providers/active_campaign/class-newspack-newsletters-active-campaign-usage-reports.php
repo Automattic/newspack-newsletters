@@ -170,37 +170,35 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	/**
 	 * Creates a usage report.
 	 *
-	 * @param int $last_n_days Number of days to get the report for.
-	 *
 	 * @return array Usage report.
 	 */
-	public static function get_usage_report( $last_n_days ) {
-		$report = [];
+	public static function get_usage_report() {
+		$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
 
 		// Get contact data to retrieve subs and unsubs.
-		$contacts_data = self::get_contacts_data( $last_n_days );
+		$contacts_data = self::get_contacts_data( 1 );
 		if ( \is_wp_error( $contacts_data ) ) {
 			return $contacts_data;
 		}
 
 		// Get campaign data to retrieve emails sent, opens, and clicks.
-		$campaign_data = self::get_campaign_data( $last_n_days );
+		$campaign_data = self::get_campaign_data( 1 );
 		if ( \is_wp_error( $campaign_data ) ) {
 			return $campaign_data;
 		}
 
-		$all_covered_dates = array_unique( array_merge( array_keys( $contacts_data ), array_keys( $campaign_data ) ) );
-		foreach ( $all_covered_dates as $date ) {
-			$report[ $date ] = [
-				'date'        => $date,
-				'emails_sent' => isset( $campaign_data[ $date ]['emails_sent'] ) ? $campaign_data[ $date ]['emails_sent'] : 0,
-				'opens'       => isset( $campaign_data[ $date ]['opens'] ) ? $campaign_data[ $date ]['opens'] : 0,
-				'clicks'      => isset( $campaign_data[ $date ]['clicks'] ) ? $campaign_data[ $date ]['clicks'] : 0,
-				'subs'        => isset( $contacts_data[ $date ]['subs'] ) ? $contacts_data[ $date ]['subs'] : 0,
-				'unsubs'      => isset( $contacts_data[ $date ]['unsubs'] ) ? $contacts_data[ $date ]['unsubs'] : 0,
-			];
+		$yesterday = gmdate( 'Y-m-d', strtotime( '-1 day' ) );
+
+		if ( isset( $contacts_data[ $yesterday ] ) ) {
+			$report->subscribes   = $contacts_data[ $yesterday ]['subs'];
+			$report->unsubscribes = $contacts_data[ $yesterday ]['unsubs'];
+		}
+		if ( isset( $campaign_data[ $yesterday ] ) ) {
+			$report->emails_sent = $campaign_data[ $yesterday ]['emails_sent'];
+			$report->opens       = $campaign_data[ $yesterday ]['opens'];
+			$report->clicks      = $campaign_data[ $yesterday ]['clicks'];
 		}
 
-		return array_values( $report );
+		return $report;
 	}
 }
