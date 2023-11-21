@@ -1,3 +1,10 @@
+# [2.6.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.6.0-alpha.2...v2.6.0-alpha.3) (2023-11-21)
+
+
+### Bug Fixes
+
+* add layout styles to newsletter ([#1353](https://github.com/Automattic/newspack-newsletters/issues/1353)) ([c6a4ce3](https://github.com/Automattic/newspack-newsletters/commit/c6a4ce34416b4dc507ee0b260d05d6780180dab4))
+
 # [2.6.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.6.0-alpha.1...v2.6.0-alpha.2) (2023-11-16)
 
 
