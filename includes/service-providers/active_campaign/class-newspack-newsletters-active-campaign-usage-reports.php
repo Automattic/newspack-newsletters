@@ -150,7 +150,45 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 * @param int $last_n_days Number of last days to get the data about.
 	 */
 	private function get_campaign_data( $last_n_days ) {
-		$report           = self::get_default_report();
+		$current_campaign_data = $this->get_current_campaign_data( $last_n_days );
+		$last_campaigns_data   = get_option( self::LAST_REPORT_OPTION_NAME );
+		$campaigns_data        = [
+			'emails_sent' => 0,
+			'opens'       => 0,
+			'clicks'      => 0,
+		];
+
+		update_option( self::LAST_REPORT_OPTION_NAME, $current_campaign_data );
+
+		if ( ! $last_campaigns_data ) {
+			// We don't have data about campaigns yet, we will be able to calculate the report next time.
+			return $campaigns_data;
+		}
+
+		foreach ( $current_campaign_data as $campaign_id => $current_data ) {
+			$subtract = [
+				'emails_sent' => 0,
+				'opens'       => 0,
+				'clicks'      => 0,
+			];
+			// From the current totals, we subtract the totals from the last report.
+			// Campaigns that exist in the last report but not in the current report are ignored.
+			if ( isset( $last_campaigns_data[ $campaign_id ] ) ) {
+				$subtract = $last_campaigns_data[ $campaign_id ];
+			}
+			$campaigns_data['emails_sent'] += $current_data['emails_sent'] - $subtract['emails_sent'];
+			$campaigns_data['opens']       += $current_data['opens'] - $subtract['opens'];
+			$campaigns_data['clicks']      += $current_data['clicks'] - $subtract['clicks'];
+		}
+		return $campaigns_data;
+	}
+
+	/**
+	 * Get campaign data - emails sent, opens, and clicks live from the ESP.
+	 *
+	 * @param int $last_n_days Number of last days to get the data about.
+	 */
+	private function get_current_campaign_data( $last_n_days ) {
 		$ac               = $this->ac_instance;
 		$params           = [
 			'query' => [
@@ -164,6 +202,9 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		if ( \is_wp_error( $campaigns_result ) ) {
 			return $campaigns_result;
 		}
+
+		$campaigns_data = [];
+
 		foreach ( $campaigns_result['campaigns'] as $campaign ) {
 			if (
 				! isset( $campaign['sdate'] )
@@ -176,11 +217,13 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 			if ( $campaign_send_date < $cutoff_datetime ) {
 				break;
 			}
-			$report['emails_sent'] += intval( $campaign['send_amt'] );
-			$report['opens']       += intval( $campaign['uniqueopens'] );
-			$report['clicks']      += intval( $campaign['uniquelinkclicks'] );
+			$campaigns_data[ intval( $campaign['id'] ) ] = [
+				'emails_sent' => intval( $campaign['send_amt'] ),
+				'opens'       => intval( $campaign['uniqueopens'] ),
+				'clicks'      => intval( $campaign['uniquelinkclicks'] ),
+			];
 		}
-		return $report;
+		return $campaigns_data;
 	}
 
 	/**
@@ -216,15 +259,14 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		}
 
 		// Get campaign data to retrieve emails sent, opens, and clicks.
-		$campaign_data = $this->get_campaign_data( 1 );
+		$campaign_data = $this->get_campaign_data( 30 ); // We consider sents, opens and clicks for Campaigns sent up to 30 days in the past.
 		if ( \is_wp_error( $campaign_data ) ) {
 			return $campaign_data;
 		}
-		$last_report = get_option( self::LAST_REPORT_OPTION_NAME, self::get_default_report() );
 
-		$report->emails_sent = $campaign_data['emails_sent'] - $last_report['emails_sent'];
-		$report->opens       = $campaign_data['opens'] - $last_report['opens'];
-		$report->clicks      = $campaign_data['clicks'] - $last_report['clicks'];
+		$report->emails_sent = $campaign_data['emails_sent'];
+		$report->opens       = $campaign_data['opens'];
+		$report->clicks      = $campaign_data['clicks'];
 
 		$report->total_contacts = $this->get_total_active_contacts();
 
@@ -235,8 +277,6 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		if ( isset( $contacts_data[ $yesterday ], $contacts_data[ $yesterday ]['unsubs'] ) ) {
 			$report->unsubscribes = $contacts_data[ $yesterday ]['unsubs'];
 		}
-
-		update_option( self::LAST_REPORT_OPTION_NAME, $report->to_array() );
 
 		return $report;
 	}

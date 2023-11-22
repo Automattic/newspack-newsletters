@@ -51,7 +51,7 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 				$response['contacts']      = $contacts;
 				break;
 			case 'campaigns':
-				$campaigns                 = [
+				$campaigns = [
 					[
 						'id'               => 1,
 						'status'           => 5,
@@ -76,6 +76,15 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 						'uniqueopens'      => 40,
 						'uniquelinkclicks' => 10,
 					],
+					// Campaign sent more than 30 days ago should be ignored.
+					[
+						'id'               => 3,
+						'status'           => 5,
+						'sdate'            => gmdate( 'Y-m-d H:i:s', strtotime( '-31 day' ) ),
+						'send_amt'         => 99,
+						'uniqueopens'      => 99,
+						'uniquelinkclicks' => 99,
+					],
 				];
 				$response['campaigns']     = $campaigns;
 				$response['meta']['total'] = count( $campaigns );
@@ -91,9 +100,9 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 	public function test_get_usage_report() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		$expected_report                 = new Newspack_Newsletters_Service_Provider_Usage_Report();
-		$expected_report->emails_sent    = 15;
-		$expected_report->opens          = 8;
-		$expected_report->clicks         = 3;
+		$expected_report->emails_sent    = 0;
+		$expected_report->opens          = 0;
+		$expected_report->clicks         = 0;
 		$expected_report->subscribes     = 1;
 		$expected_report->unsubscribes   = 1;
 		$expected_report->total_contacts = 2;
@@ -107,15 +116,28 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 		update_option(
 			Newspack_Newsletters_Active_Campaign_Usage_Reports::LAST_REPORT_OPTION_NAME,
 			[
-				'emails_sent' => 10,
-				'opens'       => 5,
-				'clicks'      => 2,
+				1   => [
+					'emails_sent' => 9,
+					'opens'       => 1,
+					'clicks'      => 1,
+				],
+				3   => [
+					'emails_sent' => 100,
+					'opens'       => 40,
+					'clicks'      => 10,
+				],
+				// A campaign present in the prior data but not in the current data should be ignored.
+				100 => [
+					'emails_sent' => 88,
+					'opens'       => 88,
+					'clicks'      => 88,
+				],
 			]
 		);
 		$expected_report                 = new Newspack_Newsletters_Service_Provider_Usage_Report();
-		$expected_report->emails_sent    = 5;
-		$expected_report->opens          = 3;
-		$expected_report->clicks         = 1;
+		$expected_report->emails_sent    = 6;
+		$expected_report->opens          = 7;
+		$expected_report->clicks         = 2;
 		$expected_report->subscribes     = 1;
 		$expected_report->unsubscribes   = 1;
 		$expected_report->total_contacts = 2;
