@@ -12,6 +12,11 @@ defined( 'ABSPATH' ) || exit;
  */
 class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	/**
+	 * Name of the option to store the last result under.
+	 */
+	const LAST_REPORT_OPTION_NAME = 'newspack_newsletters_active_campaign_last_report';
+
+	/**
 	 * Retrieves the main Active_Campaign instance
 	 *
 	 * @return Newspack_Newsletters_Active_Campaign
@@ -122,13 +127,23 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	}
 
 	/**
+	 * Get default report.
+	 */
+	private static function get_default_report() {
+		return [
+			'emails_sent' => 0,
+			'opens'       => 0,
+			'clicks'      => 0,
+		];
+	}
+
+	/**
 	 * Get campaign data - emails sent, opens, and clicks.
 	 *
 	 * @param int $last_n_days Number of last days to get the data about.
 	 */
 	private static function get_campaign_data( $last_n_days ) {
-		$report = [];
-
+		$report           = self::get_default_report();
 		$ac               = self::get_ac_instance();
 		$params           = [
 			'query' => [
@@ -143,26 +158,20 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 			return $campaigns_result;
 		}
 		foreach ( $campaigns_result['campaigns'] as $campaign ) {
-			if ( ! isset( $campaign['sdate'] ) ) {
+			if (
+				! isset( $campaign['sdate'] )
+				|| 5 != $campaign['status'] // Status "5" is "completed. See https://www.activecampaign.com/api/example.php?call=campaign_list.
+				) {
 				continue;
 			}
-			// If the send date is before the cutoff date, skip.
+			// If the send date is before the cutoff date, break out.
 			$campaign_send_date = strtotime( $campaign['sdate'] );
 			if ( $campaign_send_date < $cutoff_datetime ) {
 				break;
 			}
-			$report_date = gmdate( 'Y-m-d', $campaign_send_date );
-			if ( isset( $report[ $report_date ] ) ) {
-				$report[ $report_date ]['emails_sent'] += $campaign['send_amt'];
-				$report[ $report_date ]['opens']       += $campaign['uniqueopens'];
-				$report[ $report_date ]['clicks']      += $campaign['uniquelinkclicks'];
-			} else {
-				$report[ $report_date ] = [
-					'emails_sent' => intval( $campaign['send_amt'] ),
-					'opens'       => intval( $campaign['uniqueopens'] ),
-					'clicks'      => intval( $campaign['uniquelinkclicks'] ),
-				];
-			}
+			$report['emails_sent'] += intval( $campaign['send_amt'] );
+			$report['opens']       += intval( $campaign['uniqueopens'] );
+			$report['clicks']      += intval( $campaign['uniquelinkclicks'] );
 		}
 		return $report;
 	}
@@ -186,17 +195,18 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		if ( \is_wp_error( $campaign_data ) ) {
 			return $campaign_data;
 		}
+		$last_report = get_option( self::LAST_REPORT_OPTION_NAME, self::get_default_report() );
+
+		$report->emails_sent = $campaign_data['emails_sent'] - $last_report['emails_sent'];
+		$report->opens       = $campaign_data['opens'] - $last_report['opens'];
+		$report->clicks      = $campaign_data['clicks'] - $last_report['clicks'];
+
+		update_option( self::LAST_REPORT_OPTION_NAME, $campaign_data );
 
 		$yesterday = gmdate( 'Y-m-d', strtotime( '-1 day' ) );
-
 		if ( isset( $contacts_data[ $yesterday ] ) ) {
 			$report->subscribes   = $contacts_data[ $yesterday ]['subs'];
 			$report->unsubscribes = $contacts_data[ $yesterday ]['unsubs'];
-		}
-		if ( isset( $campaign_data[ $yesterday ] ) ) {
-			$report->emails_sent = $campaign_data[ $yesterday ]['emails_sent'];
-			$report->opens       = $campaign_data[ $yesterday ]['opens'];
-			$report->clicks      = $campaign_data[ $yesterday ]['clicks'];
 		}
 
 		return $report;
