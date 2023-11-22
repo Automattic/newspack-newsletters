@@ -50,7 +50,7 @@ class Newspack_Newsletters_Service_Provider_Usage_Report {
 	private $subscribes = 0;
 
 	/**
-	 * The site of the contacts list.
+	 * The size of the contacts list.
 	 *
 	 * @var integer
 	 */

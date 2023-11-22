@@ -17,12 +17,22 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	const LAST_REPORT_OPTION_NAME = 'newspack_newsletters_active_campaign_last_report';
 
 	/**
-	 * Retrieves the main Active_Campaign instance
+	 * Newspack_Newsletters_Active_Campaign instance.
 	 *
-	 * @return Newspack_Newsletters_Active_Campaign
+	 * @var Newspack_Newsletters_Active_Campaign
 	 */
-	private static function get_ac_instance() {
-		return Newspack_Newsletters_Active_Campaign::instance();
+	private $ac_instance;
+
+	/**
+	 * Constructor with dependency injection for the sake of tests.
+	 *
+	 * @param Newspack_Newsletters_Active_Campaign $active_campaign Active Campaign instance.
+	 */
+	public function __construct( $active_campaign = null ) {
+		if ( null === $active_campaign ) {
+			$active_campaign = new Newspack_Newsletters_Active_Campaign();
+		}
+		$this->ac_instance = $active_campaign;
 	}
 
 	/**
@@ -32,8 +42,8 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 * @param date  $created_after Date after which contacts were created.
 	 * @param array $contacts Array of contacts.
 	 */
-	private static function get_all_contacts( $status = 1, $created_after = null, $contacts = [] ) {
-		$ac     = self::get_ac_instance();
+	private function get_all_contacts( $status = 1, $created_after = null, $contacts = [] ) {
+		$ac     = $this->ac_instance;
 		$params = [
 			'query' => [
 				'offset' => count( $contacts ),
@@ -61,7 +71,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		if ( count( $contacts ) === $total ) {
 			return $contacts;
 		}
-		return self::get_all_contacts( $status, $created_after, $contacts );
+		return $this->get_all_contacts( $status, $created_after, $contacts );
 	}
 
 	/**
@@ -103,13 +113,13 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 *
 	 * @param int $last_n_days Number of last days to get the data about.
 	 */
-	private static function get_contacts_data( $last_n_days ) {
+	private function get_contacts_data( $last_n_days ) {
 		$report = [];
 
 		$cutoff_datetime = strtotime( '-' . $last_n_days . ' days' );
 
 		// Subscribers, with the cutoff date – only created (subscribed) afterwards.
-		$subscribed = self::get_all_contacts( 1, $cutoff_datetime );
+		$subscribed = $this->get_all_contacts( 1, $cutoff_datetime );
 		if ( \is_wp_error( $subscribed ) ) {
 			return $subscribed;
 		}
@@ -117,7 +127,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 
 		// Unsubscribed contacts, without the cutoff date. All have to be pulled because
 		// there's no way to filter by unsubscribed date.
-		$unsubscribed_contacts = self::get_all_contacts( 2 );
+		$unsubscribed_contacts = $this->get_all_contacts( 2 );
 		if ( \is_wp_error( $unsubscribed_contacts ) ) {
 			return $unsubscribed_contacts;
 		}
@@ -142,9 +152,9 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 *
 	 * @param int $last_n_days Number of last days to get the data about.
 	 */
-	private static function get_campaign_data( $last_n_days ) {
+	private function get_campaign_data( $last_n_days ) {
 		$report           = self::get_default_report();
-		$ac               = self::get_ac_instance();
+		$ac               = $this->ac_instance;
 		$params           = [
 			'query' => [
 				'limit'  => 100, // Assuming there will be no more than 100 campaigns in the requested period (last n days).
@@ -181,17 +191,17 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 *
 	 * @return array Usage report.
 	 */
-	public static function get_usage_report() {
+	public function get_usage_report() {
 		$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
 
 		// Get contact data to retrieve subs and unsubs.
-		$contacts_data = self::get_contacts_data( 1 );
+		$contacts_data = $this->get_contacts_data( 1 );
 		if ( \is_wp_error( $contacts_data ) ) {
 			return $contacts_data;
 		}
 
 		// Get campaign data to retrieve emails sent, opens, and clicks.
-		$campaign_data = self::get_campaign_data( 1 );
+		$campaign_data = $this->get_campaign_data( 1 );
 		if ( \is_wp_error( $campaign_data ) ) {
 			return $campaign_data;
 		}
@@ -204,8 +214,10 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		update_option( self::LAST_REPORT_OPTION_NAME, $campaign_data );
 
 		$yesterday = gmdate( 'Y-m-d', strtotime( '-1 day' ) );
-		if ( isset( $contacts_data[ $yesterday ] ) ) {
-			$report->subscribes   = $contacts_data[ $yesterday ]['subs'];
+		if ( isset( $contacts_data[ $yesterday ], $contacts_data[ $yesterday ]['subs'] ) ) {
+			$report->subscribes = $contacts_data[ $yesterday ]['subs'];
+		}
+		if ( isset( $contacts_data[ $yesterday ], $contacts_data[ $yesterday ]['unsubs'] ) ) {
 			$report->unsubscribes = $contacts_data[ $yesterday ]['unsubs'];
 		}
 

@@ -1360,6 +1360,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * Get usage report.
 	 */
 	public function get_usage_report() {
-		return Newspack_Newsletters_Active_Campaign_Usage_Reports::get_usage_report();
+		$ac_usage_reports = new Newspack_Newsletters_Active_Campaign_Usage_Reports();
+		return $ac_usage_reports->get_usage_report();
 	}
 }
