@@ -10,12 +10,11 @@
  * Mock AC API.
  */
 class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
-	public function api_v3_request( $endpoint ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+	public function api_v3_request( $endpoint, $method = 'GET', $params = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		$response = [ 'meta' => [] ];
 		switch ( $endpoint ) {
 			case 'contacts':
-				$response['meta']['total'] = 3;
-				$response['contacts']      = [
+				$contacts = [
 					[
 						'id'    => 1,
 						'email' => 'alice@mail.com',
@@ -32,13 +31,27 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 						'id'    => 3,
 						'email' => 'bob@mail.com',
 						'cdate' => '2023-01-01 00:00:00',
-						'udate' => '2023-02-01 00:00:00',
+						'udate' => null,
 					],
 				];
+				if ( isset( $params['query'], $params['query']['status'] ) ) {
+					$contacts = array_filter(
+						$contacts,
+						function( $contact ) use ( $params ) {
+							if ( 1 === $params['query']['status'] ) {
+								return null === $contact['udate'];
+							} elseif ( 2 === $params['query']['status'] ) {
+								return null !== $contact['udate'];
+							}
+							return true;
+						}
+					);
+				}
+				$response['meta']['total'] = count( $contacts );
+				$response['contacts']      = $contacts;
 				break;
 			case 'campaigns':
-				$response['meta']['total'] = 1;
-				$response['campaigns']     = [
+				$campaigns                 = [
 					[
 						'id'               => 1,
 						'status'           => 5,
@@ -64,6 +77,8 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 						'uniquelinkclicks' => 10,
 					],
 				];
+				$response['campaigns']     = $campaigns;
+				$response['meta']['total'] = count( $campaigns );
 				break;
 		}
 		return $response;
@@ -75,12 +90,13 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
  */
 class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 	public function test_get_usage_report() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
-		$expected_report               = new Newspack_Newsletters_Service_Provider_Usage_Report();
-		$expected_report->emails_sent  = 15;
-		$expected_report->opens        = 8;
-		$expected_report->clicks       = 3;
-		$expected_report->subscribes   = 1;
-		$expected_report->unsubscribes = 1;
+		$expected_report                 = new Newspack_Newsletters_Service_Provider_Usage_Report();
+		$expected_report->emails_sent    = 15;
+		$expected_report->opens          = 8;
+		$expected_report->clicks         = 3;
+		$expected_report->subscribes     = 1;
+		$expected_report->unsubscribes   = 1;
+		$expected_report->total_contacts = 2;
 
 		$actual_report = ( new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() ) )->get_usage_report();
 
@@ -96,12 +112,13 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 				'clicks'      => 2,
 			]
 		);
-		$expected_report               = new Newspack_Newsletters_Service_Provider_Usage_Report();
-		$expected_report->emails_sent  = 5;
-		$expected_report->opens        = 3;
-		$expected_report->clicks       = 1;
-		$expected_report->subscribes   = 1;
-		$expected_report->unsubscribes = 1;
+		$expected_report                 = new Newspack_Newsletters_Service_Provider_Usage_Report();
+		$expected_report->emails_sent    = 5;
+		$expected_report->opens          = 3;
+		$expected_report->clicks         = 1;
+		$expected_report->subscribes     = 1;
+		$expected_report->unsubscribes   = 1;
+		$expected_report->total_contacts = 2;
 
 		$actual_report = ( new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() ) )->get_usage_report();
 

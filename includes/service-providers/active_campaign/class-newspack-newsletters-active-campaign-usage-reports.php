@@ -119,7 +119,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		$cutoff_datetime = strtotime( '-' . $last_n_days . ' days' );
 
 		// Subscribers, with the cutoff date – only created (subscribed) afterwards.
-		$subscribed = $this->get_all_contacts( 1, $cutoff_datetime );
+		$subscribed = $this->get_all_contacts( 1 );
 		if ( \is_wp_error( $subscribed ) ) {
 			return $subscribed;
 		}
@@ -127,11 +127,11 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 
 		// Unsubscribed contacts, without the cutoff date. All have to be pulled because
 		// there's no way to filter by unsubscribed date.
-		$unsubscribed_contacts = $this->get_all_contacts( 2 );
-		if ( \is_wp_error( $unsubscribed_contacts ) ) {
-			return $unsubscribed_contacts;
+		$unsubscribed = $this->get_all_contacts( 2 );
+		if ( \is_wp_error( $unsubscribed ) ) {
+			return $unsubscribed;
 		}
-		$report = self::update_report_with_contact_data( 'udate', 'unsubs', $unsubscribed_contacts, $report, $last_n_days );
+		$report = self::update_report_with_contact_data( 'udate', 'unsubs', $unsubscribed, $report, $last_n_days );
 
 		return $report;
 	}
@@ -140,11 +140,8 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 * Get default report.
 	 */
 	private static function get_default_report() {
-		return [
-			'emails_sent' => 0,
-			'opens'       => 0,
-			'clicks'      => 0,
-		];
+		$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
+		return $report->to_array();
 	}
 
 	/**
@@ -187,6 +184,24 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	}
 
 	/**
+	 * Get total number of active contacts.
+	 */
+	private function get_total_active_contacts() {
+		$ac              = $this->ac_instance;
+		$contacts_result = $ac->api_v3_request(
+			'contacts',
+			'GET',
+			[
+				'query' => [
+					'limit'  => 1,
+					'status' => 1,
+				],
+			]
+		);
+		return (int) $contacts_result['meta']['total'];
+	}
+
+	/**
 	 * Creates a usage report.
 	 *
 	 * @return array Usage report.
@@ -211,7 +226,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		$report->opens       = $campaign_data['opens'] - $last_report['opens'];
 		$report->clicks      = $campaign_data['clicks'] - $last_report['clicks'];
 
-		update_option( self::LAST_REPORT_OPTION_NAME, $campaign_data );
+		$report->total_contacts = $this->get_total_active_contacts();
 
 		$yesterday = gmdate( 'Y-m-d', strtotime( '-1 day' ) );
 		if ( isset( $contacts_data[ $yesterday ], $contacts_data[ $yesterday ]['subs'] ) ) {
@@ -220,6 +235,8 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		if ( isset( $contacts_data[ $yesterday ], $contacts_data[ $yesterday ]['unsubs'] ) ) {
 			$report->unsubscribes = $contacts_data[ $yesterday ]['unsubs'];
 		}
+
+		update_option( self::LAST_REPORT_OPTION_NAME, $report->to_array() );
 
 		return $report;
 	}
