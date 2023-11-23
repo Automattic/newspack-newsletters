@@ -78,7 +78,7 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 					],
 					// Campaign sent more than 30 days ago should be ignored.
 					[
-						'id'               => 3,
+						'id'               => 4,
 						'status'           => 5,
 						'sdate'            => gmdate( 'Y-m-d H:i:s', strtotime( '-31 day' ) ),
 						'send_amt'         => 99,
@@ -98,8 +98,10 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
  * Test ActiveCampaign Usage Reports.
  */
 class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
-	public function test_get_usage_report() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
-		$expected_report                 = new Newspack_Newsletters_Service_Provider_Usage_Report();
+	public function test_get_usage_report_initial() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		$expected_report = new Newspack_Newsletters_Service_Provider_Usage_Report();
+		// The initial report's campaigns data should be empty, because there is no prior data to compare the values with.
+		// The campaigns data can only be meaningful when compared with prior data.
 		$expected_report->emails_sent    = 0;
 		$expected_report->opens          = 0;
 		$expected_report->clicks         = 0;
@@ -114,7 +116,7 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 
 	public function test_get_usage_report_with_prior_data() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		update_option(
-			Newspack_Newsletters_Active_Campaign_Usage_Reports::LAST_REPORT_OPTION_NAME,
+			Newspack_Newsletters_Active_Campaign_Usage_Reports::LAST_CAMPAIGNS_DATA_OPTION_NAME,
 			[
 				1   => [
 					'emails_sent' => 9,

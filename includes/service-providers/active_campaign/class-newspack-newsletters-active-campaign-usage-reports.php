@@ -14,7 +14,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	/**
 	 * Name of the option to store the last result under.
 	 */
-	const LAST_REPORT_OPTION_NAME = 'newspack_newsletters_active_campaign_last_report';
+	const LAST_CAMPAIGNS_DATA_OPTION_NAME = 'newspack_newsletters_active_campaign_last_report';
 
 	/**
 	 * Newspack_Newsletters_Active_Campaign instance.
@@ -145,40 +145,43 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	}
 
 	/**
+	 * Get default campaign data.
+	 */
+	private static function get_default_campaign_data() {
+		return [
+			'emails_sent' => 0,
+			'opens'       => 0,
+			'clicks'      => 0,
+		];
+	}
+
+	/**
 	 * Get campaign data - emails sent, opens, and clicks.
 	 *
 	 * @param int $last_n_days Number of last days to get the data about.
 	 */
 	private function get_campaign_data( $last_n_days ) {
-		$current_campaign_data = $this->get_current_campaign_data( $last_n_days );
-		$last_campaigns_data   = get_option( self::LAST_REPORT_OPTION_NAME );
-		$campaigns_data        = [
-			'emails_sent' => 0,
-			'opens'       => 0,
-			'clicks'      => 0,
-		];
+		$last_campaigns_data = get_option( self::LAST_CAMPAIGNS_DATA_OPTION_NAME );
+		$campaigns_data      = self::get_default_campaign_data();
 
-		update_option( self::LAST_REPORT_OPTION_NAME, $current_campaign_data );
+		$current_campaign_data = $this->get_current_campaign_data( $last_n_days );
+		update_option( self::LAST_CAMPAIGNS_DATA_OPTION_NAME, $current_campaign_data );
 
 		if ( ! $last_campaigns_data ) {
-			// We don't have data about campaigns yet, we will be able to calculate the report next time.
+			// No data about campaigns yet, so there is nothing to compare the new data with.
 			return $campaigns_data;
 		}
 
 		foreach ( $current_campaign_data as $campaign_id => $current_data ) {
-			$subtract = [
-				'emails_sent' => 0,
-				'opens'       => 0,
-				'clicks'      => 0,
-			];
-			// From the current totals, we subtract the totals from the last report.
-			// Campaigns that exist in the last report but not in the current report are ignored.
+			$prior_data = self::get_default_campaign_data();
+			// From the current totals, subtract the totals from the last report.
 			if ( isset( $last_campaigns_data[ $campaign_id ] ) ) {
-				$subtract = $last_campaigns_data[ $campaign_id ];
+				// Only consider campaigns that are present in the current response.
+				$prior_data = $last_campaigns_data[ $campaign_id ];
 			}
-			$campaigns_data['emails_sent'] += $current_data['emails_sent'] - $subtract['emails_sent'];
-			$campaigns_data['opens']       += $current_data['opens'] - $subtract['opens'];
-			$campaigns_data['clicks']      += $current_data['clicks'] - $subtract['clicks'];
+			$campaigns_data['emails_sent'] += $current_data['emails_sent'] - $prior_data['emails_sent'];
+			$campaigns_data['opens']       += $current_data['opens'] - $prior_data['opens'];
+			$campaigns_data['clicks']      += $current_data['clicks'] - $prior_data['clicks'];
 		}
 		return $campaigns_data;
 	}
@@ -259,7 +262,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		}
 
 		// Get campaign data to retrieve emails sent, opens, and clicks.
-		$campaign_data = $this->get_campaign_data( 30 ); // We consider sents, opens and clicks for Campaigns sent up to 30 days in the past.
+		$campaign_data = $this->get_campaign_data( 30 ); // Consider Campaigns sent up to 30 days in the past.
 		if ( \is_wp_error( $campaign_data ) ) {
 			return $campaign_data;
 		}
