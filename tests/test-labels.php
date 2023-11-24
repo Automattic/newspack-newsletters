@@ -6,7 +6,7 @@
  */
 
 /**
- * Newsletters Renderer Test.
+ * Newsletters Labels Test.
  */
 class Newsletters_Labels_Test extends WP_UnitTestCase {
 
@@ -69,5 +69,4 @@ class Newsletters_Labels_Test extends WP_UnitTestCase {
 	public function test_get_label( $provider, $key, $expected ) {
 		$this->assertSame( $expected, $provider::label( $key ) );
 	}
-
 }
