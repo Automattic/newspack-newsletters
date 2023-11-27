@@ -1,3 +1,17 @@
+# [2.6.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.6.0-alpha.2...v2.6.0-alpha.3) (2023-11-21)
+
+
+### Bug Fixes
+
+* add layout styles to newsletter ([#1353](https://github.com/Automattic/newspack-newsletters/issues/1353)) ([c6a4ce3](https://github.com/Automattic/newspack-newsletters/commit/c6a4ce34416b4dc507ee0b260d05d6780180dab4))
+
+# [2.6.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.6.0-alpha.1...v2.6.0-alpha.2) (2023-11-16)
+
+
+### Bug Fixes
+
+* **ras:** contact syncing to mailchimp ([#1355](https://github.com/Automattic/newspack-newsletters/issues/1355)) ([3068d51](https://github.com/Automattic/newspack-newsletters/commit/3068d511b9f5e5632c22c7a964c970c968e66308))
+
 ## [2.5.1](https://github.com/Automattic/newspack-newsletters/compare/v2.5.0...v2.5.1) (2023-11-16)
 
 
