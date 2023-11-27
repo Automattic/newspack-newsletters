@@ -45,6 +45,7 @@ class Woocommerce_Memberships {
 		}
 		add_filter( 'newspack_newsletters_contact_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_subscription_block_available_lists', [ __CLASS__, 'filter_lists' ] );
+		add_filter( 'newspack_registration_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_filter( 'newspack_newsletters_manage_newsletters_available_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_filter( 'newspack_auth_form_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_action( 'wc_memberships_user_membership_status_changed', [ __CLASS__, 'remove_user_from_list' ], 10, 3 );
