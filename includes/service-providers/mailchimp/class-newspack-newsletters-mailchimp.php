@@ -1054,6 +1054,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public function add_contact( $contact, $list_id = false ) {
+		// If RAS is available and a default audience is set.
+		if ( false === $list_id && class_exists( 'Newspack\Reader_Activation' ) && method_exists( 'Newspack\Data_Events\Connectors\Mailchimp', 'get_audience_id' ) ) {
+			$list_id = \Newspack\Data_Events\Connectors\Mailchimp::get_audience_id();
+		}
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
