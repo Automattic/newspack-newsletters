@@ -99,20 +99,20 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 		// Rich embed as HTML.
 		$inner_html       = '<figure><div>https://twitter.com/automattic/status/1395447061336711181</div></figure>';
 		$formatted_string = '<mj-section url="https://twitter.com/automattic/status/1395447061336711181" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" ><blockquote>We&#039;re Hiring! We are continuing to grow and have some exciting open positions available, including in Engineering, Product, Marketing, Business Development, HR, Customer Support, and more. Work with us, from anywhere. <a href="https://t.co/EZST4WBsy2">https://t.co/EZST4WBsy2</a> <a href="https://t.co/z8bKfCgn14">pic.twitter.com/z8bKfCgn14</a>&mdash; Automattic (@automattic) <a href="https://twitter.com/automattic/status/1395447061336711181?ref_src=twsrc%5Etfw">May 20, 2021</a></blockquote></mj-text></mj-column></mj-section>';
-		$formatted_string = str_replace( [ "\n", "\r" ], '', $formatted_string );
+		$rendered_string  = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/embed',
+				'attrs'        => [
+					'url' => 'https://twitter.com/automattic/status/1395447061336711181',
+				],
+				'innerBlocks'  => [],
+				'innerContent' => [],
+				'innerHTML'    => $inner_html,
+			]
+		);
 		$this->assertEquals(
-			Newspack_Newsletters_Renderer::render_mjml_component(
-				[
-					'blockName'    => 'core/embed',
-					'attrs'        => [
-						'url' => 'https://twitter.com/automattic/status/1395447061336711181',
-					],
-					'innerBlocks'  => [],
-					'innerContent' => [],
-					'innerHTML'    => $inner_html,
-				]
-			),
-			$formatted_string,
+			str_replace( [ "\n", "\r" ], '', $rendered_string ),
+			str_replace( [ "\n", "\r" ], '', $formatted_string ),
 			'Renders tweet as HTML'
 		);
 
