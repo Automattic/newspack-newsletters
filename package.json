@@ -38,9 +38,9 @@
 	},
 	"dependencies": {
 		"@uiw/react-codemirror": "^3.2.10",
-		"@wordpress/icons": "^9.36.0",
+		"@wordpress/icons": "^9.37.0",
 		"classnames": "^2.3.2",
-		"commitlint": "^18.4.1",
+		"commitlint": "^18.4.3",
 		"csslint": "^1.0.5",
 		"lodash": "^4.17.21",
 		"mjml-browser": "^4.14.1",
@@ -48,7 +48,7 @@
 		"qs": "^6.11.2"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.5.1",
+		"@rushstack/eslint-patch": "^1.6.0",
 		"eslint": "^7.32.0",
 		"lint-staged": "^13.2.3",
 		"newspack-scripts": "^5.1.0",

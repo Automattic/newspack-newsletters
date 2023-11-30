@@ -7,6 +7,16 @@
 	convertNoticesToExceptions="true"
 	convertWarningsToExceptions="true"
 	>
+	<coverage includeUncoveredFiles="true">
+		<include>
+			<directory suffix=".php">./includes</directory>
+		</include>
+		<exclude>
+			<directory suffix=".php">./node_modules</directory>
+			<directory suffix=".php">./tests</directory>
+			<directory suffix=".php">./vendor</directory>
+		</exclude>
+	</coverage>
 	<testsuites>
 		<testsuite name="main">
 			<directory prefix="test-" suffix=".php">./tests/</directory>
