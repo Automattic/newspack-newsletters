@@ -1054,13 +1054,17 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
 	public function add_contact( $contact, $list_id = false ) {
-		// If RAS is available and a default audience is set.
-		if ( false === $list_id && class_exists( 'Newspack\Reader_Activation' ) && method_exists( 'Newspack\Data_Events\Connectors\Mailchimp', 'get_audience_id' ) ) {
-			$list_id = \Newspack\Data_Events\Connectors\Mailchimp::get_audience_id();
-		}
+		$is_transactional_contact = false;
+
+		// If RAS is available and a default audience is set, a reader with no lists can be added as a transactional contact.
 		if ( false === $list_id ) {
-			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
+			if ( class_exists( 'Newspack\Reader_Activation' ) && method_exists( 'Newspack\Data_Events\Connectors\Mailchimp', 'put' ) ) {
+				$is_transactional_contact = true;
+			} else {
+				return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
+			}
 		}
+
 		$email_address = $contact['email'];
 
 		// If contact was added in this execution, we can return the previous
@@ -1069,35 +1073,52 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return self::$contacts_added[ $list_id . $email_address ];
 		}
 
-		$list = $this->maybe_extract_group_list( $list_id );
-		if ( $list ) {
-			$list_id  = $list['list_id'];
-			$group_id = $list['group_id'];
+		if ( ! $is_transactional_contact ) {
+			$list = $this->maybe_extract_group_list( $list_id );
+			if ( $list ) {
+				$list_id  = $list['list_id'];
+				$group_id = $list['group_id'];
+			}
+			$new_contact_status = 'subscribed';
+			if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
+				$new_contact_status = $contact['metadata']['status'];
+				unset( $contact['metadata']['status'] );
+			}
 		}
-		$new_contact_status = 'subscribed';
-		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
-			$new_contact_status = $contact['metadata']['status'];
-			unset( $contact['metadata']['status'] );
+
+		// Parse full name into first + last.
+		if ( isset( $contact['name'] ) ) {
+			$name_fragments                    = explode( ' ', $contact['name'], 2 );
+			$contact['metadata']['First Name'] = $name_fragments[0];
+			if ( isset( $name_fragments[1] ) ) {
+				$contact['metadata']['Last Name'] = $name_fragments[1];
+			}
 		}
+
+		// If adding as a transactional contact, use the Mailchimp Data connector. Eventually we should consolidate how we handle both types of contacts.
+		if ( $is_transactional_contact ) {
+			$result = \Newspack\Data_Events\Connectors\Mailchimp::put( $email_address, $contact['metadata'] );
+			if ( \is_wp_error( $result ) ) {
+				return new \WP_Error(
+					'newspack_newsletters_mailchimp_add_contact_failed',
+					$result->get_error_message()
+				);
+			} else {
+				self::$contacts_added[ $email_address ] = $result;
+				return $result;
+			}
+		}
+
+		// If subscribing to lists, use the Mailchimp API. Eventually we should consolidate how we handle both types of contacts.
 		try {
 			$mc             = new Mailchimp( $this->api_key() );
 			$update_payload = [ 'email_address' => $email_address ];
-			$merge_fields   = [];
-			if ( isset( $contact['name'] ) ) {
-				$name_fragments = explode( ' ', $contact['name'], 2 );
-				$merge_fields   = [
-					'FNAME' => $name_fragments[0],
-				];
-				if ( isset( $name_fragments[1] ) ) {
-					$merge_fields['LNAME'] = $name_fragments[1];
-				}
-				$update_payload['merge_fields'] = $merge_fields;
-			}
 
 			// Get list merge fields (metadata) to create them if needed.
-			if ( ! empty( $merge_fields ) ) {
-				$list_merge_fields = array_reduce(
-					$mc->get( "lists/$list_id/merge-fields", [ 'count' => 100 ] )['merge_fields'],
+			if ( ! empty( $contact['metadata'] ) ) {
+				$update_payload['merge_fields'] = [];
+				$list_merge_fields              = array_reduce(
+					$mc->get( "lists/$list_id/merge-fields", [ 'count' => 1000 ] )['merge_fields'],
 					function( $acc, $field ) {
 						$acc[ $field['name'] ] = $field['tag'];
 						return $acc;
