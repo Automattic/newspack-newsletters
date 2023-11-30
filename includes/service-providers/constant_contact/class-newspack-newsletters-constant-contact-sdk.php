@@ -90,6 +90,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			unset( $options['query'] );
 		}
 		$args = [
+			'timeout' => 30, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			'method'  => $method,
 			'headers' => [
 				'Content-Type'  => 'application/json',
@@ -228,6 +229,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			'redirect_uri' => $redirect_uri,
 		];
 		$args        = [
+			'timeout' => 30, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			'headers' => [
 				'Content-Type'  => 'application/x-www-form-urlencoded',
 				'Accept'        => 'application/json',
@@ -766,7 +768,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			[
 				'name'             => $name,
 				'segment_criteria' => wp_json_encode( $criteria ),
-				
+
 			]
 		);
 
