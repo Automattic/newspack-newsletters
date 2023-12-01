@@ -1097,12 +1097,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					if ( ! isset( $list_merge_fields[ $field['name'] ] ) ) {
 						$list_merge_fields[ $field['name'] ] = $field['tag'];
 					} else {
-						$mc->delete( "lists/$list_id/merge-fields/" . $field['merge_id'] );
 						Newspack_Newsletters_Logger::log(
 							sprintf(
-								// Translators: %1$s is the merge field key, %2$s is the error message.
-								__( 'Duplicate merge field %1$s found and deleted.', 'newspack-newsletters' ),
-								$field['name']
+								// Translators: %1$s is the merge field name, %2$s is the unique tag.
+								__( 'Warning: Duplicate merge field %1$s found with tag %2$s.', 'newspack-newsletters' ),
+								$field['name'],
+								$field['tag']
 							)
 						);
 					}
