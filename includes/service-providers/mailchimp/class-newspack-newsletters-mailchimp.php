@@ -1078,30 +1078,36 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		try {
 			$mc             = new Mailchimp( $this->api_key() );
 			$update_payload = [ 'email_address' => $email_address ];
-			$merge_fields   = [];
-			if ( isset( $contact['name'] ) ) {
-				$name_fragments = explode( ' ', $contact['name'], 2 );
-				$merge_fields   = [
-					'FNAME' => $name_fragments[0],
-				];
-				if ( isset( $name_fragments[1] ) ) {
-					$merge_fields['LNAME'] = $name_fragments[1];
-				}
-				$update_payload['merge_fields'] = $merge_fields;
-			}
 
-			// Get list merge fields (metadata) to create them if needed.
-			if ( ! empty( $merge_fields ) ) {
-				$list_merge_fields = array_reduce(
-					$mc->get( "lists/$list_id/merge-fields", [ 'count' => 100 ] )['merge_fields'],
-					function( $acc, $field ) {
-						$acc[ $field['name'] ] = $field['tag'];
-						return $acc;
-					},
-					[]
-				);
-			}
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
+				$update_payload['merge_fields'] = [];
+
+				$existing_merge_fields = $mc->get( "lists/$list_id/merge-fields", [ 'count' => 1000 ] )['merge_fields'];
+				usort(
+					$existing_merge_fields,
+					function( $a, $b ) {
+						return $a['merge_id'] - $b['merge_id'];
+					}
+				);
+
+				$list_merge_fields = [];
+
+				// Handle duplicate fields.
+				foreach ( $existing_merge_fields as $key => $field ) {
+					if ( ! isset( $list_merge_fields[ $field['name'] ] ) ) {
+						$list_merge_fields[ $field['name'] ] = $field['tag'];
+					} else {
+						$mc->delete( "lists/$list_id/merge-fields/" . $field['merge_id'] );
+						Newspack_Newsletters_Logger::log(
+							sprintf(
+								// Translators: %1$s is the merge field key, %2$s is the error message.
+								__( 'Duplicate merge field %1$s found and deleted.', 'newspack-newsletters' ),
+								$field['name']
+							)
+						);
+					}
+				}
+
 				foreach ( $contact['metadata'] as $key => $value ) {
 					if ( isset( $list_merge_fields[ $key ] ) ) {
 						$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
