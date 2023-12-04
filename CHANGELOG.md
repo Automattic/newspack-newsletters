@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/Automattic/newspack-newsletters/compare/v2.6.0...v2.6.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* detect and ignore duplicate merge fields ([#1370](https://github.com/Automattic/newspack-newsletters/issues/1370)) ([46bb23a](https://github.com/Automattic/newspack-newsletters/commit/46bb23a32c4acfd0cae2d14001ac7e7fd13779f4)), closes [#1368](https://github.com/Automattic/newspack-newsletters/issues/1368)
+
 # [2.6.0](https://github.com/Automattic/newspack-newsletters/compare/v2.5.1...v2.6.0) (2023-11-27)
 
 
