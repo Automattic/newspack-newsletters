@@ -1083,17 +1083,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$update_payload['merge_fields'] = [];
 
 				$merge_fields_res = $mc->get( "lists/$list_id/merge-fields", [ 'count' => 1000 ] );
-				if ( \is_wp_error( $merge_fields_res ) ) {
-					Newspack_Newsletters_Logger::log(
+				if ( ! isset( $merge_fields_res['merge_fields'] ) ) {
+					return new \WP_Error(
+						'newspack_newsletters_mailchimp_add_contact_failed',
 						sprintf(
 							// Translators: %1$s is the error message.
 							__( 'Error getting merge fields: %1$s', 'newspack-newsletters' ),
-							$merge_fields_res->get_error_message()
+							$merge_fields_res['detail'] ?? __( 'Unable to fetch merge fields.' )
 						)
-					);
-					return WP_Error(
-						'newspack_newsletters_mailchimp_add_contact_failed',
-						$merge_fields_res->getMessage()
 					);
 				}
 				$existing_merge_fields = $merge_fields_res['merge_fields'];
