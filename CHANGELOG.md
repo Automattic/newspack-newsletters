@@ -1,9 +1,9 @@
-# [2.7.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.7.0-alpha.1...v2.7.0-alpha.2) (2023-12-04)
+## [2.6.2](https://github.com/Automattic/newspack-newsletters/compare/v2.6.1...v2.6.2) (2023-12-05)
 
 
 ### Bug Fixes
 
-* detect and ignore duplicate merge fields ([#1370](https://github.com/Automattic/newspack-newsletters/issues/1370)) ([46bb23a](https://github.com/Automattic/newspack-newsletters/commit/46bb23a32c4acfd0cae2d14001ac7e7fd13779f4)), closes [#1368](https://github.com/Automattic/newspack-newsletters/issues/1368)
+* **mailchimp:** prevent merge fields fetch throwing fatal error ([#1376](https://github.com/Automattic/newspack-newsletters/issues/1376)) ([7d64225](https://github.com/Automattic/newspack-newsletters/commit/7d64225f6e7347eab8b0a6c1a9dd83dd6e8e7c9a))
 
 ## [2.6.1](https://github.com/Automattic/newspack-newsletters/compare/v2.6.0...v2.6.1) (2023-12-04)
 
