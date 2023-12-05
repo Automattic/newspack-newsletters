@@ -1084,7 +1084,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 				$merge_fields_res = $mc->get( "lists/$list_id/merge-fields", [ 'count' => 1000 ] );
 				if ( \is_wp_error( $merge_fields_res ) ) {
-					Logger::log(
+					Newspack_Newsletters_Logger::log(
 						sprintf(
 							// Translators: %1$s is the error message.
 							__( 'Error getting merge fields: %1$s', 'newspack-newsletters' ),
