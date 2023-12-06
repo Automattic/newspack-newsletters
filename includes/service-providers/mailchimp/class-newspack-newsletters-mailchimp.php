@@ -1290,6 +1290,18 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
 					continue;
 				}
+
+				if ( '4a8eebedd7' === $list_id ) {
+					$log_file = '/tmp/mailchimp_unsubscribed.log';
+					$log      = "\n\n============================\n";
+					$log     .= date( 'Y-m-d H:i:s' ) . "\n";
+					$log     .= print_r( $contact, true );
+					$log     .= print_r( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 10 ), true );
+					$log     .= $_SERVER['REQUEST_URI'] ?? '';
+
+					file_put_contents( $log_file, $log, FILE_APPEND );
+				}
+
 				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
 			}
 		} catch ( \Exception $e ) {
