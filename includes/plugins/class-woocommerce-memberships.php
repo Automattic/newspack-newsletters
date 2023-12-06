@@ -20,6 +20,15 @@ defined( 'ABSPATH' ) || exit;
 class Woocommerce_Memberships {
 
 	/**
+	 * The user meta key that stores the list IDs that the user is subscribed to when their memberships are deactivated.
+	 *
+	 * This is used to restore the user's subscriptions when their membership is reactivated.
+	 *
+	 * @var string
+	 */
+	const SUBSCRIBED_ON_DEACTIVATION_META_KEY = 'np_newsletters_lists_on_membership_deactivation';
+
+	/**
 	 * Holds the ID of the user in the scope of the current request.
 	 *
 	 * When a user is granted membership to a plan that requires a registration, the user is not logged in yet,
@@ -29,14 +38,14 @@ class Woocommerce_Memberships {
 	 */
 	protected static $user_id_in_scope;
 
-	/** 
+	/**
 	 * Initialize the class
 	 */
 	public static function init() {
 		add_action( 'plugins_loaded', [ __CLASS__, 'init_hooks' ] );
 	}
-	
-	/** 
+
+	/**
 	 * Initialize the hooks after all plugins are loaded
 	 */
 	public static function init_hooks() {
@@ -81,7 +90,7 @@ class Woocommerce_Memberships {
 
 				return wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
 
-			} 
+			}
 		);
 		return array_values( $lists );
 	}
@@ -124,7 +133,7 @@ class Woocommerce_Memberships {
 		if ( in_array( $new_status, $status_considered_active ) ) {
 			return;
 		}
-		
+
 		$lists_to_remove = [];
 		$user            = $user_membership->get_user();
 		if ( ! $user ) {
@@ -147,9 +156,27 @@ class Woocommerce_Memberships {
 			}
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
+
+		/**
+		 * Check if the user is already in one of the lists. If they are, store it.
+		 *
+		 * If they are granted this membership again, we can resubscribe them only to the lists they were in.
+		 *
+		 * Also, during a subscription renewal, a membership can be momentarily marked as paused, causing the user to be removed from the lists
+		 * in which case we want to resubscribe them to the lists they were in.
+		 */
+		$current_user_lists = \Newspack_Newsletters_Subscription::get_contact_lists( $user_email );
+
+		if ( is_array( $current_user_lists ) ) {
+			$existing_lists = array_values( array_intersect( $current_user_lists, $lists_to_remove ) );
+			if ( ! empty( $existing_lists ) ) {
+				self::update_user_lists_on_deactivation( $user->ID, $user_membership->get_id(), $existing_lists );
+			}
+		}
+
 		$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
-		
+
 	}
 
 	/**
@@ -208,7 +235,15 @@ class Woocommerce_Memberships {
 				$lists_to_add[]    = $subscription_list->get_form_id();
 			}
 		}
-		
+
+		/**
+		 * In case the user was previously removed from the lists, we want to resubscribe them only to the lists they were in.
+		 */
+		$pre_existing_lists = self::get_user_lists_on_deactivation( $user_id, $user_membership->get_id() );
+		if ( ! empty( $pre_existing_lists ) ) {
+			$lists_to_add = array_intersect( $lists_to_add, $pre_existing_lists );
+		}
+
 		if ( empty( $lists_to_add ) ) {
 			return;
 		}
@@ -216,7 +251,7 @@ class Woocommerce_Memberships {
 		$provider = Newspack_Newsletters::get_service_provider();
 		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' added to the following lists: ' . implode( ', ', $lists_to_add ) );
-		
+
 	}
 
 	/**
@@ -227,6 +262,38 @@ class Woocommerce_Memberships {
 	 */
 	public static function deleted_membership( $user_membership ) {
 		self::remove_user_from_list( $user_membership, '', 'deleted' );
+	}
+
+	/**
+	 * Stores the lists that the user was subscribed to when their membership was deactivated.
+	 *
+	 * @param int   $user_id The user ID.
+	 * @param int   $membership_id The membership ID.
+	 * @param array $lists The lists that the user was subscribed to.
+	 * @return void
+	 */
+	private static function update_user_lists_on_deactivation( $user_id, $membership_id, $lists ) {
+		$value = get_user_meta( $user_id, self::SUBSCRIBED_ON_DEACTIVATION_META_KEY, true );
+		if ( ! $value ) {
+			$value = [];
+		}
+		$value[ $membership_id ] = $lists;
+		update_user_meta( $user_id, self::SUBSCRIBED_ON_DEACTIVATION_META_KEY, $value );
+	}
+
+	/**
+	 * Gets the lists that the user was subscribed to when their membership was deactivated.
+	 *
+	 * @param int $user_id The user ID.
+	 * @param int $membership_id The membership ID.
+	 * @return array
+	 */
+	private static function get_user_lists_on_deactivation( $user_id, $membership_id ) {
+		$value = get_user_meta( $user_id, self::SUBSCRIBED_ON_DEACTIVATION_META_KEY, true );
+		if ( ! is_array( $value ) || ! isset( $value[ $membership_id ] ) ) {
+			return [];
+		}
+		return $value[ $membership_id ];
 	}
 
 }
