@@ -336,7 +336,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	private static function fetch_interest_categories( $list_id ) {
 		$mc                  = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$interest_categories = $list_id ? ( self::get_mc_instance() )->validate(
-			$mc->get( "lists/$list_id/interest-categories" ),
+			$mc->get( "lists/$list_id/interest-categories", [ 'count' => 1000 ], 60 ),
 			__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
 		) : null;
 
@@ -344,7 +344,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			foreach ( $interest_categories['categories'] as &$category ) {
 				$category_id           = $category['id'];
 				$category['interests'] = ( self::get_mc_instance() )->validate(
-					$mc->get( "lists/$list_id/interest-categories/$category_id/interests" ),
+					$mc->get( "lists/$list_id/interest-categories/$category_id/interests", [ 'count' => 1000 ], 60 ),
 					__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
 				);
 			}
@@ -362,7 +362,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	private static function fetch_folders() {
 		$mc       = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$response = ( self::get_mc_instance() )->validate(
-			$mc->get( 'campaign-folders', [ 'count' => 1000 ] ),
+			$mc->get( 'campaign-folders', [ 'count' => 1000 ], 60 ),
 			__( 'Error retrieving Mailchimp folders.', 'newspack_newsletters' )
 		);
 		return $response['folders'];
@@ -382,7 +382,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				"lists/$list_id/merge-fields",
 				[
 					'count' => 1000,
-				]
+				],
+				60
 			),
 			__( 'Error retrieving Mailchimp list merge fields.', 'newspack_newsletters' )
 		);
