@@ -14,15 +14,16 @@ use \DrewM\MailChimp\MailChimp;
  *
  * This class handles fetching and caching segments and interests data from Mailchimp
  *
- * The purpose of this class is to implement a non-obstrusive cache, in which refreshing the cache will happen in the background in an async request
+ * The purpose of this class is to implement a non-obstrusive cache, in which refreshing the cache will happen in the background in async requests
  * and will never keep the user waiting.
  *
- * 1. It will check for the information in cache
- * 2. If it does not exist, it will check for the last_cached value, stored as an option (with auto_load as false, to avoid unnecessary queries)
- * 3. It will then dispatch an async request to refresh the cache, while returning the last cached data immediately
- * 4. It will clear the last cached data, to make sure cache will be refreshed eventually, even if the async request fails for any reason
- * 5. The async request will fetch data from the Mailchimp server and populate the cache
- * 6. The first time we ask for data in a given list, there will be no cache nor last_cached option, so we'll fetch the data synchronously
+ * The cache is stored in transients, set to last up to 20 minutes. Transients can be stored in the options table or in the object cache, depending
+ * on the configuration of the site. But in either case, we can't guarantee it will last 20 minutes, it may expire earlier.
+ *
+ * In order to avoid the user waiting for the cache to be refreshed, we store the last cached data in an option, with auto_load set to false.
+ * If the cache is empty, we'll serve the last cached data immediately, and dispatch an async request to refresh the cache on the backgroun.
+ *
+ * Also, we have a CRON job that will trigger the async requests to refresh the cache for all lists every 10 minutes.
  */
 final class Newspack_Newsletters_Mailchimp_Cached_Data {
 
@@ -38,7 +39,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 *
 	 * @var string
 	 */
-	const OPTION_NAME = 'newspack_nl_mailchimp_last_cache';
+	const LAST_CACHE_OPTION_NAME = 'newspack_nl_mailchimp_last_cache';
 
 	/**
 	 * The ajax action name used to dispatch the cache refresh
@@ -48,17 +49,52 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	const AJAX_ACTION = 'newspack_nl_mailchimp_refresh_cached_data';
 
 	/**
+	 * The cron hook name that trigger the cache refresh on the background
+	 *
+	 * @var string
+	 */
+	const CRON_HOOK = 'newspack_nl_mailchimp_refresh_cache';
+
+	/**
 	 * Memoized data to be served across the same request
 	 *
-	 * @var ?array
+	 * @var array
 	 */
-	private static $memoized_data;
+	private static $memoized_data = [];
 
 	/**
 	 * Initializes this class
 	 */
 	public static function init() {
+
+		if ( 'mailchimp' !== Newspack_Newsletters::service_provider() ) {
+			return;
+		}
+
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
+
+		add_action( self::CRON_HOOK, [ __CLASS__, 'handle_cron' ] );
+		add_filter( 'cron_schedules', [ __CLASS__, 'add_cron_interval' ] ); // phpcs:ignore
+
+		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
+			wp_schedule_event( time(), 'every_10_minutes', self::CRON_HOOK );
+		}
+
+	}
+
+	/**
+	 * Adds a custom interval to WP Cron
+	 *
+	 * @param array $schedules The current schedules.
+	 *
+	 * @return array
+	 */
+	public static function add_cron_interval( $schedules ) {
+		$schedules['every_10_minutes'] = [
+			'interval' => 10 * MINUTE_IN_SECONDS,
+			'display'  => __( 'Every ten minutes', 'newspack_newsletters' ),
+		];
+		return $schedules;
 	}
 
 	/**
@@ -130,6 +166,16 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
+	 * Get the option name for the last cached data for a list
+	 *
+	 * @param string $list_id The List ID.
+	 * @return string The option name
+	 */
+	private static function get_last_cache_option_name( $list_id ) {
+		return self::LAST_CACHE_OPTION_NAME . '_' . $list_id;
+	}
+
+	/**
 	 * Gets the raw data for a given List
 	 *
 	 * @param string $list_id The List ID.
@@ -138,8 +184,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 */
 	private static function get_data( $list_id ) {
 
-		if ( ! empty( self::$memoized_data ) ) {
-			return self::$memoized_data;
+		if ( ! empty( self::$memoized_data[ $list_id ] ) ) {
+			return self::$memoized_data[ $list_id ];
 		}
 
 		Newspack_Newsletters_Logger::log( 'Mailchimp cache: getting data for list ' . $list_id );
@@ -147,7 +193,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		$data = get_transient( self::get_cache_key( $list_id ) );
 		if ( $data ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from cache' );
-			self::$memoized_data = $data;
+			self::$memoized_data[ $list_id ] = $data;
 			return $data;
 		}
 
@@ -156,32 +202,36 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		if ( ! $data ) {
 			// First time we ask for data in this list, let's fetch it from the server.
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from remote service' );
-			$data                = self::refresh_cached_data( $list_id );
-			self::$memoized_data = $data;
+			$data                            = self::refresh_cached_data( $list_id );
+			self::$memoized_data[ $list_id ] = $data;
 			return $data;
 		}
 
-		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Dispatching refresh' );
-		self::dispatch_refresh( $list_id );
-
 		Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from last_cache option' );
-		self::$memoized_data = $data;
+		self::$memoized_data[ $list_id ] = $data;
 		return $data;
 	}
 
 	/**
 	 * Gets the last cached data for a given List
 	 *
+	 * After we retrieve the last cached data, we dispatch a refresh request to make sure the cache is up to date,
+	 * we also delete the current data to make sure the cache will be refreshed eventually, even if the async request fails for any reason.
+	 * If we didn't delete and there was a permanent issue with the Mailchimp connection,
+	 * the data would be served from the for ever, and the user would never know there was an error.
+	 *
 	 * @param string $list_id The List ID.
-	 * @return array The list data with segments and interest_categories
+	 * @return ?array The list data with segments and interest_categories
 	 */
 	private static function get_last_cached_data( $list_id ) {
-		$data = get_option( self::OPTION_NAME );
-		if ( ! empty( $data[ $list_id ] ) ) {
-			$list_data = $data[ $list_id ];
-			unset( $data[ $list_id ] );
-			update_option( self::OPTION_NAME, $data, false );
-			return $list_data;
+		$data = get_option( self::get_last_cache_option_name( $list_id ), [] );
+		if ( ! empty( $data ) ) {
+			delete_option( self::get_last_cache_option_name( $list_id ) );
+
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Dispatching refresh' );
+			self::dispatch_refresh( $list_id );
+
+			return $data;
 		}
 	}
 
@@ -192,6 +242,11 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @return void
 	 */
 	private static function dispatch_refresh( $list_id ) {
+
+		if ( ! function_exists( 'wp_create_nonce' ) ) {
+			require_once ABSPATH . WPINC . '/pluggable.php';
+		}
+
 		$url = add_query_arg(
 			[
 				'action'   => self::AJAX_ACTION,
@@ -258,11 +313,11 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				'folders'             => $folders,
 				'merge_fields'        => $merge_fields,
 			];
-			set_transient( self::get_cache_key( $list_id ), $list_data, 10 * MINUTE_IN_SECONDS );
 
-			$data             = get_option( self::OPTION_NAME );
-			$data[ $list_id ] = $list_data;
-			update_option( self::OPTION_NAME, $data, false );
+			// Update the cache.
+			set_transient( self::get_cache_key( $list_id ), $list_data, 20 * MINUTE_IN_SECONDS );
+			update_option( self::get_last_cache_option_name( $list_id ), $list_data, false );
+
 			return $list_data;
 		} catch ( Exception $e ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: error fetching data. Clearing cache to surface errors.' );
@@ -280,10 +335,34 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 */
 	private static function clear_cache( $list_id ) {
 		delete_transient( self::get_cache_key( $list_id ) );
-		$option = get_option( self::OPTION_NAME );
-		if ( ! empty( $option[ $list_id ] ) ) {
-			unset( $option[ $list_id ] );
-			update_option( self::OPTION_NAME, $option, false );
+		delete_option( self::get_last_cache_option_name( $list_id ) );
+	}
+
+	/**
+	 * Handles the cron job and triggers the async requests to refresh the cache for all lists
+	 *
+	 * @return void
+	 */
+	public static function handle_cron() {
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Handling cron request to refresh cache' );
+		$mc             = new Mailchimp( ( self::get_mc_instance() )->api_key() );
+		$lists_response = ( self::get_mc_instance() )->validate(
+			$mc->get(
+				'lists',
+				[
+					'count'  => 1000,
+					'fields' => [ 'id' ],
+				]
+			),
+			__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
+		);
+		if ( is_wp_error( $lists_response ) || empty( $lists_response['lists'] ) ) {
+			return;
+		}
+
+		foreach ( $lists_response['lists'] as $list ) {
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Dispatching request to refresh cache for list ' . $list['id'] );
+			self::dispatch_refresh( $list['id'] );
 		}
 
 	}
@@ -390,3 +469,5 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		return $response['merge_fields'];
 	}
 }
+
+Newspack_Newsletters_Mailchimp_Cached_Data::init();
