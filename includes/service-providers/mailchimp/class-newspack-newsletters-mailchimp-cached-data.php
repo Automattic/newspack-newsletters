@@ -72,6 +72,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		}
 
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
+		add_action( 'wp_ajax_nopriv_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
 
 		add_action( self::CRON_HOOK, [ __CLASS__, 'handle_cron' ] );
 		add_filter( 'cron_schedules', [ __CLASS__, 'add_cron_interval' ] ); // phpcs:ignore
