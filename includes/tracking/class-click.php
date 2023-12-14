@@ -138,20 +138,33 @@ final class Click {
 			return;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		$newsletter_id = \intval( $_GET['id'] ?? 0 );
-		$email_address = \sanitize_email( $_GET['em'] ?? '' );
-		$url           = \sanitize_text_field( \wp_unslash( $_GET['url'] ?? '' ) );
-		// phpcs:enable
+		$params        = filter_input_array( INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$newsletter_id = intval( $params['id'] ?? 0 );
+		$email_address = \sanitize_email( $params['em'] ?? '' );
+		$redirect_url  = \sanitize_text_field( \wp_unslash( $params['url'] ?? '' ) );
 
-		if ( ! $url || ! \wp_http_validate_url( $url ) ) {
+		/**
+		 * Allow additional URL params to be passed through to the redirect URL.
+		 * 
+		 * @param array $allowed_url_params Array of allowed URL params.
+		 */
+		$allowed_url_params = \apply_filters( 'newspack_newsletters_allowed_url_params', [] );
+
+		// Pass through UTM params and any other whitelisted params.
+		foreach ( $params as $key => $value ) {
+			if ( 0 === strpos( $key, 'utm_' ) || in_array( $key, $allowed_url_params, true ) ) {
+				$redirect_url = \add_query_arg( $key, urlencode( \sanitize_text_field( $value ) ), $redirect_url );
+			}
+		}
+
+		if ( ! $redirect_url || ! \wp_http_validate_url( $redirect_url ) ) {
 			\wp_die( 'Invalid URL' );
 			exit;
 		}
 
-		self::track_click( $newsletter_id, $email_address, $url );
+		self::track_click( $newsletter_id, $email_address, $redirect_url );
 
-		\wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+		\wp_redirect( $redirect_url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 		exit;
 	}
 }
