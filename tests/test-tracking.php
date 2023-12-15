@@ -54,7 +54,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	 * Test tracking click.
 	 */
 	public function test_tracking_click() {
-		$destination_url = 'https://example.com/path?query=string&another=param&third=param#hash';
+		$destination_url = 'https://example.com/path?query=string&another=param&utm_medium=email#hash';
 
 		$post_id  = $this->factory->post->create(
 			[
@@ -81,7 +81,7 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'https', $processed_destination_url['scheme'] );
 		$this->assertEquals( 'example.com', $processed_destination_url['host'] );
 		$this->assertEquals( '/path', $processed_destination_url['path'] );
-		$this->assertEquals( 'query=string&another=param&third=param', $processed_destination_url['query'] );
+		$this->assertEquals( 'query=string&another=param&utm_medium=email', $processed_destination_url['query'] );
 		$this->assertEquals( 'hash', $processed_destination_url['fragment'] );
 
 		// Manually track the click.
