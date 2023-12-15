@@ -77,12 +77,12 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$this->assertEquals( $post_id, intval( $args['id'] ) );
 		$this->assertArrayHasKey( 'em', $args );
 
-		$processed_destination_url = \wp_parse_url( $args['url'] );
-		$this->assertEquals( 'https', $processed_destination_url['scheme'] );
-		$this->assertEquals( 'example.com', $processed_destination_url['host'] );
-		$this->assertEquals( '/path', $processed_destination_url['path'] );
-		$this->assertEquals( 'query=string&another=param&utm_medium=email', $processed_destination_url['query'] );
-		$this->assertEquals( 'hash', $processed_destination_url['fragment'] );
+		$parsed_destination_url = \wp_parse_url( \esc_url_raw( $args['url'] ) );
+		$this->assertEquals( 'https', $parsed_destination_url['scheme'] );
+		$this->assertEquals( 'example.com', $parsed_destination_url['host'] );
+		$this->assertEquals( '/path', $parsed_destination_url['path'] );
+		$this->assertEquals( 'query=string&another=param&utm_medium=email', $parsed_destination_url['query'] );
+		$this->assertEquals( 'hash', $parsed_destination_url['fragment'] );
 
 		// Manually track the click.
 		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );

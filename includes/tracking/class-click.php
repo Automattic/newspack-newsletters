@@ -141,7 +141,7 @@ final class Click {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$newsletter_id = \intval( $_GET['id'] ?? 0 );
 		$email_address = \sanitize_email( $_GET['em'] ?? '' );
-		$url           = \sanitize_text_field( \wp_unslash( $_GET['url'] ?? '' ) );
+		$url           = \esc_url_raw( $_GET['url'] ?? '' );
 		// phpcs:enable
 
 		if ( ! $url || ! \wp_http_validate_url( $url ) ) {
