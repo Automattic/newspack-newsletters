@@ -54,11 +54,13 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	 * Test tracking click.
 	 */
 	public function test_tracking_click() {
+		$destination_url = 'https://example.com/path?query=string&another=param&third=param#hash';
+
 		$post_id  = $this->factory->post->create(
 			[
 				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'post_title'   => 'A newsletter with link.',
-				'post_content' => "<!-- wp:paragraph -->\n<p><a href=\"https://google.com\">Link</a><\/p>\n<!-- \/wp:paragraph -->",
+				'post_content' => "<!-- wp:paragraph -->\n<p><a href=\"$destination_url\">Link</a><\/p>\n<!-- \/wp:paragraph -->",
 			]
 		);
 		$post     = \get_post( $post_id );
@@ -75,9 +77,12 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$this->assertEquals( $post_id, intval( $args['id'] ) );
 		$this->assertArrayHasKey( 'em', $args );
 
-		$parsed_destination_url = \wp_parse_url( $args['url'] );
-		$this->assertEquals( 'https', $parsed_destination_url['scheme'] );
-		$this->assertEquals( 'google.com', $parsed_destination_url['host'] );
+		$processed_destination_url = \wp_parse_url( $args['url'] );
+		$this->assertEquals( 'https', $processed_destination_url['scheme'] );
+		$this->assertEquals( 'example.com', $processed_destination_url['host'] );
+		$this->assertEquals( '/path', $processed_destination_url['path'] );
+		$this->assertEquals( 'query=string&another=param&third=param', $processed_destination_url['query'] );
+		$this->assertEquals( 'hash', $processed_destination_url['fragment'] );
 
 		// Manually track the click.
 		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
