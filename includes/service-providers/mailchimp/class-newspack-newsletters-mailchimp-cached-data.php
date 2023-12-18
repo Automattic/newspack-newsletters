@@ -17,29 +17,30 @@ use \DrewM\MailChimp\MailChimp;
  * The purpose of this class is to implement a non-obstrusive cache, in which refreshing the cache will happen in the background in async requests
  * and will never keep the user waiting.
  *
- * The cache is stored in transients, set to last up to 20 minutes. Transients can be stored in the options table or in the object cache, depending
- * on the configuration of the site. But in either case, we can't guarantee it will last 20 minutes, it may expire earlier.
+ * The cache is stored in an option, and will be considered expired after 20 minutes. Every time we retrieve the cache, we check its age,
+ * if it's expired, we trigger an async request to refresh it.
  *
- * In order to avoid the user waiting for the cache to be refreshed, we store the last cached data in an option, with auto_load set to false.
- * If the cache is empty, we'll serve the last cached data immediately, and dispatch an async request to refresh the cache on the backgroun.
+ * Also, as a redundant strategy, we have a CRON job that will trigger the async requests to refresh the cache for all lists every 10 minutes.
  *
- * Also, we have a CRON job that will trigger the async requests to refresh the cache for all lists every 10 minutes.
+ * If the cache refresh fails, we will store the error in a separate option, and will only surface it to the user after 20 minutes.
+ * In every admin page we will display a generic Warning message, telling the user to go to Newsletters > Settings to see the errors.
+ * In Newsletters > Settings we will output the errors details.
  */
 final class Newspack_Newsletters_Mailchimp_Cached_Data {
 
 	/**
-	 * The cache group name
+	 * The cache option name
 	 *
 	 * @var string
 	 */
-	const CACHE_GROUP = 'newspack_nl_mailchimp_data';
+	const OPTION_PREFIX = 'newspack_nl_mailchimp_cache';
 
 	/**
-	 * The last cache option name
+	 * The name of the option where we store errors
 	 *
 	 * @var string
 	 */
-	const LAST_CACHE_OPTION_NAME = 'newspack_nl_mailchimp_last_cache';
+	const ERRORS_OPTION = 'newspack_nl_mailchimp_cache_errors';
 
 	/**
 	 * The ajax action name used to dispatch the cache refresh
@@ -54,6 +55,13 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @var string
 	 */
 	const CRON_HOOK = 'newspack_nl_mailchimp_refresh_cache';
+
+	/**
+	 * We store errors when an API request fails, but we will only surface these errors to the user after this time
+	 *
+	 * @var int
+	 */
+	const SURFACE_ERRORS_AFTER = 20 * HOUR_IN_SECONDS;
 
 	/**
 	 * Memoized data to be served across the same request
@@ -80,6 +88,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_event( time(), 'every_10_minutes', self::CRON_HOOK );
 		}
+
+		add_action( 'admin_notices', [ __CLASS__, 'maybe_show_error' ] );
 
 	}
 
@@ -163,17 +173,151 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @return string The cache key
 	 */
 	private static function get_cache_key( $list_id ) {
-		return self::CACHE_GROUP . '_' . $list_id;
+		return self::OPTION_PREFIX . '_' . $list_id;
 	}
 
 	/**
-	 * Get the option name for the last cached data for a list
+	 * Get the cache date key for a given list
 	 *
 	 * @param string $list_id The List ID.
-	 * @return string The option name
+	 * @return string The cache key
 	 */
-	private static function get_last_cache_option_name( $list_id ) {
-		return self::LAST_CACHE_OPTION_NAME . '_' . $list_id;
+	private static function get_cache_date_key( $list_id ) {
+		return self::OPTION_PREFIX . '_date_' . $list_id;
+	}
+
+	/**
+	 * Checks if the cache is expired for a given list
+	 *
+	 * @param string $list_id The List ID.
+	 * @return boolean
+	 */
+	private static function is_cache_expired( $list_id ) {
+		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
+		return $cache_date && ( time() - $cache_date ) > 20 * MINUTE_IN_SECONDS;
+	}
+
+	/**
+	 * Updates the cache for a given list
+	 *
+	 * @param string $list_id The List ID.
+	 * @param array  $data The data to cache.
+	 * @return void
+	 */
+	private static function update_cache( $list_id, $data ) {
+		update_option( self::get_cache_key( $list_id ), $data, false ); // auto-load false.
+		update_option( self::get_cache_date_key( $list_id ), time(), false ); // auto-load false.
+		self::$memoized_data[ $list_id ] = $data;
+		self::clear_errors( $list_id );
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Cache for list ' . $list_id . ' updated' );
+	}
+
+	/**
+	 * Clears the cache errors for a given list
+	 *
+	 * @param string $list_id The List ID.
+	 * @return void
+	 */
+	private static function clear_errors( $list_id ) {
+		$errors = get_option( self::ERRORS_OPTION, [] );
+		if ( isset( $errors[ $list_id ] ) ) {
+			unset( $errors[ $list_id ] );
+			update_option( self::ERRORS_OPTION, $errors );
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Clearing errors for ' . $list_id );
+		}
+	}
+
+	/**
+	 * Stores the last error for a given list, if the cache is older than self::SURFACE_ERRORS_AFTER
+	 *
+	 * @param string $list_id The List ID.
+	 * @param string $error The error message.
+	 */
+	private static function maybe_add_error( $list_id, $error ) {
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: handling error while fetching cache for list ' . $list_id );
+		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
+		if ( $cache_date && ( time() - $cache_date ) > self::SURFACE_ERRORS_AFTER ) {
+			$errors             = get_option( self::ERRORS_OPTION, [] );
+			$errors[ $list_id ] = $error;
+			update_option( self::ERRORS_OPTION, $errors );
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: error stored' );
+		}
+	}
+
+	/**
+	 * Shows an error message to the user if we have errors in the cache
+	 *
+	 * @return void
+	 */
+	public static function maybe_show_error() {
+		$errors = get_option( self::ERRORS_OPTION, [] );
+		if ( ! empty( $errors ) ) {
+			$screen = get_current_screen();
+			if ( ! $screen ) {
+				return;
+			}
+			if ( 'newspack_nl_cpt_page_newspack-newsletters-settings-admin' !== $screen->base ) {
+				self::show_generic_warning();
+				return;
+			}
+			$hours = (int) self::SURFACE_ERRORS_AFTER / HOUR_IN_SECONDS;
+			?>
+			<div class="notice notice-error">
+				<p>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %s is the number of hours a cache must be expired for us to surface this error */
+							__(
+								'Error retrieving data from Mailchimp. We were not able to refresh the list of Audiences and groups in the last %s hours.',
+								'newspack_newsletters'
+							),
+							$hours
+						)
+					);
+					?>
+				</p>
+				<ul>
+					<?php foreach ( $errors as $list_id => $error ) : ?>
+						<li>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: %1$s is the list ID, %2$s is the error message */
+									__( 'List %1$s: %2$s', 'newspack_newsletters' ),
+									$list_id,
+									$error
+								)
+							);
+							?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Shows a generic warning when we can't fetch data from Mailchimp
+	 *
+	 * @return void
+	 */
+	private static function show_generic_warning() {
+		?>
+		<div class="notice notice-warning">
+			<p>
+				<?php
+				echo esc_html(
+					__(
+						'Newspack Newsletters is having trouble to fetch data from Mailchimp Audiences. Please visit Newsletters > Settings for more details.',
+						'newspack_newsletters'
+					)
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -185,55 +329,29 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 */
 	private static function get_data( $list_id ) {
 
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: getting data for list ' . $list_id );
+
 		if ( ! empty( self::$memoized_data[ $list_id ] ) ) {
 			return self::$memoized_data[ $list_id ];
 		}
 
-		Newspack_Newsletters_Logger::log( 'Mailchimp cache: getting data for list ' . $list_id );
-
-		$data = get_transient( self::get_cache_key( $list_id ) );
+		$data = get_option( self::get_cache_key( $list_id ) );
 		if ( $data ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from cache' );
 			self::$memoized_data[ $list_id ] = $data;
+
+			if ( self::is_cache_expired( $list_id ) ) {
+				Newspack_Newsletters_Logger::log( 'Mailchimp cache: cache expired. Dispatching refresh' );
+				self::dispatch_refresh( $list_id );
+			}
 			return $data;
 		}
 
-		$data = self::get_last_cached_data( $list_id );
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: No data found. Dispatching refresh' );
+		self::dispatch_refresh( $list_id );
 
-		if ( ! $data ) {
-			// First time we ask for data in this list, let's fetch it from the server.
-			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from remote service' );
-			$data                            = self::refresh_cached_data( $list_id );
-			self::$memoized_data[ $list_id ] = $data;
-			return $data;
-		}
+		return [];
 
-		Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from last_cache option' );
-		self::$memoized_data[ $list_id ] = $data;
-		return $data;
-	}
-
-	/**
-	 * Gets the last cached data for a given List
-	 *
-	 * After we retrieve the last cached data, we dispatch a refresh request to make sure the cache is up to date,
-	 * we also delete the current data to make sure the cache will be refreshed eventually, even if the async request fails for any reason.
-	 * If we didn't delete and there was a permanent issue with the Mailchimp connection,
-	 * the data would be served from the for ever, and the user would never know there was an error.
-	 *
-	 * @param string $list_id The List ID.
-	 * @return ?array The list data with segments and interest_categories
-	 */
-	private static function get_last_cached_data( $list_id ) {
-		$data = get_option( self::get_last_cache_option_name( $list_id ), [] );
-		if ( ! empty( $data ) ) {
-			delete_option( self::get_last_cache_option_name( $list_id ) );
-
-			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Dispatching refresh' );
-			self::dispatch_refresh( $list_id );
-
-			return $data;
-		}
 	}
 
 	/**
@@ -289,7 +407,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		try {
 			self::refresh_cached_data( $list_id );
 		} catch ( Exception $e ) {
-			Newspack_Newsletters_Logger::log( 'Error refreshing cache: ' . $e->getMessage() );
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing cache: ' . $e->getMessage() );
 		}
 		die;
 	}
@@ -316,27 +434,13 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			];
 
 			// Update the cache.
-			set_transient( self::get_cache_key( $list_id ), $list_data, 20 * MINUTE_IN_SECONDS );
-			update_option( self::get_last_cache_option_name( $list_id ), $list_data, false );
+			self::update_cache( $list_id, $list_data );
 
 			return $list_data;
 		} catch ( Exception $e ) {
-			Newspack_Newsletters_Logger::log( 'Mailchimp cache: error fetching data. Clearing cache to surface errors.' );
-			delete_transient( self::get_cache_key( $list_id ) );
+			self::maybe_add_error( $list_id, $e->getMessage() );
 			throw $e;
 		}
-	}
-
-	/**
-	 * Clears the cache for a given List
-	 *
-	 * @param string $list_id The List ID.
-	 * @throws Exception In case of errors while fetching data from the server.
-	 * @return void
-	 */
-	private static function clear_cache( $list_id ) {
-		delete_transient( self::get_cache_key( $list_id ) );
-		delete_option( self::get_last_cache_option_name( $list_id ) );
 	}
 
 	/**
