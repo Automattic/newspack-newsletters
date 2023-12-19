@@ -203,7 +203,7 @@ class Newspack_Newsletters_Settings {
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			esc_html__( 'Newsletters Settings', 'newspack-newsletters' ),
 			esc_html__( 'Settings', 'newspack-newsletters' ),
-			'manage_options',
+			'edit_others_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . 's',
 			'newspack-newsletters-settings-admin',
 			[ __CLASS__, 'create_admin_page' ]
 		);

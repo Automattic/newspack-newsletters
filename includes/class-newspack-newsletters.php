@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-use \DrewM\MailChimp\MailChimp;
+use DrewM\MailChimp\MailChimp;
 
 /**
  * Main Newspack Newsletters Class.
@@ -77,6 +77,7 @@ final class Newspack_Newsletters {
 	 */
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
+		add_action( 'admin_init', [ __CLASS__, 'add_caps' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_editor_only_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_blocks' ] );
@@ -439,8 +440,43 @@ final class Newspack_Newsletters {
 			'supports'         => $supports,
 			'taxonomies'       => [ 'category', 'post_tag' ],
 			'menu_icon'        => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGQ9Ik0yMS45OSA4YzAtLjcyLS4zNy0xLjM1LS45NC0xLjdMMTIgMSAyLjk1IDYuM0MyLjM4IDYuNjUgMiA3LjI4IDIgOHYxMGMwIDEuMS45IDIgMiAyaDE2YzEuMSAwIDItLjkgMi0ybC0uMDEtMTB6TTEyIDEzTDMuNzQgNy44NCAxMiAzbDguMjYgNC44NEwxMiAxM3oiIGZpbGw9IiNhMGE1YWEiLz48L3N2Zz4K',
+			'capability_type'  => self::NEWSPACK_NEWSLETTERS_CPT,
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_CPT, $cpt_args );
+	}
+
+	/**
+	 * Add capabilities for roles eligible to access this CPT.
+	 */
+	public static function add_caps() {
+		$option_name = 'newspack_newsletters_has_set_up_caps_v1';
+		if ( get_option( $option_name, false ) ) {
+			return;
+		}
+		$eligible_roles = apply_filters( 'newspack_newsletters_cpt_eligible_roles', [ 'administrator', 'editor' ] );
+		foreach ( $eligible_roles as $role ) {
+			$role = get_role( $role );
+			foreach ( self::get_capabilities_list() as $cap ) {
+				$role->add_cap( $cap );
+			}
+		}
+		add_option( $option_name, true );
+	}
+
+	/**
+	 * Get capabilities necessary to manage this CPT.
+	 *
+	 * See https://developer.wordpress.org/reference/functions/register_post_type/#capabilities.
+	 */
+	public static function get_capabilities_list() {
+		$capabilities = get_post_type_capabilities(
+			(object) [
+				'map_meta_cap'    => true,
+				'capability_type' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'capabilities'    => [],
+			]
+		);
+		return array_values( (array) $capabilities );
 	}
 
 	/**
@@ -852,7 +888,7 @@ final class Newspack_Newsletters {
 	 * @return bool|WP_Error
 	 */
 	public static function api_administration_permissions_check( $request ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_others_' . self::NEWSPACK_NEWSLETTERS_CPT . 's' ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),
@@ -871,7 +907,7 @@ final class Newspack_Newsletters {
 	 * @return bool|WP_Error
 	 */
 	public static function api_authoring_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		if ( ! current_user_can( 'edit_' . self::NEWSPACK_NEWSLETTERS_CPT . 's' ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),
