@@ -29,14 +29,14 @@ class Woocommerce_Memberships {
 	 */
 	protected static $user_id_in_scope;
 
-	/** 
+	/**
 	 * Initialize the class
 	 */
 	public static function init() {
 		add_action( 'plugins_loaded', [ __CLASS__, 'init_hooks' ] );
 	}
-	
-	/** 
+
+	/**
 	 * Initialize the hooks after all plugins are loaded
 	 */
 	public static function init_hooks() {
@@ -65,7 +65,7 @@ class Woocommerce_Memberships {
 		}
 		$lists = array_filter(
 			$lists,
-			function( $list ) {
+			function ( $list ) {
 				$list_object = Subscription_List::from_form_id( $list );
 				if ( ! $list_object ) {
 					return false;
@@ -80,8 +80,7 @@ class Woocommerce_Memberships {
 				$user_id = self::$user_id_in_scope ?? get_current_user_id();
 
 				return wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
-
-			} 
+			}
 		);
 		return array_values( $lists );
 	}
@@ -101,12 +100,11 @@ class Woocommerce_Memberships {
 
 		return array_filter(
 			$lists,
-			function( $list_id ) use ( $list_ids ) {
+			function ( $list_id ) use ( $list_ids ) {
 				return in_array( $list_id, $list_ids );
 			},
 			ARRAY_FILTER_USE_KEY
 		);
-
 	}
 
 	/**
@@ -124,7 +122,7 @@ class Woocommerce_Memberships {
 		if ( in_array( $new_status, $status_considered_active ) ) {
 			return;
 		}
-		
+
 		$lists_to_remove = [];
 		$user            = $user_membership->get_user();
 		if ( ! $user ) {
@@ -147,19 +145,19 @@ class Woocommerce_Memberships {
 			}
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
-		$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
-		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
-		
+		if ( ! empty( $provider ) ) {
+			$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
+			Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
+		}
 	}
 
 	/**
 	 * Adds user to premium lists when a membership is granted
 	 *
 	 * @param \WC_Memberships_Membership_Plan $plan the plan that user was granted access to.
-	 * @param array                           $args 
-	 * {
+	 * @param array                           $args {
 	 *     Array of User Membership arguments.
-	 * 
+	 *
 	 *     @type int $user_id the user ID the membership is assigned to.
 	 *     @type int $user_membership_id the user membership ID being saved.
 	 *     @type bool $is_update whether this is a post update or a newly created membership.
@@ -208,7 +206,7 @@ class Woocommerce_Memberships {
 				$lists_to_add[]    = $subscription_list->get_form_id();
 			}
 		}
-		
+
 		if ( empty( $lists_to_add ) ) {
 			return;
 		}
@@ -216,7 +214,6 @@ class Woocommerce_Memberships {
 		$provider = Newspack_Newsletters::get_service_provider();
 		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' added to the following lists: ' . implode( ', ', $lists_to_add ) );
-		
 	}
 
 	/**
@@ -228,7 +225,6 @@ class Woocommerce_Memberships {
 	public static function deleted_membership( $user_membership ) {
 		self::remove_user_from_list( $user_membership, '', 'deleted' );
 	}
-
 }
 
 Woocommerce_Memberships::init();
