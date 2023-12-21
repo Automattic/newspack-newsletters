@@ -167,9 +167,7 @@ class Woocommerce_Memberships {
 
 		if ( is_array( $current_user_lists ) ) {
 			$existing_lists = array_values( array_intersect( $current_user_lists, $lists_to_remove ) );
-			if ( ! empty( $existing_lists ) ) {
-				self::update_user_lists_on_deactivation( $user->ID, $user_membership->get_id(), $existing_lists );
-			}
+			self::update_user_lists_on_deactivation( $user->ID, $user_membership->get_id(), $existing_lists );
 		}
 
 		if ( ! empty( $provider ) ) {
