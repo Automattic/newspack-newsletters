@@ -63,8 +63,8 @@ class Woocommerce_Memberships {
 		add_filter( 'newspack_newsletters_subscription_block_available_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_manage_newsletters_available_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_filter( 'newspack_auth_form_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ] );
-		add_action( 'wc_memberships_user_membership_status_changed', [ __CLASS__, 'remove_user_from_list' ], 10, 3 );
-		add_action( 'wc_memberships_user_membership_saved', [ __CLASS__, 'add_user_to_list' ], 10, 2 );
+		add_action( 'wc_memberships_user_membership_status_changed', [ __CLASS__, 'handle_membership_status_change' ], 10, 3 );
+		add_action( 'wc_memberships_user_membership_saved', [ __CLASS__, 'add_user_to_lists' ], 10, 2 );
 		add_action( 'wc_memberships_user_membership_deleted', [ __CLASS__, 'deleted_membership' ] );
 	}
 
@@ -124,25 +124,34 @@ class Woocommerce_Memberships {
 	}
 
 	/**
-	 * Remove lists that require a membership plan when the membership is cancelled
+	 * Handle membership status updates and remove lists that require a membership plan when the membership is cancelled
 	 *
 	 * @param WC_Memberships_User_Membership $user_membership The User Membership object.
 	 * @param string                         $old_status old status, without the `wcm-` prefix.
 	 * @param string                         $new_status new status, without the `wcm-` prefix.
 	 * @return void
 	 */
-	public static function remove_user_from_list( $user_membership, $old_status, $new_status ) {
+	public static function handle_membership_status_change( $user_membership, $old_status, $new_status ) {
 		Newspack_Newsletters_Logger::log( 'Membership status changed to ' . $new_status );
 
-		// Store the previous status so we can check it in the `add_user_to_list` method, that runs on a later hook.
+		// Store the previous status so we can check it in the `add_user_to_lists` method, that runs on a later hook.
 		self::$previous_statuses[ $user_membership->get_id() ] = $old_status;
 
 		$status_considered_active = wc_memberships()->get_user_memberships_instance()->get_active_access_membership_statuses();
 
-		if ( in_array( $new_status, $status_considered_active ) ) {
-			return;
+		if ( ! in_array( $new_status, $status_considered_active ) ) {
+			self::remove_user_from_lists( $user_membership );
 		}
 
+	}
+
+	/**
+	 * Removes user from premium lists associated with a membership plan
+	 *
+	 * @param \WC_Memberships_User_Membership $user_membership The User Membership object.
+	 * @return void
+	 */
+	public static function remove_user_from_lists( $user_membership ) {
 		$lists_to_remove = [];
 		$user            = $user_membership->get_user();
 		if ( ! $user ) {
@@ -203,7 +212,7 @@ class Woocommerce_Memberships {
 	 * }
 	 * @return void
 	 */
-	public static function add_user_to_list( $plan, $args ) {
+	public static function add_user_to_lists( $plan, $args ) {
 
 		// When creating the membership via admin panel, this hook is called once before the membership is actually created.
 		if ( ! $plan instanceof \WC_Memberships_Membership_Plan ) {
@@ -278,7 +287,7 @@ class Woocommerce_Memberships {
 	 * @return void
 	 */
 	public static function deleted_membership( $user_membership ) {
-		self::remove_user_from_list( $user_membership, '', 'deleted' );
+		self::remove_user_from_lists( $user_membership );
 	}
 
 	/**
