@@ -39,6 +39,13 @@ class Woocommerce_Memberships {
 	protected static $user_id_in_scope;
 
 	/**
+	 * Holds the previous statuses of the memberships that is being updated in the request.
+	 *
+	 * @var array
+	 */
+	protected static $previous_statuses = [];
+
+	/**
 	 * Initialize the class
 	 */
 	public static function init() {
@@ -126,6 +133,10 @@ class Woocommerce_Memberships {
 	 */
 	public static function remove_user_from_list( $user_membership, $old_status, $new_status ) {
 		Newspack_Newsletters_Logger::log( 'Membership status changed to ' . $new_status );
+
+		// Store the previous status so we can check it in the `add_user_to_list` method, that runs on a later hook.
+		self::$previous_statuses[ $user_membership->get_id() ] = $old_status;
+
 		$status_considered_active = wc_memberships()->get_user_memberships_instance()->get_active_access_membership_statuses();
 
 		if ( in_array( $new_status, $status_considered_active ) ) {
@@ -204,6 +215,14 @@ class Woocommerce_Memberships {
 		$user_membership = new \WC_Memberships_User_Membership( $args['user_membership_id'] );
 
 		if ( ! in_array( $user_membership->get_status(), $status_considered_active, true ) ) {
+			return;
+		}
+
+		// Check if we have the previous status stored. If we do and it's an active status
+		// it means the membership is being updated from one active status to another active status.
+		// In this case, we don't want to add the user to the lists again.
+		if ( ! empty( self::$previous_statuses[ $user_membership->get_id() ] ) && in_array( self::$previous_statuses[ $user_membership->get_id() ], $status_considered_active, true ) ) {
+			Newspack_Newsletters_Logger::log( 'Membership ' . $user_membership->get_id() . ' was already active. No need to subscribe user to lists' );
 			return;
 		}
 
