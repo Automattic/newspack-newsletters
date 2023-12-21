@@ -164,11 +164,13 @@ class Woocommerce_Memberships {
 		 * in which case we want to resubscribe them to the lists they were in.
 		 */
 		$current_user_lists = \Newspack_Newsletters_Subscription::get_contact_lists( $user_email );
+		$existing_lists     = [];
 
 		if ( is_array( $current_user_lists ) ) {
 			$existing_lists = array_values( array_intersect( $current_user_lists, $lists_to_remove ) );
-			self::update_user_lists_on_deactivation( $user->ID, $user_membership->get_id(), $existing_lists );
 		}
+
+		self::update_user_lists_on_deactivation( $user->ID, $user_membership->get_id(), $existing_lists );
 
 		if ( ! empty( $provider ) ) {
 			$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
