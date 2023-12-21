@@ -74,7 +74,7 @@ class Woocommerce_Memberships {
 		}
 		$lists = array_filter(
 			$lists,
-			function( $list ) {
+			function ( $list ) {
 				$list_object = Subscription_List::from_form_id( $list );
 				if ( ! $list_object ) {
 					return false;
@@ -89,7 +89,6 @@ class Woocommerce_Memberships {
 				$user_id = self::$user_id_in_scope ?? get_current_user_id();
 
 				return wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
-
 			}
 		);
 		return array_values( $lists );
@@ -110,12 +109,11 @@ class Woocommerce_Memberships {
 
 		return array_filter(
 			$lists,
-			function( $list_id ) use ( $list_ids ) {
+			function ( $list_id ) use ( $list_ids ) {
 				return in_array( $list_id, $list_ids );
 			},
 			ARRAY_FILTER_USE_KEY
 		);
-
 	}
 
 	/**
@@ -174,8 +172,10 @@ class Woocommerce_Memberships {
 			}
 		}
 
-		$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
-		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
+		if ( ! empty( $provider ) ) {
+			$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
+			Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
+		}
 
 	}
 
@@ -183,10 +183,9 @@ class Woocommerce_Memberships {
 	 * Adds user to premium lists when a membership is granted
 	 *
 	 * @param \WC_Memberships_Membership_Plan $plan the plan that user was granted access to.
-	 * @param array                           $args 
-	 * {
+	 * @param array                           $args {
 	 *     Array of User Membership arguments.
-	 * 
+	 *
 	 *     @type int $user_id the user ID the membership is assigned to.
 	 *     @type int $user_membership_id the user membership ID being saved.
 	 *     @type bool $is_update whether this is a post update or a newly created membership.
@@ -251,7 +250,6 @@ class Woocommerce_Memberships {
 		$provider = Newspack_Newsletters::get_service_provider();
 		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' added to the following lists: ' . implode( ', ', $lists_to_add ) );
-
 	}
 
 	/**
