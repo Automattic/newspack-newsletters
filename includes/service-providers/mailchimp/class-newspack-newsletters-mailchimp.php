@@ -762,6 +762,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
+		// Only sync if 'post' is in the request payload (not a meta save).
+		if ( empty( $_REQUEST['post'] ) )  { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
 		$this->sync( $post );
 	}
 
