@@ -31,7 +31,7 @@ const Editor = compose( [
 			isSavingPost,
 			isCleanNewPost,
 		} = select( 'core/editor' );
-		const { getActiveGeneralSidebarName } = select( 'core/edit-post' );
+		const { getActiveGeneralSidebarName, getAllMetaBoxes } = select( 'core/edit-post' );
 		const { getSettings } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		const status = getCurrentPostAttribute( 'status' );
@@ -63,12 +63,14 @@ const Editor = compose( [
 			html: meta[ window.newspack_email_editor_data.email_html_meta ],
 			campaignName: meta.campaign_name,
 			newsletterSendErrors: meta.newsletter_send_errors,
+			isCustomFieldsMetaBoxActive: getAllMetaBoxes().some( box => box.id === 'postcustom' ),
 		};
 	} ),
 	withDispatch( dispatch => {
 		const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } =
 			dispatch( 'core/editor' );
 		const { createNotice, removeNotice } = dispatch( 'core/notices' );
+		const { openModal } = dispatch( 'core/interface' );
 		return {
 			lockPostAutosaving,
 			lockPostSaving,
@@ -76,6 +78,7 @@ const Editor = compose( [
 			editPost,
 			createNotice,
 			removeNotice,
+			openModal,
 		};
 	} ),
 ] )( props => {
@@ -126,6 +129,27 @@ const Editor = compose( [
 			props.removeNotice( 'newspack-newsletters-newsletter-send-error' );
 		}
 	}, [ props.sent ] );
+
+	useEffect( () => {
+		if ( props.isCustomFieldsMetaBoxActive ) {
+			props.createNotice(
+				'error',
+				__(
+					'"Custom Fields" meta box is active in the UI. This will prevent the newsletter editor from functioning correctly. Please disable this meta box in the "Panels" section of the Editor Preferences.',
+					'newspack-newsletters'
+				),
+				{
+					isDismissible: false,
+					actions: [
+						{
+							label: __( 'Open Editor Preferences', 'newspack-newsletters' ),
+							onClick: () => props.openModal( 'edit-post/preferences' ),
+						},
+					],
+				}
+			);
+		}
+	}, [ props.isCustomFieldsMetaBoxActive ] );
 
 	useEffect( () => {
 		if ( ! props.sent && props.newsletterSendErrors?.length ) {
