@@ -1,3 +1,19 @@
+# [2.9.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.8.0...v2.9.0-alpha.1) (2024-01-11)
+
+
+### Bug Fixes
+
+* memberships & "other" ESP ([6e0402c](https://github.com/Automattic/newspack-newsletters/commit/6e0402cdab04ca918430c4291906c65e9a38f90a))
+* prevent the use of `add_contact` for data sync purposes ([#1386](https://github.com/Automattic/newspack-newsletters/issues/1386)) ([2d68c1f](https://github.com/Automattic/newspack-newsletters/commit/2d68c1f3652496d80579e47b6ae82b728679ce6f))
+* **renderer:** ensure group blocks use conditional tags ([#1380](https://github.com/Automattic/newspack-newsletters/issues/1380)) ([a1a9722](https://github.com/Automattic/newspack-newsletters/commit/a1a9722a60735205a1aa19fe32155c0015e5f792))
+* store and recover lists on membership reactivation ([#1377](https://github.com/Automattic/newspack-newsletters/issues/1377)) ([aa8a8f4](https://github.com/Automattic/newspack-newsletters/commit/aa8a8f4592da689218704b387b058ba24b8ab935))
+
+
+### Features
+
+* display warning if custom fields meta box is visible ([d595ed4](https://github.com/Automattic/newspack-newsletters/commit/d595ed468f32bd61112927aeb94a84fc8505f40d))
+* **tracking:** support UTM coming from the ESP ([#1388](https://github.com/Automattic/newspack-newsletters/issues/1388)) ([77d3a1e](https://github.com/Automattic/newspack-newsletters/commit/77d3a1e3fa73cf6f1fbe9f29d4889ed7718421f4))
+
 # [2.8.0](https://github.com/Automattic/newspack-newsletters/compare/v2.7.0...v2.8.0) (2024-01-08)
 
 
