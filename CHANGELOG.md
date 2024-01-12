@@ -1,3 +1,38 @@
+# [2.8.0](https://github.com/Automattic/newspack-newsletters/compare/v2.7.0...v2.8.0) (2024-01-08)
+
+
+### Features
+
+* add Constant Contact usge report ([#1366](https://github.com/Automattic/newspack-newsletters/issues/1366)) ([a249b4c](https://github.com/Automattic/newspack-newsletters/commit/a249b4cc02ae1ad24860ddc4307f20ecc6bb498c))
+
+# [2.8.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.7.0...v2.8.0-alpha.1) (2023-12-15)
+
+
+### Features
+
+* add Constant Contact usge report ([#1366](https://github.com/Automattic/newspack-newsletters/issues/1366)) ([a249b4c](https://github.com/Automattic/newspack-newsletters/commit/a249b4cc02ae1ad24860ddc4307f20ecc6bb498c))
+
+# [2.7.0](https://github.com/Automattic/newspack-newsletters/compare/v2.6.2...v2.7.0) (2023-12-11)
+
+
+### Bug Fixes
+
+* add layout styles to newsletter ([#1353](https://github.com/Automattic/newspack-newsletters/issues/1353)) ([1abbfdf](https://github.com/Automattic/newspack-newsletters/commit/1abbfdf18210e3ded94e2adbfb44a4e575bbbbaf))
+* **editor:** ensure localized variables while editing patterns ([#1360](https://github.com/Automattic/newspack-newsletters/issues/1360)) ([3ab1bdb](https://github.com/Automattic/newspack-newsletters/commit/3ab1bdb2ef3d3c214d89d71dda57942aab818e4c))
+
+
+### Features
+
+* active-campaigns data report ([#1338](https://github.com/Automattic/newspack-newsletters/issues/1338)) ([d368bbd](https://github.com/Automattic/newspack-newsletters/commit/d368bbd3ee4429549c255c914f734ddf61b22903))
+* add campaign monitor usage report ([#1346](https://github.com/Automattic/newspack-newsletters/issues/1346)) ([1231510](https://github.com/Automattic/newspack-newsletters/commit/1231510a7612acec6be5a4a23fcb68b2dddeb9e5))
+
+# [2.7.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.7.0-alpha.2...v2.7.0-alpha.3) (2023-12-05)
+
+
+### Bug Fixes
+
+* **mailchimp:** prevent merge fields fetch throwing fatal error ([#1376](https://github.com/Automattic/newspack-newsletters/issues/1376)) ([7d64225](https://github.com/Automattic/newspack-newsletters/commit/7d64225f6e7347eab8b0a6c1a9dd83dd6e8e7c9a))
+
 ## [2.6.2](https://github.com/Automattic/newspack-newsletters/compare/v2.6.1...v2.6.2) (2023-12-05)
 
 
