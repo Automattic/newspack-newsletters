@@ -246,7 +246,7 @@ class Newspack_Newsletters_Settings {
 			<h2><?php esc_html_e( 'Authorize the application', 'newspack-newsletters' ); ?></h2>
 			<p>
 			<?php
-			echo sprintf(
+			printf(
 				/* translators: %s: email service provider name */
 				esc_html__( 'Authorize %s to connect to Newspack.', 'newspack-newsletters' ),
 				esc_html( $provider->name )
@@ -477,7 +477,7 @@ class Newspack_Newsletters_Settings {
 				'newspack_newsletters_options_group',
 				$setting
 			);
-		};
+		}
 	}
 
 	/**

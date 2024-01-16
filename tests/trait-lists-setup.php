@@ -130,5 +130,4 @@ trait Lists_Setup {
 		];
 		return wp_insert_post( $data );
 	}
-
 }

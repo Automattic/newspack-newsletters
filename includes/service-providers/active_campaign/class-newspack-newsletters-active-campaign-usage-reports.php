@@ -62,7 +62,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		}
 		$total    = intval( $contacts_result['meta']['total'] );
 		$contacts = array_map(
-			function( $contact ) {
+			function ( $contact ) {
 				return array_intersect_key( $contact, array_flip( [ 'cdate', 'udate', 'email', 'id' ] ) );
 			},
 			array_merge( $contacts, $contacts_result['contacts'] )

@@ -37,7 +37,7 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 				if ( isset( $params['query'], $params['query']['status'] ) ) {
 					$contacts = array_filter(
 						$contacts,
-						function( $contact ) use ( $params ) {
+						function ( $contact ) use ( $params ) {
 							if ( 1 === $params['query']['status'] ) {
 								return null === $contact['udate'];
 							} elseif ( 2 === $params['query']['status'] ) {
