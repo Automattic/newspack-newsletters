@@ -480,6 +480,13 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Can the current user edit newsletters and related entities?
+	 */
+	public static function can_user_edit_newsletters() {
+		return current_user_can( 'edit_others_' . self::NEWSPACK_NEWSLETTERS_CPT . 's' );
+	}
+
+	/**
 	 * Register blocks server-side for front-end rendering.
 	 */
 	public static function register_blocks() {
@@ -888,7 +895,7 @@ final class Newspack_Newsletters {
 	 * @return bool|WP_Error
 	 */
 	public static function api_administration_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_others_' . self::NEWSPACK_NEWSLETTERS_CPT . 's' ) ) {
+		if ( ! self::can_user_edit_newsletters() ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),

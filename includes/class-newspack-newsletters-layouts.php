@@ -49,7 +49,7 @@ final class Newspack_Newsletters_Layouts {
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_layout_cpt() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		if ( ! \Newspack_Newsletters::can_user_edit_newsletters() ) {
 			return;
 		}
 
