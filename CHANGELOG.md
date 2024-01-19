@@ -1,3 +1,10 @@
+# [2.9.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0-alpha.2...v2.9.0-alpha.3) (2024-01-19)
+
+
+### Bug Fixes
+
+* get all verified domains from Mailchimp ([3ea41dc](https://github.com/Automattic/newspack-newsletters/commit/3ea41dc141222658a7c2d70522d15c1c755ff142))
+
 ## [2.8.2](https://github.com/Automattic/newspack-newsletters/compare/v2.8.1...v2.8.2) (2024-01-19)
 
 
