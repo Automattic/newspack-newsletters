@@ -199,12 +199,11 @@ class Newspack_Newsletters_Settings {
 	 * Add options page
 	 */
 	public static function add_plugin_page() {
-		$post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
 		add_submenu_page(
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			esc_html__( 'Newsletters Settings', 'newspack-newsletters' ),
 			esc_html__( 'Settings', 'newspack-newsletters' ),
-			$post_type_object->cap->edit_others_posts,
+			'manage_options',
 			'newspack-newsletters-settings-admin',
 			[ __CLASS__, 'create_admin_page' ]
 		);
