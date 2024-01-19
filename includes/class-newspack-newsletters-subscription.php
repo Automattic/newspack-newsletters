@@ -120,7 +120,7 @@ class Newspack_Newsletters_Subscription {
 	 * @return bool Whether the current user can manage subscription lists.
 	 */
 	public static function api_permission_callback() {
-		return current_user_can( 'manage_options' );
+		return current_user_can( 'edit_others_' . Newspack\Newsletters\Subscription_Lists::CPT . 's' );
 	}
 
 	/**
