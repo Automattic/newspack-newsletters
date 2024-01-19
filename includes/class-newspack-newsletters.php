@@ -454,9 +454,10 @@ final class Newspack_Newsletters {
 			return;
 		}
 		$eligible_roles = apply_filters( 'newspack_newsletters_cpt_eligible_roles', [ 'administrator', 'editor' ] );
+		$capabilities = array_merge( self::get_capabilities_list(), self::get_capabilities_list( Newspack_Newsletters_Ads::CPT ) );
 		foreach ( $eligible_roles as $role ) {
 			$role = get_role( $role );
-			foreach ( self::get_capabilities_list() as $cap ) {
+			foreach ( $capabilities as $cap ) {
 				$role->add_cap( $cap );
 			}
 		}
@@ -467,12 +468,14 @@ final class Newspack_Newsletters {
 	 * Get capabilities necessary to manage this CPT.
 	 *
 	 * See https://developer.wordpress.org/reference/functions/register_post_type/#capabilities.
+	 *
+	 * @param string $post_type Post type.
 	 */
-	public static function get_capabilities_list() {
+	public static function get_capabilities_list( $post_type = self::NEWSPACK_NEWSLETTERS_CPT ) {
 		$capabilities = get_post_type_capabilities(
 			(object) [
 				'map_meta_cap'    => true,
-				'capability_type' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'capability_type' => $post_type,
 				'capabilities'    => [],
 			]
 		);

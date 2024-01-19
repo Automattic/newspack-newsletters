@@ -87,7 +87,7 @@ final class Newspack_Newsletters_Ads {
 	 * @return bool|WP_Error
 	 */
 	public static function permission_callback( $request ) {
-		return current_user_can( 'edit_posts' );
+		return current_user_can( 'edit_' . self::CPT . 's' );
 	}
 
 	/**
@@ -190,7 +190,7 @@ final class Newspack_Newsletters_Ads {
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			__( 'Newsletters Ads', 'newspack-newsletters' ),
 			__( 'Ads', 'newspack-newsletters' ),
-			'edit_others_posts',
+			'edit_' . self::CPT . 's',
 			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
@@ -201,7 +201,7 @@ final class Newspack_Newsletters_Ads {
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_ads_cpt() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		if ( ! \Newspack_Newsletters::can_user_edit_newsletters() ) {
 			return;
 		}
 
@@ -229,13 +229,14 @@ final class Newspack_Newsletters_Ads {
 		];
 
 		$cpt_args = [
-			'public'       => false,
-			'labels'       => $labels,
-			'show_ui'      => true,
-			'show_in_menu' => false,
-			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [ 'category' ],
+			'public'          => false,
+			'labels'          => $labels,
+			'show_ui'         => true,
+			'show_in_menu'    => false,
+			'show_in_rest'    => true,
+			'supports'        => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'      => [ 'category' ],
+			'capability_type' => self::CPT,
 		];
 		register_post_type( self::CPT, $cpt_args );
 
@@ -269,6 +270,13 @@ final class Newspack_Newsletters_Ads {
 				'hierarchical'      => true,
 				'show_in_rest'      => true,
 				'show_admin_column' => true,
+				// Available for anyone who can edit newsletter ads.
+				'capabilities'      => [
+					'manage_terms' => 'edit_' . self::CPT . 's',
+					'edit_terms'   => 'edit_' . self::CPT . 's',
+					'delete_terms' => 'edit_' . self::CPT . 's',
+					'assign_terms' => 'edit_' . self::CPT . 's',
+				],
 			]
 		);
 	}
