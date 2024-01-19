@@ -545,7 +545,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$mc = new Mailchimp( $this->api_key() );
 
 			$result = $this->validate(
-				$mc->get( 'verified-domains' ),
+				$mc->get( 'verified-domains', [ 'count' => 1000 ] ),
 				__( 'Error retrieving verified domains from Mailchimp.', 'newspack-newsletters' )
 			);
 
