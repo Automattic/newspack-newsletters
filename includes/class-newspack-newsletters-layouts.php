@@ -54,10 +54,11 @@ final class Newspack_Newsletters_Layouts {
 		}
 
 		$cpt_args = [
-			'public'       => false,
-			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [],
+			'public'          => false,
+			'show_in_rest'    => true,
+			'supports'        => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'      => [],
+			'capability_type' => self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT, $cpt_args );
 	}

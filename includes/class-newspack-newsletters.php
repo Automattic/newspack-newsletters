@@ -454,10 +454,11 @@ final class Newspack_Newsletters {
 			return;
 		}
 		$eligible_roles = apply_filters( 'newspack_newsletters_cpt_eligible_roles', [ 'administrator', 'editor' ] );
-		$capabilities = array_merge(
+		$capabilities   = array_merge(
 			self::get_capabilities_list(),
 			self::get_capabilities_list( Newspack_Newsletters_Ads::CPT ),
-			self::get_capabilities_list( \Newspack\Newsletters\Subscription_Lists::CPT )
+			self::get_capabilities_list( \Newspack\Newsletters\Subscription_Lists::CPT ),
+			self::get_capabilities_list( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT )
 		);
 		foreach ( $eligible_roles as $role ) {
 			$role = get_role( $role );
