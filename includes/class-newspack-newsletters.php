@@ -98,6 +98,8 @@ final class Newspack_Newsletters {
 		add_action( 'the_post', [ __CLASS__, 'fix_public_status' ] );
 		self::set_service_provider( self::service_provider() );
 
+		add_filter( 'cme_plugin_capabilities', [ __CLASS__, 'cme_plugin_capabilities' ] );
+
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 		if ( $needs_nag ) {
 			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
@@ -446,6 +448,18 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Get all capabilities offered by this plugin.
+	 */
+	private static function get_all_capabilities_list() {
+		return array_merge(
+			self::get_capabilities_list(),
+			self::get_capabilities_list( Newspack_Newsletters_Ads::CPT ),
+			self::get_capabilities_list( \Newspack\Newsletters\Subscription_Lists::CPT ),
+			self::get_capabilities_list( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT )
+		);
+	}
+
+	/**
 	 * Add capabilities for roles eligible to access this CPT.
 	 */
 	public static function add_caps() {
@@ -454,12 +468,7 @@ final class Newspack_Newsletters {
 			return;
 		}
 		$eligible_roles = apply_filters( 'newspack_newsletters_cpt_eligible_roles', [ 'administrator', 'editor' ] );
-		$capabilities   = array_merge(
-			self::get_capabilities_list(),
-			self::get_capabilities_list( Newspack_Newsletters_Ads::CPT ),
-			self::get_capabilities_list( \Newspack\Newsletters\Subscription_Lists::CPT ),
-			self::get_capabilities_list( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT )
-		);
+		$capabilities   = self::get_all_capabilities_list();
 		foreach ( $eligible_roles as $role ) {
 			$role = get_role( $role );
 			foreach ( $capabilities as $cap ) {
@@ -476,7 +485,7 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string $post_type Post type.
 	 */
-	public static function get_capabilities_list( $post_type = self::NEWSPACK_NEWSLETTERS_CPT ) {
+	private static function get_capabilities_list( $post_type = self::NEWSPACK_NEWSLETTERS_CPT ) {
 		$capabilities = get_post_type_capabilities(
 			(object) [
 				'map_meta_cap'    => true,
@@ -1262,6 +1271,16 @@ final class Newspack_Newsletters {
 				exit;
 			}
 		}
+	}
+
+	/**
+	 * Filter the capabilities list in the capability-manager-enhanced plugin.
+	 *
+	 * @param array $capabilities_list The list of capabilities tabs.
+	 */
+	public static function cme_plugin_capabilities( $capabilities_list ) {
+		$capabilities_list['Newspack Newsletters'] = self::get_all_capabilities_list();
+		return $capabilities_list;
 	}
 }
 Newspack_Newsletters::instance();
