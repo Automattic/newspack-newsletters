@@ -38,7 +38,7 @@
 	},
 	"dependencies": {
 		"@uiw/react-codemirror": "^3.2.10",
-		"@wordpress/icons": "^9.39.0",
+		"@wordpress/icons": "^9.40.0",
 		"classnames": "^2.5.1",
 		"commitlint": "^18.4.4",
 		"csslint": "^1.0.5",
