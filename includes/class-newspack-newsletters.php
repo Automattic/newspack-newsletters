@@ -485,7 +485,7 @@ final class Newspack_Newsletters {
 	 *
 	 * @param string $post_type Post type.
 	 */
-	private static function get_capabilities_list( $post_type = self::NEWSPACK_NEWSLETTERS_CPT ) {
+	public static function get_capabilities_list( $post_type = self::NEWSPACK_NEWSLETTERS_CPT ) {
 		$capabilities = get_post_type_capabilities(
 			(object) [
 				'map_meta_cap'    => true,
