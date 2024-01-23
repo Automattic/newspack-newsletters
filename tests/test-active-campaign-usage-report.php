@@ -105,8 +105,8 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 		$expected_report->emails_sent    = 0;
 		$expected_report->opens          = 0;
 		$expected_report->clicks         = 0;
-		$expected_report->subscribes     = 1;
-		$expected_report->unsubscribes   = 1;
+		$expected_report->subscribes     = 2;
+		$expected_report->unsubscribes   = 0; // unsubs also rely on prior data.
 		$expected_report->total_contacts = 2;
 
 		$actual_report = ( new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() ) )->get_usage_report();
@@ -115,6 +115,9 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 	}
 
 	public function test_get_usage_report_with_prior_data() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+
+		update_option( Newspack_Newsletters_Active_Campaign_Usage_Reports::LAST_UNSUBS_DATA_OPTION_NAME, 0 );
+
 		update_option(
 			Newspack_Newsletters_Active_Campaign_Usage_Reports::LAST_CAMPAIGNS_DATA_OPTION_NAME,
 			[
@@ -140,7 +143,7 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 		$expected_report->emails_sent    = 6;
 		$expected_report->opens          = 7;
 		$expected_report->clicks         = 2;
-		$expected_report->subscribes     = 1;
+		$expected_report->subscribes     = 2;
 		$expected_report->unsubscribes   = 1;
 		$expected_report->total_contacts = 2;
 
