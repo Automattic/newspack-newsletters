@@ -44,7 +44,6 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 * Get contacts data - subs and unsubs.
 	 */
 	private function get_contacts_data() {
-
 		$subs = $this->get_subs_count();
 		if ( \is_wp_error( $subs ) ) {
 			return $subs;
@@ -58,7 +57,6 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 			'subs'   => $subs,
 			'unsubs' => $unsubs,
 		];
-
 	}
 
 	/**
@@ -85,7 +83,6 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		}
 
 		$total = intval( $contacts_result['meta']['total'] );
-
 		return $total;
 	}
 
@@ -93,9 +90,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 	 * Gets the count of unsubscribers for the last day.
 	 *
 	 * There's no way to filter for unsubscribes on a given day. Filtering by updated_after is also not reliable.
-	 *
 	 * Let's take the total number of unsubscribes, and subtract the total number of unsubscribes from the previous day.
-	 *
 	 * This is also not perfect, but it's the best alternative I've found.
 	 *
 	 * @return int|WP_Error The number of unsubscribers for the last day, or a WP_Error object on failure.
@@ -129,15 +124,6 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		} else {
 			return 0;
 		}
-
-	}
-
-	/**
-	 * Get default report.
-	 */
-	private static function get_default_report() {
-		$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
-		return $report->to_array();
 	}
 
 	/**
