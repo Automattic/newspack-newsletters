@@ -1,3 +1,10 @@
+# [2.9.0-alpha.5](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0-alpha.4...v2.9.0-alpha.5) (2024-01-24)
+
+
+### Bug Fixes
+
+* improve AC data report perfomance ([#1405](https://github.com/Automattic/newspack-newsletters/issues/1405)) ([f9fb18d](https://github.com/Automattic/newspack-newsletters/commit/f9fb18d8b2af1abaa39f26fb3032a36d258fee04))
+
 ## [2.8.3](https://github.com/Automattic/newspack-newsletters/compare/v2.8.2...v2.8.3) (2024-01-24)
 
 
