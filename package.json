@@ -50,7 +50,7 @@
 		"@rushstack/eslint-patch": "^1.6.1",
 		"eslint": "^7.32.0",
 		"lint-staged": "^13.2.3",
-		"newspack-scripts": "^5.1.1",
+		"newspack-scripts": "^5.2.0",
 		"postcss": "^8.4.33",
 		"postcss-scss": "^4.0.8",
 		"prettier": "npm:wp-prettier@^2.6.2-beta-1",
