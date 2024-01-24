@@ -1,3 +1,10 @@
+# [2.9.0-alpha.4](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0-alpha.3...v2.9.0-alpha.4) (2024-01-24)
+
+
+### Bug Fixes
+
+* add lodash as dependency for editor.js ([c01aebb](https://github.com/Automattic/newspack-newsletters/commit/c01aebbd2e683ad3c9859c6c05c89a43c505b027))
+
 # [2.9.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0-alpha.2...v2.9.0-alpha.3) (2024-01-19)
 
 
