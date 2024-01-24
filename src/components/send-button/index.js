@@ -73,7 +73,7 @@ function PreviewHTMLButton() {
 				<Modal
 					title={ __( 'Preview email', 'newspack-newsletters' ) }
 					onRequestClose={ () => setIsModalOpen( false ) }
-					className="newsletter-preview-html-modal"
+					className="newspack-newsletters__modal newsletter-preview-html-modal"
 					overlayClassName="newsletter-preview-html-modal__overlay"
 					shouldCloseOnClickOutside={ false }
 					isFullScreen
