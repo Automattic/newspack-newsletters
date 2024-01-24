@@ -238,7 +238,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
 
 		// Get contact data to retrieve subs and unsubs.
-		$contacts_data = $this->get_contacts_data( 1 );
+		$contacts_data = $this->get_contacts_data();
 		if ( \is_wp_error( $contacts_data ) ) {
 			return $contacts_data;
 		}
