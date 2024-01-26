@@ -1,3 +1,10 @@
+## [2.9.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0...v2.9.1-alpha.1) (2024-01-26)
+
+
+### Bug Fixes
+
+* apply custom editor modal styles only to newspack modals ([#1404](https://github.com/Automattic/newspack-newsletters/issues/1404)) ([90633c5](https://github.com/Automattic/newspack-newsletters/commit/90633c5ef556a034a1a43b01a2fa60377835af01))
+
 # [2.9.0](https://github.com/Automattic/newspack-newsletters/compare/v2.8.3...v2.9.0) (2024-01-25)
 
 
