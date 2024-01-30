@@ -71,7 +71,8 @@ class Newspack_Newsletters_Quick_Edit {
 	 * @param int $post_id Post ID.
 	 */
 	public static function save( $post_id ) {
-		if ( ! current_user_can( 'edit_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, $post_id ) ) {
+		$post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( ! current_user_can( $post_type_object->cap->edit_post, $post_id ) ) {
 			return;
 		}
 		if (

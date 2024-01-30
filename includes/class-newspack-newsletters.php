@@ -500,7 +500,8 @@ final class Newspack_Newsletters {
 	 * Can the current user edit newsletters and related entities?
 	 */
 	public static function can_user_edit_newsletters() {
-		return current_user_can( 'edit_others_' . self::NEWSPACK_NEWSLETTERS_CPT . 's' );
+		$post_type_object = get_post_type_object( self::NEWSPACK_NEWSLETTERS_CPT );
+		return current_user_can( $post_type_object->cap->edit_others_posts );
 	}
 
 	/**
@@ -931,7 +932,8 @@ final class Newspack_Newsletters {
 	 * @return bool|WP_Error
 	 */
 	public static function api_authoring_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_' . self::NEWSPACK_NEWSLETTERS_CPT . 's' ) ) {
+		$post_type_object = get_post_type_object( self::NEWSPACK_NEWSLETTERS_CPT );
+		if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),
