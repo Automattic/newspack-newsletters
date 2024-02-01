@@ -144,7 +144,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * Authorization code callback
 	 */
 	public function oauth_callback() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		if ( ! \Newspack_Newsletters::can_user_edit_newsletters() ) {
 			return;
 		}
 		if ( ! isset( $_GET['cc_oauth2'] ) ) {

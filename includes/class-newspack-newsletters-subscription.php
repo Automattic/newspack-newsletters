@@ -120,7 +120,8 @@ class Newspack_Newsletters_Subscription {
 	 * @return bool Whether the current user can manage subscription lists.
 	 */
 	public static function api_permission_callback() {
-		return current_user_can( 'manage_options' );
+		$post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		return current_user_can( $post_type_object->cap->edit_others_posts );
 	}
 
 	/**
@@ -163,8 +164,11 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function get_lists() {
 		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		if ( ! $provider ) {
+			return new WP_Error(
+				'newspack_newsletters_esp_not_a_provider',
+				__( 'Lists not available for the current Newsletters setup.', 'newspack-newsletters' )
+			);
 		}
 		try {
 			/**
@@ -229,8 +233,11 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function get_lists_config() {
 		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		if ( ! $provider ) {
+			return new WP_Error(
+				'newspack_newsletters_esp_not_a_provider',
+				__( 'Lists not available for the current Newsletters setup.', 'newspack-newsletters' )
+			);
 		}
 
 		$saved_lists  = Subscription_Lists::get_configured_for_current_provider();

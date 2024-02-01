@@ -19,7 +19,7 @@ class Newspack_Newsletters_Quick_Edit {
 		add_action( 'quick_edit_custom_box', [ __CLASS__, 'quick_edit_box' ], 10, 2 );
 		add_action( 'save_post_newspack_nl_cpt', [ __CLASS__, 'save' ] );
 	}
-  
+
 	/**
 	 * Enqueue Quick Edit scripts used to update inputs.
 	 */
@@ -39,7 +39,7 @@ class Newspack_Newsletters_Quick_Edit {
 
 	/**
 	 * Display "Make newsletter page public" checkbox field
-	 * 
+	 *
 	 * @param string $column_name Coulumn name.
 	 * @param string $post_type   Post Type.
 	 */
@@ -67,11 +67,12 @@ class Newspack_Newsletters_Quick_Edit {
 
 	/**
 	 * Save Quick Edit action values.
-	 * 
+	 *
 	 * @param int $post_id Post ID.
 	 */
 	public static function save( $post_id ) {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		$post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( ! current_user_can( $post_type_object->cap->edit_post, $post_id ) ) {
 			return;
 		}
 		if (
