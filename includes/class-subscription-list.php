@@ -444,7 +444,7 @@ class Subscription_List {
 				'tag_name' => $tag_name,
 			];
 		}
-		
+
 		return update_post_meta( $this->get_id(), self::META_KEY, $settings );
 	}
 
