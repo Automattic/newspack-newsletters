@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 /**
  * External dependencies
  */
@@ -47,7 +49,6 @@ const decodePost = encodedPost => {
 };
 
 // NOTE: Mostly copied from Gutenberg's Posts Inserter block.
-// https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/posts-inserter/edit.js
 const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 	const [ categoriesList, setCategoriesList ] = useState( [] );
 	const [ postTypesList, setPostTypesList ] = useState( [ { value: 'post', label: 'Posts' } ] );
