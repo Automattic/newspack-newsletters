@@ -1,3 +1,15 @@
+# [2.10.0](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0...v2.10.0) (2024-02-06)
+
+
+### Bug Fixes
+
+* apply custom editor modal styles only to newspack modals ([#1404](https://github.com/Automattic/newspack-newsletters/issues/1404)) ([90633c5](https://github.com/Automattic/newspack-newsletters/commit/90633c5ef556a034a1a43b01a2fa60377835af01))
+
+
+### Features
+
+* use custom capability_type for CPTs ([#1398](https://github.com/Automattic/newspack-newsletters/issues/1398)) ([59403a9](https://github.com/Automattic/newspack-newsletters/commit/59403a92ae0ec2b14549dc9c72d8495fca1e926a))
+
 # [2.10.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.9.1-alpha.1...v2.10.0-alpha.1) (2024-02-01)
 
 
