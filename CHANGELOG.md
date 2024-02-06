@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/Automattic/newspack-newsletters/compare/v2.10.0...v2.10.1) (2024-02-06)
+
+
+### Reverts
+
+* Revert "feat: use custom capability_type for CPTs (#1398)" ([ec7d7d8](https://github.com/Automattic/newspack-newsletters/commit/ec7d7d84aa34f4e38182b1a21613216cf1416ce7)), closes [#1398](https://github.com/Automattic/newspack-newsletters/issues/1398)
+
 # [2.10.0](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0...v2.10.0) (2024-02-06)
 
 
