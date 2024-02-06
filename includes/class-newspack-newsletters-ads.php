@@ -87,8 +87,7 @@ final class Newspack_Newsletters_Ads {
 	 * @return bool|WP_Error
 	 */
 	public static function permission_callback( $request ) {
-		$post_type_object = get_post_type_object( self::CPT );
-		return current_user_can( $post_type_object->cap->edit_posts );
+		return current_user_can( 'edit_posts' );
 	}
 
 	/**
@@ -187,12 +186,11 @@ final class Newspack_Newsletters_Ads {
 	 * Add ads page link.
 	 */
 	public static function add_ads_page() {
-		$post_type_object = get_post_type_object( self::CPT );
 		add_submenu_page(
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			__( 'Newsletters Ads', 'newspack-newsletters' ),
 			__( 'Ads', 'newspack-newsletters' ),
-			$post_type_object->cap->edit_posts,
+			'edit_others_posts',
 			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
@@ -203,6 +201,10 @@ final class Newspack_Newsletters_Ads {
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_ads_cpt() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			return;
+		}
+
 		$labels = [
 			'name'                     => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'            => _x( 'Newsletter Ad', 'post type singular name', 'newspack-newsletters' ),
@@ -227,18 +229,15 @@ final class Newspack_Newsletters_Ads {
 		];
 
 		$cpt_args = [
-			'public'          => false,
-			'labels'          => $labels,
-			'show_ui'         => true,
-			'show_in_menu'    => false,
-			'show_in_rest'    => true,
-			'supports'        => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'      => [ 'category' ],
-			'capability_type' => self::CPT,
+			'public'       => false,
+			'labels'       => $labels,
+			'show_ui'      => true,
+			'show_in_menu' => false,
+			'show_in_rest' => true,
+			'supports'     => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'   => [ 'category' ],
 		];
 		register_post_type( self::CPT, $cpt_args );
-
-		$post_type_object = get_post_type_object( self::CPT );
 
 		register_taxonomy(
 			self::ADVERTISER_TAX,
@@ -270,13 +269,6 @@ final class Newspack_Newsletters_Ads {
 				'hierarchical'      => true,
 				'show_in_rest'      => true,
 				'show_admin_column' => true,
-				// Available for anyone who can edit newsletter ads.
-				'capabilities'      => [
-					'manage_terms' => $post_type_object->cap->edit_posts,
-					'edit_terms'   => $post_type_object->cap->edit_posts,
-					'delete_terms' => $post_type_object->cap->edit_posts,
-					'assign_terms' => $post_type_object->cap->edit_posts,
-				],
 			]
 		);
 	}
