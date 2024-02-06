@@ -109,7 +109,6 @@ class Subscription_Lists {
 	 * @return void
 	 */
 	public static function register_post_type() {
-
 		$labels = array(
 			'name'                  => _x( 'Subscription Lists', 'Post Type General Name', 'newspack' ),
 			'singular_name'         => _x( 'Subscription List', 'Post Type Singular Name', 'newspack' ),
@@ -152,7 +151,7 @@ class Subscription_Lists {
 			'show_ui'              => true,
 			'show_in_menu'         => false,
 			'can_export'           => false,
-			'capability_type'      => 'page',
+			'capability_type'      => self::CPT,
 			'show_in_rest'         => false,
 			'delete_with_user'     => false,
 			'register_meta_box_cb' => [ __CLASS__, 'add_metabox' ],
@@ -555,7 +554,6 @@ class Subscription_Lists {
 			$existing_ids[] = $stored_list->get_id();
 
 			$stored_list->update( $list );
-
 		}
 
 		// Clean up. Lists that are not in the new config deactivated.
@@ -618,7 +616,7 @@ class Subscription_Lists {
 			printf( '<h2>%s</h2>', esc_html__( 'Description', 'newspack-newsletters' ) );
 		}
 	}
-	
+
 	/**
 	 * Outputs a link back to the Settings page above the title in the post editor.
 	 */
@@ -654,7 +652,7 @@ class Subscription_Lists {
 			}
 
 			foreach ( $lists as $list_id => $list ) {
-				
+
 				if ( Subscription_List::is_local_form_id( $list_id ) ) {
 					continue;
 				}

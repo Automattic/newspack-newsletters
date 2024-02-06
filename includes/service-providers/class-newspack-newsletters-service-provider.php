@@ -98,7 +98,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @return bool|WP_Error
 	 */
 	public function api_authoring_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		if ( ! \Newspack_Newsletters::can_user_edit_newsletters() ) {
 			return new \WP_Error(
 				'newspack_rest_forbidden',
 				esc_html__( 'You cannot use this resource.', 'newspack-newsletters' ),

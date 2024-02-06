@@ -49,15 +49,16 @@ final class Newspack_Newsletters_Layouts {
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_layout_cpt() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		if ( ! \Newspack_Newsletters::can_user_edit_newsletters() ) {
 			return;
 		}
 
 		$cpt_args = [
-			'public'       => false,
-			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [],
+			'public'          => false,
+			'show_in_rest'    => true,
+			'supports'        => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'      => [],
+			'capability_type' => self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT, $cpt_args );
 	}
