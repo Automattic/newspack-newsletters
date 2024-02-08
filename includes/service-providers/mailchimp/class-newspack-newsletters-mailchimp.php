@@ -756,13 +756,19 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @param boolean $update Whether this is an existing post being updated or not.
 	 */
 	public function save( $post_id, $post, $update ) {
+		if ( $update && ! wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		if ( wp_is_post_autosave( $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+			return;
+		}
+
 		$status = get_post_status( $post_id );
 		if ( 'trash' === $status ) {
 			return;
 		}
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
+
 		$this->sync( $post );
 	}
 
