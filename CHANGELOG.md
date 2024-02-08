@@ -1,3 +1,10 @@
+# [2.11.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.10.2...v2.11.0-alpha.1) (2024-02-08)
+
+
+### Features
+
+* **ci:** add `epic/*` release workflow and rename `master` to `trunk` ([#1414](https://github.com/Automattic/newspack-newsletters/issues/1414)) ([c71ff69](https://github.com/Automattic/newspack-newsletters/commit/c71ff690e5b2c63c8201a52c3838ff888b840425))
+
 ## [2.10.2](https://github.com/Automattic/newspack-newsletters/compare/v2.10.1...v2.10.2) (2024-02-08)
 
 
