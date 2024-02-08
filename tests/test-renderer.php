@@ -130,7 +130,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => $inner_html,
 				]
 			),
-			'<mj-section url="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" ><a href="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910">Learning PHP, MySQL &amp; JavaScript: With jQuery, CSS &amp; HTML5 (Learning PHP, MYSQL, Javascript, CSS &amp; HTML5)</a></mj-text></mj-column></mj-section>',
+			'<mj-section url="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" ><a href="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910">Learning PHP, MYSQL &amp; JavaScript: With jQuery, CSS &amp; HTML5</a></mj-text></mj-column></mj-section>',
 			'Renders invalid rich HTML as link'
 		);
 	}

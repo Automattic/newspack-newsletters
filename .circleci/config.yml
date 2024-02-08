@@ -33,7 +33,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - trunk
       - newspack/release:
           requires:
             - newspack/build
@@ -43,6 +43,7 @@ workflows:
                 - release
                 - alpha
                 - /^hotfix\/.*/
+                - /^epic\/.*/
       - newspack/post-release:
           requires:
             - newspack/release
