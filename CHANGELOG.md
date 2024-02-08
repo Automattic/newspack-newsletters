@@ -1,3 +1,10 @@
+## [2.10.2](https://github.com/Automattic/newspack-newsletters/compare/v2.10.1...v2.10.2) (2024-02-08)
+
+
+### Bug Fixes
+
+* catch invalid subscription list errors ([#1411](https://github.com/Automattic/newspack-newsletters/issues/1411)) ([cb275c4](https://github.com/Automattic/newspack-newsletters/commit/cb275c462810e9dafb360a77eb98b17a56c6a90d))
+
 ## [2.10.1](https://github.com/Automattic/newspack-newsletters/compare/v2.10.0...v2.10.1) (2024-02-06)
 
 
