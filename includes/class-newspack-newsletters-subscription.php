@@ -978,7 +978,7 @@ class Newspack_Newsletters_Subscription {
 		$email = [
 			'to'      => $user->user_email,
 			/* translators: %s Site title. */
-			'subject' => __( '[%s] Verify your email', 'newspack' ),
+			'subject' => __( '[%s] Verify your email', 'newspack-newsletters' ),
 			'message' => $message,
 			'headers' => $headers,
 		];
