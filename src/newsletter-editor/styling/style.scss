@@ -23,6 +23,9 @@
 	}
 
 	&__css-panel {
+		.components-base-control {
+			max-width: 100%;
+		}
 		.CodeMirror {
 			border: 1px solid wp-colors.$gray-700;
 		}
