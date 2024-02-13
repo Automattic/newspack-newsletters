@@ -1292,6 +1292,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					continue;
 				}
 				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
+
+				$log_data = [
+					'audience_id' => $list_id,
+				];
+				Newspack_Newsletters_Logger::remote_log( 'newsletters_mailchimp_unsubscribe', 'Reader unsubscribed from audience', $email, [ 'data' => $log_data ] );
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(

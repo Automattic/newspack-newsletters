@@ -134,6 +134,19 @@ class Woocommerce_Memberships {
 	public static function handle_membership_status_change( $user_membership, $old_status, $new_status ) {
 		Newspack_Newsletters_Logger::log( 'Membership status changed to ' . $new_status );
 
+		$user = $user_membership->get_user();
+		if ( ! $user ) {
+			return;
+		}
+		$user_email = $user->user_email;
+
+		$log_data = [
+			'old_status'    => $old_status,
+			'new_status'    => $new_status,
+			'membership_id' => $user_membership->get_id(),
+		];
+		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Membership status changed', $user_email, [ 'data' => $log_data ] );
+
 		// Store the previous status so we can check it in the `add_user_to_lists` method, that runs on a later hook.
 		self::$previous_statuses[ $user_membership->get_id() ] = $old_status;
 
@@ -195,6 +208,13 @@ class Woocommerce_Memberships {
 		if ( ! empty( $provider ) ) {
 			$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
 			Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
+
+			$log_data = [
+				'removed_lists'  => $lists_to_remove,
+				'existing_lists' => $existing_lists,
+				'membership_id'  => $user_membership->get_id(),
+			];
+			Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Reader unsubscribed from lists', $user_email, [ 'data' => $log_data ] );
 		}
 
 	}
@@ -251,6 +271,7 @@ class Woocommerce_Memberships {
 		$rules        = $plan->get_content_restriction_rules();
 
 		Newspack_Newsletters_Logger::log( 'New membership granted to ' . $user_email );
+		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Membership granted', $user_email, [ 'data' => [ 'membership_id' => $user_membership->get_id() ] ] );
 
 		foreach ( $rules as $rule ) {
 			if ( Subscription_Lists::CPT !== $rule->get_content_type_name() ) {
@@ -282,6 +303,13 @@ class Woocommerce_Memberships {
 		$provider = Newspack_Newsletters::get_service_provider();
 		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' added to the following lists: ' . implode( ', ', $lists_to_add ) );
+
+		$log_data = [
+			'added_lists'        => $lists_to_add,
+			'pre_existing_lists' => $pre_existing_lists,
+			'membership_id'      => $user_membership->get_id(),
+		];
+		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Reader subscribed to lists', $user_email, [ 'data' => $log_data ] );
 	}
 
 	/**
