@@ -1156,7 +1156,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			// If we're subscribing the contact to a newsletter, they should have some status 
 			// because 'non-subscriber' status can't receive newsletters.
 			if ( ! empty( $group_id ) || ! empty( $list_id ) ) {
-				$update_payload['status_if_new'] = $new_contact_status;
+				$update_payload['status_if_new'] = $new_contact_status ?? 'subscribed';
+				$update_payload['status']        = $new_contact_status ?? 'subscribed';
 			}
 
 			// Create or update a list member.
