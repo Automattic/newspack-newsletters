@@ -40,6 +40,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	private static $contacts_added = [];
 
 	/**
+	 * Memoized data for the get_contact_data method
+	 *
+	 * @var array
+	 */
+	private $contacts_data = [];
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -254,7 +261,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return true|WP_Error
 	 */
 	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
-		$existing_contact = $this->get_contact_data( $email );
+		$existing_contact = $this->get_cached_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			return $existing_contact;
 		}
@@ -285,7 +292,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return true|WP_Error
 	 */
 	public function remove_tag_from_contact( $email, $tag, $list_id = null ) {
-		$existing_contact = $this->get_contact_data( $email );
+		$existing_contact = $this->get_cached_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			return $existing_contact;
 		}
@@ -1046,9 +1053,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @param array  $contact      {
 	 *    Contact data.
 	 *
-	 *    @type string   $email    Contact email address.
-	 *    @type string   $name     Contact name. Optional.
-	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 *    @type string   $email       Contact email address.
+	 *    @type string   $name        Contact name. Optional.
+	 *    @type string[] $metadata    Contact additional metadata. Optional.
+	 *    @type string[] $add_tags    Tags to be added to the contact. Optional.
+	 *    @type string[] $remove_tags Tags to be removeed to the contact. Optional.
 	 * }
 	 * @param string $list_id      List to add the contact to.
 	 *
@@ -1175,6 +1184,23 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						isset( $result['detail'] ) ? $result['detail'] : ''
 					)
 				);
+			}
+
+			// Add tags if any were informed.
+			if ( ! empty( $contact['add_tags'] ) ) {
+				foreach ( $contact['add_tags'] as $tag ) {
+					$tag_id = $this->get_tag_id( $tag, true, $list_id );
+					$this->add_tag_to_contact( $email_address, $tag_id, $list_id );
+				}
+			}
+			// Remove tags if any were informed.
+			if ( ! empty( $contact['remove_tags'] ) ) {
+				foreach ( $contact['remove_tags'] as $tag ) {
+					$tag_id = $this->get_tag_id( $tag, false, $list_id );
+					if ( ! is_wp_error( $tag_id ) ) {
+						$this->remove_tag_from_contact( $email_address, $tag_id, $list_id );
+					}
+				}
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
@@ -1342,7 +1368,24 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'status'     => $contact['status'],
 			];
 		}
+		$this->contacts_data[ $email ] = $data;
 		return $data;
+	}
+
+	/**
+	 * A memoized version of the get_contact_data method.
+	 *
+	 * To be used in methods where it's not critical that we have the most updated version of a contact
+	 *
+	 * @param string $email The contact email.
+	 * @return array|WP_Error Response or error if contact was not found.
+	 */
+	public function get_cached_contact_data( $email ) {
+		if ( isset( $this->contacts_data[ $email ] ) && ! is_wp_error( $this->contacts_data[ $email ] ) ) {
+			return $this->contacts_data[ $email ];
+		}
+		return $this->get_contact_data( $email );
+
 	}
 
 	/**
@@ -1352,7 +1395,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error The tag IDs on success, grouped by lists. WP_Error on failure.
 	 */
 	public function get_contact_tags_ids( $email ) {
-		$contact_data = $this->get_contact_data( $email );
+		$contact_data = $this->get_cached_contact_data( $email );
 		if ( is_wp_error( $contact_data ) ) {
 			return $contact_data;
 		}
