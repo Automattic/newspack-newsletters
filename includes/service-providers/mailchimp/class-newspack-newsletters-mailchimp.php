@@ -40,6 +40,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	private static $contacts_added = [];
 
 	/**
+	 * Controller.
+	 *
+	 * @var Newspack_Newsletters_Mailchimp_Controller
+	 */
+	public $controller;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
