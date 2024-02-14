@@ -1,3 +1,81 @@
+## [2.10.2](https://github.com/Automattic/newspack-newsletters/compare/v2.10.1...v2.10.2) (2024-02-08)
+
+
+### Bug Fixes
+
+* catch invalid subscription list errors ([#1411](https://github.com/Automattic/newspack-newsletters/issues/1411)) ([cb275c4](https://github.com/Automattic/newspack-newsletters/commit/cb275c462810e9dafb360a77eb98b17a56c6a90d))
+
+## [2.10.1](https://github.com/Automattic/newspack-newsletters/compare/v2.10.0...v2.10.1) (2024-02-06)
+
+
+### Reverts
+
+* Revert "feat: use custom capability_type for CPTs (#1398)" ([ec7d7d8](https://github.com/Automattic/newspack-newsletters/commit/ec7d7d84aa34f4e38182b1a21613216cf1416ce7)), closes [#1398](https://github.com/Automattic/newspack-newsletters/issues/1398)
+
+# [2.10.0](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0...v2.10.0) (2024-02-06)
+
+
+### Bug Fixes
+
+* apply custom editor modal styles only to newspack modals ([#1404](https://github.com/Automattic/newspack-newsletters/issues/1404)) ([90633c5](https://github.com/Automattic/newspack-newsletters/commit/90633c5ef556a034a1a43b01a2fa60377835af01))
+
+
+### Features
+
+* use custom capability_type for CPTs ([#1398](https://github.com/Automattic/newspack-newsletters/issues/1398)) ([59403a9](https://github.com/Automattic/newspack-newsletters/commit/59403a92ae0ec2b14549dc9c72d8495fca1e926a))
+
+# [2.10.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.9.1-alpha.1...v2.10.0-alpha.1) (2024-02-01)
+
+
+### Features
+
+* use custom capability_type for CPTs ([#1398](https://github.com/Automattic/newspack-newsletters/issues/1398)) ([59403a9](https://github.com/Automattic/newspack-newsletters/commit/59403a92ae0ec2b14549dc9c72d8495fca1e926a))
+
+## [2.9.1-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0...v2.9.1-alpha.1) (2024-01-26)
+
+
+### Bug Fixes
+
+* apply custom editor modal styles only to newspack modals ([#1404](https://github.com/Automattic/newspack-newsletters/issues/1404)) ([90633c5](https://github.com/Automattic/newspack-newsletters/commit/90633c5ef556a034a1a43b01a2fa60377835af01))
+
+# [2.9.0](https://github.com/Automattic/newspack-newsletters/compare/v2.8.3...v2.9.0) (2024-01-25)
+
+
+### Bug Fixes
+
+* add lodash as dependency for editor.js ([c01aebb](https://github.com/Automattic/newspack-newsletters/commit/c01aebbd2e683ad3c9859c6c05c89a43c505b027))
+* memberships & "other" ESP ([6e0402c](https://github.com/Automattic/newspack-newsletters/commit/6e0402cdab04ca918430c4291906c65e9a38f90a))
+* prevent the use of `add_contact` for data sync purposes ([#1386](https://github.com/Automattic/newspack-newsletters/issues/1386)) ([2d68c1f](https://github.com/Automattic/newspack-newsletters/commit/2d68c1f3652496d80579e47b6ae82b728679ce6f))
+* **renderer:** ensure group blocks use conditional tags ([#1380](https://github.com/Automattic/newspack-newsletters/issues/1380)) ([a1a9722](https://github.com/Automattic/newspack-newsletters/commit/a1a9722a60735205a1aa19fe32155c0015e5f792))
+* store and recover lists on membership reactivation ([#1377](https://github.com/Automattic/newspack-newsletters/issues/1377)) ([aa8a8f4](https://github.com/Automattic/newspack-newsletters/commit/aa8a8f4592da689218704b387b058ba24b8ab935))
+
+
+### Features
+
+* display warning if custom fields meta box is visible ([d595ed4](https://github.com/Automattic/newspack-newsletters/commit/d595ed468f32bd61112927aeb94a84fc8505f40d))
+* **tracking:** support UTM coming from the ESP ([#1388](https://github.com/Automattic/newspack-newsletters/issues/1388)) ([77d3a1e](https://github.com/Automattic/newspack-newsletters/commit/77d3a1e3fa73cf6f1fbe9f29d4889ed7718421f4))
+
+# [2.9.0-alpha.5](https://github.com/Automattic/newspack-newsletters/compare/v2.9.0-alpha.4...v2.9.0-alpha.5) (2024-01-24)
+
+
+### Bug Fixes
+
+* improve AC data report perfomance ([#1405](https://github.com/Automattic/newspack-newsletters/issues/1405)) ([f9fb18d](https://github.com/Automattic/newspack-newsletters/commit/f9fb18d8b2af1abaa39f26fb3032a36d258fee04))
+
+## [2.8.3](https://github.com/Automattic/newspack-newsletters/compare/v2.8.2...v2.8.3) (2024-01-24)
+
+
+### Bug Fixes
+
+* improve AC data report perfomance ([#1405](https://github.com/Automattic/newspack-newsletters/issues/1405)) ([f9fb18d](https://github.com/Automattic/newspack-newsletters/commit/f9fb18d8b2af1abaa39f26fb3032a36d258fee04))
+
+## [2.8.2](https://github.com/Automattic/newspack-newsletters/compare/v2.8.1...v2.8.2) (2024-01-19)
+
+
+### Bug Fixes
+
+* get all verified domains from Mailchimp ([3ea41dc](https://github.com/Automattic/newspack-newsletters/commit/3ea41dc141222658a7c2d70522d15c1c755ff142))
+
 ## [2.8.1](https://github.com/Automattic/newspack-newsletters/compare/v2.8.0...v2.8.1) (2024-01-15)
 
 
