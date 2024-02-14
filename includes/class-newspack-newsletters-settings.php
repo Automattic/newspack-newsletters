@@ -430,13 +430,13 @@ class Newspack_Newsletters_Settings {
 			return;
 		}
 		if ( ! \check_admin_referer( "$action-options" ) ) {
-			\wp_die( \esc_html__( 'Invalid request.', 'newspack' ) );
+			\wp_die( \esc_html__( 'Invalid request.', 'newspack-newsletters' ) );
 		}
 		if ( ! isset( $_POST['lists'] ) ) {
 			return;
 		}
 		if ( ! is_array( $_POST['lists'] ) ) {
-			\wp_die( \esc_html__( 'Invalid request.', 'newspack' ) );
+			\wp_die( \esc_html__( 'Invalid request.', 'newspack-newsletters' ) );
 		}
 		$lists = [];
 		foreach ( $_POST['lists'] as $list_id => $list_data ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
