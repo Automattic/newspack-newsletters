@@ -76,14 +76,13 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		$id  = self::$posts['only_mailchimp'];
 		$all = Subscription_Lists::get_filtered(
-			function( $list ) use ( $id ) {
+			function ( $list ) use ( $id ) {
 				return $list->get_id() === $id;
 			}
 		);
 
 		$this->assertSame( 1, count( $all ) );
 		$this->assertSame( $id, $all[0]->get_id() );
-		
 	}
 
 	/**
@@ -227,7 +226,6 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( 'New title for AC', $list->get_title() );
 		$this->assertSame( self::$posts['remote_active_campaign'], $list->get_id() );
-
 	}
 
 	/**
@@ -300,7 +298,6 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( 'mc 3', $list->get_description() );
 		$this->assertTrue( $list->is_active() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
-
 	}
 
 	/**
@@ -310,7 +307,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		Subscription_Lists::garbage_collector( [ self::$posts['remote_mailchimp'] ] );
 		$all_lists = Subscription_Lists::get_all();
 		$ids       = array_map(
-			function( $list ) {
+			function ( $list ) {
 				return $list->get_id();
 			},
 			$all_lists 
@@ -319,5 +316,4 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertNotContains( self::$posts['remote_mailchimp_inactive'], $ids );
 		$this->assertContains( self::$posts['remote_active_campaign'], $ids );
 	}
-
 }
