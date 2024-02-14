@@ -142,7 +142,6 @@ class Woocommerce_Memberships {
 		if ( ! in_array( $new_status, $status_considered_active ) ) {
 			self::remove_user_from_lists( $user_membership );
 		}
-
 	}
 
 	/**
@@ -196,7 +195,6 @@ class Woocommerce_Memberships {
 			$provider->update_contact_lists_handling_local( $user_email, [], $lists_to_remove );
 			Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
 		}
-
 	}
 
 	/**
@@ -325,7 +323,6 @@ class Woocommerce_Memberships {
 		}
 		return $value[ $membership_id ];
 	}
-
 }
 
 Woocommerce_Memberships::init();

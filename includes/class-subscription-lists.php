@@ -83,7 +83,6 @@ class Subscription_Lists {
 
 		// Only init if current provider supports local lists.
 		return $provider::$support_local_lists;
-
 	}
 
 	/**
@@ -371,7 +370,6 @@ class Subscription_Lists {
 		}
 
 		$subscription_list->update_current_provider_settings( $list, $tag_id, $new_tag_name, $error );
-
 	}
 
 	/**
@@ -413,7 +411,7 @@ class Subscription_Lists {
 		return array_values(
 			array_filter(
 				$lists,
-				function( $list ) use ( $callback ) {
+				function ( $list ) use ( $callback ) {
 					return call_user_func( $callback, $list );
 				}
 			)
@@ -428,7 +426,7 @@ class Subscription_Lists {
 	 */
 	public static function get_configured_for_provider( $provider_slug ) {
 		return self::get_filtered(
-			function( $list ) use ( $provider_slug ) {
+			function ( $list ) use ( $provider_slug ) {
 				return $list->is_configured_for_provider( $provider_slug );
 			}
 		);
@@ -441,7 +439,7 @@ class Subscription_Lists {
 	 */
 	public static function get_configured_for_current_provider() {
 		return self::get_filtered(
-			function( $list ) {
+			function ( $list ) {
 				return $list->is_configured_for_current_provider();
 			}
 		);
