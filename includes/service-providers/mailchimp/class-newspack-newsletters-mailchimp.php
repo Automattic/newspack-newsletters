@@ -1381,7 +1381,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
 	public function get_cached_contact_data( $email ) {
-		if ( isset( $this->contacts_data[ $email ] ) && ! is_wp_error( $this->contacts_data[ $email ] ) ) {
+		if ( isset( $this->contacts_data[ $email ] ) ) {
 			return $this->contacts_data[ $email ];
 		}
 		return $this->get_contact_data( $email );
