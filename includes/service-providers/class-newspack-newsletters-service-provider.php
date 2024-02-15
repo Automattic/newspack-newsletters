@@ -337,6 +337,24 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	}
 
 	/**
+	 * Notify the site administrators.
+	 *
+	 * @param string $subject The email subject.
+	 * @param string $message The email message.
+	 */
+	private static function notify_site_admins( $subject, $message ) {
+		$site_administrators = get_users(
+			[
+				'role'  => 'administrator',
+				'limit' => 10, // Notifying 10 people should be enough.
+			]
+		);
+		foreach ( $site_administrators as $user ) {
+			$sent = \wp_mail( $user->user_email, $subject, $message ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+		}
+	}
+
+	/**
 	 * Send a newsletter.
 	 *
 	 * @param WP_Post $post The newsletter post.
@@ -365,12 +383,22 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			if ( ! is_array( $errors ) ) {
 				$errors = [];
 			}
+			$error_message = $result->get_error_message();
 			$errors[] = [
 				'timestamp' => time(),
-				'message'   => $result->get_error_message(),
+				'message'   => $error_message,
 			];
 			$errors   = array_slice( $errors, -10, 10, true );
 			update_post_meta( $post_id, 'newsletter_send_errors', $errors );
+
+			self::notify_site_admins(
+				__( 'Sending a newsletter failed', 'newspack-newsletters' ),
+				sprintf(
+					/* translators: %s is the error message */
+					__( 'A newsletter campaign failed to send on your site. Details of the error message: %s', 'newspack-newsletters' ),
+					$error_message
+				)
+			);
 		}
 
 		return $result;
