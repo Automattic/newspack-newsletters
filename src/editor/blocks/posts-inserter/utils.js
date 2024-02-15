@@ -75,7 +75,7 @@ const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor
 
 const getContinueReadingLinkBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	const attributes = {
-		content: `<a href="${ post.link }">${ __( 'Continue reading…', 'newspack-newsletters' ) }</a>`,
+		content: `<a href="${ post.link }">${ newspack_email_editor_data?.labels?.continue_reading_label }</a>`,
 		style: { color: { text: textColor } },
 	};
 	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
