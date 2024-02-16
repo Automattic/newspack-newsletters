@@ -145,7 +145,7 @@ class Woocommerce_Memberships {
 			'new_status'    => $new_status,
 			'membership_id' => $user_membership->get_id(),
 		];
-		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Membership status changed', $user_email, [ 'data' => $log_data ] );
+		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_handling', 'Membership status changed', $user_email, [ 'data' => $log_data ] );
 
 		// Store the previous status so we can check it in the `add_user_to_lists` method, that runs on a later hook.
 		self::$previous_statuses[ $user_membership->get_id() ] = $old_status;
