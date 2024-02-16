@@ -8,7 +8,7 @@ import { omit } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { __, _x } from '@wordpress/i18n';
+import { _x } from '@wordpress/i18n';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
 // eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
@@ -106,7 +106,7 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 		return [
 			'core/heading',
 			assignFontSize( textFontSize, {
-				content: newspack_email_editor_data?.labels?.byline_prefix_label  + authorLinks.join( ' ' ),
+				content: newspack_email_editor_data?.labels?.byline_prefix_label + authorLinks.join( ' ' ),
 				fontSize: 'normal',
 				level: 6,
 				style: { color: { text: textColor } },
