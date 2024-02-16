@@ -1186,22 +1186,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				);
 			}
 
-			// Add tags if any were informed.
-			if ( ! empty( $contact['add_tags'] ) ) {
-				foreach ( $contact['add_tags'] as $tag ) {
-					$tag_id = $this->get_tag_id( $tag, true, $list_id );
-					$this->add_tag_to_contact( $email_address, $tag_id, $list_id );
-				}
-			}
-			// Remove tags if any were informed.
-			if ( ! empty( $contact['remove_tags'] ) ) {
-				foreach ( $contact['remove_tags'] as $tag ) {
-					$tag_id = $this->get_tag_id( $tag, false, $list_id );
-					if ( ! is_wp_error( $tag_id ) ) {
-						$this->remove_tag_from_contact( $email_address, $tag_id, $list_id );
-					}
-				}
-			}
+			$this->process_contact_tags( $contact, $list_id );
+
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_add_contact_failed',
@@ -1210,6 +1196,35 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 		self::$contacts_added[ $list_id . $email_address ] = $result;
 		return $result;
+	}
+
+	/**
+	 * Adds and removes tags to a contact based on a $contact array
+	 *
+	 * Given a contact array in the same format we use in add_contact, will read the add_tags and remove_tags keys and add or remove tags from the contact.
+	 *
+	 * @param array  $contact The contact data. @see self::add_contact.
+	 * @param string $list_id The Audience ID to add the contact tags to.
+	 * @return void
+	 */
+	public function process_contact_tags( $contact, $list_id ) {
+		$email_address = $contact['email'];
+		// Add tags if any were informed.
+		if ( ! empty( $contact['add_tags'] ) ) {
+			foreach ( $contact['add_tags'] as $tag ) {
+				$tag_id = $this->get_tag_id( $tag, true, $list_id );
+				$this->add_tag_to_contact( $email_address, $tag_id, $list_id );
+			}
+		}
+		// Remove tags if any were informed.
+		if ( ! empty( $contact['remove_tags'] ) ) {
+			foreach ( $contact['remove_tags'] as $tag ) {
+				$tag_id = $this->get_tag_id( $tag, false, $list_id );
+				if ( ! is_wp_error( $tag_id ) ) {
+					$this->remove_tag_from_contact( $email_address, $tag_id, $list_id );
+				}
+			}
+		}
 	}
 
 	/**
