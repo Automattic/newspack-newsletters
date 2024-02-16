@@ -95,7 +95,7 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 						: '';
 				const and =
 					newspack_author_info.length > 1 && index === newspack_author_info.length - 1
-						? __( 'and ', 'newspack-newsletters' )
+						? newspack_email_editor_data?.labels?.byline_connector_label
 						: '';
 				acc.push( `${ and }<a href="${ author_link }">${ display_name }</a>${ comma }` );
 			}
@@ -106,7 +106,7 @@ const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
 		return [
 			'core/heading',
 			assignFontSize( textFontSize, {
-				content: __( 'By ', 'newspack-newsletters' ) + authorLinks.join( ' ' ),
+				content: newspack_email_editor_data?.labels?.byline_prefix_label  + authorLinks.join( ' ' ),
 				fontSize: 'normal',
 				level: 6,
 				style: { color: { text: textColor } },
