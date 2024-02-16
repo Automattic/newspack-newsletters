@@ -214,7 +214,7 @@ class Woocommerce_Memberships {
 				'existing_lists' => $existing_lists,
 				'membership_id'  => $user_membership->get_id(),
 			];
-			Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Reader unsubscribed from lists', $user_email, [ 'data' => $log_data ] );
+			Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_handling', 'Reader unsubscribed from lists', $user_email, [ 'data' => $log_data ] );
 		}
 
 	}
@@ -271,7 +271,7 @@ class Woocommerce_Memberships {
 		$rules        = $plan->get_content_restriction_rules();
 
 		Newspack_Newsletters_Logger::log( 'New membership granted to ' . $user_email );
-		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Membership granted', $user_email, [ 'data' => [ 'membership_id' => $user_membership->get_id() ] ] );
+		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_handling', 'Membership granted', $user_email, [ 'data' => [ 'membership_id' => $user_membership->get_id() ] ] );
 
 		foreach ( $rules as $rule ) {
 			if ( Subscription_Lists::CPT !== $rule->get_content_type_name() ) {
@@ -309,7 +309,7 @@ class Woocommerce_Memberships {
 			'pre_existing_lists' => $pre_existing_lists,
 			'membership_id'      => $user_membership->get_id(),
 		];
-		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_hadnling', 'Reader subscribed to lists', $user_email, [ 'data' => $log_data ] );
+		Newspack_Newsletters_Logger::remote_log( 'newsletters_membership_handling', 'Reader subscribed to lists', $user_email, [ 'data' => $log_data ] );
 	}
 
 	/**
