@@ -293,25 +293,25 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 							/>
 							<SelectControl
 								key="query-controls-order-select"
-								label={ __( 'Order by' ) }
+								label={ __( 'Order by', 'newspack-newsletters' ) }
 								value={ `${ attributes.orderBy }/${ attributes.order }` }
 								options={ [
 									{
-										label: __( 'Newest to oldest' ),
+										label: __( 'Newest to oldest', 'newspack-newsletters' ),
 										value: 'date/desc',
 									},
 									{
-										label: __( 'Oldest to newest' ),
+										label: __( 'Oldest to newest', 'newspack-newsletters' ),
 										value: 'date/asc',
 									},
 									{
 										/* translators: label for ordering posts by title in ascending order */
-										label: __( 'A → Z' ),
+										label: __( 'A → Z', 'newspack-newsletters' ),
 										value: 'title/asc',
 									},
 									{
 										/* translators: label for ordering posts by title in descending order */
-										label: __( 'Z → A' ),
+										label: __( 'Z → A', 'newspack-newsletters' ),
 										value: 'title/desc',
 									},
 								] }
