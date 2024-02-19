@@ -79,6 +79,9 @@ class Woocommerce_Memberships {
 		if ( ! is_array( $lists ) || empty( $lists ) ) {
 			return $lists;
 		}
+		if ( ! function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
+			return $lists;
+		}
 		$lists = array_filter(
 			$lists,
 			function ( $list ) {
@@ -87,7 +90,7 @@ class Woocommerce_Memberships {
 					return false;
 				}
 
-				$is_post_restricted = wc_memberships_is_post_content_restricted( $list_object->get_id() );
+				$is_post_restricted = \wc_memberships_is_post_content_restricted( $list_object->get_id() );
 
 				if ( ! $is_post_restricted ) {
 					return true;
@@ -95,7 +98,7 @@ class Woocommerce_Memberships {
 
 				$user_id = self::$user_id_in_scope ?? get_current_user_id();
 
-				return wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
+				return \wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
 			}
 		);
 		return array_values( $lists );
