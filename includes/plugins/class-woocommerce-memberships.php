@@ -56,7 +56,7 @@ class Woocommerce_Memberships {
 	 * Initialize the hooks after all plugins are loaded
 	 */
 	public static function init_hooks() {
-		if ( ! class_exists( 'WC_Memberships_Loader' ) ) {
+		if ( ! class_exists( 'WC_Memberships_Loader' ) || ! function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
 			return;
 		}
 		add_filter( 'newspack_newsletters_contact_lists', [ __CLASS__, 'filter_lists' ] );
@@ -77,9 +77,6 @@ class Woocommerce_Memberships {
 	 */
 	public static function filter_lists( $lists ) {
 		if ( ! is_array( $lists ) || empty( $lists ) ) {
-			return $lists;
-		}
-		if ( ! function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
 			return $lists;
 		}
 		$lists = array_filter(
