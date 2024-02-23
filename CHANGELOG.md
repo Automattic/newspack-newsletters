@@ -1,3 +1,15 @@
+# [2.11.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.11.0-alpha.1...v2.11.0-alpha.2) (2024-02-23)
+
+
+### Bug Fixes
+
+* activate newsletter subscribers if needed ([#1421](https://github.com/Automattic/newspack-newsletters/issues/1421)) ([704c804](https://github.com/Automattic/newspack-newsletters/commit/704c804d641d18757c2995133dbece041b2f3384))
+* add missing text domains ([#1436](https://github.com/Automattic/newspack-newsletters/issues/1436)) ([fcb76b5](https://github.com/Automattic/newspack-newsletters/commit/fcb76b56fa583a4c31d0f95648501a2f938d28f6))
+* **custom-css:** code editor styling ([cb93c9a](https://github.com/Automattic/newspack-newsletters/commit/cb93c9a6c92c88b2399788644f1f846d008d77d1))
+* deprecated class property warnings ([3d5efe9](https://github.com/Automattic/newspack-newsletters/commit/3d5efe9184e8975f87a29cbb6a92382770c97fce))
+* dynamic class property deprecated warnings [#1431](https://github.com/Automattic/newspack-newsletters/issues/1431) ([d50643e](https://github.com/Automattic/newspack-newsletters/commit/d50643ea7279f3f3d49d6bb03087956c6cdea3ff))
+* update translation text domains ([#1429](https://github.com/Automattic/newspack-newsletters/issues/1429)) ([dfbd687](https://github.com/Automattic/newspack-newsletters/commit/dfbd6872547e6c565ac6ab65c2c1156e4033b481))
+
 # [2.11.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.10.2...v2.11.0-alpha.1) (2024-02-08)
 
 
