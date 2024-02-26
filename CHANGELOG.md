@@ -1,3 +1,10 @@
+## [2.10.3](https://github.com/Automattic/newspack-newsletters/compare/v2.10.2...v2.10.3) (2024-02-26)
+
+
+### Bug Fixes
+
+* decode newletter tracked link before redirect ([#1440](https://github.com/Automattic/newspack-newsletters/issues/1440)) ([0368546](https://github.com/Automattic/newspack-newsletters/commit/03685469559d34a833cf6510637596bea0d3fd54))
+
 ## [2.10.2](https://github.com/Automattic/newspack-newsletters/compare/v2.10.1...v2.10.2) (2024-02-08)
 
 
