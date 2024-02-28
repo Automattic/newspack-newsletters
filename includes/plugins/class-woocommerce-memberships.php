@@ -278,7 +278,13 @@ class Woocommerce_Memberships {
 		}
 
 		$provider = Newspack_Newsletters::get_service_provider();
-		$provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
+		$result = $provider->update_contact_lists_handling_local( $user_email, $lists_to_add );
+
+		if ( is_wp_error( $result ) ) {
+			Newspack_Newsletters_Logger::log( 'An error occured while updating lists for ' . $user_email . ': ' . $result->get_error_message() );
+			return;
+		}
+
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' added to the following lists: ' . implode( ', ', $lists_to_add ) );
 	}
 
