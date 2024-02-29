@@ -1,3 +1,10 @@
+## [2.10.4](https://github.com/Automattic/newspack-newsletters/compare/v2.10.3...v2.10.4) (2024-02-29)
+
+
+### Bug Fixes
+
+* activate newsletter subscribers if needed ([#1421](https://github.com/Automattic/newspack-newsletters/issues/1421)) ([#1445](https://github.com/Automattic/newspack-newsletters/issues/1445)) ([cac7bae](https://github.com/Automattic/newspack-newsletters/commit/cac7baeb545bf342a59be428b8314970d7c79037))
+
 ## [2.10.3](https://github.com/Automattic/newspack-newsletters/compare/v2.10.2...v2.10.3) (2024-02-26)
 
 
