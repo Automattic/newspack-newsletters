@@ -5,6 +5,7 @@
 import './style.scss';
 
 let nonce;
+const SIGNUP_TIMESTAMP_KEY = 'newspack_newsletters_signup_timestamp';
 
 /**
  * Specify a function to execute when the DOM is fully loaded.
@@ -59,6 +60,29 @@ function getCaptchaToken() {
 	} );
 }
 
+function validateSignupTimestamp() {
+	const timestamp = window.localStorage.getItem( SIGNUP_TIMESTAMP_KEY );
+
+	// If there is no existing timestamp, set it and return true.
+	if ( ! timestamp ) {
+		window.localStorage.setItem( SIGNUP_TIMESTAMP_KEY, new Date().toISOString() );
+		return true;
+	}
+
+	const currentTimestamp = new Date();
+	const previousTimestamp = new Date( timestamp );
+	const timeLapsed = currentTimestamp - previousTimestamp;
+	// TODO: What should this be?
+	const minTimeLapsed = 1000 * 60 * 60 * 5;
+	const hasTimeLapsed = timeLapsed > minTimeLapsed;
+
+	if ( hasTimeLapsed ) {
+		window.localStorage.setItem( SIGNUP_TIMESTAMP_KEY, currentTimestamp.toISOString() );
+	}
+
+	return hasTimeLapsed;
+}
+
 domReady( function () {
 	document.querySelectorAll( '.newspack-newsletters-subscribe' ).forEach( container => {
 		const form = container.querySelector( 'form' );
@@ -87,11 +111,21 @@ domReady( function () {
 		};
 		form.addEventListener( 'submit', ev => {
 			ev.preventDefault();
+
 			messageContainer.innerHTML = '';
 			submit.disabled = true;
 
 			if ( ! form.npe?.value ) {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
+			}
+
+			if ( ! validateSignupTimestamp() ) {
+				// Add honeypot field if timestamp validation fails.
+				const honeypotField = document.createElement( 'input' );
+				honeypotField.setAttribute( 'type', 'hidden' );
+				honeypotField.setAttribute( 'name', 'spam' );
+				honeypotField.setAttribute( 'value', 1 );
+				form.appendChild( honeypotField );
 			}
 
 			getCaptchaToken()
