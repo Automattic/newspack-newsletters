@@ -41,13 +41,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	public static $support_local_lists = true;
 
 	/**
-	 * Controller.
-	 *
-	 * @var Newspack_Newsletters_Active_Campaign_Controller
-	 */
-	public $controller;
-
-	/**
 	 * Provider name.
 	 *
 	 * @var string
