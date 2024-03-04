@@ -223,7 +223,6 @@ class Subscription_List_Test extends WP_UnitTestCase {
 			],
 			$list->get_provider_settings( 'active_campaign' )
 		);
-
 	}
 
 	/**
@@ -401,7 +400,6 @@ class Subscription_List_Test extends WP_UnitTestCase {
 			],
 			$list->get_current_provider_settings()
 		);
-
 	}
 
 	/**
@@ -656,7 +654,5 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		// make sure it persisted.
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
 		$this->assertFalse( $list->is_active() );
-		
 	}
-
 }

@@ -240,27 +240,27 @@ export default function SubscribeEdit( {
 					</PanelBody>
 				) }
 				{ newspack_newsletters_blocks.supports_recaptcha && (
-					<PanelBody title={ __( 'Spam protection', 'newspack' ) }>
+					<PanelBody title={ __( 'Spam protection', 'newspack-newsletters' ) }>
 						<p>
 							{ sprintf(
 								// translators: %s is either 'enabled' or 'disabled'.
-								__( 'reCAPTCHA v3 is currently %s.', 'newspack' ),
+								__( 'reCAPTCHA v3 is currently %s.', 'newspack-newsletters' ),
 								newspack_newsletters_blocks.has_recaptcha
-									? __( 'enabled', 'newspack' )
-									: __( 'disabled', 'newspack' )
+									? __( 'enabled', 'newspack-newsletters' )
+									: __( 'disabled', 'newspack-newsletters' )
 							) }
 						</p>
 						{ ! newspack_newsletters_blocks.has_recaptcha && (
 							<p>
 								{ __(
 									"It's highly recommended that you enable reCAPTCHA v3 protection to prevent spambots from using this form!",
-									'newspack'
+									'newspack-newsletters'
 								) }
 							</p>
 						) }
 						<p>
 							<a href={ newspack_newsletters_blocks.recaptcha_url }>
-								{ __( 'Configure your reCAPTCHA settings.', 'newspack' ) }
+								{ __( 'Configure your reCAPTCHA settings.', 'newspack-newsletters' ) }
 							</a>
 						</p>
 					</PanelBody>
@@ -329,7 +329,7 @@ export default function SubscribeEdit( {
 												{ displayInputLabels && (
 													<RichText
 														onChange={ value => setAttributes( { nameLabel: value } ) }
-														placeholder={ __( 'Name', 'newspack' ) }
+														placeholder={ __( 'Name', 'newspack-newsletters' ) }
 														value={ nameLabel }
 														tagName="span"
 													/>
@@ -343,7 +343,7 @@ export default function SubscribeEdit( {
 													{ displayInputLabels && (
 														<RichText
 															onChange={ value => setAttributes( { lastNameLabel: value } ) }
-															placeholder={ __( 'Last Name', 'newspack' ) }
+															placeholder={ __( 'Last Name', 'newspack-newsletters' ) }
 															value={ lastNameLabel }
 															tagName="span"
 														/>
@@ -359,7 +359,7 @@ export default function SubscribeEdit( {
 										{ displayInputLabels && (
 											<RichText
 												onChange={ value => setAttributes( { emailLabel: value } ) }
-												placeholder={ __( 'Email Address', 'newspack' ) }
+												placeholder={ __( 'Email Address', 'newspack-newsletters' ) }
 												value={ emailLabel }
 												tagName="span"
 											/>
@@ -369,7 +369,7 @@ export default function SubscribeEdit( {
 									<div className="submit-button" style={ { backgroundColor, color: textColor } }>
 										<RichText
 											onChange={ value => setAttributes( { label: value } ) }
-											placeholder={ __( 'Sign up', 'newspack' ) }
+											placeholder={ __( 'Sign up', 'newspack-newsletters' ) }
 											value={ label }
 											tagName="span"
 										/>
