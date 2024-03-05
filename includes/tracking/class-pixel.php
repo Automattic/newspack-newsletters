@@ -295,7 +295,7 @@ final class Pixel {
 		$current_log_file = \get_option( 'newspack_newsletters_tracking_pixel_log_file' );
 
 		if ( $current_log_file && file_exists( $current_log_file ) ) {
-			// Read the tracking data from the log file. Process in batches from EOF to avoid memory issues.
+			// Read the tracking data from the log file. Process in batches to avoid memory issues.
 			$handle    = fopen( $current_log_file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 			$file_end  = false;
 			$pos       = 0;
@@ -330,27 +330,26 @@ final class Pixel {
 
 				// If we've reached the end of the file, stop the loop.
 				if ( $pos >= $file_size ) {
-					fclose( $handle );
 					$file_end = true;
 				}
 
-				$truncated_contents = fread( $handle, $file_size ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
-				fclose( $handle );
-
-				if ( trim( $truncated_contents ) ) {
+				if ( ! $file_end ) {
 					// If there are more lines to process, truncate the file for the next chunk.
+					$truncated_contents = fread( $handle, $file_size - $pos ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
+
+					// Reopen the file in write mode.
+					fclose( $handle );
 					$handle = fopen( $current_log_file, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 					fputs( $handle, $truncated_contents ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_fputs
-				} else {
-					// If there are no more lines to process, stop the loop.
-					$file_end = true;
 				}
 
-				// Reopen truncated file in read mode.
+				// Close and reopen truncated file in read mode.
+				fclose( $handle );
 				$handle = fopen( $current_log_file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 			}
 
 			// Remove the log file after processing.
+			fclose( $handle );
 			unlink( $current_log_file, null ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
 		}
 
