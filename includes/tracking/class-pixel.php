@@ -271,7 +271,6 @@ final class Pixel {
 	 * @param string $item The item to sanitize and track.
 	 */
 	public static function sanitize_and_track_item( $item ) {
-		$item = trim( $item ); // Trim trailing line break.
 		$item = explode( '|', $item );
 		if ( 3 !== count( $item ) ) {
 			return;
@@ -301,51 +300,44 @@ final class Pixel {
 			$pos       = 0;
 
 			while ( ! $file_end ) {
-				rewind( $handle );
 				$file_size = filesize( $current_log_file );
-				$chunk_end = false;
 				$lines     = 0;
 
 				// Process a chunk of lines from the file.
-				while ( ! $chunk_end ) {
-					// If we've processed a full chunk.
-					if ( $lines >= self::MAX_LINES - 1 ) {
-						$chunk_end = true;
-					}
-
+				while ( $lines < self::MAX_LINES ) {
 					// Process the tracking data.
-					$item = fgets( $handle );
+					$item = trim( fgets( $handle ) );
 
-					// If we've reached the end of the chunk, stop the loop.
-					if ( ! $item ) {
-						$chunk_end = true;
+					// If we've reached the end of the chunk or file, stop the loop.
+					if ( ! $item || feof( $handle ) ) {
+						break;
 					}
 
 					self::sanitize_and_track_item( $item );
 					$lines++;
 				}
 
+				// If we've reached the end of the file, stop the loop.
+				if ( feof( $handle ) ) {
+					$file_end = true;
+					break;
+				}
+
 				// Get the current position in the file after processing the chunk.
 				$pos = ftell( $handle );
 
-				// If we've reached the end of the file, stop the loop.
-				if ( $pos >= $file_size ) {
-					$file_end = true;
-				}
+				// If there are more lines to process, truncate the file for the next chunk.
+				$truncated_contents = fread( $handle, $file_size - $pos ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
 
-				if ( ! $file_end ) {
-					// If there are more lines to process, truncate the file for the next chunk.
-					$truncated_contents = fread( $handle, $file_size - $pos ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
-
-					// Reopen the file in write mode.
-					fclose( $handle );
-					$handle = fopen( $current_log_file, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-					fputs( $handle, $truncated_contents ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_fputs
-				}
+				// Reopen the file in write mode.
+				fclose( $handle );
+				$handle = fopen( $current_log_file, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+				fputs( $handle, $truncated_contents ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_fputs
 
 				// Close and reopen truncated file in read mode.
 				fclose( $handle );
 				$handle = fopen( $current_log_file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+				rewind( $handle );
 			}
 
 			// Remove the log file after processing.
