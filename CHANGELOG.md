@@ -1,3 +1,10 @@
+## [2.11.2](https://github.com/Automattic/newspack-newsletters/compare/v2.11.1...v2.11.2) (2024-03-07)
+
+
+### Bug Fixes
+
+* **pixel-tracking:** better logfile handling ([#1450](https://github.com/Automattic/newspack-newsletters/issues/1450)) ([26278ff](https://github.com/Automattic/newspack-newsletters/commit/26278ff9b24a40c209799378aafaf6bd51946d98))
+
 ## [2.11.1](https://github.com/Automattic/newspack-newsletters/compare/v2.11.0...v2.11.1) (2024-03-07)
 
 
