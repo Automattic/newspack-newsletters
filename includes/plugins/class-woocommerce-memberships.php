@@ -171,7 +171,7 @@ class Woocommerce_Memberships {
 		}
 		$user_email = $user->user_email;
 		$plan       = $user_membership->get_plan();
-		if ( ! $plan ) {
+		if ( ! $plan instanceof \WC_Memberships_Membership_Plan ) {
 			return;
 		}
 
