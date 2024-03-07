@@ -1,3 +1,10 @@
+## [2.11.1](https://github.com/Automattic/newspack-newsletters/compare/v2.11.0...v2.11.1) (2024-03-07)
+
+
+### Bug Fixes
+
+* avoid fatal if no plan rules to read ([#1451](https://github.com/Automattic/newspack-newsletters/issues/1451)) ([d516676](https://github.com/Automattic/newspack-newsletters/commit/d516676206a26a6ec1e023c09666a34546975a24))
+
 # [2.11.0](https://github.com/Automattic/newspack-newsletters/compare/v2.10.4...v2.11.0) (2024-03-04)
 
 
