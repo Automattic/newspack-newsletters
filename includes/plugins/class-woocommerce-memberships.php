@@ -56,7 +56,7 @@ class Woocommerce_Memberships {
 	 * Initialize the hooks after all plugins are loaded
 	 */
 	public static function init_hooks() {
-		if ( ! class_exists( 'WC_Memberships_Loader' ) ) {
+		if ( ! class_exists( 'WC_Memberships_Loader' ) || ! function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
 			return;
 		}
 		add_filter( 'newspack_newsletters_contact_lists', [ __CLASS__, 'filter_lists' ] );
@@ -87,7 +87,7 @@ class Woocommerce_Memberships {
 					return false;
 				}
 
-				$is_post_restricted = wc_memberships_is_post_content_restricted( $list_object->get_id() );
+				$is_post_restricted = \wc_memberships_is_post_content_restricted( $list_object->get_id() );
 
 				if ( ! $is_post_restricted ) {
 					return true;
@@ -95,7 +95,7 @@ class Woocommerce_Memberships {
 
 				$user_id = self::$user_id_in_scope ?? get_current_user_id();
 
-				return wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
+				return \wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
 			}
 		);
 		return array_values( $lists );
