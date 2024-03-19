@@ -746,10 +746,12 @@ final class Newspack_Newsletters {
 		$user_layouts  = array_map(
 			function ( $post ) {
 				$post->meta = [
-					'background_color' => get_post_meta( $post->ID, 'background_color', true ),
-					'font_body'        => get_post_meta( $post->ID, 'font_body', true ),
-					'font_header'      => get_post_meta( $post->ID, 'font_header', true ),
-					'custom_css'       => get_post_meta( $post->ID, 'custom_css', true ),
+					'background_color'     => get_post_meta( $post->ID, 'background_color', true ),
+					'font_body'            => get_post_meta( $post->ID, 'font_body', true ),
+					'font_header'          => get_post_meta( $post->ID, 'font_header', true ),
+					'custom_css'           => get_post_meta( $post->ID, 'custom_css', true ),
+					'sender_default_name'  => get_post_meta( $post->ID, 'sender_default_name', true ),
+					'sender_default_email' => get_post_meta( $post->ID, 'sender_default_email', true ),
 				];
 				return $post;
 			},
