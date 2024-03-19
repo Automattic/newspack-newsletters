@@ -1,16 +1,3 @@
-# [2.12.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.11.1...v2.12.0-alpha.1) (2024-03-07)
-
-
-### Bug Fixes
-
-* handle inactive woocommerce ([#1437](https://github.com/Automattic/newspack-newsletters/issues/1437)) ([b369d54](https://github.com/Automattic/newspack-newsletters/commit/b369d542d4884c1963c4d71bebbdac93286569b9))
-* **mc:** log add_user_to_lists errors ([#1444](https://github.com/Automattic/newspack-newsletters/issues/1444)) ([c53b02a](https://github.com/Automattic/newspack-newsletters/commit/c53b02a3a1cd5999f7dcb937c5026e829b77614e))
-
-
-### Features
-
-* update translation strings  ([#1435](https://github.com/Automattic/newspack-newsletters/issues/1435)) ([822c7e1](https://github.com/Automattic/newspack-newsletters/commit/822c7e1ab4a423b32263230d676bf446871c7b20))
-
 ## [2.11.1](https://github.com/Automattic/newspack-newsletters/compare/v2.11.0...v2.11.1) (2024-03-07)
 
 
