@@ -45,6 +45,9 @@ export default function LayoutPicker() {
 		if ( meta.sender_default_email !== undefined ) {
 			meta.senderEmail = meta.sender_default_email;
 		}
+		if ( meta.default_newsletter_data !== undefined ) {
+			meta.stringifiedNewsletterDataFromLayout = meta.default_newsletter_data;
+		}
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
 		savePost();

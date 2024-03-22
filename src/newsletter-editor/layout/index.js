@@ -41,6 +41,7 @@ export default compose( [
 				custom_css: meta.custom_css,
 				sender_default_name: meta.senderName,
 				sender_default_email: meta.senderEmail,
+				default_newsletter_data: JSON.stringify( meta.newsletterData ),
 			},
 		};
 	} ),
