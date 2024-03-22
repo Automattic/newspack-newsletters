@@ -34,6 +34,7 @@ const Sidebar = ( {
 	campaignName,
 	previewText,
 	newsletterData,
+	stringifiedNewsletterDataFromLayout,
 	apiFetchWithErrorHandling,
 	postId,
 } ) => {
@@ -152,6 +153,7 @@ const Sidebar = ( {
 			<ProviderSidebar
 				postId={ postId }
 				newsletterData={ newsletterData }
+				stringifiedNewsletterDataFromLayout={ stringifiedNewsletterDataFromLayout }
 				inFlight={ inFlight }
 				apiFetch={ apiFetch }
 				renderCampaignName={ renderCampaignName }
@@ -177,6 +179,7 @@ export default compose( [
 			campaignName: meta.campaign_name,
 			previewText: meta.preview_text || '',
 			newsletterData: meta.newsletterData || {},
+			stringifiedNewsletterDataFromLayout: meta.stringifiedNewsletterDataFromLayout || {},
 		};
 	} ),
 	withDispatch( dispatch => {

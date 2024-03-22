@@ -84,6 +84,7 @@ const ProviderSidebar = ( {
 	renderPreviewText,
 	inFlight,
 	newsletterData,
+	stringifiedNewsletterDataFromLayout,
 	apiFetch,
 	postId,
 	updateMeta,
@@ -185,6 +186,17 @@ const ProviderSidebar = ( {
 			} );
 		}
 	}, [ campaign ] );
+
+	useEffect( () => {
+		try {
+			const newsletterDataFromLayout = JSON.parse( stringifiedNewsletterDataFromLayout );
+			if ( newsletterDataFromLayout.campaign?.recipients?.list_id ) {
+				setList( newsletterDataFromLayout.campaign.recipients.list_id );
+			}
+		} catch ( e ) {
+			// Ignore it.
+		}
+	}, [ stringifiedNewsletterDataFromLayout.length ] );
 
 	if ( ! campaign ) {
 		return (

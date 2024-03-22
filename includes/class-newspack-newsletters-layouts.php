@@ -79,6 +79,7 @@ final class Newspack_Newsletters_Layouts {
 		\register_meta( 'post', 'custom_css', $meta_default_params );
 		\register_meta( 'post', 'sender_default_name', $meta_default_params );
 		\register_meta( 'post', 'sender_default_email', $meta_default_params );
+		\register_meta( 'post', 'default_newsletter_data', $meta_default_params );
 	}
 
 	/**
