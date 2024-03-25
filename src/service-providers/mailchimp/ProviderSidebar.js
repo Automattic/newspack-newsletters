@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect, useState } from '@wordpress/element';
+import { Fragment, useEffect } from '@wordpress/element';
 import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/components';
 
 /**
@@ -10,26 +10,8 @@ import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/compone
  */
 import { getListInterestsSettings } from './utils';
 
-const SegmentsSelection = ( {
-	onUpdate,
-	inFlight,
-	targetField,
-	chosenTarget,
-	availableInterests,
-	availableSegments,
-} ) => {
-	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || '' );
-
-	const [ isInitial, setIsInitial ] = useState( true );
-	useEffect( () => {
-		if ( ! isInitial ) {
-			onUpdate( targetId );
-		}
-		setIsInitial( false );
-	}, [ targetId ] );
-
+const getSegmentationOptions = ( availableInterests, availableSegments ) => {
 	let options = [];
-
 	if ( availableInterests.length > 0 ) {
 		options = options.concat( [
 			{
@@ -40,7 +22,6 @@ const SegmentsSelection = ( {
 			...availableInterests,
 		] );
 	}
-
 	if ( availableSegments.length > 0 ) {
 		options = options.concat( [
 			{
@@ -54,34 +35,27 @@ const SegmentsSelection = ( {
 			} ) ),
 		] );
 	}
+	return options;
+};
 
-	useEffect( () => {
-		if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
-			const foundOption = options.find(
-				option => option.value && option.value === `${ targetField || '' }:${ targetId }`
-			);
-			if ( foundOption ) setTargetId( foundOption.value );
-		}
-	}, [ targetId ] );
-
+const SegmentsSelection = ( { onUpdate, inFlight, targetField, targetId, options = [] } ) => {
+	if ( ! options.length ) {
+		return null;
+	}
 	return (
-		<Fragment>
-			{ options.length ? (
-				<SelectControl
-					label={ __( 'Group, segment, or tag', 'newspack-newsletters' ) }
-					value={ targetId }
-					options={ [
-						{
-							label: __( 'All subscribers in audience', 'newspack-newsletters' ),
-							value: '',
-						},
-						...options,
-					] }
-					onChange={ id => setTargetId( id.toString() ) }
-					disabled={ inFlight }
-				/>
-			) : null }
-		</Fragment>
+		<SelectControl
+			label={ __( 'Group, segment, or tag', 'newspack-newsletters' ) }
+			value={ `${ targetField || '' }:${ targetId }` }
+			options={ [
+				{
+					label: __( 'All subscribers in audience', 'newspack-newsletters' ),
+					value: '',
+				},
+				...options,
+			] }
+			onChange={ id => onUpdate( id.toString() ) }
+			disabled={ inFlight }
+		/>
 	);
 };
 
@@ -92,6 +66,7 @@ const ProviderSidebar = ( {
 	renderPreviewText,
 	inFlight,
 	newsletterData,
+	stringifiedNewsletterDataFromLayout,
 	apiFetch,
 	postId,
 	updateMeta,
@@ -105,6 +80,7 @@ const ProviderSidebar = ( {
 	const segments = newsletterData.segments || newsletterData.tags || []; // Keep .tags for backwards compatibility.
 
 	const setList = listId =>
+		console.log( 'set list! ', listId ) ||
 		apiFetch( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
 			method: 'POST',
@@ -133,7 +109,10 @@ const ProviderSidebar = ( {
 			},
 		} );
 
-	const updateSegments = target_id => {
+	const updateSegments = target_id =>
+		console.log( 'set segments! ', target_id ) ||
+		// TODO: on first render after choosing the layout, this errors out with
+		// Mailchimp list ID not found.
 		apiFetch( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/segments`,
 			method: 'POST',
@@ -141,7 +120,6 @@ const ProviderSidebar = ( {
 				target_id,
 			},
 		} );
-	};
 
 	const setSender = ( { senderName, senderEmail } ) =>
 		apiFetch( {
@@ -171,6 +149,21 @@ const ProviderSidebar = ( {
 		}
 	}, [ campaign ] );
 
+	useEffect( () => {
+		try {
+			const newsletterDataFromLayout = JSON.parse( stringifiedNewsletterDataFromLayout );
+			if ( newsletterDataFromLayout.campaign?.recipients?.list_id ) {
+				setList( newsletterDataFromLayout.campaign.recipients.list_id );
+				const interestSettings = getListInterestsSettings( newsletterDataFromLayout );
+				if ( interestSettings.interestValue ) {
+					updateSegments( interestSettings.interestValue );
+				}
+			}
+		} catch ( e ) {
+			// Ignore it.
+		}
+	}, [ stringifiedNewsletterDataFromLayout.length ] );
+
 	if ( ! campaign ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
@@ -196,7 +189,7 @@ const ProviderSidebar = ( {
 
 	const recipients = newsletterData.campaign?.recipients;
 
-	const chosenTarget =
+	const targetId =
 		recipients?.segment_opts?.saved_segment_id ||
 		recipients?.segment_opts?.conditions[ 0 ]?.value ||
 		'';
@@ -255,10 +248,12 @@ const ProviderSidebar = ( {
 				</p>
 			) }
 			<SegmentsSelection
-				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
+				targetId={ ( Array.isArray( targetId ) ? targetId[ 0 ] : targetId ).toString() || '' }
 				targetField={ targetField }
-				availableInterests={ interestSettings.options }
-				availableSegments={ segments.filter( segment => segment.member_count > 0 ) }
+				options={ getSegmentationOptions(
+					interestSettings.options,
+					segments.filter( segment => segment.member_count > 0 )
+				) }
 				apiFetch={ apiFetch }
 				inFlight={ inFlight }
 				onUpdate={ updateSegments }
