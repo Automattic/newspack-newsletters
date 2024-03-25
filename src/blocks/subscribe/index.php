@@ -502,14 +502,8 @@ function process_form() {
 			'email'    => $email,
 			'metadata' => $metadata,
 		],
-		$lists,
-		true // Async.
+		$lists
 	);
-
-	// The async subscription strategy returns true.
-	if ( true === $result ) {
-		$result = [];
-	}
 
 	if ( \is_wp_error( $result ) ) {
 		return send_form_response( $result );
