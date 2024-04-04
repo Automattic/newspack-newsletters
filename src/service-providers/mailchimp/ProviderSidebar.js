@@ -14,6 +14,7 @@ import SelectControlWithOptGroup from '../../components/select-control-with-optg
 const SegmentsSelection = ( {
 	onUpdate,
 	inFlight,
+	targetField,
 	chosenTarget,
 	groups = [],
 	tags = [],
@@ -30,6 +31,17 @@ const SegmentsSelection = ( {
 	}, [ targetId ] );
 
 	let optGroups = [];
+
+	useEffect( () => {
+		optGroups.forEach( optGroup => {
+			if ( targetId !== '' && ! optGroup.options.find( option => option.value === targetId ) ) {
+				const foundOption = optGroup.options.find(
+					option => option.value && option.value === `${ targetField || '' }:${ targetId }`
+				);
+				if ( foundOption ) setTargetId( foundOption.value );
+			}
+		} );
+	}, [ targetId ] );
 
 	if ( groups?.categories?.length > 0 ) {
 		optGroups = optGroups.concat( getGroupOptions( groups ) );
@@ -75,6 +87,7 @@ const ProviderSidebar = ( {
 	apiFetch,
 	postId,
 	updateMeta,
+	createErrorNotice,
 } ) => {
 	const campaign = newsletterData.campaign;
 
@@ -88,6 +101,23 @@ const ProviderSidebar = ( {
 	const folders = newsletterData?.folders || [];
 	const segments = newsletterData?.segments || [];
 	const tags = newsletterData?.tags || [];
+
+	useEffect( () => {
+		fetchListsAndSegments();
+	}, [] );
+
+	const fetchListsAndSegments = async () => {
+		try {
+			const response = await apiFetch( {
+				path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
+			} );
+			updateMeta( 'newsletterData', response );
+		} catch ( e ) {
+			createErrorNotice(
+				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
+			);
+		}
+	};
 
 	const setList = listId =>
 		apiFetch( {
@@ -185,6 +215,9 @@ const ProviderSidebar = ( {
 		recipients?.segment_opts?.saved_segment_id ||
 		recipients?.segment_opts?.conditions[ 0 ]?.value ||
 		'';
+	const targetField = recipients?.segment_opts?.conditions?.length
+		? recipients?.segment_opts?.conditions[ 0 ]?.field
+		: '';
 
 	return (
 		<Fragment>
@@ -235,6 +268,7 @@ const ProviderSidebar = ( {
 			) }
 			<SegmentsSelection
 				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
+				targetField={ targetField }
 				groups={ groups }
 				tags={ tags }
 				segments={ segments }
