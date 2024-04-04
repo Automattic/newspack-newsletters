@@ -56,9 +56,6 @@ class Woocommerce_Memberships {
 	 * Initialize the hooks after all plugins are loaded
 	 */
 	public static function init_hooks() {
-		if ( ! class_exists( 'WC_Memberships_Loader' ) || ! function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
-			return;
-		}
 		add_filter( 'newspack_newsletters_contact_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_subscription_block_available_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_manage_newsletters_available_lists', [ __CLASS__, 'filter_lists_objects' ] );
@@ -69,6 +66,19 @@ class Woocommerce_Memberships {
 	}
 
 	/**
+	 * Is WC Memberships enabled?
+	 *
+	 * @return bool
+	 */
+	public static function is_enabled() {
+		if ( class_exists( 'WC_Memberships_Loader' ) && function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Keep users from being added to lists that require a membership plan they dont have
 	 * Also filters lists that require a membership plan to be displayed in the subscription block and in the Manage Newsletters page in My Account
 	 *
@@ -76,7 +86,7 @@ class Woocommerce_Memberships {
 	 * @return array
 	 */
 	public static function filter_lists( $lists ) {
-		if ( ! is_array( $lists ) || empty( $lists ) ) {
+		if ( ! self::is_enabled() || ! is_array( $lists ) || empty( $lists ) ) {
 			return $lists;
 		}
 		$lists = array_filter(
@@ -108,7 +118,7 @@ class Woocommerce_Memberships {
 	 * @return array
 	 */
 	public static function filter_lists_objects( $lists ) {
-		if ( ! is_array( $lists ) || empty( $lists ) ) {
+		if ( ! self::is_enabled() || ! is_array( $lists ) || empty( $lists ) ) {
 			return $lists;
 		}
 
