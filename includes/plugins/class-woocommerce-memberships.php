@@ -245,6 +245,9 @@ class Woocommerce_Memberships {
 	 * @return void
 	 */
 	public static function add_user_to_lists( $plan, $args ) {
+		if ( defined( 'NEWSPACK_ENABLE_POST_CHECKOUT_NEWSLETTER_SIGNUP' ) && NEWSPACK_ENABLE_POST_CHECKOUT_NEWSLETTER_SIGNUP ) {
+			return;
+		}
 
 		// When creating the membership via admin panel, this hook is called once before the membership is actually created.
 		if ( ! $plan instanceof \WC_Memberships_Membership_Plan ) {
