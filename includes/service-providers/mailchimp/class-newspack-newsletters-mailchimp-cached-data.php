@@ -586,7 +586,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @throws Exception In case of errors while fetching data from the server.
 	 * @return array The list interest_categories
 	 */
-	public static function fetch_merge_fields( $list_id ) {
+	private static function fetch_merge_fields( $list_id ) {
 		$mc       = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$response = ( self::get_mc_instance() )->validate(
 			$mc->get(
