@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use DrewM\MailChimp\MailChimp;
+use Newspack\Newsletters\Subscription_List;
 use Newspack\Newsletters\Subscription_Lists;
 
 /**
@@ -1058,10 +1059,22 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$by_list = [];
 		foreach ( $lists as $list_id ) {
 			$list = $this->maybe_extract_group_list( $list_id );
-			if ( $list ) {
-				$list_id  = $list['list_id'];
-				$group_id = $list['group_id'];
+			if ( ! $list ) {
+				// It might be a local list – the list id has to be extracted from the DB.
+				$list = Subscription_List::from_form_id( $list_id );
+				if ( ! $list->is_configured_for_provider( $this->service ) ) {
+					return new WP_Error( 'List not properly configured for the provider' );
+				}
+				$list_settings = $list->get_provider_settings( $this->service );
+				if ( $list_settings !== null ) {
+					// Empty groups – just add to the list.
+					$group_ids = [];
+					$by_list[ $list_settings['list'] ] = $group_ids;
+				}
+				continue;
 			}
+			$list_id  = $list['list_id'];
+			$group_id = $list['group_id'];
 			if ( ! isset( $contact['interests'] ) ) {
 				$contact['interests'] = [];
 			}

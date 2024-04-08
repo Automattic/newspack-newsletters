@@ -453,6 +453,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	 * @return true|WP_Error True or error.
 	 */
 	public function add_contact_handling_local_list( $contact, $list_id ) {
+		if ( ! static::$support_local_lists ) {
+			return true;
+		}
 		if ( Subscription_List::is_local_form_id( $list_id ) ) {
 			try {
 				$list = Subscription_List::from_form_id( $list_id );
@@ -460,10 +463,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 					return new WP_Error( 'List not properly configured for the provider' );
 				}
 				$list_settings = $list->get_provider_settings( $this->service );
-				if ( static::$support_local_lists ) {
-					return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
-				}
-				return true;
+				return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
 			} catch ( \InvalidArgumentException $e ) {
 				return new WP_Error( 'List not found' );
 			}
