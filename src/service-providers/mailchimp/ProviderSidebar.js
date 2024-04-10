@@ -8,19 +8,21 @@ import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/compone
 /**
  * Internal dependencies
  */
-import { getListInterestsSettings } from './utils';
+import { getGroupOptions, getSegmentOptions } from './utils';
+import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 const SegmentsSelection = ( {
 	onUpdate,
 	inFlight,
 	targetField,
 	chosenTarget,
-	availableInterests,
-	availableSegments,
+	groups = [],
+	tags = [],
+	segments = [],
 } ) => {
 	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || '' );
-
 	const [ isInitial, setIsInitial ] = useState( true );
+
 	useEffect( () => {
 		if ( ! isInitial ) {
 			onUpdate( targetId );
@@ -28,60 +30,50 @@ const SegmentsSelection = ( {
 		setIsInitial( false );
 	}, [ targetId ] );
 
-	let options = [];
-
-	if ( availableInterests.length > 0 ) {
-		options = options.concat( [
-			{
-				label: __( 'Group', 'newspack-newsletters' ),
-				value: 'groups',
-				disabled: true,
-			},
-			...availableInterests,
-		] );
-	}
-
-	if ( availableSegments.length > 0 ) {
-		options = options.concat( [
-			{
-				label: __( 'Segment or tag', 'newspack-newsletters' ),
-				value: 'segments',
-				disabled: true,
-			},
-			...availableSegments.map( segment => ( {
-				label: ` - ${ segment.name }`,
-				value: segment.id.toString(),
-			} ) ),
-		] );
-	}
+	let optGroups = [];
 
 	useEffect( () => {
-		if ( targetId !== '' && ! options.find( option => option.value === targetId ) ) {
-			const foundOption = options.find(
-				option => option.value && option.value === `${ targetField || '' }:${ targetId }`
-			);
-			if ( foundOption ) setTargetId( foundOption.value );
-		}
+		optGroups.forEach( optGroup => {
+			if ( targetId !== '' && ! optGroup.options.find( option => option.value === targetId ) ) {
+				const foundOption = optGroup.options.find(
+					option => option.value && option.value === `${ targetField || '' }:${ targetId }`
+				);
+				if ( foundOption ) setTargetId( foundOption.value );
+			}
+		} );
 	}, [ targetId ] );
 
+	if ( groups?.categories?.length > 0 ) {
+		optGroups = optGroups.concat( getGroupOptions( groups ) );
+	}
+
+	if ( tags.length > 0 ) {
+		optGroups.push( {
+			label: __( 'Tags', 'newspack-newsletters' ),
+			options: getSegmentOptions( tags ),
+		} );
+	}
+
+	if ( segments.length > 0 ) {
+		optGroups.push( {
+			label: __( 'Segments', 'newspack-newsletters' ),
+			options: getSegmentOptions( segments ),
+		} );
+	}
+
+	if ( ! optGroups.length ) {
+		return null;
+	}
+
 	return (
-		<Fragment>
-			{ options.length ? (
-				<SelectControl
-					label={ __( 'Group, segment, or tag', 'newspack-newsletters' ) }
-					value={ targetId }
-					options={ [
-						{
-							label: __( 'All subscribers in audience', 'newspack-newsletters' ),
-							value: '',
-						},
-						...options,
-					] }
-					onChange={ id => setTargetId( id.toString() ) }
-					disabled={ inFlight }
-				/>
-			) : null }
-		</Fragment>
+		<SelectControlWithOptGroup
+			label={ __( 'Group, Segment, or Tag', 'newspack-newsletters' ) }
+			deselectedOptionLabel={ __( 'All subscribers in audience', 'newspack-newsletters' ) }
+			optgroups={ optGroups }
+			value={ targetId }
+			onChange={ setTargetId }
+			disabled={ inFlight }
+		/>
 	);
 };
 
@@ -95,14 +87,37 @@ const ProviderSidebar = ( {
 	apiFetch,
 	postId,
 	updateMeta,
+	createErrorNotice,
 } ) => {
 	const campaign = newsletterData.campaign;
-	const lists =
-		newsletterData.lists && newsletterData.lists.length
-			? newsletterData.lists.filter( list => list.type !== 'mailchimp-group' )
-			: [];
-	const folders = newsletterData.folders || [];
-	const segments = newsletterData.segments || newsletterData.tags || []; // Keep .tags for backwards compatibility.
+
+	// Separate out audiences from other data item types.
+	const audiences = newsletterData?.lists
+		? newsletterData.lists.filter(
+				list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type
+		  )
+		: [];
+	const groups = newsletterData?.interest_categories || [];
+	const folders = newsletterData?.folders || [];
+	const segments = newsletterData?.segments || [];
+	const tags = newsletterData?.tags || [];
+
+	useEffect( () => {
+		fetchListsAndSegments();
+	}, [] );
+
+	const fetchListsAndSegments = async () => {
+		try {
+			const response = await apiFetch( {
+				path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
+			} );
+			updateMeta( 'newsletterData', response );
+		} catch ( e ) {
+			createErrorNotice(
+				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
+			);
+		}
+	};
 
 	const setList = listId =>
 		apiFetch( {
@@ -190,8 +205,8 @@ const ProviderSidebar = ( {
 		);
 	}
 
-	const { list_id } = campaign.recipients || {};
-	const list = list_id && lists.find( ( { id } ) => list_id === id );
+	const { list_id: audienceId } = campaign.recipients || {};
+	const list = audienceId && audiences.find( ( { id } ) => audienceId === id );
 	const { web_id: listWebId } = list || {};
 
 	const recipients = newsletterData.campaign?.recipients;
@@ -200,12 +215,9 @@ const ProviderSidebar = ( {
 		recipients?.segment_opts?.saved_segment_id ||
 		recipients?.segment_opts?.conditions[ 0 ]?.value ||
 		'';
-
 	const targetField = recipients?.segment_opts?.conditions?.length
 		? recipients?.segment_opts?.conditions[ 0 ]?.field
 		: '';
-
-	const interestSettings = getListInterestsSettings( newsletterData );
 
 	return (
 		<Fragment>
@@ -233,13 +245,13 @@ const ProviderSidebar = ( {
 			<SelectControl
 				label={ __( 'Audience', 'newspack-newsletters' ) }
 				className="newspack-newsletters__to-selectcontrol"
-				value={ list_id }
+				value={ audienceId }
 				options={ [
 					{
 						value: null,
 						label: __( '-- Select an audience --', 'newspack-newsletters' ),
 					},
-					...lists.map( ( { id, name } ) => ( {
+					...audiences.map( ( { id, name } ) => ( {
 						value: id,
 						label: name,
 					} ) ),
@@ -257,8 +269,9 @@ const ProviderSidebar = ( {
 			<SegmentsSelection
 				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
 				targetField={ targetField }
-				availableInterests={ interestSettings.options }
-				availableSegments={ segments.filter( segment => segment.member_count > 0 ) }
+				groups={ groups }
+				tags={ tags }
+				segments={ segments }
 				apiFetch={ apiFetch }
 				inFlight={ inFlight }
 				onUpdate={ updateSegments }
