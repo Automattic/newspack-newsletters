@@ -136,7 +136,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$count_after_existing = count( Subscription_Lists::get_all() );
 		$this->assertSame( $count, $count_after_existing );
 
-		
+
 		// new.
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 		$new  = [
@@ -260,6 +260,11 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 				'title'       => 'MC3',
 				'description' => 'mc 3',
 			],
+			'tag-14370955-950aaf1a98'     => [
+				'active'      => false,
+				'title'       => 'MC4',
+				'description' => 'mc 4',
+			],
 		];
 
 		update_option( '_newspack_newsletters_mailchimp_lists', $mailchimp );
@@ -298,6 +303,12 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( 'mc 3', $list->get_description() );
 		$this->assertTrue( $list->is_active() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
+
+		$list = Subscription_List::from_form_id( 'tag-14370955-950aaf1a98' );
+		$this->assertSame( 'MC4', $list->get_title() );
+		$this->assertSame( 'mc 4', $list->get_description() );
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( 'mailchimp', $list->get_provider() );
 	}
 
 	/**
@@ -310,7 +321,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 			function ( $list ) {
 				return $list->get_id();
 			},
-			$all_lists 
+			$all_lists
 		);
 		$this->assertContains( self::$posts['remote_mailchimp'], $ids );
 		$this->assertNotContains( self::$posts['remote_mailchimp_inactive'], $ids );
