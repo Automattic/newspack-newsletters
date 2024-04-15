@@ -1,3 +1,11 @@
+# [2.14.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.14.0-alpha.1...v2.14.0-alpha.2) (2024-04-15)
+
+
+### Bug Fixes
+
+* adding contact to multiple groups within a list ([#1460](https://github.com/Automattic/newspack-newsletters/issues/1460)) ([90408b3](https://github.com/Automattic/newspack-newsletters/commit/90408b30d68abad02b11ca7f9976fdbf259faa89))
+* bad auto-merge ([1093bb5](https://github.com/Automattic/newspack-newsletters/commit/1093bb575d5e78accf82898c9d0e7f2406a4d1dd))
+
 # [2.14.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.13.0...v2.14.0-alpha.1) (2024-04-11)
 
 
