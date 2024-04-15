@@ -629,7 +629,7 @@ class Newspack_Newsletters_Subscription {
 			$errors->add( $result->get_error_code(), $result->get_error_message() );
 		}
 
-		// Perform side-effects of lists adding.
+		// Handle local lists feature.
 		foreach ( $lists as $list_id ) {
 			try {
 				$provider->add_contact_handling_local_list( $contact, $list_id );
