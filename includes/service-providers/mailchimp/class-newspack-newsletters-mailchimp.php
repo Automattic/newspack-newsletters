@@ -10,7 +10,6 @@ defined( 'ABSPATH' ) || exit;
 use DrewM\MailChimp\MailChimp;
 use Newspack\Newsletters\Subscription_List;
 use Newspack\Newsletters\Subscription_Lists;
-use Newspack\Newsletters\Subscription_List;
 
 /**
  * Main Newspack Newsletters Class.
