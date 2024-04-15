@@ -1,3 +1,10 @@
+## [2.13.1](https://github.com/Automattic/newspack-newsletters/compare/v2.13.0...v2.13.1) (2024-04-15)
+
+
+### Bug Fixes
+
+* adding contact to multiple groups within a list ([#1460](https://github.com/Automattic/newspack-newsletters/issues/1460)) ([90408b3](https://github.com/Automattic/newspack-newsletters/commit/90408b30d68abad02b11ca7f9976fdbf259faa89))
+
 # [2.13.0](https://github.com/Automattic/newspack-newsletters/compare/v2.12.0...v2.13.0) (2024-04-08)
 
 
