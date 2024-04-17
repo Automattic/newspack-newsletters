@@ -620,7 +620,15 @@ class Newspack_Newsletters_Subscription {
 		$result   = [];
 
 		try {
-			$result = $provider->add_contact_with_groups( $contact, $lists );
+			if ( method_exists( $provider, 'add_contact_with_groups' ) ) {
+				$result = $provider->add_contact_with_groups( $contact, $lists );
+			} elseif ( empty( $lists ) ) {
+				$result = $provider->add_contact( $contact );
+			} else {
+				foreach ( $lists as $list_id ) {
+					$result = $provider->add_contact( $contact, $list_id );
+				}
+			}
 		} catch ( \Exception $e ) {
 			$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
 		}
