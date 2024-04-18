@@ -1154,8 +1154,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			if ( ! $list ) {
 				// It might be a local list – the list id has to be extracted from the DB.
 				$list = Subscription_List::from_form_id( $list_id );
+				if ( ! $list ) {
+					return new WP_Error( 'List not found.' );
+				}
 				if ( ! $list->is_configured_for_provider( $this->service ) ) {
-					return new WP_Error( 'List not properly configured for the provider' );
+					return new WP_Error( 'List not properly configured for the provider.' );
 				}
 				$list_settings = $list->get_provider_settings( $this->service );
 				if ( $list_settings !== null ) {
