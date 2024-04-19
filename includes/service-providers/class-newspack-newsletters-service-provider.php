@@ -337,24 +337,6 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	}
 
 	/**
-	 * Notify the site administrators.
-	 *
-	 * @param string $subject The email subject.
-	 * @param string $message The email message.
-	 */
-	private static function notify_site_admins( $subject, $message ) {
-		$site_administrators = get_users(
-			[
-				'role'  => 'administrator',
-				'limit' => 10, // Notifying 10 people should be enough.
-			]
-		);
-		foreach ( $site_administrators as $user ) {
-			$sent = \wp_mail( $user->user_email, $subject, $message ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
-		}
-	}
-
-	/**
 	 * Send a newsletter.
 	 *
 	 * @param WP_Post $post The newsletter post.
@@ -391,13 +373,28 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			$errors   = array_slice( $errors, -10, 10, true );
 			update_post_meta( $post_id, 'newsletter_send_errors', $errors );
 
-			self::notify_site_admins(
+			$message = sprintf(
+				/* translators: %1$s is the campaign title, %2$s is the edit link, %3$s is the error message. */
+				__(
+					'Hi,
+
+A newsletter campaign called "%1$s" failed to send on your site.
+
+You can edit the campaign here: %2$s.
+
+Details of the error message: "%3$s"
+',
+					'newspack-newsletters'
+				),
+				$post->post_title,
+				get_edit_post_link( $post_id ),
+				$error_message
+			);
+
+			\wp_mail( // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+				get_option( 'admin_email' ),
 				__( 'Sending a newsletter failed', 'newspack-newsletters' ),
-				sprintf(
-					/* translators: %s is the error message */
-					__( 'A newsletter campaign failed to send on your site. Details of the error message: %s', 'newspack-newsletters' ),
-					$error_message
-				)
+				$message
 			);
 		}
 
