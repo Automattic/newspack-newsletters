@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isEqual, find } from 'lodash';
+import { isEqual, find, pick } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -39,9 +39,9 @@ export default compose( [
 				font_body: meta.font_body,
 				font_header: meta.font_header,
 				custom_css: meta.custom_css,
-				sender_default_name: meta.senderName,
-				sender_default_email: meta.senderEmail,
-				default_newsletter_data: JSON.stringify( meta.newsletterData ),
+				layout_defaults: JSON.stringify(
+					pick( meta, [ 'senderEmail', 'senderName', 'newsletterData' ] )
+				),
 			},
 		};
 	} ),

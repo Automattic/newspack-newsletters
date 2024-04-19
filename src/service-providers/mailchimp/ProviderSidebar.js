@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
 import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/components';
 
@@ -80,11 +81,12 @@ const ProviderSidebar = ( {
 	renderPreviewText,
 	inFlight,
 	newsletterData,
-	stringifiedNewsletterDataFromLayout,
+	stringifiedLayoutDefaults,
 	apiFetch,
 	postId,
 	updateMeta,
 	createErrorNotice,
+	meta,
 } ) => {
 	const campaign = newsletterData.campaign;
 
@@ -183,23 +185,31 @@ const ProviderSidebar = ( {
 	// If there is a stringified newsletter data from the layout, use it to set the list and segments.
 	useEffect( () => {
 		try {
-			const newsletterDataFromLayout = JSON.parse( stringifiedNewsletterDataFromLayout );
-			if ( newsletterDataFromLayout.campaign?.recipients?.list_id ) {
-				const existingListId = newsletterData.campaign?.recipients?.list_id;
-				if ( existingListId ) {
-					return;
+			const layoutDefaults = JSON.parse( stringifiedLayoutDefaults );
+			if ( layoutDefaults.senderEmail && layoutDefaults.senderName ) {
+				const existingSenderData = meta.senderEmail && meta.senderName;
+				if ( ! existingSenderData ) {
+					setSender( {
+						senderName: layoutDefaults.senderName,
+						senderEmail: layoutDefaults.senderEmail,
+					} );
 				}
-				setList( newsletterDataFromLayout.campaign.recipients.list_id ).then( () => {
-					const subAudienceValue = getSubAudienceValue( newsletterDataFromLayout );
-					if ( subAudienceValue ) {
-						updateSegments( subAudienceValue );
-					}
-				} );
+			}
+			if ( layoutDefaults.newsletterData?.campaign?.recipients?.list_id ) {
+				const existingListId = newsletterData.campaign?.recipients?.list_id;
+				if ( ! existingListId ) {
+					setList( layoutDefaults.newsletterData?.campaign.recipients.list_id ).then( () => {
+						const subAudienceValue = getSubAudienceValue( layoutDefaults.newsletterData );
+						if ( subAudienceValue ) {
+							updateSegments( subAudienceValue );
+						}
+					} );
+				}
 			}
 		} catch ( e ) {
 			// Ignore it.
 		}
-	}, [ stringifiedNewsletterDataFromLayout.length ] );
+	}, [ stringifiedLayoutDefaults.length ] );
 
 	if ( ! campaign ) {
 		return (
@@ -281,4 +291,11 @@ const ProviderSidebar = ( {
 	);
 };
 
-export default ProviderSidebar;
+const mapStateToProps = select => {
+	const { getEditedPostAttribute } = select( 'core/editor' );
+	return {
+		meta: getEditedPostAttribute( 'meta' ),
+	};
+};
+
+export default withSelect( mapStateToProps )( ProviderSidebar );

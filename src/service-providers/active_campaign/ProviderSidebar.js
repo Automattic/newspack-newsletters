@@ -45,19 +45,19 @@ const AC_DATA_METADATA_KEYS = [ 'ac_list_id', 'ac_segment_id', 'ac_from_name', '
  * so that it's possible to render e.g. a loader while
  * the data is not yet available.
  *
- * @param {Object}   props                                     Component props.
- * @param {Function} props.apiFetch                            Function to fetch data from the API.
- * @param {number}   props.postId                              ID of the edited newsletter post.
- * @param {Function} props.renderCampaignName                  Function that renders campaign name input.
- * @param {Function} props.renderSubject                       Function that renders email subject input.
- * @param {Function} props.renderPreviewText                   Function that renders email preview text input.
- * @param {boolean}  props.inFlight                            True if the component is in a loading state.
- * @param {Object}   props.acData                              ActiveCampaign data.
- * @param {Function} props.updateMetaValue                     Dispatcher to update post meta.
- * @param {Object}   props.newsletterData                      Newsletter data from the parent components
- * @param {Function} props.createErrorNotice                   Dispatcher to display an error message in the editor.
- * @param {string}   props.status                              Current post status.
- * @param {string}   props.stringifiedNewsletterDataFromLayout Stringified newsletter data from the layout.
+ * @param {Object}   props                           Component props.
+ * @param {Function} props.apiFetch                  Function to fetch data from the API.
+ * @param {number}   props.postId                    ID of the edited newsletter post.
+ * @param {Function} props.renderCampaignName        Function that renders campaign name input.
+ * @param {Function} props.renderSubject             Function that renders email subject input.
+ * @param {Function} props.renderPreviewText         Function that renders email preview text input.
+ * @param {boolean}  props.inFlight                  True if the component is in a loading state.
+ * @param {Object}   props.acData                    ActiveCampaign data.
+ * @param {Function} props.updateMetaValue           Dispatcher to update post meta.
+ * @param {Object}   props.newsletterData            Newsletter data from the parent components
+ * @param {Function} props.createErrorNotice         Dispatcher to display an error message in the editor.
+ * @param {string}   props.status                    Current post status.
+ * @param {string}   props.stringifiedLayoutDefaults Stringified newsletter data from the layout.
  */
 const ProviderSidebarComponent = ( {
 	postId,
@@ -71,7 +71,7 @@ const ProviderSidebarComponent = ( {
 	newsletterData,
 	createErrorNotice,
 	status,
-	stringifiedNewsletterDataFromLayout,
+	stringifiedLayoutDefaults,
 } ) => {
 	const [ lists, setLists ] = useState( [] );
 	const [ segments, setSegments ] = useState( [] );
@@ -110,19 +110,19 @@ const ProviderSidebarComponent = ( {
 	// If there is a stringified newsletter data from the layout, use it to set the list and segments.
 	useEffect( () => {
 		try {
-			const newsletterDataFromLayout = JSON.parse( stringifiedNewsletterDataFromLayout );
-			if ( newsletterDataFromLayout ) {
+			const layoutDefaults = JSON.parse( stringifiedLayoutDefaults );
+			if ( layoutDefaults && layoutDefaults.newsletterData ) {
 				AC_DATA_METADATA_KEYS.forEach( key => {
 					const layoutKey = key.replace( 'ac_', '' );
-					if ( ! acData[ key ] && newsletterDataFromLayout[ layoutKey ] ) {
-						updateMetaValue( key, newsletterDataFromLayout[ layoutKey ] );
+					if ( ! acData[ key ] && layoutDefaults.newsletterData[ layoutKey ] ) {
+						updateMetaValue( key, layoutDefaults.newsletterData[ layoutKey ] );
 					}
 				} );
 			}
 		} catch ( e ) {
 			// Ignore it.
 		}
-	}, [ stringifiedNewsletterDataFromLayout.length ] );
+	}, [ stringifiedLayoutDefaults.length ] );
 
 	if ( ! inFlight && 'publish' === status ) {
 		return (
