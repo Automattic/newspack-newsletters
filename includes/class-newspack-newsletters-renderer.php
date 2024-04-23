@@ -180,7 +180,7 @@ final class Newspack_Newsletters_Renderer {
 			if ( 'is-style-filled-black' === $block_attrs['className'] || 'is-style-circle-white' === $block_attrs['className'] ) {
 				$icon = 'black';
 			} elseif ( 'is-style-filled-primary-text' === $block_attrs['className'] ) {
-				$palette = json_decode( get_option( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_PALETTE, [] ), true );
+				$palette = json_decode( get_option( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_PALETTE, '{}' ), true );
 
 				if ( isset( $palette['primary-text'] ) && ( $palette['primary-text'] === 'black' || $palette['primary-text'] === '#000000' ) ) {
 					$icon = 'black';

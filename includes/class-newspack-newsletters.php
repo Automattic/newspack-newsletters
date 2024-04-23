@@ -1228,7 +1228,7 @@ final class Newspack_Newsletters {
 			self::NEWSPACK_NEWSLETTERS_PALETTE,
 			wp_json_encode(
 				array_merge(
-					json_decode( get_option( self::NEWSPACK_NEWSLETTERS_PALETTE, [] ), true ),
+					json_decode( (string) get_option( self::NEWSPACK_NEWSLETTERS_PALETTE, '{}' ), true ) ?? [],
 					$palette
 				)
 			)
