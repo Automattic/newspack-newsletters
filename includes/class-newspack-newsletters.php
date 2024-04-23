@@ -1226,9 +1226,11 @@ final class Newspack_Newsletters {
 	public static function update_color_palette( $palette ) {
 		return update_option(
 			self::NEWSPACK_NEWSLETTERS_PALETTE,
-			array_merge(
-				get_option( self::NEWSPACK_NEWSLETTERS_PALETTE, [] ),
-				$palette
+			wp_json_encode(
+				array_merge(
+					json_decode( get_option( self::NEWSPACK_NEWSLETTERS_PALETTE, [] ), true ),
+					$palette
+				)
 			)
 		);
 	}
