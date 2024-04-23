@@ -1221,13 +1221,13 @@ final class Newspack_Newsletters {
 	 *
 	 * @param array $palette The updated color palette.
 	 *
-	 * @return void
+	 * @return bool True if the option was updated, false otherwise.
 	 */
 	public static function update_color_palette( $palette ) {
-		update_option(
+		return update_option(
 			self::NEWSPACK_NEWSLETTERS_PALETTE,
 			array_merge(
-				get_option( NEWSPACK_NEWSLETTERS_PALETTE, [] ),
+				get_option( self::NEWSPACK_NEWSLETTERS_PALETTE, [] ),
 				$palette
 			)
 		);
