@@ -14,9 +14,10 @@ use DrewM\MailChimp\MailChimp;
  */
 final class Newspack_Newsletters {
 
-	const NEWSPACK_NEWSLETTERS_CPT = 'newspack_nl_cpt';
-	const EMAIL_HTML_META          = 'newspack_email_html';
-	const PUBLIC_POST_ID_META      = 'newspack_nl_public_post_id';
+	const NEWSPACK_NEWSLETTERS_CPT     = 'newspack_nl_cpt';
+	const EMAIL_HTML_META              = 'newspack_email_html';
+	const NEWSPACK_NEWSLETTERS_PALETTE = 'newspack_newsletters_color_palette';
+	const PUBLIC_POST_ID_META          = 'newspack_nl_public_post_id';
 
 	/**
 	 * Supported fonts.
@@ -680,15 +681,8 @@ final class Newspack_Newsletters {
 	 * @param WP_REST_Request $request API request object.
 	 */
 	public static function api_set_color_palette( $request ) {
-		update_option(
-			'newspack_newsletters_color_palette',
-			wp_json_encode(
-				array_merge(
-					json_decode( (string) get_option( 'newspack_newsletters_color_palette', '{}' ), true ) ?? [],
-					json_decode( $request->get_body(), true )
-				)
-			)
-		);
+		self::update_color_palette( json_decode( $request->get_body(), true ) );
+
 		return \rest_ensure_response( [] );
 	}
 
@@ -1220,6 +1214,23 @@ final class Newspack_Newsletters {
 				exit;
 			}
 		}
+	}
+
+	/**
+	 * Updates the default newsletters color palette option.
+	 *
+	 * @param array $palette The updated color palette.
+	 *
+	 * @return void
+	 */
+	public static function update_color_palette( $palette ) {
+		update_option(
+			self::NEWSPACK_NEWSLETTERS_PALETTE,
+			array_merge(
+				get_option( NEWSPACK_NEWSLETTERS_PALETTE, [] ),
+				$palette
+			)
+		);
 	}
 }
 Newspack_Newsletters::instance();

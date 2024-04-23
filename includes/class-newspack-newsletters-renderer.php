@@ -1164,7 +1164,7 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	public static function render_post_to_mjml( $post ) {
 		self::$newsletter_id = $post->ID;
-		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
+		self::$color_palette = json_decode( get_option( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_PALETTE, false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
 		$is_public           = get_post_meta( $post->ID, 'is_public', true );
