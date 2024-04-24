@@ -1,3 +1,10 @@
+## [2.14.1](https://github.com/Automattic/newspack-newsletters/compare/v2.14.0...v2.14.1) (2024-04-24)
+
+
+### Bug Fixes
+
+* **mc:** handle multiple groups and multiple tags per API request ([#1490](https://github.com/Automattic/newspack-newsletters/issues/1490)) ([c66cbcf](https://github.com/Automattic/newspack-newsletters/commit/c66cbcf4b01bc568b31c273ac04605e92c4b142e))
+
 # [2.14.0](https://github.com/Automattic/newspack-newsletters/compare/v2.13.3...v2.14.0) (2024-04-24)
 
 
