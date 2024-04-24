@@ -1,38 +1,27 @@
 /**
  * WordPress dependencies
  */
-import { sprintf, _n } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 /**
- * External dependencies
+ * Get select options for Mailchimp interest groups, arranged by category.
+ * Groups are subsets of a list.
+ *
+ * @param {Object} interestCategories Interest categories object.
+ * @return {Array} Array of select options.
  */
-import { get, find } from 'lodash';
-
-/**
- * Get interest settings for a Mailchimp campaign.
- * An interest is a subset of a list.
- */
-export const getListInterestsSettings = ( {
-	campaign,
-	interest_categories: interestCategories,
-} ) => {
-	if (
-		! interestCategories ||
-		! interestCategories.categories ||
-		! interestCategories.categories.length
-	) {
-		return {
-			interestValue: null,
-			options: [],
-		};
+export const getGroupOptions = interestCategories => {
+	if ( ! interestCategories?.categories || ! interestCategories.categories.length ) {
+		return [];
 	}
 	const options = interestCategories.categories.reduce( ( accumulator, item ) => {
 		const { title, interests, id } = item;
-		accumulator.push( {
-			label: `- ${ title }`,
-			disabled: true,
-		} );
-		if ( interests && interests.interests && interests.interests.length ) {
+		if ( interests?.interests?.length ) {
+			const optGroup = {
+				// Translators: %s is the name of the interest category.
+				label: sprintf( __( 'Interest Category: %s', 'newspack-newsletters' ), title ),
+				options: [],
+			};
 			interests.interests.forEach( interest => {
 				const subscriberCount = parseInt( interest.subscriber_count );
 				const subscriberCountInfo = sprintf(
@@ -41,19 +30,43 @@ export const getListInterestsSettings = ( {
 					subscriberCount
 				);
 
-				accumulator.push( {
-					label: `-- ${ interest.name } (${ subscriberCountInfo })`,
+				optGroup.options.push( {
+					label: `${ interest.name }${
+						interest.local_name ? ' [' + interest.local_name + ']' : ''
+					} (${ subscriberCountInfo })`,
 					value: `interests-${ id }:${ interest.id }`,
 					disabled: subscriberCount === 0,
-					rawInterest: interest,
 				} );
 			} );
+			accumulator.push( optGroup );
 		}
 		return accumulator;
 	}, [] );
-	const field = get( campaign, 'recipients.segment_opts.conditions.[0].field' );
-	const interest_id = get( campaign, 'recipients.segment_opts.conditions.[0].value.[0]' );
-	const interestValue = field && interest_id ? field + ':' + interest_id : 0;
 
-	return { options, interestValue, setInterest: find( options, [ 'value', interestValue ] ) };
+	return options;
+};
+
+/**
+ * Get select options for Mailchimp segments or tags.
+ * Segments and tags have the same data structure when fetched via the /segments endpoint.
+ * See: https://mailchimp.com/developer/marketing/api/list-segments/list-segments/
+ *
+ * @param {Array} segments Array of segments or tags.
+ * @return {Array} Array of select options.
+ */
+export const getSegmentOptions = segments => {
+	if ( ! segments || ! segments.length ) {
+		return [];
+	}
+	return segments.map( segment => ( {
+		label: `${ segment.name }${
+			segment.local_name ? ' [' + segment.local_name + ']' : ''
+		} (${ sprintf(
+			// Translators: %d is the number of subscribers in the segment.
+			_n( '%d subscriber', '%d subscribers', segment?.member_count || 0, 'newspack-newsletters' ),
+			segment?.member_count || 0
+		) })`,
+		value: segment.id.toString(),
+		disabled: 0 === parseInt( segment?.member_count || 0 ),
+	} ) );
 };

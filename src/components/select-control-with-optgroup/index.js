@@ -6,6 +6,7 @@ import { isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
+import { __ } from '@wordpress/i18n';
 import { useInstanceId } from '@wordpress/compose';
 import { BaseControl } from '@wordpress/components';
 
@@ -20,6 +21,8 @@ export default function SelectControlWithOptGroup( {
 	optgroups = [],
 	className,
 	hideLabelFromVision,
+	deselectedOptionLabel = '',
+	deselectedOptionValue = '',
 	...props
 } ) {
 	const instanceId = useInstanceId( SelectControlWithOptGroup );
@@ -57,6 +60,11 @@ export default function SelectControlWithOptGroup( {
 				multiple={ multiple }
 				{ ...props }
 			>
+				{ ( deselectedOptionLabel || deselectedOptionValue ) && (
+					<option value={ deselectedOptionValue }>
+						{ deselectedOptionLabel || __( '-- Select --', 'newspack-newsletters' ) }
+					</option>
+				) }
 				{ optgroups.map( ( { label: optgroupLabel, options }, optgroupIndex ) => (
 					<optgroup label={ optgroupLabel } key={ optgroupIndex }>
 						{ options.map( ( option, optionIndex ) => (
