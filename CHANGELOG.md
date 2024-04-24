@@ -1,3 +1,11 @@
+## [2.13.3](https://github.com/Automattic/newspack-newsletters/compare/v2.13.2...v2.13.3) (2024-04-24)
+
+
+### Bug Fixes
+
+* flush rewrite rules only after verified option update ([fb2ea15](https://github.com/Automattic/newspack-newsletters/commit/fb2ea1553cec859c1abc778215d39f8f10f37a0f))
+* obfuscate post ID when fetching HTML content ([e300b5a](https://github.com/Automattic/newspack-newsletters/commit/e300b5a0d2527ecbd5a1033688864bab901c0bd9))
+
 ## [2.13.2](https://github.com/Automattic/newspack-newsletters/compare/v2.13.1...v2.13.2) (2024-04-17)
 
 
