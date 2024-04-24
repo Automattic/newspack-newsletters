@@ -1141,17 +1141,27 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
-	 * Add contact to a list with multiple groups.
+	 * Add contact to a list with multiple groups and/or tags.
 	 *
 	 * @param array $contact The contact, as for the add_contact method.
 	 * @param array $lists List IDs to add the contact to.
 	 */
-	public function add_contact_with_groups( $contact, $lists ) {
+	public function add_contact_with_groups_and_tags( $contact, $lists ) {
 		$results = [];
 		$by_list = [];
 		foreach ( $lists as $list_id ) {
-			$list = $this->maybe_extract_group_list( $list_id );
-			if ( ! $list ) {
+			$list = $this->maybe_extract_group_or_tag_list( $list_id );
+			if ( $list && isset( $list['type'] ) ) {
+				$list_id = $list['list_id'];
+				if ( 'group' === $list['type'] && ! isset( $contact['interests'] ) ) {
+					$contact['interests'] = [];
+				}
+				if ( isset( $by_list[ $list_id ] ) ) {
+					$by_list[ $list_id ][] = $list;
+				} else {
+					$by_list[ $list_id ] = [ $list ];
+				}
+			} else {
 				// It might be a local list – the list id has to be extracted from the DB.
 				$list = Subscription_List::from_form_id( $list_id );
 				if ( ! $list ) {
@@ -1162,25 +1172,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 				$list_settings = $list->get_provider_settings( $this->service );
 				if ( $list_settings !== null ) {
-					// Empty groups – just add to the list.
-					$group_ids = [];
-					$by_list[ $list_settings['list'] ] = $group_ids;
+					// Empty sublists – just add to the list.
+					$by_list[ $list_settings['list'] ] = [];
 				}
 				continue;
 			}
-			$list_id  = $list['list_id'];
-			$group_id = $list['group_id'];
-			if ( ! isset( $contact['interests'] ) ) {
-				$contact['interests'] = [];
-			}
-			if ( isset( $by_list[ $list_id ] ) ) {
-				$by_list[ $list_id ][] = $group_id;
-			} else {
-				$by_list[ $list_id ] = [ $group_id ];
-			}
 		}
-		foreach ( $by_list as $list_id => $group_ids ) {
-			$results[] = $this->add_contact( $contact, $list_id, $group_ids );
+		foreach ( $by_list as $list_id => $sublists ) {
+			$results[] = $this->add_contact( $contact, $list_id, $sublists );
 		}
 		return $results;
 	}
@@ -1196,11 +1195,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
 	 * @param string $list_id      List to add the contact to.
-	 * @param string $group_ids    Group IDs within the list to add the contact to.
+	 * @param string $sublists     An array of groups and/or tags in the list to add the contact to.
 	 *
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	public function add_contact( $contact, $list_id = false, $group_ids = [] ) {
+	public function add_contact( $contact, $list_id = false, $sublists = [] ) {
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
@@ -1212,12 +1211,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return self::$contacts_added[ $list_id . $email_address ];
 		}
 
-		$list = $this->maybe_extract_group_or_tag_list( $list_id );
-		if ( $list ) {
-			$list_id    = $list['list_id'];
-			$list_type  = $list['type'];
-			$sublist_id = $list['id'];
-		}
 		$new_contact_status = 'subscribed';
 		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
 			$new_contact_status = $contact['metadata']['status'];
@@ -1294,27 +1287,30 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			if ( ! empty( $list_type ) ) {
-				if ( 'group' === $list_type ) {
-					$update_payload['interests'] = [
-						$sublist_id => true,
-					];
-				} elseif ( 'tag' === $list_type ) {
-					$subscription_list = Subscription_List::from_remote_id( "$list_type-$sublist_id-$list_id" );
-					$remote_tag_name   = $subscription_list->get_remote_name();
-					$update_payload['tags'] = [ $remote_tag_name ];
-				}
-			}
-			if ( ! empty( $group_ids ) ) {
-				$update_payload['interests'] = [];
-				foreach ( $group_ids as $group_id ) {
-					$update_payload['interests'][ $group_id ] = true;
+			// Add groups and tags, if any.
+			if ( ! empty( $sublists ) ) {
+				foreach ( $sublists as $sublist ) {
+					$sublist_id   = $sublist['id'];
+					$sublist_type = $sublist['type'];
+					if ( 'group' === $sublist_type ) {
+						if ( ! isset( $update_payload['interests'] ) ) {
+							$update_payload['interests'] = [];
+						}
+						$update_payload['interests'][ $sublist['id'] ] = true;
+					} elseif ( 'tag' === $sublist_type ) {
+						if ( ! isset( $update_payload['tags'] ) ) {
+							$update_payload['tags'] = [];
+						}
+						$subscription_list = Subscription_List::from_remote_id( "$sublist_type-$sublist_id-$list_id" );
+						$remote_tag_name   = $subscription_list->get_remote_name();
+						$update_payload['tags'][] = $remote_tag_name;
+					}
 				}
 			}
 
 			// If we're subscribing the contact to a newsletter, they should have some status
 			// because 'non-subscriber' status can't receive newsletters.
-			if ( ! empty( $sublist_id ) || ! empty( $list_id ) ) {
+			if ( ! empty( $list_id ) || ! empty( $sublists ) ) {
 				$update_payload['status_if_new'] = $new_contact_status ?? 'subscribed';
 				$update_payload['status']        = $new_contact_status ?? 'subscribed';
 			}
@@ -1439,28 +1435,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 		$mc = new Mailchimp( $this->api_key() );
 		try {
-			foreach ( $lists_to_add as $list_id ) {
-				$list = $this->maybe_extract_group_or_tag_list( $list_id );
-				// If this is a group or tag list, check if the contact is already subscribed to the group/tag, so we don't make an unnecessary call.
-				if ( $list ) {
-					if ( ! empty( $contact['interests'][ $list['list_id'] ] ) && 'group' === $list['type'] ) {
-						if ( ! empty( $contact['interests'][ $list['list_id'] ][ $list['id'] ] ) ) {
-							continue;
-						}
-					}
-					if ( ! empty( $contact['tags'][ $list['list_id'] ] ) && 'tag' === $list['type'] ) {
-						if ( ! empty( $contact['tags'][ $list['list_id'] ][ $list['id'] ] ) ) {
-							continue;
-						}
-					}
-					// If the group or tag doesn't exist, the regular add_contact call below will take care of adding it.
-				}
-				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
-					$this->add_contact( [ 'email' => $email ], $list_id );
-				} else {
-					$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'subscribed' ] );
-				}
-			}
 			foreach ( $lists_to_remove as $list_id ) {
 				$list = $this->maybe_extract_group_or_tag_list( $list_id );
 				if ( $list ) {
@@ -1471,6 +1445,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					continue;
 				}
 				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
+			}
+			if ( ! empty( $lists_to_add ) ) {
+				$this->add_contact_with_groups_and_tags( [ 'email' => $email ], $lists_to_add );
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
