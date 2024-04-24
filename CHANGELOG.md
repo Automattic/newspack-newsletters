@@ -1,3 +1,16 @@
+# [2.14.0](https://github.com/Automattic/newspack-newsletters/compare/v2.13.3...v2.14.0) (2024-04-24)
+
+
+### Bug Fixes
+
+* bad auto-merge ([1093bb5](https://github.com/Automattic/newspack-newsletters/commit/1093bb575d5e78accf82898c9d0e7f2406a4d1dd))
+* improve URL tracking validation ([#1472](https://github.com/Automattic/newspack-newsletters/issues/1472)) ([fe73d19](https://github.com/Automattic/newspack-newsletters/commit/fe73d1924fe4ffb8e107b1eb55de895e55592de4))
+
+
+### Features
+
+* **mailchimp:** support tags as subscription lists ([#1471](https://github.com/Automattic/newspack-newsletters/issues/1471)) ([3777737](https://github.com/Automattic/newspack-newsletters/commit/3777737067d00ea5f8b214949f27c15e15e2c60d))
+
 ## [2.13.3](https://github.com/Automattic/newspack-newsletters/compare/v2.13.2...v2.13.3) (2024-04-24)
 
 
