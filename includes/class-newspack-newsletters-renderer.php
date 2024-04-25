@@ -673,6 +673,8 @@ final class Newspack_Newsletters_Renderer {
 					)
 				);
 
+				$alignment = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'center';
+
 				// Default width is total amount of undefined width divided by number of undefined width columns, or a minimum of 10%.
 				$default_width = ! $no_widths ? 10 : max( 10, ( ( 100 - $total_defined_width ) / $no_widths ) );
 				foreach ( $inner_blocks as $button_block ) {
@@ -696,6 +698,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 
 					$default_button_attrs = array(
+						'align'         => $alignment,
 						'padding'       => '0',
 						'inner-padding' => '12px 24px',
 						'line-height'   => '1.5',
