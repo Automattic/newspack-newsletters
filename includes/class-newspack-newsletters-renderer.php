@@ -673,10 +673,11 @@ final class Newspack_Newsletters_Renderer {
 					)
 				);
 
-				$alignment = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'center';
+				$alignment       = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'center';
+				$remaining_width = 100 - $total_defined_width;
+				$default_width   = ! $no_widths ? 25 : max( 25, $remaining_width / ( $no_widths + 1 ) );
+				$width_padding   = $remaining_width < $default_width * ( $no_widths + 1 ) ? 0 : $default_width;
 
-				// Default width is total amount of undefined width divided by number of undefined width columns, or a minimum of 10%.
-				$default_width = ! $no_widths ? 10 : max( 10, ( ( 100 - $total_defined_width ) / $no_widths ) );
 				foreach ( $inner_blocks as $button_block ) {
 					if ( empty( $button_block['innerHTML'] ) ) {
 						break;
@@ -742,6 +743,17 @@ final class Newspack_Newsletters_Renderer {
 					}
 
 					$block_mjml_markup .= '<mj-column ' . self::array_to_attributes( $column_attrs ) . '><mj-button ' . self::array_to_attributes( $button_attrs ) . ">$text</mj-button></mj-column>";
+				}
+
+				// Add padding columns if needed.
+				if ( $width_padding > 0 ) {
+					if ( 'center' === $alignment ) {
+						$block_mjml_markup = '<mj-column width="' . $width_padding / 2 . '%" padding="0"></mj-column>' . $block_mjml_markup . '<mj-column width="' . $width_padding / 2 . '%" padding="0"></mj-column>';
+					} elseif ( 'right' === $alignment ) {
+						$block_mjml_markup = '<mj-column width="' . $width_padding . '%" padding="0"></mj-column>' . $block_mjml_markup;
+					} elseif ( 'left' === $alignment ) {
+						$block_mjml_markup = $block_mjml_markup . '<mj-column width="' . $width_padding . '%" padding="0"></mj-column>';
+					}
 				}
 
 
