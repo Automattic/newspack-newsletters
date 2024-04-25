@@ -1,3 +1,15 @@
+# [2.15.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v2.14.1...v2.15.0-alpha.1) (2024-04-25)
+
+
+### Bug Fixes
+
+* bad auto-merge ([fdfe15f](https://github.com/Automattic/newspack-newsletters/commit/fdfe15f0415754de41b6d7fd642766ed5ca5d837))
+
+
+### Features
+
+* notify site admin on campaign send failure ([#1434](https://github.com/Automattic/newspack-newsletters/issues/1434)) ([4e95283](https://github.com/Automattic/newspack-newsletters/commit/4e95283cad69e7b3e6d7ce2c0b90d72f48649113))
+
 ## [2.14.1](https://github.com/Automattic/newspack-newsletters/compare/v2.14.0...v2.14.1) (2024-04-24)
 
 
