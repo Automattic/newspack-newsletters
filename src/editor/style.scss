@@ -141,6 +141,26 @@
 				font-size: 1em;
 				padding: 0.75em 1.5em;
 			}
+
+			// Default to left alignment styles.
+			.wp-block-button {
+				margin-left: 0 !important;
+				margin-right: auto !important;
+			}
+
+			&.is-content-justification-right {
+				.wp-block-button {
+					margin-left: auto !important;
+					margin-right: 0 !important;
+				}
+			}
+
+			&.is-content-justification-center {
+				.wp-block-button {
+					margin-left: auto !important;
+					margin-right: auto !important;
+				}
+			}
 		}
 
 		.wp-block-button {
