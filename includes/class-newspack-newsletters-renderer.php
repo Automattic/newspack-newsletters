@@ -678,17 +678,13 @@ final class Newspack_Newsletters_Renderer {
 				$default_width = ! $no_widths ? 25 : max( 25, floor( ( 100 - $total_defined_width ) / $no_widths ) );
 
 				// If the total width of the buttons is greater than 100%, reduce the default width.
-				if ( ( count( $inner_blocks ) * $no_widths ) + $total_defined_width > 100 ) {
+				if ( ( $default_width * $no_widths ) + $total_defined_width > 100 ) {
 					$default_width = 25;
 					$is_multi_row  = true;
 				}
 
 				$remaining_width  = 100;
 				$block_mjml_array = [];
-				$wrapper_attrs    = [
-					'padding'    => '0',
-					'text-align' => $alignment,
-				];
 
 				foreach ( $inner_blocks as $button_block ) {
 					if ( empty( $button_block['innerHTML'] ) ) {
@@ -709,6 +705,11 @@ final class Newspack_Newsletters_Renderer {
 					if ( ! $anchor ) {
 						break;
 					}
+
+					$wrapper_attrs = [
+						'padding'    => '0',
+						'text-align' => $alignment,
+					];
 
 					$default_button_attrs = array(
 						'align'         => $alignment,
