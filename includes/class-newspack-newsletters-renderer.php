@@ -179,8 +179,14 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $block_attrs['className'] ) ) {
 			if ( 'is-style-filled-black' === $block_attrs['className'] || 'is-style-circle-white' === $block_attrs['className'] ) {
 				$icon = 'black';
+			} elseif ( 'is-style-filled-primary-text' === $block_attrs['className'] ) {
+				$palette = json_decode( get_option( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_PALETTE_META, '{}' ), true );
+
+				if ( isset( $palette['primary-text'] ) && ( $palette['primary-text'] === 'black' || $palette['primary-text'] === '#000000' ) ) {
+					$icon = 'black';
+				}
 			}
-			if ( 'is-style-filled-black' === $block_attrs['className'] || 'is-style-filled-white' === $block_attrs['className'] ) {
+			if ( 'is-style-filled-black' === $block_attrs['className'] || 'is-style-filled-white' === $block_attrs['className'] || 'is-style-filled-primary-text' === $block_attrs['className'] ) {
 				$color = 'transparent';
 			} elseif ( 'is-style-circle-black' === $block_attrs['className'] ) {
 				$color = '#000';
@@ -1164,7 +1170,7 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	public static function render_post_to_mjml( $post ) {
 		self::$newsletter_id = $post->ID;
-		self::$color_palette = json_decode( get_option( 'newspack_newsletters_color_palette', false ), true );
+		self::$color_palette = json_decode( get_option( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_PALETTE_META, false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
 		$is_public           = get_post_meta( $post->ID, 'is_public', true );
