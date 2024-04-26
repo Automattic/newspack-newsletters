@@ -14,10 +14,10 @@ use DrewM\MailChimp\MailChimp;
  */
 final class Newspack_Newsletters {
 
-	const NEWSPACK_NEWSLETTERS_CPT     = 'newspack_nl_cpt';
-	const EMAIL_HTML_META              = 'newspack_email_html';
-	const NEWSPACK_NEWSLETTERS_PALETTE = 'newspack_newsletters_color_palette';
-	const PUBLIC_POST_ID_META          = 'newspack_nl_public_post_id';
+	const NEWSPACK_NEWSLETTERS_CPT          = 'newspack_nl_cpt';
+	const EMAIL_HTML_META                   = 'newspack_email_html';
+	const NEWSPACK_NEWSLETTERS_PALETTE_META = 'newspack_newsletters_color_palette';
+	const PUBLIC_POST_ID_META               = 'newspack_nl_public_post_id';
 
 	/**
 	 * Supported fonts.
@@ -1225,10 +1225,10 @@ final class Newspack_Newsletters {
 	 */
 	public static function update_color_palette( $palette ) {
 		return update_option(
-			self::NEWSPACK_NEWSLETTERS_PALETTE,
+			self::NEWSPACK_NEWSLETTERS_PALETTE_META,
 			wp_json_encode(
 				array_merge(
-					json_decode( (string) get_option( self::NEWSPACK_NEWSLETTERS_PALETTE, '{}' ), true ) ?? [],
+					json_decode( (string) get_option( self::NEWSPACK_NEWSLETTERS_PALETTE_META, '{}' ), true ) ?? [],
 					$palette
 				)
 			)
