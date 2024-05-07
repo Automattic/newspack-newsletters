@@ -1164,23 +1164,21 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			} else {
 				// It might be a local list – the list id has to be extracted from the DB.
 				$local_list = Subscription_List::from_form_id( $list_id );
-				if ( ! $local_list || ! $local_list->is_configured_for_provider( $this->service ) ) {
-					continue;
-				}
-				$list_settings = $local_list->get_provider_settings( $this->service );
-				if ( $list_settings !== null ) {
-					$list_id = $list_settings['list'];
-					$sublist = [
-						'id'      => $list_settings['tag_id'],
-						'list_id' => $list_id,
-						'type'    => 'tag',
-					];
-					if ( isset( $by_list[ $list_id ] ) ) {
-						$by_list[ $list_id ][] = $sublist;
-					} else {
-						$by_list[ $list_id ] = [ $sublist ];
+				if ( $local_list && $local_list->is_configured_for_provider( $this->service ) ) {
+					$list_settings = $local_list->get_provider_settings( $this->service );
+					if ( $list_settings !== null ) {
+						$list_id = $list_settings['list'];
+						$sublist = [
+							'id'      => $list_settings['tag_id'],
+							'list_id' => $list_id,
+							'type'    => 'tag',
+						];
+						if ( isset( $by_list[ $list_id ] ) ) {
+							$by_list[ $list_id ][] = $sublist;
+						} else {
+							$by_list[ $list_id ] = [ $sublist ];
+						}
 					}
-					continue;
 				}
 			}
 			if ( ! isset( $by_list[ $list_id ] ) ) {
@@ -1301,25 +1299,39 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
+			$all_tags = [];
+			// If the sublists contain any tags, fetch all tags.
+			// This is needed because MC API expect tag names in the contact update payload, not ids.
+			if ( array_filter(
+				$sublists,
+				function( $sublist ) {
+					return 'tag' === $sublist['type']; }
+			) ) {
+				$all_tags = array_reduce(
+					$mc->get( "lists/$list_id/tag-search" )['tags'],
+					function( $tags, $tag ) {
+						$tags[ $tag['id'] ] = $tag['name'];
+						return $tags;
+					},
+					[]
+				);
+			}
+
 			// Add groups and tags, if any.
-			if ( ! empty( $sublists ) ) {
-				foreach ( $sublists as $sublist ) {
-					$sublist_id   = $sublist['id'];
-					$sublist_type = $sublist['type'];
-					if ( 'group' === $sublist_type ) {
-						if ( ! isset( $update_payload['interests'] ) ) {
-							$update_payload['interests'] = [];
-						}
-						$update_payload['interests'][ $sublist['id'] ] = true;
-					} elseif ( 'tag' === $sublist_type ) {
-						if ( ! isset( $update_payload['tags'] ) ) {
-							$update_payload['tags'] = [];
-						}
-						$subscription_list = Subscription_List::from_remote_id( "$sublist_type-$sublist_id-$list_id" );
-						if ( $subscription_list ) {
-							$remote_tag_name   = $subscription_list->get_remote_name();
-							$update_payload['tags'][] = $remote_tag_name;
-						}
+			foreach ( $sublists as $sublist ) {
+				$sublist_id   = $sublist['id'];
+				$sublist_type = $sublist['type'];
+				if ( 'group' === $sublist_type ) {
+					if ( ! isset( $update_payload['interests'] ) ) {
+						$update_payload['interests'] = [];
+					}
+					$update_payload['interests'][ $sublist['id'] ] = true;
+				} elseif ( 'tag' === $sublist_type ) {
+					if ( ! isset( $update_payload['tags'] ) ) {
+						$update_payload['tags'] = [];
+					}
+					if ( isset( $all_tags[ $sublist_id ] ) ) {
+						$update_payload['tags'][] = $all_tags[ $sublist_id ];
 					}
 				}
 			}
