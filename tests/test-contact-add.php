@@ -29,13 +29,13 @@ class Contact_Add_Test extends WP_UnitTestCase {
 			[ 'list1' ]
 		);
 		$this->assertEquals(
-			$result,
 			[
 				[
 					'status'  => 'pending',
 					'list_id' => 'list1',
 				],
-			]
+			],
+			$result
 		);
 	}
 
@@ -50,7 +50,6 @@ class Contact_Add_Test extends WP_UnitTestCase {
 			[ 'list1', 'list2' ]
 		);
 		$this->assertEquals(
-			$result,
 			[
 				[
 					'status'  => 'pending',
@@ -60,7 +59,8 @@ class Contact_Add_Test extends WP_UnitTestCase {
 					'status'  => 'pending',
 					'list_id' => 'list2',
 				],
-			]
+			],
+			$result
 		);
 	}
 
@@ -75,7 +75,6 @@ class Contact_Add_Test extends WP_UnitTestCase {
 			[ 'list1', 'tag-42-list1', 'group-group1-list1' ]
 		);
 		$this->assertEquals(
-			$result,
 			[
 				[
 					'status'    => 'pending',
@@ -88,7 +87,8 @@ class Contact_Add_Test extends WP_UnitTestCase {
 						],
 					],
 				],
-			]
+			],
+			$result
 		);
 	}
 }

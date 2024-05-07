@@ -1219,8 +1219,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		// If contact was added in this execution, we can return the previous
 		// result and bail.
-		if ( ! empty( self::$contacts_added[ $list_id . $email_address ] ) ) {
-			return self::$contacts_added[ $list_id . $email_address ];
+		$cache_key = $list_id . $email_address . json_encode( $sublists );
+		if ( ! empty( self::$contacts_added[ $cache_key ] ) ) {
+			return self::$contacts_added[ $cache_key ];
 		}
 
 		$new_contact_status = 'subscribed';

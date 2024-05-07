@@ -39,6 +39,7 @@ class MailChimp {
 		}
 		return [];
 	}
+
 	public static function post( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
 			return [
