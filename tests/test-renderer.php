@@ -60,6 +60,25 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	 * Test embed blocks rendering.
 	 */
 	public function test_render_embed_blocks() {
+		// Make the embed request return a static custom response.
+		add_filter(
+			'http_response',
+			function( $response ) {
+				$response['body'] = wp_json_encode(
+					array_merge(
+						json_decode( $response['body'], true ),
+						[
+							'title'         => 'Embed',
+							'url'           => 'embed.com',
+							'thumbnail_url' => 'embed.com/image',
+							'html'          => '<div>Embed</div>',
+						]
+					)
+				);
+				return $response;
+			}
+		);
+
 		// Video embed.
 		$inner_html = '<figure><div>https://www.youtube.com/watch?v=aIRgcb3cQ1Q</div></figure>';
 		$this->assertEquals(
@@ -74,7 +93,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => $inner_html,
 				]
 			),
-			'<mj-section url="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" padding="0"><mj-column padding="12px" width="100%"><mj-image padding="0" src="https://i.ytimg.com/vi/aIRgcb3cQ1Q/hqdefault.jpg" width="480px" height="360px" href="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >How to use the Newspack Newsletter plugin - YouTube</mj-text></mj-column></mj-section>',
+			'<mj-section url="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" padding="0"><mj-column padding="12px" width="100%"><mj-image padding="0" src="embed.com/image" width="480px" height="360px" href="https://www.youtube.com/watch?v=aIRgcb3cQ1Q" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >Embed - YouTube</mj-text></mj-column></mj-section>',
 			'Renders image from video embed block with title as caption'
 		);
 
@@ -92,13 +111,12 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => $inner_html,
 				]
 			),
-			'<mj-section url="https://flickr.com/photos/thomashawk/9274246246" padding="0"><mj-column padding="12px" width="100%"><mj-image src="https://live.staticflickr.com/7357/9274246246_201d71cf9a.jpg" alt="Automattic" width="500" height="333" href="https://flickr.com/photos/thomashawk/9274246246" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >Automattic - Flickr</mj-text></mj-column></mj-section>',
+			'<mj-section url="https://flickr.com/photos/thomashawk/9274246246" padding="0"><mj-column padding="12px" width="100%"><mj-image src="embed.com" alt="Automattic" width="500" height="333" href="https://flickr.com/photos/thomashawk/9274246246" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >Automattic - Flickr</mj-text></mj-column></mj-section>',
 			'Renders image with inline figcaption as caption'
 		);
 
 		// Rich embed as HTML.
 		$inner_html       = '<figure><div>https://twitter.com/automattic/status/1395447061336711181</div></figure>';
-		$formatted_string = '<mj-section url="https://twitter.com/automattic/status/1395447061336711181" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" ><blockquote>We&#039;re Hiring! We are continuing to grow and have some exciting open positions available, including in Engineering, Product, Marketing, Business Development, HR, Customer Support, and more. Work with us, from anywhere. <a href="https://t.co/EZST4WBsy2">https://t.co/EZST4WBsy2</a> <a href="https://t.co/z8bKfCgn14">pic.twitter.com/z8bKfCgn14</a>&mdash; Automattic (@automattic) <a href="https://twitter.com/automattic/status/1395447061336711181?ref_src=twsrc%5Etfw">May 20, 2021</a></blockquote></mj-text></mj-column></mj-section>';
 		$rendered_string  = Newspack_Newsletters_Renderer::render_mjml_component(
 			[
 				'blockName'    => 'core/embed',
@@ -112,7 +130,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 		);
 		$this->assertEquals(
 			str_replace( [ "\n", "\r" ], '', $rendered_string ),
-			str_replace( [ "\n", "\r" ], '', $formatted_string ),
+			'<mj-section url="https://twitter.com/automattic/status/1395447061336711181" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" >Embed</mj-text></mj-column></mj-section>',
 			'Renders tweet as HTML'
 		);
 
@@ -130,7 +148,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => $inner_html,
 				]
 			),
-			'<mj-section url="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" ><a href="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910">Learning PHP, MYSQL &amp; JavaScript: With jQuery, CSS &amp; HTML5</a></mj-text></mj-column></mj-section>',
+			'<mj-section url="https://www.amazon.com/Learning-PHP-MySQL-JavaScript-Javascript/dp/1491978910" padding="0"><mj-column padding="12px" width="100%"><mj-text padding="0" line-height="1.5" font-size="16px" >Embed</mj-text></mj-column></mj-section>',
 			'Renders invalid rich HTML as link'
 		);
 	}
