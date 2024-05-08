@@ -421,12 +421,17 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 			$list_id = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
+			$lists = $this->get_lists( true );
+			if ( \is_wp_error( $lists ) ) {
+				return $lists;
+			}
+
 			$newsletter_data = [
 				'campaign'            => $campaign,
 				'campaign_id'         => $mc_campaign_id,
 				'folders'             => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
 				'interest_categories' => $this->get_interest_categories( $list_id ),
-				'lists'               => $this->get_lists( true ),
+				'lists'               => $lists,
 				'merge_fields'        => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
 				'segments'            => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( $list_id ) : [],
 				'tags'                => $this->get_tags( $list_id ),
