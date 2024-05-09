@@ -165,7 +165,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 		$this->assertEquals(
 			Newspack_Newsletters_Renderer::process_links( '<a href="//newspack.com?value=1">linky<a>' ),
 			'<a href="//newspack.com?value=1&utm_medium=email">linky<a>',
-			'Appends utm_medium=email to links with params'
+			'Appends utm_medium=email to links with paramss'
 		);
 	}
 
