@@ -673,7 +673,7 @@ final class Newspack_Newsletters_Renderer {
 					)
 				);
 
-				$alignment     = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'center';
+				$alignment     = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'left';
 				$is_multi_row  = false;
 				$default_width = ! $no_widths ? 25 : max( 25, floor( ( 100 - $total_defined_width ) / $no_widths ) );
 
