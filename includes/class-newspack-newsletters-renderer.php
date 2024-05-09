@@ -673,9 +673,13 @@ final class Newspack_Newsletters_Renderer {
 					)
 				);
 
-				$alignment     = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'left';
 				$is_multi_row  = false;
 				$default_width = ! $no_widths ? 25 : max( 25, floor( ( 100 - $total_defined_width ) / $no_widths ) );
+				$alignment     = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'left';
+				$wrapper_attrs = [
+					'padding'    => '0',
+					'text-align' => $alignment,
+				];
 
 				// If the total width of the buttons is greater than 100%, reduce the default width.
 				if ( ( $default_width * $no_widths ) + $total_defined_width > 100 ) {
@@ -705,11 +709,6 @@ final class Newspack_Newsletters_Renderer {
 					if ( ! $anchor ) {
 						break;
 					}
-
-					$wrapper_attrs = [
-						'padding'    => '0',
-						'text-align' => $alignment,
-					];
 
 					$default_button_attrs = array(
 						'align'         => $alignment,
