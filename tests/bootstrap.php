@@ -35,3 +35,8 @@ require $_tests_dir . '/includes/bootstrap.php';
 
 // Trait used to test Subscription Lists.
 require_once 'trait-lists-setup.php';
+
+// MailChimp mock.
+require_once 'class-mailchimp-mock.php';
+
+ini_set( 'error_log', 'php://stdout' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
