@@ -414,6 +414,7 @@ class Woocommerce_Memberships {
 				if ( Subscription_Lists::CPT !== $rule->get_content_type_name() ) {
 					continue;
 				}
+
 				$object_ids = $rule->get_object_ids();
 				if ( in_array( $list_id, $object_ids, true ) ) {
 					return true;
