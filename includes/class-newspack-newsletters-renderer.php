@@ -673,8 +673,23 @@ final class Newspack_Newsletters_Renderer {
 					)
 				);
 
-				// Default width is total amount of undefined width divided by number of undefined width columns, or a minimum of 10%.
-				$default_width = ! $no_widths ? 10 : max( 10, ( ( 100 - $total_defined_width ) / $no_widths ) );
+				$is_multi_row  = false;
+				$default_width = ! $no_widths ? 25 : max( 25, floor( ( 100 - $total_defined_width ) / $no_widths ) );
+				$alignment     = isset( $attrs['layout'], $attrs['layout']['justifyContent'] ) ? $attrs['layout']['justifyContent'] : 'left';
+				$wrapper_attrs = [
+					'padding'    => '0',
+					'text-align' => $alignment,
+				];
+
+				// If the total width of the buttons is greater than 100%, reduce the default width.
+				if ( ( $default_width * $no_widths ) + $total_defined_width > 100 ) {
+					$default_width = 25;
+					$is_multi_row  = true;
+				}
+
+				$remaining_width  = 100;
+				$block_mjml_array = [];
+
 				foreach ( $inner_blocks as $button_block ) {
 					if ( empty( $button_block['innerHTML'] ) ) {
 						break;
@@ -696,6 +711,7 @@ final class Newspack_Newsletters_Renderer {
 					}
 
 					$default_button_attrs = array(
+						'align'         => $alignment,
 						'padding'       => '0',
 						'inner-padding' => '12px 24px',
 						'line-height'   => '1.5',
@@ -719,13 +735,6 @@ final class Newspack_Newsletters_Renderer {
 						$default_button_attrs['color'] = $attrs['color'];
 					}
 
-					$column_attrs['css-class'] = 'mj-column-has-width';
-					$column_attrs['width']     = $default_width . '%';
-					if ( ! empty( $attrs['width'] ) ) {
-						$column_attrs['width']         = $attrs['width'] . '%';
-						$default_button_attrs['width'] = '100%'; // Buttons with defined width should fill their column.
-					}
-
 					if ( ! empty( $attrs['padding'] ) ) {
 						$default_button_attrs['inner-padding'] = $attrs['padding'];
 					}
@@ -738,10 +747,53 @@ final class Newspack_Newsletters_Renderer {
 						$button_attrs['css-class'] = $attrs['className'];
 					}
 
-					$block_mjml_markup .= '<mj-column ' . self::array_to_attributes( $column_attrs ) . '><mj-button ' . self::array_to_attributes( $button_attrs ) . ">$text</mj-button></mj-column>";
+					$column_attrs['css-class'] = 'mj-column-has-width';
+					$column_width              = $default_width;
+					if ( ! empty( $attrs['width'] ) ) {
+						$column_width                  = $attrs['width'];
+						$default_button_attrs['width'] = '100%'; // Buttons with defined width should fill their column.
+					}
+
+					$column_attrs['width'] = $column_width . '%';
+					$remaining_width      -= $column_width;
+
+					$block_mjml_array[] = [
+						'<mj-column ' . self::array_to_attributes( $column_attrs ) . '>',
+						'<mj-button ' . self::array_to_attributes( $default_button_attrs ) . ">$text</mj-button>",
+						'</mj-column>',
+					];
+
+					if ( $remaining_width < $default_width ) {
+						$remaining_width    = 100;
+						$block_mjml_array[] = [
+							'<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>',
+							null,
+							'</mj-section>',
+						];
+					}
 				}
 
+				if ( $is_multi_row && $remaining_width < 100 ) {
+					$block_mjml_array[] = [
+						'<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>',
+						null,
+						'</mj-section>',
+					];
+				}
 
+				$markup     = '';
+				$button_row = '';
+				foreach ( $block_mjml_array as $block_mjml ) {
+					if ( isset( $block_mjml[1] ) ) {
+						// Add a button to the button row markup.
+						$button_row .= $block_mjml[0] . $block_mjml[1] . $block_mjml[2];
+					} else {
+						// Wrap button row in a section, then reset button row markup.
+						$markup    .= $block_mjml[0] . $button_row . $block_mjml[2];
+						$button_row = '';
+					}
+				}
+				$block_mjml_markup = '<mj-wrapper ' . self::array_to_attributes( $wrapper_attrs ) . '>' . $markup . '</mj-wrapper>';
 				break;
 
 			/**
@@ -1059,9 +1111,9 @@ final class Newspack_Newsletters_Renderer {
 			! $is_in_column &&
 			! $is_in_list_or_quote &&
 			! $is_grouped_block &&
+			'core/buttons' != $block_name &&
 			'core/columns' != $block_name &&
 			'core/column' != $block_name &&
-			'core/buttons' != $block_name &&
 			'core/separator' != $block_name &&
 			! $is_posts_inserter_block
 		) {
