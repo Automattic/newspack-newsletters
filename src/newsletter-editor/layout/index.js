@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isEqual, find } from 'lodash';
+import { isEqual, find, pick } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -28,18 +28,20 @@ export default compose( [
 		const { getEditedPostAttribute, isEditedPostEmpty, getCurrentPostId } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const { template_id: layoutId, background_color, font_body, font_header, custom_css } = meta;
 		return {
-			layoutId,
+			layoutId: meta.template_id,
 			postTitle: getEditedPostAttribute( 'title' ),
 			postBlocks: getBlocks(),
 			isEditedPostEmpty: isEditedPostEmpty(),
 			currentPostId: getCurrentPostId(),
-			stylingMeta: {
-				background_color,
-				font_body,
-				font_header,
-				custom_css,
+			layoutMeta: {
+				background_color: meta.background_color,
+				font_body: meta.font_body,
+				font_header: meta.font_header,
+				custom_css: meta.custom_css,
+				layout_defaults: JSON.stringify(
+					pick( meta, [ 'senderEmail', 'senderName', 'newsletterData' ] )
+				),
 			},
 		};
 	} ),
@@ -56,7 +58,7 @@ export default compose( [
 		};
 	} ),
 ] )(
-	( { editPost, layoutId, saveLayout, postBlocks, postTitle, isEditedPostEmpty, stylingMeta } ) => {
+	( { editPost, layoutId, saveLayout, postBlocks, postTitle, isEditedPostEmpty, layoutMeta } ) => {
 		const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 		const { layouts, isFetchingLayouts } = useLayoutsState();
 
@@ -92,14 +94,14 @@ export default compose( [
 
 		const postContent = useMemo( () => serialize( postBlocks ), [ postBlocks ] );
 		const isPostContentSameAsLayout =
-			postContent === usedLayout.post_content && isEqual( usedLayout.meta, stylingMeta );
+			postContent === usedLayout.post_content && isEqual( usedLayout.meta, layoutMeta );
 
 		const handleSaveAsLayout = () => {
 			setIsSavingLayout( true );
 			const updatePayload = {
 				title: newLayoutName,
 				content: postContent,
-				meta: stylingMeta,
+				meta: layoutMeta,
 			};
 			saveLayout( updatePayload ).then( newLayout => {
 				setIsManageModalVisible( false );
@@ -116,7 +118,7 @@ export default compose( [
 				const updatePayload = {
 					id: usedLayout.ID,
 					content: postContent,
-					meta: stylingMeta,
+					meta: layoutMeta,
 				};
 				saveLayout( updatePayload ).then( handleLayoutUpdate );
 			}

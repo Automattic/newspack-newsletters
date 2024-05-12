@@ -39,6 +39,9 @@ export default function LayoutPicker() {
 
 	const insertLayout = layoutId => {
 		const { post_content, meta = {} } = find( layouts, { ID: layoutId } ) || {};
+		if ( meta.layout_defaults !== undefined ) {
+			meta.stringifiedLayoutDefaults = meta.layout_defaults;
+		}
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
 		savePost();

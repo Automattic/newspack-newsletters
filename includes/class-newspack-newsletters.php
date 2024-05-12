@@ -143,6 +143,14 @@ final class Newspack_Newsletters {
 	 * These have to be registered so the updates are handles correctly.
 	 */
 	public static function register_editor_only_meta() {
+		$default_register_meta_args = [
+			'show_in_rest' => [
+				'schema' => [
+					'context' => [ 'edit' ],
+				],
+			],
+			'type'         => 'string',
+		];
 		$fields = [
 			[
 				'name'               => 'newsletterData',
@@ -160,25 +168,15 @@ final class Newspack_Newsletters {
 			],
 			[
 				'name'               => 'senderName',
-				'register_meta_args' => [
-					'show_in_rest' => [
-						'schema' => [
-							'context' => [ 'edit' ],
-						],
-					],
-					'type'         => 'string',
-				],
+				'register_meta_args' => $default_register_meta_args,
 			],
 			[
 				'name'               => 'senderEmail',
-				'register_meta_args' => [
-					'show_in_rest' => [
-						'schema' => [
-							'context' => [ 'edit' ],
-						],
-					],
-					'type'         => 'string',
-				],
+				'register_meta_args' => $default_register_meta_args,
+			],
+			[
+				'name'               => 'stringifiedLayoutDefaults',
+				'register_meta_args' => $default_register_meta_args,
 			],
 			[
 				'name'               => 'newsletter_send_errors',
@@ -745,6 +743,7 @@ final class Newspack_Newsletters {
 					'font_body'        => get_post_meta( $post->ID, 'font_body', true ),
 					'font_header'      => get_post_meta( $post->ID, 'font_header', true ),
 					'custom_css'       => get_post_meta( $post->ID, 'custom_css', true ),
+					'layout_defaults'  => get_post_meta( $post->ID, 'layout_defaults', true ),
 				];
 				return $post;
 			},
