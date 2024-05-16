@@ -1,14 +1,8 @@
 <?php // phpcs:ignoreFile
-
-function wc_memberships_get_membership_plans() {
-	return [
-		new WC_Memberships_Membership_Plan( 1 ),
-	];
-}
-
 class WC_Memberships_Membership_Plan {
 	private $id;
 	private $name;
+	private $rules;
 
 	public function __construct( $id ) {
 		$this->id   = $id;
@@ -16,18 +10,18 @@ class WC_Memberships_Membership_Plan {
 	}
 
 	public function get_content_restriction_rules() {
-		return [
-			new WC_Memberships_Membership_Plan_Rule( [
-				'id'                => $this->id,
-				'content_type_name' => 'newspack_nl_list',
-			] ),
-		];
+		return $this->rules;
+	}
+
+	public function set_content_restriction_rules( $rules ) {
+		$this->rules = $rules;
 	}
 }
 
 class WC_Memberships_Membership_Plan_Rule {
 	private $id;
 	private $content_type_name;
+	private $object_id_rules;
 
 	public function __construct( $data ) {
 		foreach ( $data as $key => $value ) {
@@ -40,6 +34,6 @@ class WC_Memberships_Membership_Plan_Rule {
 	}
 
 	public function get_object_ids() {
-		return [ 1, 2, 3 ];
+		return $this->object_id_rules;
 	}
 }

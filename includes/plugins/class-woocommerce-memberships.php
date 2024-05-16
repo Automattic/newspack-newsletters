@@ -396,7 +396,7 @@ class Woocommerce_Memberships {
 	 *
 	 * @return bool
 	 */
-	public static function is_membership_list( $list_id ) {
+	public static function is_subscription_list_tied_to_plan( $list_id ) {
 		if ( ! function_exists( 'wc_memberships_get_membership_plans' ) ) {
 			return false;
 		}
