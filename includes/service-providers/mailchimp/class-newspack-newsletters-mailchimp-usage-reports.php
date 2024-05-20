@@ -33,6 +33,9 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 
 		$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
 		$lists  = $mc_api->get( 'lists', [ 'count' => 1000 ] );
+		if ( ! isset( $lists['lists'] ) ) {
+			return $report;
+		}
 
 		foreach ( $lists['lists'] as &$list ) {
 			$report->total_contacts += $list['stats']['member_count'];
