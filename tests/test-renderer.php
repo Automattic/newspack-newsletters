@@ -154,6 +154,136 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test buttons blocks rendering.
+	 */
+	public function test_render_buttons_blocks() {
+		// Left aligned button.
+		$inner_html = '<button><a>Test Button</a></button>';
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/buttons',
+					'attrs'        => [],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+					],
+					'innerContent' => [
+						'<div>',
+						null,
+						'</div>',
+					],
+					'innerHTML'    => '<div></div>',
+				]
+			),
+			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="100%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'Renders left aligned button'
+		);
+
+		// Center aligned button.
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/buttons',
+					'attrs'        => [
+						'layout' => [
+							'justifyContent' => 'center',
+						],
+					],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+					],
+					'innerContent' => [
+						'<div>',
+						null,
+						'</div>',
+					],
+					'innerHTML'    => '<div></div>',
+				]
+			),
+			'<mj-section  padding="0"><mj-wrapper padding="0" text-align="center"><mj-section padding="0" text-align="center"><mj-column padding="12px" css-class="mj-column-has-width" width="100%"><mj-button align="center" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'Renders center aligned button'
+		);
+
+		// Right aligned button.
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/buttons',
+					'attrs'        => [
+						'layout' => [
+							'justifyContent' => 'right',
+						],
+					],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+					],
+					'innerContent' => [
+						'<div>',
+						null,
+						'</div>',
+					],
+					'innerHTML'    => '<div></div>',
+				]
+			),
+			'<mj-section  padding="0"><mj-wrapper padding="0" text-align="right"><mj-section padding="0" text-align="right"><mj-column padding="12px" css-class="mj-column-has-width" width="100%"><mj-button align="right" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'Renders right aligned button'
+		);
+
+
+		// Multiple buttons.
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/buttons',
+					'attrs'        => [],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+					],
+					'innerContent' => [
+						'<div>',
+						null,
+						'</div>',
+					],
+					'innerHTML'    => '<div></div>',
+				]
+			),
+			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column><mj-column padding="12px" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'Renders multiple buttons'
+		);
+	}
+
+	/**
 	 * Test other rendering-related function.
 	 */
 	public function test_aux_functions() {
