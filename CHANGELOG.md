@@ -1,10 +1,10 @@
-# [2.15.0-alpha.2](https://github.com/Automattic/newspack-newsletters/compare/v2.15.0-alpha.1...v2.15.0-alpha.2) (2024-05-15)
+## [2.14.4](https://github.com/Automattic/newspack-newsletters/compare/v2.14.3...v2.14.4) (2024-05-20)
 
 
 ### Bug Fixes
 
-* **mailchimp:** adding to list(s) ([dcae035](https://github.com/Automattic/newspack-newsletters/commit/dcae0359cff3b60bbcd3fce7a6927d2174482558))
-* **mailchimp:** handle lists error gracefully ([3f64323](https://github.com/Automattic/newspack-newsletters/commit/3f6432382a68a3f9238754d5475b083d5197277a))
+* **mailchimp:** handle missing interests in API contact data ([e613f11](https://github.com/Automattic/newspack-newsletters/commit/e613f110be7aad4782463232650b958c4715b226))
+* **tracking:** log file processing ([51233a2](https://github.com/Automattic/newspack-newsletters/commit/51233a2823a64891714bb4105676a46e0624ada3))
 
 ## [2.14.3](https://github.com/Automattic/newspack-newsletters/compare/v2.14.2...v2.14.3) (2024-05-09)
 

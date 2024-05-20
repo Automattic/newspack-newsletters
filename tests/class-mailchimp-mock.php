@@ -7,13 +7,32 @@ namespace DrewM\MailChimp;
  */
 class MailChimp {
 	private static $database = [ // phpcs:ignore Squiz.Commenting.VariableComment.Missing
-		'tags' => [
+		'tags'    => [
 			[
 				'id'   => 42,
 				'name' => 'Supertag',
 			],
 		],
+		'members' => [
+			[
+				'id'            => '123',
+				'contact_id'    => '123',
+				'email_address' => 'test1@example.com',
+				'full_name'     => 'Test User',
+				'list_id'       => 'test-list',
+				'status'        => 'subscribed',
+			],
+		],
 	];
+
+	/**
+	 * Add a member to the mock DB.
+	 *
+	 * @param array $contact Contact data.
+	 */
+	public static function mock_add_member( $contact ) {
+		self::$database['members'][] = $contact;
+	}
 
 	public static function get( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
@@ -33,7 +52,13 @@ class MailChimp {
 		}
 		switch ( $endpoint ) {
 			case 'search-members':
-				return [ 'exact_matches' => [ 'members' => [] ] ];
+				$results = array_filter(
+					self::$database['members'],
+					function( $member ) use ( $args ) {
+						return $member['email_address'] === $args['query'];
+					}
+				);
+				return [ 'exact_matches' => [ 'members' => $results ] ];
 			default:
 				return [];
 		}
