@@ -47,7 +47,7 @@
 		"qs": "^6.12.1"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.10.2",
+		"@rushstack/eslint-patch": "^1.10.3",
 		"eslint": "^7.32.0",
 		"lint-staged": "^15.2.2",
 		"newspack-scripts": "^5.4.0",
