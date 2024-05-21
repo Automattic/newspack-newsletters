@@ -79,19 +79,46 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'https', $parsed_destination_url['scheme'] );
 		$this->assertEquals( 'google.com', $parsed_destination_url['host'] );
 
-		// Manually track the click.
-		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
+		// Trigger the click handled.
+		$_GET['np_newsletters_click'] = 1;
+		$_GET['id'] = $post_id;
+		$_GET['em'] = 'fake@email.com';
+		$_GET['url'] = $args['url'];
+		Click::handle_click( false );
 
 		// Assert clicked once.
 		$clicks = \get_post_meta( $post_id, 'tracking_clicks', true );
 		$this->assertEquals( 1, $clicks );
 
-		// Manually track the click again.
-		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
+		// Trigger the click handled again.
+		Click::handle_click( false );
 
 		// Assert clicked twice.
 		$clicks = \get_post_meta( $post_id, 'tracking_clicks', true );
 		$this->assertEquals( 2, $clicks );
+	}
+
+	/**
+	 * Test click tracking with a link that was not included in the newsletter.
+	 */
+	public function test_tracking_click_not_in_newsletter() {
+		$post_id = $this->factory->post->create(
+			[
+				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with link.',
+				'post_content' => "<!-- wp:paragraph -->\n<p><a href=\"https://google.com\">Link</a><\/p>\n<!-- \/wp:paragraph -->",
+			]
+		);
+
+		$_GET['np_newsletters_click'] = 1;
+		$_GET['id'] = $post_id;
+		$_GET['url'] = 'https://mischievous.com';
+		try {
+			Click::handle_click( false );
+		} catch ( \Throwable $th ) {
+			$this->assertEquals( 'Invalid URL', $th->getMessage() );
+			$this->assertEquals( 400, $th->getCode() );
+		}
 	}
 
 	/**
