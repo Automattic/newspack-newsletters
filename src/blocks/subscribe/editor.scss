@@ -1,11 +1,11 @@
 @use '~@wordpress/base-styles/colors' as wp-colors;
 
-.editor-styles-wrapper .newspack-newsletters-subscribe {
+.editor-styles-wrapper .wp-block-newspack-newsletters-subscribe {
 	form {
 		input[type='text'],
 		input[type='email'] {
 			background: #fff;
-			border: solid 1px #ccc;
+			border: solid 1px #ddd;
 			box-sizing: border-box;
 			outline: none;
 			padding: 0.36rem 0.66rem;
@@ -13,6 +13,34 @@
 			outline-offset: 0;
 			border-radius: 0;
 			font-size: 1rem;
+		}
+		input[type='checkbox'] {
+			background: #fff;
+			border: 1px solid #ddd;
+			box-shadow: none;
+			appearance: none;
+			display: inline-grid;
+			height: 20px !important;
+			margin: 2px 0 0;
+			place-content: center;
+			width: 20px !important;
+
+			&::before {
+				background: transparent url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white' %3E%3C/path%3E%3C/svg%3E" ) 0 0 no-repeat;
+				content: "";
+				height: 24px;
+				margin: 0;
+				width: 24px;
+			}
+
+			&:checked {
+				background: #1e1e1e;
+				border-color: #1e1e1e;
+			}
+
+			&:focus {
+				box-shadow: none;
+			}
 		}
 		[type='submit'],
 		.submit-button {
@@ -28,18 +56,17 @@
 			line-height: 1.2;
 			outline: none;
 			padding: 0.76rem 1rem;
+			place-items: center;
 			text-decoration: none;
-			display: block;
+			display: grid;
 			width: 100%;
 			text-align: center;
 			@media ( min-width: 782px ) {
-				display: inline-block;
 				width: auto;
-				vertical-align: bottom;
 			}
 		}
 	}
-	&__state-bar {
+	.newspack-newsletters-subscribe__state-bar {
 		align-items: center;
 		border: 1px solid wp-colors.$gray-900;
 		border-radius: 2px;
@@ -71,6 +98,16 @@
 		div {
 			display: flex;
 			gap: 4px;
+		}
+	}
+
+	&.is-style-modern {
+		.newspack-newsletters-subscribe__response {
+			padding: 24px;
+
+			@media ( min-width: 782px ) {
+				padding: 48px;
+			}
 		}
 	}
 }

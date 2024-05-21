@@ -93,5 +93,16 @@
 	"supports": {
 		"html": false,
 		"align": true
-	}
+	},
+	"styles": [
+		{
+			"name": "modern",
+			"label": "Modern",
+			"isDefault": true
+		},
+		{
+			"name": "default",
+			"label": "Classic"
+		}
+	]
 }

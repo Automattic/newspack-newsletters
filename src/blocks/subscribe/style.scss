@@ -1,3 +1,4 @@
+@import url('./style-variations.scss');
 @use '~@wordpress/base-styles/colors' as wp-colors;
 
 .newspack-newsletters-subscribe {
@@ -123,8 +124,7 @@
 
 	&__icon {
 		align-items: center;
-		animation: fadein 125ms ease-in;
-		background: wp-colors.$alert-green;
+		background: var( --newspack-ui-color-success-50 , #008A20 );
 		border-radius: 50%;
 		display: flex;
 		height: 40px;
@@ -137,14 +137,10 @@
 		}
 
 		&::before {
-			animation: bounce 125ms ease-in;
-			animation-delay: 500ms;
-			animation-fill-mode: forwards;
 			background-image: url( "data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white'/%3E%3C/svg%3E" );
 			content: '';
 			display: block;
 			height: 24px;
-			transform: scale( 0 );
 			width: 24px;
 		}
 	}
@@ -156,7 +152,7 @@
 
 			&.status-400,
 			&.status-500 {
-				color: wp-colors.$alert-red;
+				color: var( --newspack-ui-color-error-50 , #D63638 );
 			}
 		}
 	}
