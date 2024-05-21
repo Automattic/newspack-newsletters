@@ -10,6 +10,8 @@
 		"build": "newspack-scripts build",
 		"test": "echo \"Error: no test specified\" && exit 0",
 		"clean": "rm -rf dist/",
+		"test:php": "phpunit",
+		"test:php:coverage": "php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-html codecov",
 		"lint": "npm run lint:scss && npm run lint:js",
 		"lint:js": "eslint --ext .js,.jsx src",
 		"lint:js:staged": "eslint --ext .js,.jsx",
