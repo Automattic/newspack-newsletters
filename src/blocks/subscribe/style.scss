@@ -1,5 +1,5 @@
-@import url('./style-variations.scss');
 @use '~@wordpress/base-styles/colors' as wp-colors;
+@import url('./style-variations.scss'); /* stylelint-disable-line */
 
 .newspack-newsletters-subscribe {
 	form {
