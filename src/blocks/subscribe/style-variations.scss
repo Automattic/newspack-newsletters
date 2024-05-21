@@ -168,13 +168,7 @@
 			&__response {
 				background: var( --newspack-ui-color-success-0, #EDFAEF );
 				border-radius: var( --newspack-ui-border-radius-m, 6px );
-				display: grid;
 				gap: var( --newspack-ui-spacer-5, 24px );
-				justify-items: center;
-			}
-
-			&__icon {
-				margin: 0;
 			}
 
 			&__message {
@@ -183,7 +177,6 @@
 					font-size: inherit;
 					font-weight: 600;
 					line-height: inherit;
-					margin: 0;
 					text-align: center;
 				}
 			}
