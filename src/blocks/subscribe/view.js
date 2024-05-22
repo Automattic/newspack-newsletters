@@ -1,4 +1,4 @@
-/* globals newspack_newsletters_subscribe_block */
+/* globals newspack_newsletters_subscribe_block, newspack_grecaptcha */
 /**
  * Internal dependencies
  */
@@ -28,37 +28,6 @@ function domReady( callback ) {
 	document.addEventListener( 'DOMContentLoaded', callback );
 }
 
-function getCaptchaToken() {
-	return new Promise( ( res, rej ) => {
-		const reCaptchaScript = document.getElementById( 'newspack-recaptcha-js' );
-		if ( ! reCaptchaScript ) {
-			return res( '' );
-		}
-
-		const { grecaptcha } = window;
-		if ( ! grecaptcha ) {
-			return res( '' );
-		}
-
-		const captchaSiteKey = reCaptchaScript.getAttribute( 'src' ).split( '?render=' ).pop();
-
-		if ( ! captchaSiteKey ) {
-			return res( '' );
-		}
-
-		if ( ! grecaptcha?.ready ) {
-			rej( newspack_newsletters_subscribe_block.recaptcha_error );
-		}
-
-		grecaptcha.ready( () => {
-			grecaptcha
-				.execute( captchaSiteKey, { action: 'submit' } )
-				.then( token => res( token ) )
-				.catch( e => rej( e ) );
-		} );
-	} );
-}
-
 domReady( function () {
 	document.querySelectorAll( '.newspack-newsletters-subscribe' ).forEach( container => {
 		const form = container.querySelector( 'form' );
@@ -71,11 +40,21 @@ domReady( function () {
 		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe__message' );
 		const emailInput = container.querySelector( 'input[type="email"]' );
 		const submit = container.querySelector( 'input[type="submit"]' );
+		form.setLoading = ( isLoading = true ) => {
+			if ( isLoading ) {
+				form.classList.add( 'loading' );
+				emailInput.setAttribute( 'disabled', 'true' );
+				submit.setAttribute( 'disabled', 'true' );
+			} else {
+				form.classList.remove( 'loading' );
+				emailInput.removeAttribute( 'disabled' );
+				submit.removeAttribute( 'disabled' );
+			}
+		};
 		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
-			emailInput.removeAttribute( 'disabled' );
-			submit.removeAttribute( 'disabled' );
+			form.setLoading( false );
 			messageNode.innerHTML = wasSubscribed
 				? container.getAttribute( 'data-success-message' )
 				: message;
@@ -88,22 +67,24 @@ domReady( function () {
 		form.addEventListener( 'submit', ev => {
 			ev.preventDefault();
 			messageContainer.innerHTML = '';
-			submit.disabled = true;
-
 			if ( ! form.npe?.value ) {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
-			getCaptchaToken()
+			const getCaptchaToken = newspack_grecaptcha
+				? newspack_grecaptcha?.getCaptchaToken
+				: () => new Promise( res => res( '' ) ); // Empty promise.
+
+			getCaptchaToken( form )
 				.then( captchaToken => {
 					if ( ! captchaToken ) {
 						return;
 					}
-					let tokenField = form.captcha_token;
+					let tokenField = form[ 'g-recaptcha-response' ];
 					if ( ! tokenField ) {
 						tokenField = document.createElement( 'input' );
 						tokenField.setAttribute( 'type', 'hidden' );
-						tokenField.setAttribute( 'name', 'captcha_token' );
+						tokenField.setAttribute( 'name', 'g-recaptcha-response' );
 						tokenField.setAttribute( 'autocomplete', 'off' );
 						form.appendChild( tokenField );
 					}
@@ -120,8 +101,7 @@ domReady( function () {
 					if ( nonce ) {
 						body.set( 'newspack_newsletters_subscribe', nonce );
 					}
-					emailInput.setAttribute( 'disabled', 'true' );
-					submit.setAttribute( 'disabled', 'true' );
+					form.setLoading();
 
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',
