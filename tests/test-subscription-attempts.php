@@ -22,19 +22,30 @@ class Subscription_Attempts_Test extends WP_UnitTestCase {
 	/**
 	 * Test if the attempt is added to the custom table when the WP hook is called.
 	 */
-	public function test_subscription_attempts_add() {
+	public function test_subscription_attempts_add_and_update() {
 		$lists = [ 'list1', 'list2' ];
 		$contact = [
 			'email' => 'tester@example.com',
 		];
 		do_action( 'newspack_newsletters_pre_add_contact', $lists, $contact );
 
-		global $wpdb;
-		$table_name = Newspack_Newsletters_Subscription_Attempts::get_table_name();
-		$query = "SELECT * FROM $table_name WHERE email = '" . $contact['email'] . "'";
-		$result = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared
-		self::assertEquals( $contact['email'], $result[0]['email'] );
-		self::assertEquals( implode( ',', $lists ), $result[0]['list_ids'] );
+		$result = Newspack_Newsletters_Subscription_Attempts::get_by_email( $contact['email'] );
+		self::assertEquals( $contact['email'], $result->email );
+		self::assertEquals( implode( ',', $lists ), $result->list_ids );
+
+		$lists_added = [ 'list3', 'list4' ];
+		do_action( 'newspack_newsletters_update_contact_lists', 'some_esp', $contact['email'], $lists_added, [], true );
+
+		$result = Newspack_Newsletters_Subscription_Attempts::get_by_email( $contact['email'] );
+		$lists_expected = array_merge( $lists, $lists_added );
+		self::assertEquals( implode( ',', $lists_expected ), $result->list_ids );
+
+		$lists_removed = [ 'list1', 'list3' ];
+		do_action( 'newspack_newsletters_update_contact_lists', 'some_esp', $contact['email'], [], $lists_removed, true );
+
+		$result = Newspack_Newsletters_Subscription_Attempts::get_by_email( $contact['email'] );
+		$lists_expected = [ 'list2', 'list4' ];
+		self::assertEquals( implode( ',', $lists_expected ), $result->list_ids );
 	}
 
 	/**

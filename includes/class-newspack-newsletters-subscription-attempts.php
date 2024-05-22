@@ -30,6 +30,7 @@ class Newspack_Newsletters_Subscription_Attempts {
 		add_action( self::CRON_HOOK, [ __CLASS__, 'cleanup' ] );
 
 		add_action( 'newspack_newsletters_pre_add_contact', [ __CLASS__, 'save_attempt' ], 10, 2 );
+		add_action( 'newspack_newsletters_update_contact_lists', [ __CLASS__, 'save_update' ], 10, 5 );
 	}
 
 	/**
@@ -103,6 +104,22 @@ class Newspack_Newsletters_Subscription_Attempts {
 	}
 
 	/**
+	 * Get a row by email.
+	 *
+	 * @param string $email Email address.
+	 */
+	public static function get_by_email( $email ) {
+		global $wpdb;
+		return $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				'SELECT email,list_ids FROM %i WHERE email = %s',
+				self::get_table_name(),
+				$email
+			)
+		);
+	}
+
+	/**
 	 * Set a value in the database.
 	 *
 	 * @param string $email The reader's unique ID.
@@ -110,8 +127,22 @@ class Newspack_Newsletters_Subscription_Attempts {
 	 *
 	 * @return mixed The value if it was set, false otherwise.
 	 */
-	public static function set( $email, $list_ids ) {
+	private static function set( $email, $list_ids ) {
 		global $wpdb;
+
+		// Check if the entry with this email address exists.
+		$existing_row = self::get_by_email( $email );
+		if ( $existing_row ) {
+			// Update the row.
+			return $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				self::get_table_name(),
+				[ 'list_ids' => $list_ids ],
+				[ 'email' => $email ],
+				[ '%s' ],
+				[ '%s' ]
+			);
+		}
+
 		return $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			self::get_table_name(),
 			[
@@ -132,8 +163,7 @@ class Newspack_Newsletters_Subscription_Attempts {
 	 */
 	public static function cleanup() {
 		global $wpdb;
-		$table_name = self::get_table_name();
-		$wpdb->query( "DELETE FROM $table_name WHERE created_at < now() - interval 6 MONTH LIMIT 1000" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE created_at < now() - interval 6 MONTH LIMIT 1000', self::get_table_name() ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
 	/**
@@ -154,6 +184,25 @@ class Newspack_Newsletters_Subscription_Attempts {
 			$list_ids = implode( ',', $lists );
 		}
 		self::set( $contact['email'], $list_ids );
+	}
+
+	/**
+	 * Handle a subscription lists update.
+	 *
+	 * @param string        $provider        The provider name.
+	 * @param string        $email           Contact email address.
+	 * @param string[]      $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[]      $lists_to_remove Array of list IDs to remove the contact from.
+	 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
+	 */
+	public static function save_update( $provider, $email, $lists_to_add, $lists_to_remove, $result ) {
+		$existing_row = self::get_by_email( $email );
+		if ( ! $existing_row ) {
+			return self::set( $email, implode( ',', $lists_to_add ) );
+		}
+		$lists_updated = explode( ',', $existing_row->list_ids );
+		$lists_updated = array_merge( array_diff( $lists_updated, $lists_to_remove ), $lists_to_add );
+		return self::set( $email, implode( ',', $lists_updated ) );
 	}
 }
 
