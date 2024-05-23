@@ -97,12 +97,7 @@
 	"styles": [
 		{
 			"name": "modern",
-			"label": "Modern",
-			"isDefault": true
-		},
-		{
-			"name": "default",
-			"label": "Classic"
+			"label": "Modern"
 		}
 	]
 }
