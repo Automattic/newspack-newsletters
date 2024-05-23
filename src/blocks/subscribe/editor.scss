@@ -68,8 +68,10 @@
 	}
 	.newspack-newsletters-subscribe__state-bar {
 		align-items: center;
+		background: white;
 		border: 1px solid wp-colors.$gray-900;
 		border-radius: 2px;
+		color: wp-colors.$gray-900 !important;
 		display: flex;
 		font-family: -apple-system, blinkmacsystemfont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
 			'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
