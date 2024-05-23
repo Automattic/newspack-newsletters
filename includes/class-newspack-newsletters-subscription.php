@@ -361,6 +361,20 @@ class Newspack_Newsletters_Subscription {
 			$lists = [ $lists ];
 		}
 
+		/**
+		 * Trigger an action before contact adding.
+		 *
+		 * @param string[]|false $lists    Array of list IDs the contact will be subscribed to, or false.
+		 * @param array          $contact  {
+		 *          Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 */
+		do_action( 'newspack_newsletters_pre_add_contact', $lists, $contact );
+
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
