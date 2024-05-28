@@ -2,7 +2,8 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect, useState } from '@wordpress/element';
+import { withSelect } from '@wordpress/data';
+import { Fragment, useEffect } from '@wordpress/element';
 import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/components';
 
 /**
@@ -11,37 +12,11 @@ import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/compone
 import { getGroupOptions, getSegmentOptions } from './utils';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
-const SegmentsSelection = ( {
-	onUpdate,
-	inFlight,
-	targetField,
-	chosenTarget,
-	groups = [],
-	tags = [],
-	segments = [],
-} ) => {
-	const [ targetId, setTargetId ] = useState( chosenTarget.toString() || '' );
-	const [ isInitial, setIsInitial ] = useState( true );
-
-	useEffect( () => {
-		if ( ! isInitial ) {
-			onUpdate( targetId );
-		}
-		setIsInitial( false );
-	}, [ targetId ] );
-
+const getSubAudienceOptions = newsletterData => {
+	const groups = newsletterData?.interest_categories || [];
+	const segments = newsletterData?.segments || [];
+	const tags = newsletterData?.tags || [];
 	let optGroups = [];
-
-	useEffect( () => {
-		optGroups.forEach( optGroup => {
-			if ( targetId !== '' && ! optGroup.options.find( option => option.value === targetId ) ) {
-				const foundOption = optGroup.options.find(
-					option => option.value && option.value === `${ targetField || '' }:${ targetId }`
-				);
-				if ( foundOption ) setTargetId( foundOption.value );
-			}
-		} );
-	}, [ targetId ] );
 
 	if ( groups?.categories?.length > 0 ) {
 		optGroups = optGroups.concat( getGroupOptions( groups ) );
@@ -60,21 +35,45 @@ const SegmentsSelection = ( {
 			options: getSegmentOptions( segments ),
 		} );
 	}
+	return optGroups;
+};
 
+const SegmentsSelection = ( { onUpdate, inFlight, value, newsletterData } ) => {
+	const optGroups = getSubAudienceOptions( newsletterData );
 	if ( ! optGroups.length ) {
 		return null;
 	}
-
 	return (
 		<SelectControlWithOptGroup
 			label={ __( 'Group, Segment, or Tag', 'newspack-newsletters' ) }
 			deselectedOptionLabel={ __( 'All subscribers in audience', 'newspack-newsletters' ) }
 			optgroups={ optGroups }
-			value={ targetId }
-			onChange={ setTargetId }
+			value={ value }
+			onChange={ id => onUpdate( id.toString() ) }
 			disabled={ inFlight }
 		/>
 	);
+};
+
+const getSubAudienceValue = newsletterData => {
+	const recipients = newsletterData.campaign?.recipients;
+
+	const targetIdRawValue =
+		recipients?.segment_opts?.saved_segment_id ||
+		recipients?.segment_opts?.conditions[ 0 ]?.value ||
+		'';
+	const targetId =
+		( Array.isArray( targetIdRawValue ) ? targetIdRawValue[ 0 ] : targetIdRawValue ).toString() ||
+		'';
+	const targetField = recipients?.segment_opts?.conditions?.length
+		? recipients?.segment_opts?.conditions[ 0 ]?.field
+		: '';
+	if ( ! targetField || ! targetId ) {
+		return false;
+	}
+	return 'Interests' === recipients?.segment_opts?.conditions[ 0 ]?.condition_type
+		? `${ targetField || '' }:${ targetId }`
+		: targetId;
 };
 
 const ProviderSidebar = ( {
@@ -84,10 +83,12 @@ const ProviderSidebar = ( {
 	renderPreviewText,
 	inFlight,
 	newsletterData,
+	stringifiedLayoutDefaults,
 	apiFetch,
 	postId,
 	updateMeta,
 	createErrorNotice,
+	meta,
 } ) => {
 	const campaign = newsletterData.campaign;
 
@@ -97,10 +98,7 @@ const ProviderSidebar = ( {
 				list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type
 		  )
 		: [];
-	const groups = newsletterData?.interest_categories || [];
 	const folders = newsletterData?.folders || [];
-	const segments = newsletterData?.segments || [];
-	const tags = newsletterData?.tags || [];
 
 	useEffect( () => {
 		fetchListsAndSegments();
@@ -186,6 +184,35 @@ const ProviderSidebar = ( {
 		}
 	}, [ campaign ] );
 
+	// If there is a stringified newsletter data from the layout, use it to set the list and segments.
+	useEffect( () => {
+		try {
+			const layoutDefaults = JSON.parse( stringifiedLayoutDefaults );
+			if ( layoutDefaults.senderEmail && layoutDefaults.senderName ) {
+				const existingSenderData = meta.senderEmail && meta.senderName;
+				if ( ! existingSenderData ) {
+					setSender( {
+						senderName: layoutDefaults.senderName,
+						senderEmail: layoutDefaults.senderEmail,
+					} );
+				}
+			}
+			if ( layoutDefaults.newsletterData?.campaign?.recipients?.list_id ) {
+				const existingListId = newsletterData.campaign?.recipients?.list_id;
+				if ( ! existingListId ) {
+					setList( layoutDefaults.newsletterData?.campaign.recipients.list_id ).then( () => {
+						const subAudienceValue = getSubAudienceValue( layoutDefaults.newsletterData );
+						if ( subAudienceValue ) {
+							updateSegments( subAudienceValue );
+						}
+					} );
+				}
+			}
+		} catch ( e ) {
+			// Ignore it.
+		}
+	}, [ stringifiedLayoutDefaults.length ] );
+
 	if ( ! campaign ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
@@ -208,16 +235,6 @@ const ProviderSidebar = ( {
 	const { list_id: audienceId } = campaign.recipients || {};
 	const list = audienceId && audiences.find( ( { id } ) => audienceId === id );
 	const { web_id: listWebId } = list || {};
-
-	const recipients = newsletterData.campaign?.recipients;
-
-	const chosenTarget =
-		recipients?.segment_opts?.saved_segment_id ||
-		recipients?.segment_opts?.conditions[ 0 ]?.value ||
-		'';
-	const targetField = recipients?.segment_opts?.conditions?.length
-		? recipients?.segment_opts?.conditions[ 0 ]?.field
-		: '';
 
 	return (
 		<Fragment>
@@ -267,12 +284,8 @@ const ProviderSidebar = ( {
 				</p>
 			) }
 			<SegmentsSelection
-				chosenTarget={ Array.isArray( chosenTarget ) ? chosenTarget[ 0 ] : chosenTarget }
-				targetField={ targetField }
-				groups={ groups }
-				tags={ tags }
-				segments={ segments }
-				apiFetch={ apiFetch }
+				value={ getSubAudienceValue( newsletterData ) }
+				newsletterData={ newsletterData }
 				inFlight={ inFlight }
 				onUpdate={ updateSegments }
 			/>
@@ -280,4 +293,11 @@ const ProviderSidebar = ( {
 	);
 };
 
-export default ProviderSidebar;
+const mapStateToProps = select => {
+	const { getEditedPostAttribute } = select( 'core/editor' );
+	return {
+		meta: getEditedPostAttribute( 'meta' ),
+	};
+};
+
+export default withSelect( mapStateToProps )( ProviderSidebar );
