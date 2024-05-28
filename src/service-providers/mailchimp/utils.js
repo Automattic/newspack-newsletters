@@ -35,7 +35,6 @@ export const getGroupOptions = interestCategories => {
 						interest.local_name ? ' [' + interest.local_name + ']' : ''
 					} (${ subscriberCountInfo })`,
 					value: `interests-${ id }:${ interest.id }`,
-					disabled: subscriberCount === 0,
 				} );
 			} );
 			accumulator.push( optGroup );
@@ -67,6 +66,5 @@ export const getSegmentOptions = segments => {
 			segment?.member_count || 0
 		) })`,
 		value: segment.id.toString(),
-		disabled: 0 === parseInt( segment?.member_count || 0 ),
 	} ) );
 };
