@@ -37,7 +37,7 @@ require $_tests_dir . '/includes/bootstrap.php';
 require_once 'trait-lists-setup.php';
 
 // MailChimp mock.
-require_once 'class-mailchimp-mock.php';
+require_once 'mocks/class-mailchimp-mock.php';
 
 // WC Memberships mock.
 require_once 'mocks/wc-memberships.php';
