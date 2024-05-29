@@ -7,6 +7,13 @@ namespace DrewM\MailChimp;
  */
 class MailChimp {
 	private static $database = [ // phpcs:ignore Squiz.Commenting.VariableComment.Missing
+		'lists'   => [
+			[
+				'id'    => 'test-list-1',
+				'name'  => 'Test List',
+				'stats' => [ 'member_count' => 42 ],
+			],
+		],
 		'tags'    => [
 			[
 				'id'   => 42,
@@ -50,7 +57,28 @@ class MailChimp {
 				'tags' => self::$database['tags'],
 			];
 		}
+		if ( preg_match( '/lists\/.*\/activity/', $endpoint ) ) {
+			$activity = [];
+			for ( $day_index = 0; $day_index < $args['count']; $day_index++ ) {
+				$activity[] = [
+					'day'              => gmdate( 'Y-m-d', strtotime( "-$day_index day" ) ),
+					// As many as the day index, just to be predictable.
+					'emails_sent'      => $day_index,
+					'unique_opens'     => $day_index,
+					'recipient_clicks' => $day_index,
+					'subs'             => $day_index,
+					'unsubs'           => $day_index,
+				];
+			}
+			return [
+				'activity' => $activity,
+			];
+		}
 		switch ( $endpoint ) {
+			case 'lists':
+				return [
+					'lists' => self::$database['lists'],
+				];
 			case 'search-members':
 				$results = array_filter(
 					self::$database['members'],
