@@ -10,6 +10,8 @@
 		"build": "newspack-scripts build",
 		"test": "echo \"Error: no test specified\" && exit 0",
 		"clean": "rm -rf dist/",
+		"test:php": "phpunit",
+		"test:php:coverage": "php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-html codecov",
 		"lint": "npm run lint:scss && npm run lint:js",
 		"lint:js": "eslint --ext .js,.jsx src",
 		"lint:js:staged": "eslint --ext .js,.jsx",
@@ -49,7 +51,7 @@
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.10.3",
 		"eslint": "^7.32.0",
-		"lint-staged": "^15.2.2",
+		"lint-staged": "^15.2.5",
 		"newspack-scripts": "^5.4.0",
 		"postcss": "^8.4.38",
 		"postcss-scss": "^4.0.9",
