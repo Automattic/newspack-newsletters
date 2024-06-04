@@ -10,13 +10,20 @@
  * Test Mailchimp Usage Reports.
  */
 class MailchimpUsageReportsTest extends WP_UnitTestCase {
-	public function test_get_usage_report_mailchimp() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+	/**
+	 * Teardown.
+	 */
+	public function tear_down() {
+		delete_option( Newspack_Newsletters_Mailchimp_Usage_Reports::REPORTS_OPTION_NAME );
+	}
+
+	public function test_get_usage_report_mailchimp_initial() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		$expected_report = new Newspack_Newsletters_Service_Provider_Usage_Report(
 			[
 
-				'emails_sent'    => 1,
-				'opens'          => 1,
-				'clicks'         => 1,
+				'emails_sent'    => 12,
+				'opens'          => 13,
+				'clicks'         => 14,
 				'subscribes'     => 1,
 				'unsubscribes'   => 1,
 				'total_contacts' => 42,
@@ -28,61 +35,33 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 		$this->assertEquals( $expected_report->to_array(), $actual_report->to_array() );
 	}
 
-	public function test_get_usage_report_mailchimp_past() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
-		$expected_report_yesterday = new Newspack_Newsletters_Service_Provider_Usage_Report(
+	public function test_get_usage_report_mailchimp_with_prior_data() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		// Saved prior results.
+		$saved_campaign_reports = [
+			'campaign-day-before-yesterday' => [
+				'emails_sent' => 22,
+				// Values "from yesterday", which will have to be subtracted from the new report's values.
+				'opens'       => 10,
+				'clicks'      => 10,
+				'send_time'   => gmdate( 'Y-m-d\T08:00:00P', strtotime( '-7 day' ) ),
+			],
+		];
+		update_option( Newspack_Newsletters_Mailchimp_Usage_Reports::REPORTS_OPTION_NAME, $saved_campaign_reports );
+
+		$expected_report = new Newspack_Newsletters_Service_Provider_Usage_Report(
 			[
-				'emails_sent'    => 1,
-				'opens'          => 1,
-				'clicks'         => 1,
+
+				'emails_sent'    => 12,
+				'opens'          => 13 + 23 - 10,
+				'clicks'         => 14 + 24 - 10,
 				'subscribes'     => 1,
 				'unsubscribes'   => 1,
 				'total_contacts' => 42,
 			]
 		);
-		$expected_report_day_before_yesterday = new Newspack_Newsletters_Service_Provider_Usage_Report(
-			[
-				'emails_sent'    => 2,
-				'opens'          => 2,
-				'clicks'         => 2,
-				'subscribes'     => 2,
-				'unsubscribes'   => 2,
-				'total_contacts' => 42,
-			]
-		);
-		$expected_report_day_before_yesterday->set_date( gmdate( 'Y-m-d', strtotime( '-2 day' ) ) );
 
-		$actual_reports = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_past_usage_reports( 2 );
+		$actual_report = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_usage_report();
 
-		$this->assertEquals( $expected_report_yesterday->to_array(), $actual_reports[0]->to_array() );
-		$this->assertEquals( $expected_report_day_before_yesterday->to_array(), $actual_reports[1]->to_array() );
-	}
-
-	public function test_get_usage_report_mailchimp_past_serialized() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
-		$results = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_past_usage_reports( 2, true );
-		$this->assertEquals(
-			[
-				[
-					'date'           => gmdate( 'Y-m-d', strtotime( '-1 day' ) ),
-					'emails_sent'    => 1,
-					'opens'          => 1,
-					'clicks'         => 1,
-					'subscribes'     => 1,
-					'unsubscribes'   => 1,
-					'total_contacts' => 42,
-					'growth_rate'    => 0.0,
-				],
-				[
-					'date'           => gmdate( 'Y-m-d', strtotime( '-2 day' ) ),
-					'emails_sent'    => 2,
-					'opens'          => 2,
-					'clicks'         => 2,
-					'subscribes'     => 2,
-					'unsubscribes'   => 2,
-					'total_contacts' => 42,
-					'growth_rate'    => 0.0,
-				],
-			],
-			$results
-		);
+		$this->assertEquals( $expected_report->to_array(), $actual_report->to_array() );
 	}
 }
