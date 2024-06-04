@@ -71,12 +71,13 @@ domReady( function () {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
-			const getCaptchaToken = newspack_grecaptcha
-				? newspack_grecaptcha?.getCaptchaToken
+			const getCaptchaV3Token = newspack_grecaptcha
+				? newspack_grecaptcha?.getCaptchaV3Token
 				: () => new Promise( res => res( '' ) ); // Empty promise.
 
-			getCaptchaToken( form )
+			getCaptchaV3Token() // Get a token for reCAPTCHA v3, if needed.
 				.then( captchaToken => {
+					// If there's no token, we don't need to do anything.
 					if ( ! captchaToken ) {
 						return;
 					}
