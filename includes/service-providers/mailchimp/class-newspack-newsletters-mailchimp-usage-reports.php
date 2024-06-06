@@ -25,7 +25,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	}
 
 	/**
-	 * Get list actitivy reports for a specific timeframe between n days in past and yesterday.
+	 * Get list activity reports for a specific timeframe between n days in past and yesterday.
 	 *
 	 * @param string $days_in_past_count How many days in the past to look for.
 	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
@@ -83,7 +83,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
 		$campaign_reports = [];
-		$camapaign_reports_response = $mc_api->get(
+		$campaign_reports_response = $mc_api->get(
 			'reports',
 			[
 				// Look at reports for campaigns sent at most two weeks ago.
@@ -92,7 +92,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 			]
 		);
 		// For each report, save the stats per-campaign.
-		foreach ( $camapaign_reports_response['reports'] as $campaign_report ) {
+		foreach ( $campaign_reports_response['reports'] as $campaign_report ) {
 			$send_time = $campaign_report['send_time'];
 			// Disregards reports for campaigns sent today (this data is incomplete and
 			// should surface in tomorrow's report).
