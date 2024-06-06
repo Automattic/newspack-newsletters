@@ -1,3 +1,10 @@
+## [2.16.1](https://github.com/Automattic/newspack-newsletters/compare/v2.16.0...v2.16.1) (2024-06-06)
+
+
+### Bug Fixes
+
+* **usage-reports:** fix MC reports ([#1521](https://github.com/Automattic/newspack-newsletters/issues/1521)) ([093527e](https://github.com/Automattic/newspack-newsletters/commit/093527e2e8e751d076f23ea35c10d5e920f907dc))
+
 # [2.16.0](https://github.com/Automattic/newspack-newsletters/compare/v2.15.0...v2.16.0) (2024-06-06)
 
 
