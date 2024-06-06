@@ -43,3 +43,16 @@ require_once 'class-mailchimp-mock.php';
 require_once 'mocks/wc-memberships.php';
 
 ini_set( 'error_log', 'php://stdout' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+
+/**
+ * Exception to be thrown when wp_die is called.
+ *
+ * @param string $message The error message.
+ * @throws WPDieException The exception.
+ */
+function handle_wpdie_in_tests( $message ) {
+	throw new WPDieException( $message ); // phpcs:ignore
+}
+
+define( 'IS_TEST_ENV', 1 );

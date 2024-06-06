@@ -1,3 +1,10 @@
+# [2.16.0](https://github.com/Automattic/newspack-newsletters/compare/v2.15.0...v2.16.0) (2024-06-06)
+
+
+### Features
+
+* enable disabling the newsletter send failure email notification ([b40c6b2](https://github.com/Automattic/newspack-newsletters/commit/b40c6b207eefd5a34c76c2320b440005b8569dae))
+
 # [2.15.0](https://github.com/Automattic/newspack-newsletters/compare/v2.14.4...v2.15.0) (2024-05-28)
 
 
