@@ -1,4 +1,6 @@
 @use '~@wordpress/base-styles/colors' as wp-colors;
+// stylelint-disable-next-line no-invalid-position-at-import-rule,import-notation
+@import 'style-variations';
 
 .newspack-newsletters-subscribe {
 	form {
@@ -67,6 +69,7 @@
 		opacity: 0.5;
 	}
 	.newspack-newsletters-lists {
+		background: white;
 		border: 1px solid wp-colors.$gray-200;
 		border-radius: 2px;
 		box-sizing: border-box;
@@ -112,24 +115,27 @@
 	}
 
 	&__response {
+		display: grid;
+		gap: 1.2rem;
+		justify-items: center;
+
 		.newspack-newsletters-subscribe[data-status='200'] & {
 			p {
 				text-align: center;
 				font-size: 0.8em;
-				margin: 0.5rem 0 0;
+				margin: 0;
 			}
 		}
 	}
 
 	&__icon {
 		align-items: center;
-		animation: fadein 125ms ease-in;
-		background: wp-colors.$alert-green;
+		background: var( --newspack-ui-color-success-50 , #008A20 );
 		border-radius: 50%;
 		display: flex;
 		height: 40px;
 		justify-content: center;
-		margin: 0 auto 0.8rem;
+		margin: 0;
 		width: 40px;
 
 		.newspack-newsletters-subscribe:not( [data-status='200'] ) & {
@@ -137,14 +143,10 @@
 		}
 
 		&::before {
-			animation: bounce 125ms ease-in;
-			animation-delay: 500ms;
-			animation-fill-mode: forwards;
 			background-image: url( "data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white'/%3E%3C/svg%3E" );
 			content: '';
 			display: block;
 			height: 24px;
-			transform: scale( 0 );
 			width: 24px;
 		}
 	}
@@ -152,11 +154,11 @@
 	&__message {
 		p {
 			font-size: 0.8em;
-			margin-top: 8px;
+			margin: 0;
 
 			&.status-400,
 			&.status-500 {
-				color: wp-colors.$alert-red;
+				color: var( --newspack-ui-color-error-50 , #D63638 );
 			}
 		}
 	}

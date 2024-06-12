@@ -144,7 +144,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		// Prevent status change from the controlled status if newsletter has been sent.
 		if ( ! in_array( $new_status, self::$controlled_statuses, true ) && $old_status !== $new_status && $sent ) {
 			$error = new WP_Error( 'newspack_newsletters_error', __( 'You cannot change a sent newsletter status.', 'newspack-newsletters' ), [ 'status' => 403 ] );
-			wp_die( esc_html( $error->get_error_message() ) );
+			wp_die( esc_html( $error->get_error_message() ), '', 400 );
 		}
 
 		// Send if changing from any status to controlled statuses - 'publish' or 'private'.
@@ -156,7 +156,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		) {
 			$result = $this->send_newsletter( $post );
 			if ( is_wp_error( $result ) ) {
-				wp_die( esc_html( $result->get_error_message() ) );
+				wp_die( esc_html( $result->get_error_message() ), '', esc_html( $result->get_error_code() ) );
 			}
 		}
 	}
@@ -197,7 +197,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 						'post_status' => 'draft',
 					]
 				);
-				wp_die( esc_html( $result->get_error_message() ) );
+				wp_die( esc_html( $result->get_error_message() ), '', esc_html( $result->get_error_code() ) );
 			}
 			delete_post_meta( $post->ID, 'sending_scheduled' );
 		}
