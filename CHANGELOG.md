@@ -1,3 +1,12 @@
+# [2.17.0](https://github.com/Automattic/newspack-newsletters/compare/v2.16.1...v2.17.0) (2024-06-12)
+
+
+### Features
+
+* add new modern style variation to block ([#1513](https://github.com/Automattic/newspack-newsletters/issues/1513)) ([a204510](https://github.com/Automattic/newspack-newsletters/commit/a2045104c21d3211d89dc783f09a66de3390ecdb))
+* **error-codes:** non-500 error codes where applicable ([d4ec39c](https://github.com/Automattic/newspack-newsletters/commit/d4ec39c1a74b5aea16922c33f218924d922d1ed3))
+* save a backup of subscription attempts in a custom DB table ([#1503](https://github.com/Automattic/newspack-newsletters/issues/1503)) ([be9ea3d](https://github.com/Automattic/newspack-newsletters/commit/be9ea3dc46ae58f6157893756d9261d4ef1ca09f))
+
 ## [2.16.1](https://github.com/Automattic/newspack-newsletters/compare/v2.16.0...v2.16.1) (2024-06-06)
 
 
