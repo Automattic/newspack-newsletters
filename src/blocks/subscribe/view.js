@@ -70,12 +70,16 @@ domReady( function () {
 		);
 		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe__message' );
 		const emailInput = container.querySelector( 'input[type="email"]' );
-		const submit = container.querySelector( 'input[type="submit"]' );
+		const submit = container.querySelector( 'button[type="submit"]' );
+		const spinner = document.createElement( 'span' );
+
 		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
+			submit.remove( spinner );
 			submit.removeAttribute( 'disabled' );
+			form.classList.remove( 'in-progress' );
 			messageNode.innerHTML = wasSubscribed
 				? container.getAttribute( 'data-success-message' )
 				: message;
@@ -88,7 +92,9 @@ domReady( function () {
 		form.addEventListener( 'submit', ev => {
 			ev.preventDefault();
 			messageContainer.innerHTML = '';
+			form.classList.add( 'in-progress' );
 			submit.disabled = true;
+			submit.appendChild( spinner );
 
 			if ( ! form.npe?.value ) {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
