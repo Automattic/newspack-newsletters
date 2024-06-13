@@ -150,8 +150,9 @@ export default compose( [
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
-			if ( isSaving ) label = __( 'Sending', 'newspack-newsletters' );
-			else {
+			if ( isSaving ) {
+				label = __( 'Sending', 'newspack-newsletters' );
+			} else {
 				label = is_public
 					? __( 'Sent and Published', 'newspack-newsletters' )
 					: __( 'Sent', 'newspack-newsletters' );
@@ -219,7 +220,9 @@ export default compose( [
 						disabled={ isSaving }
 						onClick={ async () => {
 							await savePost();
-							if ( renderPostUpdateInfo ) setModalVisible( true );
+							if ( renderPostUpdateInfo ) {
+								setModalVisible( true );
+							}
 						} }
 					>
 						{ updateLabel }

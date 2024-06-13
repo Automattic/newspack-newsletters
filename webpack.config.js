@@ -26,7 +26,6 @@ const subscribeBlock = path.join( __dirname, 'src', 'blocks', 'subscribe', 'view
 const subscriptions = path.join( __dirname, 'src', 'subscriptions' );
 
 const webpackConfig = getBaseWebpackConfig(
-	{ WP: true },
 	{
 		entry: {
 			editor,
@@ -41,7 +40,6 @@ const webpackConfig = getBaseWebpackConfig(
 			subscribeBlock,
 			subscriptions,
 		},
-		'output-path': path.join( __dirname, 'dist' ),
 	}
 );
 

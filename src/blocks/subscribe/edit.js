@@ -1,5 +1,5 @@
 /* globals newspack_newsletters_blocks */
-/* eslint jsx-a11y/label-has-for: 0 */
+/* eslint-disable jsx-a11y/label-has-for, jsx-a11y/label-has-associated-control */
 /**
  * External dependencies.
  */
