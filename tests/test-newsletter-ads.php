@@ -6,7 +6,7 @@
  */
 
 /**
- * Newsletters Tracking Test.
+ * Newsletters Ads Test.
  */
 class Newsletters_Newsletter_Ads_Test extends WP_UnitTestCase {
 	/**

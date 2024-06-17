@@ -79,18 +79,131 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'https', $parsed_destination_url['scheme'] );
 		$this->assertEquals( 'google.com', $parsed_destination_url['host'] );
 
-		// Manually track the click.
-		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
+		// Trigger the click handled.
+		$_GET['np_newsletters_click'] = 1;
+		$_GET['id'] = $post_id;
+		$_GET['em'] = 'fake@email.com';
+		$_GET['url'] = $args['url'];
+		Click::handle_click( false );
 
 		// Assert clicked once.
 		$clicks = \get_post_meta( $post_id, 'tracking_clicks', true );
 		$this->assertEquals( 1, $clicks );
 
-		// Manually track the click again.
-		Click::track_click( $args['id'], 'fake@email.com', $args['url'] );
+		// Trigger the click handled again.
+		Click::handle_click( false );
 
 		// Assert clicked twice.
 		$clicks = \get_post_meta( $post_id, 'tracking_clicks', true );
 		$this->assertEquals( 2, $clicks );
+	}
+
+	/**
+	 * Test click tracking with a link that was not included in the newsletter.
+	 */
+	public function test_tracking_click_not_in_newsletter() {
+		$post_id = $this->factory->post->create(
+			[
+				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with link.',
+				'post_content' => "<!-- wp:paragraph -->\n<p><a href=\"https://google.com\">Link</a><\/p>\n<!-- \/wp:paragraph -->",
+			]
+		);
+
+		$_GET['np_newsletters_click'] = 1;
+		$_GET['id'] = $post_id;
+		$_GET['url'] = 'https://mischievous.com';
+		try {
+			Click::handle_click( false );
+		} catch ( \Throwable $th ) {
+			$this->assertEquals( 'Invalid URL', $th->getMessage() );
+			$this->assertEquals( 400, $th->getCode() );
+		}
+	}
+
+	/**
+	 * Test logs processing.
+	 */
+	public function test_process_logs() {
+		$newsletter_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
+		$tracking_id = 'tracking_id_1';
+		update_post_meta( $newsletter_id, 'tracking_id', $tracking_id );
+
+		// phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions
+		// Create a temporary log file.
+		$log_file_path = tempnam( sys_get_temp_dir(), 'newspack_newsletters_pixel_log_' );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_1@example.com" . PHP_EOL );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_2@example.com" . PHP_EOL, FILE_APPEND );
+		update_option( 'newspack_newsletters_tracking_pixel_log_file', $log_file_path );
+
+		Pixel::process_logs();
+
+		// Check that the log file has been removed.
+		$this->assertFileDoesNotExist( $log_file_path );
+
+		// Check that a new log file has been created.
+		$new_log_file_path = get_option( 'newspack_newsletters_tracking_pixel_log_file' );
+		$this->assertFileExists( $new_log_file_path );
+
+		// Check that the log entries have been processed.
+		$this->assertEquals( 2, get_post_meta( $newsletter_id, 'tracking_pixel_seen', true ) );
+
+		// Clean up.
+		unlink( $new_log_file_path );
+		// phpcs:enable WordPressVIPMinimum.Functions.RestrictedFunctions
+	}
+
+	/**
+	 * Test logs processing – log file length equals the max lines processed.
+	 */
+	public function test_process_logs_max_lines() {
+		$newsletter_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
+		$tracking_id = 'tracking_id_1';
+		update_post_meta( $newsletter_id, 'tracking_id', $tracking_id );
+
+		// phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions
+		// Create a temporary log file.
+		$log_file_path = tempnam( sys_get_temp_dir(), 'newspack_newsletters_pixel_log_' );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_1@example.com" . PHP_EOL );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_2@example.com" . PHP_EOL, FILE_APPEND );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_3@example.com" . PHP_EOL, FILE_APPEND );
+		update_option( 'newspack_newsletters_tracking_pixel_log_file', $log_file_path );
+
+		Pixel::process_logs( 3 ); // 3 lines at a time - exactly as many as there are log entries.
+
+		// Check that the log entries have been processed.
+		$this->assertEquals( 3, get_post_meta( $newsletter_id, 'tracking_pixel_seen', true ) );
+
+		// Clean up.
+		unlink( get_option( 'newspack_newsletters_tracking_pixel_log_file' ) );
+		// phpcs:enable WordPressVIPMinimum.Functions.RestrictedFunctions
+	}
+
+	/**
+	 * Test logs processing – log file length is longer than the max lines processed.
+	 */
+	public function test_process_logs_max_lines_more() {
+		$newsletter_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
+		$tracking_id = 'tracking_id_1';
+		update_post_meta( $newsletter_id, 'tracking_id', $tracking_id );
+
+		// phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions
+		// Create a temporary log file.
+		$log_file_path = tempnam( sys_get_temp_dir(), 'newspack_newsletters_pixel_log_' );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_1@example.com" . PHP_EOL );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_2@example.com" . PHP_EOL, FILE_APPEND );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_3@example.com" . PHP_EOL, FILE_APPEND );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_4@example.com" . PHP_EOL, FILE_APPEND );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_5@example.com" . PHP_EOL, FILE_APPEND );
+		update_option( 'newspack_newsletters_tracking_pixel_log_file', $log_file_path );
+
+		Pixel::process_logs( 2 ); // 2 entries at a time – will have to batch the 5 log lines.
+
+		// Check that the log entries have been processed.
+		$this->assertEquals( 5, get_post_meta( $newsletter_id, 'tracking_pixel_seen', true ) );
+
+		// Clean up.
+		unlink( get_option( 'newspack_newsletters_tracking_pixel_log_file' ) );
+		// phpcs:enable WordPressVIPMinimum.Functions.RestrictedFunctions
 	}
 }

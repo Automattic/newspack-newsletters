@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "2.14.3",
+	"version": "2.17.0",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -10,6 +10,8 @@
 		"build": "newspack-scripts build",
 		"test": "echo \"Error: no test specified\" && exit 0",
 		"clean": "rm -rf dist/",
+		"test:php": "phpunit",
+		"test:php:coverage": "php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-html codecov",
 		"lint": "npm run lint:scss && npm run lint:js",
 		"lint:js": "eslint --ext .js,.jsx src",
 		"lint:js:staged": "eslint --ext .js,.jsx",
@@ -38,7 +40,7 @@
 	},
 	"dependencies": {
 		"@uiw/react-codemirror": "^3.2.10",
-		"@wordpress/icons": "^9.48.0",
+		"@wordpress/icons": "^9.49.0",
 		"classnames": "^2.5.1",
 		"commitlint": "^19.3.0",
 		"csslint": "^1.0.5",
@@ -47,10 +49,10 @@
 		"qs": "^6.12.1"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.10.2",
+		"@rushstack/eslint-patch": "^1.10.3",
 		"eslint": "^7.32.0",
-		"lint-staged": "^15.2.2",
-		"newspack-scripts": "^5.3.0",
+		"lint-staged": "^15.2.7",
+		"newspack-scripts": "^5.5.0",
 		"postcss": "^8.4.38",
 		"postcss-scss": "^4.0.9",
 		"prettier": "npm:wp-prettier@^2.6.2-beta-1",

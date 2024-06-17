@@ -71,7 +71,9 @@ const getSubAudienceValue = newsletterData => {
 	if ( ! targetField || ! targetId ) {
 		return false;
 	}
-	return `${ targetField || '' }:${ targetId }`;
+	return 'Interests' === recipients?.segment_opts?.conditions[ 0 ]?.condition_type
+		? `${ targetField || '' }:${ targetId }`
+		: targetId;
 };
 
 const ProviderSidebar = ( {

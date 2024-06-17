@@ -1,3 +1,59 @@
+# [2.17.0](https://github.com/Automattic/newspack-newsletters/compare/v2.16.1...v2.17.0) (2024-06-12)
+
+
+### Features
+
+* add new modern style variation to block ([#1513](https://github.com/Automattic/newspack-newsletters/issues/1513)) ([a204510](https://github.com/Automattic/newspack-newsletters/commit/a2045104c21d3211d89dc783f09a66de3390ecdb))
+* **error-codes:** non-500 error codes where applicable ([d4ec39c](https://github.com/Automattic/newspack-newsletters/commit/d4ec39c1a74b5aea16922c33f218924d922d1ed3))
+* save a backup of subscription attempts in a custom DB table ([#1503](https://github.com/Automattic/newspack-newsletters/issues/1503)) ([be9ea3d](https://github.com/Automattic/newspack-newsletters/commit/be9ea3dc46ae58f6157893756d9261d4ef1ca09f))
+
+## [2.16.1](https://github.com/Automattic/newspack-newsletters/compare/v2.16.0...v2.16.1) (2024-06-06)
+
+
+### Bug Fixes
+
+* **usage-reports:** fix MC reports ([#1521](https://github.com/Automattic/newspack-newsletters/issues/1521)) ([093527e](https://github.com/Automattic/newspack-newsletters/commit/093527e2e8e751d076f23ea35c10d5e920f907dc))
+
+# [2.16.0](https://github.com/Automattic/newspack-newsletters/compare/v2.15.0...v2.16.0) (2024-06-06)
+
+
+### Features
+
+* enable disabling the newsletter send failure email notification ([b40c6b2](https://github.com/Automattic/newspack-newsletters/commit/b40c6b207eefd5a34c76c2320b440005b8569dae))
+
+# [2.15.0](https://github.com/Automattic/newspack-newsletters/compare/v2.14.4...v2.15.0) (2024-05-28)
+
+
+### Bug Fixes
+
+* bad auto-merge ([fdfe15f](https://github.com/Automattic/newspack-newsletters/commit/fdfe15f0415754de41b6d7fd642766ed5ca5d837))
+* **newsletter-editor:** tag/segment selection ([2589d3a](https://github.com/Automattic/newspack-newsletters/commit/2589d3a9185798dbc9d457fe2cc0bda74b04148c))
+* respect buttons alignment and sizing ([#1492](https://github.com/Automattic/newspack-newsletters/issues/1492)) ([0a63a5a](https://github.com/Automattic/newspack-newsletters/commit/0a63a5a66b1328f2268bbf586ab1490ab7d44fbb))
+
+
+### Features
+
+* **layouts:** save sender and audience in the layout ([#1461](https://github.com/Automattic/newspack-newsletters/issues/1461)) ([aec7bce](https://github.com/Automattic/newspack-newsletters/commit/aec7bce882a422b4f3f77e18cb2a730def64ada1))
+* newsletters color palette adjustments ([#1487](https://github.com/Automattic/newspack-newsletters/issues/1487)) ([2b0ecac](https://github.com/Automattic/newspack-newsletters/commit/2b0ecac434e9df877d0b062d36a9f4feb22b8127))
+* notify site admin on campaign send failure ([#1434](https://github.com/Automattic/newspack-newsletters/issues/1434)) ([4e95283](https://github.com/Automattic/newspack-newsletters/commit/4e95283cad69e7b3e6d7ce2c0b90d72f48649113))
+* **ras-acc:** add helper method to identify premium lists ([#1502](https://github.com/Automattic/newspack-newsletters/issues/1502)) ([2473ea7](https://github.com/Automattic/newspack-newsletters/commit/2473ea7704ba1e999a2b99e331887b0b483eab83))
+
+# [2.15.0-alpha.3](https://github.com/Automattic/newspack-newsletters/compare/v2.15.0-alpha.2...v2.15.0-alpha.3) (2024-05-20)
+
+
+### Bug Fixes
+
+* **mailchimp:** handle missing interests in API contact data ([e613f11](https://github.com/Automattic/newspack-newsletters/commit/e613f110be7aad4782463232650b958c4715b226))
+* **tracking:** log file processing ([51233a2](https://github.com/Automattic/newspack-newsletters/commit/51233a2823a64891714bb4105676a46e0624ada3))
+
+## [2.14.4](https://github.com/Automattic/newspack-newsletters/compare/v2.14.3...v2.14.4) (2024-05-20)
+
+
+### Bug Fixes
+
+* **mailchimp:** handle missing interests in API contact data ([e613f11](https://github.com/Automattic/newspack-newsletters/commit/e613f110be7aad4782463232650b958c4715b226))
+* **tracking:** log file processing ([51233a2](https://github.com/Automattic/newspack-newsletters/commit/51233a2823a64891714bb4105676a46e0624ada3))
+
 ## [2.14.3](https://github.com/Automattic/newspack-newsletters/compare/v2.14.2...v2.14.3) (2024-05-09)
 
 
