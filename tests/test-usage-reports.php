@@ -13,9 +13,11 @@ class Usage_Reports_Test extends WP_UnitTestCase {
 	 * Test usage report.
 	 */
 	public function test_usage_report_basic() {
-		$report = Newspack_Newsletters_Mailchimp_Usage_Reports::get_usage_report()->to_array();
+		// Ensure the API key is not set (might be set by a different test).
+		delete_option( 'newspack_mailchimp_api_key' );
+
 		self::assertEquals(
-			$report,
+			Newspack_Newsletters_Mailchimp_Usage_Reports::get_usage_report()->to_array(),
 			[
 				'date'           => gmdate( 'Y-m-d', strtotime( '-1 day' ) ),
 				'emails_sent'    => 0,

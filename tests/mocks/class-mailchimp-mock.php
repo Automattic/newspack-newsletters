@@ -82,7 +82,17 @@ class MailChimp {
 		self::$database['members'][] = $contact;
 	}
 
+	/**
+	 * Can use the mock API?
+	 */
+	public static function is_api_configured() {
+		return get_option( 'newspack_mailchimp_api_key', false );
+	}
+
 	public static function get( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		if ( ! self::is_api_configured() ) {
+			return [];
+		}
 		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
 			return [
 				'merge_fields' => [
@@ -141,6 +151,9 @@ class MailChimp {
 	}
 
 	public static function post( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		if ( ! self::is_api_configured() ) {
+			return [];
+		}
 		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
 			return [
 				'status' => 200,
