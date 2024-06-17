@@ -35,7 +35,9 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 
 		$reports = [];
 		$lists  = $mc_api->get( 'lists', [ 'count' => 1000 ] );
-		$lists_activity_reports = [];
+		if ( ! isset( $lists['lists'] ) ) {
+			return $reports;
+		}
 
 		foreach ( $lists['lists'] as &$list ) {
 			// Get daily activity for each list.
@@ -91,6 +93,9 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 				'type'            => 'regular', // Email campaigns.
 			]
 		);
+		if ( ! isset( $campaign_reports_response['reports'] ) ) {
+			return new Newspack_Newsletters_Service_Provider_Usage_Report();
+		}
 		// For each report, save the stats per-campaign.
 		foreach ( $campaign_reports_response['reports'] as $campaign_report ) {
 			$send_time = $campaign_report['send_time'];
