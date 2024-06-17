@@ -68,17 +68,21 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	}
 
 	/**
-	 * Creates a usage report.
+	 * Get usage reports for n last days.
 	 *
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report Usage report.
+	 * @param int $days_in_past How many days in past to look for. Maximum is 180.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[]|WP_Error Usage reports array or error.
 	 */
-	public static function get_usage_report() {
+	public static function get_historical_usage_reports( $days_in_past = 1 ) {
+		if ( $days_in_past > 180 ) {
+			return new WP_Error( 'invalid_days_in_past', __( 'Maximum days in past is 180.', 'newspack-newsletters' ) );
+		}
 		// Start with lists activity reports. These are good for historical data and also will provide
 		// subscribes and unsubscribes data. However, in order to get recent
 		// sent/opens/clicks data, the campaign reports have to be used.
 		// It appears that the sent/opens/clicks data in the lists activity are only added after a
 		// delay of 2-3 days.
-		$reports = self::get_list_activity_reports( 1 );
+		$reports = self::get_list_activity_reports( $days_in_past );
 
 		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
@@ -113,9 +117,10 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		$saved_reports = get_option( self::REPORTS_OPTION_NAME, [] );
 
 		foreach ( $reports as $report ) {
-			$report_date = $report->get_date();
+			$report_start_date = $report->get_date();
+			$report_end_date = gmdate( 'Y-m-d', strtotime( $report_start_date . ' +1 day' ) );
 			foreach ( $campaign_reports as $campaign_id => $campaign_report ) {
-				if ( $campaign_report['send_time'] >= $report_date ) {
+				if ( $campaign_report['send_time'] >= $report_start_date && $campaign_report['send_time'] <= $report_end_date ) {
 					// If the campaign was sent in the last 24h, no need to look up historical data.
 					$report->emails_sent += $campaign_report['emails_sent'];
 					$report->opens += $campaign_report['opens'];
@@ -134,6 +139,16 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		// Save the recent response.
 		update_option( self::REPORTS_OPTION_NAME, $campaign_reports );
 
+		return $reports;
+	}
+
+	/**
+	 * Creates a usage report.
+	 *
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report Usage report.
+	 */
+	public static function get_usage_report() {
+		$reports = self::get_historical_usage_reports( 1 );
 		return reset( $reports );
 	}
 }

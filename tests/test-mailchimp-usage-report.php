@@ -10,9 +10,6 @@
  * Test Mailchimp Usage Reports.
  */
 class MailchimpUsageReportsTest extends WP_UnitTestCase {
-	/**
-	 * Teardown.
-	 */
 	public function tear_down() {
 		delete_option( Newspack_Newsletters_Mailchimp_Usage_Reports::REPORTS_OPTION_NAME );
 	}
@@ -63,5 +60,45 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 		$actual_report = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_usage_report();
 
 		$this->assertEquals( $expected_report->to_array(), $actual_report->to_array() );
+	}
+
+	public function test_get_usage_report_mailchimp_historical() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		// Too many days in the past.
+		$impossible_reports = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_historical_usage_reports( 900 );
+		$this->assertTrue( is_wp_error( $impossible_reports ) );
+
+		$historical_reports = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_historical_usage_reports( 3 );
+		$historical_reports_serialized = array_map(
+			function( $report ) {
+				return array_intersect_key(
+					$report->to_array(),
+					array_flip( [ 'date', 'emails_sent', 'opens', 'clicks' ] )
+				);
+			},
+			$historical_reports
+		);
+		$this->assertEquals(
+			[
+				[
+					'date'        => gmdate( 'Y-m-d', strtotime( '-1 day' ) ),
+					'emails_sent' => 12,
+					'opens'       => 13,
+					'clicks'      => 14,
+				],
+				[
+					'date'        => gmdate( 'Y-m-d', strtotime( '-2 day' ) ),
+					'emails_sent' => 22,
+					'opens'       => 23,
+					'clicks'      => 24,
+				],
+				[
+					'date'        => gmdate( 'Y-m-d', strtotime( '-3 day' ) ),
+					'emails_sent' => 0,
+					'opens'       => 0,
+					'clicks'      => 0,
+				],
+			],
+			$historical_reports_serialized
+		);
 	}
 }
