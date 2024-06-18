@@ -49,9 +49,10 @@
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.10.3",
 		"@wordpress/browserslist-config": "^6.0.0",
+		"ajv": "^8.16.0",
 		"eslint": "^8.57.0",
 		"lint-staged": "^15.2.5",
-		"newspack-scripts": "~/Repositories/newspack-scripts",
+		"newspack-scripts": "^5.5.1-alpha.3",
 		"postcss-scss": "^4.0.9"
 	}
 }
