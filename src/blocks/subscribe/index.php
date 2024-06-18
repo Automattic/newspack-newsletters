@@ -275,7 +275,7 @@ function render_block( $attrs ) {
 					<?php endif; ?>
 
 					<button class="<?php echo \esc_attr( get_block_button_classes( $attrs ) ); ?>"type="submit" style="<?php echo \esc_attr( get_block_button_styles( $attrs ) ); ?>">
-						<?php echo \esc_html( $attrs['label'] ); ?>
+						<span class="submit"><?php echo \esc_html( $attrs['label'] ); ?></span>
 					</button>
 				</div>
 			</form>

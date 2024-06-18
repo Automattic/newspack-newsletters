@@ -17,14 +17,17 @@
 
 		&.in-progress {
 			button[type='submit'] {
-				color: #d33;
 				position: relative;
 
-				span {
+				span.submit {
+					visibility: hidden;
+				}
+
+				span.spinner {
 					--animation-duration: 900ms;
 					--animation-timing-function: linear;
-					--color-spinner-primary: white;
-					--color-spinner-background: #d33;
+					--color-spinner-primary: transparent;
+					--color-spinner-background: currentcolor;
 					--size: 18px;
 					--stroke-width: 1.5px;
 

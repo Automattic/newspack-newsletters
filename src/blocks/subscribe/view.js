@@ -72,6 +72,7 @@ domReady( function () {
 		const emailInput = container.querySelector( 'input[type="email"]' );
 		const submit = container.querySelector( 'button[type="submit"]' );
 		const spinner = document.createElement( 'span' );
+		spinner.classList.add( 'spinner' );
 
 		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
 			container.setAttribute( 'data-status', status );
