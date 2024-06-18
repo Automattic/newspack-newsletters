@@ -25,24 +25,20 @@ const blocks = path.join( __dirname, 'src', 'blocks' );
 const subscribeBlock = path.join( __dirname, 'src', 'blocks', 'subscribe', 'view.js' );
 const subscriptions = path.join( __dirname, 'src', 'subscriptions' );
 
-const webpackConfig = getBaseWebpackConfig(
-	{ WP: true },
-	{
-		entry: {
-			editor,
-			admin,
-			adsEditor,
-			newsletterAdsEditor,
-			branding,
-			quickEdit,
-			editorBlocks,
-			newsletterEditor,
-			blocks,
-			subscribeBlock,
-			subscriptions,
-		},
-		'output-path': path.join( __dirname, 'dist' ),
-	}
-);
+const webpackConfig = getBaseWebpackConfig( {
+	entry: {
+		editor,
+		admin,
+		adsEditor,
+		newsletterAdsEditor,
+		branding,
+		quickEdit,
+		editorBlocks,
+		newsletterEditor,
+		blocks,
+		subscribeBlock,
+		subscriptions,
+	},
+} );
 
 module.exports = webpackConfig;
