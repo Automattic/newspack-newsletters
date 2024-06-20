@@ -1,4 +1,4 @@
-@use '~@wordpress/base-styles/colors' as wp-colors;
+@use "~@wordpress/base-styles/colors" as wp-colors;
 
 :root {
 	--newspack-post-inserter-width: 574px;
@@ -64,9 +64,9 @@
 		&.image-right {
 			.block-editor-block-preview__content {
 				@media only screen and ( min-width: 624px ) {
-					margin-left: calc( var( --newspack-post-inserter-width ) / -2 );
+					margin-left: calc(var(--newspack-post-inserter-width) / -2);
 					padding: 14px;
-					transform: scale( 1 ) !important;
+					transform: scale(1) !important;
 					transform-origin: 0 50% 0;
 				}
 			}

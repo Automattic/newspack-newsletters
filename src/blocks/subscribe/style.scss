@@ -1,6 +1,6 @@
-@use '~@wordpress/base-styles/colors' as wp-colors;
+@use "~@wordpress/base-styles/colors" as wp-colors;
 // stylelint-disable-next-line no-invalid-position-at-import-rule,import-notation
-@import 'style-variations';
+@import "style-variations";
 
 .newspack-newsletters-subscribe {
 	form {
@@ -42,8 +42,8 @@
 		font-weight: 700;
 		flex: 1 1 100%;
 	}
-	input[type='text'],
-	input[type='email'] {
+	input[type="text"],
+	input[type="email"] {
 		flex: 1 1 100%;
 		width: 100%;
 
@@ -52,11 +52,11 @@
 			width: auto;
 		}
 
-		&[aria-hidden='true'] {
+		&[aria-hidden="true"] {
 			width: 0;
 		}
 	}
-	input[type='submit'] {
+	input[type="submit"] {
 		background-color: #d33;
 		color: white;
 		flex: 1 1 100%;
@@ -119,7 +119,7 @@
 		gap: 1.2rem;
 		justify-items: center;
 
-		.newspack-newsletters-subscribe[data-status='200'] & {
+		.newspack-newsletters-subscribe[data-status="200"] & {
 			p {
 				text-align: center;
 				font-size: 0.8em;
@@ -130,7 +130,7 @@
 
 	&__icon {
 		align-items: center;
-		background: var( --newspack-ui-color-success-50 , #008A20 );
+		background: var(--newspack-ui-color-success-50, #008a20);
 		border-radius: 50%;
 		display: flex;
 		height: 40px;
@@ -138,13 +138,13 @@
 		margin: 0;
 		width: 40px;
 
-		.newspack-newsletters-subscribe:not( [data-status='200'] ) & {
+		.newspack-newsletters-subscribe:not([data-status="200"]) & {
 			display: none;
 		}
 
 		&::before {
-			background-image: url( "data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white'/%3E%3C/svg%3E" );
-			content: '';
+			background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white'/%3E%3C/svg%3E");
+			content: "";
 			display: block;
 			height: 24px;
 			width: 24px;
@@ -158,15 +158,15 @@
 
 			&.status-400,
 			&.status-500 {
-				color: var( --newspack-ui-color-error-50 , #D63638 );
+				color: var(--newspack-ui-color-error-50, #d63638);
 			}
 		}
 	}
 
 	.nphp {
 		border: 0;
-		clip: rect( 1px, 1px, 1px, 1px );
-		clip-path: inset( 50% );
+		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 		height: 1px;
 		margin: -1px;
 		overflow: hidden;
