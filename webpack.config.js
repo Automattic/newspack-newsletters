@@ -13,34 +13,29 @@ const path = require( 'path' );
 /**
  * Internal variables
  */
-const editor = path.join( __dirname, 'src', 'editor' );
-const admin = path.join( __dirname, 'src', 'admin' );
-const adsEditor = path.join( __dirname, 'src', 'ads', 'editor' );
-const newsletterAdsEditor = path.join( __dirname, 'src', 'ads', 'newsletter-editor' );
-const branding = path.join( __dirname, 'src', 'branding' );
-const quickEdit = path.join( __dirname, 'src', 'quick-edit' );
-const editorBlocks = path.join( __dirname, 'src', 'editor', 'blocks' );
-const newsletterEditor = path.join( __dirname, 'src', 'newsletter-editor' );
-const blocks = path.join( __dirname, 'src', 'blocks' );
-const subscribeBlock = path.join( __dirname, 'src', 'blocks', 'subscribe', 'view.js' );
-const subscriptions = path.join( __dirname, 'src', 'subscriptions' );
+
+const entry = {
+	editor: path.join( __dirname, 'src', 'editor' ),
+	admin: path.join( __dirname, 'src', 'admin' ),
+	adsEditor: path.join( __dirname, 'src', 'ads', 'editor' ),
+	newsletterAdsEditor: path.join( __dirname, 'src', 'ads', 'newsletter-editor' ),
+	branding: path.join( __dirname, 'src', 'branding' ),
+	quickEdit: path.join( __dirname, 'src', 'quick-edit' ),
+	editorBlocks: path.join( __dirname, 'src', 'editor', 'blocks' ),
+	newsletterEditor: path.join( __dirname, 'src', 'newsletter-editor' ),
+	blocks: path.join( __dirname, 'src', 'blocks' ),
+	subscribeBlock: path.join( __dirname, 'src', 'blocks', 'subscribe', 'view.js' ),
+	subscriptions: path.join( __dirname, 'src', 'subscriptions' ),
+};
+
+Object.keys( entry ).forEach( key => {
+	entry[ key ] = [ 'regenerator-runtime/runtime', entry[ key ] ];
+} );
 
 const webpackConfig = getBaseWebpackConfig(
 	{ WP: true },
 	{
-		entry: {
-			editor,
-			admin,
-			adsEditor,
-			newsletterAdsEditor,
-			branding,
-			quickEdit,
-			editorBlocks,
-			newsletterEditor,
-			blocks,
-			subscribeBlock,
-			subscriptions,
-		},
+		entry,
 		'output-path': path.join( __dirname, 'dist' ),
 	}
 );

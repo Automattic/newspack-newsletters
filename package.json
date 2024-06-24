@@ -46,7 +46,8 @@
 		"csslint": "^1.0.5",
 		"mjml-browser": "^4.15.3",
 		"newspack-components": "^2.2.1",
-		"qs": "^6.12.1"
+		"qs": "^6.12.1",
+		"regenerator-runtime": "^0.14.1"
 	},
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.10.3",
