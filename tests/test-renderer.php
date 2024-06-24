@@ -284,6 +284,41 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test social icons rendering.
+	 */
+	public function test_render_social_icons() {
+		$plugin_path = plugin_dir_url( __DIR__ );
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/social-links',
+					'attrs'        => [],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/social-link',
+							'attrs'        => [
+								'url'     => 'https://x.com/hi',
+								'service' => 'x',
+							],
+							'innerBlocks'  => [],
+							'innerContent' => [],
+							'innerHTML'    => '',
+						],
+					],
+					'innerContent' => [
+						'<div>',
+						null,
+						'</div>',
+					],
+					'innerHTML'    => '<div></div>',
+				]
+			),
+			'<mj-section padding="0"><mj-column padding="12px" width="100%"><mj-social icon-size="24px" mode="horizontal" padding="0" border-radius="999px" icon-padding="7px" align="left"><mj-social-element href="https://x.com/hi" src="' . $plugin_path . 'assets/white-x.png" background-color="#000000" css-class="social-element"/></mj-social></mj-column></mj-section>',
+			'Renders social icons'
+		);
+	}
+
+	/**
 	 * Test other rendering-related function.
 	 */
 	public function test_aux_functions() {

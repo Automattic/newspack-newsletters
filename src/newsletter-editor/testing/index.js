@@ -15,6 +15,9 @@ import { hasValidEmail } from '../utils';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
+const serviceProvider =
+	window && window.newspack_newsletters_data && window.newspack_newsletters_data.service_provider;
+
 export default compose( [
 	withApiHandler(),
 	withSelect( select => {
@@ -42,10 +45,6 @@ export default compose( [
 		const [ localInFlight, setLocalInFlight ] = useState( false );
 		const [ localMessage, setLocalMessage ] = useState( '' );
 		const sendTestEmail = async () => {
-			const serviceProvider =
-				window &&
-				window.newspack_newsletters_data &&
-				window.newspack_newsletters_data.service_provider;
 			if ( inlineNotifications ) {
 				setLocalInFlight( true );
 			} else {
@@ -78,6 +77,8 @@ export default compose( [
 				apiFetchWithErrorHandling( params );
 			}
 		};
+
+		const supportsMultipleTestEmailRecipients = serviceProvider !== 'active_campaign';
 		return (
 			<Fragment>
 				<TextControl
@@ -86,7 +87,11 @@ export default compose( [
 					type="email"
 					onChange={ onChangeEmail }
 					disabled={ localInFlight || inFlight }
-					help={ __( 'Use commas to separate multiple emails.', 'newspack-newsletters' ) }
+					help={
+						supportsMultipleTestEmailRecipients
+							? __( 'Use commas to separate multiple emails.', 'newspack-newsletters' )
+							: ''
+					}
 				/>
 				<div className="newspack-newsletters__testing-controls">
 					<Button
