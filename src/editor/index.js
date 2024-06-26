@@ -25,7 +25,6 @@ import registerVisibilityFilters from './blocks/visibility-attribute';
 import registerConditionalContent from './blocks/conditional-content';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
-import './api';
 
 addBlocksValidationFilter();
 registerAdBlock();
