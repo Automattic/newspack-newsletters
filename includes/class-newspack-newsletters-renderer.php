@@ -1252,7 +1252,8 @@ final class Newspack_Newsletters_Renderer {
 			self::$font_body = 'Georgia';
 		}
 
-		$title = $post->post_title; // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+		$updated = time();
+		$title   = $post->post_title; // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 
 		/**
 		 * Generate a string of MJML as the body of the email. We include ads at this stage.
