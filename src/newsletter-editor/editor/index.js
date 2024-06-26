@@ -136,9 +136,6 @@ const Editor = compose( [
 	} ) => {
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
 
-		// TODO: on first editor load, refresh HTML and set as edited post meta.
-		// const response = mjml2html( mjml, { keepComments: false, minify: true } );
-
 		// Create alternate publish button
 		useEffect( () => {
 			const publishButton = document.getElementsByClassName(
