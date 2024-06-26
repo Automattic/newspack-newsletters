@@ -111,14 +111,13 @@ const Editor = compose( [
 		createNotice,
 		didPostSaveRequestSucceed,
 		html,
-		isAutosavingPost,
 		isCustomFieldsMetaBoxActive,
 		isPublic,
 		isReady,
 		isSaving,
 		isPublished,
 		isPublishing,
-		isAutoSaving,
+		isAutosaving,
 		lockPostAutosaving,
 		lockPostSaving,
 		newsletterSendErrors,
@@ -134,6 +133,7 @@ const Editor = compose( [
 		successNote,
 		updateMetaValue,
 	} ) => {
+		const [ isRefreshingHTML, setIsRefreshingHTML ] = useState( false );
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
 
 		// Create alternate publish button
@@ -249,17 +249,19 @@ const Editor = compose( [
 
 		// After the post is successfully saved, refresh the email HTML.
 		const wasSaving = usePrevProp( isSaving );
-		const wasAutoSaving = usePrevProp( isAutosavingPost );
+		const wasAutoSaving = usePrevProp( isAutosaving );
 		useEffect( () => {
 			if (
 				wasSaving &&
 				! isPublished &&
 				! wasAutoSaving &&
 				! isSaving &&
-				! isAutoSaving &&
+				! isAutosaving &&
 				! isPublishing &&
+				! isRefreshingHTML &&
 				didPostSaveRequestSucceed()
 			) {
+				setIsRefreshingHTML( true );
 				lockPostAutosaving();
 				lockPostSaving( 'newspack-newsletters-refresh-html' );
 				refreshEmailHtml( postId, postTitle, postContent )
@@ -274,9 +276,10 @@ const Editor = compose( [
 					.finally( () => {
 						unlockPostSaving( 'newspack-newsletters-refresh-html' );
 						unlockPostAutosaving();
+						setIsRefreshingHTML( false );
 					} );
 			}
-		}, [ isSaving, isAutoSaving ] );
+		}, [ isSaving, isAutosaving ] );
 
 		return createPortal( <SendButton />, publishEl );
 	}
