@@ -37,10 +37,11 @@
 					border-style: solid;
 					border-width: var(--stroke-width);
 					height: var(--size);
+					left: calc( 50% - ( var(--size) / 2 ) );
+					position: absolute;
+					top: calc( 50% - ( var(--size) / 2 ) );
 					transform: rotate(0deg);
 					width: var(--size);
-					position: absolute;
-					left: calc( 50% - ( var(--size) / 2 ) );
 				}
 			}
 
