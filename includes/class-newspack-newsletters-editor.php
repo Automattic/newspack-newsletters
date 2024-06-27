@@ -45,6 +45,7 @@ final class Newspack_Newsletters_Editor {
 	 */
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
@@ -126,6 +127,23 @@ final class Newspack_Newsletters_Editor {
 			);
 		}
 		return implode( "\n", $rules );
+	}
+
+	/**
+	 * Disable autosaving in the editor for newsletter posts.
+	 * For currently unknown reasons, autosaves for this CPT result in true saves
+	 * instead of creating an autosave revision, which could persist unintended changes.
+	 *
+	 * @param array                   $editor_settings      Default editor settings.
+	 * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
+	 *
+	 * @return array
+	 */
+	public static function disable_autosave( $editor_settings, $block_editor_context ) {
+		if ( isset( $block_editor_context->post->post_type ) && Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === $block_editor_context->post->post_type ) {
+			$editor_settings['autosaveInterval'] = 999999;
+		}
+		return $editor_settings;
 	}
 
 	/**

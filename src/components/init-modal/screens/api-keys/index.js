@@ -14,7 +14,7 @@ import { dispatch } from '@wordpress/data';
 import classnames from 'classnames';
 import { values } from 'lodash';
 
-const { lockPostAutosaving, unlockPostAutosaving, savePost } = dispatch( 'core/editor' );
+const { savePost } = dispatch( 'core/editor' );
 
 export default ( { onSetupStatus } ) => {
 	const [ settings, setSettings ] = useState( {} );
@@ -31,7 +31,6 @@ export default ( { onSetupStatus } ) => {
 		} )
 			.then( results => {
 				window.newspack_newsletters_data.service_provider = results.service_provider;
-				unlockPostAutosaving( 'newsletters-modal-is-open-lock' );
 				savePost().then( () => {
 					setInFlight( false );
 					setSettings( results );
@@ -61,7 +60,6 @@ export default ( { onSetupStatus } ) => {
 	};
 
 	useEffect( () => {
-		lockPostAutosaving( 'newsletters-modal-is-open-lock' );
 		setInFlight( true );
 		apiFetch( { path: `/newspack-newsletters/v1/settings` } )
 			.then( results => {
