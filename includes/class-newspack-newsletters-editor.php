@@ -45,7 +45,7 @@ final class Newspack_Newsletters_Editor {
 	 */
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
-		add_action( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
+		add_filter( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
