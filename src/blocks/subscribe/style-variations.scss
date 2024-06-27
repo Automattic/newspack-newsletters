@@ -30,8 +30,8 @@
 				gap: var( --newspack-ui-spacer-2, 12px );
 
 				&:not( :has( .list-description ) ) {
-					background: var( --newspack-ui-color-neutral-0, #FFF );
-					border: 1px solid var( --newspack-ui-color-border, #DDD );
+					background: var( --newspack-ui-color-neutral-0, #fff );
+					border: 1px solid var( --newspack-ui-color-border, #ddd );
 					border-radius: var( --newspack-ui-border-radius-m, 6px );
 					gap: var( --newspack-ui-spacer-3, 16px );
 					padding: var( --newspack-ui-spacer-3, 16px );
@@ -46,15 +46,15 @@
 					min-width: 100%;
 
 					&:has( .list-description ) {
-						background: var( --newspack-ui-color-neutral-0, #FFF );
-						border: 1px solid var( --newspack-ui-color-border, #DDD );
+						background: var( --newspack-ui-color-neutral-0, #fff );
+						border: 1px solid var( --newspack-ui-color-border, #ddd );
 						border-radius: var( --newspack-ui-border-radius-m, 6px );
 						padding: var( --newspack-ui-spacer-3, 16px );
 						transition: background 125ms ease-in-out, border 125ms ease-in-out;
 
 						&:has( input[type='checkbox']:checked ) {
-							background: var( --newspack-ui-color-neutral-5, #F7F7F7 );
-							border-color: var( --newspack-ui-color-neutral-90, #1E1E1E );
+							background: var( --newspack-ui-color-neutral-5, #f7f7f7 );
+							border-color: var( --newspack-ui-color-neutral-90, #1e1e1e );
 						}
 					}
 				}
@@ -70,26 +70,26 @@
 					}
 
 					&:focus-visible {
-						outline: 2px solid var( --newspack-ui-color-neutral-90, #1E1E1E );
+						outline: 2px solid var( --newspack-ui-color-neutral-90, #1e1e1e );
 						outline-offset: 1px;
 					}
 
 					&:checked {
-						background: var( --newspack-ui-color-neutral-90, #1E1E1E );
-						color: var( --newspack-ui-color-neutral-0, #FFF );
+						background: var( --newspack-ui-color-neutral-90, #1e1e1e );
+						color: var( --newspack-ui-color-neutral-0, #fff );
 					}
 				}
 			}
 
 			.list-title {
-				color: var( --newspack-ui-color-neutral-90, #1E1E1E );
+				color: var( --newspack-ui-color-neutral-90, #1e1e1e );
 				font-size: inherit;
 				font-weight: 600;
 				line-height: inherit;
 			}
 
 			.list-description {
-				color: var( --newspack-ui-color-neutral-60, #6C6C6C );
+				color: var( --newspack-ui-color-neutral-60, #6c6c6c );
 				font-size: var( --newspack-ui-font-size-xs, 14px );
 				line-height: var( --newspack-ui-line-height-xs, 1.4286 );
 			}
@@ -121,10 +121,10 @@
 
 		input[type='email'],
 		input[type='text'] {
-			background: var( --newspack-ui-color-neutral-0, #FFF );
-			border: 1px solid var( --newspack-ui-color-border, #DDD );
+			background: var( --newspack-ui-color-neutral-0, #fff );
+			border: 1px solid var( --newspack-ui-color-border, #ddd );
 			border-radius: var( --newspack-ui-border-radius-m, 6px );
-			color: var( --newspack-ui-color-neutral-90, #1E1E1E );
+			color: var( --newspack-ui-color-neutral-90, #1e1e1e );
 			font-family: inherit;
 			font-size: inherit;
 			font-weight: inherit;
@@ -133,12 +133,12 @@
 			transition: border 125ms ease-in-out, outline 125ms ease-in-out;
 
 			&::placeholder {
-				color: var( --newspack-ui-color-neutral-60, #6C6C6C );
+				color: var( --newspack-ui-color-neutral-60, #6c6c6c );
 			}
 
 			&:focus {
-				border-color: var( --newspack-ui-color-input-border-focus, #1E1E1E );
-				outline: 1px solid var( --newspack-ui-color-input-border-focus, #1E1E1E );
+				border-color: var( --newspack-ui-color-input-border-focus, #1e1e1e );
+				outline: 1px solid var( --newspack-ui-color-input-border-focus, #1e1e1e );
 				outline-offset: 0;
 			}
 		}
@@ -152,7 +152,9 @@
 			font-size: inherit;
 			font-weight: 600;
 			line-height: inherit;
-			margin-top: calc( var( --newspack-ui-spacer-2, 12px ) - var( --newspack-ui-spacer-base, 8px ) );
+			margin-top: calc(
+				var( --newspack-ui-spacer-2, 12px ) - var( --newspack-ui-spacer-base, 8px )
+			);
 			padding: var( --newspack-ui-spacer-2, 12px ) var( --newspack-ui-spacer-5, 24px );
 
 			@media ( min-width: 782px ) {
@@ -160,21 +162,21 @@
 			}
 
 			&:focus {
-				outline: 2px solid var( --newspack-ui-color-neutral-90, #1E1E1E );
+				outline: 2px solid var( --newspack-ui-color-neutral-90, #1e1e1e );
 				outline-offset: 1px;
 			}
 		}
 
 		.newspack-newsletters-subscribe {
 			&__response {
-				background: var( --newspack-ui-color-success-0, #EDFAEF );
+				background: var( --newspack-ui-color-success-0, #edfaef );
 				border-radius: var( --newspack-ui-border-radius-m, 6px );
 				gap: var( --newspack-ui-spacer-5, 24px );
 			}
 
 			&__message {
 				p {
-					color: var( --newspack-ui-color-neutral-90, #1E1E1E );
+					color: var( --newspack-ui-color-neutral-90, #1e1e1e );
 					font-size: inherit;
 					font-weight: 600;
 					line-height: inherit;
@@ -202,7 +204,7 @@
 			}
 		}
 
-		form:has( input[value*="invalid_email"] ),
+		form:has( input[value*='invalid_email'] ),
 		&[data-status='400'] {
 			+ .newspack-newsletters-subscribe__response,
 			.newspack-newsletters-subscribe__response {
@@ -212,7 +214,7 @@
 				margin-top: var( --newspack-ui-spacer-base, 8px );
 
 				p {
-					color: var( --newspack-ui-color-error-50, #D63638 );
+					color: var( --newspack-ui-color-error-50, #d63638 );
 					font-size: var( --newspack-ui-font-size-xs, 14px );
 					font-weight: 400;
 					line-height: var( --newspack-ui-line-height-xs, 1.4286 );
@@ -222,15 +224,15 @@
 
 			.newspack-newsletters-email-input {
 				label {
-					color: var( --newspack-ui-color-error-50, #D63638 );
+					color: var( --newspack-ui-color-error-50, #d63638 );
 				}
 
 				input[type='email'] {
-					border-color: var( --newspack-ui-color-error-50, #D63638 );
+					border-color: var( --newspack-ui-color-error-50, #d63638 );
 
 					&:focus {
-						border-color: var( --newspack-ui-color-error-50, #D63638 );
-						outline-color: var( --newspack-ui-color-error-50, #D63638 );
+						border-color: var( --newspack-ui-color-error-50, #d63638 );
+						outline-color: var( --newspack-ui-color-error-50, #d63638 );
 					}
 				}
 			}
