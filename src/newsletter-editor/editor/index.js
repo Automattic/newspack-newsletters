@@ -34,6 +34,7 @@ const Editor = compose( [
 			getEditedPostContent,
 			isPublishingPost,
 			isSavingPost,
+			isPostAutosavingLocked,
 			isAutosavingPost,
 			isCleanNewPost,
 			isCurrentPostPublished,
@@ -68,6 +69,7 @@ const Editor = compose( [
 			isSaving: isSavingPost(),
 			isPublishing: isPublishingPost(),
 			isAutosaving: isAutosavingPost(),
+			isAutosaveLocked: isPostAutosavingLocked(),
 			colorPalette: colors.reduce(
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
@@ -117,13 +119,13 @@ const Editor = compose( [
 		isSaving,
 		isPublished,
 		isPublishing,
+		isAutosaveLocked,
 		isAutosaving,
 		lockPostAutosaving,
 		lockPostSaving,
 		newsletterSendErrors,
 		openModal,
 		removeNotice,
-		unlockPostAutosaving,
 		unlockPostSaving,
 		postContent,
 		postId,
@@ -143,6 +145,13 @@ const Editor = compose( [
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
 		}, [] );
+
+		// Disable autosave requests in the editor.
+		useEffect( () => {
+			if ( ! isAutosaveLocked ) {
+				lockPostAutosaving();
+			}
+		}, [ isAutosaveLocked ] );
 
 		// Set color palette option.
 		useEffect( () => {
@@ -249,12 +258,10 @@ const Editor = compose( [
 
 		// After the post is successfully saved, refresh the email HTML.
 		const wasSaving = usePrevProp( isSaving );
-		const wasAutoSaving = usePrevProp( isAutosaving );
 		useEffect( () => {
 			if (
 				wasSaving &&
 				! isPublished &&
-				! wasAutoSaving &&
 				! isSaving &&
 				! isAutosaving &&
 				! isPublishing &&
@@ -262,7 +269,6 @@ const Editor = compose( [
 				didPostSaveRequestSucceed()
 			) {
 				setIsRefreshingHTML( true );
-				lockPostAutosaving();
 				lockPostSaving( 'newspack-newsletters-refresh-html' );
 				refreshEmailHtml( postId, postTitle, postContent )
 					.then( refreshedHtml => {
@@ -275,7 +281,6 @@ const Editor = compose( [
 					} )
 					.finally( () => {
 						unlockPostSaving( 'newspack-newsletters-refresh-html' );
-						unlockPostAutosaving();
 						setIsRefreshingHTML( false );
 					} );
 			}
