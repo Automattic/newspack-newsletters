@@ -72,9 +72,8 @@
 		border: 1px solid wp-colors.$gray-900;
 		border-radius: 2px;
 		color: wp-colors.$gray-900 !important;
-		display: flex;
-		font-family: -apple-system, blinkmacsystemfont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-			'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+		display: none;
+		font-family: system-ui, sans-serif;
 		flex-wrap: wrap;
 		font-size: 13px;
 		gap: 8px;
@@ -110,6 +109,12 @@
 			@media ( min-width: 782px ) {
 				padding: 48px;
 			}
+		}
+	}
+
+	&.is-selected {
+		.newspack-newsletters-subscribe__state-bar {
+			display: flex;
 		}
 	}
 }
