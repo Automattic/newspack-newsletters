@@ -275,7 +275,9 @@ function render_block( $attrs ) {
 						<input type="hidden" name="double_optin" value="1" />
 					<?php endif; ?>
 
-					<input class="<?php echo \esc_attr( get_block_button_classes( $attrs ) ); ?>"type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" style="<?php echo \esc_attr( get_block_button_styles( $attrs ) ); ?>" />
+					<button class="<?php echo \esc_attr( get_block_button_classes( $attrs ) ); ?>"type="submit" style="<?php echo \esc_attr( get_block_button_styles( $attrs ) ); ?>">
+						<span class="submit"><?php echo \esc_html( $attrs['label'] ); ?></span>
+					</button>
 				</div>
 			</form>
 		<?php endif; ?>

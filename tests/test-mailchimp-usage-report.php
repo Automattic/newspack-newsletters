@@ -24,9 +24,9 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 				'emails_sent'    => 12,
 				'opens'          => 13,
 				'clicks'         => 14,
-				'subscribes'     => 1,
-				'unsubscribes'   => 1,
-				'total_contacts' => 42,
+				'subscribes'     => 2,
+				'unsubscribes'   => 2,
+				'total_contacts' => 63,
 			]
 		);
 
@@ -54,9 +54,9 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 				'emails_sent'    => 12,
 				'opens'          => 13 + 23 - 10,
 				'clicks'         => 14 + 24 - 10,
-				'subscribes'     => 1,
-				'unsubscribes'   => 1,
-				'total_contacts' => 42,
+				'subscribes'     => 2,
+				'unsubscribes'   => 2,
+				'total_contacts' => 63,
 			]
 		);
 

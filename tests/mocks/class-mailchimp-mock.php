@@ -19,6 +19,11 @@ class MailChimp {
 					'name'  => 'Test List',
 					'stats' => [ 'member_count' => 42 ],
 				],
+				[
+					'id'    => 'test-list-2',
+					'name'  => 'Test List 2',
+					'stats' => [ 'member_count' => 21 ],
+				],
 			],
 			'reports' => [
 				[
