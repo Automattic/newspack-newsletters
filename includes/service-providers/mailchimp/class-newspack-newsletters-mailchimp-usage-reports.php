@@ -35,7 +35,9 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 
 		$reports = [];
 		$lists  = $mc_api->get( 'lists', [ 'count' => 1000 ] );
-		$lists_activity_reports = [];
+		if ( ! isset( $lists['lists'] ) ) {
+			return $reports;
+		}
 
 		foreach ( $lists['lists'] as &$list ) {
 			// Get daily activity for each list.

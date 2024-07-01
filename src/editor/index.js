@@ -25,7 +25,6 @@ import registerVisibilityFilters from './blocks/visibility-attribute';
 import registerConditionalContent from './blocks/conditional-content';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
-import './api';
 
 addBlocksValidationFilter();
 registerAdBlock();
@@ -67,6 +66,21 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	}
 	return settings;
 } );
+
+if ( newspack_email_editor_data.supported_social_icon_services ) {
+	addFilter(
+		'blocks.registerBlockType',
+		'newspack-newsletters/core-social-links',
+		( settings, name ) => {
+			if ( 'core/social-link' === name && settings.variations ) {
+				settings.variations = settings.variations.filter( variation =>
+					newspack_email_editor_data.supported_social_icon_services.includes( variation.name )
+				);
+			}
+			return settings;
+		}
+	);
+}
 
 registerBlockStyle( 'core/social-links', {
 	name: 'circle-black',

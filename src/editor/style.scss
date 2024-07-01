@@ -210,8 +210,13 @@
 		.wp-block-quote {
 			margin: 0 auto;
 
+			&::before {
+				left: 0 !important;
+			}
+
 			p {
-				margin: 0 0 12px;
+				margin: 0;
+				padding: 8px 0;
 			}
 
 			&__citation {
@@ -226,7 +231,7 @@
 				border: 0;
 				margin: 12px auto;
 				padding: 0;
-				padding-left: calc( 36px + 0.25em );
+				padding-left: calc( 24px + 0.25em );
 				position: relative;
 
 				&::before {
@@ -283,17 +288,18 @@
 		}
 
 		.wp-block {
-			&[data-type='core/list'] {
-				padding: 12px;
-				padding-left: calc( 12px + 1.3em );
+			padding: 6px 12px;
 
-				ol,
-				ul {
-					margin-left: 0;
-					margin-right: 0;
+			// More specific styles for the list block.
+			&[data-type='core/list'] {
+				padding: 6px 15px;
+				li:first-child {
+					padding: 12px 7px 0;
+				}
+				li {
+					padding: 0 7px;
 				}
 			}
-
 			&[data-type='core/social-link'] {
 				align-items: center;
 				display: flex;
