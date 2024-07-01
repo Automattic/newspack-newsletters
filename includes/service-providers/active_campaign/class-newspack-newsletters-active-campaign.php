@@ -853,18 +853,24 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Update ESP campaign after post save.
+	 * Update ESP campaign after refreshing the email HTML, which is triggered by post save.
 	 *
-	 * @param string  $post_id Numeric ID of the campaign.
-	 * @param WP_Post $post The complete post object.
-	 * @param boolean $update Whether this is an existing post being updated or not.
+	 * @param int   $meta_id Numeric ID of the meta field being updated.
+	 * @param int   $post_id The post ID for the meta field being updated.
+	 * @param mixed $meta_key The meta key being updated.
 	 */
-	public function save( $post_id, $post, $update ) {
-		$status = get_post_status( $post_id );
-		if ( 'trash' === $status ) {
+	public function save( $meta_id, $post_id, $meta_key ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		if ( Newspack_Newsletters::EMAIL_HTML_META !== $meta_key ) {
+			return;
+		}
+		$post = get_post( $post_id );
+		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+			return;
+		}
+		if ( 'trash' === $post->post_status ) {
 			return;
 		}
 		$this->sync( $post );

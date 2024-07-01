@@ -1,10 +1,10 @@
 /**
  * WordPress dependencies
  */
-import { withDispatch, withSelect, useSelect, useDispatch } from '@wordpress/data';
+import { withDispatch, withSelect, useSelect } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { Button, Modal, Spinner } from '@wordpress/components';
-import { Fragment, useState } from '@wordpress/element';
+import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import Testing from '../../newsletter-editor/testing';
 import DisableAutoAds from '../../ads/newsletter-editor/disable-auto-ads';
@@ -18,18 +18,39 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
-import { validateNewsletter } from '../../newsletter-editor/utils';
+import { refreshEmailHtml, validateNewsletter } from '../../newsletter-editor/utils';
 import './style.scss';
 
 function PreviewHTML() {
-	const { meta, isSavingPost, isAutoSavingPost } = useSelect( select => {
+	const { isSaving, isAutoSaving, postId, postContent, postTitle } = useSelect( select => {
+		const {
+			getCurrentPostId,
+			getCurrentPostType,
+			getEditedPostAttribute,
+			getEditedPostContent,
+			isAutosavingPost,
+			isSavingPost,
+		} = select( 'core/editor' );
 		return {
-			meta: select( 'core/editor' ).getCurrentPostAttribute( 'meta' ),
-			isSavingPost: select( 'core/editor' ).isSavingPost(),
-			isAutoSavingPost: select( 'core/editor' ).isAutosavingPost(),
+			isSaving: isSavingPost(),
+			isAutoSaving: isAutosavingPost(),
+			postContent: getEditedPostContent(),
+			postId: getCurrentPostId(),
+			postTitle: getEditedPostAttribute( 'title' ),
+			postType: getCurrentPostType(),
 		};
 	} );
-	const showSpinner = isSavingPost && ! isAutoSavingPost;
+	const [ previewHtml, setPreviewHtml ] = useState( '' );
+	const showSpinner = ( isSaving && ! isAutoSaving ) || ! previewHtml;
+
+	useEffect( () => {
+		if ( ! previewHtml ) {
+			refreshEmailHtml( postId, postTitle, postContent ).then( refreshedHtml => {
+				setPreviewHtml( refreshedHtml );
+			} );
+		}
+	}, [] );
+
 	return (
 		<div className="newsletter-preview-html">
 			{ showSpinner && (
@@ -40,7 +61,7 @@ function PreviewHTML() {
 			{ ! showSpinner ? (
 				<iframe
 					title={ __( 'Preview email', 'newspack-newsletters' ) }
-					srcDoc={ meta.newspack_email_html }
+					srcDoc={ previewHtml }
 					className="newsletter-preview-html__iframe"
 				/>
 			) : null }
@@ -49,21 +70,21 @@ function PreviewHTML() {
 }
 
 function PreviewHTMLButton() {
-	const { isSavingPost } = useSelect( select => {
+	const { isSaving } = useSelect( select => {
+		const { isSavingPost } = select( 'core/editor' );
 		return {
-			isSavingPost: select( 'core/editor' ).isSavingPost(),
+			isSaving: isSavingPost(),
 		};
 	} );
-	const { savePost } = useDispatch( 'core/editor' );
 	const [ isModalOpen, setIsModalOpen ] = useState( false );
+
 	return (
 		<Fragment>
 			<Button
 				className="newsletter-preview-html-button"
 				variant="secondary"
-				disabled={ isSavingPost }
+				disabled={ isSaving }
 				onClick={ async () => {
-					savePost();
 					setIsModalOpen( true );
 				} }
 			>
@@ -92,6 +113,7 @@ export default compose( [
 	} ),
 	withSelect( ( select, { forceIsDirty } ) => {
 		const {
+			didPostSaveRequestSucceed,
 			getCurrentPost,
 			getCurrentPostAttribute,
 			getEditedPostAttribute,
@@ -107,6 +129,7 @@ export default compose( [
 			isSaveable: isEditedPostSaveable(),
 			status: getEditedPostAttribute( 'status' ),
 			isSaving: isSavingPost(),
+			saveDidSucceed: didPostSaveRequestSucceed(),
 			isEditedPostBeingScheduled: isEditedPostBeingScheduled(),
 			hasPublishAction: get( getCurrentPost(), [ '_links', 'wp:action-publish' ], false ),
 			visibility: getEditedPostVisibility(),
@@ -123,6 +146,7 @@ export default compose( [
 		isPublishable,
 		isSaveable,
 		isSaving,
+		saveDidSucceed,
 		status,
 		isEditedPostBeingScheduled,
 		hasPublishAction,
@@ -131,6 +155,15 @@ export default compose( [
 		sent,
 		isPublished,
 	} ) => {
+		const [ modalVisible, setModalVisible ] = useState( false );
+
+		// If the save request failed, close any open modals so the error message can be seen underneath.
+		useEffect( () => {
+			if ( ! saveDidSucceed ) {
+				setModalVisible( false );
+			}
+		}, [ saveDidSucceed ] );
+
 		const { newsletterData = {}, is_public } = meta;
 
 		const newsletterValidationErrors = validateNewsletter( newsletterData );
@@ -206,8 +239,6 @@ export default compose( [
 			savePost();
 		};
 
-		const [ modalVisible, setModalVisible ] = useState( false );
-
 		// For sent newsletters, display the generic button text.
 		if ( isPublished || sent ) {
 			return (
@@ -219,9 +250,11 @@ export default compose( [
 						isPrimary
 						disabled={ isSaving }
 						onClick={ async () => {
-							await savePost();
-							if ( renderPostUpdateInfo ) {
-								setModalVisible( true );
+							try {
+								await savePost();
+								if ( saveDidSucceed && renderPostUpdateInfo ) {setModalVisible( true );}
+							} catch ( e ) {
+								setModalVisible( false );
 							}
 						} }
 					>
@@ -268,8 +301,14 @@ export default compose( [
 					isBusy={ isSaving && 'publish' === status }
 					variant="primary"
 					onClick={ async () => {
-						await savePost();
-						setModalVisible( true );
+						try {
+							await savePost();
+							if ( saveDidSucceed ) {
+								setModalVisible( true );
+							}
+						} catch ( e ) {
+							setModalVisible( false );
+						}
 					} }
 					disabled={ ! isButtonEnabled }
 				>

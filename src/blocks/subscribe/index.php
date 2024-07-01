@@ -257,6 +257,7 @@ function render_block( $attrs ) {
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>
+				<?php do_action( 'newspack_newsletters_subscribe_block_before_email_field', $attrs ); ?>
 				<div class="newspack-newsletters-email-input">
 					<?php if ( $email_label ) : ?>
 						<label for="<?php echo \esc_attr( $input_id . '-email' ); ?>"><?php echo \esc_html( $email_label ); ?></label>
@@ -274,7 +275,9 @@ function render_block( $attrs ) {
 						<input type="hidden" name="double_optin" value="1" />
 					<?php endif; ?>
 
-					<input class="<?php echo \esc_attr( get_block_button_classes( $attrs ) ); ?>"type="submit" value="<?php echo \esc_attr( $attrs['label'] ); ?>" style="<?php echo \esc_attr( get_block_button_styles( $attrs ) ); ?>" />
+					<button class="<?php echo \esc_attr( get_block_button_classes( $attrs ) ); ?>"type="submit" style="<?php echo \esc_attr( get_block_button_styles( $attrs ) ); ?>">
+						<span class="submit"><?php echo \esc_html( $attrs['label'] ); ?></span>
+					</button>
 				</div>
 			</form>
 		<?php endif; ?>
@@ -449,8 +452,7 @@ function process_form() {
 
 	// reCAPTCHA test.
 	if ( method_exists( '\Newspack\Recaptcha', 'can_use_captcha' ) && \Newspack\Recaptcha::can_use_captcha() ) {
-		$captcha_token  = isset( $_REQUEST['captcha_token'] ) ? \sanitize_text_field( $_REQUEST['captcha_token'] ) : '';
-		$captcha_result = \Newspack\Recaptcha::verify_captcha( $captcha_token );
+		$captcha_result = \Newspack\Recaptcha::verify_captcha();
 		if ( \is_wp_error( $captcha_result ) ) {
 			return send_form_response( $captcha_result );
 		}

@@ -244,7 +244,7 @@ export default function SubscribeEdit( {
 						<p>
 							{ sprintf(
 								// translators: %s is either 'enabled' or 'disabled'.
-								__( 'reCAPTCHA v3 is currently %s.', 'newspack-newsletters' ),
+								__( 'reCAPTCHA is currently %s.', 'newspack-newsletters' ),
 								newspack_newsletters_blocks.has_recaptcha
 									? __( 'enabled', 'newspack-newsletters' )
 									: __( 'disabled', 'newspack-newsletters' )
@@ -253,7 +253,7 @@ export default function SubscribeEdit( {
 						{ ! newspack_newsletters_blocks.has_recaptcha && (
 							<p>
 								{ __(
-									"It's highly recommended that you enable reCAPTCHA v3 protection to prevent spambots from using this form!",
+									"It's highly recommended that you enable reCAPTCHA protection to prevent spambots from using this form!",
 									'newspack-newsletters'
 								) }
 							</p>

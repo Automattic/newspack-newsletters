@@ -201,5 +201,39 @@
 				}
 			}
 		}
+
+		form:has(input[value*="invalid_email"]),
+		&[data-status="400"] {
+			+ .newspack-newsletters-subscribe__response,
+			.newspack-newsletters-subscribe__response {
+				background: none;
+				border-radius: 0;
+				display: block;
+				margin-top: var(--newspack-ui-spacer-base, 8px);
+
+				p {
+					color: var(--newspack-ui-color-error-50, #d63638);
+					font-size: var(--newspack-ui-font-size-xs, 14px);
+					font-weight: 400;
+					line-height: var(--newspack-ui-line-height-xs, 1.4286);
+					text-align: initial;
+				}
+			}
+
+			.newspack-newsletters-email-input {
+				label {
+					color: var(--newspack-ui-color-error-50, #d63638);
+				}
+
+				input[type="email"] {
+					border-color: var(--newspack-ui-color-error-50, #d63638);
+
+					&:focus {
+						border-color: var(--newspack-ui-color-error-50, #d63638);
+						outline-color: var(--newspack-ui-color-error-50, #d63638);
+					}
+				}
+			}
+		}
 	}
 }

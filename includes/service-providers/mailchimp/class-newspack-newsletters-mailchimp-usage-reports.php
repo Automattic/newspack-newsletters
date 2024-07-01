@@ -30,12 +30,14 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	 * @param string $days_in_past_count How many days in the past to look for.
 	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
 	 */
-	public static function get_list_activity_reports( $days_in_past_count = 1 ) {
+	private static function get_list_activity_reports( $days_in_past_count = 1 ) {
 		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
 		$reports = [];
 		$lists  = $mc_api->get( 'lists', [ 'count' => 1000 ] );
-		$lists_activity_reports = [];
+		if ( ! isset( $lists['lists'] ) ) {
+			return $reports;
+		}
 
 		foreach ( $lists['lists'] as &$list ) {
 			// Get daily activity for each list.
@@ -51,14 +53,14 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		for ( $day_index = 1; $day_index <= $days_in_past_count; $day_index++ ) {
 			$report = new Newspack_Newsletters_Service_Provider_Usage_Report();
 			$report->set_date( gmdate( 'Y-m-d', strtotime( "-$day_index day" ) ) );
-			$report->total_contacts += $list['stats']['member_count'];
 
-			foreach ( $lists['lists'] as $list ) {
-				$list_activity_for_day = $list['activity'][ $day_index ];
-				$report->emails_sent  += $list_activity_for_day['emails_sent'];
-				$report->opens        += $list_activity_for_day['unique_opens'];
-				$report->clicks       += $list_activity_for_day['recipient_clicks'];
-				$report->subscribes   += $list_activity_for_day['subs'];
+			foreach ( $lists['lists'] as $list_data ) {
+				$report->total_contacts += $list_data['stats']['member_count'];
+				$list_activity_for_day = $list_data['activity'][ $day_index ];
+				$report->emails_sent += $list_activity_for_day['emails_sent'];
+				$report->opens += $list_activity_for_day['unique_opens'];
+				$report->clicks += $list_activity_for_day['recipient_clicks'];
+				$report->subscribes += $list_activity_for_day['subs'];
 				$report->unsubscribes += $list_activity_for_day['unsubs'];
 			}
 			$reports[] = $report;
@@ -68,17 +70,18 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	}
 
 	/**
-	 * Creates a usage report.
+	 * Get usage reports for last n days.
 	 *
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report Usage report.
+	 * @param int $days_in_past How many days in past.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
 	 */
-	public static function get_usage_report() {
+	public static function get_usage_reports( $days_in_past ) {
 		// Start with lists activity reports. These are good for historical data and also will provide
 		// subscribes and unsubscribes data. However, in order to get recent
 		// sent/opens/clicks data, the campaign reports have to be used.
 		// It appears that the sent/opens/clicks data in the lists activity are only added after a
 		// delay of 2-3 days.
-		$reports = self::get_list_activity_reports( 1 );
+		$reports = self::get_list_activity_reports( $days_in_past );
 
 		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
@@ -91,6 +94,9 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 				'type'            => 'regular', // Email campaigns.
 			]
 		);
+		if ( ! isset( $campaign_reports_response['reports'] ) ) {
+			return [ new Newspack_Newsletters_Service_Provider_Usage_Report() ];
+		}
 		// For each report, save the stats per-campaign.
 		foreach ( $campaign_reports_response['reports'] as $campaign_report ) {
 			$send_time = $campaign_report['send_time'];
@@ -134,6 +140,16 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		// Save the recent response.
 		update_option( self::REPORTS_OPTION_NAME, $campaign_reports );
 
+		return $reports;
+	}
+
+	/**
+	 * Creates a usage report.
+	 *
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report Usage report.
+	 */
+	public static function get_usage_report() {
+		$reports = self::get_usage_reports( 1 );
 		return reset( $reports );
 	}
 }

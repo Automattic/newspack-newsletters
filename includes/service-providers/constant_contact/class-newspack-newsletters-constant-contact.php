@@ -686,18 +686,24 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
-	 * Update ESP campaign after post save.
+	 * Update ESP campaign after refreshing the email HTML, which is triggered by post save.
 	 *
-	 * @param string  $post_id Numeric ID of the campaign.
-	 * @param WP_Post $post The complete post object.
-	 * @param boolean $update Whether this is an existing post being updated or not.
+	 * @param int   $meta_id Numeric ID of the meta field being updated.
+	 * @param int   $post_id The post ID for the meta field being updated.
+	 * @param mixed $meta_key The meta key being updated.
 	 */
-	public function save( $post_id, $post, $update ) {
-		$status = get_post_status( $post_id );
-		if ( 'trash' === $status ) {
+	public function save( $meta_id, $post_id, $meta_key ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		if ( Newspack_Newsletters::EMAIL_HTML_META !== $meta_key ) {
+			return;
+		}
+		$post = get_post( $post_id );
+		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+			return;
+		}
+		if ( 'trash' === $post->post_status ) {
 			return;
 		}
 		$this->sync( $post );
@@ -808,20 +814,21 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			return $this->lists;
 		}
 		try {
-			$cc          = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
-			$this->lists = $cc->get_contact_lists();
+			$cc = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
+			$this->lists = array_map(
+				function ( $list ) {
+					return [
+						'id'               => $list->list_id,
+						'name'             => $list->name,
+						'membership_count' => $list->membership_count,
+					];
+				},
+				$cc->get_contact_lists()
+			);
+			return $this->lists;
 		} catch ( Exception $e ) {
 			return new WP_Error( 'newspack_newsletters_error', $e->getMessage() );
 		}
-		return array_map(
-			function ( $list ) {
-				return [
-					'id'   => $list->list_id,
-					'name' => $list->name,
-				];
-			},
-			$this->lists
-		);
 	}
 
 	/**

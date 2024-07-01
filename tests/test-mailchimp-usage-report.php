@@ -11,6 +11,15 @@
  */
 class MailchimpUsageReportsTest extends WP_UnitTestCase {
 	/**
+	 * Test set up.
+	 */
+	public static function set_up_before_class() {
+		// Set an ESP.
+		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		update_option( 'newspack_mailchimp_api_key', 'test-us1' );
+	}
+
+	/**
 	 * Teardown.
 	 */
 	public function tear_down() {
@@ -24,9 +33,9 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 				'emails_sent'    => 12,
 				'opens'          => 13,
 				'clicks'         => 14,
-				'subscribes'     => 1,
-				'unsubscribes'   => 1,
-				'total_contacts' => 42,
+				'subscribes'     => 2,
+				'unsubscribes'   => 2,
+				'total_contacts' => 63,
 			]
 		);
 
@@ -54,9 +63,9 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 				'emails_sent'    => 12,
 				'opens'          => 13 + 23 - 10,
 				'clicks'         => 14 + 24 - 10,
-				'subscribes'     => 1,
-				'unsubscribes'   => 1,
-				'total_contacts' => 42,
+				'subscribes'     => 2,
+				'unsubscribes'   => 2,
+				'total_contacts' => 63,
 			]
 		);
 
