@@ -25,7 +25,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	}
 
 	/**
-	 * Get list activity reports for a specific timeframe between n days in past and yesterday.
+	 * Get list activity reports for the timeframe between n days in past and yesterday.
 	 *
 	 * @param string $days_in_past_count How many days in the past to look for.
 	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
@@ -84,11 +84,12 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
 		$campaign_reports = [];
+		// Look at reports for campaigns sent at most two weeks ago, unless $days_in_past is larger.
+		$campaign_reports_cutoff = $days_in_past > 14 ? $days_in_past : 14;
 		$campaign_reports_response = $mc_api->get(
 			'reports',
 			[
-				// Look at reports for campaigns sent at most two weeks ago.
-				'since_send_time' => gmdate( 'Y-m-d H:i:s', strtotime( '-14 day' ) ),
+				'since_send_time' => gmdate( 'Y-m-d H:i:s', strtotime( '-' . $campaign_reports_cutoff . 'days' ) ),
 				'type'            => 'regular', // Email campaigns.
 			]
 		);
@@ -117,20 +118,21 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		$saved_reports = get_option( self::REPORTS_OPTION_NAME, [] );
 
 		foreach ( $reports as $report ) {
-			$report_date = $report->get_date();
+			$report_start_date = $report->get_date();
+			$report_end_date = gmdate( 'Y-m-d', strtotime( $report_start_date ) + DAY_IN_SECONDS );
 			foreach ( $campaign_reports as $campaign_id => $campaign_report ) {
-				if ( $campaign_report['send_time'] >= $report_date ) {
-					// If the campaign was sent in the last 24h, no need to look up historical data.
-					$report->emails_sent += $campaign_report['emails_sent'];
-					$report->opens += $campaign_report['opens'];
-					$report->clicks += $campaign_report['clicks'];
-				} elseif ( isset( $saved_reports[ $campaign_id ] ) ) {
-					// If the campaign was sent earlier than the last 24h, look up historical data
-					// to substract from new data.
-					$previous_report = $saved_reports[ $campaign_id ];
-					$report->emails_sent += $campaign_report['emails_sent'] - $previous_report['emails_sent'];
-					$report->opens += $campaign_report['opens'] - $previous_report['opens'];
-					$report->clicks += $campaign_report['clicks'] - $previous_report['clicks'];
+				// If the campaign report matches the report timeframe, fill in the data if it's missing.
+				if ( $campaign_report['send_time'] >= $report_start_date && $campaign_report['send_time'] < $report_end_date ) {
+					$previous_report = isset( $saved_reports[ $campaign_id ] ) ? $saved_reports[ $campaign_id ] : false;
+					foreach ( [ 'emails_sent', 'opens', 'clicks' ] as $field ) {
+						// Only fill in the field if the value in the initial report is missing.
+						if ( $report->$field === 0 ) {
+							$report->$field += $campaign_report[ $field ];
+							if ( $previous_report ) {
+								$report->$field -= $previous_report[ $field ];
+							}
+						}
+					}
 				}
 			}
 		}
