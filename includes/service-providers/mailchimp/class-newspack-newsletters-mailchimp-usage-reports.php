@@ -117,9 +117,10 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		$saved_reports = get_option( self::REPORTS_OPTION_NAME, [] );
 
 		foreach ( $reports as $report ) {
-			$report_date = $report->get_date();
+			$report_start_date = $report->get_date();
+			$report_end_date = gmdate( 'Y-m-d', strtotime( $report_start_date ) + DAY_IN_SECONDS );
 			foreach ( $campaign_reports as $campaign_id => $campaign_report ) {
-				if ( $campaign_report['send_time'] >= $report_date ) {
+				if ( $campaign_report['send_time'] >= $report_start_date && $campaign_report['send_time'] < $report_end_date ) {
 					// If the campaign was sent in the last 24h, no need to look up historical data.
 					$report->emails_sent += $campaign_report['emails_sent'];
 					$report->opens += $campaign_report['opens'];

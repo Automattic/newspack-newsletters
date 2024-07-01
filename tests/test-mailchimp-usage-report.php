@@ -22,6 +22,13 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 	/**
 	 * Teardown.
 	 */
+	public function set_up() {
+		delete_option( Newspack_Newsletters_Mailchimp_Usage_Reports::REPORTS_OPTION_NAME );
+	}
+
+	/**
+	 * Teardown.
+	 */
 	public function tear_down() {
 		delete_option( Newspack_Newsletters_Mailchimp_Usage_Reports::REPORTS_OPTION_NAME );
 	}
@@ -72,5 +79,20 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 		$actual_report = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_usage_report();
 
 		$this->assertEquals( $expected_report->to_array(), $actual_report->to_array() );
+	}
+
+	public function test_get_usage_report_mailchimp_backfill() { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		$actual_reports = ( new Newspack_Newsletters_Mailchimp_Usage_Reports() )->get_usage_reports( 10 );
+		$this->assertCount( 10, $actual_reports );
+		$serialized_actual_reports = array_map(
+			function( $report ) {
+				return $report->to_array();
+			},
+			$actual_reports
+		);
+		$last_report = end( $serialized_actual_reports );
+		$this->assertEquals( 0, $last_report['emails_sent'] );
+		$this->assertEquals( 0, $last_report['opens'] );
+		$this->assertEquals( 0, $last_report['clicks'] );
 	}
 }
