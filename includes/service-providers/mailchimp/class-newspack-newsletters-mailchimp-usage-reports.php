@@ -84,11 +84,12 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
 		$campaign_reports = [];
+		// Look at reports for campaigns sent at most two weeks ago, unless $days_in_past is larger.
+		$campaign_reports_cutoff = $days_in_past > 14 ? $days_in_past : 14;
 		$campaign_reports_response = $mc_api->get(
 			'reports',
 			[
-				// Look at reports for campaigns sent at most two weeks ago.
-				'since_send_time' => gmdate( 'Y-m-d H:i:s', strtotime( '-14 day' ) ),
+				'since_send_time' => gmdate( 'Y-m-d H:i:s', strtotime( '-' . $campaign_reports_cutoff . 'days' ) ),
 				'type'            => 'regular', // Email campaigns.
 			]
 		);
