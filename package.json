@@ -43,7 +43,7 @@
 		"classnames": "^2.5.1",
 		"csslint": "^1.0.5",
 		"mjml-browser": "^4.15.3",
-		"newspack-components": "^2.2.1",
+		"newspack-components": "^3.0.0",
 		"qs": "^6.12.1"
 	},
 	"devDependencies": {
