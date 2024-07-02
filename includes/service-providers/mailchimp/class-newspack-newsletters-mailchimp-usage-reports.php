@@ -25,7 +25,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	}
 
 	/**
-	 * Get list activity reports for a specific timeframe between n days in past and yesterday.
+	 * Get list activity reports for the timeframe between n days in past and yesterday.
 	 *
 	 * @param string $days_in_past_count How many days in the past to look for.
 	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
