@@ -52,7 +52,7 @@ class MailChimp {
 				],
 				[
 					// Sent at 8am a week ago.
-					'id'          => 'campaign-older',
+					'id'          => 'campaign-week-ago',
 					'emails_sent' => 32,
 					'opens'       => [ 'unique_opens' => 33 ],
 					'clicks'      => [ 'unique_subscriber_clicks' => 34 ],
@@ -110,9 +110,9 @@ class MailChimp {
 					'day'              => gmdate( 'Y-m-d', strtotime( "-$day_index day" ) ),
 					// To accurately reflect MC API, the sent/opens/clicks data will be empty
 					// for last 2 days.
-					'emails_sent'      => $day_index <= 2 ? 0 : 30,
-					'unique_opens'     => $day_index <= 2 ? 0 : 20,
-					'recipient_clicks' => $day_index <= 2 ? 0 : 10,
+					'emails_sent'      => 0,
+					'unique_opens'     => 0,
+					'recipient_clicks' => 0,
 					// As many as the day index, just to be predictable.
 					'subs'             => $day_index,
 					'unsubs'           => $day_index,

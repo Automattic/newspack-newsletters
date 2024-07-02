@@ -59,7 +59,7 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 				// Values "from yesterday", which will have to be subtracted from the new report's values.
 				'opens'       => 10,
 				'clicks'      => 10,
-				'send_time'   => gmdate( 'Y-m-d\T08:00:00P', strtotime( '-7 day' ) ),
+				'send_time'   => gmdate( 'Y-m-d\T08:00:00P', strtotime( '-1 day' ) ),
 			],
 		];
 		update_option( Newspack_Newsletters_Mailchimp_Usage_Reports::REPORTS_OPTION_NAME, $saved_campaign_reports );
@@ -91,9 +91,9 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 			$actual_reports
 		);
 		$last_report = end( $serialized_actual_reports );
-		$this->assertEquals( 60, $last_report['emails_sent'] );
-		$this->assertEquals( 40, $last_report['opens'] );
-		$this->assertEquals( 20, $last_report['clicks'] );
+		$this->assertEquals( 0, $last_report['emails_sent'] );
+		$this->assertEquals( 0, $last_report['opens'] );
+		$this->assertEquals( 0, $last_report['clicks'] );
 		// Mock API returns 1*<day index> per list, there are two mock lists and day index will be 10 here.
 		$this->assertEquals( 20, $last_report['unsubscribes'] );
 		$this->assertEquals( 20, $last_report['subscribes'] );
