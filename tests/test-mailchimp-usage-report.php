@@ -91,8 +91,11 @@ class MailchimpUsageReportsTest extends WP_UnitTestCase {
 			$actual_reports
 		);
 		$last_report = end( $serialized_actual_reports );
-		$this->assertEquals( 0, $last_report['emails_sent'] );
-		$this->assertEquals( 0, $last_report['opens'] );
-		$this->assertEquals( 0, $last_report['clicks'] );
+		$this->assertEquals( 60, $last_report['emails_sent'] );
+		$this->assertEquals( 40, $last_report['opens'] );
+		$this->assertEquals( 20, $last_report['clicks'] );
+		// Mock API returns 1*<day index> per list, there are two mock lists and day index will be 10 here.
+		$this->assertEquals( 20, $last_report['unsubscribes'] );
+		$this->assertEquals( 20, $last_report['subscribes'] );
 	}
 }

@@ -108,11 +108,11 @@ class MailChimp {
 			for ( $day_index = 0; $day_index < $args['count']; $day_index++ ) {
 				$activity[] = [
 					'day'              => gmdate( 'Y-m-d', strtotime( "-$day_index day" ) ),
-					// To accurately reflect MC API, the sent/opens/clicks data will be empty.
-					// It will be empty for recent 2-3 days in live API.
-					'emails_sent'      => 0,
-					'unique_opens'     => 0,
-					'recipient_clicks' => 0,
+					// To accurately reflect MC API, the sent/opens/clicks data will be empty
+					// for last 2 days.
+					'emails_sent'      => $day_index <= 2 ? 0 : 30,
+					'unique_opens'     => $day_index <= 2 ? 0 : 20,
+					'recipient_clicks' => $day_index <= 2 ? 0 : 10,
 					// As many as the day index, just to be predictable.
 					'subs'             => $day_index,
 					'unsubs'           => $day_index,
