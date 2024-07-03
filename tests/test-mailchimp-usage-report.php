@@ -11,6 +11,15 @@
  */
 class MailchimpUsageReportsTest extends WP_UnitTestCase {
 	/**
+	 * Test set up.
+	 */
+	public static function set_up_before_class() {
+		// Set an ESP.
+		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		update_option( 'newspack_mailchimp_api_key', 'test-us1' );
+	}
+
+	/**
 	 * Teardown.
 	 */
 	public function tear_down() {

@@ -814,20 +814,21 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			return $this->lists;
 		}
 		try {
-			$cc          = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
-			$this->lists = $cc->get_contact_lists();
+			$cc = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
+			$this->lists = array_map(
+				function ( $list ) {
+					return [
+						'id'               => $list->list_id,
+						'name'             => $list->name,
+						'membership_count' => $list->membership_count,
+					];
+				},
+				$cc->get_contact_lists()
+			);
+			return $this->lists;
 		} catch ( Exception $e ) {
 			return new WP_Error( 'newspack_newsletters_error', $e->getMessage() );
 		}
-		return array_map(
-			function ( $list ) {
-				return [
-					'id'   => $list->list_id,
-					'name' => $list->name,
-				];
-			},
-			$this->lists
-		);
 	}
 
 	/**

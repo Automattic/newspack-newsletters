@@ -1,4 +1,4 @@
-/* globals newspack_newsletters_subscribe_block */
+/* globals newspack_newsletters_subscribe_block, newspack_grecaptcha */
 /**
  * Internal dependencies
  */
@@ -26,37 +26,6 @@ function domReady( callback ) {
 	}
 	// DOMContentLoaded has not fired yet, delay callback until then.
 	document.addEventListener( 'DOMContentLoaded', callback );
-}
-
-function getCaptchaToken() {
-	return new Promise( ( res, rej ) => {
-		const reCaptchaScript = document.getElementById( 'newspack-recaptcha-js' );
-		if ( ! reCaptchaScript ) {
-			return res( '' );
-		}
-
-		const { grecaptcha } = window;
-		if ( ! grecaptcha ) {
-			return res( '' );
-		}
-
-		const captchaSiteKey = reCaptchaScript.getAttribute( 'src' ).split( '?render=' ).pop();
-
-		if ( ! captchaSiteKey ) {
-			return res( '' );
-		}
-
-		if ( ! grecaptcha?.ready ) {
-			rej( newspack_newsletters_subscribe_block.recaptcha_error );
-		}
-
-		grecaptcha.ready( () => {
-			grecaptcha
-				.execute( captchaSiteKey, { action: 'submit' } )
-				.then( token => res( token ) )
-				.catch( e => rej( e ) );
-		} );
-	} );
 }
 
 domReady( function () {
@@ -101,16 +70,21 @@ domReady( function () {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
-			getCaptchaToken()
+			const getCaptchaV3Token = newspack_grecaptcha
+				? newspack_grecaptcha?.getCaptchaV3Token
+				: () => new Promise( res => res( '' ) ); // Empty promise.
+
+			getCaptchaV3Token() // Get a token for reCAPTCHA v3, if needed.
 				.then( captchaToken => {
+					// If there's no token, we don't need to do anything.
 					if ( ! captchaToken ) {
 						return;
 					}
-					let tokenField = form.captcha_token;
+					let tokenField = form[ 'g-recaptcha-response' ];
 					if ( ! tokenField ) {
 						tokenField = document.createElement( 'input' );
 						tokenField.setAttribute( 'type', 'hidden' );
-						tokenField.setAttribute( 'name', 'captcha_token' );
+						tokenField.setAttribute( 'name', 'g-recaptcha-response' );
 						tokenField.setAttribute( 'autocomplete', 'off' );
 						form.appendChild( tokenField );
 					}
@@ -127,8 +101,7 @@ domReady( function () {
 					if ( nonce ) {
 						body.set( 'newspack_newsletters_subscribe', nonce );
 					}
-					emailInput.setAttribute( 'disabled', 'true' );
-					submit.setAttribute( 'disabled', 'true' );
+					form.setLoading();
 
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',
