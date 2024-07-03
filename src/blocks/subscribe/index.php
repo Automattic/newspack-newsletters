@@ -508,6 +508,15 @@ function process_form() {
 		true // Async.
 	);
 
+	/**
+	 * Fires after subscribing a user to a list.
+	 *
+	 * @param string              $email  Email address of the reader.
+	 * @param bool|array|WP_Error $result Contact data if it was added, True if it async subscription strategy was used or error otherwise.
+	 * @param array               $metadata Some metadata about the subscription. Always contains `current_page_url`, `newspack_popup_id` and `newsletters_subscription_method` keys.
+	 */
+	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result, $metadata );
+
 	// The async subscription strategy returns true.
 	if ( true === $result ) {
 		$result = [];
@@ -516,15 +525,6 @@ function process_form() {
 	if ( \is_wp_error( $result ) ) {
 		return send_form_response( $result );
 	}
-
-	/**
-	 * Fires after subscribing a user to a list.
-	 *
-	 * @param string         $email  Email address of the reader.
-	 * @param array|WP_Error $result Contact data if it was added, or error otherwise.
-	 * @param array          $metadata Some metadata about the subscription. Always contains `current_page_url`, `newspack_popup_id` and `newsletters_subscription_method` keys.
-	 */
-	\do_action( 'newspack_newsletters_subscribe_form_processed', $email, $result, $metadata );
 
 	// Generate a new nonce for subsequent form submissions.
 	$result[ FORM_ACTION ] = \wp_create_nonce( FORM_ACTION );
