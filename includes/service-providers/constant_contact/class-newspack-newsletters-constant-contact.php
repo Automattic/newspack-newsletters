@@ -50,7 +50,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		add_action( 'admin_init', [ $this, 'oauth_callback' ] );
 		add_action( 'update_option_newspack_newsletters_constant_contact_api_key', [ $this, 'clear_tokens' ], 10, 2 );
 		add_action( 'update_option_newspack_newsletters_constant_contact_api_secret', [ $this, 'clear_tokens' ], 10, 2 );
-		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
+		add_action( 'updated_post_meta', [ $this, 'save' ], 10, 4 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 
 		parent::__construct( $this );
