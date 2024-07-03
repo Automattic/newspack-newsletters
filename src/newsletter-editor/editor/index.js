@@ -8,6 +8,7 @@ import { get, isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
+import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
@@ -113,6 +114,7 @@ const Editor = compose( [
 		createNotice,
 		didPostSaveRequestSucceed,
 		html,
+		isCleanNewPost,
 		isCustomFieldsMetaBoxActive,
 		isPublic,
 		isReady,
@@ -131,6 +133,7 @@ const Editor = compose( [
 		postId,
 		postTitle,
 		postType,
+		savePost,
 		sent,
 		successNote,
 		updateMetaValue,
@@ -246,6 +249,13 @@ const Editor = compose( [
 			}
 		}, [ html ] );
 
+		// For brand new posts, trigger a save and sync to the ESP.
+		useEffect( () => {
+			if ( isCleanNewPost ) {
+				savePost();
+			}
+		}, [ isCleanNewPost ] );
+
 		useEffect( () => {
 			// Hide post title if the newsletter is a not a public post.
 			const editorTitleEl = document.querySelector( '.editor-post-title' );
@@ -282,6 +292,25 @@ const Editor = compose( [
 					.finally( () => {
 						unlockPostSaving( 'newspack-newsletters-refresh-html' );
 						setIsRefreshingHTML( false );
+
+						// Refresh newsletterData with latest data from the ESP.
+						apiFetch( {
+							path: `/newspack-newsletters/v1/${ window?.newspack_newsletters_data?.service_provider }/${ postId }/retrieve`,
+						} )
+							.then( response => {
+								updateMetaValue( 'newsletterData', response );
+							} )
+							.catch( e => {
+								createNotice(
+									'error',
+									e.message ||
+										__( 'Error retrieving campaign information.', 'newspack-newsletters' ),
+									{
+										id: 'newspack-newsletters-newsletter-send-error',
+										isDismissible: true,
+									}
+								);
+							} );
 					} );
 			}
 		}, [ isSaving, isAutosaving ] );
