@@ -49,6 +49,8 @@ domReady( () => {
 	unregisterBlockStyle( 'core/social-links', 'pill-shape' );
 	/* Unregister "row" group block variation */
 	unregisterBlockVariation( 'core/group', 'group-row' );
+	/* Unregister "grid" group block variation */
+	unregisterBlockVariation( 'core/group', 'group-grid' );
 } );
 
 /* Remove Duotone filters */
