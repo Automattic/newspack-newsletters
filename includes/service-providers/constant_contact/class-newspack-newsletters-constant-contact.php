@@ -626,6 +626,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				);
 
 				$cc->update_campaign_activity( $campaign->activity->campaign_activity_id, $activity );
+				$cc->update_campaign_name( $cc_campaign_id, $this->get_campaign_name( $post ) );
 
 				$campaign_result = $cc->get_campaign( $cc_campaign_id );
 			} else {
