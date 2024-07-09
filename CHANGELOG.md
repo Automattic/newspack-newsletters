@@ -1,3 +1,10 @@
+## [2.19.1](https://github.com/Automattic/newspack-newsletters/compare/v2.19.0...v2.19.1) (2024-07-09)
+
+
+### Bug Fixes
+
+* remove grid block from newsletters ([#1560](https://github.com/Automattic/newspack-newsletters/issues/1560)) ([e6cb287](https://github.com/Automattic/newspack-newsletters/commit/e6cb287e15a6c1b8395e5e91f2d95609cbf0db4b))
+
 # [2.19.0](https://github.com/Automattic/newspack-newsletters/compare/v2.18.0...v2.19.0) (2024-07-01)
 
 
