@@ -34,6 +34,7 @@ const Editor = compose( [
 			getEditedPostContent,
 			isPublishingPost,
 			isSavingPost,
+			isPostAutosavingLocked,
 			isAutosavingPost,
 			isCleanNewPost,
 			isCurrentPostPublished,
@@ -68,6 +69,7 @@ const Editor = compose( [
 			isSaving: isSavingPost(),
 			isPublishing: isPublishingPost(),
 			isAutosaving: isAutosavingPost(),
+			isAutosaveLocked: isPostAutosavingLocked(),
 			colorPalette: colors.reduce(
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
@@ -111,20 +113,19 @@ const Editor = compose( [
 		createNotice,
 		didPostSaveRequestSucceed,
 		html,
-		isAutosavingPost,
 		isCustomFieldsMetaBoxActive,
 		isPublic,
 		isReady,
 		isSaving,
 		isPublished,
 		isPublishing,
-		isAutoSaving,
+		isAutosaveLocked,
+		isAutosaving,
 		lockPostAutosaving,
 		lockPostSaving,
 		newsletterSendErrors,
 		openModal,
 		removeNotice,
-		unlockPostAutosaving,
 		unlockPostSaving,
 		postContent,
 		postId,
@@ -134,6 +135,7 @@ const Editor = compose( [
 		successNote,
 		updateMetaValue,
 	} ) => {
+		const [ isRefreshingHTML, setIsRefreshingHTML ] = useState( false );
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
 
 		// Create alternate publish button
@@ -143,6 +145,13 @@ const Editor = compose( [
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
 		}, [] );
+
+		// Disable autosave requests in the editor.
+		useEffect( () => {
+			if ( ! isAutosaveLocked ) {
+				lockPostAutosaving();
+			}
+		}, [ isAutosaveLocked ] );
 
 		// Set color palette option.
 		useEffect( () => {
@@ -249,18 +258,17 @@ const Editor = compose( [
 
 		// After the post is successfully saved, refresh the email HTML.
 		const wasSaving = usePrevProp( isSaving );
-		const wasAutoSaving = usePrevProp( isAutosavingPost );
 		useEffect( () => {
 			if (
 				wasSaving &&
 				! isPublished &&
-				! wasAutoSaving &&
 				! isSaving &&
-				! isAutoSaving &&
+				! isAutosaving &&
 				! isPublishing &&
+				! isRefreshingHTML &&
 				didPostSaveRequestSucceed()
 			) {
-				lockPostAutosaving();
+				setIsRefreshingHTML( true );
 				lockPostSaving( 'newspack-newsletters-refresh-html' );
 				refreshEmailHtml( postId, postTitle, postContent )
 					.then( refreshedHtml => {
@@ -273,10 +281,10 @@ const Editor = compose( [
 					} )
 					.finally( () => {
 						unlockPostSaving( 'newspack-newsletters-refresh-html' );
-						unlockPostAutosaving();
+						setIsRefreshingHTML( false );
 					} );
 			}
-		}, [ isSaving, isAutoSaving ] );
+		}, [ isSaving, isAutosaving ] );
 
 		return createPortal( <SendButton />, publishEl );
 	}

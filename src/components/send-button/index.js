@@ -22,7 +22,7 @@ import { refreshEmailHtml, validateNewsletter } from '../../newsletter-editor/ut
 import './style.scss';
 
 function PreviewHTML() {
-	const { isSaving, isAutoSaving, postId, postContent, postTitle } = useSelect( select => {
+	const { isSaving, isAutosaving, postId, postContent, postTitle } = useSelect( select => {
 		const {
 			getCurrentPostId,
 			getCurrentPostType,
@@ -33,7 +33,7 @@ function PreviewHTML() {
 		} = select( 'core/editor' );
 		return {
 			isSaving: isSavingPost(),
-			isAutoSaving: isAutosavingPost(),
+			isAutosaving: isAutosavingPost(),
 			postContent: getEditedPostContent(),
 			postId: getCurrentPostId(),
 			postTitle: getEditedPostAttribute( 'title' ),
@@ -41,7 +41,7 @@ function PreviewHTML() {
 		};
 	} );
 	const [ previewHtml, setPreviewHtml ] = useState( '' );
-	const showSpinner = ( isSaving && ! isAutoSaving ) || ! previewHtml;
+	const showSpinner = ( isSaving && ! isAutosaving ) || ! previewHtml;
 
 	useEffect( () => {
 		if ( ! previewHtml ) {
@@ -183,8 +183,9 @@ export default compose( [
 			0 === newsletterValidationErrors.length;
 		let label;
 		if ( isPublished ) {
-			if ( isSaving ) label = __( 'Sending', 'newspack-newsletters' );
-			else {
+			if ( isSaving ) {
+				label = __( 'Sending', 'newspack-newsletters' );
+			} else {
 				label = is_public
 					? __( 'Sent and Published', 'newspack-newsletters' )
 					: __( 'Sent', 'newspack-newsletters' );
@@ -251,7 +252,9 @@ export default compose( [
 						onClick={ async () => {
 							try {
 								await savePost();
-								if ( saveDidSucceed && renderPostUpdateInfo ) setModalVisible( true );
+								if ( saveDidSucceed && renderPostUpdateInfo ) {
+									setModalVisible( true );
+								}
 							} catch ( e ) {
 								setModalVisible( false );
 							}
