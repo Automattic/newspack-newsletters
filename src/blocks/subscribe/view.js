@@ -101,7 +101,8 @@ domReady( function () {
 					if ( nonce ) {
 						body.set( 'newspack_newsletters_subscribe', nonce );
 					}
-					form.setLoading();
+					emailInput.setAttribute( 'disabled', 'true' );
+					submit.setAttribute( 'disabled', 'true' );
 
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',
