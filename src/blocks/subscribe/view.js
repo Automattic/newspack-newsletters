@@ -101,7 +101,6 @@ domReady( function () {
 					if ( nonce ) {
 						body.set( 'newspack_newsletters_subscribe', nonce );
 					}
-					form.setLoading();
 
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',
