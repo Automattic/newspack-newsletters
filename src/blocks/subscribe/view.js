@@ -47,7 +47,7 @@ domReady( function () {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
-			submit.remove( spinner );
+			submit.removeChild( spinner );
 			submit.removeAttribute( 'disabled' );
 			form.classList.remove( 'in-progress' );
 			messageNode.innerHTML = wasSubscribed
@@ -101,7 +101,8 @@ domReady( function () {
 					if ( nonce ) {
 						body.set( 'newspack_newsletters_subscribe', nonce );
 					}
-					form.setLoading();
+					emailInput.setAttribute( 'disabled', 'true' );
+					submit.setAttribute( 'disabled', 'true' );
 
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',
