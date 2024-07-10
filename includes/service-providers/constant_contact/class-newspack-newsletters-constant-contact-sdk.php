@@ -490,17 +490,21 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @return object|false Contact or false if not found.
 	 */
 	public function get_contact( $email_address ) {
-		$res = $this->request(
-			'GET',
-			'contacts',
-			[
-				'query' => [
-					'email'   => $email_address,
-					'status'  => 'all',
-					'include' => 'custom_fields,list_memberships,taggings',
-				],
-			]
-		);
+		try {
+			$res = $this->request(
+				'GET',
+				'contacts',
+				[
+					'query' => [
+						'email'   => $email_address,
+						'status'  => 'all',
+						'include' => 'custom_fields,list_memberships,taggings',
+					],
+				]
+			);
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_newsletter_error_get_contact', $e->getMessage() );
+		}
 		if ( empty( $res->contacts ) ) {
 			return false;
 		}

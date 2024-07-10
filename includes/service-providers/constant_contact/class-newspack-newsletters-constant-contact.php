@@ -7,6 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Subscription_List;
+
 /**
  * Main Newspack Newsletters Class for Constant Contact ESP.
  */
@@ -848,6 +850,14 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	public function add_contact( $contact, $list_id = false ) {
 		$cc   = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 		$data = [];
+		// If the $list_id belongs to a tag, we need to add the contact to the tag's parent list.
+		if ( Subscription_List::is_local_form_id( $list_id ) ) {
+			$list              = Newspack\Newsletters\Subscription_List::from_form_id( $list_id );
+			$provider_settings = $list->get_provider_settings( $this->service );
+			if ( ! empty( $provider_settings['list'] ) ) {
+				$list_id = $provider_settings['list'];
+			}
+		}
 		if ( $list_id ) {
 			$data['list_ids'] = [ $list_id ];
 		}
@@ -878,7 +888,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	public function get_contact_data( $email, $return_details = false ) {
 		$cc      = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 		$contact = $cc->get_contact( $email );
-		if ( ! $contact ) {
+		if ( ! $contact || is_wp_error( $contact ) ) {
 			return new WP_Error(
 				'newspack_newsletters_error',
 				__( 'Contact not found.', 'newspack-newsletters' )
