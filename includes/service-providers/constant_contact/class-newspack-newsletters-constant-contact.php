@@ -850,14 +850,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	public function add_contact( $contact, $list_id = false ) {
 		$cc   = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 		$data = [];
-		// If the $list_id belongs to a tag, we need to add the contact to the tag's parent list.
-		if ( Subscription_List::is_local_form_id( $list_id ) ) {
-			$list              = Newspack\Newsletters\Subscription_List::from_form_id( $list_id );
-			$provider_settings = $list->get_provider_settings( $this->service );
-			if ( ! empty( $provider_settings['list'] ) ) {
-				$list_id = $provider_settings['list'];
-			}
-		}
 		if ( $list_id ) {
 			$data['list_ids'] = [ $list_id ];
 		}
@@ -1068,6 +1060,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 */
 	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
 		$tags = $this->get_contact_tags_ids( $email );
+		if ( is_wp_error( $tags ) ) {
+			$tags = [];
+		}
 		if ( in_array( $tag, $tags, true ) ) {
 			return true;
 		}
