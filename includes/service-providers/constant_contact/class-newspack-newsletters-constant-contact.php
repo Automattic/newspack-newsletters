@@ -932,52 +932,21 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			}
 		}
 
-		// Existing contact lists/tags.
-		$contact_lists    = $contact_data['list_memberships'] ?? [];
-		$contact_tags     = $contact_data['taggings'] ?? [];
-		$new_contact_data = [
-			'list_ids' => $contact_lists,
-			'taggings' => $contact_tags,
-		];
-
 		// Remove lists or tags from contact.
-		foreach ( $lists_to_remove as $list_id ) {
-			$is_tag = ! is_wp_error( $this->get_tag_by_id( $list_id ) );
-			if ( $is_tag ) {
-				$new_contact_data['taggings'] = array_values(
-					array_filter(
-						$new_contact_data['taggings'],
-						function ( $tag_id ) use ( $list_id ) {
-							return $tag_id !== $list_id;
-						}
-					)
-				);
-			} else {
-				$result = $cc->remove_contacts_from_lists( [ $contact_data['contact_id'] ], [ $list_id ] );
-				if ( is_wp_error( $result ) ) {
-					return $result;
-				}
+		if ( $lists_to_remove ) {
+			$result = $cc->remove_contacts_from_lists( [ $contact_data['contact_id'] ], $lists_to_remove );
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
 		}
 
 		// Add lists or tags to contact.
-		foreach ( $lists_to_add as $list_id ) {
-			$is_tag    = ! is_wp_error( $this->get_tag_by_id( $list_id ) );
-			$item_type = $is_tag ? 'taggings' : 'list_ids';
-
-			$new_contact_data[ $item_type ] = array_values(
-				array_unique(
-					array_merge(
-						$new_contact_data[ $item_type ],
-						[ $list_id ]
-					)
-				)
-			);
-		}
-
-		$result = $cc->upsert_contact( $email, $new_contact_data );
-		if ( is_wp_error( $result ) ) {
-			return $result;
+		if ( $lists_to_add ) {
+			$new_contact_data['list_ids'] = $lists_to_add;
+			$result = $cc->upsert_contact( $email, $new_contact_data );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 		}
 
 		return true;
