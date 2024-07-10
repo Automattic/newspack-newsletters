@@ -933,9 +933,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		}
 
 		// Existing contact lists/tags.
-		$new_contact_data = [];
 		$contact_lists    = $contact_data['list_memberships'] ?? [];
 		$contact_tags     = $contact_data['taggings'] ?? [];
+		$new_contact_data = [
+			'list_ids' => $contact_lists,
+			'taggings' => $contact_tags,
+		];
 
 		// Remove lists or tags from contact.
 		foreach ( $lists_to_remove as $list_id ) {
@@ -943,7 +946,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			if ( $is_tag ) {
 				$new_contact_data['taggings'] = array_values(
 					array_filter(
-						$contact_tags,
+						$new_contact_data['taggings'],
 						function ( $tag_id ) use ( $list_id ) {
 							return $tag_id !== $list_id;
 						}
@@ -965,7 +968,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$new_contact_data[ $item_type ] = array_values(
 				array_unique(
 					array_merge(
-						$is_tag ? $contact_tags : $contact_lists,
+						$new_contact_data[ $item_type ],
 						[ $list_id ]
 					)
 				)
