@@ -7,8 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-use Newspack\Newsletters\Subscription_List;
-
 /**
  * Main Newspack Newsletters Class for Constant Contact ESP.
  */
