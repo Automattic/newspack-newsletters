@@ -521,6 +521,9 @@ Details of the error message: "%3$s"
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
+			if ( is_array( $result ) && is_wp_error( $result[0] ) ) {
+				return $result[0];
+			}
 			return true;
 		}
 		if ( static::$support_local_lists ) {
