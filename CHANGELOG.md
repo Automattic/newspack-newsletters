@@ -1,3 +1,10 @@
+## [2.19.2](https://github.com/Automattic/newspack-newsletters/compare/v2.19.1...v2.19.2) (2024-07-10)
+
+
+### Bug Fixes
+
+* update header link selector for WP 6.6 ([#1561](https://github.com/Automattic/newspack-newsletters/issues/1561)) ([2282de7](https://github.com/Automattic/newspack-newsletters/commit/2282de7c9866d7df3b69fbb1f53510229f2eba0a))
+
 ## [2.19.1](https://github.com/Automattic/newspack-newsletters/compare/v2.19.0...v2.19.1) (2024-07-09)
 
 
