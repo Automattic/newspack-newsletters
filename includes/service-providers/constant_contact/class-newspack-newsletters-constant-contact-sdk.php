@@ -597,6 +597,33 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	}
 
 	/**
+	 * Remove one or more contacts from one or more lists.
+	 *
+	 * @param string[] $contact_ids Contact IDs.
+	 * @param string[] $list_ids List IDs.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function remove_contacts_from_lists( $contact_ids, $list_ids ) {
+		$body = [
+			'source'   => [
+				'contact_ids' => $contact_ids,
+			],
+			'list_ids' => $list_ids,
+		];
+		try {
+			$res = $this->request(
+				'POST',
+				'/activities/remove_list_memberships',
+				[ 'body' => wp_json_encode( $body ) ]
+			);
+			return $res;
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_newsletter_error_removing_contact_from_lists', $e->getMessage() );
+		}
+	}
+
+	/**
 	 * Create or update a contact
 	 *
 	 * @param string $email_address Email address.
@@ -668,11 +695,17 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				$body['taggings'] = $data['taggings'];
 			}
 		}
-		$res = $this->request(
-			$contact ? 'PUT' : 'POST',
-			$contact ? 'contacts/' . $contact->contact_id : 'contacts',
-			[ 'body' => wp_json_encode( $body ) ]
-		);
+
+		try {
+			$res = $this->request(
+				$contact ? 'PUT' : 'POST',
+				$contact ? 'contacts/' . $contact->contact_id : 'contacts',
+				[ 'body' => wp_json_encode( $body ) ]
+			);
+		} catch ( Exception $e ) {
+			return new WP_Error( 'newspack_newsletter_error_upserting_contact', $e->getMessage() );
+		}
+
 		return $this->get_contact( $email_address );
 	}
 

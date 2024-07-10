@@ -888,6 +888,99 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Get the lists a contact is subscribed to.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return string[] Contact subscribed lists IDs.
+	 */
+	public function get_contact_lists( $email ) {
+		$contact_lists = [];
+		$contact_data = self::get_contact_data( $email );
+		if ( is_wp_error( $contact_data ) ) {
+			return $contact_lists;
+		}
+		if ( ! empty( $contact_data['list_memberships'] ) ) {
+			$contact_lists = array_merge( $contact_lists, $contact_data['list_memberships'] );
+		}
+		if ( ! empty( $contact_data['taggings'] ) ) {
+			$contact_lists = array_merge( $contact_lists, $contact_data['taggings'] );
+		}
+
+		return $contact_lists;
+	}
+
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$cc           = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
+		$contact_data = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact_data ) ) {
+			/** Create contact */
+			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
+			// so the appropriate hooks are called.
+			$contact_data = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ] );
+			if ( is_wp_error( $contact_data ) ) {
+				return $contact_data;
+			}
+		}
+
+		// Existing contact lists/tags.
+		$new_contact_data = [];
+		$contact_lists    = $contact_data['list_memberships'] ?? [];
+		$contact_tags     = $contact_data['taggings'] ?? [];
+
+		// Remove lists or tags from contact.
+		foreach ( $lists_to_remove as $list_id ) {
+			$is_tag = ! is_wp_error( $this->get_tag_by_id( $list_id ) );
+			if ( $is_tag ) {
+				$new_contact_data['taggings'] = array_values(
+					array_filter(
+						$contact_tags,
+						function ( $tag_id ) use ( $list_id ) {
+							return $tag_id !== $list_id;
+						}
+					)
+				);
+			} else {
+				$result = $cc->remove_contacts_from_lists( [ $contact_data['contact_id'] ], [ $list_id ] );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+			}
+		}
+
+		// Add lists or tags to contact.
+		foreach ( $lists_to_add as $list_id ) {
+			$is_tag    = ! is_wp_error( $this->get_tag_by_id( $list_id ) );
+			$item_type = $is_tag ? 'taggings' : 'list_ids';
+
+			$new_contact_data[ $item_type ] = array_values(
+				array_unique(
+					array_merge(
+						$is_tag ? $contact_tags : $contact_lists,
+						[ $list_id ]
+					)
+				)
+			);
+		}
+
+		$result = $cc->upsert_contact( $email, $new_contact_data );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get the provider specific labels
 	 *
 	 * This allows us to make reference to provider specific features in the way the user is used to see them in the provider's UI
