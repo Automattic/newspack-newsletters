@@ -680,7 +680,7 @@ class Newspack_Newsletters_Subscription {
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating );
 
 		// Remove any existing subscription error message.
-		if ( ! is_wp_error( $result ) ) {
+		if ( ! $errors->has_errors() ) {
 			$user = get_user_by( 'email', $contact['email'] );
 			if ( $user ) {
 				delete_user_meta( $user->ID, 'newspack_newsletters_subscription_error' );
