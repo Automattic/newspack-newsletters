@@ -233,8 +233,6 @@ class Newspack_Newsletters_Contacts {
 			}
 		}
 
-		$result = $errors->has_errors() ? $errors : $result;
-
 		/**
 		 * Fires after a contact is added.
 		 *
@@ -251,6 +249,10 @@ class Newspack_Newsletters_Contacts {
 		 * @param bool                $is_updating Whether the contact is being updated. If false, the contact is being created.
 		 */
 		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating );
+
+		if ( $errors->has_errors() ) {
+			return $errors;
+		}
 
 		return $result;
 	}
