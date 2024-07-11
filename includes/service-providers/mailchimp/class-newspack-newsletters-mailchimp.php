@@ -1208,6 +1208,129 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Get merge field type.
+	 *
+	 * @param mixed $value Value to check.
+	 *
+	 * @return string Merge field type.
+	 */
+	private function get_merge_field_type( $value ) {
+		if ( is_numeric( $value ) ) {
+			return 'number';
+		}
+		if ( is_bool( $value ) ) {
+			return 'boolean';
+		}
+		return 'text';
+	}
+
+	/**
+	 * Given a contact metadata array, build the `merge_fields` array to be sent to Mailchimp
+	 * by sarching for existing merge fields and creating new ones as needed.
+	 *
+	 * @param string $audience_id Audience ID.
+	 * @param array  $data        The contact metadata.
+	 *
+	 * @return array Merge fields.
+	 */
+	private function prepare_merge_fields( $audience_id, $data ) {
+		$merge_fields = [];
+
+		// Strip arrays.
+		$data = array_filter(
+			$data,
+			function( $value ) {
+				return ! is_array( $value );
+			}
+		);
+
+		// Get and match existing merge fields.
+		try {
+			$existing_fields = Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $audience_id );
+		} catch ( \Exception $e ) {
+			Newspack_Newsletters_Logger::log(
+				sprintf(
+					// Translators: %1$s is the error message.
+					__( 'Error getting merge fields: %1$s', 'newspack-newsletters' ),
+					$existing_fields->get_error_message()
+				)
+			);
+			return [];
+		}
+		if ( empty( $existing_fields ) ) {
+			$existing_fields = [];
+		}
+
+		usort(
+			$existing_fields,
+			function( $a, $b ) {
+				return $a['merge_id'] - $b['merge_id'];
+			}
+		);
+
+		$list_merge_fields = [];
+
+		// Handle duplicate fields.
+		foreach ( $existing_fields as $field ) {
+			if ( ! isset( $list_merge_fields[ $field['name'] ] ) ) {
+				$list_merge_fields[ $field['name'] ] = $field['tag'];
+			} else {
+				Newspack_Newsletters_Logger::log(
+					sprintf(
+						// Translators: %1$s is the merge field name, %2$s is the field's unique tag.
+						__( 'Warning: Duplicate merge field %1$s found with tag %2$s.', 'newspack-newsletters' ),
+						$field['name'],
+						$field['tag']
+					)
+				);
+			}
+		}
+
+		foreach ( $data as $field_name => $field_value ) {
+			// If field already exists, add it to the payload.
+			if ( isset( $list_merge_fields[ $field_name ] ) ) {
+				$merge_fields[ $list_merge_fields[ $field_name ] ] = $data[ $field_name ];
+				unset( $data[ $field_name ] );
+			}
+		}
+
+		// Create remaining fields.
+		$remaining_fields = array_keys( $data );
+		$mc             = new Mailchimp( $this->api_key() );
+		foreach ( $remaining_fields as $field_name ) {
+			$created_field = $mc->post(
+				"lists/$audience_id/merge-fields",
+				[
+					'name' => $field_name,
+					'type' => $this->get_merge_field_type( $data[ $field_name ] ),
+				]
+			);
+			// Skip field if it failed to create.
+			if ( empty( $created_field['merge_id'] ) ) {
+				Newspack_Newsletters_Logger::log(
+					sprintf(
+					// Translators: %1$s is the merge field key, %2$s is the error message.
+						__( 'Failed to create merge field %1$s. Error response: %2$s', 'newspack-newsletters' ),
+						$field_name,
+						$created_field['detail'] ?? 'Unknown error'
+					)
+				);
+				continue;
+			}
+			Newspack_Newsletters_Logger::log(
+				sprintf(
+					// Translators: %1$s is the merge field key, %2$s is the error message.
+					__( 'Created merge field %1$s.', 'newspack-newsletters' ),
+					$field_name
+				)
+			);
+			$merge_fields[ $created_field['tag'] ] = $data[ $field_name ];
+		}
+
+		return $merge_fields;
+	}
+
+	/**
 	 * Add contact to a list.
 	 *
 	 * @param array  $contact      {
@@ -1245,69 +1368,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$update_payload = [ 'email_address' => $email_address ];
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-				$update_payload['merge_fields'] = [];
-
-				$merge_fields_res = $mc->get( "lists/$list_id/merge-fields", [ 'count' => 1000 ] );
-				if ( ! isset( $merge_fields_res['merge_fields'] ) ) {
-					return new \WP_Error(
-						'newspack_newsletters_mailchimp_add_contact_failed',
-						sprintf(
-							// Translators: %1$s is the error message.
-							__( 'Error getting merge fields: %1$s', 'newspack-newsletters' ),
-							$merge_fields_res['detail'] ?? __( 'Unable to fetch merge fields.' )
-						)
-					);
-				}
-				$existing_merge_fields = $merge_fields_res['merge_fields'];
-				usort(
-					$existing_merge_fields,
-					function ( $a, $b ) {
-						return $a['merge_id'] - $b['merge_id'];
-					}
-				);
-
-				$list_merge_fields = [];
-
-				// Handle duplicate fields.
-				foreach ( $existing_merge_fields as $key => $field ) {
-					if ( ! isset( $list_merge_fields[ $field['name'] ] ) ) {
-						$list_merge_fields[ $field['name'] ] = $field['tag'];
-					} else {
-						Newspack_Newsletters_Logger::log(
-							sprintf(
-								// Translators: %1$s is the merge field name, %2$s is the unique tag.
-								__( 'Warning: Duplicate merge field %1$s found with tag %2$s.', 'newspack-newsletters' ),
-								$field['name'],
-								$field['tag']
-							)
-						);
-					}
-				}
-
-				foreach ( $contact['metadata'] as $key => $value ) {
-					if ( isset( $list_merge_fields[ $key ] ) ) {
-						$update_payload['merge_fields'][ $list_merge_fields[ $key ] ] = (string) $value;
-					} else {
-						$created_merge_field = $mc->post(
-							"lists/$list_id/merge-fields",
-							[
-								'name' => $key,
-								'type' => 'text',
-							]
-						);
-						if ( isset( $created_merge_field['status'] ) && '4' === substr( $created_merge_field['status'], 0, 1 ) ) {
-							Newspack_Newsletters_Logger::log(
-								sprintf(
-									// Translators: %1$s is the merge field key, %2$s is the error message.
-									__( 'Failed to create merge field %1$s. Reason: %2$s', 'newspack-newsletters' ),
-									$key,
-									$created_merge_field['detail'] ?? $created_merge_field['title']
-								)
-							);
-							continue;
-						}
-						$update_payload['merge_fields'][ $created_merge_field['tag'] ] = (string) $value;
-					}
+				$merge_fields = $this->prepare_merge_fields( $list_id, $contact['metadata'] );
+				if ( ! empty( $merge_fields ) ) {
+					$update_payload['merge_fields'] = $merge_fields;
 				}
 			}
 
