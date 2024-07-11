@@ -548,7 +548,7 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function delete_user_subscription( $user_id ) {
 		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::delete' );
-		return Newspack_Newsletters_Contacts::delete( $contact, $lists, $async );
+		return Newspack_Newsletters_Contacts::delete( $user_id );
 	}
 
 	/**
