@@ -660,8 +660,6 @@ class Newspack_Newsletters_Subscription {
 			}
 		}
 
-		$result = $errors->has_errors() ? $errors : $result;
-
 		/**
 		 * Fires after a contact is added.
 		 *
@@ -685,6 +683,8 @@ class Newspack_Newsletters_Subscription {
 			if ( $user ) {
 				delete_user_meta( $user->ID, 'newspack_newsletters_subscription_error' );
 			}
+		} else {
+			return $errors;
 		}
 
 		return $result;
