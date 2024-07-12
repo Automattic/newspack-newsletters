@@ -864,7 +864,19 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$data['custom_fields'][ strval( $key ) ] = strval( $value );
 			}
 		}
-		return get_object_vars( $cc->upsert_contact( $contact['email'], $data ) );
+
+		$result = $cc->upsert_contact( $contact['email'], $data );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( ! $result ) {
+			return new WP_Error(
+				'newspack_newsletters_error',
+				__( 'Failed to add contact.', 'newspack-newsletters' )
+			);
+		}
+
+		return get_object_vars( $result );
 	}
 
 	/**

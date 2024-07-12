@@ -640,7 +640,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 *   @type string[] $custom_fields Custom field values keyed by their label.
 	 * }
 	 *
-	 * @return array Created contact data.
+	 * @return WP_Error|object|false Created contact data or false.
 	 */
 	public function upsert_contact( $email_address, $data = [] ) {
 		$contact = $this->get_contact( $email_address );
