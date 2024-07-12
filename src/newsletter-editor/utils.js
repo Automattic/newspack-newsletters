@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { useEffect, useRef } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -37,20 +36,6 @@ export const validateNewsletter = newsletterData => {
  * @return {boolean} True if it contains a valid email string.
  */
 export const hasValidEmail = string => /\S+@\S+/.test( string );
-
-/**
- * Custom hook for fetching the prior value of a prop.
- *
- * @param {*} value The prop to track.
- * @return {*} The prior value of the prop.
- */
-export const usePrevProp = value => {
-	const ref = useRef();
-	useEffect( () => {
-		ref.current = value;
-	}, [ value ] );
-	return ref.current;
-};
 
 /**
  * Refresh the email-compliant HTML for a post.
