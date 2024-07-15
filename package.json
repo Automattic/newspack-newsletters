@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "2.19.2",
+	"version": "2.20.0",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -46,7 +46,7 @@
 		"csslint": "^1.0.5",
 		"mjml-browser": "^4.15.3",
 		"newspack-components": "^2.2.1",
-		"qs": "^6.12.2",
+		"qs": "^6.12.3",
 		"regenerator-runtime": "^0.14.1"
 	},
 	"devDependencies": {
