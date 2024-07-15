@@ -96,7 +96,7 @@ final class Newspack_Newsletters_Editor {
 	 *
 	 * @param int $post_id Optional post ID to check.
 	 */
-	private static function is_editing_email( $post_id = null ) {
+	public static function is_editing_email( $post_id = null ) {
 		$post_id = empty( $post_id ) ? get_the_ID() : $post_id;
 		return in_array( get_post_type( $post_id ), self::get_email_editor_cpts() );
 	}
