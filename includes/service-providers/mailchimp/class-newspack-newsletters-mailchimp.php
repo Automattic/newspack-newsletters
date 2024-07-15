@@ -868,7 +868,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return;
 		}
 		$post = get_post( $post_id );
-		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+		if ( ! Newspack_Newsletters_Editor::is_editing_email( $post_id ) ) {
 			return;
 		}
 		if ( 'trash' === $post->post_status ) {
