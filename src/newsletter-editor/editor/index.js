@@ -20,22 +20,14 @@ import { registerPlugin } from '@wordpress/plugins';
 import withApiHandler from '../../components/with-api-handler';
 import SendButton from '../../components/send-button';
 import './style.scss';
-import { refreshEmailHtml, usePrevProp, validateNewsletter } from '../utils';
+import { validateNewsletter } from '../utils';
 
 const Editor = compose( [
 	withApiHandler(),
 	withSelect( select => {
 		const {
-			didPostSaveRequestSucceed,
-			getCurrentPostId,
 			getCurrentPostAttribute,
-			getCurrentPostType,
 			getEditedPostAttribute,
-			getEditedPostContent,
-			isPublishingPost,
-			isSavingPost,
-			isPostAutosavingLocked,
-			isAutosavingPost,
 			isCleanNewPost,
 			isCurrentPostPublished,
 		} = select( 'core/editor' );
@@ -57,19 +49,10 @@ const Editor = compose( [
 
 		return {
 			isCleanNewPost: isCleanNewPost(),
-			postContent: getEditedPostContent(),
-			postId: getCurrentPostId(),
-			postTitle: getEditedPostAttribute( 'title' ),
-			postType: getCurrentPostType(),
 			isPublished: isCurrentPostPublished(),
 			isReady: newsletterValidationErrors.length === 0,
 			activeSidebarName: getActiveGeneralSidebarName(),
-			didPostSaveRequestSucceed,
 			html: meta[ newspack_email_editor_data.email_html_meta ],
-			isSaving: isSavingPost(),
-			isPublishing: isPublishingPost(),
-			isAutosaving: isAutosavingPost(),
-			isAutosaveLocked: isPostAutosavingLocked(),
 			colorPalette: colors.reduce(
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
@@ -111,31 +94,19 @@ const Editor = compose( [
 		apiFetchWithErrorHandling,
 		colorPalette,
 		createNotice,
-		didPostSaveRequestSucceed,
 		html,
 		isCustomFieldsMetaBoxActive,
 		isPublic,
 		isReady,
-		isSaving,
-		isPublished,
-		isPublishing,
-		isAutosaveLocked,
-		isAutosaving,
 		lockPostAutosaving,
 		lockPostSaving,
 		newsletterSendErrors,
 		openModal,
 		removeNotice,
 		unlockPostSaving,
-		postContent,
-		postId,
-		postTitle,
-		postType,
 		sent,
 		successNote,
-		updateMetaValue,
 	} ) => {
-		const [ isRefreshingHTML, setIsRefreshingHTML ] = useState( false );
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
 
 		// Create alternate publish button
@@ -145,13 +116,6 @@ const Editor = compose( [
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
 		}, [] );
-
-		// Disable autosave requests in the editor.
-		useEffect( () => {
-			if ( ! isAutosaveLocked ) {
-				lockPostAutosaving();
-			}
-		}, [ isAutosaveLocked ] );
 
 		// Set color palette option.
 		useEffect( () => {
@@ -255,36 +219,6 @@ const Editor = compose( [
 				);
 			}
 		}, [ isPublic ] );
-
-		// After the post is successfully saved, refresh the email HTML.
-		const wasSaving = usePrevProp( isSaving );
-		useEffect( () => {
-			if (
-				wasSaving &&
-				! isPublished &&
-				! isSaving &&
-				! isAutosaving &&
-				! isPublishing &&
-				! isRefreshingHTML &&
-				didPostSaveRequestSucceed()
-			) {
-				setIsRefreshingHTML( true );
-				lockPostSaving( 'newspack-newsletters-refresh-html' );
-				refreshEmailHtml( postId, postTitle, postContent )
-					.then( refreshedHtml => {
-						updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml );
-						apiFetchWithErrorHandling( {
-							data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml } },
-							method: 'POST',
-							path: `/wp/v2/${ postType }/${ postId }`,
-						} );
-					} )
-					.finally( () => {
-						unlockPostSaving( 'newspack-newsletters-refresh-html' );
-						setIsRefreshingHTML( false );
-					} );
-			}
-		}, [ isSaving, isAutosaving ] );
 
 		return createPortal( <SendButton />, publishEl );
 	}

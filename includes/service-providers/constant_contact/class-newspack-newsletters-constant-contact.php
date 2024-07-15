@@ -699,10 +699,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		if ( Newspack_Newsletters::EMAIL_HTML_META !== $meta_key ) {
 			return;
 		}
-		$post = get_post( $post_id );
-		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+		if ( ! Newspack_Newsletters_Editor::is_editing_email( $post_id ) ) {
 			return;
 		}
+		$post = get_post( $post_id );
 		if ( 'trash' === $post->post_status ) {
 			return;
 		}
