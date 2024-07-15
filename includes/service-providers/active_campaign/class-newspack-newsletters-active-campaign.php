@@ -709,6 +709,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			);
 		}
 
+		// Clear prior error messages.
+		$transient_name = $this->get_transient_name( $post->ID );
+		delete_transient( $transient_name );
+
 		$from_name  = get_post_meta( $post->ID, 'ac_from_name', true );
 		$from_email = get_post_meta( $post->ID, 'ac_from_email', true );
 		$list_id    = get_post_meta( $post->ID, 'ac_list_id', true );
@@ -782,7 +786,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		// Retrieve and store campaign data.
 		$data = $this->retrieve( $post->ID, true );
-		if ( ! is_wp_error( $data ) ) {
+		if ( is_wp_error( $data ) ) {
+			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $data->get_error_message(), 45 );
+			return $data;
+		} else {
 			$data = array_merge( $data, $sync_data );
 			update_post_meta( $post->ID, 'newsletterData', $data );
 		}

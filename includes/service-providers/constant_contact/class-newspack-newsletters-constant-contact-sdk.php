@@ -103,7 +103,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				throw new Exception( $response->get_error_message() );
 			}
 			$body = json_decode( $response['body'] );
-			if ( ! in_array( wp_remote_retrieve_response_code( $response ), [ 200, 201 ] ) ) {
+			if ( ! in_array( wp_remote_retrieve_response_code( $response ), [ 200, 201, 202, 204 ] ) ) { // phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar Constant Contact API response codes. See: https://developer.constantcontact.com/api_guide/glossary_responses.html
 				if ( is_array( $body ) && isset( $body[0], $body[0]->error_message ) ) {
 					throw new Exception( $body[0]->error_message );
 				} elseif ( is_object( $body ) && isset( $body->error_message ) ) {
@@ -405,12 +405,11 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	 * @return object Updated campaign data.
 	 */
 	public function update_campaign_name( $campaign_id, $name ) {
-		$campaign = $this->request(
+		return $this->request(
 			'PATCH',
 			'emails/' . $this->parse_campaign_id( $campaign_id ),
 			[ 'body' => wp_json_encode( [ 'name' => $name ] ) ]
 		);
-		return $this->get_campaign( $campaign->campaign_id );
 	}
 
 	/**
