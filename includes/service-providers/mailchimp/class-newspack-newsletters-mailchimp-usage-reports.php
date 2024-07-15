@@ -25,13 +25,33 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	}
 
 	/**
+	 * Retrieves an instance of the Mailchimp api
+	 *
+	 * @return DrewM\MailChimp\MailChimp|WP_Error
+	 */
+	private static function get_mc_api() {
+		try {
+			return new Mailchimp( self::get_mc_instance()->api_key() );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
 	 * Get list activity reports for a specific timeframe between n days in past and yesterday.
 	 *
 	 * @param string $days_in_past_count How many days in the past to look for.
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[]|WP_Error Usage reports.
 	 */
 	private static function get_list_activity_reports( $days_in_past_count = 1 ) {
-		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
+		$mc_api = self::get_mc_api();
+
+		if ( is_wp_error( $mc_api ) ) {
+			return $mc_api;
+		}
 
 		$reports = [];
 		$lists  = $mc_api->get( 'lists', [ 'count' => 1000 ] );
@@ -76,14 +96,19 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
 	 */
 	public static function get_usage_reports( $days_in_past ) {
+
+		// Check and bail early if MC is misconfigured.
+		$mc_api = self::get_mc_api();
+		if ( is_wp_error( $mc_api ) ) {
+			return $mc_api;
+		}
+
 		// Start with lists activity reports. These are good for historical data and also will provide
 		// subscribes and unsubscribes data. However, in order to get recent
 		// sent/opens/clicks data, the campaign reports have to be used.
 		// It appears that the sent/opens/clicks data in the lists activity are only added after a
 		// delay of 2-3 days.
 		$reports = self::get_list_activity_reports( $days_in_past );
-
-		$mc_api = new Mailchimp( self::get_mc_instance()->api_key() );
 
 		$campaign_reports = [];
 		$campaign_reports_response = $mc_api->get(
