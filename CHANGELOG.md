@@ -1,3 +1,10 @@
+## [2.20.1](https://github.com/Automattic/newspack-newsletters/compare/v2.20.0...v2.20.1) (2024-07-15)
+
+
+### Bug Fixes
+
+* refresh MJML on save for all newsletter editor CPTs ([#1570](https://github.com/Automattic/newspack-newsletters/issues/1570)) ([03a9365](https://github.com/Automattic/newspack-newsletters/commit/03a9365d995c8a01cda901b33e56be1e75ee0ed7))
+
 # [2.20.0](https://github.com/Automattic/newspack-newsletters/compare/v2.19.2...v2.20.0) (2024-07-15)
 
 
