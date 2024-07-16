@@ -150,10 +150,11 @@ class Newspack_Newsletters_Contacts {
 	 *
 	 * @param string   $email Contact email address.
 	 * @param string[] $lists Array of list IDs to subscribe the contact to.
+	 * @param string   $context Context of the update for logging purposes.
 	 *
 	 * @return bool|WP_Error Whether the contact was updated or error.
 	 */
-	public static function update_lists( $email, $lists = [] ) {
+	public static function update_lists( $email, $lists = [], $context = 'Unknown' ) {
 		if ( ! Newspack_Newsletters_Subscription::has_subscription_management() ) {
 			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
@@ -175,7 +176,7 @@ class Newspack_Newsletters_Contacts {
 			return false;
 		}
 
-		$result = $provider->update_contact_lists_handling_local( $email, $lists_to_add, $lists_to_remove );
+		$result = $provider->update_contact_lists_handling_local( $email, $lists_to_add, $lists_to_remove, $context );
 
 		/**
 		 * Fires after a contact's lists are updated.
@@ -187,6 +188,23 @@ class Newspack_Newsletters_Contacts {
 		 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
 		 */
 		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result );
+
+		do_action(
+			'newspack_log',
+			'newspack_esp_sync_update_lists',
+			$context,
+			[
+				'type'       => is_wp_error( $result ) ? 'error' : 'debug',
+				'data'       => [
+					'provider'        => $provider->service,
+					'lists_to_add'    => $lists_to_add,
+					'lists_to_remove' => $lists_to_remove,
+					'result'          => $result,
+				],
+				'user_email' => $email,
+				'file'       => 'newspack_esp_sync',
+			]
+		);
 
 		return $result;
 	}

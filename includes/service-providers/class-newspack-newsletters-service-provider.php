@@ -509,15 +509,16 @@ Details of the error message: "%3$s"
 	 * @param string   $email           Contact email address.
 	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
 	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 * @param string   $context         The context in which the update is being performed. For logging purposes.
 	 *
 	 * @return true|WP_Error True if the contact was updated or error.
 	 */
-	public function update_contact_lists_handling_local( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+	public function update_contact_lists_handling_local( $email, $lists_to_add = [], $lists_to_remove = [], $context = 'Unknown' ) {
 		$contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $contact ) ) {
 			// Create contact.
-			// Use Newspack_Newsletters_Subscription::add_contact to trigger hooks and call add_contact_handling_local_list if needed.
-			$result = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ], $lists_to_add );
+			// Use Newspack_Newsletters_Contacts::upsert to trigger hooks and call add_contact_handling_local_list if needed.
+			$result = Newspack_Newsletters_Contacts::upsert( [ 'email' => $email ], $lists_to_add, $context );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}

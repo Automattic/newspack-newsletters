@@ -629,7 +629,7 @@ class Newspack_Newsletters_Subscription {
 	 */
 	private static function update_contact_lists( $email, $lists = [] ) {
 		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::update_lists' );
-		return Newspack_Newsletters_Contacts::update_lists( $email, $lists );
+		return Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'deprecated' );
 	}
 
 	/**
@@ -1027,7 +1027,7 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			$email  = get_userdata( get_current_user_id() )->user_email;
 			$lists  = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
-			$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists );
+			$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'User updated their subscriptions on My Account page' );
 			if ( is_wp_error( $result ) ) {
 				wc_add_notice( $result->get_error_message(), 'error' );
 			} elseif ( false === $result ) {
