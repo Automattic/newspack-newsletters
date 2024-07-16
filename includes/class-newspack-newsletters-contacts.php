@@ -153,7 +153,7 @@ class Newspack_Newsletters_Contacts {
 	 *
 	 * @return bool|WP_Error Whether the contact was updated or error.
 	 */
-	private static function update_lists( $email, $lists = [] ) {
+	public static function update_lists( $email, $lists = [] ) {
 		if ( ! Newspack_Newsletters_Subscription::has_subscription_management() ) {
 			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
