@@ -1,3 +1,40 @@
+## [2.20.1](https://github.com/Automattic/newspack-newsletters/compare/v2.20.0...v2.20.1) (2024-07-15)
+
+
+### Bug Fixes
+
+* refresh MJML on save for all newsletter editor CPTs ([#1570](https://github.com/Automattic/newspack-newsletters/issues/1570)) ([03a9365](https://github.com/Automattic/newspack-newsletters/commit/03a9365d995c8a01cda901b33e56be1e75ee0ed7))
+
+# [2.20.0](https://github.com/Automattic/newspack-newsletters/compare/v2.19.2...v2.20.0) (2024-07-15)
+
+
+### Bug Fixes
+
+* avoid fatal errors on usage reports ([#1548](https://github.com/Automattic/newspack-newsletters/issues/1548)) ([8afa6fb](https://github.com/Automattic/newspack-newsletters/commit/8afa6fb3f65cdb41b5fb1d1257581c7a15b54e3b))
+* ensure form_processed hook is always and correctly fired ([#1540](https://github.com/Automattic/newspack-newsletters/issues/1540)) ([e3f4268](https://github.com/Automattic/newspack-newsletters/commit/e3f4268e6fe28c1c645b428bfdb495d5e41dfb5a))
+* nonexistent method, and don't remove the submit button (just the spinner) ([#1565](https://github.com/Automattic/newspack-newsletters/issues/1565)) ([406c2f4](https://github.com/Automattic/newspack-newsletters/commit/406c2f49bc8b3366687460ff0eb1568566a7d2eb))
+* specifically set the subscription list colour ([#1535](https://github.com/Automattic/newspack-newsletters/issues/1535)) ([ae067c8](https://github.com/Automattic/newspack-newsletters/commit/ae067c8a2b400992225449f70c99095c9fbf88f9))
+
+
+### Features
+
+* add support for reCAPTCHA v2 ([#1514](https://github.com/Automattic/newspack-newsletters/issues/1514)) ([2f11748](https://github.com/Automattic/newspack-newsletters/commit/2f11748ac3469dce9eed62a1e4849fbca0eeb823))
+* **subscribe-block:** update error style; display state-bar only when selected ([#1545](https://github.com/Automattic/newspack-newsletters/issues/1545)) ([07b36bd](https://github.com/Automattic/newspack-newsletters/commit/07b36bd6c46e97e34975cfc693506c53d495968e))
+
+## [2.19.2](https://github.com/Automattic/newspack-newsletters/compare/v2.19.1...v2.19.2) (2024-07-10)
+
+
+### Bug Fixes
+
+* update header link selector for WP 6.6 ([#1561](https://github.com/Automattic/newspack-newsletters/issues/1561)) ([2282de7](https://github.com/Automattic/newspack-newsletters/commit/2282de7c9866d7df3b69fbb1f53510229f2eba0a))
+
+## [2.19.1](https://github.com/Automattic/newspack-newsletters/compare/v2.19.0...v2.19.1) (2024-07-09)
+
+
+### Bug Fixes
+
+* remove grid block from newsletters ([#1560](https://github.com/Automattic/newspack-newsletters/issues/1560)) ([e6cb287](https://github.com/Automattic/newspack-newsletters/commit/e6cb287e15a6c1b8395e5e91f2d95609cbf0db4b))
+
 # [2.19.0](https://github.com/Automattic/newspack-newsletters/compare/v2.18.0...v2.19.0) (2024-07-01)
 
 

@@ -25,6 +25,7 @@ import registerVisibilityFilters from './blocks/visibility-attribute';
 import registerConditionalContent from './blocks/conditional-content';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
+import MJML from './mjml';
 
 addBlocksValidationFilter();
 registerAdBlock();
@@ -49,6 +50,8 @@ domReady( () => {
 	unregisterBlockStyle( 'core/social-links', 'pill-shape' );
 	/* Unregister "row" group block variation */
 	unregisterBlockVariation( 'core/group', 'group-row' );
+	/* Unregister "grid" group block variation */
+	unregisterBlockVariation( 'core/group', 'group-grid' );
 } );
 
 /* Remove Duotone filters */
@@ -104,5 +107,10 @@ registerBlockStyle( 'core/social-links', {
 
 registerPlugin( 'newspack-newsletters-plugin', {
 	render: NestedColumnsDetection,
+	icon: null,
+} );
+
+registerPlugin( 'newspack-newsletters-mjml', {
+	render: MJML,
 	icon: null,
 } );

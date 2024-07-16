@@ -28,37 +28,6 @@ function domReady( callback ) {
 	document.addEventListener( 'DOMContentLoaded', callback );
 }
 
-function getCaptchaToken() {
-	return new Promise( ( res, rej ) => {
-		const reCaptchaScript = document.getElementById( 'newspack-recaptcha-js' );
-		if ( ! reCaptchaScript ) {
-			return res( '' );
-		}
-
-		const { grecaptcha } = window;
-		if ( ! grecaptcha ) {
-			return res( '' );
-		}
-
-		const captchaSiteKey = reCaptchaScript.getAttribute( 'src' ).split( '?render=' ).pop();
-
-		if ( ! captchaSiteKey ) {
-			return res( '' );
-		}
-
-		if ( ! grecaptcha?.ready ) {
-			rej( newspack_newsletters_subscribe_block.recaptcha_error );
-		}
-
-		grecaptcha.ready( () => {
-			grecaptcha
-				.execute( captchaSiteKey, { action: 'submit' } )
-				.then( token => res( token ) )
-				.catch( e => rej( e ) );
-		} );
-	} );
-}
-
 domReady( function () {
 	document.querySelectorAll( '.newspack-newsletters-subscribe' ).forEach( container => {
 		const form = container.querySelector( 'form' );
@@ -78,7 +47,7 @@ domReady( function () {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
-			submit.remove( spinner );
+			submit.removeChild( spinner );
 			submit.removeAttribute( 'disabled' );
 			form.classList.remove( 'in-progress' );
 			messageNode.innerHTML = wasSubscribed
@@ -101,16 +70,22 @@ domReady( function () {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
-			getCaptchaToken()
+			const newspack_grecaptcha = window.newspack_grecaptcha || null;
+			const getCaptchaV3Token = newspack_grecaptcha
+				? newspack_grecaptcha?.getCaptchaV3Token
+				: () => new Promise( res => res( '' ) ); // Empty promise.
+
+			getCaptchaV3Token() // Get a token for reCAPTCHA v3, if needed.
 				.then( captchaToken => {
+					// If there's no token, we don't need to do anything.
 					if ( ! captchaToken ) {
 						return;
 					}
-					let tokenField = form.captcha_token;
+					let tokenField = form[ 'g-recaptcha-response' ];
 					if ( ! tokenField ) {
 						tokenField = document.createElement( 'input' );
 						tokenField.setAttribute( 'type', 'hidden' );
-						tokenField.setAttribute( 'name', 'captcha_token' );
+						tokenField.setAttribute( 'name', 'g-recaptcha-response' );
 						tokenField.setAttribute( 'autocomplete', 'off' );
 						form.appendChild( tokenField );
 					}
