@@ -1152,7 +1152,6 @@ class Newspack_Newsletters_Subscription {
 				 * @param array|WP_Error $lists_config Associative array with list configuration keyed by list ID or WP_Error.
 				 */
 				$list_config  = apply_filters( 'newspack_newsletters_manage_newsletters_available_lists', self::get_lists_config() );
-				$list_map     = [];
 				$user_lists   = array_flip( self::get_contact_lists( $email ) );
 				$intent_error = self::get_user_subscription_intent_error( $user_id );
 				if ( $intent_error ) :
