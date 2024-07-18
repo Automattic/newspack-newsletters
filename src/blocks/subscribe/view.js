@@ -1,4 +1,4 @@
-/* globals newspack_newsletters_subscribe_block, newspack_grecaptcha */
+/* globals newspack_newsletters_subscribe_block */
 /**
  * Internal dependencies
  */
@@ -70,6 +70,7 @@ domReady( function () {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
+			const newspack_grecaptcha = window.newspack_grecaptcha || null;
 			const getCaptchaV3Token = newspack_grecaptcha
 				? newspack_grecaptcha?.getCaptchaV3Token
 				: () => new Promise( res => res( '' ) ); // Empty promise.

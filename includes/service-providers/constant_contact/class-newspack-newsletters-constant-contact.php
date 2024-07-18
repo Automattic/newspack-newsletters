@@ -699,10 +699,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		if ( Newspack_Newsletters::EMAIL_HTML_META !== $meta_key ) {
 			return;
 		}
-		$post = get_post( $post_id );
-		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+		if ( ! Newspack_Newsletters_Editor::is_editing_email( $post_id ) ) {
 			return;
 		}
+		$post = get_post( $post_id );
 		if ( 'trash' === $post->post_status ) {
 			return;
 		}
@@ -864,7 +864,19 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$data['custom_fields'][ strval( $key ) ] = strval( $value );
 			}
 		}
-		return get_object_vars( $cc->upsert_contact( $contact['email'], $data ) );
+
+		$result = $cc->upsert_contact( $contact['email'], $data );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( ! $result ) {
+			return new WP_Error(
+				'newspack_newsletters_error',
+				__( 'Failed to add contact.', 'newspack-newsletters' )
+			);
+		}
+
+		return get_object_vars( $result );
 	}
 
 	/**
@@ -878,13 +890,78 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	public function get_contact_data( $email, $return_details = false ) {
 		$cc      = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
 		$contact = $cc->get_contact( $email );
-		if ( ! $contact ) {
+		if ( ! $contact || is_wp_error( $contact ) ) {
 			return new WP_Error(
 				'newspack_newsletters_error',
 				__( 'Contact not found.', 'newspack-newsletters' )
 			);
 		}
 		return get_object_vars( $contact );
+	}
+
+	/**
+	 * Get the lists a contact is subscribed to.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return string[] Contact subscribed lists IDs.
+	 */
+	public function get_contact_lists( $email ) {
+		$contact_lists = [];
+		$contact_data = self::get_contact_data( $email );
+		if ( is_wp_error( $contact_data ) ) {
+			return $contact_lists;
+		}
+		if ( ! empty( $contact_data['list_memberships'] ) ) {
+			$contact_lists = array_merge( $contact_lists, $contact_data['list_memberships'] );
+		}
+		if ( ! empty( $contact_data['taggings'] ) ) {
+			$contact_lists = array_merge( $contact_lists, $contact_data['taggings'] );
+		}
+
+		return $contact_lists;
+	}
+
+	/**
+	 * Update a contact lists subscription.
+	 *
+	 * @param string   $email           Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 *
+	 * @return true|WP_Error True if the contact was updated or error.
+	 */
+	public function update_contact_lists( $email, $lists_to_add = [], $lists_to_remove = [] ) {
+		$cc           = new Newspack_Newsletters_Constant_Contact_SDK( $this->api_key(), $this->api_secret(), $this->access_token() );
+		$contact_data = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact_data ) ) {
+			/** Create contact */
+			// Call Newspack_Newsletters_Subscription's method (not the provider's directly),
+			// so the appropriate hooks are called.
+			$contact_data = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ] );
+			if ( is_wp_error( $contact_data ) ) {
+				return $contact_data;
+			}
+		}
+
+		// Remove lists or tags from contact.
+		if ( $lists_to_remove ) {
+			$result = $cc->remove_contacts_from_lists( [ $contact_data['contact_id'] ], $lists_to_remove );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
+		// Add lists or tags to contact.
+		if ( $lists_to_add ) {
+			$new_contact_data['list_ids'] = $lists_to_add;
+			$result = $cc->upsert_contact( $email, $new_contact_data );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -993,6 +1070,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 */
 	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
 		$tags = $this->get_contact_tags_ids( $email );
+		if ( is_wp_error( $tags ) ) {
+			$tags = [];
+		}
 		if ( in_array( $tag, $tags, true ) ) {
 			return true;
 		}

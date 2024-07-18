@@ -628,41 +628,8 @@ class Newspack_Newsletters_Subscription {
 	 * @return bool|WP_Error Whether the contact was updated or error.
 	 */
 	private static function update_contact_lists( $email, $lists = [] ) {
-		if ( ! self::has_subscription_management() ) {
-			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
-		}
-		$provider = Newspack_Newsletters::get_service_provider();
-
-		Newspack_Newsletters_Logger::log( 'Updating lists of a contact. List selection: ' . implode( ', ', $lists ) . '. Provider is ' . $provider->service . '.' );
-
-		/** Determine lists to add/remove from existing list config. */
-		$lists_config    = self::get_lists_config();
-		$lists_to_add    = array_intersect( array_keys( $lists_config ), $lists );
-		$lists_to_remove = array_diff( array_keys( $lists_config ), $lists );
-
-		/** Clean up lists to add/remove from contact's existing data. */
-		$current_lists   = self::get_contact_lists( $email );
-		$lists_to_add    = array_diff( $lists_to_add, $current_lists );
-		$lists_to_remove = array_intersect( $current_lists, $lists_to_remove );
-
-		if ( empty( $lists_to_add ) && empty( $lists_to_remove ) ) {
-			return false;
-		}
-
-		$result = $provider->update_contact_lists_handling_local( $email, $lists_to_add, $lists_to_remove );
-
-		/**
-		 * Fires after a contact's lists are updated.
-		 *
-		 * @param string        $provider        The provider name.
-		 * @param string        $email           Contact email address.
-		 * @param string[]      $lists_to_add    Array of list IDs to subscribe the contact to.
-		 * @param string[]      $lists_to_remove Array of list IDs to remove the contact from.
-		 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
-		 */
-		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result );
-
-		return $result;
+		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::update_lists' );
+		return Newspack_Newsletters_Contacts::update_lists( $email, $lists );
 	}
 
 	/**
@@ -987,7 +954,6 @@ class Newspack_Newsletters_Subscription {
 				 * @param array|WP_Error $lists_config Associative array with list configuration keyed by list ID or WP_Error.
 				 */
 				$list_config  = apply_filters( 'newspack_newsletters_manage_newsletters_available_lists', self::get_lists_config() );
-				$list_map     = [];
 				$user_lists   = array_flip( self::get_contact_lists( $email ) );
 				$intent_error = self::get_user_subscription_intent_error( $user_id );
 				if ( $intent_error ) :
@@ -1061,7 +1027,7 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			$email  = get_userdata( get_current_user_id() )->user_email;
 			$lists  = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
-			$result = self::update_contact_lists( $email, $lists );
+			$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists );
 			if ( is_wp_error( $result ) ) {
 				wc_add_notice( $result->get_error_message(), 'error' );
 			} elseif ( false === $result ) {
