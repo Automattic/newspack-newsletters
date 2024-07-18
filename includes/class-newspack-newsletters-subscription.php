@@ -33,7 +33,6 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
-		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
 
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
@@ -548,46 +547,6 @@ class Newspack_Newsletters_Subscription {
 	public static function delete_user_subscription( $user_id ) {
 		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::delete' );
 		return Newspack_Newsletters_Contacts::delete( $user_id );
-	}
-
-	/**
-	 * Add a contact to ESP when a reader is registered.
-	 *
-	 * @param string         $email         Email address.
-	 * @param bool           $authenticate  Whether to authenticate after registering.
-	 * @param false|int      $user_id       The created user id.
-	 * @param false|\WP_User $existing_user The existing user object.
-	 * @param array          $metadata      Metadata.
-	 */
-	public static function newspack_registered_reader( $email, $authenticate, $user_id, $existing_user, $metadata ) {
-		// Prevent double-syncing to audience if the registration method was through a Newsletter Subscription Form block.
-		if ( isset( $metadata['registration_method'] ) && 'newsletters-subscription' === $metadata['registration_method'] ) {
-			return;
-		}
-
-		if ( empty( $metadata['lists'] ) ) {
-			return;
-		}
-
-		$lists = $metadata['lists'];
-		unset( $metadata['lists'] );
-
-		$metadata['newsletters_subscription_method'] = 'reader-registration';
-
-		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
-		try {
-			self::add_contact(
-				[
-					'email'    => $email,
-					'metadata' => $metadata,
-				],
-				$lists,
-				true // Async.
-			);
-		} catch ( \Exception $e ) {
-			// Avoid breaking the registration process.
-			Newspack_Newsletters_Logger::log( 'Error adding contact: ' . $e->getMessage() );
-		}
 	}
 
 	/**
