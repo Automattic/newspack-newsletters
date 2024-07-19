@@ -1202,7 +1202,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 
 		foreach ( $by_list as $list_id => $sublists ) {
-			$results[] = $this->add_contact( $contact, $list_id, $sublists );
+			$result = $this->add_contact( $contact, $list_id, $sublists );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+
+			$results[] = $result;
 		}
 		return $results;
 	}
