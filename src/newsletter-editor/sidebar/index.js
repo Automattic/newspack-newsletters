@@ -16,7 +16,7 @@ import { once } from 'lodash';
 /**
  * Internal dependencies
  */
-import { getEditPostPayload, hasValidEmail } from '../utils';
+import { hasValidEmail } from '../utils';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
@@ -35,17 +35,8 @@ const Sidebar = ( {
 	previewText,
 	newsletterData,
 	stringifiedLayoutDefaults,
-	apiFetchWithErrorHandling,
 	postId,
 } ) => {
-	const apiFetch = config =>
-		apiFetchWithErrorHandling( config ).then( result => {
-			if ( typeof result === 'object' && result.campaign ) {
-				editPost( getEditPostPayload( result ) );
-			}
-			return result;
-		} );
-
 	const getCampaignName = () => {
 		if ( typeof campaignName === 'string' ) {
 			return campaignName;
@@ -155,7 +146,7 @@ const Sidebar = ( {
 				newsletterData={ newsletterData }
 				stringifiedLayoutDefaults={ stringifiedLayoutDefaults }
 				inFlight={ inFlight }
-				apiFetch={ apiFetch }
+				editPost={ editPost }
 				renderCampaignName={ renderCampaignName }
 				renderSubject={ renderSubject }
 				renderFrom={ renderFrom }

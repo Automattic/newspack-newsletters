@@ -387,7 +387,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$activity = $campaign->activity;
 
 			if ( ! in_array( $segment_id, $activity->segment_ids, true ) ) {
-				$activity->segment_ids[]    = $segment_id;
+				$activity->segment_ids      = [ $segment_id ];
 				$activity->contact_list_ids = [];
 			}
 
@@ -461,13 +461,16 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$lists    = $cc->get_contact_lists();
 			$segments = $cc->get_segments();
 
-			return [
+			$data = [
 				'lists'       => $lists,
 				'campaign'    => $campaign,
 				'campaign_id' => $cc_campaign_id,
 				'segments'    => $segments,
 			];
 
+			update_post_meta( $post_id, 'newsletterData', $data );
+
+			return $data;
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_constant_contact_error',
@@ -671,11 +674,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$campaign_result = $cc->create_campaign( $campaign );
 			}
 			update_post_meta( $post->ID, 'cc_campaign_id', $campaign_result->campaign_id );
-			// Retrieve and store campaign data.
-			$data = $this->retrieve( $post->ID );
-			if ( ! is_wp_error( $data ) ) {
-				update_post_meta( $post->ID, 'newsletterData', $data );
-			}
 			return $campaign_result;
 
 		} catch ( Exception $e ) {

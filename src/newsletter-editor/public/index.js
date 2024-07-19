@@ -13,6 +13,7 @@ const PublicSettingsComponent = props => {
 
 	return (
 		<Fragment>
+			<hr />
 			<ToggleControl
 				className="newspack-newsletters__public-toggle-control"
 				label={ __( 'Public newsletter', 'newspack-newsletters' ) }

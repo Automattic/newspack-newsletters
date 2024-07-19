@@ -1,60 +1,81 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect, useState } from '@wordpress/element';
-import {
-	BaseControl,
-	Button,
-	ButtonGroup,
-	CheckboxControl,
-	SelectControl,
-	Spinner,
-	Notice,
-} from '@wordpress/components';
+import apiFetch from '@wordpress/api-fetch';
+import { __, sprintf } from '@wordpress/i18n';
+import { ExternalLink, Spinner, Notice } from '@wordpress/components';
+import { useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
+import SendTo from '../../newsletter-editor/sidebar/send-to';
+
+const getSendToLabel = item => {
+	const isList = item.hasOwnProperty( 'list_id' );
+	return sprintf(
+		// Translators: %1$s is the type of list or segment, %2$s is the name of the list or segment, %3$s is the number of contacts in the list.
+		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
+		isList ? __( 'LIST', 'newspack-newsletters' ) : __( 'SEGMENT', 'newspack-newsletters' ),
+		item.name,
+		item.hasOwnProperty( 'membership_count' )
+			? // Translators: %d is the number of contacts in the list or segment.
+			  sprintf( __( '(%d contacts)', 'newspack-newsletters' ), item.membership_count )
+			: ''
+	).trim();
+};
+
+const getSendToLink = item => {
+	const isList = item.hasOwnProperty( 'list_id' );
+
+	return (
+		<p>
+			<ExternalLink
+				href={
+					isList
+						? `https://app.constantcontact.com/pages/contacts/ui#contacts/${ item.list_id }`
+						: `https://app.constantcontact.com/pages/contacts/ui#segments/${ item.segment_id }/preview`
+				}
+			>
+				{ __( 'View in Constant Contact', 'newspack-newsletters' ) }
+			</ExternalLink>
+		</p>
+	);
+};
+
+/**
+ * Internal dependencies
+ */
+import { getEditPostPayload } from '../../newsletter-editor/utils';
 import './style.scss';
 
 const ProviderSidebar = ( {
+	editPost,
 	renderCampaignName,
 	renderSubject,
 	renderFrom,
 	renderPreviewText,
-	inFlight,
 	newsletterData,
-	apiFetch,
 	postId,
 	updateMeta,
 } ) => {
-	const campaign = newsletterData.campaign;
-	const lists = newsletterData.lists || [];
-	const segments = newsletterData.segments || [];
+	const { campaign, lists = [], segments = [] } = newsletterData;
+	const availableLists = [ ...lists, ...segments ].map( item => {
+		item.value = item.list_id || item.segment_id;
+		item.label = getSendToLabel( item );
+		return item;
+	} );
 
-	const [ sendMode, setSendMode ] = useState( 'list' );
-
-	let segment_id = '';
-	if ( campaign?.activity?.segment_ids?.length ) {
-		segment_id = campaign.activity.segment_ids[ 0 ];
-	}
-
-	const setList = ( listId, value ) => {
-		const method = value ? 'PUT' : 'DELETE';
-		apiFetch( {
-			path: `/newspack-newsletters/v1/constant_contact/${ postId }/list/${ listId }`,
-			method,
-		} );
-	};
-
-	const setSegment = segmentId => {
-		const method = segmentId ? 'PUT' : 'DELETE';
-		apiFetch( {
-			path: `/newspack-newsletters/v1/constant_contact/${ postId }/segment/${ segmentId }`,
-			method,
-		} );
-	};
+	const selectedList =
+		availableLists.find( list => {
+			if ( campaign?.activity?.contact_list_ids?.length ) {
+				return list.list_id === campaign.activity.contact_list_ids[ 0 ];
+			}
+			if ( campaign?.activity?.segment_ids?.length ) {
+				return list.segment_id === campaign.activity.segment_ids[ 0 ];
+			}
+			return false;
+		} ) || null;
 
 	const setSender = ( { senderName, senderEmail } ) =>
 		apiFetch( {
@@ -66,17 +87,55 @@ const ProviderSidebar = ( {
 			method: 'POST',
 		} );
 
+	const updateCampaign = config => {
+		return apiFetch( config ).then( result => {
+			if ( typeof result === 'object' && result.campaign ) {
+				editPost( getEditPostPayload( result ) );
+			}
+			return result;
+		} );
+	};
+
+	const setList = ( listId, value ) => {
+		return updateCampaign( {
+			path: `/newspack-newsletters/v1/constant_contact/${ postId }/list/${ listId }`,
+			method: value ? 'PUT' : 'DELETE',
+		} );
+	};
+
+	const setSegment = segmentId => {
+		return updateCampaign( {
+			path: `/newspack-newsletters/v1/constant_contact/${ postId }/segment/${ segmentId || '' }`,
+			method: segmentId ? 'PUT' : 'DELETE',
+		} );
+	};
+
+	const onChangeSendTo = labels => {
+		const selectedLabel = labels[ 0 ];
+		const selectedItem = availableLists.find( item => item.label === selectedLabel );
+
+		// If the selected item is already selected in the campaign, no need to update.
+		if ( selectedItem.value === selectedList?.value ) {
+			return;
+		}
+
+		return selectedItem.hasOwnProperty( 'list_id' )
+			? setList( selectedItem.value, true )
+			: setSegment( selectedItem.value );
+	};
+
+	const resetSendTo = () => {
+		return selectedList && selectedList.hasOwnProperty( 'list_id' )
+			? setList( selectedList.list_id, false )
+			: setSegment( false );
+	};
+
 	useEffect( () => {
 		if ( campaign ) {
 			updateMeta( {
 				senderName: campaign.activity.from_name,
 				senderEmail: campaign.activity.from_email,
 			} );
-			if ( campaign?.activity?.contact_list_ids?.length ) {
-				setSendMode( 'list' );
-			} else if ( campaign?.activity?.segment_ids?.length ) {
-				setSendMode( 'segment' );
-			}
 		}
 	}, [ campaign ] );
 
@@ -99,7 +158,7 @@ const ProviderSidebar = ( {
 	}
 
 	return (
-		<Fragment>
+		<>
 			{ renderCampaignName() }
 			{ renderSubject() }
 			{ renderPreviewText() }
@@ -109,58 +168,17 @@ const ProviderSidebar = ( {
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<ButtonGroup className="newspack-newsletters-cc__send-mode">
-				<Button
-					className="newspack-newsletters-cc__send-mode-button"
-					variant={ sendMode === 'list' ? 'primary' : 'secondary' }
-					onClick={ () => setSendMode( 'list' ) }
-				>
-					{ __( 'List', 'newspack-newsletters' ) }
-				</Button>
-				<Button
-					className="newspack-newsletters-cc__send-mode-button"
-					variant={ sendMode === 'segment' ? 'primary' : 'secondary' }
-					onClick={ () => setSendMode( 'segment' ) }
-					text={ __( 'Segment', 'newspack-newsletters' ) }
-				/>
-			</ButtonGroup>
-
-			{ 'list' === sendMode && (
-				<BaseControl
-					className="newspack-newsletters-constant_contact-lists"
-					id="newspack-newsletters-constant_contact-lists"
-				>
-					{ lists.map( ( { list_id: id, name } ) => (
-						<CheckboxControl
-							key={ id }
-							label={ name }
-							value={ id }
-							checked={ campaign?.activity?.contact_list_ids?.some( listId => listId === id ) }
-							onChange={ value => setList( id, value ) }
-							disabled={ inFlight }
-						/>
-					) ) }
-				</BaseControl>
-			) }
-			{ 'segment' === sendMode && (
-				<SelectControl
-					className="newspack-newsletters-constant_contact-segments"
-					value={ segment_id }
-					options={ [
-						{
-							value: null,
-							label: __( '-- Select a segment --', 'newspack-newsletters' ),
-						},
-						...segments.map( ( { segment_id: id, name } ) => ( {
-							value: id,
-							label: name,
-						} ) ),
-					] }
-					onChange={ setSegment }
-					disabled={ inFlight }
-				/>
-			) }
-		</Fragment>
+			<SendTo
+				availableLists={ availableLists }
+				onChange={ onChangeSendTo }
+				formLabel={ __( 'Select a list or segment', 'newspack' ) }
+				getLabel={ getSendToLabel }
+				getLink={ getSendToLink }
+				placeholder={ __( 'Type a list or segment name to search.', 'newspack' ) }
+				reset={ resetSendTo }
+				selectedList={ selectedList }
+			/>
+		</>
 	);
 };
 

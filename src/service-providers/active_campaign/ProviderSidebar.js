@@ -1,11 +1,12 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import apiFetch from '@wordpress/api-fetch';
+import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
-import { BaseControl, SelectControl, Spinner, TextControl, Notice } from '@wordpress/components';
+import { Spinner, TextControl, Notice } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -15,7 +16,25 @@ import { pick } from 'lodash';
 /**
  * Internal dependencies
  */
+import SendTo from '../../newsletter-editor/sidebar/send-to';
 import './style.scss';
+
+const getSendToLabel = ( item, type = 'list' ) => {
+	const isList = 'list' === type;
+	return sprintf(
+		// Translators: %1$s is the type of list or segment, %2$s is the name of the list or segment, %3$s is the number of contacts in the list.
+		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
+		isList ? __( 'LIST', 'newspack-newsletters' ) : __( 'SEGMENT', 'newspack-newsletters' ),
+		item.name,
+		sprintf(
+			// Translators: more details on the list or segment.
+			__( '(%s)', 'newspack-newsletters' ),
+			isList
+				? item.subscriber_count + __( ' contacts', 'newspack-newsletters' )
+				: __( 'id: ', 'newspack-newsletters' ) + item.id
+		)
+	).trim();
+};
 
 /**
  * Validation utility.
@@ -46,7 +65,6 @@ const AC_DATA_METADATA_KEYS = [ 'ac_list_id', 'ac_segment_id', 'ac_from_name', '
  * the data is not yet available.
  *
  * @param {Object}   props                           Component props.
- * @param {Function} props.apiFetch                  Function to fetch data from the API.
  * @param {number}   props.postId                    ID of the edited newsletter post.
  * @param {Function} props.renderCampaignName        Function that renders campaign name input.
  * @param {Function} props.renderSubject             Function that renders email subject input.
@@ -61,7 +79,6 @@ const AC_DATA_METADATA_KEYS = [ 'ac_list_id', 'ac_segment_id', 'ac_from_name', '
  */
 const ProviderSidebarComponent = ( {
 	postId,
-	apiFetch,
 	renderCampaignName,
 	renderSubject,
 	renderPreviewText,
@@ -75,6 +92,8 @@ const ProviderSidebarComponent = ( {
 } ) => {
 	const [ lists, setLists ] = useState( [] );
 	const [ segments, setSegments ] = useState( [] );
+	const [ selectedList, setSelectedList ] = useState( null );
+	const [ selectedSegment, setSelectedSegment ] = useState( null );
 
 	useEffect( () => {
 		fetchListsAndSegments();
@@ -85,8 +104,24 @@ const ProviderSidebarComponent = ( {
 			const response = await apiFetch( {
 				path: `/newspack-newsletters/v1/active_campaign/${ postId }/retrieve`,
 			} );
-			setLists( response.lists );
-			setSegments( response.segments );
+			setLists(
+				response.lists.map( list => {
+					return {
+						...list,
+						value: list.id,
+						label: getSendToLabel( list ),
+					};
+				} )
+			);
+			setSegments(
+				response.segments.map( segment => {
+					return {
+						...segment,
+						value: segment.id,
+						label: getSendToLabel( segment, 'segment' ),
+					};
+				} )
+			);
 		} catch ( e ) {
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
@@ -104,6 +139,16 @@ const ProviderSidebarComponent = ( {
 			from_name: acData.ac_from_name,
 			campaign: true,
 		};
+		if ( acData.ac_list_id ) {
+			setSelectedList( lists.find( list => list.id === acData.ac_list_id ) );
+		} else {
+			setSelectedList( null );
+		}
+		if ( acData.ac_segment_id ) {
+			setSelectedSegment( segments.find( segment => segment.id === acData.ac_segment_id ) );
+		} else {
+			setSelectedSegment( null );
+		}
 		updateMetaValue( 'newsletterData', updatedData );
 	}, [ JSON.stringify( acData ), lists, status ] );
 
@@ -124,11 +169,32 @@ const ProviderSidebarComponent = ( {
 		}
 	}, [ stringifiedLayoutDefaults.length ] );
 
+	const onChangeSendTo = async ( labels, type = 'list' ) => {
+		const isList = type === 'list';
+		const selectedLabel = labels[ 0 ];
+		const items = isList ? [ ...lists ] : [ ...segments ];
+		const selectedItem = items.find(
+			item => getSendToLabel( item, isList ? 'list' : 'segment' ) === selectedLabel
+		);
+		const metaKey = isList ? 'ac_list_id' : 'ac_segment_id';
+		updateMetaValue( metaKey, selectedItem?.id || null );
+		return selectedItem;
+	};
+
 	if ( ! inFlight && 'publish' === status ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
 			</Notice>
+		);
+	}
+
+	if ( ! lists?.length ) {
+		return (
+			<div className="newspack-newsletters__loading-data">
+				{ __( 'Retrieving ActiveCampaign data…', 'newspack-newsletters' ) }
+				<Spinner />
+			</div>
 		);
 	}
 
@@ -160,43 +226,33 @@ const ProviderSidebarComponent = ( {
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<BaseControl className="newspack-newsletters__list-select">
-				<SelectControl
-					label={ __( 'To', 'newspack-newsletters' ) }
-					value={ acData.ac_list_id }
-					options={ [
-						{
-							value: '',
-							label: __( '-- Select a list --', 'newspack-newsletters' ),
-						},
-						...lists.map( ( { id, name } ) => ( {
-							value: id,
-							label: name,
-						} ) ),
-					] }
-					onChange={ value => updateMetaValue( 'ac_list_id', value ) }
-					disabled={ inFlight }
-				/>
-				{ acData.ac_list_id && (
-					<SelectControl
-						label={ __( 'Segment', 'newspack-newsletters' ) }
-						value={ acData.ac_segment_id }
-						options={ [
-							{
-								value: '',
-								label: __( '-- Select a segment (optional) --', 'newspack-newsletters' ),
-							},
-							...segments.map( ( { id, name } ) => ( {
-								value: id,
-								label: name,
-							} ) ),
-						] }
-						onChange={ value => updateMetaValue( 'ac_segment_id', value ) }
-						disabled={ inFlight }
+			<SendTo
+				availableLists={ lists }
+				onChange={ selected => onChangeSendTo( selected ) }
+				formLabel={ __( 'Select a list', 'newspack' ) }
+				getLabel={ getSendToLabel }
+				placeholder={ __( 'Type a list name to search.', 'newspack' ) }
+				reset={ async () => {
+					updateMetaValue( 'ac_list_id', '' );
+					updateMetaValue( 'ac_segment_id', '' );
+				} }
+				selectedList={ selectedList }
+			/>
+			{ selectedList && (
+				<>
+					<hr />
+					<SendTo
+						availableLists={ segments }
+						onChange={ selected => onChangeSendTo( selected, 'segment' ) }
+						formLabel={ __( 'Select a segment (optional)', 'newspack' ) }
+						getLabel={ item => getSendToLabel( item, 'segment' ) }
+						placeholder={ __( 'Type a segment name to search.', 'newspack' ) }
+						reset={ () => updateMetaValue( 'ac_segment_id', '' ) }
+						selectedList={ selectedSegment }
 					/>
-				) }
-				{ inFlight && <Spinner /> }
-			</BaseControl>
+				</>
+			) }
+			{ inFlight && <Spinner /> }
 		</div>
 	);
 };
