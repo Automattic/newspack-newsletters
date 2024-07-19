@@ -181,7 +181,7 @@ const ProviderSidebarComponent = ( {
 		return selectedItem;
 	};
 
-	if ( ! inFlight && 'publish' === status ) {
+	if ( ! inFlight && ( 'publish' === status || 'private' === status ) ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
