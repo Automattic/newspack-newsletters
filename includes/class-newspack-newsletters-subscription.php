@@ -357,18 +357,19 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function add_contact( $contact, $lists = false, $async = false ) {
 		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::upsert' );
-		return Newspack_Newsletters_Contacts::upsert( $contact, $lists, $async );
+		return Newspack_Newsletters_Contacts::upsert( $contact, $lists, $async, 'deprecated' );
 	}
 
 	/**
 	 * Register a subscription intent and dispatches a async request to process it.
 	 *
-	 * @param array $contact     Contact information.
-	 * @param array $lists       Array of list IDs to subscribe the contact to.
+	 * @param array  $contact     Contact information.
+	 * @param array  $lists       Array of list IDs to subscribe the contact to.
+	 * @param string $context Context of the update for logging purposes.
 	 *
 	 * @return int|WP_Error Subscription intent ID or error.
 	 */
-	public static function add_subscription_intent( $contact, $lists ) {
+	public static function add_subscription_intent( $contact, $lists, $context = '' ) {
 		$intent_id = \wp_insert_post(
 			[
 				'post_type'   => self::SUBSCRIPTION_INTENT_CPT,
@@ -377,6 +378,7 @@ class Newspack_Newsletters_Subscription {
 					'contact' => $contact,
 					'lists'   => $lists,
 					'errors'  => [],
+					'context' => $context,
 				],
 			]
 		);
@@ -422,6 +424,7 @@ class Newspack_Newsletters_Subscription {
 			'contact' => get_post_meta( $intent->ID, 'contact', true ),
 			'lists'   => get_post_meta( $intent->ID, 'lists', true ),
 			'errors'  => get_post_meta( $intent->ID, 'errors', true ),
+			'context' => get_post_meta( $intent->ID, 'context', true ),
 		];
 	}
 
@@ -473,7 +476,8 @@ class Newspack_Newsletters_Subscription {
 			$contact     = $intent['contact'];
 			$email       = $contact['email'];
 			$lists       = $intent['lists'];
-			$result      = Newspack_Newsletters_Contacts::upsert( $contact, $lists, false );
+			$context     = $intent['context'];
+			$result      = Newspack_Newsletters_Contacts::upsert( $contact, $lists, false, $context . ' (ASYNC)' );
 
 			$user = get_user_by( 'email', $email );
 			if ( \is_wp_error( $result ) ) {

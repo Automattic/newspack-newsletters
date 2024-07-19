@@ -491,12 +491,12 @@ Details of the error message: "%3$s"
 			try {
 				$list = Subscription_List::from_form_id( $list_id );
 				if ( ! $list->is_configured_for_provider( $this->service ) ) {
-					return new WP_Error( 'List not properly configured for the provider' );
+					return new WP_Error( "List $list_id not properly configured for the provider" );
 				}
 				$list_settings = $list->get_provider_settings( $this->service );
 				return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
 			} catch ( \InvalidArgumentException $e ) {
-				return new WP_Error( 'List not found' );
+				return new WP_Error( "List $list_id not found" );
 			}
 		}
 	}

@@ -505,7 +505,8 @@ function process_form() {
 			'metadata' => $metadata,
 		],
 		$lists,
-		true // Async.
+		true, // Async.
+		'User subscribed via Newsletters Subscription block'
 	);
 
 	/**
