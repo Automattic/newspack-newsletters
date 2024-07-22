@@ -25,7 +25,7 @@ import registerVisibilityFilters from './blocks/visibility-attribute';
 import registerConditionalContent from './blocks/conditional-content';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
-import './api';
+import MJML from './mjml';
 
 addBlocksValidationFilter();
 registerAdBlock();
@@ -50,6 +50,8 @@ domReady( () => {
 	unregisterBlockStyle( 'core/social-links', 'pill-shape' );
 	/* Unregister "row" group block variation */
 	unregisterBlockVariation( 'core/group', 'group-row' );
+	/* Unregister "grid" group block variation */
+	unregisterBlockVariation( 'core/group', 'group-grid' );
 } );
 
 /* Remove Duotone filters */
@@ -67,6 +69,21 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	}
 	return settings;
 } );
+
+if ( newspack_email_editor_data.supported_social_icon_services ) {
+	addFilter(
+		'blocks.registerBlockType',
+		'newspack-newsletters/core-social-links',
+		( settings, name ) => {
+			if ( 'core/social-link' === name && settings.variations ) {
+				settings.variations = settings.variations.filter( variation =>
+					newspack_email_editor_data.supported_social_icon_services.includes( variation.name )
+				);
+			}
+			return settings;
+		}
+	);
+}
 
 registerBlockStyle( 'core/social-links', {
 	name: 'circle-black',
@@ -90,5 +107,10 @@ registerBlockStyle( 'core/social-links', {
 
 registerPlugin( 'newspack-newsletters-plugin', {
 	render: NestedColumnsDetection,
+	icon: null,
+} );
+
+registerPlugin( 'newspack-newsletters-mjml', {
+	render: MJML,
 	icon: null,
 } );
