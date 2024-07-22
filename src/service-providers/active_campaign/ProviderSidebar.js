@@ -4,7 +4,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
-import { withDispatch, withSelect } from '@wordpress/data';
+import { withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
 import { Spinner, TextControl, Notice } from '@wordpress/components';
 
@@ -71,7 +71,7 @@ const AC_DATA_METADATA_KEYS = [ 'ac_list_id', 'ac_segment_id', 'ac_from_name', '
  * @param {Function} props.renderPreviewText         Function that renders email preview text input.
  * @param {boolean}  props.inFlight                  True if the component is in a loading state.
  * @param {Object}   props.acData                    ActiveCampaign data.
- * @param {Function} props.updateMetaValue           Dispatcher to update post meta.
+ * @param {Function} props.updateMeta                Dispatcher to update post meta.
  * @param {Object}   props.newsletterData            Newsletter data from the parent components
  * @param {Function} props.createErrorNotice         Dispatcher to display an error message in the editor.
  * @param {string}   props.status                    Current post status.
@@ -84,7 +84,7 @@ const ProviderSidebarComponent = ( {
 	renderPreviewText,
 	inFlight,
 	acData,
-	updateMetaValue,
+	updateMeta,
 	newsletterData,
 	createErrorNotice,
 	status,
@@ -149,7 +149,7 @@ const ProviderSidebarComponent = ( {
 		} else {
 			setSelectedSegment( null );
 		}
-		updateMetaValue( 'newsletterData', updatedData );
+		updateMeta( { newsletterData: updatedData } );
 	}, [ JSON.stringify( acData ), lists, status ] );
 
 	// If there is a stringified newsletter data from the layout, use it to set the list and segments.
@@ -160,7 +160,9 @@ const ProviderSidebarComponent = ( {
 				AC_DATA_METADATA_KEYS.forEach( key => {
 					const layoutKey = key.replace( 'ac_', '' );
 					if ( ! acData[ key ] && layoutDefaults.newsletterData[ layoutKey ] ) {
-						updateMetaValue( key, layoutDefaults.newsletterData[ layoutKey ] );
+						const updatedMeta = {};
+						updatedMeta[ key ] = layoutDefaults.newsletterData[ layoutKey ];
+						updateMeta( updatedMeta );
 					}
 				} );
 			}
@@ -170,14 +172,16 @@ const ProviderSidebarComponent = ( {
 	}, [ stringifiedLayoutDefaults.length ] );
 
 	const onChangeSendTo = async ( labels, type = 'list' ) => {
-		const isList = type === 'list';
+		const isList = 'list' === type;
 		const selectedLabel = labels[ 0 ];
 		const items = isList ? [ ...lists ] : [ ...segments ];
 		const selectedItem = items.find(
 			item => getSendToLabel( item, isList ? 'list' : 'segment' ) === selectedLabel
 		);
 		const metaKey = isList ? 'ac_list_id' : 'ac_segment_id';
-		updateMetaValue( metaKey, selectedItem?.id || null );
+		const updatedMeta = {};
+		updatedMeta[ metaKey ] = selectedItem?.id || '';
+		updateMeta( updatedMeta );
 		return selectedItem;
 	};
 
@@ -212,7 +216,7 @@ const ProviderSidebarComponent = ( {
 				className="newspack-newsletters__name-textcontrol"
 				value={ acData.ac_from_name }
 				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'ac_from_name', value ) }
+				onChange={ value => updateMeta( { ac_from_name: value } ) }
 			/>
 			<TextControl
 				label={ __( 'Email', 'newspack-newsletters' ) }
@@ -220,9 +224,8 @@ const ProviderSidebarComponent = ( {
 				value={ acData.ac_from_email }
 				type="email"
 				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'ac_from_email', value ) }
+				onChange={ value => updateMeta( { ac_from_email: value } ) }
 			/>
-			<hr />
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
@@ -233,8 +236,8 @@ const ProviderSidebarComponent = ( {
 				getLabel={ getSendToLabel }
 				placeholder={ __( 'Type a list name to search.', 'newspack' ) }
 				reset={ async () => {
-					updateMetaValue( 'ac_list_id', '' );
-					updateMetaValue( 'ac_segment_id', '' );
+					updateMeta( { ac_list_id: '' } );
+					updateMeta( { ac_segment_id: '' } );
 				} }
 				selectedList={ selectedList }
 			/>
@@ -247,7 +250,7 @@ const ProviderSidebarComponent = ( {
 						formLabel={ __( 'Select a segment (optional)', 'newspack' ) }
 						getLabel={ item => getSendToLabel( item, 'segment' ) }
 						placeholder={ __( 'Type a segment name to search.', 'newspack' ) }
-						reset={ () => updateMetaValue( 'ac_segment_id', '' ) }
+						reset={ async () => updateMeta( { ac_segment_id: '' } ) }
 						selectedList={ selectedSegment }
 					/>
 				</>
@@ -265,18 +268,6 @@ const mapStateToProps = select => {
 	};
 };
 
-const mapDispatchToProps = dispatch => {
-	const { editPost } = dispatch( 'core/editor' );
-	const { createErrorNotice } = dispatch( 'core/notices' );
-	return {
-		updateMetaValue: ( key, value ) => {
-			return editPost( { meta: { [ key ]: value } } );
-		},
-		createErrorNotice,
-	};
-};
-
-export const ProviderSidebar = compose( [
-	withSelect( mapStateToProps ),
-	withDispatch( mapDispatchToProps ),
-] )( ProviderSidebarComponent );
+export const ProviderSidebar = compose( [ withSelect( mapStateToProps ) ] )(
+	ProviderSidebarComponent
+);

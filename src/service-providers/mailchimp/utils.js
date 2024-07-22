@@ -2,69 +2,88 @@
  * WordPress dependencies
  */
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { ExternalLink } from '@wordpress/components';
 
 /**
- * Get select options for Mailchimp interest groups, arranged by category.
- * Groups are subsets of a list.
+ * Get a label describing the audience or subaudience for the autocomplete UI.
  *
- * @param {Object} interestCategories Interest categories object.
- * @return {Array} Array of select options.
+ * @param {Object} item The audience or subaudience object.
+ * @param {string} type The type of audience or subgroup.
+ * @return {string} The formatted label.
  */
-export const getGroupOptions = interestCategories => {
-	if ( ! interestCategories?.categories || ! interestCategories.categories.length ) {
-		return [];
-	}
-	const options = interestCategories.categories.reduce( ( accumulator, item ) => {
-		const { title, interests, id } = item;
-		if ( interests?.interests?.length ) {
-			const optGroup = {
-				// Translators: %s is the name of the interest category.
-				label: sprintf( __( 'Interest Category: %s', 'newspack-newsletters' ), title ),
-				options: [],
-			};
-			interests.interests.forEach( interest => {
-				const subscriberCount = parseInt( interest.subscriber_count );
-				const subscriberCountInfo = sprintf(
-					// Translators: subscriber count help message.
-					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
-					subscriberCount
-				);
-
-				optGroup.options.push( {
-					label: `${ interest.name }${
-						interest.local_name ? ' [' + interest.local_name + ']' : ''
-					} (${ subscriberCountInfo })`,
-					value: `interests-${ id }:${ interest.id }`,
-				} );
-			} );
-			accumulator.push( optGroup );
-		}
-		return accumulator;
-	}, [] );
-
-	return options;
+export const getSendToLabel = ( item, type = 'audience' ) => {
+	const contactCount = item?.member_count || item?.subscriber_count || item?.stats?.member_count;
+	return sprintf(
+		// Translators: %1$s is the type of audience or subgroup, %2$s is the name of the audience or subgroup, %3$s is the number of contacts in the audience or subgroup.
+		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
+		type.toUpperCase(),
+		item.name || item.title,
+		contactCount
+			? sprintf(
+					// Translators: The number of contacts in the audience or subgroup.
+					_n( '(%d contact)', '(%d contacts)', contactCount, 'newspack-newsletters' ),
+					contactCount
+			  )
+			: ''
+	).trim();
 };
 
 /**
- * Get select options for Mailchimp segments or tags.
- * Segments and tags have the same data structure when fetched via the /segments endpoint.
- * See: https://mailchimp.com/developer/marketing/api/list-segments/list-segments/
+ * Get a link to manage the audience or subaudience in the ESP.
  *
- * @param {Array} segments Array of segments or tags.
- * @return {Array} Array of select options.
+ * @param {Object} item The audience or subaudience object.
+ * @return {Object} JSX element.
  */
-export const getSegmentOptions = segments => {
-	if ( ! segments || ! segments.length ) {
-		return [];
+export const getSendToLink = item => {
+	const { web_id: webId } = item;
+	if ( webId ) {
+		return (
+			<p>
+				<ExternalLink href={ `https://admin.mailchimp.com/lists/members/?id=${ webId }` }>
+					{ __( 'Manage audience', 'newspack-newsletters' ) }
+				</ExternalLink>
+			</p>
+		);
 	}
-	return segments.map( segment => ( {
-		label: `${ segment.name }${
-			segment.local_name ? ' [' + segment.local_name + ']' : ''
-		} (${ sprintf(
-			// Translators: %d is the number of subscribers in the segment.
-			_n( '%d subscriber', '%d subscribers', segment?.member_count || 0, 'newspack-newsletters' ),
-			segment?.member_count || 0
-		) })`,
-		value: segment.id.toString(),
+	return null;
+};
+
+/**
+ * Get the subaudience options for the autocomplete UI.
+ *
+ * @param {Object} newsletterData Newsletter campaign data.
+ * @return {Array} Array of subaudience options.
+ */
+export const getSubAudienceOptions = newsletterData => {
+	const groups = ( newsletterData?.interest_categories?.categories || [] ).reduce(
+		( accumulator, item ) => {
+			const { interests, id } = item;
+			if ( interests?.interests?.length ) {
+				interests.interests.forEach( interest => {
+					accumulator.push( {
+						...interest,
+						value: `interests-${ id }:${ interest.id }`,
+						list_type: 'group',
+					} );
+				} );
+			}
+			return accumulator;
+		},
+		[]
+	);
+	const segments = ( newsletterData?.segments || [] ).map( item => ( {
+		...item,
+		value: item.id,
+		list_type: 'segment',
+	} ) );
+	const tags = ( newsletterData?.tags || [] ).map( item => ( {
+		...item,
+		value: item.id,
+		list_type: 'tag',
+	} ) );
+
+	return [ ...groups, ...segments, ...tags ].map( item => ( {
+		...item,
+		label: getSendToLabel( item, item.list_type ),
 	} ) );
 };

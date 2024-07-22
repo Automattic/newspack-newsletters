@@ -27,6 +27,13 @@
 		}
 	}
 
+	&__send-to {
+		margin-top: 16px;
+		.components-notice + * {
+			margin-top: 16px;
+		}
+	}
+
 	&__send-test {
 		.components-button + .components-button {
 			margin-left: 12px;

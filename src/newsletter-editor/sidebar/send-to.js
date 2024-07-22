@@ -20,7 +20,7 @@ const SendTo = ( {
 	const [ error, setError ] = useState( false );
 
 	return (
-		<>
+		<div className="newspack-newsletters__send-to">
 			{ error && ! isEditing && (
 				<Notice status="error" isDismissible={ false }>
 					{ error }
@@ -69,26 +69,28 @@ const SendTo = ( {
 							>
 								{ __( 'Edit', 'newspack-newsletters' ) }
 							</Button>
-							<Button
-								disabled={ isUpdating }
-								onClick={ () => {
-									setError( false );
-									setIsUpdating( true );
-									reset()
-										.catch( e => {
-											setError(
-												e.message || __( 'Error updating campaign.', 'newspack-newsletters' )
-											);
-										} )
-										.finally( () => {
-											setIsUpdating( false );
-											setIsEditing( false );
-										} );
-								} }
-								variant="secondary"
-							>
-								{ __( 'Reset', 'newspack-newsletters' ) }
-							</Button>
+							{ reset && (
+								<Button
+									disabled={ isUpdating }
+									onClick={ () => {
+										setError( false );
+										setIsUpdating( true );
+										reset()
+											.catch( e => {
+												setError(
+													e.message || __( 'Error updating campaign.', 'newspack-newsletters' )
+												);
+											} )
+											.finally( () => {
+												setIsUpdating( false );
+												setIsEditing( false );
+											} );
+									} }
+									variant="secondary"
+								>
+									{ __( 'Reset', 'newspack-newsletters' ) }
+								</Button>
+							) }
 						</>
 					) }
 					{ isEditing && (
@@ -98,7 +100,7 @@ const SendTo = ( {
 					) }
 				</ButtonGroup>
 			) }
-		</>
+		</div>
 	);
 };
 

@@ -12,7 +12,7 @@ import { find } from 'lodash';
 /**
  * Internal dependencies
  */
-import ProviderSidebar from './ProviderSidebar';
+import { ProviderSidebar } from './ProviderSidebar';
 
 const validateNewsletter = ( { campaign } ) => {
 	const { recipients, settings, status } = campaign || {};

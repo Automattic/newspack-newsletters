@@ -22,6 +22,7 @@ import withApiHandler from '../../components/with-api-handler';
 import './style.scss';
 
 const Sidebar = ( {
+	createErrorNotice,
 	isConnected,
 	oauthUrl,
 	onAuthorize,
@@ -151,6 +152,7 @@ const Sidebar = ( {
 				renderSubject={ renderSubject }
 				renderFrom={ renderFrom }
 				renderPreviewText={ renderPreviewText }
+				createErrorNotice={ createErrorNotice }
 				updateMeta={ meta => editPost( { meta } ) }
 			/>
 		</Fragment>
@@ -175,6 +177,7 @@ export default compose( [
 	} ),
 	withDispatch( dispatch => {
 		const { editPost } = dispatch( 'core/editor' );
-		return { editPost };
+		const { createErrorNotice } = dispatch( 'core/notices' );
+		return { editPost, createErrorNotice };
 	} ),
 ] )( Sidebar );

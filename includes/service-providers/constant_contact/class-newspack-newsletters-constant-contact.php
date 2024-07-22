@@ -468,6 +468,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				'segments'    => $segments,
 			];
 
+			// Store retrieved campaign data.
 			update_post_meta( $post_id, 'newsletterData', $data );
 
 			return $data;
@@ -674,6 +675,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$campaign_result = $cc->create_campaign( $campaign );
 			}
 			update_post_meta( $post->ID, 'cc_campaign_id', $campaign_result->campaign_id );
+
+			// Retrieve and store campaign data.
+			$this->retrieve( $post->ID );
+
 			return $campaign_result;
 
 		} catch ( Exception $e ) {

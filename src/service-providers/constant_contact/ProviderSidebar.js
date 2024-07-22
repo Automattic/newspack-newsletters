@@ -57,7 +57,7 @@ const ProviderSidebar = ( {
 	renderPreviewText,
 	newsletterData,
 	postId,
-	updateMeta,
+	updateMetaValue,
 } ) => {
 	const { campaign, lists = [], segments = [] } = newsletterData;
 	const availableLists = [ ...lists, ...segments ].map( item => {
@@ -132,7 +132,7 @@ const ProviderSidebar = ( {
 
 	useEffect( () => {
 		if ( campaign ) {
-			updateMeta( {
+			updateMetaValue( {
 				senderName: campaign.activity.from_name,
 				senderEmail: campaign.activity.from_email,
 			} );
