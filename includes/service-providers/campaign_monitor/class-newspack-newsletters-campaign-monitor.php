@@ -29,7 +29,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		$this->service    = 'campaign_monitor';
 		$this->controller = new Newspack_Newsletters_Campaign_Monitor_Controller( $this );
 
-		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
+		add_action( 'updated_post_meta', [ $this, 'save' ], 10, 4 );
 
 		parent::__construct( $this );
 	}

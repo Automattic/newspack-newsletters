@@ -1,3 +1,10 @@
+## [2.20.3](https://github.com/Automattic/newspack-newsletters/compare/v2.20.2...v2.20.3) (2024-07-22)
+
+
+### Bug Fixes
+
+* sync newsletter campaigns on post meta update for all ESPs ([#1556](https://github.com/Automattic/newspack-newsletters/issues/1556)) ([6d028ff](https://github.com/Automattic/newspack-newsletters/commit/6d028ffc7e34101dd1fb30fd5c1d04736ce4ce78))
+
 ## [2.20.2](https://github.com/Automattic/newspack-newsletters/compare/v2.20.1...v2.20.2) (2024-07-22)
 
 

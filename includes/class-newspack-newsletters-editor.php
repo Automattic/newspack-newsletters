@@ -318,6 +318,14 @@ final class Newspack_Newsletters_Editor {
 			],
 			'supported_social_icon_services' => Newspack_Newsletters_Renderer::get_supported_social_icons_services(),
 		];
+
+		// Fetch async error messages to display on editor load.
+		$transient_name = $provider->get_transient_name( get_the_ID() );
+		$error_message  = get_transient( $transient_name );
+		if ( $error_message ) {
+			$email_editor_data['error_message'] = $error_message;
+		}
+
 		if ( self::is_editing_email() ) {
 			wp_register_style(
 				'newspack-newsletters',
