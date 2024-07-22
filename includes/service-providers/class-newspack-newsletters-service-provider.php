@@ -518,7 +518,7 @@ Details of the error message: "%3$s"
 		if ( is_wp_error( $contact ) ) {
 			// Create contact.
 			// Use Newspack_Newsletters_Contacts::upsert to trigger hooks and call add_contact_handling_local_list if needed.
-			$result = Newspack_Newsletters_Contacts::upsert( [ 'email' => $email ], $lists_to_add, $context );
+			$result = Newspack_Newsletters_Contacts::upsert( [ 'email' => $email ], $lists_to_add, false, $context );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
