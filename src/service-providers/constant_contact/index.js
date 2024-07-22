@@ -6,7 +6,7 @@ import { __, sprintf, _n } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import ProviderSidebar from './ProviderSidebar';
+import { ProviderSidebar } from './ProviderSidebar';
 
 const hasOauth = true;
 

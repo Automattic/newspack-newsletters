@@ -63,7 +63,7 @@ const ProviderSidebarComponent = ( {
 	renderPreviewText,
 	newsletterData,
 	postId,
-	updateMetaValue,
+	updateMeta,
 	status,
 } ) => {
 	const { campaign, lists = [], segments = [] } = newsletterData;
@@ -139,7 +139,7 @@ const ProviderSidebarComponent = ( {
 
 	useEffect( () => {
 		if ( campaign ) {
-			updateMetaValue( {
+			updateMeta( {
 				senderName: campaign.activity.from_name,
 				senderEmail: campaign.activity.from_email,
 			} );
