@@ -1,3 +1,10 @@
+## [2.20.2](https://github.com/Automattic/newspack-newsletters/compare/v2.20.1...v2.20.2) (2024-07-22)
+
+
+### Bug Fixes
+
+* **usage-reports:** fix MC usage reports backfill inflated counts ([#1554](https://github.com/Automattic/newspack-newsletters/issues/1554)) ([6befa73](https://github.com/Automattic/newspack-newsletters/commit/6befa73feda77c6fb43b78cfbc046584d6eac53f))
+
 ## [2.20.1](https://github.com/Automattic/newspack-newsletters/compare/v2.20.0...v2.20.1) (2024-07-15)
 
 
