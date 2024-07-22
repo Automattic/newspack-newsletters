@@ -47,6 +47,7 @@ const ProviderSidebarComponent = ( {
 	updateMeta,
 	createErrorNotice,
 	meta,
+	status,
 } ) => {
 	const campaign = newsletterData.campaign;
 
@@ -185,9 +186,13 @@ const ProviderSidebarComponent = ( {
 		);
 	}
 
-	const { status } = campaign || {};
-
-	if ( 'sent' === status || 'sending' === status ) {
+	if (
+		! inFlight &&
+		( 'publish' === status ||
+			'private' === status ||
+			'sent' === campaign?.status ||
+			'sending' === campaign?.status )
+	) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
@@ -265,9 +270,10 @@ const ProviderSidebarComponent = ( {
 };
 
 const mapStateToProps = select => {
-	const { getEditedPostAttribute } = select( 'core/editor' );
+	const { getCurrentPostAttribute, getEditedPostAttribute } = select( 'core/editor' );
 	return {
 		meta: getEditedPostAttribute( 'meta' ),
+		status: getCurrentPostAttribute( 'status' ),
 	};
 };
 

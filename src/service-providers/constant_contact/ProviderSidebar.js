@@ -4,6 +4,8 @@
 import apiFetch from '@wordpress/api-fetch';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { ExternalLink, Spinner, Notice } from '@wordpress/components';
+import { compose } from '@wordpress/compose';
+import { withSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
 /**
@@ -52,8 +54,9 @@ const getSendToLink = item => {
 import { getEditPostPayload } from '../../newsletter-editor/utils';
 import './style.scss';
 
-const ProviderSidebar = ( {
+const ProviderSidebarComponent = ( {
 	editPost,
+	inFlight,
 	renderCampaignName,
 	renderSubject,
 	renderFrom,
@@ -61,6 +64,7 @@ const ProviderSidebar = ( {
 	newsletterData,
 	postId,
 	updateMetaValue,
+	status,
 } ) => {
 	const { campaign, lists = [], segments = [] } = newsletterData;
 	const availableLists = [ ...lists, ...segments ].map( item => {
@@ -151,8 +155,10 @@ const ProviderSidebar = ( {
 		);
 	}
 
-	const { current_status: status } = campaign || {};
-	if ( 'DRAFT' !== status ) {
+	if (
+		! inFlight &&
+		( 'DRAFT' !== campaign?.current_status || 'publish' === status || 'private' === status )
+	) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
@@ -185,4 +191,14 @@ const ProviderSidebar = ( {
 	);
 };
 
-export default ProviderSidebar;
+const mapStateToProps = select => {
+	const { getCurrentPostAttribute, getEditedPostAttribute } = select( 'core/editor' );
+	return {
+		meta: getEditedPostAttribute( 'meta' ),
+		status: getCurrentPostAttribute( 'status' ),
+	};
+};
+
+export const ProviderSidebar = compose( [ withSelect( mapStateToProps ) ] )(
+	ProviderSidebarComponent
+);
