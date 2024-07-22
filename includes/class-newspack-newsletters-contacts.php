@@ -251,13 +251,14 @@ class Newspack_Newsletters_Contacts {
 	 * Internal method to add a contact to lists. Should be called by the
 	 * `add_contact` method or `handle_async_subscribe` for the async strategy.
 	 *
-	 * @param array $contact     Contact information.
-	 * @param array $lists       Array of list IDs to subscribe the contact to.
-	 * @param bool  $is_updating Whether the contact is being updated. If false, the contact is being created.
+	 * @param array  $contact     Contact information.
+	 * @param array  $lists       Array of list IDs to subscribe the contact to.
+	 * @param bool   $is_updating Whether the contact is being updated. If false, the contact is being created.
+	 * @param string $context    Context of the update for logging purposes.
 	 *
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	private static function add_to_esp( $contact, $lists = [], $is_updating = false ) {
+	private static function add_to_esp( $contact, $lists = [], $is_updating = false, $context = 'Unknown' ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		$errors   = new WP_Error();
 		$result   = [];
