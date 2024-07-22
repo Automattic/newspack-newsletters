@@ -32,7 +32,7 @@ const getSendToLabel = ( item, type = 'list' ) => {
 			isList
 				? sprintf(
 						// Translators: %d is the number of contacts in the list.
-						_n( '(%d contact)', '(%d contacts)', item.subscriber_count, 'newspack-newsletters' ),
+						_n( '%d contact', '%d contacts', item.subscriber_count, 'newspack-newsletters' ),
 						item.subscriber_count
 				  )
 				: __( 'id: ', 'newspack-newsletters' ) + item.id
