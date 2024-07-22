@@ -191,12 +191,14 @@ class Newspack_Newsletters_Settings {
 				if ( ! empty( $item['provider'] ) && ! in_array( $item['provider'], $supported_providers, true ) ) {
 					return $acc;
 				}
-				if ( ! empty( $item['options'] ) ) {
-					$item['options'] = array_filter(
-						$item['options'],
-						function ( $option ) use ( $supported_providers ) {
-							return ! $option['value'] || in_array( $option['value'], $supported_providers, true );
-						}
+				if ( 'select' === $item['type'] && ! empty( $item['options'] ) ) {
+					$item['options'] = array_values(
+						array_filter(
+							$item['options'],
+							function ( $option ) use ( $supported_providers ) {
+								return ! $option['value'] || in_array( $option['value'], $supported_providers, true );
+							}
+						)
 					);
 				}
 				$default       = ! empty( $item['default'] ) ? $item['default'] : false;
