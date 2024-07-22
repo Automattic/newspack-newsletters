@@ -230,6 +230,7 @@ const ProviderSidebarComponent = ( {
 				disabled={ inFlight }
 				onChange={ value => updateMeta( { ac_from_email: value } ) }
 			/>
+			<hr />
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
@@ -247,7 +248,6 @@ const ProviderSidebarComponent = ( {
 			/>
 			{ selectedList && (
 				<>
-					<hr />
 					<SendTo
 						availableLists={ segments }
 						onChange={ selected => onChangeSendTo( selected, 'segment' ) }

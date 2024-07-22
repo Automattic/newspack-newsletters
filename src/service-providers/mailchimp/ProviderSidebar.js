@@ -59,6 +59,7 @@ const ProviderSidebarComponent = ( {
 					...audience,
 					value: audience.id,
 					label: getSendToLabel( audience, 'audience' ),
+					list_type: 'audience',
 				} ) )
 		: [];
 	const folders = newsletterData?.folders || [];
