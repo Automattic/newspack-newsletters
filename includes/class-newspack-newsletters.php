@@ -133,7 +133,7 @@ final class Newspack_Newsletters {
 	 * @return bool
 	 */
 	public static function should_deprecate_campaign_monitor() {
-		return 'campaign_monitor' === self::service_provider() && ( ! defined( 'NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR' ) || ! NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR );
+		return 'campaign_monitor' === self::service_provider();
 	}
 
 	/**
