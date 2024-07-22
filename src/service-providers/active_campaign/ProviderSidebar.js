@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
@@ -30,7 +30,11 @@ const getSendToLabel = ( item, type = 'list' ) => {
 			// Translators: more details on the list or segment.
 			__( '(%s)', 'newspack-newsletters' ),
 			isList
-				? item.subscriber_count + __( ' contacts', 'newspack-newsletters' )
+				? sprintf(
+						// Translators: %d is the number of contacts in the list.
+						_n( '(%d contact)', '(%d contacts)', item.subscriber_count, 'newspack-newsletters' ),
+						item.subscriber_count
+				  )
 				: __( 'id: ', 'newspack-newsletters' ) + item.id
 		)
 	).trim();

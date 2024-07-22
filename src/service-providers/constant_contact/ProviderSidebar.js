@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { ExternalLink, Spinner, Notice } from '@wordpress/components';
 import { useEffect } from '@wordpress/element';
 
@@ -19,8 +19,11 @@ const getSendToLabel = item => {
 		isList ? __( 'LIST', 'newspack-newsletters' ) : __( 'SEGMENT', 'newspack-newsletters' ),
 		item.name,
 		item.hasOwnProperty( 'membership_count' )
-			? // Translators: %d is the number of contacts in the list or segment.
-			  sprintf( __( '(%d contacts)', 'newspack-newsletters' ), item.membership_count )
+			? sprintf(
+					// Translators: %d is the number of contacts in the list or segment.
+					_n( '(%d contact)', '(%d contacts)', item.membership_count, 'newspack-newsletters' ),
+					item.membership_count
+			  )
 			: ''
 	).trim();
 };
