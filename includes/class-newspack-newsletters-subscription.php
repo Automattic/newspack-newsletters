@@ -580,13 +580,14 @@ class Newspack_Newsletters_Subscription {
 
 		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 		try {
-			self::add_contact(
+			Newspack_Newsletters_Contacts::upsert(
 				[
 					'email'    => $email,
 					'metadata' => $metadata,
 				],
 				$lists,
-				true // Async.
+				true, // Async.
+				'Reader registration hook on Newsletters plugin'
 			);
 		} catch ( \Exception $e ) {
 			// Avoid breaking the registration process.
