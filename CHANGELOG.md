@@ -1,3 +1,10 @@
+## [2.20.4](https://github.com/Automattic/newspack-newsletters/compare/v2.20.3...v2.20.4) (2024-07-22)
+
+
+### Bug Fixes
+
+* avoid fatal when provider is manual ([b245716](https://github.com/Automattic/newspack-newsletters/commit/b24571600a34f91cb0f5be9714fe5db71f1e9c0a))
+
 ## [2.20.3](https://github.com/Automattic/newspack-newsletters/compare/v2.20.2...v2.20.3) (2024-07-22)
 
 
