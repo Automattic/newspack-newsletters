@@ -237,7 +237,6 @@ class Newspack_Newsletters_Contacts {
 					'provider'        => $provider->service,
 					'lists_to_add'    => $lists_to_add,
 					'lists_to_remove' => $lists_to_remove,
-					'result'          => $result,
 					'errors'          => is_wp_error( $result ) ? $result->get_error_messages() : [],
 				],
 				'user_email' => $email,
@@ -316,7 +315,7 @@ class Newspack_Newsletters_Contacts {
 				'data'       => [
 					'provider' => $provider->service,
 					'lists'    => $lists,
-					'result'   => $result,
+					'contact'  => $contact,
 					'errors'   => $errors->get_error_messages(),
 				],
 				'user_email' => $contact['email'],
