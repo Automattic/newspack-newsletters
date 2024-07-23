@@ -302,9 +302,16 @@ final class Newspack_Newsletters_Editor {
 		$mjml_handling_post_types = array_values( array_diff( self::get_email_editor_cpts(), [ Newspack_Newsletters_Ads::CPT ] ) );
 		$provider                 = Newspack_Newsletters::get_service_provider();
 		$conditional_tag_support  = false;
+		$error_message            = false;
+
 		if ( $provider && ( self::is_editing_newsletter() || self::is_editing_newsletter_ad() ) ) {
 			$conditional_tag_support = $provider::get_conditional_tag_support();
+
+			// Fetch async error messages to display on editor load.
+			$transient_name = $provider->get_transient_name( get_the_ID() );
+			$error_message  = get_transient( $transient_name );
 		}
+
 		$email_editor_data = [
 			'email_html_meta'                => Newspack_Newsletters::EMAIL_HTML_META,
 			'mjml_handling_post_types'       => $mjml_handling_post_types,
@@ -318,6 +325,11 @@ final class Newspack_Newsletters_Editor {
 			],
 			'supported_social_icon_services' => Newspack_Newsletters_Renderer::get_supported_social_icons_services(),
 		];
+
+		if ( $error_message ) {
+			$email_editor_data['error_message'] = $error_message;
+		}
+
 		if ( self::is_editing_email() ) {
 			wp_register_style(
 				'newspack-newsletters',

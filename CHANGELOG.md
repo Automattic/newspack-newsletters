@@ -1,3 +1,24 @@
+## [2.20.4](https://github.com/Automattic/newspack-newsletters/compare/v2.20.3...v2.20.4) (2024-07-22)
+
+
+### Bug Fixes
+
+* avoid fatal when provider is manual ([b245716](https://github.com/Automattic/newspack-newsletters/commit/b24571600a34f91cb0f5be9714fe5db71f1e9c0a))
+
+## [2.20.3](https://github.com/Automattic/newspack-newsletters/compare/v2.20.2...v2.20.3) (2024-07-22)
+
+
+### Bug Fixes
+
+* sync newsletter campaigns on post meta update for all ESPs ([#1556](https://github.com/Automattic/newspack-newsletters/issues/1556)) ([6d028ff](https://github.com/Automattic/newspack-newsletters/commit/6d028ffc7e34101dd1fb30fd5c1d04736ce4ce78))
+
+## [2.20.2](https://github.com/Automattic/newspack-newsletters/compare/v2.20.1...v2.20.2) (2024-07-22)
+
+
+### Bug Fixes
+
+* **usage-reports:** fix MC usage reports backfill inflated counts ([#1554](https://github.com/Automattic/newspack-newsletters/issues/1554)) ([6befa73](https://github.com/Automattic/newspack-newsletters/commit/6befa73feda77c6fb43b78cfbc046584d6eac53f))
+
 ## [2.20.1](https://github.com/Automattic/newspack-newsletters/compare/v2.20.0...v2.20.1) (2024-07-15)
 
 

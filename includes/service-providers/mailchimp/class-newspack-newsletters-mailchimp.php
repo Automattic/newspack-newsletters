@@ -777,6 +777,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @throws Exception Error message.
 	 */
 	public function sync( $post ) {
+		// Clear prior error messages.
+		$transient_name = $this->get_transient_name( $post->ID );
+		delete_transient( $transient_name );
 		try {
 			$api_key = $this->api_key();
 			if ( ! $api_key ) {
@@ -847,8 +850,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_result'  => $content_result,
 			];
 		} catch ( Exception $e ) {
-			$transient = sprintf( 'newspack_newsletters_error_%s_%s', $post->ID, get_current_user_id() );
-			set_transient( $transient, $e->getMessage(), 45 );
+			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $e->getMessage(), 45 );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
 	}
