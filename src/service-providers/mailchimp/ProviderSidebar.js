@@ -13,7 +13,7 @@ import { SelectControl, Spinner, Notice } from '@wordpress/components';
  */
 import SendTo from '../../newsletter-editor/sidebar/send-to';
 import { getSuggestionLabel } from '../../newsletter-editor/utils';
-import { getSubAudienceOptions, getSendToLabel, getSendToLink } from './utils';
+import { getSubAudienceOptions } from './utils';
 
 const getSubAudienceValue = newsletterData => {
 	const recipients = newsletterData.campaign?.recipients;
@@ -271,8 +271,6 @@ const ProviderSidebarComponent = ( {
 				availableItems={ audiences }
 				onChange={ selected => onChangeSendTo( selected ) }
 				formLabel={ __( 'Select a list', 'newspack' ) }
-				getLabel={ getSendToLabel }
-				getLink={ getSendToLink }
 				placeholder={ __( 'Type a list name to search', 'newspack' ) }
 				reset={ null } // Mailchimp API doesn't support unsetting a campaign's list, once set.
 				selectedItem={ selectedAudience }
@@ -295,11 +293,11 @@ const ProviderSidebarComponent = ( {
 						__html: sprintf(
 							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the parent item name and type (if any).
 							__(
-								'This newsletter will be sent to all %1$smembers of the %2$s %3$s%4$s.',
+								'This newsletter will be sent to all %1$s of the %2$s %3$s%4$s.',
 								'newspack-newsletters'
 							),
-							selectedAudience.details && ! isNaN( selectedAudience.details )
-								? `<strong>${ selectedAudience.details.toLocaleString() }</strong>` + ' '
+							! selectedSubAudience && selectedAudience.details
+								? `<strong>${ selectedAudience.details }</strong> `
 								: '',
 							`<strong>${ selectedAudience.name }</strong>`,
 							selectedAudience.typeLabel.toLowerCase(),

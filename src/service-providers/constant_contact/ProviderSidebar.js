@@ -173,14 +173,14 @@ const ProviderSidebarComponent = ( {
 				<p
 					dangerouslySetInnerHTML={ {
 						__html: sprintf(
-							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type.
+							// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type.
 							__(
-								'This newsletter will be sent to all %1$smembers of the %2$s %3$s.',
+								'This newsletter will be sent to all %1$s in the %2$s %3$s.',
 								'newspack-newsletters'
 							),
-							selected.details && ! isNaN( selected.details )
-								? `<strong>${ selected.details.toLocaleString() }</strong>` + ' '
-								: '',
+							selected.details
+								? `<strong>${ selected.details }</strong> `
+								: __( 'contacts', 'newspack-newsletters' ),
 							`<strong>${ selected.name }</strong>`,
 							selected.typeLabel.toLowerCase()
 						),
