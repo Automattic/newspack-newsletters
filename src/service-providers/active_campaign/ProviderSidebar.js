@@ -263,7 +263,7 @@ const ProviderSidebarComponent = ( {
 								'This newsletter will be sent to all %1$smembers of the %2$s %3$s%4$s.',
 								'newspack-newsletters'
 							),
-							selectedList.typeLabel && ! isNaN( selectedList.details )
+							selectedList.details && ! isNaN( selectedList.details )
 								? `<strong>${ selectedList.details.toLocaleString() }</strong>` + ' '
 								: '',
 							`<strong>${ selectedList.name }</strong>`,

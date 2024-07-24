@@ -175,10 +175,10 @@ const ProviderSidebarComponent = ( {
 						__html: sprintf(
 							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type.
 							__(
-								'This newsletter will be sent to all %1$smembers of the %2$s %3$s%4$s.',
+								'This newsletter will be sent to all %1$smembers of the %2$s %3$s.',
 								'newspack-newsletters'
 							),
-							selected.typeLabel && ! isNaN( selected.details )
+							selected.details && ! isNaN( selected.details )
 								? `<strong>${ selected.details.toLocaleString() }</strong>` + ' '
 								: '',
 							`<strong>${ selected.name }</strong>`,
