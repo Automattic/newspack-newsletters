@@ -224,8 +224,9 @@ class Newspack_Newsletters_Contacts {
 		 * @param string[]      $lists_to_add    Array of list IDs to subscribe the contact to.
 		 * @param string[]      $lists_to_remove Array of list IDs to remove the contact from.
 		 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
+		 * @param string        $context         Context of the update for logging purposes.
 		 */
-		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result );
+		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result, $context );
 
 		do_action(
 			'newspack_log',
@@ -304,8 +305,9 @@ class Newspack_Newsletters_Contacts {
 		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
 		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
 		 * @param bool                $is_updating Whether the contact is being updated. If false, the contact is being created.
+		 * @param string              $context  Context of the update for logging purposes.
 		 */
-		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating );
+		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating, $context );
 
 		do_action(
 			'newspack_log',
