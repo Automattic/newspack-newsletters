@@ -4,6 +4,7 @@
 import { __ } from '@wordpress/i18n';
 import { FormTokenField, Button, ButtonGroup, Notice } from '@wordpress/components';
 import { useState } from '@wordpress/element';
+import { Icon, external } from '@wordpress/icons';
 
 const SendTo = ( {
 	availableLists,
@@ -31,7 +32,6 @@ const SendTo = ( {
 				<div>
 					<p>
 						<strong>{ getLabel( selectedList ) }</strong>{ ' ' }
-						{ getLink ? getLink( selectedList ) : null }
 					</p>
 				</div>
 			) : (
@@ -67,6 +67,7 @@ const SendTo = ( {
 							<Button
 								disabled={ isUpdating }
 								onClick={ () => setIsEditing( true ) }
+								size="small"
 								variant="secondary"
 							>
 								{ __( 'Edit', 'newspack-newsletters' ) }
@@ -88,15 +89,29 @@ const SendTo = ( {
 												setIsEditing( false );
 											} );
 									} }
+									size="small"
 									variant="secondary"
 								>
 									{ __( 'Reset', 'newspack-newsletters' ) }
 								</Button>
 							) }
+							{ getLink && (
+								<Button
+									disabled={ isUpdating }
+									href={ getLink( selectedList ) }
+									size="small"
+									target="_blank"
+									variant="secondary"
+									rel="noopener noreferrer"
+								>
+									{ __( 'Manage', 'newspack-newsletters' ) }
+									<Icon icon={ external } size={ 14 } />
+								</Button>
+							) }
 						</>
 					) }
 					{ isEditing && (
-						<Button onClick={ () => setIsEditing( false ) } variant="secondary">
+						<Button onClick={ () => setIsEditing( false ) } variant="secondary" size="small">
 							{ __( 'Cancel', 'newspack-newsletters' ) }
 						</Button>
 					) }

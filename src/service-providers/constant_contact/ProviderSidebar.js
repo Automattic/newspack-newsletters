@@ -3,7 +3,7 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { ExternalLink, Spinner, Notice } from '@wordpress/components';
+import { Spinner, Notice } from '@wordpress/components';
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
@@ -31,21 +31,9 @@ const getSendToLabel = item => {
 };
 
 const getSendToLink = item => {
-	const isList = item.hasOwnProperty( 'list_id' );
-
-	return (
-		<p>
-			<ExternalLink
-				href={
-					isList
-						? `https://app.constantcontact.com/pages/contacts/ui#contacts/${ item.list_id }`
-						: `https://app.constantcontact.com/pages/contacts/ui#segments/${ item.segment_id }/preview`
-				}
-			>
-				{ __( 'View in Constant Contact', 'newspack-newsletters' ) }
-			</ExternalLink>
-		</p>
-	);
+	return item.hasOwnProperty( 'list_id' )
+		? `https://app.constantcontact.com/pages/contacts/ui#contacts/${ item.list_id }`
+		: `https://app.constantcontact.com/pages/contacts/ui#segments/${ item.segment_id }/preview`;
 };
 
 /**

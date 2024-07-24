@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { ExternalLink } from '@wordpress/components';
 
 /**
  * Get a label describing the audience or subaudience for the autocomplete UI.
@@ -37,13 +36,7 @@ export const getSendToLabel = ( item, type = 'audience' ) => {
 export const getSendToLink = item => {
 	const { web_id: webId } = item;
 	if ( webId ) {
-		return (
-			<p>
-				<ExternalLink href={ `https://admin.mailchimp.com/lists/members/?id=${ webId }` }>
-					{ __( 'Manage audience', 'newspack-newsletters' ) }
-				</ExternalLink>
-			</p>
-		);
+		return `https://admin.mailchimp.com/lists/members/?id=${ webId }`;
 	}
 	return null;
 };
