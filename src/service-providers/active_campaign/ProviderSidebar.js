@@ -17,28 +17,8 @@ import { pick } from 'lodash';
  * Internal dependencies
  */
 import SendTo from '../../newsletter-editor/sidebar/send-to';
+import { getSuggestionLabel } from '../../newsletter-editor/utils';
 import './style.scss';
-
-const getSendToLabel = ( item, type = 'list' ) => {
-	const isList = 'list' === type;
-	return sprintf(
-		// Translators: %1$s is the type of list or segment, %2$s is the name of the list or segment, %3$s is the number of contacts in the list.
-		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
-		isList ? __( 'LIST', 'newspack-newsletters' ) : __( 'SEGMENT', 'newspack-newsletters' ),
-		item.name,
-		sprintf(
-			// Translators: more details on the list or segment.
-			__( '(%s)', 'newspack-newsletters' ),
-			isList
-				? sprintf(
-						// Translators: %d is the number of contacts in the list.
-						_n( '%d contact', '%d contacts', item.subscriber_count, 'newspack-newsletters' ),
-						item.subscriber_count
-				  )
-				: __( 'id: ', 'newspack-newsletters' ) + item.id
-		)
-	).trim();
-};
 
 /**
  * Validation utility.
@@ -109,21 +89,41 @@ const ProviderSidebarComponent = ( {
 				path: `/newspack-newsletters/v1/active_campaign/${ postId }/retrieve`,
 			} );
 			setLists(
-				response.lists.map( list => {
-					return {
-						...list,
-						value: list.id,
-						label: getSendToLabel( list ),
+				response.lists.map( item => {
+					const formattedItem = {
+						...item,
+						details: item.hasOwnProperty( 'subscriber_count' )
+							? sprintf(
+									// Translators: %d is the number of contacts in the list.
+									_n( '%d contact', '%d contacts', item.subscriber_count, 'newspack-newsletters' ),
+									item.subscriber_count.toLocaleString()
+							  )
+							: null,
+						name: item.name,
+						typeLabel: __( 'List', 'newspack-newsletters' ),
+						type: 'list',
+						value: item.id,
 					};
+
+					formattedItem.label = getSuggestionLabel( formattedItem );
+
+					return formattedItem;
 				} )
 			);
 			setSegments(
-				response.segments.map( segment => {
-					return {
-						...segment,
-						value: segment.id,
-						label: getSendToLabel( segment, 'segment' ),
+				response.segments.map( item => {
+					const formattedItem = {
+						...item,
+						details: __( 'id: ', 'newspack-newsletters' ) + item.id,
+						name: item.name,
+						typeLabel: __( 'Segment', 'newspack-newsletters' ),
+						type: 'segment',
+						value: item.id,
 					};
+
+					formattedItem.label = getSuggestionLabel( formattedItem );
+
+					return formattedItem;
 				} )
 			);
 		} catch ( e ) {
@@ -144,12 +144,12 @@ const ProviderSidebarComponent = ( {
 			campaign: true,
 		};
 		if ( acData.ac_list_id ) {
-			setSelectedList( lists.find( list => list.id === acData.ac_list_id ) );
+			setSelectedList( lists.find( list => list.value === acData.ac_list_id ) );
 		} else {
 			setSelectedList( null );
 		}
 		if ( acData.ac_segment_id ) {
-			setSelectedSegment( segments.find( segment => segment.id === acData.ac_segment_id ) );
+			setSelectedSegment( segments.find( segment => segment.value === acData.ac_segment_id ) );
 		} else {
 			setSelectedSegment( null );
 		}
@@ -179,9 +179,7 @@ const ProviderSidebarComponent = ( {
 		const isList = 'list' === type;
 		const selectedLabel = labels[ 0 ];
 		const items = isList ? [ ...lists ] : [ ...segments ];
-		const selectedItem = items.find(
-			item => getSendToLabel( item, isList ? 'list' : 'segment' ) === selectedLabel
-		);
+		const selectedItem = items.find( item => item.label === selectedLabel );
 		const metaKey = isList ? 'ac_list_id' : 'ac_segment_id';
 		const updatedMeta = {};
 		updatedMeta[ metaKey ] = selectedItem?.id || '';
@@ -235,29 +233,52 @@ const ProviderSidebarComponent = ( {
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
 			<SendTo
-				availableLists={ lists }
+				availableItems={ lists }
 				onChange={ selected => onChangeSendTo( selected ) }
-				formLabel={ __( 'Select a list', 'newspack' ) }
-				getLabel={ getSendToLabel }
 				placeholder={ __( 'Type a list name to search.', 'newspack' ) }
 				reset={ async () => {
 					updateMeta( { ac_list_id: '' } );
 					updateMeta( { ac_segment_id: '' } );
 				} }
-				selectedList={ selectedList }
+				selectedItem={ selectedList }
 			/>
 			{ selectedList && (
 				<>
 					<SendTo
-						availableLists={ segments }
+						availableItems={ segments }
 						onChange={ selected => onChangeSendTo( selected, 'segment' ) }
 						formLabel={ __( 'Select a segment (optional)', 'newspack' ) }
-						getLabel={ item => getSendToLabel( item, 'segment' ) }
-						placeholder={ __( 'Type a segment name to search.', 'newspack' ) }
+						placeholder={ __( 'Filter by segment', 'newspack' ) }
 						reset={ async () => updateMeta( { ac_segment_id: '' } ) }
-						selectedList={ selectedSegment }
+						selectedItem={ selectedSegment }
 					/>
 				</>
+			) }
+			{ selectedList && (
+				<p
+					dangerouslySetInnerHTML={ {
+						__html: sprintf(
+							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the parent item name and type (if any).
+							__(
+								'This newsletter will be sent to all %1$smembers of the %2$s %3$s%4$s.',
+								'newspack-newsletters'
+							),
+							selectedList.typeLabel && ! isNaN( selectedList.details )
+								? `<strong>${ selectedList.details.toLocaleString() }</strong>` + ' '
+								: '',
+							`<strong>${ selectedList.name }</strong>`,
+							selectedList.typeLabel.toLowerCase(),
+							selectedSegment
+								? sprintf(
+										// Translators: %1$s is the parent item name, %2$s is the parent item type.
+										__( ' who are part of the %1$s %2$s', 'newspack-newsletters' ),
+										`<strong>${ selectedSegment.name }</strong>`,
+										selectedSegment.typeLabel.toLowerCase()
+								  )
+								: ''
+						),
+					} }
+				/>
 			) }
 			{ inFlight && <Spinner /> }
 		</div>

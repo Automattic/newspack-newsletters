@@ -28,9 +28,17 @@
 	}
 
 	&__send-to {
-		margin-top: 16px;
+		margin: 16px 0;
 		.components-notice + * {
 			margin-top: 16px;
+		}
+
+		.newspack-newsletters__send-to-details {
+			font-weight: 500;
+			span {
+				color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
+				display: block;
+			}
 		}
 	}
 

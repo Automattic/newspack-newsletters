@@ -4,6 +4,11 @@
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 /**
+ * Internal dependencies
+ */
+import { getSuggestionLabel } from '../../newsletter-editor/utils';
+
+/**
  * Get a label describing the audience or subaudience for the autocomplete UI.
  *
  * @param {Object} item The audience or subaudience object.
@@ -56,7 +61,8 @@ export const getSubAudienceOptions = newsletterData => {
 					accumulator.push( {
 						...interest,
 						value: `interests-${ id }:${ interest.id }`,
-						list_type: 'group',
+						type: 'group',
+						typeLabel: __( 'Group', 'newspack-newsletters' ),
 					} );
 				} );
 			}
@@ -67,16 +73,33 @@ export const getSubAudienceOptions = newsletterData => {
 	const segments = ( newsletterData?.segments || [] ).map( item => ( {
 		...item,
 		value: item.id,
-		list_type: 'segment',
+		type: 'segment',
+		typeLabel: __( 'Segment', 'newspack-newsletters' ),
 	} ) );
 	const tags = ( newsletterData?.tags || [] ).map( item => ( {
 		...item,
 		value: item.id,
-		list_type: 'tag',
+		type: 'tag',
+		typeLabel: __( 'Tag', 'newspack-newsletters' ),
 	} ) );
 
-	return [ ...groups, ...segments, ...tags ].map( item => ( {
+	const formattedItems = [ ...groups, ...segments, ...tags ].map( item => ( {
 		...item,
-		label: getSendToLabel( item, item.list_type ),
 	} ) );
+
+	return formattedItems.map( item => {
+		const contactCount = item?.member_count || item?.subscriber_count || item?.stats?.member_count;
+		if ( contactCount ) {
+			item.details = sprintf(
+				// Translators: %d is the number of contacts in the list.
+				_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
+				contactCount.toLocaleString()
+			);
+		}
+
+		item.name = item.name || item.title;
+		item.label = getSuggestionLabel( item );
+
+		return item;
+	} );
 };

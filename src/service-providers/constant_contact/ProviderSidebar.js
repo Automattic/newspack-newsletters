@@ -12,34 +12,7 @@ import { useEffect } from '@wordpress/element';
  * Internal dependencies
  */
 import SendTo from '../../newsletter-editor/sidebar/send-to';
-
-const getSendToLabel = item => {
-	const isList = item.hasOwnProperty( 'list_id' );
-	return sprintf(
-		// Translators: %1$s is the type of list or segment, %2$s is the name of the list or segment, %3$s is the number of contacts in the list.
-		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
-		isList ? __( 'LIST', 'newspack-newsletters' ) : __( 'SEGMENT', 'newspack-newsletters' ),
-		item.name,
-		item.hasOwnProperty( 'membership_count' )
-			? sprintf(
-					// Translators: %d is the number of contacts in the list or segment.
-					_n( '(%d contact)', '(%d contacts)', item.membership_count, 'newspack-newsletters' ),
-					item.membership_count
-			  )
-			: ''
-	).trim();
-};
-
-const getSendToLink = item => {
-	return item.hasOwnProperty( 'list_id' )
-		? `https://app.constantcontact.com/pages/contacts/ui#contacts/${ item.list_id }`
-		: `https://app.constantcontact.com/pages/contacts/ui#segments/${ item.segment_id }/preview`;
-};
-
-/**
- * Internal dependencies
- */
-import { getEditPostPayload } from '../../newsletter-editor/utils';
+import { getEditPostPayload, getSuggestionLabel } from '../../newsletter-editor/utils';
 import './style.scss';
 
 const ProviderSidebarComponent = ( {
@@ -55,14 +28,37 @@ const ProviderSidebarComponent = ( {
 	status,
 } ) => {
 	const { campaign, lists = [], segments = [] } = newsletterData;
-	const availableLists = [ ...lists, ...segments ].map( item => {
-		item.value = item.list_id || item.segment_id;
-		item.label = getSendToLabel( item );
-		return item;
+
+	// Standardize data schema. We'll eventually move this standardization to the provider API handlers instead.
+	const availableItems = [ ...lists, ...segments ].map( item => {
+		const isList = item.hasOwnProperty( 'list_id' );
+		const formattedItem = {
+			...item,
+			details: item.hasOwnProperty( 'membership_count' )
+				? sprintf(
+						// Translators: %d is the number of contacts in the list or segment.
+						_n( '%d contact', '%d contacts', item.membership_count, 'newspack-newsletters' ),
+						item.membership_count.toLocaleString()
+				  )
+				: null,
+			editLink: isList
+				? `https://app.constantcontact.com/pages/contacts/ui#contacts/${ item.list_id }`
+				: `https://app.constantcontact.com/pages/contacts/ui#segments/${ item.segment_id }/preview`,
+			name: item.name || item.title,
+			typeLabel: isList
+				? __( 'List', 'newspack-newsletters' )
+				: __( 'Segment', 'newspack-newsletters' ),
+			type: isList ? 'list' : 'segment',
+			value: item.list_id || item.segment_id,
+		};
+
+		formattedItem.label = getSuggestionLabel( formattedItem );
+
+		return formattedItem;
 	} );
 
-	const selectedList =
-		availableLists.find( list => {
+	const selected =
+		availableItems.find( list => {
 			if ( campaign?.activity?.contact_list_ids?.length ) {
 				return list.list_id === campaign.activity.contact_list_ids[ 0 ];
 			}
@@ -105,12 +101,12 @@ const ProviderSidebarComponent = ( {
 		} );
 	};
 
-	const onChangeSendTo = labels => {
+	const onChangeSendTo = async labels => {
 		const selectedLabel = labels[ 0 ];
-		const selectedItem = availableLists.find( item => item.label === selectedLabel );
+		const selectedItem = availableItems.find( item => item.label === selectedLabel );
 
 		// If the selected item is already selected in the campaign, no need to update.
-		if ( selectedItem.value === selectedList?.value ) {
+		if ( ! selectedItem || selected?.value === selectedItem?.value ) {
 			return;
 		}
 
@@ -120,8 +116,8 @@ const ProviderSidebarComponent = ( {
 	};
 
 	const resetSendTo = () => {
-		return selectedList && selectedList.hasOwnProperty( 'list_id' )
-			? setList( selectedList.list_id, false )
+		return selected && selected.hasOwnProperty( 'list_id' )
+			? setList( selected.list_id, false )
 			: setSegment( false );
 	};
 
@@ -166,15 +162,31 @@ const ProviderSidebarComponent = ( {
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
 			<SendTo
-				availableLists={ availableLists }
-				onChange={ onChangeSendTo }
+				availableItems={ availableItems }
+				onChange={ items => onChangeSendTo( items ) }
 				formLabel={ __( 'Select a list or segment', 'newspack' ) }
-				getLabel={ getSendToLabel }
-				getLink={ getSendToLink }
-				placeholder={ __( 'Type a list or segment name to search.', 'newspack' ) }
+				placeholder={ __( 'Type a list or segment name to search', 'newspack' ) }
 				reset={ resetSendTo }
-				selectedList={ selectedList }
+				selectedItem={ selected }
 			/>
+			{ selected && (
+				<p
+					dangerouslySetInnerHTML={ {
+						__html: sprintf(
+							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type.
+							__(
+								'This newsletter will be sent to all %1$smembers of the %2$s %3$s%4$s.',
+								'newspack-newsletters'
+							),
+							selected.typeLabel && ! isNaN( selected.details )
+								? `<strong>${ selected.details.toLocaleString() }</strong>` + ' '
+								: '',
+							`<strong>${ selected.name }</strong>`,
+							selected.typeLabel.toLowerCase()
+						),
+					} }
+				/>
+			) }
 		</>
 	);
 };

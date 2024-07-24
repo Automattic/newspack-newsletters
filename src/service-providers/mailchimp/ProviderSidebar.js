@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
@@ -12,6 +12,7 @@ import { SelectControl, Spinner, Notice } from '@wordpress/components';
  * Internal dependencies
  */
 import SendTo from '../../newsletter-editor/sidebar/send-to';
+import { getSuggestionLabel } from '../../newsletter-editor/utils';
 import { getSubAudienceOptions, getSendToLabel, getSendToLink } from './utils';
 
 const getSubAudienceValue = newsletterData => {
@@ -55,12 +56,28 @@ const ProviderSidebarComponent = ( {
 	const audiences = newsletterData?.lists
 		? newsletterData.lists
 				.filter( list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type )
-				.map( audience => ( {
-					...audience,
-					value: audience.id,
-					label: getSendToLabel( audience, 'audience' ),
-					list_type: 'audience',
-				} ) )
+				.map( item => {
+					const contactCount =
+						item?.member_count || item?.subscriber_count || item?.stats?.member_count;
+					const formattedItem = {
+						...item,
+						details: contactCount
+							? sprintf(
+									// Translators: %d is the number of contacts in the list.
+									_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
+									contactCount.toLocaleString()
+							  )
+							: null,
+						name: item.name || item.title,
+						typeLabel: __( 'Audience', 'newspack-newsletters' ),
+						type: 'list',
+						value: item.id,
+					};
+
+					formattedItem.label = getSuggestionLabel( formattedItem );
+
+					return formattedItem;
+				} )
 		: [];
 	const folders = newsletterData?.folders || [];
 
@@ -211,9 +228,16 @@ const ProviderSidebarComponent = ( {
 	const onChangeSendTo = labels => {
 		const selectedLabel = labels[ 0 ];
 		const items = [ ...audiences, ...subAudiences ];
-		const selectedItem = items.find(
-			item => getSendToLabel( item, item.list_type ) === selectedLabel
-		);
+		const selectedItem = items.find( item => item.label === selectedLabel );
+
+		// If the selected item is already selected in the campaign, no need to update.
+		if (
+			! selectedItem ||
+			selectedAudience?.value === selectedItem?.value ||
+			selectedSubAudience?.value === selectedItem?.value
+		) {
+			return;
+		}
 
 		return selectedItem.list_type === 'audience'
 			? setList( selectedItem.value )
@@ -244,27 +268,52 @@ const ProviderSidebarComponent = ( {
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
 			<SendTo
-				availableLists={ audiences }
+				availableItems={ audiences }
 				onChange={ selected => onChangeSendTo( selected ) }
 				formLabel={ __( 'Select a list', 'newspack' ) }
 				getLabel={ getSendToLabel }
 				getLink={ getSendToLink }
-				placeholder={ __( 'Type a list name to search.', 'newspack' ) }
+				placeholder={ __( 'Type a list name to search', 'newspack' ) }
 				reset={ null } // Mailchimp API doesn't support unsetting a campaign's list, once set.
-				selectedList={ selectedAudience }
+				selectedItem={ selectedAudience }
 			/>
 			{ selectedAudience && (
 				<>
 					<SendTo
-						availableLists={ subAudiences }
+						availableItems={ subAudiences }
 						onChange={ onChangeSendTo }
 						formLabel={ __( 'Group, Segment, or Tag (optional)', 'newspack' ) }
-						getLabel={ item => getSendToLabel( item, item.list_type ) }
-						placeholder={ __( 'Type a group, segment, or tag name to search.', 'newspack' ) }
+						placeholder={ __( 'Filter by group, segment, or tag', 'newspack' ) }
 						reset={ () => updateSegments( '' ) }
-						selectedList={ selectedSubAudience }
+						selectedItem={ selectedSubAudience }
 					/>
 				</>
+			) }
+			{ selectedAudience && (
+				<p
+					dangerouslySetInnerHTML={ {
+						__html: sprintf(
+							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the parent item name and type (if any).
+							__(
+								'This newsletter will be sent to all %1$smembers of the %2$s %3$s%4$s.',
+								'newspack-newsletters'
+							),
+							selectedAudience.typeLabel && ! isNaN( selectedAudience.details )
+								? `<strong>${ selectedAudience.details.toLocaleString() }</strong>` + ' '
+								: '',
+							`<strong>${ selectedAudience.name }</strong>`,
+							selectedAudience.typeLabel.toLowerCase(),
+							selectedSubAudience
+								? sprintf(
+										// Translators: %1$s is the parent item name, %2$s is the parent item type.
+										__( ' who are part of the %1$s %2$s', 'newspack-newsletters' ),
+										`<strong>${ selectedSubAudience.name }</strong>`,
+										selectedSubAudience.typeLabel.toLowerCase()
+								  )
+								: ''
+						),
+					} }
+				/>
 			) }
 		</Fragment>
 	);

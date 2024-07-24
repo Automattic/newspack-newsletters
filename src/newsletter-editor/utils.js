@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -59,4 +60,26 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 	// Once received MJML markup, convert it to email-compliant HTML and save as post meta.
 	const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
 	return html;
+};
+
+/**
+ * Get a label for the Send To autocomplete field.
+ *
+ * @param {Object} item A list or sublist item.
+ * @return {string} The autocomplete suggestion label for the item.
+ */
+export const getSuggestionLabel = item => {
+	return sprintf(
+		// Translators: %1$s is the item type, %2$s is the item name, %3$s is more details about the item, if available.
+		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
+		item.typeLabel,
+		item.name,
+		item?.details && null !== item.details
+			? sprintf(
+					// Translators: %s contains more details about the item.
+					__( '(%s)', 'newspack-newsletters' ),
+					item.details
+			  )
+			: ''
+	).trim();
 };

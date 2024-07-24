@@ -1,21 +1,12 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { FormTokenField, Button, ButtonGroup, Notice } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { Icon, external } from '@wordpress/icons';
 
-const SendTo = ( {
-	availableLists,
-	formLabel,
-	getLabel,
-	getLink = null,
-	onChange,
-	placeholder,
-	reset,
-	selectedList,
-} ) => {
+const SendTo = ( { availableItems, formLabel, onChange, placeholder, reset, selectedItem } ) => {
 	const [ isEditing, setIsEditing ] = useState( false );
 	const [ isUpdating, setIsUpdating ] = useState( false );
 	const [ error, setError ] = useState( false );
@@ -28,12 +19,26 @@ const SendTo = ( {
 				</Notice>
 			) }
 
-			{ selectedList && ! isEditing ? (
-				<div>
-					<p>
-						<strong>{ getLabel( selectedList ) }</strong>{ ' ' }
+			{ selectedItem && ! isEditing ? (
+				<>
+					<p className="newspack-newsletters__send-to-details">
+						{ selectedItem.name }
+						<span>
+							{ sprintf(
+								// Translators: %1$s is the item type, %2$s is details about the item.
+								__( '%1$s %2$s', 'newspack-newsletters' ),
+								isUpdating
+									? sprintf(
+											// Translators: The item type.
+											__( 'Resetting %s…', 'newspack-newsletters' ),
+											selectedItem.typeLabel.toLowerCase()
+									  )
+									: selectedItem.typeLabel,
+								! isUpdating && selectedItem.details ? ' • ' + selectedItem.details : ''
+							).trim() }
+						</span>
 					</p>
-				</div>
+				</>
 			) : (
 				<>
 					<FormTokenField
@@ -52,7 +57,7 @@ const SendTo = ( {
 									setIsEditing( false );
 								} );
 						} }
-						suggestions={ availableLists.map( suggestion => suggestion.label ) }
+						suggestions={ availableItems.map( item => item.label ) }
 						placeholder={ isUpdating ? __( 'Updating campaign…', 'newspack' ) : placeholder }
 						value={ [] }
 						__experimentalExpandOnFocus={ true }
@@ -60,7 +65,7 @@ const SendTo = ( {
 					/>
 				</>
 			) }
-			{ selectedList && (
+			{ selectedItem && (
 				<ButtonGroup>
 					{ ! isEditing && (
 						<>
@@ -95,10 +100,10 @@ const SendTo = ( {
 									{ __( 'Reset', 'newspack-newsletters' ) }
 								</Button>
 							) }
-							{ getLink && (
+							{ selectedItem.editLink && (
 								<Button
 									disabled={ isUpdating }
-									href={ getLink( selectedList ) }
+									href={ selectedItem.editLink }
 									size="small"
 									target="_blank"
 									variant="secondary"
