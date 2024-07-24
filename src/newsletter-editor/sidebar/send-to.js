@@ -39,6 +39,7 @@ const SendTo = ( {
 					<FormTokenField
 						disabled={ isUpdating }
 						label={ formLabel || __( 'Select a list', 'newspack' ) }
+						maxSuggestions={ 10 }
 						onChange={ items => {
 							setError( false );
 							setIsUpdating( true );
@@ -54,6 +55,7 @@ const SendTo = ( {
 						suggestions={ availableLists.map( suggestion => suggestion.label ) }
 						placeholder={ isUpdating ? __( 'Updating campaign…', 'newspack' ) : placeholder }
 						value={ [] }
+						__experimentalExpandOnFocus={ true }
 						__experimentalShowHowTo={ false }
 					/>
 				</>

@@ -138,7 +138,7 @@ const ProviderSidebarComponent = ( {
 	};
 
 	useEffect( () => {
-		if ( campaign ) {
+		if ( campaign?.activity?.from_name && campaign?.activity?.from_email ) {
 			updateMeta( {
 				senderName: campaign.activity.from_name,
 				senderEmail: campaign.activity.from_email,
