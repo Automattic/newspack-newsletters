@@ -239,7 +239,7 @@ const ProviderSidebarComponent = ( {
 			return;
 		}
 
-		return selectedItem.list_type === 'audience'
+		return 'list' === selectedItem.type
 			? setList( selectedItem.value )
 			: updateSegments( selectedItem.value );
 	};
@@ -269,9 +269,9 @@ const ProviderSidebarComponent = ( {
 			</strong>
 			<SendTo
 				availableItems={ audiences }
-				onChange={ selected => onChangeSendTo( selected ) }
-				formLabel={ __( 'Select a list', 'newspack' ) }
-				placeholder={ __( 'Type a list name to search', 'newspack' ) }
+				onChange={ onChangeSendTo }
+				formLabel={ __( 'Select an audience', 'newspack' ) }
+				placeholder={ __( 'Type an audience name to search', 'newspack' ) }
 				reset={ null } // Mailchimp API doesn't support unsetting a campaign's list, once set.
 				selectedItem={ selectedAudience }
 			/>
@@ -280,8 +280,8 @@ const ProviderSidebarComponent = ( {
 					<SendTo
 						availableItems={ subAudiences }
 						onChange={ onChangeSendTo }
-						formLabel={ __( 'Group, Segment, or Tag (optional)', 'newspack' ) }
-						placeholder={ __( 'Filter by group, segment, or tag', 'newspack' ) }
+						formLabel={ __( 'Filter by Group, Segment, or Tag (optional)', 'newspack' ) }
+						placeholder={ __( 'Type a group, segment, or tag name to search', 'newspack' ) }
 						reset={ () => updateSegments( '' ) }
 						selectedItem={ selectedSubAudience }
 					/>

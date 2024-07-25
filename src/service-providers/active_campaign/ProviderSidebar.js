@@ -235,7 +235,7 @@ const ProviderSidebarComponent = ( {
 			<SendTo
 				availableItems={ lists }
 				onChange={ selected => onChangeSendTo( selected ) }
-				placeholder={ __( 'Type a list name to search.', 'newspack' ) }
+				placeholder={ __( 'Type a list name to search', 'newspack' ) }
 				reset={ async () => {
 					updateMeta( { ac_list_id: '' } );
 					updateMeta( { ac_segment_id: '' } );
@@ -247,8 +247,8 @@ const ProviderSidebarComponent = ( {
 					<SendTo
 						availableItems={ segments }
 						onChange={ selected => onChangeSendTo( selected, 'segment' ) }
-						formLabel={ __( 'Select a segment (optional)', 'newspack' ) }
-						placeholder={ __( 'Filter by segment', 'newspack' ) }
+						formLabel={ __( 'Filter by segment (optional)', 'newspack' ) }
+						placeholder={ __( 'Type a segment name to search', 'newspack' ) }
 						reset={ async () => updateMeta( { ac_segment_id: '' } ) }
 						selectedItem={ selectedSegment }
 					/>

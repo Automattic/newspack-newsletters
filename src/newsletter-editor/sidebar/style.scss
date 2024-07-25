@@ -32,11 +32,14 @@
 		.components-notice + * {
 			margin-top: 16px;
 		}
-
+		.components-button-group {
+			margin-top: 8px;
+		}
 		.newspack-newsletters__send-to-details {
 			font-weight: 500;
+			margin-bottom: 0;
 			span {
-				color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
+				color: wp-colors.$gray-600;
 				display: block;
 			}
 		}
