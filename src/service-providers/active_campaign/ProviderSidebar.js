@@ -259,11 +259,11 @@ const ProviderSidebarComponent = ( {
 						__html: sprintf(
 							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the parent item name and type (if any).
 							__(
-								'This newsletter will be sent to all %1$s of the %2$s %3$s%4$s.',
+								'This newsletter will be sent to all %1$s in the %2$s %3$s%4$s.',
 								'newspack-newsletters'
 							),
-							! selectedSegment && selectedList.details
-								? `<strong>${ selectedList.details }</strong> `
+							selectedSegment?.details || ( ! selectedSegment && selectedList?.details )
+								? `<strong>${ selectedSegment?.details || selectedList?.details }</strong> `
 								: __( 'contacts', 'newspack-newsletters' ),
 							`<strong>${ selectedList.name }</strong>`,
 							selectedList.typeLabel.toLowerCase(),
