@@ -114,7 +114,6 @@ const ProviderSidebarComponent = ( {
 				response.segments.map( item => {
 					const formattedItem = {
 						...item,
-						details: __( 'id: ', 'newspack-newsletters' ) + item.id,
 						name: item.name,
 						typeLabel: __( 'Segment', 'newspack-newsletters' ),
 						type: 'segment',
