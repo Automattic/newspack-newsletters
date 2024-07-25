@@ -50,8 +50,10 @@ export const getSubAudienceOptions = newsletterData => {
 	} ) );
 
 	return formattedItems.map( item => {
-		const contactCount = item?.member_count || item?.subscriber_count || item?.stats?.member_count;
-		if ( contactCount ) {
+		const contactCount = parseInt(
+			item?.member_count || item?.subscriber_count || item?.stats?.member_count
+		);
+		if ( ! isNaN( contactCount ) ) {
 			item.details = sprintf(
 				// Translators: %d is the number of contacts in the list.
 				_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),

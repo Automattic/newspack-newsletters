@@ -90,13 +90,14 @@ const ProviderSidebarComponent = ( {
 			} );
 			setLists(
 				response.lists.map( item => {
+					const contactCount = parseInt( item.subscriber_count );
 					const formattedItem = {
 						...item,
-						details: item.hasOwnProperty( 'subscriber_count' )
+						details: ! isNaN( contactCount )
 							? sprintf(
 									// Translators: %d is the number of contacts in the list.
-									_n( '%d contact', '%d contacts', item.subscriber_count, 'newspack-newsletters' ),
-									item.subscriber_count.toLocaleString()
+									_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
+									contactCount.toLocaleString()
 							  )
 							: null,
 						name: item.name,

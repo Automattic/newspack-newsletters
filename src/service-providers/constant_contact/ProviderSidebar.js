@@ -32,13 +32,14 @@ const ProviderSidebarComponent = ( {
 	// Standardize data schema. We'll eventually move this standardization to the provider API handlers instead.
 	const availableItems = [ ...lists, ...segments ].map( item => {
 		const isList = item.hasOwnProperty( 'list_id' );
+		const contactCount = parseInt( item.membership_count );
 		const formattedItem = {
 			...item,
-			details: item.hasOwnProperty( 'membership_count' )
+			details: ! isNaN( contactCount )
 				? sprintf(
 						// Translators: %d is the number of contacts in the list or segment.
-						_n( '%d contact', '%d contacts', item.membership_count, 'newspack-newsletters' ),
-						item.membership_count.toLocaleString()
+						_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
+						contactCount.toLocaleString()
 				  )
 				: null,
 			editLink: isList

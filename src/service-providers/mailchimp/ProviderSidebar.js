@@ -57,11 +57,12 @@ const ProviderSidebarComponent = ( {
 		? newsletterData.lists
 				.filter( list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type )
 				.map( item => {
-					const contactCount =
-						item?.member_count || item?.subscriber_count || item?.stats?.member_count;
+					const contactCount = parseInt(
+						item?.member_count || item?.subscriber_count || item?.stats?.member_count
+					);
 					const formattedItem = {
 						...item,
-						details: contactCount
+						details: ! isNaN( contactCount )
 							? sprintf(
 									// Translators: %d is the number of contacts in the list.
 									_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
