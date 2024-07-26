@@ -101,7 +101,8 @@ class Newspack_Newsletters_Mailchimp_Notes {
 		$lists_string = implode( ', ', $lists );
 		$message = sprintf(
 			/* translators: 1: email address, 2: list IDs */
-			__( 'Contact updated by Newspack. Context: %1$s. Lists added: %2$s', 'newspack-newsletters' ),
+			__( 'Contact updated by Newspack from site %1$s. Context: %2$s. Lists added: %3$s', 'newspack-newsletters' ),
+			get_site_url(),
 			$context,
 			$lists_string
 		);
