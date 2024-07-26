@@ -179,7 +179,7 @@ function render_block( $attrs ) {
 		<?php echo $subscribed ? 'data-status="200"' : ''; ?>
 	>
 		<?php if ( ! $subscribed ) : ?>
-			<form id="<?php echo esc_attr( get_form_id() ); ?>">
+			<form id="<?php echo esc_attr( get_form_id() ); ?>" data-newspack-recaptcha="<?php echo esc_attr( FORM_ACTION ); ?>">
 				<?php \wp_nonce_field( FORM_ACTION, FORM_ACTION ); ?>
 				<?php
 				/**

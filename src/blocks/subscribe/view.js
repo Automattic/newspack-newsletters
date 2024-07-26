@@ -29,6 +29,7 @@ function domReady( callback ) {
 }
 
 domReady( function () {
+	const successEvent = new Event( 'newspack-newsletters-subscribe-success' );
 	document.querySelectorAll( '.newspack-newsletters-subscribe' ).forEach( container => {
 		const form = container.querySelector( 'form' );
 		if ( ! form ) {
@@ -57,6 +58,7 @@ domReady( function () {
 			messageNode.className = `message status-${ status }`;
 			if ( status === 200 ) {
 				container.replaceChild( responseContainer, form );
+				form.dispatchEvent( successEvent );
 			}
 		};
 		form.addEventListener( 'submit', ev => {
@@ -70,62 +72,36 @@ domReady( function () {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
-			const newspack_grecaptcha = window.newspack_grecaptcha || null;
-			const getCaptchaV3Token = newspack_grecaptcha
-				? newspack_grecaptcha?.getCaptchaV3Token
-				: () => new Promise( res => res( '' ) ); // Empty promise.
+			const body = new FormData( form );
+			if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
+				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
+			}
+			if ( nonce ) {
+				body.set( 'newspack_newsletters_subscribe', nonce );
+			}
+			emailInput.setAttribute( 'disabled', 'true' );
+			submit.setAttribute( 'disabled', 'true' );
 
-			getCaptchaV3Token() // Get a token for reCAPTCHA v3, if needed.
-				.then( captchaToken => {
-					// If there's no token, we don't need to do anything.
-					if ( ! captchaToken ) {
-						return;
-					}
-					let tokenField = form[ 'g-recaptcha-response' ];
-					if ( ! tokenField ) {
-						tokenField = document.createElement( 'input' );
-						tokenField.setAttribute( 'type', 'hidden' );
-						tokenField.setAttribute( 'name', 'g-recaptcha-response' );
-						tokenField.setAttribute( 'autocomplete', 'off' );
-						form.appendChild( tokenField );
-					}
-					tokenField.value = captchaToken;
-				} )
-				.catch( e => {
-					form.endFlow( e, 400 );
-				} )
-				.finally( () => {
-					const body = new FormData( form );
-					if ( ! body.has( 'npe' ) || ! body.get( 'npe' ) ) {
-						return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
-					}
-					if ( nonce ) {
-						body.set( 'newspack_newsletters_subscribe', nonce );
-					}
-					emailInput.setAttribute( 'disabled', 'true' );
-					submit.setAttribute( 'disabled', 'true' );
-
-					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
-						method: 'POST',
-						headers: {
-							Accept: 'application/json',
-						},
-						body,
-					} ).then( res => {
-						res
-							.json()
-							.then(
-								( {
-									message,
-									newspack_newsletters_subscribed: wasSubscribed,
-									newspack_newsletters_subscribe,
-								} ) => {
-									nonce = newspack_newsletters_subscribe;
-									form.endFlow( message, res.status, wasSubscribed );
-								}
-							);
-					} );
-				} );
+			fetch( form.getAttribute( 'action' ) || window.location.pathname, {
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+				},
+				body,
+			} ).then( res => {
+				res
+					.json()
+					.then(
+						( {
+							message,
+							newspack_newsletters_subscribed: wasSubscribed,
+							newspack_newsletters_subscribe,
+						} ) => {
+							nonce = newspack_newsletters_subscribe;
+							form.endFlow( message, res.status, wasSubscribed );
+						}
+					);
+			} );
 		} );
 	} );
 } );
