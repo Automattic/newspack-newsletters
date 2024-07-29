@@ -50,7 +50,7 @@
 		"regenerator-runtime": "^0.14.1"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.10.3",
+		"@rushstack/eslint-patch": "^1.10.4",
 		"eslint": "^7.32.0",
 		"lint-staged": "^15.2.7",
 		"newspack-scripts": "^5.5.1",
