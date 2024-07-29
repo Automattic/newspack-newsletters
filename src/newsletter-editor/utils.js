@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -74,11 +74,11 @@ export const getSuggestionLabel = item => {
 		__( '[%1$s] %2$s %3$s', 'newspack-newsletters' ),
 		item.typeLabel,
 		item.name,
-		item?.details && null !== item.details
+		item?.count && null !== item?.count
 			? sprintf(
-					// Translators: %s contains more details about the item.
-					__( '(%s)', 'newspack-newsletters' ),
-					item.details
+					// Translators: %d is the number of contacts in the list.
+					_n( '(%d contact)', '(%d contacts)', item.count, 'newspack-newsletters' ),
+					item.count
 			  )
 			: ''
 	).trim();

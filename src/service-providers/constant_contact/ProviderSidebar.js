@@ -32,16 +32,9 @@ const ProviderSidebarComponent = ( {
 	// Standardize data schema. We'll eventually move this standardization to the provider API handlers instead.
 	const availableItems = [ ...lists, ...segments ].map( item => {
 		const isList = item.hasOwnProperty( 'list_id' );
-		const contactCount = parseInt( item.membership_count );
+		const count = item.membership_count || null;
 		const formattedItem = {
 			...item,
-			details: ! isNaN( contactCount )
-				? sprintf(
-						// Translators: %d is the number of contacts in the list or segment.
-						_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
-						contactCount.toLocaleString()
-				  )
-				: null,
 			editLink: isList
 				? `https://app.constantcontact.com/pages/contacts/ui#contacts/${ item.list_id }`
 				: `https://app.constantcontact.com/pages/contacts/ui#segments/${ item.segment_id }/preview`,
@@ -53,6 +46,9 @@ const ProviderSidebarComponent = ( {
 			value: item.list_id || item.segment_id,
 		};
 
+		if ( null !== count ) {
+			formattedItem.count = parseInt( count );
+		}
 		formattedItem.label = getSuggestionLabel( formattedItem );
 
 		return formattedItem;
@@ -176,13 +172,17 @@ const ProviderSidebarComponent = ( {
 						__html: sprintf(
 							// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type.
 							__(
-								'This newsletter will be sent to all %1$s in the %2$s %3$s.',
+								'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s.',
 								'newspack-newsletters'
 							),
-							selected.details
-								? `<strong>${ selected.details }</strong> `
-								: __( 'contacts', 'newspack-newsletters' ),
-							`<strong>${ selected.name }</strong>`,
+							selected?.count // CC doesn't provide contact counts for segments, so we only want to show a count if a list is selected without a segment.
+								? sprintf(
+										// Translators: %d is the number of contacts in the list.
+										_n( '%d contact', '%d contacts', selected.count, 'newspack-newsletters' ),
+										selected.count.toLocaleString()
+								  )
+								: __( 'all contacts', 'newspack-newsletters' ),
+							selected.name,
 							selected.typeLabel.toLowerCase()
 						),
 					} }

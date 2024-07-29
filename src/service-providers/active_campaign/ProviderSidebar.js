@@ -90,22 +90,18 @@ const ProviderSidebarComponent = ( {
 			} );
 			setLists(
 				response.lists.map( item => {
-					const contactCount = parseInt( item.subscriber_count );
+					const count = item.subscriber_count || null;
 					const formattedItem = {
 						...item,
-						details: ! isNaN( contactCount )
-							? sprintf(
-									// Translators: %d is the number of contacts in the list.
-									_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
-									contactCount.toLocaleString()
-							  )
-							: null,
 						name: item.name,
 						typeLabel: __( 'List', 'newspack-newsletters' ),
 						type: 'list',
 						value: item.id,
 					};
 
+					if ( null !== count ) {
+						formattedItem.count = parseInt( count );
+					}
 					formattedItem.label = getSuggestionLabel( formattedItem );
 
 					return formattedItem;
@@ -204,6 +200,39 @@ const ProviderSidebarComponent = ( {
 		);
 	}
 
+	const renderSelectedSummary = () => {
+		return selectedList ? (
+			<p
+				dangerouslySetInnerHTML={ {
+					__html: sprintf(
+						// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the subitem name and type (if any).
+						__(
+							'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s%4$s.',
+							'newspack-newsletters'
+						),
+						! selectedSegment && selectedList?.count // AC doesn't provide contact counts for segments, so we only want to show a count if a list is selected without a segment.
+							? sprintf(
+									// Translators: %d is the number of contacts in the list.
+									_n( '%d contact', '%d contacts', selectedList.count, 'newspack-newsletters' ),
+									selectedList.count.toLocaleString()
+							  )
+							: __( 'all contacts', 'newspack-newsletters' ),
+						selectedList.name,
+						selectedList.typeLabel.toLowerCase(),
+						selectedSegment
+							? sprintf(
+									// Translators: %1$s is the parent item name, %2$s is the parent item type.
+									__( ' who are part of the %1$s %2$s', 'newspack-newsletters' ),
+									`<strong>${ selectedSegment.name }</strong>`,
+									selectedSegment.typeLabel.toLowerCase()
+							  )
+							: ''
+					),
+				} }
+			/>
+		) : null;
+	};
+
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
 			{ renderCampaignName() }
@@ -254,32 +283,7 @@ const ProviderSidebarComponent = ( {
 					/>
 				</>
 			) }
-			{ selectedList && (
-				<p
-					dangerouslySetInnerHTML={ {
-						__html: sprintf(
-							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the parent item name and type (if any).
-							__(
-								'This newsletter will be sent to all %1$s in the %2$s %3$s%4$s.',
-								'newspack-newsletters'
-							),
-							selectedSegment?.details || ( ! selectedSegment && selectedList?.details )
-								? `<strong>${ selectedSegment?.details || selectedList?.details }</strong> `
-								: __( 'contacts', 'newspack-newsletters' ),
-							`<strong>${ selectedList.name }</strong>`,
-							selectedList.typeLabel.toLowerCase(),
-							selectedSegment
-								? sprintf(
-										// Translators: %1$s is the parent item name, %2$s is the parent item type.
-										__( ' who are part of the %1$s %2$s', 'newspack-newsletters' ),
-										`<strong>${ selectedSegment.name }</strong>`,
-										selectedSegment.typeLabel.toLowerCase()
-								  )
-								: ''
-						),
-					} }
-				/>
-			) }
+			{ renderSelectedSummary() }
 			{ inFlight && <Spinner /> }
 		</div>
 	);

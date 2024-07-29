@@ -57,24 +57,19 @@ const ProviderSidebarComponent = ( {
 		? newsletterData.lists
 				.filter( list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type )
 				.map( item => {
-					const contactCount = parseInt(
-						item?.member_count || item?.subscriber_count || item?.stats?.member_count
-					);
+					const count =
+						item?.member_count || item?.subscriber_count || item?.stats?.member_count || null;
 					const formattedItem = {
 						...item,
-						details: ! isNaN( contactCount )
-							? sprintf(
-									// Translators: %d is the number of contacts in the list.
-									_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
-									contactCount.toLocaleString()
-							  )
-							: null,
 						name: item.name || item.title,
 						typeLabel: __( 'Audience', 'newspack-newsletters' ),
 						type: 'list',
 						value: item.id,
 					};
 
+					if ( null !== count ) {
+						formattedItem.count = parseInt( count );
+					}
 					formattedItem.label = getSuggestionLabel( formattedItem );
 
 					return formattedItem;
@@ -292,15 +287,24 @@ const ProviderSidebarComponent = ( {
 				<p
 					dangerouslySetInnerHTML={ {
 						__html: sprintf(
-							// Translators: %1$s is the number of members, %2$s is the item name, %3$s is the item type, %4$s is the parent item name and type (if any).
+							// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type, %4$s is the subitem name and type (if any).
 							__(
-								'This newsletter will be sent to all %1$s in the %2$s %3$s%4$s.',
+								'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s%4$s.',
 								'newspack-newsletters'
 							),
-							selectedSubAudience?.details || ( ! selectedSubAudience && selectedAudience?.details )
-								? `<strong>${ selectedSubAudience?.details || selectedAudience?.details }</strong> `
-								: '',
-							`<strong>${ selectedAudience.name }</strong>`,
+							selectedSubAudience?.count || selectedAudience?.count
+								? sprintf(
+										// Translators: %d is the number of contacts in the list.
+										_n(
+											'%d contact',
+											'%d contacts',
+											selectedSubAudience?.count || selectedAudience.count,
+											'newspack-newsletters'
+										),
+										( selectedSubAudience?.count || selectedAudience.count ).toLocaleString()
+								  )
+								: __( 'all contacts', 'newspack-newsletters' ),
+							selectedAudience.name,
 							selectedAudience.typeLabel.toLowerCase(),
 							selectedSubAudience
 								? sprintf(

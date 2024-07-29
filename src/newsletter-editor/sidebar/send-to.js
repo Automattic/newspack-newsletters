@@ -116,7 +116,12 @@ const SendTo = ( { availableItems, formLabel, onChange, placeholder, reset, sele
 						</>
 					) }
 					{ isEditing && (
-						<Button onClick={ () => setIsEditing( false ) } variant="secondary" size="small">
+						<Button
+							disabled={ isUpdating }
+							onClick={ () => setIsEditing( false ) }
+							variant="secondary"
+							size="small"
+						>
 							{ __( 'Cancel', 'newspack-newsletters' ) }
 						</Button>
 					) }
