@@ -54,7 +54,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$this->service    = 'active_campaign';
 		$this->controller = new Newspack_Newsletters_Active_Campaign_Controller( $this );
 
-		add_action( 'save_post_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, [ $this, 'save' ], 10, 3 );
+		add_action( 'updated_post_meta', [ $this, 'save' ], 10, 4 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 
 		add_action( 'newspack_newsletters_subscription_lists_metabox_after_tag', [ $this, 'lists_metabox_notice' ] );
@@ -709,6 +709,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			);
 		}
 
+		// Clear prior error messages.
+		$transient_name = $this->get_transient_name( $post->ID );
+		delete_transient( $transient_name );
+
 		$from_name  = get_post_meta( $post->ID, 'ac_from_name', true );
 		$from_email = get_post_meta( $post->ID, 'ac_from_email', true );
 		$list_id    = get_post_meta( $post->ID, 'ac_list_id', true );
@@ -782,7 +786,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		// Retrieve and store campaign data.
 		$data = $this->retrieve( $post->ID, true );
-		if ( ! is_wp_error( $data ) ) {
+		if ( is_wp_error( $data ) ) {
+			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $data->get_error_message(), 45 );
+			return $data;
+		} else {
 			$data = array_merge( $data, $sync_data );
 			update_post_meta( $post->ID, 'newsletterData', $data );
 		}
@@ -867,7 +874,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return;
 		}
 		$post = get_post( $post_id );
-		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post->post_type ) {
+		if ( ! Newspack_Newsletters_Editor::is_editing_email( $post_id ) ) {
 			return;
 		}
 		if ( 'trash' === $post->post_status ) {

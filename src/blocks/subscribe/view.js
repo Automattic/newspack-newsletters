@@ -1,4 +1,4 @@
-/* globals newspack_newsletters_subscribe_block, newspack_grecaptcha */
+/* globals newspack_newsletters_subscribe_block */
 /**
  * Internal dependencies
  */
@@ -47,7 +47,7 @@ domReady( function () {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
-			submit.remove( spinner );
+			submit.removeChild( spinner );
 			submit.removeAttribute( 'disabled' );
 			form.classList.remove( 'in-progress' );
 			messageNode.innerHTML = wasSubscribed
@@ -70,6 +70,7 @@ domReady( function () {
 				return form.endFlow( newspack_newsletters_subscribe_block.invalid_email, 400 );
 			}
 
+			const newspack_grecaptcha = window.newspack_grecaptcha || null;
 			const getCaptchaV3Token = newspack_grecaptcha
 				? newspack_grecaptcha?.getCaptchaV3Token
 				: () => new Promise( res => res( '' ) ); // Empty promise.
@@ -101,7 +102,8 @@ domReady( function () {
 					if ( nonce ) {
 						body.set( 'newspack_newsletters_subscribe', nonce );
 					}
-					form.setLoading();
+					emailInput.setAttribute( 'disabled', 'true' );
+					submit.setAttribute( 'disabled', 'true' );
 
 					fetch( form.getAttribute( 'action' ) || window.location.pathname, {
 						method: 'POST',

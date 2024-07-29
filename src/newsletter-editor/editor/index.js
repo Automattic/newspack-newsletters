@@ -20,21 +20,14 @@ import { registerPlugin } from '@wordpress/plugins';
 import withApiHandler from '../../components/with-api-handler';
 import SendButton from '../../components/send-button';
 import './style.scss';
-import { refreshEmailHtml, usePrevProp, validateNewsletter } from '../utils';
+import { validateNewsletter } from '../utils';
 
 const Editor = compose( [
 	withApiHandler(),
 	withSelect( select => {
 		const {
-			didPostSaveRequestSucceed,
-			getCurrentPostId,
 			getCurrentPostAttribute,
-			getCurrentPostType,
 			getEditedPostAttribute,
-			getEditedPostContent,
-			isPublishingPost,
-			isSavingPost,
-			isAutosavingPost,
 			isCleanNewPost,
 			isCurrentPostPublished,
 		} = select( 'core/editor' );
@@ -56,18 +49,10 @@ const Editor = compose( [
 
 		return {
 			isCleanNewPost: isCleanNewPost(),
-			postContent: getEditedPostContent(),
-			postId: getCurrentPostId(),
-			postTitle: getEditedPostAttribute( 'title' ),
-			postType: getCurrentPostType(),
 			isPublished: isCurrentPostPublished(),
 			isReady: newsletterValidationErrors.length === 0,
 			activeSidebarName: getActiveGeneralSidebarName(),
-			didPostSaveRequestSucceed,
 			html: meta[ newspack_email_editor_data.email_html_meta ],
-			isSaving: isSavingPost(),
-			isPublishing: isPublishingPost(),
-			isAutosaving: isAutosavingPost(),
 			colorPalette: colors.reduce(
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
@@ -81,14 +66,8 @@ const Editor = compose( [
 		};
 	} ),
 	withDispatch( dispatch => {
-		const {
-			lockPostAutosaving,
-			lockPostSaving,
-			unlockPostAutosaving,
-			unlockPostSaving,
-			editPost,
-			savePost,
-		} = dispatch( 'core/editor' );
+		const { lockPostAutosaving, lockPostSaving, unlockPostAutosaving, unlockPostSaving, editPost } =
+			dispatch( 'core/editor' );
 		const { createNotice, removeNotice } = dispatch( 'core/notices' );
 		const { openModal } = dispatch( 'core/interface' );
 		return {
@@ -100,7 +79,6 @@ const Editor = compose( [
 			createNotice,
 			removeNotice,
 			openModal,
-			savePost,
 			updateMetaValue: ( key, value ) => editPost( { meta: { [ key ]: value } } ),
 		};
 	} ),
@@ -109,39 +87,35 @@ const Editor = compose( [
 		apiFetchWithErrorHandling,
 		colorPalette,
 		createNotice,
-		didPostSaveRequestSucceed,
 		html,
-		isAutosavingPost,
 		isCustomFieldsMetaBoxActive,
 		isPublic,
 		isReady,
-		isSaving,
-		isPublished,
-		isPublishing,
-		isAutoSaving,
 		lockPostAutosaving,
 		lockPostSaving,
 		newsletterSendErrors,
 		openModal,
 		removeNotice,
-		unlockPostAutosaving,
 		unlockPostSaving,
-		postContent,
-		postId,
-		postTitle,
-		postType,
 		sent,
 		successNote,
-		updateMetaValue,
 	} ) => {
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
 
-		// Create alternate publish button
 		useEffect( () => {
+			// Create alternate publish button.
 			const publishButton = document.getElementsByClassName(
 				'editor-post-publish-button__button'
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
+
+			// Show async error messages.
+			if ( newspack_email_editor_data?.error_message ) {
+				createNotice( 'error', newspack_email_editor_data.error_message, {
+					id: 'newspack-newsletters-newsletter-async-error',
+					isDismissible: true,
+				} );
+			}
 		}, [] );
 
 		// Set color palette option.
@@ -246,37 +220,6 @@ const Editor = compose( [
 				);
 			}
 		}, [ isPublic ] );
-
-		// After the post is successfully saved, refresh the email HTML.
-		const wasSaving = usePrevProp( isSaving );
-		const wasAutoSaving = usePrevProp( isAutosavingPost );
-		useEffect( () => {
-			if (
-				wasSaving &&
-				! isPublished &&
-				! wasAutoSaving &&
-				! isSaving &&
-				! isAutoSaving &&
-				! isPublishing &&
-				didPostSaveRequestSucceed()
-			) {
-				lockPostAutosaving();
-				lockPostSaving( 'newspack-newsletters-refresh-html' );
-				refreshEmailHtml( postId, postTitle, postContent )
-					.then( refreshedHtml => {
-						updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml );
-						apiFetchWithErrorHandling( {
-							data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml } },
-							method: 'POST',
-							path: `/wp/v2/${ postType }/${ postId }`,
-						} );
-					} )
-					.finally( () => {
-						unlockPostSaving( 'newspack-newsletters-refresh-html' );
-						unlockPostAutosaving();
-					} );
-			}
-		}, [ isSaving, isAutoSaving ] );
 
 		return createPortal( <SendButton />, publishEl );
 	}
