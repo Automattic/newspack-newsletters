@@ -135,8 +135,8 @@ class Newspack_Newsletters_Mailchimp_Notes {
 			/* translators: 1: email address, 2: lists added, 3: lists removed */
 			__( 'Contact updated by Newspack. Context: %1$s. Lists added: %2$s. Lists removed: %3$s', 'newspack-newsletters' ),
 			$context,
-			$lists_to_add_string,
-			$lists_to_remove_string
+			$lists_to_add_string ? $lists_to_add_string : 'none',
+			$lists_to_remove_string ? $lists_to_remove_string : 'none'
 		);
 
 		self::add_note( $email, array_merge( $lists_to_add, $lists_to_remove ), $message );
