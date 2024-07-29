@@ -136,6 +136,31 @@ const ProviderSidebarComponent = ( {
 		);
 	}
 
+	const renderSelectedSummary = () => {
+		return selected ? (
+			<p
+				dangerouslySetInnerHTML={ {
+					__html: sprintf(
+						// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type.
+						__(
+							'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s.',
+							'newspack-newsletters'
+						),
+						selected?.count // CC doesn't provide contact counts for segments, so we only want to show a count if a list is selected without a segment.
+							? sprintf(
+									// Translators: %d is the number of contacts in the list.
+									_n( '%d contact', '%d contacts', selected.count, 'newspack-newsletters' ),
+									selected.count.toLocaleString()
+							  )
+							: __( 'all contacts', 'newspack-newsletters' ),
+						selected.name,
+						selected.typeLabel.toLowerCase()
+					),
+				} }
+			/>
+		) : null;
+	};
+
 	if (
 		! inFlight &&
 		( 'DRAFT' !== campaign?.current_status || 'publish' === status || 'private' === status )
@@ -166,28 +191,7 @@ const ProviderSidebarComponent = ( {
 				reset={ resetSendTo }
 				selectedItem={ selected }
 			/>
-			{ selected && (
-				<p
-					dangerouslySetInnerHTML={ {
-						__html: sprintf(
-							// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type.
-							__(
-								'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s.',
-								'newspack-newsletters'
-							),
-							selected?.count // CC doesn't provide contact counts for segments, so we only want to show a count if a list is selected without a segment.
-								? sprintf(
-										// Translators: %d is the number of contacts in the list.
-										_n( '%d contact', '%d contacts', selected.count, 'newspack-newsletters' ),
-										selected.count.toLocaleString()
-								  )
-								: __( 'all contacts', 'newspack-newsletters' ),
-							selected.name,
-							selected.typeLabel.toLowerCase()
-						),
-					} }
-				/>
-			) }
+			{ renderSelectedSummary() }
 		</>
 	);
 };
