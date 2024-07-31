@@ -137,28 +137,36 @@ const ProviderSidebarComponent = ( {
 	}
 
 	const renderSelectedSummary = () => {
-		return selected ? (
+		if ( ! selected ) {
+			return null;
+		}
+
+		const summary = ! selected.hasOwnProperty( 'count' )
+			? sprintf(
+					// Translators: A summary of which list or segment the campaign is set to send to, and the total number of contacts, if available.
+					'This newsletter will be sent to <strong>all contacts</strong> in the <strong>%1$s</strong> %2$s.',
+					selected.name,
+					selected.typeLabel.toLowerCase()
+			  )
+			: sprintf(
+					// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available.
+					_n(
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s.',
+						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s.',
+						selected.count,
+						'newspack-newsletters'
+					),
+					selected.count.toLocaleString(),
+					selected.name,
+					selected.typeLabel.toLowerCase()
+			  );
+		return (
 			<p
 				dangerouslySetInnerHTML={ {
-					__html: sprintf(
-						// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type.
-						__(
-							'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s.',
-							'newspack-newsletters'
-						),
-						selected?.count // CC doesn't provide contact counts for segments, so we only want to show a count if a list is selected without a segment.
-							? sprintf(
-									// Translators: %d is the number of contacts in the list.
-									_n( '%d contact', '%d contacts', selected.count, 'newspack-newsletters' ),
-									selected.count.toLocaleString()
-							  )
-							: __( 'all contacts', 'newspack-newsletters' ),
-						selected.name,
-						selected.typeLabel.toLowerCase()
-					),
+					__html: summary,
 				} }
 			/>
-		) : null;
+		);
 	};
 
 	if (

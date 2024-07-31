@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -50,15 +50,9 @@ export const getSubAudienceOptions = newsletterData => {
 	} ) );
 
 	return formattedItems.map( item => {
-		const contactCount = parseInt(
-			item?.member_count || item?.subscriber_count || item?.stats?.member_count
-		);
-		if ( ! isNaN( contactCount ) ) {
-			item.details = sprintf(
-				// Translators: %d is the number of contacts in the list.
-				_n( '%d contact', '%d contacts', contactCount, 'newspack-newsletters' ),
-				contactCount.toLocaleString()
-			);
+		const count = item?.member_count || item?.subscriber_count || item?.stats?.member_count || null;
+		if ( null !== count ) {
+			item.count = parseInt( count );
 		}
 
 		item.name = item.name || item.title;

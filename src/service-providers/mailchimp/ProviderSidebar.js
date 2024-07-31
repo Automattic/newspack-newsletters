@@ -192,41 +192,44 @@ const ProviderSidebarComponent = ( {
 	}, [ stringifiedLayoutDefaults.length ] );
 
 	const renderSelectedSummary = () => {
-		return selectedAudience ? (
+		if ( ! selectedAudience ) {
+			return null;
+		}
+
+		const summary = selectedSubAudience?.count
+			? sprintf(
+					// Translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available.
+					_n(
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
+						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
+						selectedSubAudience.count,
+						'newspack-newsletters'
+					),
+					selectedSubAudience.count.toLocaleString(),
+					selectedAudience.name,
+					selectedAudience.typeLabel.toLowerCase(),
+					selectedSubAudience.name,
+					selectedSubAudience.typeLabel.toLowerCase()
+			  )
+			: sprintf(
+					// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available.
+					_n(
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s.',
+						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s.',
+						selectedAudience.count,
+						'newspack-newsletters'
+					),
+					selectedAudience.count.toLocaleString(),
+					selectedAudience.name,
+					selectedAudience.typeLabel.toLowerCase()
+			  );
+		return (
 			<p
 				dangerouslySetInnerHTML={ {
-					__html: sprintf(
-						// Translators: %1$s is the number of contacts, %2$s is the item name, %3$s is the item type, %4$s is the subitem name and type (if any).
-						__(
-							'This newsletter will be sent to <strong>%1$s</strong> in the <strong>%2$s</strong> %3$s%4$s.',
-							'newspack-newsletters'
-						),
-						selectedSubAudience?.count || selectedAudience?.count
-							? sprintf(
-									// Translators: %d is the number of contacts in the list.
-									_n(
-										'%d contact',
-										'%d contacts',
-										selectedSubAudience?.count || selectedAudience.count,
-										'newspack-newsletters'
-									),
-									( selectedSubAudience?.count || selectedAudience.count ).toLocaleString()
-							  )
-							: __( 'all contacts', 'newspack-newsletters' ),
-						selectedAudience.name,
-						selectedAudience.typeLabel.toLowerCase(),
-						selectedSubAudience
-							? sprintf(
-									// Translators: %1$s is the parent item name, %2$s is the parent item type.
-									__( ' who are part of the %1$s %2$s', 'newspack-newsletters' ),
-									`<strong>${ selectedSubAudience.name }</strong>`,
-									selectedSubAudience.typeLabel.toLowerCase()
-							  )
-							: ''
-					),
+					__html: summary,
 				} }
 			/>
-		) : null;
+		);
 	};
 
 	if ( ! campaign ) {

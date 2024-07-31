@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { FormTokenField, Button, ButtonGroup, Notice } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { Icon, external } from '@wordpress/icons';
@@ -34,7 +34,19 @@ const SendTo = ( { availableItems, formLabel, onChange, placeholder, reset, sele
 											selectedItem.typeLabel.toLowerCase()
 									  )
 									: selectedItem.typeLabel,
-								! isUpdating && selectedItem.details ? ' • ' + selectedItem.details : ''
+								! isUpdating && selectedItem.count
+									? ' • ' +
+											sprintf(
+												// Translators: %d is the number of contacts in the list.
+												_n(
+													'%d contact',
+													'%d contacts',
+													selectedItem.count,
+													'newspack-newsletters'
+												),
+												selectedItem.count.toLocaleString()
+											)
+									: ''
 							).trim() }
 						</span>
 					</p>
