@@ -34,7 +34,7 @@ const SendTo = ( { availableItems, formLabel, onChange, placeholder, reset, sele
 											selectedItem.typeLabel.toLowerCase()
 									  )
 									: selectedItem.typeLabel,
-								! isUpdating && selectedItem.count
+								! isUpdating && selectedItem.hasOwnProperty( 'count' )
 									? ' • ' +
 											sprintf(
 												// Translators: %d is the number of contacts in the list.
