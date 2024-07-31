@@ -153,7 +153,7 @@ class Newspack_Newsletters_Contacts {
 					'provider' => $provider->service,
 					'errors'   => is_wp_error( $result ) ? $result->get_error_message() : [],
 				],
-				'user_email' => $email,
+				'user_email' => $user->user_email,
 				'file'       => 'newspack_esp_sync',
 			]
 		);
