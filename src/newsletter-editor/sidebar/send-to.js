@@ -24,30 +24,21 @@ const SendTo = ( { availableItems, formLabel, onChange, placeholder, reset, sele
 					<p className="newspack-newsletters__send-to-details">
 						{ selectedItem.name }
 						<span>
-							{ sprintf(
-								// Translators: %1$s is the item type, %2$s is details about the item.
-								__( '%1$s %2$s', 'newspack-newsletters' ),
-								isUpdating
-									? sprintf(
-											// Translators: The item type.
-											__( 'Resetting %s…', 'newspack-newsletters' ),
-											selectedItem.typeLabel.toLowerCase()
-									  )
-									: selectedItem.typeLabel,
-								! isUpdating && selectedItem.hasOwnProperty( 'count' )
-									? ' • ' +
-											sprintf(
-												// Translators: %d is the number of contacts in the list.
-												_n(
-													'%d contact',
-													'%d contacts',
-													selectedItem.count,
-													'newspack-newsletters'
-												),
-												selectedItem.count.toLocaleString()
-											)
-									: ''
-							).trim() }
+							{ isUpdating
+								? sprintf(
+										// Translators: Shown while resetting the selected send-to item. %s is the item type.
+										__( 'Resetting %s…', 'newspack-newsletters' ),
+										selectedItem.typeLabel.toLowerCase()
+								  )
+								: selectedItem.typeLabel }
+							{ ! isUpdating && selectedItem.hasOwnProperty( 'count' )
+								? ' • ' +
+								  sprintf(
+										// Translators: If available, show a contact count alongside the selected item's type. %d is the number of contacts in the item.
+										_n( '%d contact', '%d contacts', selectedItem.count, 'newspack-newsletters' ),
+										selectedItem.count.toLocaleString()
+								  )
+								: '' }
 						</span>
 					</p>
 				</>
