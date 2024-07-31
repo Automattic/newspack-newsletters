@@ -207,7 +207,7 @@ const ProviderSidebarComponent = ( {
 
 		const summary = selectedSegment
 			? sprintf(
-					// Translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available.
+					// Translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available. %1$s is the label of the list (ex: Main), %2$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp). %3$s is the label of the sublist (ex: "paid customers"), and %4$s is the label for the sublist type (ex: tag, group or segment)
 					'This newsletter will be sent to <strong>all contacts</strong> in the <strong>%1$s</strong> %2$s who are part of the <strong>%3$s</strong> %4$s.',
 					selectedList.name,
 					selectedList.typeLabel.toLowerCase(),
