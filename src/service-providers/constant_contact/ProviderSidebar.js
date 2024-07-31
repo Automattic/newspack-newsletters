@@ -143,7 +143,7 @@ const ProviderSidebarComponent = ( {
 
 		const summary = ! selected.hasOwnProperty( 'count' )
 			? sprintf(
-					// Translators: A summary of which list or segment the campaign is set to send to, and the total number of contacts, if available.
+					// Translators: A summary of which list or segment the campaign is set to send to, and the total number of contacts, if available.  %1$s us the label of the list (ex: Main), %2$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
 					'This newsletter will be sent to <strong>all contacts</strong> in the <strong>%1$s</strong> %2$s.',
 					selected.name,
 					selected.typeLabel.toLowerCase()
