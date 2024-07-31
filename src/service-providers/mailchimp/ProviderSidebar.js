@@ -200,7 +200,7 @@ const ProviderSidebarComponent = ( {
 			? sprintf(
 					// Translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available.
 					_n(
-						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who is part of the <strong>%4$s</strong> %5$s.',
 						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
 						selectedSubAudience.count,
 						'newspack-newsletters'
