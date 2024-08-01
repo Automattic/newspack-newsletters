@@ -23,7 +23,8 @@
 		"format:scss": "prettier --write 'src/**/*.scss'",
 		"format:php": "./vendor/bin/phpcbf .",
 		"release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-newsletters --exclude-from='./.distignore' && cd release && zip -r newspack-newsletters.zip newspack-newsletters",
-		"release": "npm run build && npm run semantic-release"
+		"release": "npm run build && npm run semantic-release",
+		"postinstall": "rm -rf node_modules/newspack-scripts/node_modules/prettier"
 	},
 	"lint-staged": {
 		"*.js": "npm run lint:js:staged",
