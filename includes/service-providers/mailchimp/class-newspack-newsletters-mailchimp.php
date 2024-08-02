@@ -1535,7 +1535,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $contact ) ) {
 			/** Create contact */
-			$result = Newspack_Newsletters_Subscription::add_contact( [ 'email' => $email ], $lists_to_add );
+			$result = Newspack_Newsletters_Contacts::upsert( [ 'email' => $email ], $lists_to_add );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}

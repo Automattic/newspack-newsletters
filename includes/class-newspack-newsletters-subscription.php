@@ -34,7 +34,6 @@ class Newspack_Newsletters_Subscription {
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
-		add_action( 'delete_user', [ __CLASS__, 'delete_user' ], 10, 3 );
 
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
@@ -589,31 +588,6 @@ class Newspack_Newsletters_Subscription {
 			// Avoid breaking the registration process.
 			Newspack_Newsletters_Logger::log( 'Error adding contact: ' . $e->getMessage() );
 		}
-	}
-
-	/**
-	 * Delete a contact from ESP when a reader is deleted.
-	 *
-	 * @param int      $user_id  ID of the user to delete.
-	 * @param int|null $reassign ID of the user to reassign posts and links to.
-	 *                           Default null, for no reassignment.
-	 * @param WP_User  $user     WP_User object of the user to delete.
-	 *
-	 * @return bool|WP_Error Whether the contact was deleted or error.
-	 */
-	public static function delete_user( $user_id, $reassign, $user ) {
-		if ( ! class_exists( '\Newspack\Reader_Activation' ) || ! \Newspack\Reader_Activation::is_user_reader( $user ) ) {
-			return;
-		}
-		$sync = \Newspack\Reader_Activation::get_setting( 'sync_esp' );
-		if ( ! $sync ) {
-			return;
-		}
-		$sync_delete = \Newspack\Reader_Activation::get_setting( 'sync_esp_delete' );
-		if ( ! $sync_delete ) {
-			return;
-		}
-		return Newspack_Newsletters_Contacts::delete( $user_id );
 	}
 
 	/**
