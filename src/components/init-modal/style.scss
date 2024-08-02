@@ -1,4 +1,4 @@
-@use '~@wordpress/base-styles/colors' as wp-colors;
+@use "~@wordpress/base-styles/colors" as wp-colors;
 
 // Modal
 .newspack-newsletters-modal {
@@ -7,7 +7,7 @@
 		background: white;
 		top: 46px;
 
-		@media only screen and ( min-width: 783px ) {
+		@media only screen and (min-width: 783px) {
 			left: 36px;
 			top: 32px;
 
@@ -18,9 +18,9 @@
 			}
 		}
 
-		@media only screen and ( min-width: 961px ) {
+		@media only screen and (min-width: 961px) {
 			// Not folded sidebar
-			body:not( .folded, .is-fullscreen-mode ) & {
+			body:not(.folded, .is-fullscreen-mode) & {
 				left: 160px;
 			}
 		}
@@ -36,10 +36,10 @@
 			margin-top: 60px;
 			padding: 0;
 
-			@media only screen and ( min-width: 783px ) {
+			@media only screen and (min-width: 783px) {
 				.is-fullscreen-mode & {
 					margin-left: -60px;
-					width: calc( 100% + 60px );
+					width: calc(100% + 60px);
 				}
 			}
 		}
@@ -60,7 +60,7 @@
 		width: 100%;
 		inset: 0;
 
-		@media only screen and ( min-width: 783px ) {
+		@media only screen and (min-width: 783px) {
 			.is-fullscreen-mode & {
 				overflow: visible;
 			}
@@ -71,11 +71,11 @@
 			font-size: 0.8rem;
 			line-height: 1.25;
 
-			@media only screen and ( min-width: 600px ) {
+			@media only screen and (min-width: 600px) {
 				display: block;
 			}
 
-			@media only screen and ( min-width: 783px ) {
+			@media only screen and (min-width: 783px) {
 				font-size: 1rem;
 				line-height: 1;
 			}
@@ -89,7 +89,7 @@
 		margin: 0;
 		width: 100%;
 
-		@media only screen and ( min-width: 783px ) {
+		@media only screen and (min-width: 783px) {
 			display: grid;
 			gap: 0;
 			grid-template-columns: 280px 1fr;
@@ -100,7 +100,7 @@
 			background: wp-colors.$gray-100;
 			border-bottom: 1px solid wp-colors.$gray-300;
 
-			@media only screen and ( min-width: 783px ) {
+			@media only screen and (min-width: 783px) {
 				border-bottom: none;
 				border-right: 1px solid wp-colors.$gray-300;
 			}
@@ -119,10 +119,10 @@
 		&__layout-buttons {
 			display: grid;
 			grid-gap: 4px;
-			grid-template-columns: repeat( 2, 1fr );
+			grid-template-columns: repeat(2, 1fr);
 			padding: 24px 0 0;
 
-			@media only screen and ( min-width: 783px ) {
+			@media only screen and (min-width: 783px) {
 				grid-template-columns: 1fr;
 			}
 		}
@@ -148,7 +148,7 @@
 		display: flex;
 		justify-content: center;
 
-		@media only screen and ( min-width: 600px ) {
+		@media only screen and (min-width: 600px) {
 			display: flex;
 		}
 
@@ -159,7 +159,7 @@
 			padding-right: 24px;
 			position: relative;
 
-			@media only screen and ( min-width: 648px ) {
+			@media only screen and (min-width: 648px) {
 				max-width: 648px;
 			}
 		}
@@ -178,7 +178,7 @@
 
 		.components-base-control {
 			&.has-error {
-				input[type='text'] {
+				input[type="text"] {
 					border-color: wp-colors.$alert-red;
 				}
 			}
@@ -195,7 +195,7 @@
 	&__in-flight {
 		pointer-events: none;
 
-		> div > *:not( .components-spinner ) {
+		> div > *:not(.components-spinner) {
 			opacity: 0.3;
 		}
 	}
@@ -204,7 +204,7 @@
 		max-height: 100%;
 		padding: 24px;
 
-		@media only screen and ( min-width: 783px ) {
+		@media only screen and (min-width: 783px) {
 			overflow-y: scroll;
 		}
 
@@ -217,17 +217,17 @@
 		.newspack-newsletters-layouts {
 			display: grid;
 			gap: 16px;
-			grid-template-columns: repeat( 2, 1fr );
-			grid-auto-rows: minmax( min-content, max-content );
+			grid-template-columns: repeat(2, 1fr);
+			grid-auto-rows: minmax(min-content, max-content);
 			overflow: hidden;
 			padding: 0;
 
-			@media only screen and ( min-width: 600px ) {
+			@media only screen and (min-width: 600px) {
 				grid-template-columns: 1fr;
 			}
 
-			@media only screen and ( min-width: 783px ) {
-				grid-template-columns: repeat( auto-fill, minmax( 300px, 1fr ) );
+			@media only screen and (min-width: 783px) {
+				grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 			}
 
 			&__item {
@@ -244,7 +244,7 @@
 
 						&::before {
 							border: 1px solid;
-							content: '';
+							content: "";
 							display: block;
 							position: absolute;
 							inset: 0;
@@ -274,7 +274,7 @@
 
 				&::before {
 					border: 2px solid white;
-					content: '';
+					content: "";
 					display: block;
 					position: absolute;
 					inset: 0;
@@ -283,7 +283,7 @@
 
 				&:hover,
 				&:focus {
-					border-color: var( --wp-admin-theme-color );
+					border-color: var(--wp-admin-theme-color);
 				}
 
 				&:hover {
@@ -341,7 +341,7 @@
 		overflow: hidden;
 		position: relative;
 
-		@media only screen and ( min-width: 600px ) {
+		@media only screen and (min-width: 600px) {
 			display: flex;
 		}
 
@@ -360,7 +360,7 @@
 .block-editor-block-preview__content-iframe {
 	background: transparent;
 
-	.wp-block[data-type='newspack-newsletters/posts-inserter'] {
+	.wp-block[data-type="newspack-newsletters/posts-inserter"] {
 		padding: 0;
 	}
 
@@ -389,7 +389,7 @@
 		}
 
 		.block-editor-block-preview__content {
-			transform: scale( 1 ) !important;
+			transform: scale(1) !important;
 			width: 600px !important;
 		}
 	}
