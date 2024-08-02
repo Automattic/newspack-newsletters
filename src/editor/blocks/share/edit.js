@@ -74,22 +74,22 @@ const ShareBlockWithData = compose(
 		const createTheNotice = hasNotice
 			? () => {}
 			: () =>
-					createWarningNotice(
-						__(
-							'This post is not public - the share block will not be displayed, since there is no post to link to.',
-							'newspack-newsletters'
-						),
-						{
-							id: SHARE_BLOCK_NOTICE_ID,
-							isDismissible: false,
-							actions: [
-								{
-									label: __( 'Make public', 'newspack-newsletters' ),
-									onClick: () => editPost( { meta: { is_public: true } } ),
-								},
-							],
-						}
-					);
+				createWarningNotice(
+					__(
+						'This post is not public - the share block will not be displayed, since there is no post to link to.',
+						'newspack-newsletters'
+					),
+					{
+						id: SHARE_BLOCK_NOTICE_ID,
+						isDismissible: false,
+						actions: [
+							{
+								label: __( 'Make public', 'newspack-newsletters' ),
+								onClick: () => editPost( { meta: { is_public: true } } ),
+							},
+						],
+					}
+				);
 		return { createTheNotice, removeNotice: () => removeNotice( SHARE_BLOCK_NOTICE_ID ) };
 	} )
 )( ShareBlock );

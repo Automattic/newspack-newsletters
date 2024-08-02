@@ -1,9 +1,9 @@
-@use '~@wordpress/base-styles/colors' as wp-colors;
+@use "~@wordpress/base-styles/colors" as wp-colors;
 
 .editor-styles-wrapper .wp-block-newspack-newsletters-subscribe {
 	form {
-		input[type='text'],
-		input[type='email'] {
+		input[type="text"],
+		input[type="email"] {
 			background: #fff;
 			border: solid 1px #ddd;
 			box-sizing: border-box;
@@ -14,7 +14,7 @@
 			border-radius: 0;
 			font-size: 1rem;
 		}
-		input[type='checkbox'] {
+		input[type="checkbox"] {
 			background: #fff;
 			border: 1px solid #ddd;
 			box-shadow: none;
@@ -26,10 +26,11 @@
 			width: 20px !important;
 
 			&::before {
-				background: transparent
-					url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white' %3E%3C/path%3E%3C/svg%3E" )
+				background:
+					transparent
+					url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='white' %3E%3C/path%3E%3C/svg%3E")
 					0 0 no-repeat;
-				content: '';
+				content: "";
 				height: 24px;
 				margin: 0;
 				width: 24px;
@@ -44,7 +45,7 @@
 				box-shadow: none;
 			}
 		}
-		[type='submit'],
+		[type="submit"],
 		.submit-button {
 			transition: background 150ms ease-in-out;
 			background: #d33;
@@ -52,7 +53,7 @@
 			border-radius: 5px;
 			box-sizing: border-box;
 			color: #fff;
-			font-family: var( --newspack-theme-font-heading );
+			font-family: var(--newspack-theme-font-heading);
 			font-size: 1rem;
 			font-weight: 700;
 			line-height: 1.2;
@@ -87,12 +88,12 @@
 			box-shadow: none !important;
 			color: wp-colors.$gray-900 !important;
 			height: 32px !important;
-			&[data-is-active='true'] {
+			&[data-is-active="true"] {
 				background-color: wp-colors.$gray-900;
 				color: white !important;
 			}
-			&:hover:not( [data-is-active='true'] ) {
-				color: var( --wp-admin-theme-color ) !important;
+			&:hover:not([data-is-active="true"]) {
+				color: var(--wp-admin-theme-color) !important;
 			}
 		}
 		span {
@@ -123,7 +124,7 @@
 
 .editor-styles-wrapper {
 	// stylelint-disable-next-line no-invalid-position-at-import-rule,import-notation
-	@import 'style';
+	@import "style";
 }
 
 // Remove padding around the nested Color Palette
