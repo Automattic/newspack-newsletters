@@ -356,69 +356,8 @@ class Newspack_Newsletters_Subscription {
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
 	public static function add_contact( $contact, $lists = false, $async = false ) {
-		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Subscription::subscribe_contact' );
-		return self::subscribe_contact( $contact, $lists, $async );
-	}
-
-	/**
-	 * Subscribe a contact to lists.
-	 *
-	 * This method uses an upsert strategy, which means the contact will be
-	 * created if it doesn't exist, or updated if it does.
-	 *
-	 * A contact can be added asynchronously, which means the request will return
-	 * immediately and the contact will be added in the background. In this case
-	 * the response will be `true` and the caller must handle it optimistically.
-	 * NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED must be defined as true for
-	 * this feature to be available.
-	 *
-	 * @param array          $contact {
-	 *          Contact information.
-	 *
-	 *    @type string   $email    Contact email address.
-	 *    @type string   $name     Contact name. Optional.
-	 *    @type string[] $metadata Contact additional metadata. Optional.
-	 * }
-	 * @param string[]|false $lists   Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
-	 * @param bool           $async   Whether to add the contact asynchronously. Default is false.
-	 *
-	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
-	 */
-	public static function subscribe_contact( $contact, $lists = false, $async = false ) {
-		$provider = Newspack_Newsletters::get_service_provider();
-
-		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
-			self::add_subscription_intent( $contact, $lists );
-			return true;
-		}
-
-		$existing_contact = self::get_contact_data( $contact['email'], true );
-		$is_updating      = \is_wp_error( $existing_contact ) ? false : true;
-
-		$result = Newspack_Newsletters_Contacts::upsert( $contact, $lists, $existing_contact );
-
-		if ( is_wp_error( $result ) ) {
-			return $result;
-		}
-
-		/**
-		 * Fires after a contact subscribes.
-		 *
-		 * @param string              $provider The provider name.
-		 * @param array               $contact  {
-		 *    Contact information.
-		 *
-		 *    @type string   $email    Contact email address.
-		 *    @type string   $name     Contact name. Optional.
-		 *    @type string[] $metadata Contact additional metadata. Optional.
-		 * }
-		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
-		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
-		 * @param bool|null           $is_updating Whether the contact is being updated. If false, the contact is being created.
-		 */
-		do_action( 'newspack_newsletters_contact_subscribed', $provider->service, $contact, $lists, $result, $is_updating );
-
-		return $result;
+		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::subscribe_contact' );
+		return Newspack_Newsletters_Contacts::subscribe_contact( $contact, $lists, $async );
 	}
 
 	/**
