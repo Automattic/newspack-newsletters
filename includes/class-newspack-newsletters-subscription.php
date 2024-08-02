@@ -356,7 +356,7 @@ class Newspack_Newsletters_Subscription {
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
 	public static function add_contact( $contact, $lists = false, $async = false ) {
-		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Subscription::upsert' );
+		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Subscription::subscribe_contact' );
 		return self::subscribe_contact( $contact, $lists, $async );
 	}
 
@@ -386,12 +386,38 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function subscribe_contact( $contact, $lists = false, $async = false ) {
 		$provider = Newspack_Newsletters::get_service_provider();
+
 		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
 			self::add_subscription_intent( $contact, $lists );
-			$result = true;
-		} else {
-			$result = Newspack_Newsletters_Contacts::upsert( $contact, $lists );
+			return true;
 		}
+
+		$existing_contact = self::get_contact_data( $contact['email'], true );
+		$is_updating      = \is_wp_error( $existing_contact ) ? false : true;
+
+		$result = Newspack_Newsletters_Contacts::upsert( $contact, $lists, $existing_contact );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		/**
+		 * Fires after a contact subscribes.
+		 *
+		 * @param string              $provider The provider name.
+		 * @param array               $contact  {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
+		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
+		 * @param bool|null           $is_updating Whether the contact is being updated. If false, the contact is being created.
+		 */
+		do_action( 'newspack_newsletters_contact_subscribed', $provider->service, $contact, $lists, $result, $is_updating );
+
 		return $result;
 	}
 
@@ -505,10 +531,14 @@ class Newspack_Newsletters_Subscription {
 				self::remove_subscription_intent( $intent['id'] );
 				continue;
 			}
-			$contact     = $intent['contact'];
-			$email       = $contact['email'];
-			$lists       = $intent['lists'];
-			$result      = Newspack_Newsletters_Contacts::upsert( $contact, $lists );
+			$contact = $intent['contact'];
+			$email   = $contact['email'];
+			$lists   = $intent['lists'];
+
+			$existing_contact = self::get_contact_data( $contact['email'], true );
+			$is_updating      = \is_wp_error( $existing_contact ) ? false : true;
+
+			$result = Newspack_Newsletters_Contacts::upsert( $contact, $lists, $existing_contact );
 
 			$user = get_user_by( 'email', $email );
 			if ( \is_wp_error( $result ) ) {
@@ -524,6 +554,23 @@ class Newspack_Newsletters_Subscription {
 				if ( $user ) {
 					delete_user_meta( $user->ID, 'newspack_newsletters_subscription_error' );
 				}
+
+				/**
+				 * Fires after a contact subscribes.
+				 *
+				 * @param string              $provider The provider name.
+				 * @param array               $contact  {
+				 *    Contact information.
+				 *
+				 *    @type string   $email    Contact email address.
+				 *    @type string   $name     Contact name. Optional.
+				 *    @type string[] $metadata Contact additional metadata. Optional.
+				 * }
+				 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
+				 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
+				 * @param bool|null           $is_updating Whether the contact is being updated. If false, the contact is being created.
+				 */
+				do_action( 'newspack_newsletters_contact_subscribed', $provider->service, $contact, $lists, $result, $is_updating );
 			}
 		}
 	}

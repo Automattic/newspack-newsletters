@@ -17,18 +17,19 @@ class Newspack_Newsletters_Contacts {
 	/**
 	 * Upserts a contact to lists.
 	 *
-	 * @param array          $contact {
+	 * @param array          $contact          {
 	 *          Contact information.
 	 *
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string[]|false $lists   Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
+	 * @param string[]|false $lists            Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
+	 * @param array|null     $existing_contact Optional existing contact data.
 	 *
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
-	public static function upsert( $contact, $lists = false ) {
+	public static function upsert( $contact, $lists = false, $existing_contact = null ) {
 		if ( ! is_array( $lists ) && false !== $lists ) {
 			$lists = [ $lists ];
 		}
@@ -58,7 +59,10 @@ class Newspack_Newsletters_Contacts {
 			Newspack_Newsletters_Logger::log( 'Adding contact without lists. Provider is ' . $provider->service . '.' );
 		}
 
-		$existing_contact                 = Newspack_Newsletters_Subscription::get_contact_data( $contact['email'], true );
+		if ( null !== $existing_contact ) {
+			$existing_contact = Newspack_Newsletters_Subscription::get_contact_data( $contact['email'], true );
+		}
+
 		$contact['existing_contact_data'] = \is_wp_error( $existing_contact ) ? false : $existing_contact;
 		$is_updating                      = \is_wp_error( $existing_contact ) ? false : true;
 
@@ -132,7 +136,7 @@ class Newspack_Newsletters_Contacts {
 		}
 
 		/**
-		 * Fires after a contact is added.
+		 * Fires after a contact is upserted.
 		 *
 		 * @param string              $provider The provider name.
 		 * @param array               $contact  {
@@ -146,7 +150,7 @@ class Newspack_Newsletters_Contacts {
 		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
 		 * @param bool                $is_updating Whether the contact is being updated. If false, the contact is being created.
 		 */
-		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating );
+		do_action( 'newspack_newsletters_upsert', $provider->service, $contact, $lists, $result, $is_updating );
 
 		if ( $errors->has_errors() ) {
 			return $errors;
