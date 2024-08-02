@@ -193,5 +193,15 @@ class MailChimp {
 			'status' => 200,
 		];
 	}
+
+	/**
+	 * Get the subscriber hash.
+	 *
+	 * @param string $email Email address.
+	 * @return string
+	 */
+	public static function subscriberHash( $email ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return md5( strtolower( $email ) );
+	}
 }
 MailChimp::init();

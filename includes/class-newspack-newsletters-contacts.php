@@ -31,10 +31,11 @@ class Newspack_Newsletters_Contacts {
 	 * }
 	 * @param string[]|false $lists   Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
 	 * @param bool           $async   Whether to add the contact asynchronously. Default is false.
+	 * @param string         $context Context of the update for logging purposes.
 	 *
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
-	public static function upsert( $contact, $lists = false, $async = false ) {
+	public static function upsert( $contact, $lists = false, $async = false, $context = 'Unknown' ) {
 		if ( ! is_array( $lists ) && false !== $lists ) {
 			$lists = [ $lists ];
 		}
@@ -59,7 +60,7 @@ class Newspack_Newsletters_Contacts {
 		}
 
 		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
-			Newspack_Newsletters_Subscription::add_subscription_intent( $contact, $lists );
+			Newspack_Newsletters_Subscription::add_subscription_intent( $contact, $lists, $context );
 			return true;
 		}
 
@@ -113,17 +114,18 @@ class Newspack_Newsletters_Contacts {
 		 */
 		$lists = apply_filters( 'newspack_newsletters_contact_lists', $lists, $contact, $provider->service );
 
-		return self::add_to_esp( $contact, $lists, $is_updating );
+		return self::add_to_esp( $contact, $lists, $is_updating, $context );
 	}
 
 	/**
 	 * Permanently delete a user subscription.
 	 *
-	 * @param int $user_id User ID.
+	 * @param int    $user_id User ID.
+	 * @param string $context Context of the update for logging purposes.
 	 *
 	 * @return bool|WP_Error Whether the contact was deleted or error.
 	 */
-	public static function delete( $user_id ) {
+	public static function delete( $user_id, $context = 'Unknown' ) {
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
 			return new WP_Error( 'newspack_newsletters_invalid_user', __( 'Invalid user.' ) );
@@ -139,7 +141,24 @@ class Newspack_Newsletters_Contacts {
 		if ( ! method_exists( $provider, 'delete_contact' ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider_method', __( 'Provider does not support deleting user subscriptions.' ) );
 		}
-		return $provider->delete_contact( $user->user_email );
+		$result = $provider->delete_contact( $user->user_email );
+
+		do_action(
+			'newspack_log',
+			'newspack_esp_sync_delete_contact',
+			$context,
+			[
+				'type'       => is_wp_error( $result ) ? 'error' : 'debug',
+				'data'       => [
+					'provider' => $provider->service,
+					'errors'   => is_wp_error( $result ) ? $result->get_error_message() : [],
+				],
+				'user_email' => $user->user_email,
+				'file'       => 'newspack_esp_sync',
+			]
+		);
+
+		return $result;
 	}
 
 	/**
@@ -150,10 +169,11 @@ class Newspack_Newsletters_Contacts {
 	 *
 	 * @param string   $email Contact email address.
 	 * @param string[] $lists Array of list IDs to subscribe the contact to.
+	 * @param string   $context Context of the update for logging purposes.
 	 *
 	 * @return bool|WP_Error Whether the contact was updated or error.
 	 */
-	public static function update_lists( $email, $lists = [] ) {
+	public static function update_lists( $email, $lists = [], $context = 'Unknown' ) {
 		if ( ! Newspack_Newsletters_Subscription::has_subscription_management() ) {
 			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
 		}
@@ -175,7 +195,26 @@ class Newspack_Newsletters_Contacts {
 			return false;
 		}
 
-		$result = $provider->update_contact_lists_handling_local( $email, $lists_to_add, $lists_to_remove );
+		return self::add_and_remove_lists( $email, $lists_to_add, $lists_to_remove, $context );
+	}
+
+	/**
+	 * Add and remove a contact from lists.
+	 *
+	 * @param string   $email          Contact email address.
+	 * @param string[] $lists_to_add    Array of list IDs to subscribe the contact to.
+	 * @param string[] $lists_to_remove Array of list IDs to remove the contact from.
+	 * @param string   $context        Context of the update for logging purposes.
+	 *
+	 * @return bool|WP_Error Whether the contact was updated or error.
+	 */
+	public static function add_and_remove_lists( $email, $lists_to_add = [], $lists_to_remove = [], $context = 'Unknown' ) {
+		if ( ! Newspack_Newsletters_Subscription::has_subscription_management() ) {
+			return new WP_Error( 'newspack_newsletters_not_supported', __( 'Not supported for this provider', 'newspack-newsletters' ) );
+		}
+		$provider = Newspack_Newsletters::get_service_provider();
+
+		$result = $provider->update_contact_lists_handling_local( $email, $lists_to_add, $lists_to_remove, $context );
 
 		/**
 		 * Fires after a contact's lists are updated.
@@ -185,8 +224,26 @@ class Newspack_Newsletters_Contacts {
 		 * @param string[]      $lists_to_add    Array of list IDs to subscribe the contact to.
 		 * @param string[]      $lists_to_remove Array of list IDs to remove the contact from.
 		 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
+		 * @param string        $context         Context of the update for logging purposes.
 		 */
-		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result );
+		do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $email, $lists_to_add, $lists_to_remove, $result, $context );
+
+		do_action(
+			'newspack_log',
+			'newspack_esp_sync_update_lists',
+			$context,
+			[
+				'type'       => is_wp_error( $result ) ? 'error' : 'debug',
+				'data'       => [
+					'provider'        => $provider->service,
+					'lists_to_add'    => $lists_to_add,
+					'lists_to_remove' => $lists_to_remove,
+					'errors'          => is_wp_error( $result ) ? $result->get_error_messages() : [],
+				],
+				'user_email' => $email,
+				'file'       => 'newspack_esp_sync',
+			]
+		);
 
 		return $result;
 	}
@@ -195,13 +252,14 @@ class Newspack_Newsletters_Contacts {
 	 * Internal method to add a contact to lists. Should be called by the
 	 * `add_contact` method or `handle_async_subscribe` for the async strategy.
 	 *
-	 * @param array $contact     Contact information.
-	 * @param array $lists       Array of list IDs to subscribe the contact to.
-	 * @param bool  $is_updating Whether the contact is being updated. If false, the contact is being created.
+	 * @param array  $contact     Contact information.
+	 * @param array  $lists       Array of list IDs to subscribe the contact to.
+	 * @param bool   $is_updating Whether the contact is being updated. If false, the contact is being created.
+	 * @param string $context    Context of the update for logging purposes.
 	 *
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	private static function add_to_esp( $contact, $lists = [], $is_updating = false ) {
+	private static function add_to_esp( $contact, $lists = [], $is_updating = false, $context = 'Unknown' ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		$errors   = new WP_Error();
 		$result   = [];
@@ -247,8 +305,26 @@ class Newspack_Newsletters_Contacts {
 		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
 		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
 		 * @param bool                $is_updating Whether the contact is being updated. If false, the contact is being created.
+		 * @param string              $context  Context of the update for logging purposes.
 		 */
-		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating );
+		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating, $context );
+
+		do_action(
+			'newspack_log',
+			'newspack_esp_sync_upsert_contact',
+			$context,
+			[
+				'type'       => $errors->has_errors() ? 'error' : 'debug',
+				'data'       => [
+					'provider' => $provider->service,
+					'lists'    => $lists,
+					'contact'  => $contact,
+					'errors'   => $errors->get_error_messages(),
+				],
+				'user_email' => $contact['email'],
+				'file'       => 'newspack_esp_sync',
+			]
+		);
 
 		if ( $errors->has_errors() ) {
 			return $errors;
