@@ -27,7 +27,9 @@ const renderPreSendInfo = ( newsletterData = {} ) => {
 	const list = lists.find( thisList => list_id === thisList.id );
 	const segment = segments?.find( thisSegment => segment_id === thisSegment.id );
 
-	if ( ! list ) return null;
+	if ( ! list ) {
+		return null;
+	}
 
 	return (
 		<Fragment>

@@ -98,10 +98,14 @@ export default () => {
 		'newspack-newsletters/embed-block-edit-editor',
 		BlockEdit => {
 			return props => {
-				if ( props.name !== 'core/embed' ) return <BlockEdit { ...props } />;
+				if ( props.name !== 'core/embed' ) {
+					return <BlockEdit { ...props } />;
+				}
 				const { getEmbedPreview } = select( 'core' );
 				const embedPreview = getEmbedPreview( props.attributes.url );
-				if ( ! embedPreview ) return <BlockEdit { ...props } />;
+				if ( ! embedPreview ) {
+					return <BlockEdit { ...props } />;
+				}
 				const [ isViewingEmail, setIsViewingEmail ] = useState( true );
 				const blockProps = useBlockProps();
 				return (

@@ -150,14 +150,12 @@ const ProviderSidebarComponent = ( {
 			updateMeta( {
 				...( from_name
 					? {
-							senderName: from_name,
-					  }
-					: {} ),
+						senderName: from_name,
+					} : {} ),
 				...( reply_to
 					? {
-							senderEmail: reply_to,
-					  }
-					: {} ),
+						senderEmail: reply_to,
+					} : {} ),
 			} );
 		}
 	}, [ campaign ] );
