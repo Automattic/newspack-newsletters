@@ -1,59 +1,19 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import apiFetch from '@wordpress/api-fetch';
+import { __, _n, sprintf } from '@wordpress/i18n';
+import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
-import { ExternalLink, SelectControl, Spinner, Notice } from '@wordpress/components';
+import { SelectControl, Spinner, Notice } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import { getGroupOptions, getSegmentOptions } from './utils';
-import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
-
-const getSubAudienceOptions = newsletterData => {
-	const groups = newsletterData?.interest_categories || [];
-	const segments = newsletterData?.segments || [];
-	const tags = newsletterData?.tags || [];
-	let optGroups = [];
-
-	if ( groups?.categories?.length > 0 ) {
-		optGroups = optGroups.concat( getGroupOptions( groups ) );
-	}
-
-	if ( tags.length > 0 ) {
-		optGroups.push( {
-			label: __( 'Tags', 'newspack-newsletters' ),
-			options: getSegmentOptions( tags ),
-		} );
-	}
-
-	if ( segments.length > 0 ) {
-		optGroups.push( {
-			label: __( 'Segments', 'newspack-newsletters' ),
-			options: getSegmentOptions( segments ),
-		} );
-	}
-	return optGroups;
-};
-
-const SegmentsSelection = ( { onUpdate, inFlight, value, newsletterData } ) => {
-	const optGroups = getSubAudienceOptions( newsletterData );
-	if ( ! optGroups.length ) {
-		return null;
-	}
-	return (
-		<SelectControlWithOptGroup
-			label={ __( 'Group, Segment, or Tag', 'newspack-newsletters' ) }
-			deselectedOptionLabel={ __( 'All subscribers in audience', 'newspack-newsletters' ) }
-			optgroups={ optGroups }
-			value={ value }
-			onChange={ id => onUpdate( id.toString() ) }
-			disabled={ inFlight }
-		/>
-	);
-};
+import SendTo from '../../newsletter-editor/sidebar/send-to';
+import { getSuggestionLabel } from '../../newsletter-editor/utils';
+import { getSubAudienceOptions } from './utils';
 
 const getSubAudienceValue = newsletterData => {
 	const recipients = newsletterData.campaign?.recipients;
@@ -76,7 +36,7 @@ const getSubAudienceValue = newsletterData => {
 		: targetId;
 };
 
-const ProviderSidebar = ( {
+const ProviderSidebarComponent = ( {
 	renderCampaignName,
 	renderSubject,
 	renderFrom,
@@ -84,19 +44,36 @@ const ProviderSidebar = ( {
 	inFlight,
 	newsletterData,
 	stringifiedLayoutDefaults,
-	apiFetch,
 	postId,
 	updateMeta,
 	createErrorNotice,
 	meta,
+	status,
 } ) => {
 	const campaign = newsletterData.campaign;
 
 	// Separate out audiences from other data item types.
 	const audiences = newsletterData?.lists
-		? newsletterData.lists.filter(
-				list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type
-		  )
+		? newsletterData.lists
+				.filter( list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type )
+				.map( item => {
+					const count =
+						item?.member_count || item?.subscriber_count || item?.stats?.member_count || null;
+					const formattedItem = {
+						...item,
+						name: item.name || item.title,
+						typeLabel: __( 'Audience', 'newspack-newsletters' ),
+						type: 'list',
+						value: item.id,
+					};
+
+					if ( null !== count ) {
+						formattedItem.count = parseInt( count );
+					}
+					formattedItem.label = getSuggestionLabel( formattedItem );
+
+					return formattedItem;
+				} )
 		: [];
 	const folders = newsletterData?.folders || [];
 
@@ -109,7 +86,7 @@ const ProviderSidebar = ( {
 			const response = await apiFetch( {
 				path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
 			} );
-			updateMeta( 'newsletterData', response );
+			updateMeta( { newsletterData: response } );
 		} catch ( e ) {
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
@@ -117,11 +94,12 @@ const ProviderSidebar = ( {
 		}
 	};
 
-	const setList = listId =>
-		apiFetch( {
+	const setList = listId => {
+		return apiFetch( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/list/${ listId }`,
 			method: 'POST',
-		} );
+		} ).then( response => updateMeta( { newsletterData: response } ) );
+	};
 
 	const getFolderOptions = () => {
 		const options = folders.map( folder => ( {
@@ -147,13 +125,13 @@ const ProviderSidebar = ( {
 		} );
 
 	const updateSegments = target_id => {
-		apiFetch( {
+		return apiFetch( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/segments`,
 			method: 'POST',
 			data: {
 				target_id,
 			},
-		} );
+		} ).then( response => updateMeta( { newsletterData: response } ) );
 	};
 
 	const setSender = ( { senderName, senderEmail } ) =>
@@ -213,6 +191,47 @@ const ProviderSidebar = ( {
 		}
 	}, [ stringifiedLayoutDefaults.length ] );
 
+	const renderSelectedSummary = () => {
+		if ( ! selectedAudience ) {
+			return null;
+		}
+
+		const summary = selectedSubAudience?.count
+			? sprintf(
+					// Translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available.  %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp). %4$s is the label of the sublist (ex: "paid customers"), and %5$s is the label for the sublist type (ex: tag, group or segment)
+					_n(
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who is part of the <strong>%4$s</strong> %5$s.',
+						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
+						selectedSubAudience.count,
+						'newspack-newsletters'
+					),
+					selectedSubAudience.count.toLocaleString(),
+					selectedAudience.name,
+					selectedAudience.typeLabel.toLowerCase(),
+					selectedSubAudience.name,
+					selectedSubAudience.typeLabel.toLowerCase()
+			  )
+			: sprintf(
+					// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
+					_n(
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s.',
+						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s.',
+						selectedAudience.count,
+						'newspack-newsletters'
+					),
+					selectedAudience.count.toLocaleString(),
+					selectedAudience.name,
+					selectedAudience.typeLabel.toLowerCase()
+			  );
+		return (
+			<p
+				dangerouslySetInnerHTML={ {
+					__html: summary,
+				} }
+			/>
+		);
+	};
+
 	if ( ! campaign ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
@@ -222,9 +241,13 @@ const ProviderSidebar = ( {
 		);
 	}
 
-	const { status } = campaign || {};
-
-	if ( 'sent' === status || 'sending' === status ) {
+	if (
+		! inFlight &&
+		( 'publish' === status ||
+			'private' === status ||
+			'sent' === campaign?.status ||
+			'sending' === campaign?.status )
+	) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
@@ -233,8 +256,30 @@ const ProviderSidebar = ( {
 	}
 
 	const { list_id: audienceId } = campaign.recipients || {};
-	const list = audienceId && audiences.find( ( { id } ) => audienceId === id );
-	const { web_id: listWebId } = list || {};
+	const subAudienceId = getSubAudienceValue( newsletterData );
+	const subAudiences = getSubAudienceOptions( newsletterData );
+	const selectedAudience = audienceId && audiences.find( ( { value } ) => audienceId === value );
+	const selectedSubAudience =
+		subAudienceId &&
+		subAudiences.find( ( { value } ) => subAudienceId.toString() === value.toString() );
+	const onChangeSendTo = labels => {
+		const selectedLabel = labels[ 0 ];
+		const items = [ ...audiences, ...subAudiences ];
+		const selectedItem = items.find( item => item.label === selectedLabel );
+
+		// If the selected item is already selected in the campaign, no need to update.
+		if (
+			! selectedItem ||
+			selectedAudience?.value === selectedItem?.value ||
+			selectedSubAudience?.value === selectedItem?.value
+		) {
+			return;
+		}
+
+		return 'list' === selectedItem.type
+			? setList( selectedItem.value )
+			: updateSegments( selectedItem.value );
+	};
 
 	return (
 		<Fragment>
@@ -259,45 +304,39 @@ const ProviderSidebar = ( {
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<SelectControl
-				label={ __( 'Audience', 'newspack-newsletters' ) }
-				className="newspack-newsletters__to-selectcontrol"
-				value={ audienceId }
-				options={ [
-					{
-						value: null,
-						label: __( '-- Select an audience --', 'newspack-newsletters' ),
-					},
-					...audiences.map( ( { id, name } ) => ( {
-						value: id,
-						label: name,
-					} ) ),
-				] }
-				onChange={ setList }
-				disabled={ inFlight }
+			<SendTo
+				availableItems={ audiences }
+				onChange={ onChangeSendTo }
+				formLabel={ __( 'Select an audience', 'newspack' ) }
+				placeholder={ __( 'Type an audience name to search', 'newspack' ) }
+				reset={ null } // Mailchimp API doesn't support unsetting a campaign's list, once set.
+				selectedItem={ selectedAudience }
 			/>
-			{ listWebId && (
-				<p>
-					<ExternalLink href={ `https://admin.mailchimp.com/lists/members/?id=${ listWebId }` }>
-						{ __( 'Manage audience', 'newspack-newsletters' ) }
-					</ExternalLink>
-				</p>
+			{ selectedAudience && (
+				<>
+					<SendTo
+						availableItems={ subAudiences }
+						onChange={ onChangeSendTo }
+						formLabel={ __( 'Filter by Group, Segment, or Tag (optional)', 'newspack' ) }
+						placeholder={ __( 'Type a group, segment, or tag name to search', 'newspack' ) }
+						reset={ () => updateSegments( '' ) }
+						selectedItem={ selectedSubAudience }
+					/>
+				</>
 			) }
-			<SegmentsSelection
-				value={ getSubAudienceValue( newsletterData ) }
-				newsletterData={ newsletterData }
-				inFlight={ inFlight }
-				onUpdate={ updateSegments }
-			/>
+			{ renderSelectedSummary() }
 		</Fragment>
 	);
 };
 
 const mapStateToProps = select => {
-	const { getEditedPostAttribute } = select( 'core/editor' );
+	const { getCurrentPostAttribute, getEditedPostAttribute } = select( 'core/editor' );
 	return {
 		meta: getEditedPostAttribute( 'meta' ),
+		status: getCurrentPostAttribute( 'status' ),
 	};
 };
 
-export default withSelect( mapStateToProps )( ProviderSidebar );
+export const ProviderSidebar = compose( [ withSelect( mapStateToProps ) ] )(
+	ProviderSidebarComponent
+);

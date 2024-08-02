@@ -1,11 +1,12 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import apiFetch from '@wordpress/api-fetch';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
-import { withDispatch, withSelect } from '@wordpress/data';
+import { withSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
-import { BaseControl, SelectControl, Spinner, TextControl, Notice } from '@wordpress/components';
+import { Spinner, TextControl, Notice } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -15,6 +16,8 @@ import { pick } from 'lodash';
 /**
  * Internal dependencies
  */
+import SendTo from '../../newsletter-editor/sidebar/send-to';
+import { getSuggestionLabel } from '../../newsletter-editor/utils';
 import './style.scss';
 
 /**
@@ -46,14 +49,13 @@ const AC_DATA_METADATA_KEYS = [ 'ac_list_id', 'ac_segment_id', 'ac_from_name', '
  * the data is not yet available.
  *
  * @param {Object}   props                           Component props.
- * @param {Function} props.apiFetch                  Function to fetch data from the API.
  * @param {number}   props.postId                    ID of the edited newsletter post.
  * @param {Function} props.renderCampaignName        Function that renders campaign name input.
  * @param {Function} props.renderSubject             Function that renders email subject input.
  * @param {Function} props.renderPreviewText         Function that renders email preview text input.
  * @param {boolean}  props.inFlight                  True if the component is in a loading state.
  * @param {Object}   props.acData                    ActiveCampaign data.
- * @param {Function} props.updateMetaValue           Dispatcher to update post meta.
+ * @param {Function} props.updateMeta                Dispatcher to update post meta.
  * @param {Object}   props.newsletterData            Newsletter data from the parent components
  * @param {Function} props.createErrorNotice         Dispatcher to display an error message in the editor.
  * @param {string}   props.status                    Current post status.
@@ -61,13 +63,12 @@ const AC_DATA_METADATA_KEYS = [ 'ac_list_id', 'ac_segment_id', 'ac_from_name', '
  */
 const ProviderSidebarComponent = ( {
 	postId,
-	apiFetch,
 	renderCampaignName,
 	renderSubject,
 	renderPreviewText,
 	inFlight,
 	acData,
-	updateMetaValue,
+	updateMeta,
 	newsletterData,
 	createErrorNotice,
 	status,
@@ -75,6 +76,8 @@ const ProviderSidebarComponent = ( {
 } ) => {
 	const [ lists, setLists ] = useState( [] );
 	const [ segments, setSegments ] = useState( [] );
+	const [ selectedList, setSelectedList ] = useState( null );
+	const [ selectedSegment, setSelectedSegment ] = useState( null );
 
 	useEffect( () => {
 		fetchListsAndSegments();
@@ -85,8 +88,40 @@ const ProviderSidebarComponent = ( {
 			const response = await apiFetch( {
 				path: `/newspack-newsletters/v1/active_campaign/${ postId }/retrieve`,
 			} );
-			setLists( response.lists );
-			setSegments( response.segments );
+			setLists(
+				response.lists.map( item => {
+					const count = item.subscriber_count || null;
+					const formattedItem = {
+						...item,
+						name: item.name,
+						typeLabel: __( 'List', 'newspack-newsletters' ),
+						type: 'list',
+						value: item.id,
+					};
+
+					if ( null !== count ) {
+						formattedItem.count = parseInt( count );
+					}
+					formattedItem.label = getSuggestionLabel( formattedItem );
+
+					return formattedItem;
+				} )
+			);
+			setSegments(
+				response.segments.map( item => {
+					const formattedItem = {
+						...item,
+						name: item.name,
+						typeLabel: __( 'Segment', 'newspack-newsletters' ),
+						type: 'segment',
+						value: item.id,
+					};
+
+					formattedItem.label = getSuggestionLabel( formattedItem );
+
+					return formattedItem;
+				} )
+			);
 		} catch ( e ) {
 			createErrorNotice(
 				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
@@ -104,7 +139,17 @@ const ProviderSidebarComponent = ( {
 			from_name: acData.ac_from_name,
 			campaign: true,
 		};
-		updateMetaValue( 'newsletterData', updatedData );
+		if ( acData.ac_list_id ) {
+			setSelectedList( lists.find( list => list.value === acData.ac_list_id ) );
+		} else {
+			setSelectedList( null );
+		}
+		if ( acData.ac_segment_id ) {
+			setSelectedSegment( segments.find( segment => segment.value === acData.ac_segment_id ) );
+		} else {
+			setSelectedSegment( null );
+		}
+		updateMeta( { newsletterData: updatedData } );
 	}, [ JSON.stringify( acData ), lists, status ] );
 
 	// If there is a stringified newsletter data from the layout, use it to set the list and segments.
@@ -115,7 +160,9 @@ const ProviderSidebarComponent = ( {
 				AC_DATA_METADATA_KEYS.forEach( key => {
 					const layoutKey = key.replace( 'ac_', '' );
 					if ( ! acData[ key ] && layoutDefaults.newsletterData[ layoutKey ] ) {
-						updateMetaValue( key, layoutDefaults.newsletterData[ layoutKey ] );
+						const updatedMeta = {};
+						updatedMeta[ key ] = layoutDefaults.newsletterData[ layoutKey ];
+						updateMeta( updatedMeta );
 					}
 				} );
 			}
@@ -124,13 +171,69 @@ const ProviderSidebarComponent = ( {
 		}
 	}, [ stringifiedLayoutDefaults.length ] );
 
-	if ( ! inFlight && 'publish' === status ) {
+	const onChangeSendTo = async ( labels, type = 'list' ) => {
+		const isList = 'list' === type;
+		const selectedLabel = labels[ 0 ];
+		const items = isList ? [ ...lists ] : [ ...segments ];
+		const selectedItem = items.find( item => item.label === selectedLabel );
+		const metaKey = isList ? 'ac_list_id' : 'ac_segment_id';
+		const updatedMeta = {};
+		updatedMeta[ metaKey ] = selectedItem?.id || '';
+		updateMeta( updatedMeta );
+		return selectedItem;
+	};
+
+	if ( ! inFlight && ( 'publish' === status || 'private' === status ) ) {
 		return (
 			<Notice status="success" isDismissible={ false }>
 				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
 			</Notice>
 		);
 	}
+
+	if ( ! lists?.length ) {
+		return (
+			<div className="newspack-newsletters__loading-data">
+				{ __( 'Retrieving ActiveCampaign data…', 'newspack-newsletters' ) }
+				<Spinner />
+			</div>
+		);
+	}
+
+	const renderSelectedSummary = () => {
+		if ( ! selectedList ) {
+			return null;
+		}
+
+		const summary = selectedSegment
+			? sprintf(
+					// Translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available. %1$s is the label of the list (ex: Main), %2$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp). %3$s is the label of the sublist (ex: "paid customers"), and %4$s is the label for the sublist type (ex: tag, group or segment)
+					'This newsletter will be sent to <strong>all contacts</strong> in the <strong>%1$s</strong> %2$s who are part of the <strong>%3$s</strong> %4$s.',
+					selectedList.name,
+					selectedList.typeLabel.toLowerCase(),
+					selectedSegment.name,
+					selectedSegment.typeLabel.toLowerCase()
+			  )
+			: sprintf(
+					// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s us the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
+					_n(
+						'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s.',
+						'This newsletter will be sent to <strong>%1$s contacts</strong> in the <strong>%2$s</strong> %3$s.',
+						selectedList.count,
+						'newspack-newsletters'
+					),
+					selectedList.count.toLocaleString(),
+					selectedList.name,
+					selectedList.typeLabel.toLowerCase()
+			  );
+		return (
+			<p
+				dangerouslySetInnerHTML={ {
+					__html: summary,
+				} }
+			/>
+		);
+	};
 
 	return (
 		<div className="newspack-newsletters__campaign-monitor-sidebar">
@@ -146,7 +249,7 @@ const ProviderSidebarComponent = ( {
 				className="newspack-newsletters__name-textcontrol"
 				value={ acData.ac_from_name }
 				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'ac_from_name', value ) }
+				onChange={ value => updateMeta( { ac_from_name: value } ) }
 			/>
 			<TextControl
 				label={ __( 'Email', 'newspack-newsletters' ) }
@@ -154,49 +257,36 @@ const ProviderSidebarComponent = ( {
 				value={ acData.ac_from_email }
 				type="email"
 				disabled={ inFlight }
-				onChange={ value => updateMetaValue( 'ac_from_email', value ) }
+				onChange={ value => updateMeta( { ac_from_email: value } ) }
 			/>
 			<hr />
 			<strong className="newspack-newsletters__label">
 				{ __( 'Send to', 'newspack-newsletters' ) }
 			</strong>
-			<BaseControl className="newspack-newsletters__list-select">
-				<SelectControl
-					label={ __( 'To', 'newspack-newsletters' ) }
-					value={ acData.ac_list_id }
-					options={ [
-						{
-							value: '',
-							label: __( '-- Select a list --', 'newspack-newsletters' ),
-						},
-						...lists.map( ( { id, name } ) => ( {
-							value: id,
-							label: name,
-						} ) ),
-					] }
-					onChange={ value => updateMetaValue( 'ac_list_id', value ) }
-					disabled={ inFlight }
-				/>
-				{ acData.ac_list_id && (
-					<SelectControl
-						label={ __( 'Segment', 'newspack-newsletters' ) }
-						value={ acData.ac_segment_id }
-						options={ [
-							{
-								value: '',
-								label: __( '-- Select a segment (optional) --', 'newspack-newsletters' ),
-							},
-							...segments.map( ( { id, name } ) => ( {
-								value: id,
-								label: name,
-							} ) ),
-						] }
-						onChange={ value => updateMetaValue( 'ac_segment_id', value ) }
-						disabled={ inFlight }
+			<SendTo
+				availableItems={ lists }
+				onChange={ selected => onChangeSendTo( selected ) }
+				placeholder={ __( 'Type a list name to search', 'newspack' ) }
+				reset={ async () => {
+					updateMeta( { ac_list_id: '' } );
+					updateMeta( { ac_segment_id: '' } );
+				} }
+				selectedItem={ selectedList }
+			/>
+			{ selectedList && (
+				<>
+					<SendTo
+						availableItems={ segments }
+						onChange={ selected => onChangeSendTo( selected, 'segment' ) }
+						formLabel={ __( 'Filter by segment (optional)', 'newspack' ) }
+						placeholder={ __( 'Type a segment name to search', 'newspack' ) }
+						reset={ async () => updateMeta( { ac_segment_id: '' } ) }
+						selectedItem={ selectedSegment }
 					/>
-				) }
-				{ inFlight && <Spinner /> }
-			</BaseControl>
+				</>
+			) }
+			{ renderSelectedSummary() }
+			{ inFlight && <Spinner /> }
 		</div>
 	);
 };
@@ -209,18 +299,6 @@ const mapStateToProps = select => {
 	};
 };
 
-const mapDispatchToProps = dispatch => {
-	const { editPost } = dispatch( 'core/editor' );
-	const { createErrorNotice } = dispatch( 'core/notices' );
-	return {
-		updateMetaValue: ( key, value ) => {
-			return editPost( { meta: { [ key ]: value } } );
-		},
-		createErrorNotice,
-	};
-};
-
-export const ProviderSidebar = compose( [
-	withSelect( mapStateToProps ),
-	withDispatch( mapDispatchToProps ),
-] )( ProviderSidebarComponent );
+export const ProviderSidebar = compose( [ withSelect( mapStateToProps ) ] )(
+	ProviderSidebarComponent
+);
