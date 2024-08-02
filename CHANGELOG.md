@@ -1,3 +1,24 @@
+# [2.21.0](https://github.com/Automattic/newspack-newsletters/compare/v2.20.4...v2.21.0) (2024-07-30)
+
+
+### Bug Fixes
+
+* error handling for Mailchimp `add_contact` method ([#1567](https://github.com/Automattic/newspack-newsletters/issues/1567)) ([eab0802](https://github.com/Automattic/newspack-newsletters/commit/eab08025540c43c07df2dd8bd434b11a049b9ec6))
+* nonexistent method, and don't remove the submit button (just the spinner) ([#1565](https://github.com/Automattic/newspack-newsletters/issues/1565)) ([c6bbc8b](https://github.com/Automattic/newspack-newsletters/commit/c6bbc8badddc1868a0ad9798eb11e989f4ce4742))
+* **recaptcha:** handle inactive recaptcha ([#1569](https://github.com/Automattic/newspack-newsletters/issues/1569)) ([dc72d91](https://github.com/Automattic/newspack-newsletters/commit/dc72d91c51311765a16b1f951f0663d0f6074ffc))
+
+
+### Features
+
+* **constant-contact:** enable subscription management in my account ([#1566](https://github.com/Automattic/newspack-newsletters/issues/1566)) ([cc79138](https://github.com/Automattic/newspack-newsletters/commit/cc79138969135c1df151a997716cd8aa2a05559f))
+
+## [2.20.4](https://github.com/Automattic/newspack-newsletters/compare/v2.20.3...v2.20.4) (2024-07-22)
+
+
+### Bug Fixes
+
+* avoid fatal when provider is manual ([b245716](https://github.com/Automattic/newspack-newsletters/commit/b24571600a34f91cb0f5be9714fe5db71f1e9c0a))
+
 ## [2.20.3](https://github.com/Automattic/newspack-newsletters/compare/v2.20.2...v2.20.3) (2024-07-22)
 
 
