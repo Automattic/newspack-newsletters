@@ -24,7 +24,7 @@ class Newspack_Newsletters_Subscription {
 	const WC_ENDPOINT         = 'newsletters';
 	const SUBSCRIPTION_UPDATE = 'newspack_newsletters_subscription';
 
-	const ASYNC_ACTION = 'newspack_newsletters_subscription_add_contact';
+	const ASYNC_ACTION = 'newspack_newsletters_subscription_subscribe_contact';
 
 	const SUBSCRIPTION_INTENT_CPT = 'np_nl_sub_intent';
 
