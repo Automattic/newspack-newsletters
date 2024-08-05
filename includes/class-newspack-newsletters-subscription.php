@@ -601,7 +601,7 @@ class Newspack_Newsletters_Subscription {
 
 		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 		try {
-			Newspack_Newsletters_Contacts::upsert(
+			Newspack_Newsletters_Contacts::subscribe_contact(
 				[
 					'email'    => $email,
 					'metadata' => $metadata,
