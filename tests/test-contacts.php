@@ -6,9 +6,9 @@
  */
 
 /**
- * Tests the Contact_Add class
+ * Tests the Contacts Class.
  */
-class ESP_Add_Contact_Test extends WP_UnitTestCase {
+class Newsletters_Contacts_Test extends WP_UnitTestCase {
 	/**
 	 * Test set up.
 	 */
@@ -19,9 +19,75 @@ class ESP_Add_Contact_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Add a contact to a single list.
+	 * Subscribe a contact to a single list synchronously.
 	 */
-	public function test_add_contact_to_single_list() {
+	public function test_subscribe_contact() {
+		$result = Newspack_Newsletters_Contacts::subscribe_contact(
+			[
+				'email' => 'test@example.com',
+			],
+			[ 'list1' ]
+		);
+		$this->assertEquals(
+			[
+				[
+					'status'  => 'pending',
+					'list_id' => 'list1',
+				],
+			],
+			$result
+		);
+	}
+
+	/**
+	 * Subscribe a contact to a single list assynchronously.
+	 */
+	public function test_subscribe_contact_async() {
+		if ( ! defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) ) {
+			define( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED', true );
+		}
+		$result = Newspack_Newsletters_Contacts::subscribe_contact(
+			[
+				'email' => 'test@example.com',
+			],
+			[ 'list1' ],
+			true
+		);
+
+		// Async subscription should return true.
+		$this->assertEquals(
+			true,
+			$result
+		);
+
+		// Hook into the async result.
+		$async_result = null;
+		add_action(
+			'newspack_newsletters_contact_subscribed',
+			function( $provider, $contact, $lists, $result, $is_updating, $context ) use ( &$async_result ) {
+				$async_result = $result;
+			},
+			10,
+			6
+		);
+
+		// Manually trigger subscription intents processing.
+		Newspack_Newsletters_Subscription::process_subscription_intents();
+		$this->assertEquals(
+			[
+				[
+					'status'  => 'pending',
+					'list_id' => 'list1',
+				],
+			],
+			$async_result
+		);
+	}
+
+	/**
+	 * Upsert a contact to a single list.
+	 */
+	public function test_upsert_contact_to_single_list() {
 		$result = Newspack_Newsletters_Contacts::upsert(
 			[
 				'email' => 'test@example.com',
@@ -40,9 +106,9 @@ class ESP_Add_Contact_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Add a contact to multiple lists.
+	 * Upsert a contact to multiple lists.
 	 */
-	public function test_add_contact_to_multiple_lists() {
+	public function test_upsert_contact_to_multiple_lists() {
 		$result = Newspack_Newsletters_Contacts::upsert(
 			[
 				'email' => 'test@example.com',
@@ -65,9 +131,9 @@ class ESP_Add_Contact_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Add a contact to lists and sublists.
+	 * Upsert a contact to lists and sublists.
 	 */
-	public function test_add_contact_to_lists_and_sublists() {
+	public function test_upsert_contact_to_lists_and_sublists() {
 		$result = Newspack_Newsletters_Contacts::upsert(
 			[
 				'email' => 'test@example.com',
@@ -93,9 +159,9 @@ class ESP_Add_Contact_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Add a contact to multiple lists and sublists.
+	 * Upsert a contact to multiple lists and sublists.
 	 */
-	public function test_add_contact_to_multiple_lists_and_sublists() {
+	public function test_upsert_contact_to_multiple_lists_and_sublists() {
 		$result = Newspack_Newsletters_Contacts::upsert(
 			[
 				'email' => 'test@example.com',

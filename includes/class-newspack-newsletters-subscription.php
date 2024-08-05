@@ -461,6 +461,11 @@ class Newspack_Newsletters_Subscription {
 				]
 			);
 		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return;
+		}
 		foreach ( $intents as $intent ) {
 			if ( empty( $intent ) ) {
 				continue;
@@ -473,6 +478,7 @@ class Newspack_Newsletters_Subscription {
 				self::remove_subscription_intent( $intent['id'] );
 				continue;
 			}
+
 			$contact = $intent['contact'];
 			$email   = $contact['email'];
 			$lists   = $intent['lists'];
