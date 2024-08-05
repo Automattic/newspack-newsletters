@@ -22,7 +22,7 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 	 * Subscribe a contact to a single list synchronously.
 	 */
 	public function test_subscribe_contact() {
-		$result = Newspack_Newsletters_Contacts::subscribe_contact(
+		$result = Newspack_Newsletters_Contacts::subscribe(
 			[
 				'email' => 'test@example.com',
 			],
@@ -46,7 +46,7 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		if ( ! defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) ) {
 			define( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED', true );
 		}
-		$result = Newspack_Newsletters_Contacts::subscribe_contact(
+		$result = Newspack_Newsletters_Contacts::subscribe(
 			[
 				'email' => 'test@example.com',
 			],

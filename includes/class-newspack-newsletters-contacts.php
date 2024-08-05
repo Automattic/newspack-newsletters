@@ -39,7 +39,7 @@ class Newspack_Newsletters_Contacts {
 	 *
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
-	public static function subscribe_contact( $contact, $lists = false, $async = false, $context = 'Subscribe contact' ) {
+	public static function subscribe( $contact, $lists = false, $async = false, $context = 'Subscribe contact' ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 
 		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {

@@ -356,8 +356,8 @@ class Newspack_Newsletters_Subscription {
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
 	public static function add_contact( $contact, $lists = false, $async = false ) {
-		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::subscribe_contact' );
-		return Newspack_Newsletters_Contacts::subscribe_contact( $contact, $lists, $async, 'deprecated' );
+		_deprecated_function( __METHOD__, '2.21', 'Newspack_Newsletters_Contacts::subscribe' );
+		return Newspack_Newsletters_Contacts::subscribe( $contact, $lists, $async, 'deprecated' );
 	}
 
 	/**
@@ -607,7 +607,7 @@ class Newspack_Newsletters_Subscription {
 
 		// Adding is actually upserting, so no need to check if the hook is called for an existing user.
 		try {
-			Newspack_Newsletters_Contacts::subscribe_contact(
+			Newspack_Newsletters_Contacts::subscribe(
 				[
 					'email'    => $email,
 					'metadata' => $metadata,
