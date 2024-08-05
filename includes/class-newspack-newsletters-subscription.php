@@ -505,19 +505,7 @@ class Newspack_Newsletters_Subscription {
 				}
 
 				/**
-				 * Fires after a contact subscribes.
-				 *
-				 * @param string              $provider The provider name.
-				 * @param array               $contact  {
-				 *    Contact information.
-				 *
-				 *    @type string   $email    Contact email address.
-				 *    @type string   $name     Contact name. Optional.
-				 *    @type string[] $metadata Contact additional metadata. Optional.
-				 * }
-				 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
-				 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
-				 * @param bool|null           $is_updating Whether the contact is being updated. If false, the contact is being created.
+				 * This hook is documented at includes/class-newspack-newsletters-contacts.php.
 				 */
 				do_action( 'newspack_newsletters_contact_subscribed', $provider->service, $contact, $lists, $result, $is_updating, $context );
 			}
