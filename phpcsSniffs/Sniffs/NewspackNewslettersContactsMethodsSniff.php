@@ -20,7 +20,7 @@ class NewspackNewslettersContactsMethodsSniff implements PHP_CodeSniffer_Sniff {
 	/**
 	 * The error message.
 	 */
-	const ERROR_MESSAGE = 'Method %s should not be called from class %s. These methods are for internal use only. Use methods in Newspack_Newsletters_Contacts class instead.';
+	const ERROR_MESSAGE = 'Method %s is reserved for internal use and should not be called from this scope. Use methods in Newspack_Newsletters_Contacts class instead.';
 
 	/**
 	 * Returns the token types that this sniff is interested in.
@@ -111,7 +111,7 @@ class NewspackNewslettersContactsMethodsSniff implements PHP_CodeSniffer_Sniff {
 					$method_name = $tokens[ $stack_ptr - 2 ]['content'] . $tokens[ $stack_ptr - 1 ]['content'] . $token['content'] . '()';
 
 					$phpcs_file->addError(
-						sprintf( self::ERROR_MESSAGE, $method_name, $this->current_class ),
+						sprintf( self::ERROR_MESSAGE, $method_name ),
 						$stack_ptr,
 						self::ERROR_CODE
 					);
