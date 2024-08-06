@@ -484,10 +484,7 @@ class Newspack_Newsletters_Subscription {
 			$lists   = $intent['lists'];
 			$context = $intent['context'];
 
-			$existing_contact = self::get_contact_data( $contact['email'], true );
-			$is_updating      = \is_wp_error( $existing_contact ) ? false : true;
-
-			$result = Newspack_Newsletters_Contacts::upsert( $contact, $lists, $context . ' (ASYNC)', $existing_contact );
+			$result = Newspack_Newsletters_Contacts::subscribe( $contact, $lists, false, $context . ' (ASYNC)' );
 
 			$user = get_user_by( 'email', $email );
 			if ( \is_wp_error( $result ) ) {
@@ -503,11 +500,6 @@ class Newspack_Newsletters_Subscription {
 				if ( $user ) {
 					delete_user_meta( $user->ID, 'newspack_newsletters_subscription_error' );
 				}
-
-				/**
-				 * This hook is documented at includes/class-newspack-newsletters-contacts.php.
-				 */
-				do_action( 'newspack_newsletters_contact_subscribed', $provider->service, $contact, $lists, $result, $is_updating, $context );
 			}
 		}
 	}
