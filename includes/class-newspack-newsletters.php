@@ -1181,7 +1181,6 @@ final class Newspack_Newsletters {
 			return $sent;
 		}
 
-		/** Legacy check for sent/publish newsletters without meta. */
 		if ( $publish_date ) {
 			self::set_newsletter_sent( $post_id, $publish_date );
 			return $publish_date;
