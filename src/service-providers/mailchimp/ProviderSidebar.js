@@ -65,13 +65,15 @@ const getSubAudienceValue = newsletterData => {
 	const targetId =
 		( Array.isArray( targetIdRawValue ) ? targetIdRawValue[ 0 ] : targetIdRawValue ).toString() ||
 		'';
-	const targetField = recipients?.segment_opts?.conditions?.length
-		? recipients?.segment_opts?.conditions[ 0 ]?.field
-		: '';
-	if ( ! targetField || ! targetId ) {
+	const targetField =
+		! recipients?.segment_opts?.saved_segment_id && recipients?.segment_opts?.conditions?.length
+			? recipients?.segment_opts?.conditions[ 0 ]?.field
+			: '';
+	if ( ! targetField && ! targetId ) {
 		return false;
 	}
-	return 'Interests' === recipients?.segment_opts?.conditions[ 0 ]?.condition_type
+	return 'Interests' === ! recipients?.segment_opts?.saved_segment_id &&
+		recipients?.segment_opts?.conditions[ 0 ]?.condition_type
 		? `${ targetField || '' }:${ targetId }`
 		: targetId;
 };
