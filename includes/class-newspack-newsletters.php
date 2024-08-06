@@ -1175,7 +1175,8 @@ final class Newspack_Newsletters {
 
 		/** Detect meta that determines the sent state */
 		$sent         = get_post_meta( $post_id, 'newsletter_sent', true );
-		$is_published = 'publish' === get_post_status( $post_id ) || $sent;
+		$post_status  = get_post_status( $post_id );
+		$is_published = 'publish' === $post_status || 'private' === $post_status;
 		$publish_date = $is_published ? get_post_datetime( $post_id, 'date', 'gmt' )->getTimestamp() : 0;
 		if ( 0 < $sent && $sent === $publish_date ) {
 			return $sent;
