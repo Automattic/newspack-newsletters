@@ -108,6 +108,30 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
+	 * Get audiences (lists).
+	 *
+	 * @throws Exception In case of errors while fetching data from the server.
+	 * @return array|WP_Error The audiences, or WP_Error if there was an error.
+	 */
+	public static function get_lists() {
+		// If we've already gotten or fetched lists in this request, return those.
+		if ( ! empty( self::$memoized_data['lists'] ) ) {
+			return self::$memoized_data['lists'];
+		}
+
+		$data = get_option( self::get_lists_cache_key() );
+		if ( ! $data || self::is_cache_expired() ) {
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: No data found. Fetching lists from ESP.' );
+			$data = self::fetch_lists();
+		} else {
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from cache' );
+		}
+
+		self::$memoized_data['lists'] = $data;
+		return $data;
+	}
+
+	/**
 	 * Get segments of a given audience (list)
 	 *
 	 * @param string $list_id The audience (list) ID.
@@ -178,6 +202,13 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
+	 * Get the cache key for the cached lists data.
+	 */
+	private static function get_lists_cache_key() {
+		return self::OPTION_PREFIX . '_lists';
+	}
+
+	/**
 	 * Get the cache key for a given list
 	 *
 	 * @param string $list_id The List ID.
@@ -188,12 +219,12 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
-	 * Get the cache date key for a given list
+	 * Get the cache date key for a given list or all lists
 	 *
-	 * @param string $list_id The List ID.
+	 * @param string $list_id The List ID, or 'lists' for the cached lists data.
 	 * @return string The cache key
 	 */
-	private static function get_cache_date_key( $list_id ) {
+	private static function get_cache_date_key( $list_id = 'lists' ) {
 		return self::OPTION_PREFIX . '_date_' . $list_id;
 	}
 
@@ -203,7 +234,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @param string $list_id The List ID.
 	 * @return boolean
 	 */
-	private static function is_cache_expired( $list_id ) {
+	private static function is_cache_expired( $list_id = null ) {
 		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
 		return $cache_date && ( time() - $cache_date ) > 20 * MINUTE_IN_SECONDS;
 	}
@@ -367,10 +398,15 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Dispatches a new request to refresh the cache
 	 *
-	 * @param string $list_id The List ID.
+	 * @param string $list_id The List ID or null for the cache for all lists.
 	 * @return void
 	 */
-	private static function dispatch_refresh( $list_id ) {
+	private static function dispatch_refresh( $list_id = null ) {
+		// If no list_id is provided, refresh the lists cache.
+		if ( ! $list_id ) {
+			self::fetch_lists();
+			return;
+		}
 
 		if ( ! function_exists( 'wp_create_nonce' ) ) {
 			require_once ABSPATH . WPINC . '/pluggable.php';
@@ -461,6 +497,21 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 */
 	public static function handle_cron() {
 		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Handling cron request to refresh cache' );
+		$lists = self::get_lists();
+
+		foreach ( $lists as $list ) {
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Dispatching request to refresh cache for list ' . $list['id'] );
+			self::dispatch_refresh( $list['id'] );
+		}
+	}
+
+	/**
+	 * Fetches all audiences (lists) from the Mailchimp server
+	 *
+	 * @throws Exception In case of errors while fetching data from the server.
+	 * @return array|WP_Error The audiences, or WP_Error if there was an error.
+	 */
+	public static function fetch_lists() {
 		$mc             = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$lists_response = ( self::get_mc_instance() )->validate(
 			$mc->get(
@@ -473,13 +524,15 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
 		);
 		if ( is_wp_error( $lists_response ) || empty( $lists_response['lists'] ) ) {
-			return;
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing cache: ' . ( $lists_response->getMessage() ?? __( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' ) ) );
+			return is_wp_error( $lists_response ) ? $lists_response : [];
 		}
 
-		foreach ( $lists_response['lists'] as $list ) {
-			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Dispatching request to refresh cache for list ' . $list['id'] );
-			self::dispatch_refresh( $list['id'] );
-		}
+		// Cache the lists.
+		update_option( self::get_lists_cache_key(), $lists_response['lists'], false ); // auto-load false.
+		update_option( self::get_cache_date_key(), time(), false ); // auto-load false.
+
+		return $lists_response['lists'];
 	}
 
 	/**
