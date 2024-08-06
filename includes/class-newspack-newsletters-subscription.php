@@ -14,9 +14,6 @@ use Newspack\Newsletters\Reader_Activation;
  * Manages Settings Subscription Class.
  */
 class Newspack_Newsletters_Subscription {
-
-	const API_NAMESPACE = 'newspack-newsletters/v1';
-
 	const EMAIL_VERIFIED_META    = 'newspack_newsletters_email_verified';
 	const EMAIL_VERIFIED_REQUEST = 'newspack_newsletters_email_verification_request';
 	const EMAIL_VERIFIED_CONFIRM = 'newspack_newsletters_email_verification';
@@ -63,7 +60,7 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function register_api_endpoints() {
 		register_rest_route(
-			self::API_NAMESPACE,
+			Newspack_Newsletters::API_NAMESPACE,
 			'/lists_config',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -72,21 +69,21 @@ class Newspack_Newsletters_Subscription {
 			]
 		);
 		register_rest_route(
-			self::API_NAMESPACE,
+			Newspack_Newsletters::API_NAMESPACE,
 			'/lists',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_lists' ],
-				'permission_callback' => [ __CLASS__, 'api_permission_callback' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
 			]
 		);
 		register_rest_route(
-			self::API_NAMESPACE,
+			Newspack_Newsletters::API_NAMESPACE,
 			'/lists',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update_lists' ],
-				'permission_callback' => [ __CLASS__, 'api_permission_callback' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
 				'args'                => [
 					'lists' => [
 						'type'     => 'array',
@@ -112,15 +109,6 @@ class Newspack_Newsletters_Subscription {
 				],
 			]
 		);
-	}
-
-	/**
-	 * Whether the current user can manage subscription lists.
-	 *
-	 * @return bool Whether the current user can manage subscription lists.
-	 */
-	public static function api_permission_callback() {
-		return current_user_can( 'manage_options' );
 	}
 
 	/**
@@ -230,7 +218,7 @@ class Newspack_Newsletters_Subscription {
 	public static function get_lists_config() {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.', 'newspack-newsletters' ) );
 		}
 
 		$saved_lists  = Subscription_Lists::get_configured_for_current_provider();
@@ -263,11 +251,11 @@ class Newspack_Newsletters_Subscription {
 	public static function update_lists( $lists ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.', 'newspack-newsletters' ) );
 		}
 		$lists = self::sanitize_lists( $lists );
 		if ( empty( $lists ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.', 'newspack-newsletters' ) );
 		}
 
 		return Subscription_Lists::update_lists( $lists );
@@ -322,16 +310,16 @@ class Newspack_Newsletters_Subscription {
 	 */
 	public static function get_contact_data( $email_address, $return_details = false ) {
 		if ( ! $email_address || empty( $email_address ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_email', __( 'Missing email address.', 'newspack-newsletters' ) );
 		}
 
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.', 'newspack-newsletters' ) );
 		}
 
 		if ( ! method_exists( $provider, 'get_contact_data' ) ) {
-			return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Provider does not handle the contact-exists check.' ) );
+			return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Provider does not handle the contact-exists check.', 'newspack-newsletters' ) );
 		}
 
 		return $provider->get_contact_data( $email_address, $return_details );
@@ -377,7 +365,7 @@ class Newspack_Newsletters_Subscription {
 
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.', 'newspack-newsletters' ) );
 		}
 
 		if ( false !== $lists ) {
@@ -700,18 +688,18 @@ class Newspack_Newsletters_Subscription {
 	public static function delete_user_subscription( $user_id ) {
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
-			return new WP_Error( 'newspack_newsletters_invalid_user', __( 'Invalid user.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_user', __( 'Invalid user.', 'newspack-newsletters' ) );
 		}
 		/** Only delete if email ownership is verified. */
 		if ( ! self::is_email_verified( $user_id ) ) {
-			return new \WP_Error( 'newspack_newsletters_email_not_verified', __( 'Email ownership is not verified.' ) );
+			return new \WP_Error( 'newspack_newsletters_email_not_verified', __( 'Email ownership is not verified.', 'newspack-newsletters' ) );
 		}
 		$provider = Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.', 'newspack-newsletters' ) );
 		}
 		if ( ! method_exists( $provider, 'delete_contact' ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_provider_method', __( 'Provider does not support deleting user subscriptions.' ) );
+			return new WP_Error( 'newspack_newsletters_invalid_provider_method', __( 'Provider does not support deleting user subscriptions.', 'newspack-newsletters' ) );
 		}
 		return $provider->delete_contact( $user->user_email );
 	}

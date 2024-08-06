@@ -160,35 +160,6 @@ const ProviderSidebarComponent = ( {
 		}
 	}, [ campaign ] );
 
-	// If there is a stringified newsletter data from the layout, use it to set the list and segments.
-	useEffect( () => {
-		try {
-			const layoutDefaults = JSON.parse( stringifiedLayoutDefaults );
-			if ( layoutDefaults.senderEmail && layoutDefaults.senderName ) {
-				const existingSenderData = meta.senderEmail && meta.senderName;
-				if ( ! existingSenderData ) {
-					setSender( {
-						senderName: layoutDefaults.senderName,
-						senderEmail: layoutDefaults.senderEmail,
-					} );
-				}
-			}
-			if ( layoutDefaults.newsletterData?.campaign?.recipients?.list_id ) {
-				const existingListId = newsletterData.campaign?.recipients?.list_id;
-				if ( ! existingListId ) {
-					setList( layoutDefaults.newsletterData?.campaign.recipients.list_id ).then( () => {
-						const subAudienceValue = getSubAudienceValue( layoutDefaults.newsletterData );
-						if ( subAudienceValue ) {
-							updateSegments( subAudienceValue );
-						}
-					} );
-				}
-			}
-		} catch ( e ) {
-			// Ignore it.
-		}
-	}, [ stringifiedLayoutDefaults.length ] );
-
 	const renderSelectedSummary = () => {
 		if ( ! selectedAudience ) {
 			return null;
@@ -238,6 +209,8 @@ const ProviderSidebarComponent = ( {
 			</div>
 		);
 	}
+
+	console.log( campaign )
 
 	if (
 		! inFlight &&

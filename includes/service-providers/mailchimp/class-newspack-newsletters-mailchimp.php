@@ -10,6 +10,8 @@ defined( 'ABSPATH' ) || exit;
 use DrewM\MailChimp\MailChimp;
 use Newspack\Newsletters\Subscription_List;
 use Newspack\Newsletters\Subscription_Lists;
+use Newspack\Newsletters\Send_Lists;
+use Newspack\Newsletters\Send_List;
 
 /**
  * Main Newspack Newsletters Class.
@@ -541,6 +543,58 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$e->getMessage()
 			);
 		}
+	}
+
+	/**
+	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
+	 *
+	 * @param string $search Optional. If given, only return lists whose names or entity types match the search string.
+	 *
+	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 */
+	public function get_send_lists( $search = null ) {
+		$audiences  = $this->get_lists( true );
+		$send_lists = [];
+
+		foreach ( $audiences as $audience ) {
+			if ( ! $search || stripos( $audience['name'], $search ) !== false || stripos( 'audience', $search ) !== false ) {
+				$send_lists[] = new Send_List(
+					[
+						'provider'    => $this->service,
+						'type'        => 'list',
+						'id'          => $audience['id'],
+						'name'        => $audience['name'],
+						'entity_type' => 'audience',
+						'count'       => $audience['stats']['member_count'] ?? 0,
+					]
+				);
+			}
+
+			$groups = $this->get_interest_categories( $audience['id'] );
+			if ( isset( $groups['categories'] ) ) {
+				foreach ( $groups['categories'] as $category ) {
+					if ( isset( $category['interests']['interests'] ) ) {
+						foreach ( $category['interests']['interests'] as $interest ) {
+							if ( ! $search || stripos( $interest['name'], $search ) !== false || stripos( 'group', $search ) !== false ) {
+								$send_lists[] = new Send_List(
+									[
+										'provider'    => $this->service,
+										'type'        => 'sublist',
+										'id'          => $interest['id'],
+										'name'        => $interest['name'],
+										'entity_type' => 'group',
+										'parent'      => $interest['list_id'],
+										'count'       => $interest['subscriber_count'],
+									]
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return $send_lists;
 	}
 
 	/**

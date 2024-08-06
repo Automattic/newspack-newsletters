@@ -88,6 +88,14 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	public function get_lists();
 
 	/**
+	 * Get the ESP's available lists and sublists, reformatted as Send_List items.
+	 *
+	 * @return array|WP_Error API Response or error.
+	 */
+	// public function get_send_lists();
+
+
+	/**
 	 * Add contact to a list.
 	 *
 	 * @param array  $contact      {
