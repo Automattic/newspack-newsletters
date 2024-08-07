@@ -633,6 +633,40 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * Whether the contact is a newsletter subscriber.
+	 *
+	 * This method will only check against the subscription lists configured in
+	 * the plugin, not all lists in the ESP.
+	 *
+	 * @param string $email The contact email.
+	 *
+	 * @return bool|WP_Error Whether the contact is a newsletter subscriber or error.
+	 */
+	public static function is_newsletter_subscriber( $email ) {
+		$list_config = self::get_lists_config();
+		if ( is_wp_error( $list_config ) ) {
+			return $list_config;
+		}
+		if ( empty( $list_config ) ) {
+			return false;
+		}
+		$lists = self::get_contact_lists( $email );
+		if ( is_wp_error( $lists ) ) {
+			return $lists;
+		}
+		if ( empty( $lists ) ) {
+			return false;
+		}
+		$lists = array_flip( $lists );
+		foreach ( $list_config as $list ) {
+			if ( isset( $lists[ $list['id'] ] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Whether the current user has its email verified in order to manage their
 	 * newletters subscriptions.
 	 *
@@ -1013,7 +1047,11 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			$email  = get_userdata( get_current_user_id() )->user_email;
 			$lists  = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
-			$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'User updated their subscriptions on My Account page' );
+			if ( self::is_newsletter_subscriber( $email ) ) {
+				$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'User updated their subscriptions on My Account page' );
+			} else {
+				$result = Newspack_Newsletters_Contacts::subscribe( [ 'email' => $email ], $lists, false, 'User subscribed on My Account page' );
+			}
 			if ( is_wp_error( $result ) ) {
 				wc_add_notice( $result->get_error_message(), 'error' );
 			} elseif ( false === $result ) {
