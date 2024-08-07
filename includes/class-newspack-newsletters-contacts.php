@@ -15,12 +15,16 @@ defined( 'ABSPATH' ) || exit;
 class Newspack_Newsletters_Contacts {
 
 	/**
-	 * Upserts a contact to lists.
+	 * Subscribe a contact to lists.
+	 *
+	 * This method uses an upsert strategy, which means the contact will be
+	 * created if it doesn't exist, or updated if it does.
 	 *
 	 * A contact can be added asynchronously, which means the request will return
 	 * immediately and the contact will be added in the background. In this case
 	 * the response will be `true` and the caller must handle it optimistically.
-	 * NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED must be defined as true for this feature to be available.
+	 * NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED must be defined as true for
+	 * this feature to be available.
 	 *
 	 * @param array          $contact {
 	 *          Contact information.
@@ -35,7 +39,61 @@ class Newspack_Newsletters_Contacts {
 	 *
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
-	public static function upsert( $contact, $lists = false, $async = false, $context = 'Unknown' ) {
+	public static function subscribe( $contact, $lists = false, $async = false, $context = 'Subscribe contact' ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+
+		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
+			Newspack_Newsletters_Subscription::add_subscription_intent( $contact, $lists, $context );
+			return true;
+		}
+
+		$existing_contact = Newspack_Newsletters_Subscription::get_contact_data( $contact['email'], true );
+		$is_updating      = \is_wp_error( $existing_contact ) ? false : true;
+
+		$result = self::upsert( $contact, $lists, $context, $existing_contact );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		/**
+		 * Fires after a contact subscribes.
+		 *
+		 * @param string              $provider    The provider name.
+		 * @param array               $contact     {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]|false      $lists       Array of list IDs to subscribe the contact to.
+		 * @param array|WP_Error      $result      Array with data if the contact was added or error if failed.
+		 * @param bool|null           $is_updating Whether the contact is being updated. If false, the contact is being created.
+		 * @param string              $context     Context of the update for logging purposes.
+		 */
+		do_action( 'newspack_newsletters_contact_subscribed', $provider->service, $contact, $lists, $result, $is_updating, $context );
+
+		return $result;
+	}
+
+	/**
+	 * Upserts a contact to lists.
+	 *
+	 * @param array          $contact          {
+	 *          Contact information.
+	 *
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 * @param string[]|false $lists            Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
+	 * @param string         $context          Context of the update for logging purposes.
+	 * @param array|null     $existing_contact Optional existing contact data.
+	 *
+	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
+	 */
+	public static function upsert( $contact, $lists = false, $context = 'Unknown', $existing_contact = null ) {
 		if ( ! is_array( $lists ) && false !== $lists ) {
 			$lists = [ $lists ];
 		}
@@ -59,18 +117,16 @@ class Newspack_Newsletters_Contacts {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
 
-		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
-			Newspack_Newsletters_Subscription::add_subscription_intent( $contact, $lists, $context );
-			return true;
-		}
-
 		if ( false !== $lists ) {
 			Newspack_Newsletters_Logger::log( 'Adding contact to list(s): ' . implode( ', ', $lists ) . '. Provider is ' . $provider->service . '.' );
 		} else {
 			Newspack_Newsletters_Logger::log( 'Adding contact without lists. Provider is ' . $provider->service . '.' );
 		}
 
-		$existing_contact                 = Newspack_Newsletters_Subscription::get_contact_data( $contact['email'], true );
+		if ( null !== $existing_contact ) {
+			$existing_contact = Newspack_Newsletters_Subscription::get_contact_data( $contact['email'], true );
+		}
+
 		$contact['existing_contact_data'] = \is_wp_error( $existing_contact ) ? false : $existing_contact;
 		$is_updating                      = \is_wp_error( $existing_contact ) ? false : true;
 
@@ -114,7 +170,75 @@ class Newspack_Newsletters_Contacts {
 		 */
 		$lists = apply_filters( 'newspack_newsletters_contact_lists', $lists, $contact, $provider->service );
 
-		return self::add_to_esp( $contact, $lists, $is_updating, $context );
+		$errors = new WP_Error();
+		$result = [];
+		try {
+			if ( method_exists( $provider, 'add_contact_with_groups_and_tags' ) ) {
+				$result = $provider->add_contact_with_groups_and_tags( $contact, $lists );
+			} elseif ( empty( $lists ) ) {
+				$result = $provider->add_contact( $contact );
+			} else {
+				foreach ( $lists as $list_id ) {
+					$result = $provider->add_contact( $contact, $list_id );
+				}
+			}
+		} catch ( \Exception $e ) {
+			$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
+		}
+
+		if ( is_wp_error( $result ) ) {
+			$errors->add( $result->get_error_code(), $result->get_error_message() );
+		}
+
+		// Handle local lists feature.
+		foreach ( $lists as $list_id ) {
+			try {
+				$provider->add_contact_handling_local_list( $contact, $list_id );
+			} catch ( \Exception $e ) {
+				$errors->add( 'newspack_newsletters_subscription_handling_local_list', $e->getMessage() );
+			}
+		}
+
+		/**
+		 * Fires after a contact is upserted.
+		 *
+		 * @param string              $provider The provider name.
+		 * @param array               $contact  {
+		 *    Contact information.
+		 *
+		 *    @type string   $email    Contact email address.
+		 *    @type string   $name     Contact name. Optional.
+		 *    @type string[] $metadata Contact additional metadata. Optional.
+		 * }
+		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
+		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
+		 * @param bool                $is_updating Whether the contact is being updated. If false, the contact is being created.
+		 * @param string              $context  Context of the update for logging purposes.
+		 */
+		do_action( 'newspack_newsletters_upsert', $provider->service, $contact, $lists, $result, $is_updating, $context );
+
+		do_action(
+			'newspack_log',
+			'newspack_esp_sync_upsert_contact',
+			$context,
+			[
+				'type'       => $errors->has_errors() ? 'error' : 'debug',
+				'data'       => [
+					'provider' => $provider->service,
+					'lists'    => $lists,
+					'contact'  => $contact,
+					'errors'   => $errors->get_error_messages(),
+				],
+				'user_email' => $contact['email'],
+				'file'       => 'newspack_esp_sync',
+			]
+		);
+
+		if ( $errors->has_errors() ) {
+			return $errors;
+		}
+
+		return $result;
 	}
 
 	/**
@@ -244,91 +368,6 @@ class Newspack_Newsletters_Contacts {
 				'file'       => 'newspack_esp_sync',
 			]
 		);
-
-		return $result;
-	}
-
-	/**
-	 * Internal method to add a contact to lists. Should be called by the
-	 * `add_contact` method or `handle_async_subscribe` for the async strategy.
-	 *
-	 * @param array  $contact     Contact information.
-	 * @param array  $lists       Array of list IDs to subscribe the contact to.
-	 * @param bool   $is_updating Whether the contact is being updated. If false, the contact is being created.
-	 * @param string $context    Context of the update for logging purposes.
-	 *
-	 * @return array|WP_Error Contact data if it was added, or error otherwise.
-	 */
-	private static function add_to_esp( $contact, $lists = [], $is_updating = false, $context = 'Unknown' ) {
-		$provider = Newspack_Newsletters::get_service_provider();
-		$errors   = new WP_Error();
-		$result   = [];
-
-		try {
-			if ( method_exists( $provider, 'add_contact_with_groups_and_tags' ) ) {
-				$result = $provider->add_contact_with_groups_and_tags( $contact, $lists );
-			} elseif ( empty( $lists ) ) {
-				$result = $provider->add_contact( $contact );
-			} else {
-				foreach ( $lists as $list_id ) {
-					$result = $provider->add_contact( $contact, $list_id );
-				}
-			}
-		} catch ( \Exception $e ) {
-			$errors->add( 'newspack_newsletters_subscription_add_contact', $e->getMessage() );
-		}
-
-		if ( is_wp_error( $result ) ) {
-			$errors->add( $result->get_error_code(), $result->get_error_message() );
-		}
-
-		// Handle local lists feature.
-		foreach ( $lists as $list_id ) {
-			try {
-				$provider->add_contact_handling_local_list( $contact, $list_id );
-			} catch ( \Exception $e ) {
-				$errors->add( 'newspack_newsletters_subscription_handling_local_list', $e->getMessage() );
-			}
-		}
-
-		/**
-		 * Fires after a contact is added.
-		 *
-		 * @param string              $provider The provider name.
-		 * @param array               $contact  {
-		 *    Contact information.
-		 *
-		 *    @type string   $email    Contact email address.
-		 *    @type string   $name     Contact name. Optional.
-		 *    @type string[] $metadata Contact additional metadata. Optional.
-		 * }
-		 * @param string[]|false      $lists    Array of list IDs to subscribe the contact to.
-		 * @param array|WP_Error      $result   Array with data if the contact was added or error if failed.
-		 * @param bool                $is_updating Whether the contact is being updated. If false, the contact is being created.
-		 * @param string              $context  Context of the update for logging purposes.
-		 */
-		do_action( 'newspack_newsletters_add_contact', $provider->service, $contact, $lists, $result, $is_updating, $context );
-
-		do_action(
-			'newspack_log',
-			'newspack_esp_sync_upsert_contact',
-			$context,
-			[
-				'type'       => $errors->has_errors() ? 'error' : 'debug',
-				'data'       => [
-					'provider' => $provider->service,
-					'lists'    => $lists,
-					'contact'  => $contact,
-					'errors'   => $errors->get_error_messages(),
-				],
-				'user_email' => $contact['email'],
-				'file'       => 'newspack_esp_sync',
-			]
-		);
-
-		if ( $errors->has_errors() ) {
-			return $errors;
-		}
 
 		return $result;
 	}

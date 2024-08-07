@@ -498,7 +498,7 @@ function process_form() {
 		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
 	}
 
-	$result = \Newspack_Newsletters_Contacts::upsert(
+	$result = \Newspack_Newsletters_Contacts::subscribe(
 		[
 			'name'     => $name ?? null,
 			'email'    => $email,
