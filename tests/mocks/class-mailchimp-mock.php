@@ -52,7 +52,7 @@ class MailChimp {
 				],
 				[
 					// Sent at 8am a week ago.
-					'id'          => 'campaign-older',
+					'id'          => 'campaign-week-ago',
 					'emails_sent' => 32,
 					'opens'       => [ 'unique_opens' => 33 ],
 					'clicks'      => [ 'unique_subscriber_clicks' => 34 ],

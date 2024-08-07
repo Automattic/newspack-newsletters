@@ -109,6 +109,34 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * In preparation for deprecating support for Campaign Monitor, locks support behind an environment flag.
+	 *
+	 * @return array
+	 */
+	public static function get_supported_providers() {
+		$supported_providers = array_keys( self::REGISTERED_PROVIDERS );
+
+		// Add support for manual/other.
+		$supported_providers[] = 'manual';
+
+		// Remove support for Campaign Monitor if we don't have the required environment flag.
+		if ( 'campaign_monitor' !== self::service_provider() && ( ! defined( 'NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR' ) || ! NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR ) ) {
+			$supported_providers = array_diff( $supported_providers, [ 'campaign_monitor' ] );
+		}
+
+		return $supported_providers;
+	}
+
+	/**
+	 * Should we show a warning about the coming deprecation of Campaign Monitor?
+	 *
+	 * @return bool
+	 */
+	public static function should_deprecate_campaign_monitor() {
+		return 'campaign_monitor' === self::service_provider();
+	}
+
+	/**
 	 * Set service provider.
 	 *
 	 * @param string $service_provider Service provider slug.
@@ -518,8 +546,6 @@ final class Newspack_Newsletters {
 
 		$post_status = get_post_status_object( $post->post_status );
 		$sent        = self::is_newsletter_sent( $post->ID );
-		$is_public   = get_post_meta( $post->ID, 'is_public', true );
-
 		if ( $sent ) {
 			$time_diff = time() - $sent;
 
@@ -1148,17 +1174,17 @@ final class Newspack_Newsletters {
 		}
 
 		/** Detect meta that determines the sent state */
-		$sent = get_post_meta( $post_id, 'newsletter_sent', true );
-		if ( 0 < $sent ) {
+		$sent         = get_post_meta( $post_id, 'newsletter_sent', true );
+		$post_status  = get_post_status( $post_id );
+		$is_published = 'publish' === $post_status || 'private' === $post_status;
+		$publish_date = $is_published ? get_post_datetime( $post_id, 'date', 'gmt' )->getTimestamp() : 0;
+		if ( 0 < $sent && $sent === $publish_date ) {
 			return $sent;
 		}
 
-		/** Legacy check for sent/publish newsletters without meta. */
-		if ( 'publish' === get_post_status( $post_id ) ) {
-			$post = get_post( $post_id );
-			$sent = strtotime( $post->post_date );
-			self::set_newsletter_sent( $post_id, $sent );
-			return $sent;
+		if ( $publish_date ) {
+			self::set_newsletter_sent( $post_id, $publish_date );
+			return $publish_date;
 		}
 
 		return false;

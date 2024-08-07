@@ -800,4 +800,15 @@ Details of the error message: "%3$s"
 	public function get_usage_report() {
 		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
 	}
+
+	/**
+	 * Get transient name for async error messages.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return string The transient name.
+	 */
+	public function get_transient_name( $post_id ) {
+		return sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
+	}
 }
