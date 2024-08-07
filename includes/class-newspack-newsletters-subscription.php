@@ -1047,10 +1047,10 @@ class Newspack_Newsletters_Subscription {
 		} else {
 			$email  = get_userdata( get_current_user_id() )->user_email;
 			$lists  = isset( $_POST['lists'] ) ? array_map( 'sanitize_text_field', $_POST['lists'] ) : [];
-			if ( self::is_newsletter_subscriber( $email ) ) {
-				$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'User updated their subscriptions on My Account page' );
-			} else {
+			if ( false === self::is_newsletter_subscriber( $email ) ) {
 				$result = Newspack_Newsletters_Contacts::subscribe( [ 'email' => $email ], $lists, false, 'User subscribed on My Account page' );
+			} else {
+				$result = Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'User updated their subscriptions on My Account page' );
 			}
 			if ( is_wp_error( $result ) ) {
 				wc_add_notice( $result->get_error_message(), 'error' );
