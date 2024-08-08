@@ -1379,7 +1379,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		// If we're subscribing the contact to a newsletter, they should have some status
 		// because 'non-subscriber' status can't receive newsletters.
-		if ( empty( $update_payload['status'] ) ) {
+		if ( empty( $update_payload['status'] ) && empty( $update_payload['status_if_new'] ) ) {
 			$update_payload['status'] = 'subscribed';
 		}
 
@@ -1432,13 +1432,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			// Create or update a list member.
-			$existing_contact = self::get_contact_data( $email_address );
-			if ( is_wp_error( $existing_contact ) ) {
-				$result = $mc->post( "lists/$list_id/members", $update_payload );
-			} else {
-				$member_id = $existing_contact['id'];
-				$result    = $mc->put( "lists/$list_id/members/$member_id", $update_payload );
-			}
+			$member_hash = Mailchimp::subscriberHash( $email_address );
+			$result = $mc->put( "lists/$list_id/members/$member_hash", $update_payload );
+
 			if (
 				! $result ||
 				! isset( $result['status'] ) ||
