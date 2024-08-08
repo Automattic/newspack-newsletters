@@ -208,6 +208,32 @@ final class Newspack_Newsletters {
 				'register_meta_args' => $default_register_meta_args,
 			],
 			[
+				'name'               => 'newsletter_sync_errors',
+				'register_meta_args' => [
+					'show_in_rest' => [
+						'schema' => [
+							'context' => [ 'edit' ],
+							'type'    => 'array',
+							'items'   => [
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => [
+									'timestamp' => [
+										'name' => 'timestamp',
+										'type' => 'integer',
+									],
+									'message'   => [
+										'name' => 'message',
+										'type' => 'string',
+									],
+								],
+							],
+						],
+					],
+					'type'         => 'object',
+				],
+			],
+			[
 				'name'               => 'newsletter_send_errors',
 				'register_meta_args' => [
 					'show_in_rest' => [
@@ -283,6 +309,42 @@ final class Newspack_Newsletters {
 				'single'         => true,
 				'auth_callback'  => '__return_true',
 				'default'        => -1,
+			]
+		);
+		\register_meta(
+			'post',
+			'send_to',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'type'                 => 'object',
+						'context'              => [ 'edit' ],
+						'additionalProperties' => true,
+						'properties'           => [],
+					],
+				],
+				'type'           => 'object',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
+		\register_meta(
+			'post',
+			'sender',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'type'                 => 'object',
+						'context'              => [ 'edit' ],
+						'additionalProperties' => true,
+						'properties'           => [],
+					],
+				],
+				'type'           => 'object',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
 			]
 		);
 		\register_meta(

@@ -19,7 +19,6 @@ defined( 'ABSPATH' ) || exit;
  * A sublist must specify a parent list ID.
  */
 class Send_List {
-
 	/**
 	 * The configuration associated with this Send_List.
 	 *
@@ -31,22 +30,38 @@ class Send_List {
 	 * Initializes a new Send_List.
 	 *
 	 * @param array $config The configuration for the Send_List.
+	 * @throws \InvalidArgumentException In case the Send_List object can't be built from the given config data.
 	 */
 	public function __construct( $config ) {
 		$schema = self::get_config_schema();
 		$errors = [];
 		foreach ( $schema['properties'] as $key => $property ) {
+			// If the property is required but not set, throw an error.
 			if ( $property['required'] && ! isset( $config[ $key ] ) ) {
 				$errors[] = __( 'Missing required config: ', 'newspack-newsletters' ) . $key;
+				continue;
 			}
 
+			// No need to continue if an optional key isn't set.
+			if ( ! isset( $config[ $key ] ) ) {
+				continue;
+			}
+
+			// If the passed value isn't in the enum, throw an error.
 			if ( isset( $property['enum'] ) && isset( $config[ $key ] ) && ! in_array( $config[ $key ], $property['enum'], true ) ) {
 				$errors[] = __( 'Invalid value for config: ', 'newspack-newsletters' ) . $key;
+				continue;
 			}
+
+			// Cast value to the expected type.
+			settype( $config[ $key ], $property['type'] );
+
+			// Set the property.
+			$this->{ $key } = $config[ $key ];
 		}
 
 		if ( ! empty( $errors ) ) {
-			throw new \InvalidArgumentException( implode( ', ', $errors ) );
+			throw new \InvalidArgumentException( esc_html( implode( ', ', $errors ) ) );
 		}
 
 		$this->config = $config;
@@ -130,5 +145,16 @@ class Send_List {
 	 */
 	public function get_config() {
 		return $this->config;
+	}
+
+	/**
+	 * Get a specific property's value.
+	 *
+	 * @param string $key The property to get.
+	 *
+	 * @return mixed The property value or null if not set/not a supported property.
+	 */
+	public function get( $key ) {
+		return $this->config[ $key ] ?? null;
 	}
 }

@@ -43,11 +43,6 @@ class Send_Lists {
 	 * @return boolean
 	 */
 	public static function should_initialize_send_lists() {
-		// We only need this on admin.
-		if ( ! is_admin() ) {
-			// return false;
-		}
-
 		// If Service Provider is not configured yet.
 		if ( 'manual' === Newspack_Newsletters::service_provider() || ! Newspack_Newsletters::is_service_provider_configured() ) {
 			return false;
@@ -68,7 +63,16 @@ class Send_Lists {
 				'callback'            => [ __CLASS__, 'api_get_send_lists' ],
 				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
 				'args'                => [
-					's' => [
+					'search'    => [
+						'type' => 'string',
+					],
+					'type'      => [
+						'type' => 'string',
+					],
+					'parent_id' => [
+						'type' => 'string',
+					],
+					'provider'  => [
 						'type' => 'string',
 					],
 				],
@@ -84,25 +88,29 @@ class Send_Lists {
 	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
 	 */
 	public static function api_get_send_lists( $request ) {
-		$search        = $request['s'] ?? null;
+		$search        = $request['search'] ?? null;
+		$list_type     = $request['type'] ?? null;
+		$parent_id     = $request['parent_id'] ?? null;
 		$provider_slug = $request['provider'] ?? null;
-		return \rest_ensure_response( self::get_send_lists( $search, $provider_slug ) );
+		return \rest_ensure_response( self::get_send_lists( $search, $list_type, $parent_id, $provider_slug ) );
 	}
 
 	/**
 	 * Get the available send lists for the current provider.
 	 *
-	 * @param string $search Optional. If given, only return lists whose names or entity types match the search string.
-	 * @param string $provider_slug Optional. The provider to get the send lists for. If not passed, use the current provider.
+	 * @param string $search Optional. If given, only return Send Lists whose names or entity types match the search string.
+	 * @param string $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
+	 * @param string $parent_id Optional: If given, only return sublists of the specified parent list.
+	 * @param string $provider_slug Optional. The provider to get the Send Lists for. If not passed, use the current provider.
 	 *
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */
-	public static function get_send_lists( $search = null, $provider_slug = null ) {
+	public static function get_send_lists( $search = '', $list_type = null, $parent_id = null, $provider_slug = null ) {
 		$provider = $provider_slug ? Newspack_Newsletters::get_service_provider_instance( $provider_slug ) : Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Invalid provider, or provider not set.', 'newspack-newsletters' ) );
 		}
 
-		return $provider->get_send_lists( $search );
+		return $provider->get_send_lists( $search, $list_type, $parent_id );
 	}
 }

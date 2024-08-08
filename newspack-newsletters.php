@@ -74,3 +74,4 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/class-woocomm
 
 // This MUST be initialized after Newspack_Newsletter class.
 \Newspack\Newsletters\Subscription_Lists::init();
+\Newspack\Newsletters\Send_Lists::init();

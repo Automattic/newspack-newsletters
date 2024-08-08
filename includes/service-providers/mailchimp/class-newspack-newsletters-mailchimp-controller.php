@@ -40,21 +40,6 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 				'auth_callback'  => '__return_true',
 			]
 		);
-		\register_meta(
-			'post',
-			'mc_list_id',
-			[
-				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => [
-					'schema' => [
-						'context' => [ 'edit' ],
-					],
-				],
-				'type'           => 'string',
-				'single'         => true,
-				'auth_callback'  => '__return_true',
-			]
-		);
 	}
 
 	/**

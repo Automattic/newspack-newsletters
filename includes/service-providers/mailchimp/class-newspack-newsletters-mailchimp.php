@@ -418,7 +418,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 			$mc                  = new Mailchimp( $this->api_key() );
 			$campaign            = $this->validate(
-				$mc->get( "campaigns/$mc_campaign_id" ),
+				$mc->get(
+					"campaigns/$mc_campaign_id",
+					[
+						'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
+					]
+				),
 				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
 			);
 			$list_id = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
@@ -429,15 +434,25 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			$newsletter_data = [
-				'campaign'            => $campaign,
-				'campaign_id'         => $mc_campaign_id,
-				'folders'             => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
-				'interest_categories' => $this->get_interest_categories( $list_id ),
-				'lists'               => $lists,
-				'merge_fields'        => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
-				'segments'            => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( $list_id ) : [],
-				'tags'                => $this->get_tags( $list_id ),
+				'campaign'     => $campaign,
+				'campaign_id'  => $mc_campaign_id,
+				'folders'      => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
+				'merge_fields' => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
 			];
+
+			// Check for past sync errors.
+			$sync_errors = get_post_meta( $post_id, 'newsletter_sync_errors', true );
+			if ( $sync_errors ) {
+				$newsletter_data['sync_errors'] = array_map(
+					function( $sync_error ) {
+						return [
+							'timestamp' => $sync_error['timestamp'],
+							'message'   => $sync_error['message'],
+						];
+					},
+					$sync_errors
+				);
+			}
 
 			return $newsletter_data;
 		} catch ( Exception $e ) {
@@ -457,132 +472,106 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error List of subscription lists or error.
 	 */
 	public function get_lists( $audiences_only = false ) {
-		try {
-			$mc             = new Mailchimp( $this->api_key() );
-			$lists_response = $this->validate(
-				$mc->get(
-					'lists',
-					[
-						'count' => 1000,
-					]
-				),
-				__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
-			);
-			if ( is_wp_error( $lists_response ) ) {
-				return new WP_Error(
-					'newspack_newsletters_mailchimp_error',
-					$lists_response->getMessage()
-				);
-			}
-
-			if ( ! isset( $lists_response['lists'] ) ) {
-				$error_message  = __( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' );
-				$error_message .= ! empty( $lists_response['title'] ) ? ' ' . $lists_response['title'] : '';
-				return new WP_Error(
-					'newspack_newsletters_mailchimp_error',
-					$error_message
-				);
-			}
-
-			if ( $audiences_only ) {
-				return $lists_response['lists'];
-			}
-
-			$lists = [];
-
-			// In addition to Audiences, we also automatically fetch all groups and tags and offer them as Subscription Lists.
-			// Build the final list inside the loop so groups are added after the list they belong to and we can then represent the hierarchy in the UI.
-			foreach ( $lists_response['lists'] as $list ) {
-
-				$lists[]        = $list;
-				$all_categories = Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( $list['id'] );
-				$all_categories = $all_categories['categories'] ?? [];
-				$all_tags       = Newspack_Newsletters_Mailchimp_Cached_Data::get_tags( $list['id'] ) ?? [];
-
-				foreach ( $all_categories as $found_category ) {
-
-					// Do not include groups under the category we use to store "Local" lists.
-					if ( $this->get_group_category_name() === $found_category['title'] ) {
-						continue;
-					}
-
-					$all_groups = $found_category['interests'] ?? [];
-
-					$groups = array_map(
-						function ( $group ) use ( $list ) {
-							$group['id']   = $this->create_group_or_tag_list_id( $group['id'], $list['id'] );
-							$group['type'] = 'mailchimp-group';
-							return $group;
-						},
-						$all_groups['interests'] ?? [] // Yes, two levels of 'interests'.
-					);
-					$lists  = array_merge( $lists, $groups );
-				}
-
-				foreach ( $all_tags as $tag ) {
-					$tag['id']   = $this->create_group_or_tag_list_id( $tag['id'], $list['id'], 'tag' );
-					$tag['type'] = 'mailchimp-tag';
-					$lists[]     = $tag;
-				}
-			}
-
-			// Reconcile edited names for locally-configured lists.
-			$configured_lists = Newspack_Newsletters_Subscription::get_lists_config();
-			if ( ! empty( $configured_lists ) ) {
-				foreach ( $lists as &$list ) {
-					if ( ! empty( $configured_lists[ $list['id'] ]['name'] ) ) {
-						$list['local_name'] = $configured_lists[ $list['id'] ]['name'];
-					}
-				}
-			}
-
+		$lists = Newspack_Newsletters_Mailchimp_Cached_Data::get_lists();
+		if ( $audiences_only || is_wp_error( $lists ) ) {
 			return $lists;
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'newspack_newsletters_mailchimp_error',
-				$e->getMessage()
-			);
 		}
+
+		// In addition to Audiences, we also automatically fetch all groups and tags and offer them as Subscription Lists.
+		// Build the final list inside the loop so groups are added after the list they belong to and we can then represent the hierarchy in the UI.
+		foreach ( $lists as $list ) {
+
+			$lists[]        = $list;
+			$all_categories = Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( $list['id'] );
+			$all_categories = $all_categories['categories'] ?? [];
+			$all_tags       = Newspack_Newsletters_Mailchimp_Cached_Data::get_tags( $list['id'] ) ?? [];
+
+			foreach ( $all_categories as $found_category ) {
+
+				// Do not include groups under the category we use to store "Local" lists.
+				if ( $this->get_group_category_name() === $found_category['title'] ) {
+					continue;
+				}
+
+				$all_groups = $found_category['interests'] ?? [];
+
+				$groups = array_map(
+					function ( $group ) use ( $list ) {
+						$group['id']   = $this->create_group_or_tag_list_id( $group['id'], $list['id'] );
+						$group['type'] = 'mailchimp-group';
+						return $group;
+					},
+					$all_groups['interests'] ?? [] // Yes, two levels of 'interests'.
+				);
+				$lists  = array_merge( $lists, $groups );
+			}
+
+			foreach ( $all_tags as $tag ) {
+				$tag['id']   = $this->create_group_or_tag_list_id( $tag['id'], $list['id'], 'tag' );
+				$tag['type'] = 'mailchimp-tag';
+				$lists[]     = $tag;
+			}
+		}
+
+		// Reconcile edited names for locally-configured lists.
+		$configured_lists = Newspack_Newsletters_Subscription::get_lists_config();
+		if ( ! empty( $configured_lists ) ) {
+			foreach ( $lists as &$list ) {
+				if ( ! empty( $configured_lists[ $list['id'] ]['name'] ) ) {
+					$list['local_name'] = $configured_lists[ $list['id'] ]['name'];
+				}
+			}
+		}
+
+		return $lists;
 	}
 
 	/**
 	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
 	 *
 	 * @param string $search Optional. If given, only return lists whose names or entity types match the search string.
+	 * @param string $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
+	 * @param string $parent_id Optional: If given, only return sublists of the specified parent list.
 	 *
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $search = null ) {
+	public function get_send_lists( $search = '', $list_type = null, $parent_id = null ) {
 		$audiences  = $this->get_lists( true );
 		$send_lists = [];
 
 		foreach ( $audiences as $audience ) {
-			if ( ! $search || stripos( $audience['name'], $search ) !== false || stripos( 'audience', $search ) !== false ) {
+			$entity_type = __( 'Audience', 'newspack-newsletters' );
+			if ( ( ! $list_type || 'list' === $list_type ) && self::matches_search( $search, [ $audience['id'], $audience['name'], $entity_type ] ) ) {
 				$send_lists[] = new Send_List(
 					[
 						'provider'    => $this->service,
 						'type'        => 'list',
 						'id'          => $audience['id'],
 						'name'        => $audience['name'],
-						'entity_type' => 'audience',
+						'entity_type' => $entity_type,
 						'count'       => $audience['stats']['member_count'] ?? 0,
 					]
 				);
 			}
 
-			$groups = $this->get_interest_categories( $audience['id'] );
+			if ( $list_type && 'sublist' !== $list_type ) {
+				continue;
+			}
+
+			$groups = $this->get_interest_categories( $parent_id ?? $audience['id'] );
 			if ( isset( $groups['categories'] ) ) {
+				$entity_type = __( 'Group', 'newspack-newsletters' );
 				foreach ( $groups['categories'] as $category ) {
 					if ( isset( $category['interests']['interests'] ) ) {
 						foreach ( $category['interests']['interests'] as $interest ) {
-							if ( ! $search || stripos( $interest['name'], $search ) !== false || stripos( 'group', $search ) !== false ) {
+							if ( self::matches_search( $search, [ $interest['id'], $interest['name'], $$entity_type ] ) ) {
 								$send_lists[] = new Send_List(
 									[
 										'provider'    => $this->service,
 										'type'        => 'sublist',
 										'id'          => $interest['id'],
 										'name'        => $interest['name'],
-										'entity_type' => 'group',
+										'entity_type' => $entity_type,
 										'parent'      => $interest['list_id'],
 										'count'       => $interest['subscriber_count'],
 									]
@@ -590,6 +579,43 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 							}
 						}
 					}
+				}
+			}
+
+			$tags = $this->get_tags( $parent_id ?? $audience['id'] );
+			foreach ( $tags as $tag ) {
+				$entity_type = __( 'Tag', 'newspack-newsletters' );
+				if ( self::matches_search( $search, [ $tag['id'], $interest['name'], $tag['local_name'], $$entity_type ] ) ) {
+					$tag_config = [
+						'provider'    => $this->service,
+						'type'        => 'sublist',
+						'id'          => $tag['id'],
+						'name'        => $tag['name'],
+						'entity_type' => $entity_type,
+						'parent'      => $tag['list_id'],
+						'count'       => $tag['member_count'],
+					];
+					if ( isset( $tag['local_name'] ) ) {
+						$tag_config['local_name'] = $tag['local_name'];
+					}
+					$send_lists[] = new Send_List( $tag_config );
+				}
+			}
+
+			$segments = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( $parent_id ?? $audience['id'] );
+			foreach ( $segments as $segment ) {
+				if ( ! $search || stripos( $segment['name'], $search ) !== false || stripos( 'segment', $search ) !== false ) {
+					$send_lists[] = new Send_List(
+						[
+							'provider'    => $this->service,
+							'type'        => 'sublist',
+							'id'          => $segment['id'],
+							'name'        => $segment['name'],
+							'entity_type' => 'segment',
+							'parent'      => $segment['list_id'],
+							'count'       => $segment['member_count'],
+						]
+					);
 				}
 			}
 		}
@@ -831,9 +857,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @throws Exception Error message.
 	 */
 	public function sync( $post ) {
-		// Clear prior error messages.
-		$transient_name = $this->get_transient_name( $post->ID );
-		delete_transient( $transient_name );
 		try {
 			$api_key = $this->api_key();
 			if ( ! $api_key ) {
@@ -904,7 +927,17 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_result'  => $content_result,
 			];
 		} catch ( Exception $e ) {
-			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $e->getMessage(), 45 );
+			$errors = get_post_meta( $post->ID, 'newsletter_sync_errors', true );
+			if ( ! is_array( $errors ) ) {
+				$errors = [];
+			}
+			$error_message = __( 'Error syncing with Mailchimp campaign: ', 'newspack-newsletters' ) . $e->getMessage();
+			$errors[] = [
+				'timestamp' => time(),
+				'message'   => $error_message,
+			];
+			$errors   = array_slice( $errors, -10, 10, true );
+			update_post_meta( $post->ID, 'newsletter_sync_errors', $errors );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
 	}
@@ -1677,8 +1710,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			'name'                    => 'Mailchimp', // The provider name.
 			'list'                    => __( 'audience', 'newspack-newsletters' ), // "list" in lower case singular format.
 			'lists'                   => __( 'audiences', 'newspack-newsletters' ), // "list" in lower case plural format.
+			'sublist'                 => __( 'group, segment, or tag', 'newspack-newsletters' ), // Sublist entities in lowercase singular format.
 			'List'                    => __( 'Audience', 'newspack-newsletters' ), // "list" in uppercase case singular format.
 			'Lists'                   => __( 'Audiences', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+			'Sublist'                 => __( 'Group, Segment, or Tag', 'newspack-newsletters' ), // Sublist entities in uppercase singular format.
 			'list_explanation'        => __( 'Mailchimp Audience', 'newspack-newsletters' ),
 			// translators: %s is the name of the group category. "Newspack newsletters" by default.
 			'local_list_explanation'  => sprintf( __( 'Mailchimp Group under the %s category', 'newspack-newsletters' ), self::get_group_category_name() ),

@@ -448,8 +448,10 @@ Details of the error message: "%3$s"
 			'name'                    => '', // The provider name.
 			'list'                    => __( 'list', 'newspack-newsletters' ), // "list" in lower case singular format.
 			'lists'                   => __( 'lists', 'newspack-newsletters' ), // "list" in lower case plural format.
+			'sublist'                 => __( 'sublist', 'newspack-newsletters' ), // Sublist entities in lowercase singular format.
 			'List'                    => __( 'List', 'newspack-newsletters' ), // "list" in uppercase case singular format.
 			'Lists'                   => __( 'Lists', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+			'Sublist'                 => __( 'Sublist', 'newspack-newsletters' ), // Sublist entities in uppercase singular format.
 			'tag_prefix'              => 'Newspack: ', // The prefix to be used in tags.
 			'tag_metabox_before_save' => __( 'Once this list is saved, a tag will be created for it.', 'newspack-newsletters' ),
 			'tag_metabox_after_save'  => __( 'Tag created for this list', 'newspack-newsletters' ),
@@ -809,5 +811,25 @@ Details of the error message: "%3$s"
 	 */
 	public function get_transient_name( $post_id ) {
 		return sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
+	}
+
+	/**
+	 * Check if the given search term matches any of the given strings.
+	 *
+	 * @param string $search Search term.
+	 * @param array  $matches An array of strings to match against.
+	 *
+	 * @return boolean
+	 */
+	public static function matches_search( $search, $matches = [] ) {
+		if ( ! $search ) {
+			return true;
+		}
+		$search = strtolower( strval( $search ) );
+		foreach ( $matches as $match ) {
+			if ( stripos( strtolower( strval( $match ) ), $search ) !== false ) {
+				return true;
+			}
+		}
 	}
 }
