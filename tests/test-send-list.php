@@ -41,7 +41,7 @@ class Send_List_Test extends WP_UnitTestCase {
 		$config = self::$configs['valid_sublist'];
 		unset( $config['parent'] );
 
-		$list = new Send_List( self::$configs['invalid'] );
+		$list = new Send_List( $config );
 	}
 
 	/**
