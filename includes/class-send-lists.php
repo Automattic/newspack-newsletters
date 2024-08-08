@@ -52,7 +52,7 @@ class Send_Lists {
 	}
 
 	/**
-	 * Register the endpoints needed to fetch and update send lists.
+	 * Register the endpoints needed to fetch send lists.
 	 */
 	public static function register_api_endpoints() {
 		register_rest_route(

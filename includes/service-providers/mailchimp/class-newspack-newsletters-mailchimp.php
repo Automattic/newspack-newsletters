@@ -114,6 +114,20 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Get the base URL for the Mailchimp admin dashboard.
+	 *
+	 * @return string|boolean The URL on success. False on failure.
+	 */
+	public function get_admin_url() {
+		$api_key = $this->api_key();
+		if ( strpos( $api_key, '-' ) === false ) {
+			return false;
+		}
+		list(, $data_center) = explode( '-', $api_key );
+		return 'https://' . $data_center . '.admin.mailchimp.com/';
+	}
+
+	/**
 	 * Set the API credentials for the service provider.
 	 *
 	 * @param object $credentials API credentials.
@@ -536,57 +550,62 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */
 	public function get_send_lists( $search = '', $list_type = null, $parent_id = null ) {
+		$admin_url  = self::get_admin_url();
 		$audiences  = $this->get_lists( true );
 		$send_lists = [];
 
+		$entity_type = __( 'Audience', 'newspack-newsletters' );
 		foreach ( $audiences as $audience ) {
-			$entity_type = __( 'Audience', 'newspack-newsletters' );
 			if ( ( ! $list_type || 'list' === $list_type ) && self::matches_search( $search, [ $audience['id'], $audience['name'], $entity_type ] ) ) {
-				$send_lists[] = new Send_List(
-					[
-						'provider'    => $this->service,
-						'type'        => 'list',
-						'id'          => $audience['id'],
-						'name'        => $audience['name'],
-						'entity_type' => $entity_type,
-						'count'       => $audience['stats']['member_count'] ?? 0,
-					]
-				);
+				$config = [
+					'provider'    => $this->service,
+					'type'        => 'list',
+					'id'          => $audience['id'],
+					'name'        => $audience['name'],
+					'entity_type' => $entity_type,
+					'count'       => $audience['stats']['member_count'] ?? 0,
+				];
+				if ( $admin_url && ! empty( $audience['web_id'] ) ) {
+					$config['edit_link'] = $admin_url . 'audience/contacts/?id=' . $audience['web_id'];
+				}
+				$send_lists[] = new Send_List( $config );
 			}
 
 			if ( $list_type && 'sublist' !== $list_type ) {
 				continue;
 			}
 
-			$groups = $this->get_interest_categories( $parent_id ?? $audience['id'] );
+			$groups      = $this->get_interest_categories( $parent_id ?? $audience['id'] );
+			$entity_type = __( 'Group', 'newspack-newsletters' );
 			if ( isset( $groups['categories'] ) ) {
-				$entity_type = __( 'Group', 'newspack-newsletters' );
 				foreach ( $groups['categories'] as $category ) {
 					if ( isset( $category['interests']['interests'] ) ) {
 						foreach ( $category['interests']['interests'] as $interest ) {
 							if ( self::matches_search( $search, [ $interest['id'], $interest['name'], $$entity_type ] ) ) {
-								$send_lists[] = new Send_List(
-									[
-										'provider'    => $this->service,
-										'type'        => 'sublist',
-										'id'          => $interest['id'],
-										'name'        => $interest['name'],
-										'entity_type' => $entity_type,
-										'parent'      => $interest['list_id'],
-										'count'       => $interest['subscriber_count'],
-									]
-								);
+								$config = [
+									'provider'    => $this->service,
+									'type'        => 'sublist',
+									'id'          => $interest['id'],
+									'name'        => $interest['name'],
+									'entity_type' => $entity_type,
+									'parent'      => $interest['list_id'],
+									'count'       => $interest['subscriber_count'],
+								];
+								if ( $admin_url && $audience['web_id'] ) {
+									$config['edit_link'] = $admin_url . 'audience/groups/?id=' . $audience['web_id'];
+								}
+								$send_lists[] = new Send_List( $config );
 							}
 						}
 					}
 				}
 			}
 
-			$tags = $this->get_tags( $parent_id ?? $audience['id'] );
+			$tags        = $this->get_tags( $parent_id ?? $audience['id'] );
+			$entity_type = __( 'Tag', 'newspack-newsletters' );
 			foreach ( $tags as $tag ) {
-				$entity_type = __( 'Tag', 'newspack-newsletters' );
 				if ( self::matches_search( $search, [ $tag['id'], $interest['name'], $tag['local_name'], $$entity_type ] ) ) {
-					$tag_config = [
+					$config = [
 						'provider'    => $this->service,
 						'type'        => 'sublist',
 						'id'          => $tag['id'],
@@ -596,26 +615,32 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'count'       => $tag['member_count'],
 					];
 					if ( isset( $tag['local_name'] ) ) {
-						$tag_config['local_name'] = $tag['local_name'];
+						$config['local_name'] = $tag['local_name'];
 					}
-					$send_lists[] = new Send_List( $tag_config );
+					if ( $admin_url && $audience['web_id'] ) {
+						$config['edit_link'] = $admin_url . 'audience/tags/?id=' . $audience['web_id'];
+					}
+					$send_lists[] = new Send_List( $config );
 				}
 			}
 
-			$segments = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( $parent_id ?? $audience['id'] );
+			$segments    = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( $parent_id ?? $audience['id'] );
+			$entity_type = __( 'Segment', 'newspack-newsletters' );
 			foreach ( $segments as $segment ) {
 				if ( ! $search || stripos( $segment['name'], $search ) !== false || stripos( 'segment', $search ) !== false ) {
-					$send_lists[] = new Send_List(
-						[
-							'provider'    => $this->service,
-							'type'        => 'sublist',
-							'id'          => $segment['id'],
-							'name'        => $segment['name'],
-							'entity_type' => 'segment',
-							'parent'      => $segment['list_id'],
-							'count'       => $segment['member_count'],
-						]
-					);
+					$config = [
+						'provider'    => $this->service,
+						'type'        => 'sublist',
+						'id'          => $segment['id'],
+						'name'        => $segment['name'],
+						'entity_type' => $entity_type,
+						'parent'      => $segment['list_id'],
+						'count'       => $segment['member_count'],
+					];
+					if ( $admin_url && $audience['web_id'] ) {
+						$config['edit_link'] = $admin_url . 'audience/segments/?id=' . $audience['web_id'];
+					}
+					$send_lists[] = new Send_List( $config );
 				}
 			}
 		}

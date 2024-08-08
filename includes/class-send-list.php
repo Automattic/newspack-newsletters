@@ -35,6 +35,12 @@ class Send_List {
 	public function __construct( $config ) {
 		$schema = self::get_config_schema();
 		$errors = [];
+
+		// If the type is a sublist but we're missing the parent property.
+		if ( 'sublist' === $config['type'] && ! isset( $config['parent'] ) ) {
+			$errors[] = __( 'Missing required parent ID for sublist type.', 'newspack-newsletters' );
+		}
+
 		foreach ( $schema['properties'] as $key => $property ) {
 			// If the property is required but not set, throw an error.
 			if ( $property['required'] && ! isset( $config[ $key ] ) ) {
@@ -61,10 +67,8 @@ class Send_List {
 		}
 
 		if ( ! empty( $errors ) ) {
-			throw new \InvalidArgumentException( esc_html( implode( ', ', $errors ) ) );
+			throw new \InvalidArgumentException( esc_html( __( 'Error creating send list: ', 'newspack-newsletters' ) . implode( ' | ', $errors ) ) );
 		}
-
-		$this->config = $config;
 	}
 
 	/**
@@ -144,7 +148,13 @@ class Send_List {
 	 * @return array
 	 */
 	public function get_config() {
-		return $this->config;
+		$schema = self::get_config_schema();
+		$config  = [];
+		foreach ( $schema['properties'] as $key => $property ) {
+			$config[ $key ] = $this->get( $key ) ?? null;
+		}
+
+		return array_filter( $config );
 	}
 
 	/**
@@ -155,6 +165,6 @@ class Send_List {
 	 * @return mixed The property value or null if not set/not a supported property.
 	 */
 	public function get( $key ) {
-		return $this->config[ $key ] ?? null;
+		return $this->{ $key } ?? null;
 	}
 }

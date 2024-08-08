@@ -518,7 +518,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				'lists',
 				[
 					'count'  => 1000,
-					'fields' => [ 'id' ],
+					'fields' => 'lists.name,lists.id,lists.web_id,lists.stats.member_count',
 				]
 			),
 			__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
