@@ -78,5 +78,5 @@ export const getSuggestionLabel = item => {
 					item.count
 			  )
 			: '';
-	return `[${ item.typeLabel.toUpperCase() }] ${ item.name } ${ contactCount }`.trim();
+	return `[${ item.entity_type.toUpperCase() }] ${ item.name } ${ contactCount }`.trim();
 };
