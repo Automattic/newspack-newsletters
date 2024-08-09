@@ -8,6 +8,7 @@ import { get, isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
+import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
@@ -26,15 +27,14 @@ const Editor = compose( [
 	withApiHandler(),
 	withSelect( select => {
 		const {
+			isSavingPost,
+			getCurrentPostId,
 			getCurrentPostAttribute,
 			getEditedPostAttribute,
-			isCleanNewPost,
-			isCurrentPostPublished,
 		} = select( 'core/editor' );
-		const { getActiveGeneralSidebarName, getAllMetaBoxes } = select( 'core/edit-post' );
+		const { getAllMetaBoxes } = select( 'core/edit-post' );
 		const { getSettings } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const status = getCurrentPostAttribute( 'status' );
 		const sent = getCurrentPostAttribute( 'meta' ).newsletter_sent;
 		const settings = getSettings();
 		const experimentalSettingsColors = get( settings, [
@@ -48,19 +48,16 @@ const Editor = compose( [
 		const newsletterValidationErrors = validateNewsletter( meta.newsletterData );
 
 		return {
-			isCleanNewPost: isCleanNewPost(),
-			isPublished: isCurrentPostPublished(),
+			postId: getCurrentPostId(),
+			isSavingPost: isSavingPost(),
 			isReady: newsletterValidationErrors.length === 0,
-			activeSidebarName: getActiveGeneralSidebarName(),
 			html: meta[ newspack_email_editor_data.email_html_meta ],
 			colorPalette: colors.reduce(
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
 			),
-			status,
 			sent,
 			isPublic: meta.is_public,
-			campaignName: meta.campaign_name,
 			newsletterSendErrors: meta.newsletter_send_errors,
 			isCustomFieldsMetaBoxActive: getAllMetaBoxes().some( box => box.id === 'postcustom' ),
 		};
@@ -84,6 +81,8 @@ const Editor = compose( [
 	} ),
 ] )(
 	( {
+		postId,
+		isSavingPost,
 		apiFetchWithErrorHandling,
 		colorPalette,
 		createNotice,
@@ -108,15 +107,23 @@ const Editor = compose( [
 				'editor-post-publish-button__button'
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
+		}, [] );
 
-			// Show async error messages.
-			if ( newspack_email_editor_data?.error_message ) {
-				createNotice( 'error', newspack_email_editor_data.error_message, {
-					id: 'newspack-newsletters-newsletter-async-error',
-					isDismissible: true,
+		useEffect( () => {
+			// After saving the post, check for a sync error to display a notice.
+			if ( ! isSavingPost ) {
+				apiFetch( {
+					path: `/newspack-newsletters/v1/${ postId }/sync-error`,
+				}).then( ( { error_message } ) => {
+					if ( error_message ) {
+						createNotice( 'error', error_message, {
+							id: 'newspack-newsletters-newsletter-sync-error',
+							isDismissible: true,
+						} );
+					}
 				} );
 			}
-		}, [] );
+		}, [ isSavingPost ] );
 
 		// Set color palette option.
 		useEffect( () => {
