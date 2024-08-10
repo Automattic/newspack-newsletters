@@ -110,10 +110,12 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Get audiences (lists).
 	 *
+	 * @param int|null $limit (Optional) The maximum number of items to return. If not given, will get all items.
+	 *
 	 * @throws Exception In case of errors while fetching data from the server.
 	 * @return array|WP_Error The audiences, or WP_Error if there was an error.
 	 */
-	public static function get_lists() {
+	public static function get_lists( $limit = null ) {
 		// If we've already gotten or fetched lists in this request, return those.
 		if ( ! empty( self::$memoized_data['lists'] ) ) {
 			return self::$memoized_data['lists'];
@@ -122,33 +124,16 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		$data = get_option( self::get_lists_cache_key() );
 		if ( ! $data || self::is_cache_expired() ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: No data found. Fetching lists from ESP.' );
-			$data = self::fetch_lists();
+			$data = self::fetch_lists( $limit );
 		} else {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: serving from cache' );
 		}
 
 		self::$memoized_data['lists'] = $data;
+		if ( $limit ) {
+			$data = array_slice( $data, 0, $limit );
+		}
 		return $data;
-	}
-
-	/**
-	 * Get a single segment by ID.
-	 *
-	 * @param string|int $segment_id The segment ID.
-	 * @param string     $list_id The parent list ID.
-	 * @return object|null The segment object or null if not found.
-	 */
-	public static function get_segment( $segment_id, $list_id ) {
-		$all_segments = self::get_segments( $list_id );
-		if ( ! $all_segments ) {
-			return null;
-		}
-		foreach ( $all_segments as $segment ) {
-			if ( strval( $segment['id'] ) === strval( $segment_id ) ) {
-				return $segment;
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -528,16 +513,18 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Fetches all audiences (lists) from the Mailchimp server
 	 *
+	 * @param int|null $limit (Optional) The maximum number of items to return. If not given, will get all items.
+	 *
 	 * @throws Exception In case of errors while fetching data from the server.
 	 * @return array|WP_Error The audiences, or WP_Error if there was an error.
 	 */
-	public static function fetch_lists() {
+	public static function fetch_lists( $limit = null ) {
 		$mc             = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$lists_response = ( self::get_mc_instance() )->validate(
 			$mc->get(
 				'lists',
 				[
-					'count'  => 1000,
+					'count'  => $limit ?? 1000,
 					'fields' => 'lists.name,lists.id,lists.web_id,lists.stats.member_count',
 				]
 			),
@@ -548,21 +535,50 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			return is_wp_error( $lists_response ) ? $lists_response : [];
 		}
 
-		// Cache the lists.
-		update_option( self::get_lists_cache_key(), $lists_response['lists'], false ); // auto-load false.
-		update_option( self::get_cache_date_key(), time(), false ); // auto-load false.
+		// Cache the lists (only if we got them all).
+		if ( ! $limit ) {
+			update_option( self::get_lists_cache_key(), $lists_response['lists'], false ); // auto-load false.
+			update_option( self::get_cache_date_key(), time(), false ); // auto-load false.
+		}
 
 		return $lists_response['lists'];
 	}
 
 	/**
+	 * Fetches a single segment by segment ID + list ID.
+	 *
+	 * @param string $segment_id The segment ID.
+	 * @param string $list_id The audience (list) ID.
+	 *
+	 * @throws Exception In case of errors while fetching data from the server.
+	 * @return array The audience segment
+	 */
+	public static function fetch_segment( $segment_id, $list_id ) {
+		$mc        = new Mailchimp( ( self::get_mc_instance() )->api_key() );
+		$response  = ( self::get_mc_instance() )->validate(
+			$mc->get(
+				"lists/$list_id/segment/$segment_id",
+				[
+					'fields' => 'id,name,member_count,type,options,list_id',
+				],
+				60
+			),
+			__( 'Error retrieving Mailchimp segment with ID: ', 'newspack_newsletters' ) . $segment_id
+		);
+
+		return $response;
+	}
+
+	/**
 	 * Fetches the segments for a given List from the Mailchimp server
 	 *
-	 * @param string $list_id The audience (list) ID.
+	 * @param string   $list_id The audience (list) ID.
+	 * @param int|null $limit (Optional) The maximum number of items to return. If not given, will get all items.
+	 *
 	 * @throws Exception In case of errors while fetching data from the server.
 	 * @return array The audience segments
 	 */
-	public static function fetch_segments( $list_id ) {
+	public static function fetch_segments( $list_id, $limit = null ) {
 		$mc       = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$segments = [];
 
@@ -571,7 +587,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				"lists/$list_id/segments",
 				[
 					'type'  => 'saved', // 'saved' or 'static' segments. 'static' segments are actually the same thing as tags, so we can exclude them from this request as we fetch tags separately.
-					'count' => 1000,
+					'count' => $limit ?? 1000,
 				],
 				60
 			),
@@ -585,14 +601,16 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Fetches the interest_categories (aka Groups) for a given List from the Mailchimp server
 	 *
-	 * @param string $list_id The audience (list) ID.
+	 * @param string   $list_id The audience (list) ID.
+	 * @param int|null $limit (Optional) The maximum number of items to return. If not given, will get all items.
+	 *
 	 * @throws Exception In case of errors while fetching data from the server.
 	 * @return array The audience interest_categories
 	 */
-	private static function fetch_interest_categories( $list_id ) {
+	public static function fetch_interest_categories( $list_id, $limit = null ) {
 		$mc                  = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$interest_categories = $list_id ? ( self::get_mc_instance() )->validate(
-			$mc->get( "lists/$list_id/interest-categories", [ 'count' => 1000 ], 60 ),
+			$mc->get( "lists/$list_id/interest-categories", [ 'count' => $limit ?? 1000 ], 60 ),
 			__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
 		) : null;
 
@@ -612,18 +630,20 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Fetches the tags for a given audience (list) from the Mailchimp server
 	 *
-	 * @param string $list_id The audience (list) ID.
+	 * @param string   $list_id The audience (list) ID.
+	 * @param int|null $limit (Optional) The maximum number of items to return. If not given, will get all items.
+	 *
 	 * @throws Exception In case of errors while fetching data from the server.
 	 * @return array The audience tags
 	 */
-	public static function fetch_tags( $list_id ) {
+	public static function fetch_tags( $list_id, $limit = null ) {
 		$mc   = new Mailchimp( ( self::get_mc_instance() )->api_key() );
 		$tags = $list_id ? ( self::get_mc_instance() )->validate(
 			$mc->get(
 				"lists/$list_id/segments",
 				[
 					'type'  => 'static', // 'saved' or 'static' segments. Tags are called 'static' segments in Mailchimp's API.
-					'count' => 1000,
+					'count' => $limit ?? 1000,
 				],
 				60
 			),

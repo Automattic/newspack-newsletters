@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Fragment } from '@wordpress/element';
-import { Button, TextControl, TextareaControl } from '@wordpress/components';
+import { Button, Spinner, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -19,6 +19,7 @@ import { once } from 'lodash';
 import { hasValidEmail } from '../utils';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
+import { useNewsletterData } from '../store';
 import './style.scss';
 
 const Sidebar = ( {
@@ -34,10 +35,10 @@ const Sidebar = ( {
 	senderEmail,
 	campaignName,
 	previewText,
-	newsletterData,
 	stringifiedLayoutDefaults,
 	postId,
 } ) => {
+	const newsletterData = useNewsletterData();
 	const getCampaignName = () => {
 		if ( typeof campaignName === 'string' ) {
 			return campaignName;
@@ -138,6 +139,15 @@ const Sidebar = ( {
 		);
 	}
 
+	if ( ! newsletterData?.campaign ) {
+		return (
+			<div className="newspack-newsletters__loading-data">
+				{ __( 'Retrieving Mailchimp data…', 'newspack-newsletters' ) }
+				<Spinner />
+			</div>
+		);
+	}
+
 	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
 	const { ProviderSidebar } = getServiceProvider();
 	return (
@@ -147,7 +157,6 @@ const Sidebar = ( {
 			{ renderPreviewText() }
 			<ProviderSidebar
 				postId={ postId }
-				newsletterData={ newsletterData }
 				stringifiedLayoutDefaults={ stringifiedLayoutDefaults }
 				inFlight={ inFlight }
 				editPost={ editPost }
@@ -171,7 +180,6 @@ export default compose( [
 			senderName: meta.senderName || '',
 			campaignName: meta.campaign_name,
 			previewText: meta.preview_text || '',
-			newsletterData: meta.newsletterData || {},
 			stringifiedLayoutDefaults: meta.stringifiedLayoutDefaults || {},
 		};
 	} ),

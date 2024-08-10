@@ -88,11 +88,25 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	public function get_lists();
 
 	/**
+	 * Check if the given search term matches any of the given strings.
+	 *
+	 * @param string $search Search term.
+	 * @param array  $matches An array of strings to match against.
+	 *
+	 * @return boolean
+	 */
+	public static function matches_search( $search, $matches );
+
+	/**
 	 * Get the ESP's available lists and sublists, reformatted as Send_List items.
+	 *
+	 * @param string $search Optional. If given, only return lists whose names or entity types match the search string.
+	 * @param string $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
+	 * @param string $parent_id Optional: If given, only return sublists of the specified parent list.
 	 *
 	 * @return array|WP_Error API Response or error.
 	 */
-	// public function get_send_lists();
+	// public function get_send_lists( $search = '', $list_type = null, $parent_id = null );
 
 
 	/**

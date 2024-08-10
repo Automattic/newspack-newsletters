@@ -8,14 +8,19 @@ import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
 import { SelectControl, Spinner, Notice } from '@wordpress/components';
 
+/**
+ * Internal dependencies
+ */
+import { useNewsletterData } from '../../newsletter-editor/store';
+
 const ProviderSidebarComponent = ( {
 	renderFrom,
 	inFlight,
-	newsletterData,
 	postId,
 	updateMeta,
 	status,
 } ) => {
+	const newsletterData = useNewsletterData();
 	const { campaign, folders } = newsletterData;
 
 	const getFolderOptions = () => {
@@ -65,15 +70,6 @@ const ProviderSidebarComponent = ( {
 			} );
 		}
 	}, [ campaign ] );
-
-	if ( ! campaign ) {
-		return (
-			<div className="newspack-newsletters__loading-data">
-				{ __( 'Retrieving Mailchimp data…', 'newspack-newsletters' ) }
-				<Spinner />
-			</div>
-		);
-	}
 
 	if (
 		! inFlight &&
