@@ -142,16 +142,16 @@ const Sidebar = ( {
 	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
+			{ renderCampaignName() }
+			{ renderSubject() }
+			{ renderPreviewText() }
 			<ProviderSidebar
 				postId={ postId }
 				newsletterData={ newsletterData }
 				stringifiedLayoutDefaults={ stringifiedLayoutDefaults }
 				inFlight={ inFlight }
 				editPost={ editPost }
-				renderCampaignName={ renderCampaignName }
-				renderSubject={ renderSubject }
 				renderFrom={ renderFrom }
-				renderPreviewText={ renderPreviewText }
 				createErrorNotice={ createErrorNotice }
 				updateMeta={ meta => editPost( { meta } ) }
 			/>

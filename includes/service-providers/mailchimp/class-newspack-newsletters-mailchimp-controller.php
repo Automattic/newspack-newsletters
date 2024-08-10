@@ -40,6 +40,17 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 				'auth_callback'  => '__return_true',
 			]
 		);
+		\register_meta(
+			'post',
+			'mc_folder_id',
+			[
+				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => false,
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+			]
+		);
 	}
 
 	/**
@@ -52,7 +63,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 
 		\register_rest_route(
 			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
-			'(?P<id>[\a-z]+)',
+			'(?P<id>[\a-z]+)/retrieve',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'api_retrieve' ],
@@ -100,6 +111,21 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 					],
 					'reply_to'  => [
 						'sanitize_callback' => 'sanitize_email',
+					],
+				],
+			]
+		);
+		\register_rest_route(
+			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
+			'(?P<id>[\a-z]+)/folders',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'api_get_folders' ],
+				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
+				'args'                => [
+					'id' => [
+						'sanitize_callback' => 'absint',
+						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
 					],
 				],
 			]
@@ -205,6 +231,16 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			$request['from_name'],
 			$request['reply_to']
 		);
+		return self::get_api_response( $response );
+	}
+
+	/**
+	 * Get available MC camaign folders.
+	 *
+	 * @return WP_REST_Response|mixed API response or error.
+	 */
+	public function api_get_folders() {
+		$response = $this->service_provider->get_folders();
 		return self::get_api_response( $response );
 	}
 

@@ -816,19 +816,24 @@ Details of the error message: "%3$s"
 	/**
 	 * Check if the given search term matches any of the given strings.
 	 *
-	 * @param string $search Search term.
-	 * @param array  $matches An array of strings to match against.
+	 * @param array|string $search Search term(s).
+	 * @param array        $matches An array of strings to match against.
 	 *
 	 * @return boolean
 	 */
 	public static function matches_search( $search, $matches = [] ) {
-		if ( ! $search ) {
+		if ( empty( $search ) ) {
 			return true;
 		}
-		$search = strtolower( strval( $search ) );
-		foreach ( $matches as $match ) {
-			if ( stripos( strtolower( strval( $match ) ), $search ) !== false ) {
-				return true;
+		if ( ! is_array( $search ) ) {
+			$search = [ $search ];
+		}
+		foreach ( $search as $to_match ) {
+			$to_match = strtolower( strval( $to_match ) );
+			foreach ( $matches as $match ) {
+				if ( stripos( strtolower( strval( $match ) ), $to_match ) !== false ) {
+					return true;
+				}
 			}
 		}
 	}

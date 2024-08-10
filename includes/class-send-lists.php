@@ -64,7 +64,7 @@ class Send_Lists {
 				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
 				'args'                => [
 					'search'    => [
-						'type' => 'string',
+						'type' => [ 'array', 'string' ],
 					],
 					'type'      => [
 						'type' => 'string',
@@ -98,10 +98,10 @@ class Send_Lists {
 	/**
 	 * Get the available send lists for the current provider.
 	 *
-	 * @param string $search Optional. If given, only return Send Lists whose names or entity types match the search string.
-	 * @param string $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
-	 * @param string $parent_id Optional: If given, only return sublists of the specified parent list.
-	 * @param string $provider_slug Optional. The provider to get the Send Lists for. If not passed, use the current provider.
+	 * @param array|string $search Optional. If given, only return lists whose names or entity types match the search string. Can provide a single string or an array of strings to match.
+	 * @param string       $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
+	 * @param string       $parent_id Optional: If given, only return sublists of the specified parent list.
+	 * @param string       $provider_slug Optional. The provider to get the Send Lists for. If not passed, use the current provider.
 	 *
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */

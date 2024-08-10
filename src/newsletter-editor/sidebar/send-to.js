@@ -8,17 +8,13 @@ import { FormTokenField, Button, ButtonGroup, Notice } from '@wordpress/componen
 import { useEffect, useState } from '@wordpress/element';
 import { Icon, external } from '@wordpress/icons';
 
-/**
- * Internal dependencies
- */
-import { getSuggestionLabel } from '../utils';
-
 // The autocomplete field for lists or sublists.
 const Autocomplete = ( {
 	availableItems,
 	label = '',
 	type = 'list' ,
 	onChange,
+	onInputChange,
 	reset,
 	selected,
 	inFlight,
@@ -94,7 +90,6 @@ const Autocomplete = ( {
 	return (
 		<div className="newspack-newsletters__send-to">
 			<FormTokenField
-				disabled={ inFlight }
 				label={ sprintf(
 					// Translators: SendTo autocomplete field label. %s is the provider's label for the given entity type (list or sublist).
 					__( 'Select %s', 'newspack-newsletters' ),
@@ -105,8 +100,9 @@ const Autocomplete = ( {
 					onChange( selectedLabels );
 					setIsEditing( false );
 				} }
+				onInputChange={ onInputChange }
 				suggestions={ availableItems.map( item => item.label ) }
-				placeholder={ inFlight ? __( 'Fetching…', 'newspack' ) : sprintf(
+				placeholder={ sprintf(
 					// Translators: SendTo autocomplete field placeholder. %s is the provider's label for parent lists.
 					__( 'Type %s name to search', 'newspack-newsletters' ),
 					label.toLowerCase()
@@ -132,18 +128,11 @@ const Autocomplete = ( {
 };
 
 // The container for list + sublist autocomplete fields.
-const SendTo = ( { inFlight = false, selected = {}, updateMeta = () => {} } ) => {
+const SendTo = ( { inFlight = false, fetchSendLists = () => {}, selected = {}, sendLists = [], updateMeta = () => {} } ) => {
 	const [ error, setError ] = useState( null );
 	const [ selectedList, setSelectedList ] = useState( {} );
 	const [ selectedSublist, setSelectedSublist ] = useState( {} );
 	const { labels } = newspack_newsletters_data || {};
-	const sendLists = ( newspack_newsletters_data?.send_lists || [] ).map( item => {
-		return {
-			...item,
-			value: item.id.toString(),
-			label: getSuggestionLabel( item ),
-		};
-	} );
 	const lists = sendLists.filter( item => 'list' === item.type );
 	const sublists = sendLists.filter( item => 'sublist' === item.type );
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
@@ -205,6 +194,10 @@ const SendTo = ( { inFlight = false, selected = {}, updateMeta = () => {} } ) =>
 
 	return (
 		<>
+			<hr />
+			<strong className="newspack-newsletters__label">
+				{ __( 'Send to', 'newspack-newsletters' ) }
+			</strong>
 			{ error && (
 				<Notice status="error" isDismissible={ false }>
 					{ error }
@@ -232,6 +225,7 @@ const SendTo = ( { inFlight = false, selected = {}, updateMeta = () => {} } ) =>
 					newSendTo.list = selectedSuggestion.id;
 					updateMeta( { send_to: newSendTo } );
 				} }
+				onInputChange={ search => fetchSendLists( search, 'list' ) }
 				reset={ () => {
 					setSelectedList( {} );
 					updateMeta( { send_to: {} } )
@@ -265,6 +259,7 @@ const SendTo = ( { inFlight = false, selected = {}, updateMeta = () => {} } ) =>
 							newSendTo.sublist = selectedSuggestion.id;
 							updateMeta( { send_to: newSendTo } );
 						} }
+						onInputChange={ search => fetchSendLists( search, 'sublist', selected.list ) }
 						reset={ () => {
 							setSelectedSublist( {} );
 							updateMeta( { send_to: { list: selected.list } } )

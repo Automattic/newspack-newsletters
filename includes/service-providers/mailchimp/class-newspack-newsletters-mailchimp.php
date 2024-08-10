@@ -332,13 +332,22 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Get available campaign folders.
+	 *
+	 * @return array|WP_Error List of folders or error.
+	 */
+	public function get_folders() {
+		return Newspack_Newsletters_Mailchimp_Cached_Data::get_folders();
+	}
+
+	/**
 	 * Set folder for a campaign.
 	 *
 	 * @param string $post_id Campaign Id.
 	 * @param string $folder_id ID of the folder.
 	 * @return object|WP_Error API API Response or error.
 	 */
-	public function folder( $post_id, $folder_id ) {
+	public function folder( $post_id, $folder_id = '' ) {
 		$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
 		if ( ! $mc_campaign_id ) {
 			return new WP_Error(
@@ -427,26 +436,31 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 		try {
 			$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
+
+			// If there's no synced campaign ID yet, create it.
 			if ( ! $mc_campaign_id ) {
-				$this->sync( get_post( $post_id ) );
+				Newspack_Newsletters_Logger::log( 'Creating new campaign for post ID ' . $post_id );
+				$sync_result = $this->sync( get_post( $post_id ) );
+				if ( is_wp_error( $sync_result ) ) {
+					return $sync_result;
+				}
+				$campaign       = $sync_result['campaign_result'];
+				$mc_campaign_id = $campaign['id'];
+			} else {
+				Newspack_Newsletters_Logger::log( 'Retrieving campaign ' . $mc_campaign_id . ' for post ID ' . $post_id );
+				$mc                  = new Mailchimp( $this->api_key() );
+				$campaign            = $this->validate(
+					$mc->get(
+						"campaigns/$mc_campaign_id",
+						[
+							'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
+						]
+					),
+					__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
+				);
 			}
-			$mc                  = new Mailchimp( $this->api_key() );
-			$campaign            = $this->validate(
-				$mc->get(
-					"campaigns/$mc_campaign_id",
-					[
-						'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
-					]
-				),
-				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
-			);
-			$list_id = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 
-			$lists = $this->get_lists( true );
-			if ( \is_wp_error( $lists ) ) {
-				return $lists;
-			}
-
+			$list_id         = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
 			$newsletter_data = [
 				'campaign'     => $campaign,
 				'campaign_id'  => $mc_campaign_id,
@@ -470,6 +484,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			return $newsletter_data;
 		} catch ( Exception $e ) {
+			// If we couldn't get the campaign, delete the mc_campaign_id so it gets created on the next sync.
+			delete_post_meta( $post_id, 'mc_campaign_id' );
+			$this->retrieve( $post_id );
+
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
 				$e->getMessage()
@@ -543,9 +561,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
 	 *
-	 * @param string $search Optional. If given, only return lists whose names or entity types match the search string.
-	 * @param string $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
-	 * @param string $parent_id Optional: If given, only return sublists of the specified parent list.
+	 * @param array|string $search Optional. If given, only return lists whose names or entity types match the search string. Can provide a single string or an array of strings to match.
+	 * @param string       $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
+	 * @param string       $parent_id Optional: If given, only return sublists of the specified parent list.
 	 *
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */
@@ -554,7 +572,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$audiences  = $this->get_lists( true );
 		$send_lists = [];
 
-		$entity_type = __( 'Audience', 'newspack-newsletters' );
+		$entity_type = 'audience';
 		foreach ( $audiences as $audience ) {
 			if ( ( ! $list_type || 'list' === $list_type ) && self::matches_search( $search, [ $audience['id'], $audience['name'], $entity_type ] ) ) {
 				$config = [
@@ -576,12 +594,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			$groups      = $this->get_interest_categories( $parent_id ?? $audience['id'] );
-			$entity_type = __( 'Group', 'newspack-newsletters' );
+			$entity_type = 'group';
 			if ( isset( $groups['categories'] ) ) {
 				foreach ( $groups['categories'] as $category ) {
 					if ( isset( $category['interests']['interests'] ) ) {
 						foreach ( $category['interests']['interests'] as $interest ) {
-							if ( self::matches_search( $search, [ $interest['id'], $interest['name'], $$entity_type ] ) ) {
+							if ( self::matches_search( $search, [ $interest['id'], $interest['name'], $entity_type ] ) ) {
 								$config = [
 									'provider'    => $this->service,
 									'type'        => 'sublist',
@@ -602,9 +620,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			$tags        = $this->get_tags( $parent_id ?? $audience['id'] );
-			$entity_type = __( 'Tag', 'newspack-newsletters' );
+			$entity_type = 'tag';
 			foreach ( $tags as $tag ) {
-				if ( self::matches_search( $search, [ $tag['id'], $interest['name'], $tag['local_name'], $$entity_type ] ) ) {
+				if ( self::matches_search( $search, [ $tag['id'], $tag['name'], $entity_type ] ) ) {
 					$config = [
 						'provider'    => $this->service,
 						'type'        => 'sublist',
@@ -614,9 +632,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'parent'      => $tag['list_id'],
 						'count'       => $tag['member_count'],
 					];
-					if ( isset( $tag['local_name'] ) ) {
-						$config['local_name'] = $tag['local_name'];
-					}
 					if ( $admin_url && $audience['web_id'] ) {
 						$config['edit_link'] = $admin_url . 'audience/tags/?id=' . $audience['web_id'];
 					}
@@ -625,9 +640,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			$segments    = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( $parent_id ?? $audience['id'] );
-			$entity_type = __( 'Segment', 'newspack-newsletters' );
+			$entity_type = 'segment';
 			foreach ( $segments as $segment ) {
-				if ( ! $search || stripos( $segment['name'], $search ) !== false || stripos( 'segment', $search ) !== false ) {
+				if ( self::matches_search( $search, [ $segment['id'], $segment['name'], $entity_type ] ) ) {
 					$config = [
 						'provider'    => $this->service,
 						'type'        => 'sublist',
@@ -873,6 +888,79 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Get a payload for syncing post data to the ESP campaign.
+	 *
+	 * @param WP_Post|int $post Post object or ID.
+	 * @return object Payload for syncing.
+	 */
+	public function get_sync_payload( $post ) {
+		if ( is_int( $post ) ) {
+			$post = get_post( $post );
+		}
+		$payload        = [
+			'type'         => 'regular',
+			'content_type' => 'template',
+			'settings'     => [
+				'subject_line' => $post->post_title,
+				'title'        => $this->get_campaign_name( $post ),
+			],
+		];
+		$send_to = get_post_meta( $post->ID, 'send_to', true );
+		$sender  = get_post_meta( $post->ID, 'sender', true );
+
+		// Sync send-to selections.
+		if ( ! empty( $send_to['list'] ) ) {
+			$payload['recipients'] = [
+				'list_id' => $send_to['list'],
+			];
+			if ( ! empty( $send_to['sublist'] ) ) {
+				$sublist = $this->get_send_lists( $send_to['sublist'] ); // Get sublist data by ID.
+				if ( ! empty( $sublist ) ) {
+					$sublist      = reset( $sublist );
+					$sublist_id   = $sublist->get( 'id' );
+					$sublist_type = $sublist->get( 'entity_type' );
+
+					switch ( $sublist_type ) {
+						case 'group':
+							$payload['recipients']['segment_opts'] = [
+								'match'      => 'all',
+								'conditions' => [
+									[
+										'condition_type' => 'Interests',
+										'field'          => 'interests-' . $sublist_id,
+										'op'             => 'interestcontains',
+										'value'          => [ $sublist_id ],
+									],
+								],
+							];
+							break;
+						case 'tag':
+							$payload['recipients']['segment_opts'] = [
+								'match'      => 'all',
+								'conditions' => [
+									[
+										'condition_type' => 'StaticSegment',
+										'field'          => 'static_segment',
+										'op'             => 'static_is',
+										'value'          => $sublist_id,
+									],
+								],
+							];
+							break;
+						case 'segment':
+							$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::get_segment( $sublist_id, $send_to['list'] );
+							if ( $segment_data ) {
+								$payload['recipients']['segment_opts'] = $segment_data['options'];
+							}
+					}
+				}
+			}
+		}
+
+		return $payload;
+	}
+
+	/**
 	 * Synchronize post with corresponding ESP campaign.
 	 *
 	 * @param WP_Post $post Post to synchronize.
@@ -891,15 +979,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				throw new Exception( __( 'The newsletter subject cannot be empty.', 'newspack-newsletters' ) );
 			}
 			$mc             = new Mailchimp( $api_key );
-			$payload        = [
-				'type'         => 'regular',
-				'content_type' => 'template',
-				'settings'     => [
-					'subject_line' => $post->post_title,
-					'title'        => $this->get_campaign_name( $post ),
-				],
-			];
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
+			$payload        = $this->get_sync_payload( $post );
 
 			/**
 			 * Filter the metadata payload sent to Mailchimp when syncing.

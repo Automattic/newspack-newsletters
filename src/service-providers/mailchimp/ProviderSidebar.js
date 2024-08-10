@@ -8,55 +8,26 @@ import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
 import { SelectControl, Spinner, Notice } from '@wordpress/components';
 
-/**
- * Internal dependencies
- */
-import SendTo from '../../newsletter-editor/sidebar/send-to';
-
 const ProviderSidebarComponent = ( {
-	renderCampaignName,
-	renderSubject,
 	renderFrom,
-	renderPreviewText,
 	inFlight,
 	newsletterData,
 	postId,
 	updateMeta,
-	createErrorNotice,
-	meta,
 	status,
 } ) => {
-	const campaign = newsletterData.campaign;
-	const folders = newsletterData?.folders || [];
-
-	useEffect( () => {
-		fetchCampaignInfo();
-	}, [] );
-
-	const fetchCampaignInfo = async () => {
-		try {
-			const response = await apiFetch( {
-				path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
-			} );
-			updateMeta( { newsletterData: response } );
-		} catch ( e ) {
-			createErrorNotice(
-				e.message || __( 'Error retrieving campaign information.', 'newspack-newsletters' )
-			);
-		}
-	};
+	const { campaign, folders } = newsletterData;
 
 	const getFolderOptions = () => {
 		const options = folders.map( folder => ( {
 			label: folder.name,
 			value: folder.id,
 		} ) );
-		if ( ! campaign?.settings?.folder_id ) {
-			options.unshift( {
-				label: __( 'No folder', 'newspack-newsletters' ),
-				value: '',
-			} );
-		}
+		options.unshift( {
+			label: campaign?.settings?.folder_id ? __( 'Can’t unset folder', 'newspack-newsletters' ) : __( 'No folder', 'newspack-newsletters' ),
+			value: '',
+			disabled: !! campaign?.settings?.folder_id,
+		} );
 		return options;
 	};
 
@@ -120,33 +91,15 @@ const ProviderSidebarComponent = ( {
 
 	return (
 		<Fragment>
-			{ renderCampaignName() }
-			{ renderSubject() }
-			{ renderPreviewText() }
-			<hr />
-			{ folders.length ? (
-				<Fragment>
-					<SelectControl
-						label={ __( 'Folder', 'newspack-newsletters' ) }
-						value={ campaign?.settings?.folder_id }
-						options={ getFolderOptions() }
-						onChange={ setFolder }
-						disabled={ inFlight }
-					/>
-					<hr />
-				</Fragment>
-			) : null }
-			{ renderFrom( { handleSenderUpdate: setSender } ) }
-			<hr />
-			<strong className="newspack-newsletters__label">
-				{ __( 'Send to', 'newspack-newsletters' ) }
-			</strong>
-			<SendTo
-				inFlight={ inFlight } // Mailchimp API doesn't support unsetting a campaign's list, once set.
-				newsletterData={ newsletterData }
-				selected={ meta?.send_to || {} }
-				updateMeta={ updateMeta }
+			<SelectControl
+				label={ __( 'Campaign Folder', 'newspack-newsletters' ) }
+				value={ campaign?.settings?.folder_id }
+				options={ getFolderOptions() }
+				onChange={ setFolder }
+				disabled={ inFlight || ! folders.length }
 			/>
+			<hr />
+			{ renderFrom( { handleSenderUpdate: setSender } ) }
 		</Fragment>
 	);
 };

@@ -11,6 +11,7 @@ import {
 } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
+import { addQueryArgs } from '@wordpress/url';
 
 /**
  * Internal dependencies
@@ -19,6 +20,7 @@ import InitModal from '../components/init-modal';
 import { getServiceProvider } from '../service-providers';
 import Layout from './layout/';
 import Sidebar from './sidebar/';
+import SendTo from './sidebar/send-to';
 import Testing from './testing/';
 import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
@@ -26,13 +28,29 @@ import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
 import './debug-send';
 
+/**
+ * External dependencies
+ */
+import { debounce } from 'lodash';
+
+
 registerEditorPlugin();
 
-function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
-	const layoutId = useSelect(
-		select => select( 'core/editor' ).getEditedPostAttribute( 'meta' ).template_id
-	);
+function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
+	const [ sendLists, setSendLists ] = useState( [] );
+	const { layoutId, newsletterData, postId, sendTo } = useSelect( select => {
+		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			layoutId: meta.template_id,
+			newsletterData: meta.newsletterData,
+			postId: getCurrentPostId(),
+			sendTo: meta.send_to,
+		};
+	} );
 	const savePost = useDispatch( 'core/editor' ).savePost;
+	const editPost = useDispatch( 'core/editor' ).editPost;
+	const updateMeta = ( meta ) => editPost( { meta } );
 
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
 		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
@@ -61,12 +79,89 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
 	};
 
 	useEffect( () => {
+		// Fetch provider campaign data and update meta if necessary.
+		if ( 'manual' !== serviceProviderName ) {
+			fetchCampaign();
+		}
+
+		// Fetch selected send lists.
+		const toFetch = [];
+		if ( sendTo?.list ) {
+			toFetch.push( sendTo.list );
+		}
+		if ( sendTo?.sublist ) {
+			toFetch.push( sendTo.sublist );
+		}
+		if ( toFetch.length ) {
+			fetchSendLists( toFetch );
+		}
+
+		return () => {
+			fetchCampaign.cancel()
+			fetchSendLists.cancel();
+		}
+	}, [] );
+
+	useEffect( () => {
 		if ( ! isConnected && hasOauth ) {
 			verifyToken();
 		} else {
 			setIsConnected( true );
 		}
 	}, [ serviceProviderName ] );
+
+	const fetchCampaign = debounce( async () => {
+		const response = await apiFetchWithErrorHandling( {
+			path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
+		} );
+
+		// Only need to update the post's sender and send-to info if the campaign info has changed.
+		if (
+			JSON.stringify( response?.campaign?.recipients ) !== JSON.stringify( newsletterData?.campaign.recipients ) ||
+			JSON.stringify( response?.campaign?.settings ) !== JSON.stringify( newsletterData?.campaign?.settings )
+		) {
+			updateMeta( { newsletterData: response } );
+		}
+		return false;
+	}, 500 );
+
+	const fetchSendLists = debounce( async ( search = '', type = null, parentId = null, provider = null ) => {
+		// If we already have a matching result, no need to fetch more.
+		const foundItem = sendLists.find( item => item.id === search || item.label.includes( search ) );
+		if ( foundItem ) {
+			return;
+		}
+
+		const data = {};
+		if ( search ) {
+			data.search = search;
+		}
+		if ( type ) {
+			data.type = type;
+		}
+		if ( parentId ) {
+			data.parent_id = parentId;
+		}
+		if ( provider ) {
+			data.provider = provider;
+		}
+
+		const response = await apiFetchWithErrorHandling( {
+			path: addQueryArgs(
+				'/newspack-newsletters/v1/send-lists',
+				data
+			)
+		} );
+
+		const updatedSendLists = [ ...sendLists ];
+		response.forEach( item => {
+			if ( ! updatedSendLists.find( listItem => listItem.id === item.id ) ) {
+				updatedSendLists.push( item );
+			}
+		} );
+
+		setSendLists( updatedSendLists );
+	}, 500 );
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 
@@ -92,6 +187,17 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
+				{
+					'manual' !== serviceProviderName && (
+						<SendTo
+							fetchSendLists={ fetchSendLists }
+							inFlight={ inFlight }
+							selected={ sendTo || {} }
+							sendLists={ sendLists }
+							updateMeta={ updateMeta }
+						/>
+					)
+				}
 				{ isConnected && <PublicSettings /> }
 			</PluginDocumentSettingPanel>
 			{ 'manual' !== serviceProviderName && (

@@ -43,7 +43,7 @@ class Send_List {
 
 		foreach ( $schema['properties'] as $key => $property ) {
 			// If the property is required but not set, throw an error.
-			if ( $property['required'] && ! isset( $config[ $key ] ) ) {
+			if ( ! empty( $property['required'] ) && ! isset( $config[ $key ] ) ) {
 				$errors[] = __( 'Missing required config: ', 'newspack-newsletters' ) . $key;
 				continue;
 			}
@@ -63,12 +63,14 @@ class Send_List {
 			settype( $config[ $key ], $property['type'] );
 
 			// Set the property.
-			$this->{ $key } = $config[ $key ];
+			$this->set( $key, $config[ $key ] );
 		}
 
 		if ( ! empty( $errors ) ) {
 			throw new \InvalidArgumentException( esc_html( __( 'Error creating send list: ', 'newspack-newsletters' ) . implode( ' | ', $errors ) ) );
 		}
+
+		$this->set_label_and_value();
 	}
 
 	/**
@@ -108,11 +110,21 @@ class Send_List {
 					'type'     => 'string',
 					'required' => true,
 				],
+				'value'       => [
+					'name'     => 'value',
+					'type'     => 'string',
+					'required' => false,
+				],
 				// The name of the list or sublist as identified in the ESP.
 				'name'        => [
 					'name'     => 'name',
 					'type'     => 'string',
 					'required' => true,
+				],
+				'label'       => [
+					'name'     => 'label',
+					'type'     => 'string',
+					'required' => false,
 				],
 				// If the list is also a Subscription List, it could have a locally edited name.
 				'local_name'  => [
@@ -166,5 +178,41 @@ class Send_List {
 	 */
 	public function get( $key ) {
 		return $this->{ $key } ?? null;
+	}
+
+	/**
+	 * Set a property's value.
+	 *
+	 * @param string $key The property to get.
+	 * @param mixed  $value The value to set.
+	 *
+	 * @return mixed The property value or null if not set/not a supported property.
+	 */
+	public function set( $key, $value ) {
+		$schema = $this->get_config_schema();
+		if ( ! isset( $schema['properties'][ $key ] ) ) {
+			return null;
+		}
+		$this->{ $key } = $value;
+		return $this->get( $key );
+	}
+
+	/**
+	 * Set the label and value properties for autocomplete inputs.
+	 */
+	public function set_label_and_value() {
+		$entity_type = '[' . strtoupper( $this->get( 'entity_type' ) ) . ']';
+		$count       = $this->get( 'count' );
+		$name        = $this->get( 'name' );
+
+		$contact_count = null !== $count ?
+			sprintf(
+				// Translators: If available, show a contact count alongside the suggested item. %d is the number of contacts in the suggested item.
+				_n( '(%s contact)', '(%s contacts)', $count, 'newspack-newsletters' ),
+				number_format( $count )
+			) : '';
+
+		$this->set( 'value', $this->get( 'id' ) );
+		$this->set( 'label', trim( "$entity_type $name $contact_count" ) );
 	}
 }

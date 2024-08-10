@@ -132,6 +132,26 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
+	 * Get a single segment by ID.
+	 *
+	 * @param string|int $segment_id The segment ID.
+	 * @param string     $list_id The parent list ID.
+	 * @return object|null The segment object or null if not found.
+	 */
+	public static function get_segment( $segment_id, $list_id ) {
+		$all_segments = self::get_segments( $list_id );
+		if ( ! $all_segments ) {
+			return null;
+		}
+		foreach ( $all_segments as $segment ) {
+			if ( strval( $segment['id'] ) === strval( $segment_id ) ) {
+				return $segment;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Get segments of a given audience (list)
 	 *
 	 * @param string $list_id The audience (list) ID.
