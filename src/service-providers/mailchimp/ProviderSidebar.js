@@ -66,15 +66,6 @@ const ProviderSidebarComponent = ( {
 		}
 	}, [ campaign ] );
 
-	if ( ! campaign ) {
-		return (
-			<div className="newspack-newsletters__loading-data">
-				{ __( 'Retrieving Mailchimp data…', 'newspack-newsletters' ) }
-				<Spinner />
-			</div>
-		);
-	}
-
 	if (
 		! inFlight &&
 		( 'publish' === status ||

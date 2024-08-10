@@ -75,6 +75,9 @@ class Send_Lists {
 					'provider'  => [
 						'type' => 'string',
 					],
+					'limit'     => [
+						'type' => [ 'integer', 'string' ],
+					],
 				],
 			]
 		);
@@ -91,26 +94,16 @@ class Send_Lists {
 		$search        = $request['search'] ?? null;
 		$list_type     = $request['type'] ?? null;
 		$parent_id     = $request['parent_id'] ?? null;
+		$limit         = $request['limit'] ?? null;
 		$provider_slug = $request['provider'] ?? null;
-		return \rest_ensure_response( self::get_send_lists( $search, $list_type, $parent_id, $provider_slug ) );
-	}
+		$provider      = $provider_slug ? Newspack_Newsletters::get_service_provider_instance( $provider_slug ) : Newspack_Newsletters::get_service_provider();
 
-	/**
-	 * Get the available send lists for the current provider.
-	 *
-	 * @param array|string $search Optional. If given, only return lists whose names or entity types match the search string. Can provide a single string or an array of strings to match.
-	 * @param string       $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
-	 * @param string       $parent_id Optional: If given, only return sublists of the specified parent list.
-	 * @param string       $provider_slug Optional. The provider to get the Send Lists for. If not passed, use the current provider.
-	 *
-	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
-	 */
-	public static function get_send_lists( $search = '', $list_type = null, $parent_id = null, $provider_slug = null ) {
-		$provider = $provider_slug ? Newspack_Newsletters::get_service_provider_instance( $provider_slug ) : Newspack_Newsletters::get_service_provider();
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Invalid provider, or provider not set.', 'newspack-newsletters' ) );
 		}
 
-		return $provider->get_send_lists( $search, $list_type, $parent_id );
+		return \rest_ensure_response(
+			$provider->get_send_lists( $search, $list_type, $parent_id, $limit )
+		);
 	}
 }

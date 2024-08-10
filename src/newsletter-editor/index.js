@@ -84,20 +84,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			fetchCampaign();
 		}
 
-		// Fetch selected send lists.
-		const toFetch = [];
-		if ( sendTo?.list ) {
-			toFetch.push( sendTo.list );
-		}
-		if ( sendTo?.sublist ) {
-			toFetch.push( sendTo.sublist );
-		}
-		if ( toFetch.length ) {
-			fetchSendLists( toFetch );
-		}
-
 		return () => {
-			fetchCampaign.cancel()
 			fetchSendLists.cancel();
 		}
 	}, [] );
@@ -110,7 +97,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		}
 	}, [ serviceProviderName ] );
 
-	const fetchCampaign = debounce( async () => {
+	const fetchCampaign = async () => {
 		const response = await apiFetchWithErrorHandling( {
 			path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
 		} );
@@ -123,33 +110,19 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			updateMeta( { newsletterData: response } );
 		}
 		return false;
-	}, 500 );
+	};
 
-	const fetchSendLists = debounce( async ( search = '', type = null, parentId = null, provider = null ) => {
-		// If we already have a matching result, no need to fetch more.
+	// Fetch send lists for the "Send To" UI.
+	const fetchSendLists = debounce( async ( search = '', type = null, parentId = null, limit = null, provider = null ) => {		// If we already have a matching result, no need to fetch more.
 		const foundItem = sendLists.find( item => item.id === search || item.label.includes( search ) );
 		if ( foundItem ) {
 			return;
 		}
 
-		const data = {};
-		if ( search ) {
-			data.search = search;
-		}
-		if ( type ) {
-			data.type = type;
-		}
-		if ( parentId ) {
-			data.parent_id = parentId;
-		}
-		if ( provider ) {
-			data.provider = provider;
-		}
-
 		const response = await apiFetchWithErrorHandling( {
 			path: addQueryArgs(
 				'/newspack-newsletters/v1/send-lists',
-				data
+				{ search, type, parentId, limit, provider }
 			)
 		} );
 

@@ -4,182 +4,64 @@
  * WordPress dependencies
  */
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { FormTokenField, Button, ButtonGroup, Notice } from '@wordpress/components';
-import { useEffect, useState } from '@wordpress/element';
-import { Icon, external } from '@wordpress/icons';
+import { Notice } from '@wordpress/components';
+import { useState } from '@wordpress/element';
 
-// The autocomplete field for lists or sublists.
-const Autocomplete = ( {
-	availableItems,
-	label = '',
-	type = 'list' ,
-	onChange,
-	onInputChange,
-	reset,
-	selected,
-	inFlight,
-} ) => {
-	const [ isEditing, setIsEditing ] = useState( false );
-	const selectedInfo = selected[ type ] ? availableItems.find( item => item.id === selected[ type ] ) : {};
-
-	if ( selected[ type ] && ! isEditing ) {
-		if ( ! selectedInfo?.name ) {
-			return (
-				<p>
-					{
-						sprintf(
-							// Translators: Message shown while fetching selected list or sublist info.  %s is the provider's label for the given entity type (list or sublist).
-							__( 'Retrieving %s info…', 'newspack-newsletters' ),
-							label
-						)
-					}
-				</p>
-			);
-		}
-		return (
-			<div className="newspack-newsletters__send-to">
-				<p className="newspack-newsletters__send-to-details">
-					{ selectedInfo.name }
-					<span>
-						{ selectedInfo.entity_type }
-						{ selectedInfo?.hasOwnProperty( 'count' )
-							? ' • ' +
-							sprintf(
-									// Translators: If available, show a contact count alongside the selected item's type. %d is the number of contacts in the item.
-									_n( '%d contact', '%d contacts', selectedInfo.count, 'newspack-newsletters' ),
-									selectedInfo.count.toLocaleString()
-							)
-							: '' }
-					</span>
-				</p>
-				<ButtonGroup>
-					<Button
-						disabled={ inFlight }
-						onClick={ () => setIsEditing( true ) }
-						size="small"
-						variant="secondary"
-					>
-						{ __( 'Edit', 'newspack-newsletters' ) }
-					</Button>
-					<Button
-						disabled={ inFlight }
-						onClick={ reset }
-						size="small"
-						variant="secondary"
-					>
-						{ __( 'Clear', 'newspack-newsletters' ) }
-					</Button>
-					{ selectedInfo?.edit_link && (
-						<Button
-							disabled={ inFlight }
-							href={ selectedInfo.edit_link }
-							size="small"
-							target="_blank"
-							variant="secondary"
-							rel="noopener noreferrer"
-						>
-							{ __( 'Manage', 'newspack-newsletters' ) }
-							<Icon icon={ external } size={ 14 } />
-						</Button>
-					) }
-				</ButtonGroup>
-			</div>
-		);
-	}
-
-	return (
-		<div className="newspack-newsletters__send-to">
-			<FormTokenField
-				label={ sprintf(
-					// Translators: SendTo autocomplete field label. %s is the provider's label for the given entity type (list or sublist).
-					__( 'Select %s', 'newspack-newsletters' ),
-					label.toLowerCase()
-				) }
-				maxSuggestions={ 10 }
-				onChange={ selectedLabels => {
-					onChange( selectedLabels );
-					setIsEditing( false );
-				} }
-				onInputChange={ onInputChange }
-				suggestions={ availableItems.map( item => item.label ) }
-				placeholder={ sprintf(
-					// Translators: SendTo autocomplete field placeholder. %s is the provider's label for parent lists.
-					__( 'Type %s name to search', 'newspack-newsletters' ),
-					label.toLowerCase()
-				) }
-				value={ [] }
-				__experimentalExpandOnFocus={ true }
-				__experimentalShowHowTo={ false }
-			/>
-			{ selected[ type ] && (
-				<ButtonGroup>
-					<Button
-						disabled={ inFlight }
-						onClick={ () => setIsEditing( false ) }
-						variant="secondary"
-						size="small"
-					>
-						{ __( 'Cancel', 'newspack-newsletters' ) }
-					</Button>
-				</ButtonGroup>
-			) }
-		</div>
-	);
-};
+/**
+ * Internal dependencies
+ */
+import Autocomplete from './autocomplete';
 
 // The container for list + sublist autocomplete fields.
-const SendTo = ( { inFlight = false, fetchSendLists = () => {}, selected = {}, sendLists = [], updateMeta = () => {} } ) => {
+const SendTo = (
+	{
+		inFlight = false,
+		fetchSendLists = () => {},
+		selected = {},
+		sendLists = [],
+		updateMeta = () => {}
+	}
+) => {
 	const [ error, setError ] = useState( null );
-	const [ selectedList, setSelectedList ] = useState( {} );
-	const [ selectedSublist, setSelectedSublist ] = useState( {} );
 	const { labels } = newspack_newsletters_data || {};
 	const lists = sendLists.filter( item => 'list' === item.type );
 	const sublists = sendLists.filter( item => 'sublist' === item.type );
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
 
-	useEffect( () => {
-		if ( selected?.list ) {
-			setSelectedList( lists.find( item => item.id === selected.list ) );
-		}
-		if ( selected?.sublist ) {
-			setSelectedSublist( sublists.find( item => item.id === selected.sublist ) );
-		}
-	}, [ selected ] );
-
 	const renderSelectedSummary = () => {
-		if ( ! selected?.list || ! selectedList?.name || ( selected?.sublist && ! selectedSublist?.name ) ) {
+		if ( ! selected?.list?.name || ( selected?.sublist && ! selected?.sublist?.name ) ) {
 			return null;
 		}
 		let summary;
-		if ( selectedList && ! selectedSublist?.name ) {
+		if ( selected.list && ! selected.sublist?.name ) {
 			summary = sprintf(
 				// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
 				_n(
 					'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s.',
 					'This newsletter will be sent to <strong>all %1$s contacts</strong> in the <strong>%2$s</strong> %3$s.',
-					selectedList?.count || 0,
+					selected.list?.count || 0,
 					'newspack-newsletters'
 				),
-				selectedList?.count ? selectedList.count.toLocaleString() : '',
-				selectedList?.name,
-				selectedList?.entity_type?.toLowerCase()
+				selected.list?.count ? selected.list.count.toLocaleString() : '',
+				selected.list?.name,
+				selected.list?.entity_type?.toLowerCase()
 		  );
 		}
-		if ( selectedList && selectedSublist?.name ) {
+		if ( selected.list && selected.sublist?.name ) {
 			summary = sprintf(
 				// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
 				_n(
 					'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who is part of the <strong>%4$s</strong> %5$s.',
 					'This newsletter will be sent to <strong>all %1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
-					selectedSublist?.count || 0,
+					selected.sublist?.count || 0,
 					'newspack-newsletters'
 				),
-				selectedSublist.count ? selectedSublist.count.toLocaleString() : '',
-				selectedList?.name,
-				selectedList?.entity_type?.toLowerCase(),
-				selectedSublist.name,
-				selectedSublist.entity_type?.toLowerCase()
+				selected.sublist.count ? selected.sublist.count.toLocaleString() : '',
+				selected.list?.name,
+				selected.list?.entity_type?.toLowerCase(),
+				selected.sublist.name,
+				selected.sublist.entity_type?.toLowerCase()
 			);
 		}
 
@@ -220,14 +102,17 @@ const SendTo = ( { inFlight = false, fetchSendLists = () => {}, selected = {}, s
 							)
 						);
 					}
-					setSelectedList( selectedSuggestion );
 					const newSendTo = {}; // When selecting a new list, reset any sublist selection.
-					newSendTo.list = selectedSuggestion.id;
+					newSendTo.list = selectedSuggestion;
 					updateMeta( { send_to: newSendTo } );
+				} }
+				onFocus={ () => {
+					if ( ! lists.length ) {
+						fetchSendLists( '', 'list', null, 10 );
+					}
 				} }
 				onInputChange={ search => fetchSendLists( search, 'list' ) }
 				reset={ () => {
-					setSelectedList( {} );
 					updateMeta( { send_to: {} } )
 				} }
 				selected={ selected }
@@ -235,16 +120,16 @@ const SendTo = ( { inFlight = false, fetchSendLists = () => {}, selected = {}, s
 				updateMeta={ updateMeta }
 			/>
 			{
-				selected?.list && (
+				selected?.list?.id && (
 					<Autocomplete
 						type="sublist"
-						availableItems={ sublists.filter( item => selected.list === item.parent ) }
+						availableItems={ sublists.filter( item => selected.list.id === item.parent ) }
 						label={ sublistLabel }
 						inFlight={ inFlight }
-						parentId={ selected.list }
+						parentId={ selected.list.id }
 						onChange={ selectedLabels => {
 							const selectedLabel = selectedLabels[ 0 ];
-							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && selected.list === item.parent );
+							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && selected.list.id === item.parent );
 							if ( ! selectedSuggestion?.id ) {
 								return setError(
 									sprintf(
@@ -254,14 +139,17 @@ const SendTo = ( { inFlight = false, fetchSendLists = () => {}, selected = {}, s
 									)
 								);
 							}
-							setSelectedSublist( selectedSuggestion );
 							const newSendTo = {  ...selected }; // When setting a sublist, retain list selection.
-							newSendTo.sublist = selectedSuggestion.id;
+							newSendTo.sublist = selectedSuggestion;
 							updateMeta( { send_to: newSendTo } );
 						} }
-						onInputChange={ search => fetchSendLists( search, 'sublist', selected.list ) }
+						onFocus={ () => {
+							if ( ! sublists.length ) {
+								fetchSendLists( '', 'sublist', selected.list.id, 10 );
+							}
+						} }
+						onInputChange={ search => fetchSendLists( search, 'sublist', selected.list.id ) }
 						reset={ () => {
-							setSelectedSublist( {} );
 							updateMeta( { send_to: { list: selected.list } } )
 						} }
 						selected={ selected }

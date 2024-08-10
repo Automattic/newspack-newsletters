@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { Fragment } from '@wordpress/element';
-import { Button, TextControl, TextareaControl } from '@wordpress/components';
+import { Button, Spinner, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -135,6 +135,15 @@ const Sidebar = ( {
 					{ __( 'Authorize', 'newspack-newsletter' ) }
 				</Button>
 			</Fragment>
+		);
+	}
+
+	if ( ! newsletterData?.campaign ) {
+		return (
+			<div className="newspack-newsletters__loading-data">
+				{ __( 'Retrieving Mailchimp data…', 'newspack-newsletters' ) }
+				<Spinner />
+			</div>
 		);
 	}
 
