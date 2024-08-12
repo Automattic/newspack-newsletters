@@ -51,10 +51,10 @@ const PostsInserterBlock = ( {
 	const stringifiedPostList = JSON.stringify( postList );
 
 	// Stringify added to minimize flicker.
-	const templateBlocks = useMemo(
-		() => getTemplateBlocks( postList, attributes ),
-		[ stringifiedPostList, attributes ]
-	);
+	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
+		stringifiedPostList,
+		attributes,
+	] );
 
 	const stringifiedTemplateBlocks = JSON.stringify( templateBlocks );
 
@@ -392,8 +392,9 @@ const PostsInserterBlockWithSelect = compose( [
 	} ),
 	withDispatch( ( dispatch, props ) => {
 		const { replaceBlocks } = dispatch( 'core/block-editor' );
-		const { setHandledPostsIds, setInsertedPostsIds, removeBlock } =
-			dispatch( POSTS_INSERTER_STORE_NAME );
+		const { setHandledPostsIds, setInsertedPostsIds, removeBlock } = dispatch(
+			POSTS_INSERTER_STORE_NAME
+		);
 		return {
 			replaceBlocks: blocks => {
 				replaceBlocks( props.selectedBlock.clientId, blocks );

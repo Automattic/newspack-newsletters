@@ -1,3 +1,17 @@
+## [2.21.2](https://github.com/Automattic/newspack-newsletters/compare/v2.21.1...v2.21.2) (2024-08-12)
+
+
+### Bug Fixes
+
+* **data-report:** handle missing days in the data report ([#1591](https://github.com/Automattic/newspack-newsletters/issues/1591)) ([fa87cea](https://github.com/Automattic/newspack-newsletters/commit/fa87cea9fd0136b9dd33581ee77c6a8aa0b4377d))
+
+## [2.21.1](https://github.com/Automattic/newspack-newsletters/compare/v2.21.0...v2.21.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* **layouts:** settings defaults from layout (mailchimp) ([766578a](https://github.com/Automattic/newspack-newsletters/commit/766578a8734f7f425567fb4c5553471e2c715623))
+
 # [2.21.0](https://github.com/Automattic/newspack-newsletters/compare/v2.20.4...v2.21.0) (2024-07-30)
 
 
