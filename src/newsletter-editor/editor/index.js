@@ -8,7 +8,6 @@ import { get, isEmpty } from 'lodash';
 /**
  * WordPress dependencies
  */
-import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
@@ -27,8 +26,6 @@ const Editor = compose( [
 	withApiHandler(),
 	withSelect( select => {
 		const {
-			isSavingPost,
-			getCurrentPostId,
 			getCurrentPostAttribute,
 			getEditedPostAttribute,
 		} = select( 'core/editor' );
@@ -48,8 +45,6 @@ const Editor = compose( [
 		const newsletterValidationErrors = validateNewsletter( meta.newsletterData );
 
 		return {
-			postId: getCurrentPostId(),
-			isSavingPost: isSavingPost(),
 			isReady: newsletterValidationErrors.length === 0,
 			html: meta[ newspack_email_editor_data.email_html_meta ],
 			colorPalette: colors.reduce(
@@ -86,8 +81,6 @@ const Editor = compose( [
 	} ),
 ] )(
 	( {
-		postId,
-		isSavingPost,
 		apiFetchWithErrorHandling,
 		colorPalette,
 		createNotice,
@@ -113,22 +106,6 @@ const Editor = compose( [
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
 		}, [] );
-
-		useEffect( () => {
-			// After saving the post, check for a sync error to display a notice.
-			if ( ! isSavingPost ) {
-				apiFetch( {
-					path: `/newspack-newsletters/v1/${ postId }/sync-error`,
-				}).then( ( { error_message } ) => {
-					if ( error_message ) {
-						createNotice( 'error', error_message, {
-							id: 'newspack-newsletters-newsletter-sync-error',
-							isDismissible: true,
-						} );
-					}
-				} );
-			}
-		}, [ isSavingPost ] );
 
 		// Set color palette option.
 		useEffect( () => {

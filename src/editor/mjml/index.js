@@ -66,6 +66,7 @@ function MJML() {
 	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
 		'core/editor'
 	);
+	const { createNotice } = useDispatch( 'core/notices' );
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
@@ -104,6 +105,17 @@ function MJML() {
 				.finally( () => {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
 					setIsRefreshingHTML( false );
+					// Check for sync errors after refreshing the HTML.
+					apiFetch( {
+						path: `/newspack-newsletters/v1/${ postId }/sync-error`,
+					}).then( ( { error_message } ) => {
+						if ( error_message ) {
+							createNotice( 'error', error_message, {
+								id: 'newspack-newsletters-newsletter-sync-error',
+								isDismissible: true,
+							} );
+						}
+					} );
 				} );
 		}
 	}, [ isSaving, isAutosaving ] );
