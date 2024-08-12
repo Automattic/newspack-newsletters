@@ -1,3 +1,10 @@
+## [2.21.2](https://github.com/Automattic/newspack-newsletters/compare/v2.21.1...v2.21.2) (2024-08-12)
+
+
+### Bug Fixes
+
+* **data-report:** handle missing days in the data report ([#1591](https://github.com/Automattic/newspack-newsletters/issues/1591)) ([fa87cea](https://github.com/Automattic/newspack-newsletters/commit/fa87cea9fd0136b9dd33581ee77c6a8aa0b4377d))
+
 ## [2.21.1](https://github.com/Automattic/newspack-newsletters/compare/v2.21.0...v2.21.1) (2024-08-01)
 
 
