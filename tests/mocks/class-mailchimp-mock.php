@@ -155,6 +155,10 @@ class MailChimp {
 		return [];
 	}
 
+	public static function put( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		return self::post( $endpoint, $args );
+	}
+
 	public static function post( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		if ( ! self::is_api_configured() ) {
 			return [];

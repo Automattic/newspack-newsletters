@@ -21,7 +21,7 @@ class Newspack_Newsletters_Mailchimp_Notes {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'newspack_newsletters_add_contact', array( __CLASS__, 'handle_upsert' ), 10, 6 );
+		add_action( 'newspack_newsletters_upsert', array( __CLASS__, 'handle_upsert' ), 10, 6 );
 		add_action( 'newspack_newsletters_update_contact_lists', array( __CLASS__, 'handle_update_lists' ), 10, 6 );
 	}
 

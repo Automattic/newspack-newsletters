@@ -1365,14 +1365,27 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return self::$contacts_added[ $cache_key ];
 		}
 
-		$new_contact_status = 'subscribed';
+		$update_payload = [ 'email_address' => $email_address ];
+
+		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status_if_new'] ) ) {
+			$update_payload['status_if_new'] = $contact['metadata']['status_if_new'];
+			unset( $contact['metadata']['status_if_new'] );
+		}
+
 		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
-			$new_contact_status = $contact['metadata']['status'];
+			$update_payload['status'] = $contact['metadata']['status'];
 			unset( $contact['metadata']['status'] );
 		}
+
+		// If we're subscribing the contact to a newsletter, they should have some status
+		// because 'non-subscriber' status can't receive newsletters.
+		if ( empty( $update_payload['status'] ) && empty( $update_payload['status_if_new'] ) ) {
+			$update_payload['status'] = 'subscribed';
+		}
+
 		try {
-			$mc             = new Mailchimp( $this->api_key() );
-			$update_payload = [ 'email_address' => $email_address ];
+
+			$mc = new Mailchimp( $this->api_key() );
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
 				$merge_fields = $this->prepare_merge_fields( $list_id, $contact['metadata'] );
@@ -1418,22 +1431,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			// If we're subscribing the contact to a newsletter, they should have some status
-			// because 'non-subscriber' status can't receive newsletters.
-			if ( ! empty( $list_id ) || ! empty( $sublists ) ) {
-				$update_payload['status_if_new'] = $new_contact_status ?? 'subscribed';
-				$update_payload['status']        = $new_contact_status ?? 'subscribed';
-			}
-
 			// Create or update a list member.
-			$existing_contact = self::get_contact_data( $email_address );
-			if ( is_wp_error( $existing_contact ) ) {
-				$update_payload['status'] = $new_contact_status ?? 'subscribed';
-				$result                   = $mc->post( "lists/$list_id/members", $update_payload );
-			} else {
-				$member_id = $existing_contact['id'];
-				$result    = $mc->put( "lists/$list_id/members/$member_id", $update_payload );
-			}
+			$member_hash = Mailchimp::subscriberHash( $email_address );
+			$result = $mc->put( "lists/$list_id/members/$member_hash", $update_payload );
+
 			if (
 				! $result ||
 				! isset( $result['status'] ) ||
