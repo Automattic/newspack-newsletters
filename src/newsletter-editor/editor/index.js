@@ -66,8 +66,13 @@ const Editor = compose( [
 		};
 	} ),
 	withDispatch( dispatch => {
-		const { lockPostAutosaving, lockPostSaving, unlockPostAutosaving, unlockPostSaving, editPost } =
-			dispatch( 'core/editor' );
+		const {
+			lockPostAutosaving,
+			lockPostSaving,
+			unlockPostAutosaving,
+			unlockPostSaving,
+			editPost,
+		} = dispatch( 'core/editor' );
 		const { createNotice, removeNotice } = dispatch( 'core/notices' );
 		const { openModal } = dispatch( 'core/interface' );
 		return {

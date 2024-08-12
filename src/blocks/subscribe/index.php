@@ -498,14 +498,15 @@ function process_form() {
 		\Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
 	}
 
-	$result = \Newspack_Newsletters_Subscription::add_contact(
+	$result = \Newspack_Newsletters_Contacts::subscribe(
 		[
 			'name'     => $name ?? null,
 			'email'    => $email,
 			'metadata' => $metadata,
 		],
 		$lists,
-		true // Async.
+		true, // Async.
+		'User subscribed via Newsletters Subscription block'
 	);
 
 	/**
