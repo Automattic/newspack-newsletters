@@ -66,7 +66,7 @@ function MJML() {
 	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
 		'core/editor'
 	);
-	const { createNotice } = useDispatch( 'core/notices' );
+	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
@@ -114,6 +114,8 @@ function MJML() {
 								id: 'newspack-newsletters-newsletter-sync-error',
 								isDismissible: true,
 							} );
+						} else {
+							removeNotice( 'newspack-newsletters-newsletter-sync-error' );
 						}
 					} );
 				} );
