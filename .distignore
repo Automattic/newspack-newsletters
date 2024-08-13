@@ -42,6 +42,7 @@ node_modules
 /tests
 /bin
 .cache
+phpcsSniffs
 
 # humbug/php-scoper contains some test-related files which are invalid
 vendor/humbug/php-scoper/fixtures
