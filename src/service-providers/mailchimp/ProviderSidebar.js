@@ -95,9 +95,8 @@ const ProviderSidebar = ( {
 	// Separate out audiences from other data item types.
 	const audiences = newsletterData?.lists
 		? newsletterData.lists.filter(
-				list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type
-		  )
-		: [];
+			list => 'mailchimp-group' !== list.type && 'mailchimp-tag' !== list.type
+		) : [];
 	const folders = newsletterData?.folders || [];
 
 	const setDefaultsFromLayout = () => {
@@ -207,14 +206,12 @@ const ProviderSidebar = ( {
 			updateMeta( {
 				...( from_name
 					? {
-							senderName: from_name,
-					  }
-					: {} ),
+						senderName: from_name,
+					} : {} ),
 				...( reply_to
 					? {
-							senderEmail: reply_to,
-					  }
-					: {} ),
+						senderEmail: reply_to,
+					} : {} ),
 			} );
 		}
 	}, [ campaign ] );
