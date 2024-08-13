@@ -3,7 +3,7 @@
 		&.newspack-newsletters-post-title-hidden {
 			font-size: 1em;
 			height: 0;
-			margin: -4rem 0 calc( -1 * var( --wp--style--block-gap ) );
+			margin: -4rem 0 calc(-1 * var(--wp--style--block-gap));
 			opacity: 0;
 			padding: 0;
 			pointer-events: none;

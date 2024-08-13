@@ -16,12 +16,13 @@
 		<exclude name="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction" />
 		<exclude name="WordPress.PHP.YodaConditions.NotYoda" />
 		<exclude name="Generic.Formatting.MultipleStatementAlignment.NotSameWarning" />
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed" />
 		<exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames" />
-		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter" />
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found" />
 	</rule>
 
 	<rule ref="PHPCompatibilityWP"/>
-	<config name="testVersion" value="7.2"/>
+	<config name="testVersion" value="7.2-"/>
 
 	<arg name="extensions" value="php"/>
 
