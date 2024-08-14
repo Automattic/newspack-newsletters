@@ -63,8 +63,9 @@ function MJML() {
 		};
 	} );
 
-	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } =
-		useDispatch( 'core/editor' );
+	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
+		'core/editor'
+	);
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
