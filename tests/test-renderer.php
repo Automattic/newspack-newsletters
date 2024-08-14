@@ -313,7 +313,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => '<div></div>',
 				]
 			),
-			'<mj-section padding="0"><mj-column padding="12px" width="100%"><mj-social icon-size="24px" mode="horizontal" padding="0" border-radius="999px" icon-padding="7px" align="left"><mj-social-element href="https://x.com/hi" src="' . $plugin_path . 'assets/white-x.png" background-color="#000000" css-class="social-element"/></mj-social></mj-column></mj-section>',
+			'<mj-section padding="0"><mj-column padding="12px" width="100%"><mj-social icon-size="24px" mode="horizontal" padding="0" border-radius="999px" align="left"><mj-social-element href="https://x.com/hi" src="' . $plugin_path . 'assets/white-x.png" background-color="#000000" css-class="social-element" padding="8px" padding-left="0" padding-right="8px"/></mj-social></mj-column></mj-section>',
 			'Renders social icons'
 		);
 	}
