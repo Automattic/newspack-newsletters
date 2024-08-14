@@ -93,7 +93,7 @@ function MJML() {
 			refreshEmailHtml( postId, postTitle, postContent )
 				.then( refreshedHtml => {
 					updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml );
-					apiFetch( {
+					return apiFetch( {
 						data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml } },
 						method: 'POST',
 						path: `/wp/v2/${ postType }/${ postId }`,
