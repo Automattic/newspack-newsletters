@@ -115,10 +115,6 @@ function render_block( $attrs ) {
 	$list_map        = array_flip( $lists );
 	$available_lists = array_values( array_intersect( $attrs['lists'], $lists ) );
 
-	if ( empty( $available_lists ) ) {
-		$available_lists = [ $lists[0] ];
-	}
-
 	/**
 	 * Filters the lists that are about to be displayed in the Subscription block
 	 *
