@@ -853,16 +853,13 @@ final class Newspack_Newsletters_Renderer {
 					'icon-size'     => '24px',
 					'mode'          => 'horizontal',
 					'border-radius' => '999px',
-					'icon-padding'  => 'is-style-filled-primary-text' === $attrs['className'] ? '0px' : '7px',
+					'icon-padding'  => isset( $attrs['className'] ) && 'is-style-filled-primary-text' === $attrs['className'] ? '0px' : '7px',
 					'padding'       => '0',
 				);
 				if ( isset( $attrs['align'] ) ) {
 					$social_wrapper_attrs['align'] = $attrs['align'];
 				} else {
 					$social_wrapper_attrs['align'] = 'left';
-				}
-				if ( isset( $attrs['padding'] ) ) {
-					$social_wrapper_attrs['padding'] = $attrs['padding'];
 				}
 
 				$markup = '<mj-social ' . self::array_to_attributes( $social_wrapper_attrs ) . '>';
