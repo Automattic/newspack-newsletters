@@ -852,8 +852,9 @@ final class Newspack_Newsletters_Renderer {
 				$social_wrapper_attrs = array(
 					'icon-size'     => '24px',
 					'mode'          => 'horizontal',
-					'padding'       => '0',
 					'border-radius' => '999px',
+					'icon-padding'  => 'is-style-filled-primary-text' === $attrs['className'] ? '0px' : '7px',
+					'padding'       => '0',
 				);
 				if ( isset( $attrs['align'] ) ) {
 					$social_wrapper_attrs['align'] = $attrs['align'];
