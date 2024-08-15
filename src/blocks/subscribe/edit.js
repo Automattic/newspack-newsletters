@@ -4,7 +4,6 @@
  * External dependencies.
  */
 import classnames from 'classnames';
-import { intersection } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -84,21 +83,47 @@ export default function SubscribeEdit( {
 	const [ editedState, setEditedState ] = useState( editedStateOptions[ 0 ].value );
 	const [ inFlight, setInFlight ] = useState( false );
 	const [ listConfig, setListConfig ] = useState( {} );
+	const [ hasFetchedLists, setHasFetchedLists ] = useState( false );
+	const [ hasMissingLists, setHasMissingLists ] = useState( false );
+
 	const fetchLists = () => {
 		setInFlight( true );
 		apiFetch( {
 			path: '/newspack-newsletters/v1/lists_config',
 		} )
 			.then( setListConfig )
-			.finally( () => setInFlight( false ) );
+			.finally( () => {
+				setHasFetchedLists( true );
+				setInFlight( false )
+			} );
 	};
 	useEffect( fetchLists, [] );
+
+	// Whether any of the selected lists are missing from the list config.
+	const isConfigMissingList = () => {
+		return lists.some( listId => ! listConfig.hasOwnProperty( listId ) );
+	}
+
 	useEffect( () => {
-		const listIds = Object.keys( listConfig );
-		if ( listIds.length && ( ! lists.length || ! intersection( lists, listIds ).length ) ) {
-			setAttributes( { lists: [ Object.keys( listConfig )[ 0 ] ] } );
+		if ( ! hasFetchedLists ) {
+			return;
 		}
-	}, [ listConfig ] );
+		if ( lists.length ) {
+			if ( ! hasMissingLists && isConfigMissingList() ) {
+				setHasMissingLists( true );
+				// Remove the missing lists from the selected lists.
+				setAttributes( { lists: lists.filter( listId => listConfig.hasOwnProperty( listId ) ) } );
+			}
+		} else {
+			setAttributes( { lists: [ Object.keys( listConfig )[0] ] } );
+		}
+	}, [ hasFetchedLists ] );
+
+	useEffect( () => {
+		if ( lists.length && hasMissingLists && ! isConfigMissingList() ) {
+			setHasMissingLists( false );
+		}
+	}, [ lists ] );
 
 	const onChangeBackgroundColor = newBackgroundColor => {
 		setAttributes( { backgroundColorName: getColorName( newBackgroundColor ) } );
@@ -282,7 +307,7 @@ export default function SubscribeEdit( {
 					</div>
 				</div>
 
-				{ inFlight ? (
+				{ ! hasFetchedLists ? (
 					<Spinner />
 				) : (
 					<div
@@ -294,6 +319,11 @@ export default function SubscribeEdit( {
 					>
 						{ editedState === 'initial' && (
 							<form onSubmit={ ev => ev.preventDefault() }>
+								{ hasMissingLists && (
+									<Notice isDismissible={ false } status="error">
+										{ __( 'A previously selected list is no longer available. Please, revise the subscription lists selection.', 'newspack-newsletters' ) }
+									</Notice>
+								) }
 								{ lists.length > 1 && (
 									<div className="newspack-newsletters-lists">
 										<ul>
