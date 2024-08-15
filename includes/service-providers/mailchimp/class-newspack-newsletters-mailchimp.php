@@ -508,7 +508,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 					$groups = array_map(
 						function ( $group ) use ( $list ) {
-							$group['id']   = $this->create_group_or_tag_list_id( $group['id'], $list['id'] );
+							$group['id']   = Subscription_List::mailchimp_create_form_id( $group['id'], $list['id'] );
 							$group['type'] = 'mailchimp-group';
 							return $group;
 						},
@@ -518,7 +518,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 
 				foreach ( $all_tags as $tag ) {
-					$tag['id']   = $this->create_group_or_tag_list_id( $tag['id'], $list['id'], 'tag' );
+					$tag['id']   = Subscription_List::mailchimp_create_form_id( $tag['id'], $list['id'], 'tag' );
 					$tag['type'] = 'mailchimp-tag';
 					$lists[]     = $tag;
 				}
@@ -566,7 +566,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			foreach ( $categories['categories'] as &$category ) {
 				if ( ! empty( $category['interests']['interests'] ) ) {
 					foreach ( $category['interests']['interests'] as &$interest ) {
-						$local_id = $this->create_group_or_tag_list_id( $interest['id'], $list_id );
+						$local_id = Subscription_List::mailchimp_create_form_id( $interest['id'], $list_id );
 						if ( isset( $configured_lists[ $local_id ]['name'] ) ) {
 							$interest['local_name'] = $configured_lists[ $local_id ]['name'];
 						}
@@ -598,7 +598,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$configured_lists = Newspack_Newsletters_Subscription::get_lists_config();
 		if ( ! empty( $configured_lists ) ) {
 			foreach ( $tags as &$tag ) {
-				$local_id = $this->create_group_or_tag_list_id( $tag['id'], $list_id, 'tag' );
+				$local_id = Subscription_List::mailchimp_create_form_id( $tag['id'], $list_id, 'tag' );
 				if ( isset( $configured_lists[ $local_id ]['name'] ) ) {
 					$tag['local_name'] = $configured_lists[ $local_id ]['name'];
 				}
@@ -1154,64 +1154,64 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
-	 * Add contact to a list with multiple groups and/or tags.
+	 * Upserts a contact to the ESP using the provider specific methods.
 	 *
-	 * @param array $contact The contact, as for the add_contact method.
-	 * @param array $lists List IDs to add the contact to.
+	 * Here we group all groups and tags by Audience, so we can add many lists at once.
+	 *
+	 * @param array               $contact The contact, as for the add_contact method.
+	 * @param Subscription_List[] $lists The lists.
+	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	public function add_contact_with_groups_and_tags( $contact, $lists ) {
-		$results = [];
-		$by_list = [];
-		foreach ( $lists as $list_id ) {
-			$group_or_tag_list = $this->maybe_extract_group_or_tag_list( $list_id );
-			if ( $group_or_tag_list && isset( $group_or_tag_list['type'] ) ) {
-				$list_id = $group_or_tag_list['list_id'];
-				if ( 'group' === $group_or_tag_list['type'] && ! isset( $contact['interests'] ) ) {
-					$contact['interests'] = [];
-				}
-				if ( isset( $by_list[ $list_id ] ) ) {
-					$by_list[ $list_id ][] = $group_or_tag_list;
-				} else {
-					$by_list[ $list_id ] = [ $group_or_tag_list ];
-				}
-			} else {
-				// It might be a local list – the list id has to be extracted from the DB.
-				$local_list = Subscription_List::from_form_id( $list_id );
-				if ( $local_list && $local_list->is_configured_for_provider( $this->service ) ) {
-					$list_settings = $local_list->get_provider_settings( $this->service );
-					if ( $list_settings !== null ) {
-						$list_id = $list_settings['list'];
-						$sublist = [
-							'id'      => $list_settings['tag_id'],
-							'list_id' => $list_id,
-							'type'    => 'tag',
-						];
-						if ( isset( $by_list[ $list_id ] ) ) {
-							$by_list[ $list_id ][] = $sublist;
-						} else {
-							$by_list[ $list_id ] = [ $sublist ];
-						}
-					}
-				}
-			}
-			if ( ! isset( $by_list[ $list_id ] ) ) {
-				// If this is not a group-or-tag list, nor a local list, treat the list ID as a regular list.
-				$by_list[ $list_id ] = [];
-			}
-		}
-		if ( empty( $by_list ) ) {
+	public function upsert_contact( $contact, $lists ) {
+
+		$prepared_lists = $this->prepare_lists_to_add_contact( $lists );
+
+		if ( empty( $prepared_lists ) ) {
 			return new WP_Error( 'No lists found.' );
 		}
 
-		foreach ( $by_list as $list_id => $sublists ) {
-			$result = $this->add_contact( $contact, $list_id, $sublists );
+		foreach ( $prepared_lists as $audience_id => $sublists ) {
+			$result = $this->add_contact( $contact, $audience_id, $sublists['tags'], $sublists['interests'] );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
-
-			$results[] = $result;
 		}
-		return $results;
+
+		// on success, return the last resutl.
+		return $result;
+	}
+
+	/**
+	 * Loops through a list of Subscription_Lists objects and group them to be sent to the `add_contact` method with tags and interests attached.
+	 *
+	 * @param Subscription_List[] $lists The lists.
+	 * @return array The lists array where the keys are the Audience IDs and the values are an array with 'tags' and 'interests' keys.
+	 */
+	private function prepare_lists_to_add_contact( $lists ) {
+
+		$response = [];
+
+		foreach ( $lists as $list ) {
+
+			$audience_id = $list->mailchimp_get_audience_id();
+
+			if ( ! isset( $response[ $audience_id ] ) ) {
+				$response[ $audience_id ] = [
+					'tags'      => [],
+					'interests' => [],
+				];
+			}
+
+			if ( 'tag' === $list->mailchimp_get_sublist_type() ) {
+				// Mailchimp API expects the tag name and not ID.
+				$response[ $audience_id ]['tags'][] = $list->get_remote_name();
+			} elseif ( 'group' === $list->mailchimp_get_sublist_type() ) {
+				// Local lists are included here.
+				$response[ $audience_id ]['interests'][ $list->mailchimp_get_sublist_id() ] = true;
+			}
+		}
+
+		return $response;
 	}
 
 	/**
@@ -1347,12 +1347,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
-	 * @param string $list_id      List to add the contact to.
-	 * @param string $sublists     An array of groups and/or tags in the list to add the contact to.
+	 * @param string $list_id   List (Audience) to add the contact to.
+	 * @param array  $tags      An array of tag names to be added to the contact. Tags are always appended.
+	 * @param array  $interests An array of interests as expected by the API, where the key is the interest ID and the value is a bool (add or remove).
 	 *
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
 	 */
-	public function add_contact( $contact, $list_id = false, $sublists = [] ) {
+	public function add_contact( $contact, $list_id = false, $tags = [], $interests = [] ) {
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
@@ -1360,7 +1361,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		// If contact was added in this execution, we can return the previous
 		// result and bail.
-		$cache_key = $list_id . $email_address . wp_json_encode( $sublists );
+		$cache_key = md5( $list_id . $email_address . wp_json_encode( $tags ) . wp_json_encode( $interests ) );
 		if ( ! empty( self::$contacts_added[ $cache_key ] ) ) {
 			return self::$contacts_added[ $cache_key ];
 		}
@@ -1394,42 +1395,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$all_tags = [];
-			// If the sublists contain any tags, fetch all tags.
-			// This is needed because MC API expects tag names in the contact update payload, not ids.
-			if ( array_filter(
-				$sublists,
-				function( $sublist ) {
-					return 'tag' === $sublist['type']; }
-			) ) {
-				$all_tags = array_reduce(
-					$mc->get( "lists/$list_id/tag-search" )['tags'],
-					function( $tags, $tag ) {
-						$tags[ $tag['id'] ] = $tag['name'];
-						return $tags;
-					},
-					[]
-				);
+			// Add groups and tags, if any.
+			if ( ! empty( $tags ) ) {
+				$update_payload['tags'] = $tags;
+			}
+			if ( ! empty( $interests ) ) {
+				$update_payload['interests'] = $interests;
 			}
 
-			// Add groups and tags, if any.
-			foreach ( $sublists as $sublist ) {
-				$sublist_id   = $sublist['id'];
-				$sublist_type = $sublist['type'];
-				if ( 'group' === $sublist_type ) {
-					if ( ! isset( $update_payload['interests'] ) ) {
-						$update_payload['interests'] = [];
-					}
-					$update_payload['interests'][ $sublist['id'] ] = true;
-				} elseif ( 'tag' === $sublist_type ) {
-					if ( ! isset( $update_payload['tags'] ) ) {
-						$update_payload['tags'] = [];
-					}
-					if ( isset( $all_tags[ $sublist_id ] ) ) {
-						$update_payload['tags'][] = $all_tags[ $sublist_id ];
-					}
-				}
-			}
+			Newspack_Newsletters_Logger::log( 'Mailchimp add_contact PUT payload: ' . wp_json_encode( $update_payload ) );
 
 			// Create or update a list member.
 			$member_hash = Mailchimp::subscriberHash( $email_address );
@@ -1512,14 +1486,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		foreach ( $contact['interests'] as $list_id => $interests ) {
 			foreach ( $interests as $group_id => $active ) {
 				if ( $active ) {
-					$groups_lists[] = $this->create_group_or_tag_list_id( $group_id, $list_id );
+					$groups_lists[] = Subscription_List::mailchimp_create_form_id( $group_id, $list_id );
 				}
 			}
 		}
 		$tags_lists = [];
 		foreach ( $contact['tags'] as $list_id => $tags ) {
 			foreach ( $tags as $tag ) {
-				$tags_lists[] = $this->create_group_or_tag_list_id( $tag['id'], $list_id, 'tag' );
+				$tags_lists[] = Subscription_List::mailchimp_create_form_id( $tag['id'], $list_id, 'tag' );
 			}
 		}
 		return array_merge( $audience_lists, $groups_lists, $tags_lists );
@@ -1546,19 +1520,36 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 		$mc = new Mailchimp( $this->api_key() );
 		try {
+			// Remove lists.
 			foreach ( $lists_to_remove as $list_id ) {
-				$list = $this->maybe_extract_group_or_tag_list( $list_id );
-				if ( $list ) {
-					$this->remove_group_or_tag_from_contact( $email, $list['id'], $list['list_id'], $list['type'] );
+				$list_obj = Subscription_List::from_form_id( $list_id );
+				if ( ! $list_obj ) {
 					continue;
 				}
-				if ( ! isset( $contact['lists'][ $list_id ] ) ) {
-					continue;
+
+				if ( 'group' === $list_obj->mailchimp_get_sublist_type() ) {
+					$this->remove_group_from_contact( $email, $list_obj->mailchimp_get_sublist_id(), $list_obj->mailchimp_get_audience_id() );
+				} elseif ( 'tag' === $list_obj->mailchimp_get_sublist_type() ) {
+					$this->remove_tag_from_contact( $email, $list_obj->mailchimp_get_sublist_id(), $list_obj->mailchimp_get_audience_id() );
 				}
-				$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
+
+				// If $list_id is an Audience the contact is a part of, unsubscribe them.
+				if ( isset( $contact['lists'][ $list_id ] ) ) {
+					$mc->patch( "lists/$list_id/members/" . $contact['lists'][ $list_id ]['contact_id'], [ 'status' => 'unsubscribed' ] );
+				}
 			}
+
+			// Add lists.
 			if ( ! empty( $lists_to_add ) ) {
-				$this->add_contact_with_groups_and_tags( [ 'email' => $email ], $lists_to_add );
+				$lists_objects = [];
+				foreach ( $lists_to_add as $list_id ) {
+					$list_obj = Subscription_List::from_form_id( $list_id );
+					if ( ! $list_obj ) {
+						continue;
+					}
+					$lists_objects[] = $list_obj;
+				}
+				$this->upsert_contact( [ 'email' => $email ], $lists_objects );
 			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
@@ -1735,42 +1726,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			'Error sending test email. This campaign cannot be tested:" A From Name must be entered on the Setup step."' => __( 'Error sending test email. Please enter a name and email in the "FROM" section.', 'newspack-newsletters' ),
 		];
 		return isset( $known_errors[ $message ] ) ? $known_errors[ $message ] : $message;
-	}
-
-	/**
-	 * Creates a list ID based on the type, the ID and the list ID
-	 *
-	 * In Mailchimp, we offer both Audiences, Groups, and Tags as Subscription Lists. We modify the group and tag IDs so we can differentiate them from the Audiences IDs.
-	 *
-	 * Also, when working with groups or tags, we need to know the list ID, so we add it to the ID.
-	 *
-	 * @param string $item_id The item ID.
-	 * @param string $list_id The List/Audience ID.
-	 * @param string $type 'group' or 'tag'.
-	 * @return string
-	 */
-	public function create_group_or_tag_list_id( $item_id, $list_id, $type = 'group' ) {
-		return $type . '-' . $item_id . '-' . $list_id;
-	}
-
-	/**
-	 * Extract the group or tag + audience (list) ID from an ID created with create_group_or_tag_list_id
-	 *
-	 * @param string $list_id The list ID.
-	 * @return array|false Array with the group/tag ID and the list ID or false if the ID is not a group or tag list ID.
-	 */
-	public function maybe_extract_group_or_tag_list( $list_id ) {
-		$pattern = '/^(group|tag)-([^-]+)-([^-]+)$/';
-		if ( preg_match( $pattern, $list_id, $matches ) ) {
-			$extracted_ids = [
-				'id'      => $matches[2],
-				'list_id' => $matches[3],
-				'type'    => $matches[1],
-			];
-
-			return $extracted_ids;
-		}
-		return false;
 	}
 
 	/**

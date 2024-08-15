@@ -20,6 +20,8 @@ defined( 'ABSPATH' ) || exit;
  */
 class Subscription_List {
 
+	use \Newspack_Newsletters_Mailchimp_Subscription_List_Trait;
+
 	/**
 	 * Hold the WP_Post object associated with this List.
 	 *

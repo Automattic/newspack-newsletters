@@ -63,15 +63,11 @@ class Newspack_Newsletters_Mailchimp_Notes {
 		$mc = Newspack_Newsletters_Mailchimp::instance();
 		$audience_ids = [];
 		foreach ( $lists as $list ) {
-			if ( Subscription_List::is_local_form_id( $list ) ) {
+			$list_obj = Subscription_List::from_form_id( $list );
+			if ( ! $list_obj ) {
 				continue;
 			}
-			$remote_list_details = $mc->maybe_extract_group_or_tag_list( $list );
-			if ( false !== $remote_list_details ) {
-				$audience_ids[] = $remote_list_details['list_id'];
-				continue;
-			}
-			$audience_ids[] = $list;
+			$audience_ids[] = $list_obj->mailchimp_get_audience_id();
 		}
 		return $audience_ids;
 	}
