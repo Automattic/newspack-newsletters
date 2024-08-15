@@ -813,12 +813,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
 					$mc->patch( "campaigns/$mc_campaign_id", $payload ),
-					__( 'Error updating campaign title.', 'newspack_newsletters' )
+					__( 'Error updating existing campaign draft.', 'newspack_newsletters' )
 				);
 			} else {
 				$campaign_result = $this->validate(
 					$mc->post( 'campaigns', $payload ),
-					__( 'Error setting campaign title.', 'newspack_newsletters' )
+					__( 'Error creating campaign.', 'newspack_newsletters' )
 				);
 				$mc_campaign_id  = $campaign_result['id'];
 				update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
@@ -850,7 +850,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_result'  => $content_result,
 			];
 		} catch ( Exception $e ) {
-			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $e->getMessage(), 45 );
+			set_transient( $transient_name, 'Mailchimp: ' . $e->getMessage(), 45 );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
 	}
