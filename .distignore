@@ -43,6 +43,7 @@ node_modules
 /bin
 .cache
 phpcsSniffs
+codecov.yml
 
 # humbug/php-scoper contains some test-related files which are invalid
 vendor/humbug/php-scoper/fixtures
