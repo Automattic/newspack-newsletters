@@ -177,7 +177,7 @@ class Newspack_Newsletters_Contacts {
 
 		$lists_objects = [];
 		foreach ( $lists as $list_id ) {
-			$list_obj = Subscription_List::from_form_id( $list_id );
+			$list_obj = Subscription_List::from_public_id( $list_id );
 			if ( ! $list_obj ) {
 				$errors->add( 'newspack_newsletters_invalid_list', 'Invalid list ID: ' . $list_id );
 				continue;
