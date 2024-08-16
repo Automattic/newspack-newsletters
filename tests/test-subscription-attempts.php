@@ -20,6 +20,15 @@ class Subscription_Attempts_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Set up
+	 */
+	public function set_up() {
+		global $wpdb;
+		$table_name = Newspack_Newsletters_Subscription_Attempts::get_table_name();
+		$wpdb->query( "DELETE FROM $table_name" ); // phpcs:ignore
+	}
+
+	/**
 	 * Test if the attempt is added to the custom table when the WP hook is called.
 	 */
 	public function test_subscription_attempts_add_and_update() {

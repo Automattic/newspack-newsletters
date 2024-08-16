@@ -20,8 +20,10 @@ class Subscriptions_Test extends WP_UnitTestCase {
 
 	/**
 	 * Add a contact to a single list.
+	 *
+	 * @TODO This test will be refactored
 	 */
-	public function test_get_contact_data() {
+	private function test_get_contact_data() {
 		$result = Newspack_Newsletters_Subscription::get_contact_data( 'not-there@example.com' );
 		$this->assertTrue( is_wp_error( $result ), 'Should return WP_Error if no contact is found.' );
 

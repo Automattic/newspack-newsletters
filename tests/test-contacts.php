@@ -12,6 +12,32 @@ use Newspack\Newsletters\Subscription_List;
  * Tests the Contacts Class.
  */
 class Newsletters_Contacts_Test extends WP_UnitTestCase {
+
+	/**
+	 * Mock database
+	 *
+	 * @var array
+	 */
+	public static $database;
+
+	/**
+	 * Setup.
+	 */
+	public function set_up() {
+		add_filter( 'mailchimp_mock_get', [ __CLASS__, 'mock_get_response' ], 10, 3 );
+		add_filter( 'mailchimp_mock_post', [ __CLASS__, 'mock_post_response' ], 10, 3 );
+		add_filter( 'mailchimp_mock_put', [ __CLASS__, 'mock_put_response' ], 10, 3 );
+	}
+
+	/**
+	 * Teardown.
+	 */
+	public function tear_down() {
+		remove_filter( 'mailchimp_mock_get', [ __CLASS__, 'mock_get_response' ] );
+		remove_filter( 'mailchimp_mock_post', [ __CLASS__, 'mock_post_response' ] );
+		remove_filter( 'mailchimp_mock_put', [ __CLASS__, 'mock_put_response' ] );
+	}
+
 	/**
 	 * Test set up.
 	 */
@@ -19,6 +45,25 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		// Set an ESP.
 		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		update_option( 'newspack_mailchimp_api_key', 'test-us1' );
+
+		self::$database = [
+			'members' => [
+				[
+					'id'            => '123',
+					'contact_id'    => '123',
+					'email_address' => 'test1@example.com',
+					'full_name'     => 'Test User',
+					'list_id'       => 'test-list',
+					'status'        => 'subscribed',
+				],
+			],
+			'tags'    => [
+				[
+					'id'   => 42,
+					'name' => 'Supertag',
+				],
+			],
+		];
 
 		Subscription_Lists::get_or_create_remote_list(
 			[
@@ -50,6 +95,81 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 				'title' => 'Supertag',
 			]
 		);
+	}
+
+	public static function mock_get_response( $response, $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
+			return [
+				'merge_fields' => [
+					[
+						'tag'  => 'FNAME',
+						'name' => 'Name',
+					],
+				],
+			];
+		}
+		if ( preg_match( '/lists\/.*\/tag-search/', $endpoint ) ) {
+			return [
+				'tags' => self::$database['tags'],
+			];
+		}
+		switch ( $endpoint ) {
+			case 'search-members':
+				$results = array_filter(
+					self::$database['members'],
+					function( $member ) use ( $args ) {
+						return $member['email_address'] === $args['query'];
+					}
+				);
+				return [ 'exact_matches' => [ 'members' => $results ] ];
+			default:
+				return [];
+		}
+		return [];
+	}
+
+	public static function mock_post_response( $response, $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+
+		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
+			return [
+				'status' => 200,
+				'tag'    => 'FNAME',
+			];
+		}
+		return [
+			'status' => 200,
+		];
+	}
+
+	public static function mock_put_response( $response, $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+
+		$members_endpoint = preg_match( '/lists\/(.*)\/members/', $endpoint, $matches );
+		if ( $members_endpoint ) {
+			$list_id = $matches[1];
+			$result = [
+				'status'  => 'pending',
+				'list_id' => $list_id,
+			];
+			if ( isset( $args['tags'] ) && is_array( $args['tags'] ) ) {
+				$result['tags'] = array_map(
+					function( $tag_name ) {
+						return [
+							'id'   => 42,
+							'name' => $tag_name,
+						];
+					},
+					$args['tags']
+				);
+			}
+			if ( isset( $args['interests'] ) && is_array( $args['interests'] ) ) {
+				$result['interests'] = $args['interests'];
+			}
+			// Add tags and interests.
+			return $result;
+		}
+		return [
+			'status' => 200,
+		];
 	}
 
 	/**
