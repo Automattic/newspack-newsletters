@@ -5,6 +5,9 @@
  * @package Newspack_Newsletters
  */
 
+use Newspack\Newsletters\Subscription_Lists;
+use Newspack\Newsletters\Subscription_List;
+
 /**
  * Tests the Contacts Class.
  */
@@ -16,6 +19,37 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		// Set an ESP.
 		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		update_option( 'newspack_mailchimp_api_key', 'test-us1' );
+
+		Subscription_Lists::get_or_create_remote_list(
+			[
+				'id'    => 'list1',
+				'title' => 'List 1',
+			]
+		);
+		Subscription_Lists::get_or_create_remote_list(
+			[
+				'id'    => 'list2',
+				'title' => 'List 2',
+			]
+		);
+		Subscription_Lists::get_or_create_remote_list(
+			[
+				'id'    => Subscription_List::mailchimp_create_form_id( 'group1', 'list1' ),
+				'title' => 'Group 1',
+			]
+		);
+		Subscription_Lists::get_or_create_remote_list(
+			[
+				'id'    => Subscription_List::mailchimp_create_form_id( '42', 'list1', 'tag' ),
+				'title' => 'Supertag',
+			]
+		);
+		Subscription_Lists::get_or_create_remote_list(
+			[
+				'id'    => Subscription_List::mailchimp_create_form_id( '42', 'list2', 'tag' ),
+				'title' => 'Supertag',
+			]
+		);
 	}
 
 	/**
@@ -28,12 +62,11 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 			],
 			[ 'list1' ]
 		);
+
 		$this->assertEquals(
 			[
-				[
-					'status'  => 'pending',
-					'list_id' => 'list1',
-				],
+				'status'  => 'pending',
+				'list_id' => 'list1',
 			],
 			$result
 		);
@@ -75,10 +108,8 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		Newspack_Newsletters_Subscription::process_subscription_intents();
 		$this->assertEquals(
 			[
-				[
-					'status'  => 'pending',
-					'list_id' => 'list1',
-				],
+				'status'  => 'pending',
+				'list_id' => 'list1',
 			],
 			$async_result
 		);
@@ -96,10 +127,8 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		);
 		$this->assertEquals(
 			[
-				[
-					'status'  => 'pending',
-					'list_id' => 'list1',
-				],
+				'status'  => 'pending',
+				'list_id' => 'list1',
 			],
 			$result
 		);
@@ -117,14 +146,8 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		);
 		$this->assertEquals(
 			[
-				[
-					'status'  => 'pending',
-					'list_id' => 'list1',
-				],
-				[
-					'status'  => 'pending',
-					'list_id' => 'list2',
-				],
+				'status'  => 'pending',
+				'list_id' => 'list2',
 			],
 			$result
 		);
@@ -142,15 +165,13 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		);
 		$this->assertEquals(
 			[
-				[
-					'status'    => 'pending',
-					'list_id'   => 'list1',
-					'interests' => [ 'group1' => true ],
-					'tags'      => [
-						[
-							'id'   => 42,
-							'name' => 'Supertag',
-						],
+				'status'    => 'pending',
+				'list_id'   => 'list1',
+				'interests' => [ 'group1' => true ],
+				'tags'      => [
+					[
+						'id'   => 42,
+						'name' => 'Supertag',
 					],
 				],
 			],
@@ -168,27 +189,15 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 			],
 			[ 'list1', 'tag-42-list1', 'group-group1-list1', 'list2', 'tag-42-list2' ]
 		);
+
 		$this->assertEquals(
 			[
-				[
-					'status'    => 'pending',
-					'list_id'   => 'list1',
-					'interests' => [ 'group1' => true ],
-					'tags'      => [
-						[
-							'id'   => 42,
-							'name' => 'Supertag',
-						],
-					],
-				],
-				[
-					'status'  => 'pending',
-					'list_id' => 'list2',
-					'tags'    => [
-						[
-							'id'   => 42,
-							'name' => 'Supertag',
-						],
+				'status'  => 'pending',
+				'list_id' => 'list2',
+				'tags'    => [
+					[
+						'id'   => 42,
+						'name' => 'Supertag',
 					],
 				],
 			],
