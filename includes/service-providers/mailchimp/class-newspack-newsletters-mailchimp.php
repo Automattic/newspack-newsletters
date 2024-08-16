@@ -1189,14 +1189,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	private function prepare_lists_to_add_contact( $lists ) {
 
-		$response = [];
+		$result = [];
 
 		foreach ( $lists as $list ) {
 
 			$audience_id = $list->mailchimp_get_audience_id();
 
-			if ( ! isset( $response[ $audience_id ] ) ) {
-				$response[ $audience_id ] = [
+			if ( ! isset( $result[ $audience_id ] ) ) {
+				$result[ $audience_id ] = [
 					'tags'      => [],
 					'interests' => [],
 				];
@@ -1204,14 +1204,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			if ( 'tag' === $list->mailchimp_get_sublist_type() ) {
 				// Mailchimp API expects the tag name and not ID.
-				$response[ $audience_id ]['tags'][] = $list->get_remote_name();
+				$result[ $audience_id ]['tags'][] = $list->get_remote_name();
 			} elseif ( 'group' === $list->mailchimp_get_sublist_type() ) {
 				// Local lists are included here.
-				$response[ $audience_id ]['interests'][ $list->mailchimp_get_sublist_id() ] = true;
+				$result[ $audience_id ]['interests'][ $list->mailchimp_get_sublist_id() ] = true;
 			}
 		}
 
-		return $response;
+		return $result;
 	}
 
 	/**
