@@ -57,7 +57,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 	/**
 	 * Returns the Audience ID of the current list.
 	 *
-	 * @return string|false
+	 * @return string
 	 */
 	public function mailchimp_get_audience_id() {
 		if ( $this->is_local() ) {
@@ -70,6 +70,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 		if ( $extracted_ids ) {
 			return $extracted_ids['list_id'];
 		}
+		return $this->get_form_id();
 	}
 
 	/**
