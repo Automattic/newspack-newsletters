@@ -1570,12 +1570,19 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function get_contact_data( $email, $return_details = false ) {
 		$mc    = new Mailchimp( $this->api_key() );
-		$found = $mc->get(
+		$result  = $mc->get(
 			'search-members',
 			[
 				'query' => $email,
-			]
-		)['exact_matches']['members'];
+			],
+			__( 'Error reaching search-members endpoint.', 'newspack_newsletters' )
+		);
+
+		if ( ! isset( $result['exact_matches']['members'] ) ) {
+			return new WP_Error( 'newspack_newsletters_mailchimp_search_members', __( 'Error reaching to search-members endpoint', 'newspack-newsletters' ) );
+		}
+
+		$found = $result['exact_matches']['members'];
 		if ( empty( $found ) ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
 		}
