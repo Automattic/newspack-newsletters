@@ -749,6 +749,9 @@ final class Newspack_Newsletters {
 	 * @param int $id Post ID.
 	 */
 	public static function validate_newsletter_id( $id ) {
+		if ( ! $id ) {
+			return false;
+		}
 		return self::NEWSPACK_NEWSLETTERS_CPT === get_post_type( $id );
 	}
 
