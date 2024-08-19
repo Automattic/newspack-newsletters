@@ -97,6 +97,15 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tear down class
+	 */
+	public static function tear_down_after_class() {
+		global $wpdb;
+		delete_option( 'newspack_mailchimp_api_key' );
+		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = %s" , Subscription_Lists::CPT ) ); // phpcs:ignore
+	}
+
 	public static function mock_get_response( $response, $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		if ( preg_match( '/lists\/.*\/merge-fields/', $endpoint ) ) {
 			return [

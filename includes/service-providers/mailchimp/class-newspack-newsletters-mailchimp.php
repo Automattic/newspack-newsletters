@@ -1247,7 +1247,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$data = array_filter(
 			$data,
 			function( $value ) {
-				return ! is_array( $value );
+				return ! is_array( $value ) && 'status' !== $value && 'status_if_new' !== $value;
 			}
 		);
 
@@ -1338,6 +1338,39 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Gets the status and/or status_if_new keys based on the contact data.
+	 *
+	 * @param array $contact      {
+	 *   Contact data.
+	 *
+	 *    @type string   $email    Contact email address.
+	 *    @type string   $name     Contact name. Optional.
+	 *    @type string[] $metadata Contact additional metadata. Optional.
+	 * }
+	 *
+	 * @return array The status and/or status_if_new keys to be added to the payload
+	 */
+	private function get_status_for_payload( $contact ) {
+		$return = [];
+		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status_if_new'] ) ) {
+			$return['status_if_new'] = $contact['metadata']['status_if_new'];
+			unset( $contact['metadata']['status_if_new'] );
+		}
+
+		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
+			$return['status'] = $contact['metadata']['status'];
+			unset( $contact['metadata']['status'] );
+		}
+
+		// If we're subscribing the contact to a newsletter, they should have some status
+		// because 'non-subscriber' status can't receive newsletters.
+		if ( empty( $return['status'] ) && empty( $return['status_if_new'] ) ) {
+			$return['status'] = 'subscribed';
+		}
+		return $return;
+	}
+
+	/**
 	 * Add contact to a list.
 	 *
 	 * @param array  $contact      {
@@ -1368,21 +1401,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		$update_payload = [ 'email_address' => $email_address ];
 
-		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status_if_new'] ) ) {
-			$update_payload['status_if_new'] = $contact['metadata']['status_if_new'];
-			unset( $contact['metadata']['status_if_new'] );
-		}
-
-		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
-			$update_payload['status'] = $contact['metadata']['status'];
-			unset( $contact['metadata']['status'] );
-		}
-
-		// If we're subscribing the contact to a newsletter, they should have some status
-		// because 'non-subscriber' status can't receive newsletters.
-		if ( empty( $update_payload['status'] ) && empty( $update_payload['status_if_new'] ) ) {
-			$update_payload['status'] = 'subscribed';
-		}
+		$update_payload = array_merge(
+			$update_payload,
+			$this->get_status_for_payload( $contact )
+		);
 
 		try {
 
