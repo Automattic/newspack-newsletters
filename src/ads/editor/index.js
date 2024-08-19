@@ -21,19 +21,25 @@ import { format, isInTheFuture } from '@wordpress/date';
 import { SelectControl } from 'newspack-components';
 
 function AdEdit() {
-	const { price, startDate, expiryDate, insertionStrategy, positionInContent, positionBlockCount } =
-		useSelect( select => {
-			const { getEditedPostAttribute } = select( 'core/editor' );
-			const meta = getEditedPostAttribute( 'meta' );
-			return {
-				price: meta.price,
-				startDate: meta.start_date,
-				expiryDate: meta.expiry_date,
-				insertionStrategy: meta.insertion_strategy,
-				positionInContent: meta.position_in_content,
-				positionBlockCount: meta.position_block_count,
-			};
-		} );
+	const {
+		price,
+		startDate,
+		expiryDate,
+		insertionStrategy,
+		positionInContent,
+		positionBlockCount,
+	} = useSelect( select => {
+		const { getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			price: meta.price,
+			startDate: meta.start_date,
+			expiryDate: meta.expiry_date,
+			insertionStrategy: meta.insertion_strategy,
+			positionInContent: meta.position_in_content,
+			positionBlockCount: meta.position_block_count,
+		};
+	} );
 	const { editPost } = useDispatch( 'core/editor' );
 	const { removeEditorPanel } = useDispatch( editPostStore );
 	const messages = [];

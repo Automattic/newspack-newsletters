@@ -63,8 +63,10 @@ function MJML() {
 		};
 	} );
 
-	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } =
-		useDispatch( 'core/editor' );
+	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
+		'core/editor'
+	);
+	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
@@ -91,7 +93,7 @@ function MJML() {
 			refreshEmailHtml( postId, postTitle, postContent )
 				.then( refreshedHtml => {
 					updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml );
-					apiFetch( {
+					return apiFetch( {
 						data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml } },
 						method: 'POST',
 						path: `/wp/v2/${ postType }/${ postId }`,
@@ -103,6 +105,19 @@ function MJML() {
 				.finally( () => {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
 					setIsRefreshingHTML( false );
+					// Check for sync errors after refreshing the HTML.
+					apiFetch( {
+						path: `/newspack-newsletters/v1/${ postId }/sync-error`,
+					}).then( ( { error_message } ) => {
+						if ( error_message ) {
+							createNotice( 'error', error_message, {
+								id: 'newspack-newsletters-newsletter-sync-error',
+								isDismissible: true,
+							} );
+						} else {
+							removeNotice( 'newspack-newsletters-newsletter-sync-error' );
+						}
+					} );
 				} );
 		}
 	}, [ isSaving, isAutosaving ] );
