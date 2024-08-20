@@ -95,7 +95,7 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	 *
 	 * @return boolean
 	 */
-	public static function matches_search( $search, $matches );
+	// public static function matches_search( $search, $matches );
 
 	/**
 	 * Get the ESP's available lists and sublists, reformatted as Send_List items.
@@ -103,11 +103,11 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	 * @param string $search Optional. If given, only return lists whose names or entity types match the search string.
 	 * @param string $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
 	 * @param string $parent_id Optional: If given, only return sublists of the specified parent list.
+	 * @param int    $limit Optional: Maximum number of items of each entity type to return.
 	 *
 	 * @return array|WP_Error API Response or error.
 	 */
-	// public function get_send_lists( $search = '', $list_type = null, $parent_id = null );
-
+	// public function get_send_lists( $search = '', $list_type = null, $parent_id = null, $limit );
 
 	/**
 	 * Add contact to a list.
