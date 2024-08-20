@@ -493,7 +493,7 @@ Details of the error message: "%3$s"
 			if ( $list->is_local() ) {
 				$result = $this->add_contact_to_local_list( $contact, $list );
 			} else {
-				$result = $this->add_contact( $contact, $list->get_form_id() );
+				$result = $this->add_contact( $contact, $list->get_public_id() );
 			}
 			if ( is_wp_error( $result ) ) {
 				return $result;
@@ -578,9 +578,9 @@ Details of the error message: "%3$s"
 	 */
 	protected function update_contact_local_lists( $email, $lists = [], $action = 'add' ) {
 		foreach ( $lists as $key => $list_id ) {
-			if ( Subscription_List::is_local_form_id( $list_id ) ) {
+			if ( Subscription_List::is_local_public_id( $list_id ) ) {
 				try {
-					$list = Subscription_List::from_form_id( $list_id );
+					$list = Subscription_List::from_public_id( $list_id );
 
 					if ( ! $list->is_configured_for_provider( $this->service ) ) {
 						return new WP_Error( 'List not properly configured for the provider' );
@@ -622,7 +622,7 @@ Details of the error message: "%3$s"
 			}
 			$list_settings = $list->get_provider_settings( $this->service );
 			if ( in_array( $list_settings['tag_id'], $tags, false ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
-				$ids[] = $list->get_form_id();
+				$ids[] = $list->get_public_id();
 			}
 		}
 		return $ids;

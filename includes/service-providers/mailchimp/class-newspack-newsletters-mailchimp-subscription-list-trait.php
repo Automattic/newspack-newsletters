@@ -10,16 +10,16 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Extend the Subscription_List object with Mailchimp specific functionality.
  *
- * Since Mailchimp also offers Tags and Groups as Subscription Lists, some information is stored in the Form ID.
+ * Since Mailchimp also offers Tags and Groups as Subscription Lists, some information is stored in the Public ID.
  *
- * This trait provides methods to extract the list type, the list ID and the Audience ID from the Form ID.
+ * This trait provides methods to extract the list type, the list ID and the Audience ID from the Public ID.
  *
  * All methods should be prefixed with `mailchimp_`.
  */
 trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 
 	/**
-	 * Creates a list Form ID based on the type, the ID and the list (Audience) ID
+	 * Creates a list Public ID based on the type, the ID and the list (Audience) ID
 	 *
 	 * In Mailchimp, we offer both Audiences, Groups, and Tags as Subscription Lists. We modify the group and tag IDs so we can differentiate them from the Audiences IDs.
 	 *
@@ -30,7 +30,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 	 * @param string $type 'group' or 'tag'.
 	 * @return string
 	 */
-	public static function mailchimp_create_form_id( $item_id, $list_id, $type = 'group' ) {
+	public static function mailchimp_create_public_id( $item_id, $list_id, $type = 'group' ) {
 		return $type . '-' . $item_id . '-' . $list_id;
 	}
 
@@ -57,7 +57,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 	/**
 	 * Returns the Audience ID of the current list.
 	 *
-	 * @return string|false
+	 * @return string
 	 */
 	public function mailchimp_get_audience_id() {
 		if ( $this->is_local() ) {
@@ -70,6 +70,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 		if ( $extracted_ids ) {
 			return $extracted_ids['list_id'];
 		}
+		return $this->get_public_id();
 	}
 
 	/**
@@ -92,13 +93,13 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 	}
 
 	/**
-	 * Extract the group or tag + audience (list) ID from an ID created with self::mailchimp_create_form_id
+	 * Extract the group or tag + audience (list) ID from an ID created with self::mailchimp_create_public_id
 	 *
 	 * @return array|false Array with the group/tag ID (key id), the Audience ID (key list_id), the list type (tag or group. key type) or false if the ID is not a group or tag list ID.
 	 */
 	protected function mailchimp_get_sublist_details() {
 		$pattern = '/^(group|tag)-([^-]+)-([^-]+)$/';
-		if ( preg_match( $pattern, $this->get_form_id(), $matches ) ) {
+		if ( preg_match( $pattern, $this->get_public_id(), $matches ) ) {
 			$extracted_ids = [
 				'id'      => $matches[2],
 				'list_id' => $matches[3],

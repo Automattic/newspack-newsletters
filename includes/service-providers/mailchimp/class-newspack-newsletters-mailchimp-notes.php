@@ -29,7 +29,7 @@ class Newspack_Newsletters_Mailchimp_Notes {
 	 * Add a note to a contact in Mailchimp, for Audience list they are a part of.
 	 *
 	 * @param string $email The contact email.
-	 * @param array  $lists An array of lists IDs (as they are used in our forms. aka form_id). A list can be an Audience, a tag, a group or a local list.
+	 * @param array  $lists An array of lists IDs (as they are used in our forms. aka public_id). A list can be an Audience, a tag, a group or a local list.
 	 * @param string $note The note to add.
 	 * @return void
 	 */
@@ -52,18 +52,18 @@ class Newspack_Newsletters_Mailchimp_Notes {
 	}
 
 	/**
-	 * Extracts the Audience IDs from the list form IDs.
+	 * Extracts the Audience IDs from the list public IDs.
 	 *
 	 * Given a list of lists, we will parse in which audience they belong.
 	 *
-	 * @param array $lists An array of lists IDs (as they are used in our forms. aka form_id). A list can be an Audience, a tag, a group or a local list.
+	 * @param array $lists An array of lists IDs (as they are used in our forms. aka public_id). A list can be an Audience, a tag, a group or a local list.
 	 * @return array An array of Audience IDs.
 	 */
 	private static function extract_audience_ids( $lists ) {
 		$mc = Newspack_Newsletters_Mailchimp::instance();
 		$audience_ids = [];
 		foreach ( $lists as $list ) {
-			$list_obj = Subscription_List::from_form_id( $list );
+			$list_obj = Subscription_List::from_public_id( $list );
 			if ( ! $list_obj ) {
 				continue;
 			}
