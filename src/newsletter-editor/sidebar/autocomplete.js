@@ -110,11 +110,7 @@ const Autocomplete = ( {
 					onFocus={ onFocus }
 					onInputChange={ onInputChange }
 					suggestions={ availableItems.map( item => item.label ) }
-					placeholder={ sprintf(
-						// Translators: SendTo autocomplete field placeholder. %s is the provider's label for parent lists.
-						__( 'Type %s name to search', 'newspack-newsletters' ),
-						label.toLowerCase()
-					) }
+					placeholder={ __( 'Start typing to search by name or type', 'newspack-newsletters' ) }
 					value={ [] }
 					__experimentalExpandOnFocus={ true }
 					__experimentalShowHowTo={ false }

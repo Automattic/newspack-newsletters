@@ -5,12 +5,13 @@
  */
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { Notice } from '@wordpress/components';
-import { useState } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import Autocomplete from './autocomplete';
+import { useNewsletterData } from '../store';
 
 // The container for list + sublist autocomplete fields.
 const SendTo = (
@@ -18,16 +19,23 @@ const SendTo = (
 		inFlight = false,
 		fetchSendLists = () => {},
 		selected = {},
-		sendLists = [],
 		updateMeta = () => {}
 	}
 ) => {
 	const [ error, setError ] = useState( null );
+	const { lists = [], sublists = [] } = useNewsletterData();
 	const { labels } = newspack_newsletters_data || {};
-	const lists = sendLists.filter( item => 'list' === item.type );
-	const sublists = sendLists.filter( item => 'sublist' === item.type );
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
+
+	useEffect( () => {
+		if ( ! lists.length ) {
+			fetchSendLists( '', 'list', null, 10 );
+		}
+		if ( selected?.list && ! sublists.length ) {
+			fetchSendLists( '', 'sublist', selected.list.id, 10 );
+		}
+	}, [ selected ] );
 
 	const renderSelectedSummary = () => {
 		if ( ! selected?.list?.name || ( selected?.sublist && ! selected?.sublist?.name ) ) {

@@ -26,19 +26,18 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
-import { registerStore, updateNewsletterData } from './store';
+import { registerStore, fetchNewsletterData, updateNewsletterData, useNewsletterData } from './store';
 import './debug-send';
 
 /**
  * External dependencies
  */
-import { debounce } from 'lodash';
+import { debounce, sortBy } from 'lodash';
 
 registerStore();
 registerEditorPlugin();
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
-	const [ sendLists, setSendLists ] = useState( [] );
 	const { layoutId, postId, sendTo } = useSelect( select => {
 		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
@@ -48,10 +47,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			sendTo: meta.send_to,
 		};
 	} );
-	const savePost = useDispatch( 'core/editor' ).savePost;
-	const editPost = useDispatch( 'core/editor' ).editPost;
-	const updateMeta = ( meta ) => editPost( { meta } );
-
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
 		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
 	);
@@ -60,6 +55,10 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	);
 	const [ isConnected, setIsConnected ] = useState( null );
 	const [ oauthUrl, setOauthUrl ] = useState( null );
+	const newsletterData = useNewsletterData();
+	const savePost = useDispatch( 'core/editor' ).savePost;
+	const editPost = useDispatch( 'core/editor' ).editPost;
+	const updateMeta = ( meta ) => editPost( { meta } );
 
 	const { name: serviceProviderName, hasOauth } = getServiceProvider();
 
@@ -79,9 +78,9 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	};
 
 	useEffect( () => {
-		// Fetch provider campaign data and update meta if necessary.
+		// Fetch provider and campaign data.
 		if ( 'manual' !== serviceProviderName ) {
-			fetchCampaign();
+			fetchNewsletterData( postId );
 		}
 
 		return () => {
@@ -97,17 +96,16 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		}
 	}, [ serviceProviderName ] );
 
-	const fetchCampaign = async () => {
-		const response = await apiFetchWithErrorHandling( {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
-		} );
-		updateNewsletterData( response );
-	};
+	// Fetch send lists for the "Send To" UI and update the newsletterData store.
+	const fetchSendLists = debounce( async ( search = '', type = 'list', parentId = null, limit = null, provider = null ) => {
+		if ( ! newsletterData?.lists ) {
+			return;
+		}
 
-	// Fetch send lists for the "Send To" UI.
-	const fetchSendLists = debounce( async ( search = '', type = null, parentId = null, limit = null, provider = null ) => {
+		const sendLists = 'list' === type ? newsletterData.lists : newsletterData.sublists;
+
 		// If we already have a matching result, no need to fetch more.
-		const foundItem = sendLists.find( item => item.id === search || item.label.includes( search ) );
+		const foundItem = sendLists.find( item => item.id === search || item.label.toLowerCase().includes( search.toLowerCase() ) );
 		if ( foundItem ) {
 			return;
 		}
@@ -119,14 +117,20 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			)
 		} );
 
+		const updatedNewsletterData = { ...newsletterData };
 		const updatedSendLists = [ ...sendLists ];
 		response.forEach( item => {
 			if ( ! updatedSendLists.find( listItem => listItem.id === item.id ) ) {
 				updatedSendLists.push( item );
 			}
 		} );
+		if ( 'list' === type ) {
+			updatedNewsletterData.lists = sortBy( updatedSendLists, 'label' );
+		} else {
+			updatedNewsletterData.sublists = sortBy( updatedSendLists, 'label' );
+		}
 
-		setSendLists( updatedSendLists );
+		updateNewsletterData( updatedNewsletterData );
 	}, 500 );
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
@@ -159,7 +163,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 							fetchSendLists={ fetchSendLists }
 							inFlight={ inFlight }
 							selected={ sendTo || {} }
-							sendLists={ sendLists }
 							updateMeta={ updateMeta }
 						/>
 					)

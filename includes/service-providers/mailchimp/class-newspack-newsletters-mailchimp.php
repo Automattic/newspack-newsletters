@@ -466,6 +466,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'campaign_id'  => $mc_campaign_id,
 				'folders'      => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
 				'merge_fields' => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
+				'lists'        => $this->get_send_lists( '', 'list', null, 10 ), // Get first 10 top-level send lists for autocomplete.
+				'sublists'     => [], // Will be populated later if needed.
 			];
 
 			// Check for past sync errors.
@@ -570,7 +572,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function get_send_lists( $search = '', $list_type = null, $parent_id = null, $limit = 10 ) {
 		$admin_url  = self::get_admin_url();
-		$audiences  = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_lists( $limit );
+		$audiences  = Newspack_Newsletters_Mailchimp_Cached_Data::get_lists( $limit );
 		$send_lists = [];
 
 		$entity_type = 'audience';
@@ -594,7 +596,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				continue;
 			}
 
-			$groups      = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_interest_categories( ( $parent_id ?? $audience['id'] ), $limit );
+			$groups      = Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( ( $parent_id ?? $audience['id'] ), $limit );
 			$entity_type = 'group';
 			if ( isset( $groups['categories'] ) ) {
 				foreach ( $groups['categories'] as $category ) {
@@ -620,7 +622,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$tags        = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_tags( ( $parent_id ?? $audience['id'] ), $limit );
+			$tags        = Newspack_Newsletters_Mailchimp_Cached_Data::get_tags( ( $parent_id ?? $audience['id'] ), $limit );
 			$entity_type = 'tag';
 			foreach ( $tags as $tag ) {
 				if ( self::matches_search( $search, [ $tag['id'], $tag['name'], $entity_type ] ) ) {
@@ -640,7 +642,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$segments    = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segments( ( $parent_id ?? $audience['id'] ), $limit );
+			$segments    = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( ( $parent_id ?? $audience['id'] ), $limit );
 			$entity_type = 'segment';
 			foreach ( $segments as $segment ) {
 				if ( self::matches_search( $search, [ $segment['id'], $segment['name'], $entity_type ] ) ) {
