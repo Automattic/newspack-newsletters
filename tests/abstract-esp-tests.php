@@ -69,6 +69,10 @@ abstract class Abstract_ESP_Tests extends WP_UnitTestCase {
 	 */
 	public function get_contact_lists_provider() {
 		return [
+			'Should return 4 lists for the contact'       => [
+				'email'    => 'found-4@example.com',
+				'expected' => 4,
+			],
 			'Should return 2 lists for the contact'       => [
 				'email'    => 'found@example.com',
 				'expected' => 2,

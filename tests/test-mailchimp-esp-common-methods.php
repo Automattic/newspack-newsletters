@@ -84,7 +84,28 @@ class MailchimpEspCommonMethodsTest extends Abstract_ESP_Tests {
 				return $base_success_response;
 			}
 
-			if ( 'found@example.com' === $args['query'] ) {
+			if ( 'found-4@example.com' === $args['query'] ) {
+				// Simulates a response of a contact with 2 lists.
+				$expected_request = true;
+				$response = $base_success_response;
+				$response['exact_matches']['members'][] = $base_member_response;
+				$response['exact_matches']['members'][0]['tags'] = [
+					[
+						'id'   => 'list2',
+						'name' => 'list2',
+					],
+				];
+				$response['exact_matches']['members'][] = $base_member_response;
+				// Second Audience.
+				$response['exact_matches']['members'][1]['list_id'] = 'list3';
+				$response['exact_matches']['members'][1]['tags'] = [
+					[
+						'id'   => 'list4',
+						'name' => 'list4',
+					],
+				];
+
+			} elseif ( 'found@example.com' === $args['query'] ) {
 				// Simulates a response of a contact with 2 lists.
 				$expected_request = true;
 				$response = $base_success_response;
