@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -50,7 +50,7 @@
 		"@rushstack/eslint-patch": "^1.10.4",
 		"@wordpress/browserslist-config": "^6.5.0",
 		"eslint": "^8.57.0",
-		"lint-staged": "^15.2.8",
+		"lint-staged": "^15.2.9",
 		"newspack-scripts": "^5.5.2",
 		"postcss-scss": "^4.0.9"
 	}
