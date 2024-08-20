@@ -31,14 +31,15 @@ const Sidebar = ( {
 	errors,
 	editPost,
 	title,
-	senderName,
-	senderEmail,
+	sender,
 	campaignName,
 	previewText,
 	stringifiedLayoutDefaults,
 	postId,
 } ) => {
 	const newsletterData = useNewsletterData();
+	const campaign = newsletterData?.campaign;
+	const updateMeta = ( meta ) => editPost( { meta } );
 	const getCampaignName = () => {
 		if ( typeof campaignName === 'string' ) {
 			return campaignName;
@@ -46,33 +47,12 @@ const Sidebar = ( {
 		return 'Newspack Newsletter (' + postId + ')';
 	};
 
-	const renderCampaignName = () => (
-		<TextControl
-			label={ __( 'Campaign Name', 'newspack-newsletters' ) }
-			className="newspack-newsletters__campaign-name-textcontrol"
-			value={ getCampaignName() }
-			placeholder={ 'Newspack Newsletter (' + postId + ')' }
-			disabled={ inFlight }
-			onChange={ value => editPost( { meta: { campaign_name: value } } ) }
-		/>
-	);
-
-	const renderSubject = () => (
-		<TextControl
-			label={ __( 'Subject', 'newspack-newsletters' ) }
-			className="newspack-newsletters__subject-textcontrol"
-			value={ title }
-			disabled={ inFlight }
-			onChange={ value => editPost( { title: value } ) }
-		/>
-	);
-
 	const senderEmailClasses = classnames(
 		'newspack-newsletters__email-textcontrol',
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
 	);
 
-	const renderFrom = ( { handleSenderUpdate } ) => (
+	const renderFrom = () => (
 		<Fragment>
 			<strong className="newspack-newsletters__label">
 				{ __( 'From', 'newspack-newsletters' ) }
@@ -80,40 +60,22 @@ const Sidebar = ( {
 			<TextControl
 				label={ __( 'Name', 'newspack-newsletters' ) }
 				className="newspack-newsletters__name-textcontrol"
-				value={ senderName }
+				value={ sender.name }
 				disabled={ inFlight }
-				onChange={ value => {
-					editPost( { meta: { senderName: value } } );
-				} }
+				onChange={ value => updateMeta( { sender: { ...sender, name: value } } ) }
+				placeholder={ __( 'The campaign’s sender name.', 'newspack-newsletters' ) }
 			/>
 			<TextControl
 				label={ __( 'Email', 'newspack-newsletters' ) }
+				help={ sender.email && ! hasValidEmail( sender.email ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : null }
 				className={ senderEmailClasses }
-				value={ senderEmail }
+				value={ sender.email }
 				type="email"
 				disabled={ inFlight }
-				onChange={ value => {
-					editPost( { meta: { senderEmail: value } } );
-				} }
+				onChange={ value => updateMeta( { sender: { ...sender, email: value } } ) }
+				placeholder={ __( 'The campaign’s sender email.', 'newspack-newsletters' ) }
 			/>
-			<Button
-				isLink
-				onClick={ () => handleSenderUpdate( { senderName, senderEmail } ) }
-				disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
-			>
-				{ __( 'Update Sender', 'newspack-newsletters' ) }
-			</Button>
 		</Fragment>
-	);
-
-	const renderPreviewText = () => (
-		<TextareaControl
-			label={ __( 'Preview text', 'newspack-newsletters' ) }
-			className="newspack-newsletters__preview-textcontrol"
-			value={ previewText }
-			disabled={ inFlight }
-			onChange={ value => editPost( { meta: { preview_text: value } } ) }
-		/>
 	);
 
 	if ( false === isConnected ) {
@@ -139,10 +101,10 @@ const Sidebar = ( {
 		);
 	}
 
-	if ( ! newsletterData?.campaign ) {
+	if ( ! campaign ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
-				{ __( 'Retrieving Mailchimp data…', 'newspack-newsletters' ) }
+				{ __( 'Retrieving campaign data…', 'newspack-newsletters' ) }
 				<Spinner />
 			</div>
 		);
@@ -152,9 +114,28 @@ const Sidebar = ( {
 	const { ProviderSidebar } = getServiceProvider();
 	return (
 		<Fragment>
-			{ renderCampaignName() }
-			{ renderSubject() }
-			{ renderPreviewText() }
+			<TextControl
+				label={ __( 'Campaign Name', 'newspack-newsletters' ) }
+				className="newspack-newsletters__campaign-name-textcontrol"
+				value={ getCampaignName() }
+				placeholder={ 'Newspack Newsletter (' + postId + ')' }
+				disabled={ inFlight }
+				onChange={ value => updateMeta( { campaign_name: value } ) }
+			/>
+			<TextControl
+				label={ __( 'Subject', 'newspack-newsletters' ) }
+				className="newspack-newsletters__subject-textcontrol"
+				value={ title }
+				disabled={ inFlight }
+				onChange={ value => editPost( { title: value } ) }
+			/>
+			<TextareaControl
+				label={ __( 'Preview text', 'newspack-newsletters' ) }
+				className="newspack-newsletters__preview-textcontrol"
+				value={ previewText }
+				disabled={ inFlight }
+				onChange={ value => updateMeta( { preview_text: value } ) }
+			/>
 			<ProviderSidebar
 				postId={ postId }
 				stringifiedLayoutDefaults={ stringifiedLayoutDefaults }
@@ -162,7 +143,7 @@ const Sidebar = ( {
 				editPost={ editPost }
 				renderFrom={ renderFrom }
 				createErrorNotice={ createErrorNotice }
-				updateMeta={ meta => editPost( { meta } ) }
+				updateMeta={ updateMeta }
 			/>
 		</Fragment>
 	);
@@ -176,8 +157,7 @@ export default compose( [
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
-			senderEmail: meta.senderEmail || '',
-			senderName: meta.senderName || '',
+			sender: meta.sender,
 			campaignName: meta.campaign_name,
 			previewText: meta.preview_text || '',
 			stringifiedLayoutDefaults: meta.stringifiedLayoutDefaults || {},

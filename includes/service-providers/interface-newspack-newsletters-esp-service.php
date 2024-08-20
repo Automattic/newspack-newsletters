@@ -51,17 +51,6 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	public function retrieve( $post_id );
 
 	/**
-	 * Set sender data.
-	 *
-	 * @param string $post_id   Numeric ID of the campaign.
-	 * @param string $from_name Sender name.
-	 * @param string $reply_to  Reply to email address.
-	 *
-	 * @return array|WP_Error API Response or error.
-	 */
-	public function sender( $post_id, $from_name, $reply_to );
-
-	/**
 	 * Send test email or emails.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.

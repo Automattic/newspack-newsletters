@@ -6,7 +6,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
-import { SelectControl, Notice } from '@wordpress/components';
+import { SelectControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -18,7 +18,6 @@ const ProviderSidebarComponent = ( {
 	inFlight,
 	postId,
 	updateMeta,
-	status,
 } ) => {
 	const newsletterData = useNewsletterData();
 	const { campaign, folders } = newsletterData;
@@ -71,20 +70,6 @@ const ProviderSidebarComponent = ( {
 		}
 	}, [ campaign ] );
 
-	if (
-		! inFlight &&
-		( 'publish' === status ||
-			'private' === status ||
-			'sent' === campaign?.status ||
-			'sending' === campaign?.status )
-	) {
-		return (
-			<Notice status="success" isDismissible={ false }>
-				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
-			</Notice>
-		);
-	}
-
 	return (
 		<Fragment>
 			<SelectControl
@@ -101,10 +86,9 @@ const ProviderSidebarComponent = ( {
 };
 
 const mapStateToProps = select => {
-	const { getCurrentPostAttribute, getEditedPostAttribute } = select( 'core/editor' );
+	const { getEditedPostAttribute } = select( 'core/editor' );
 	return {
 		meta: getEditedPostAttribute( 'meta' ),
-		status: getCurrentPostAttribute( 'status' ),
 	};
 };
 

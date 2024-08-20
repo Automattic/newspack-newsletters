@@ -96,27 +96,6 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 		);
 		\register_rest_route(
 			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
-			'(?P<id>[\a-z]+)/sender',
-			[
-				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ $this, 'api_sender' ],
-				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
-				'args'                => [
-					'id'        => [
-						'sanitize_callback' => 'absint',
-						'validate_callback' => [ 'Newspack_Newsletters', 'validate_newsletter_id' ],
-					],
-					'from_name' => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'reply_to'  => [
-						'sanitize_callback' => 'sanitize_email',
-					],
-				],
-			]
-		);
-		\register_rest_route(
-			$this->service_provider::BASE_NAMESPACE . $this->service_provider->service,
 			'(?P<id>[\a-z]+)/folders',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -215,21 +194,6 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 		$response = $this->service_provider->test(
 			$request['id'],
 			$emails
-		);
-		return self::get_api_response( $response );
-	}
-
-	/**
-	 * Set the sender name and email for the campaign.
-	 *
-	 * @param WP_REST_Request $request API request object.
-	 * @return WP_REST_Response|mixed API response or error.
-	 */
-	public function api_sender( $request ) {
-		$response = $this->service_provider->sender(
-			$request['id'],
-			$request['from_name'],
-			$request['reply_to']
 		);
 		return self::get_api_response( $response );
 	}

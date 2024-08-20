@@ -15,7 +15,7 @@ import { find } from 'lodash';
 import { ProviderSidebar } from './ProviderSidebar';
 
 const validateNewsletter = ( { campaign } ) => {
-	const { recipients, settings, status } = campaign || {};
+	const { recipients, settings } = campaign || {};
 	const { list_id: listId, recipient_count: recipientCount } = recipients || {};
 	const { from_name: senderName, reply_to: senderEmail } = settings || {};
 
@@ -23,7 +23,7 @@ const validateNewsletter = ( { campaign } ) => {
 	if ( recipientCount === 0 ) {
 		messages.push( __( 'There are no contacts in the chosen audience.', 'newspack-newsletters' ) );
 	}
-	if ( 'sent' === status || 'sending' === status ) {
+	if ( isCampaignSent( campaign ) ) {
 		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
 	}
 	if ( ! listId ) {
@@ -84,8 +84,20 @@ const renderPreSendInfo = newsletterData => {
 	);
 };
 
+const isCampaignSent= ( campaign, postStatus = 'draft' ) => {
+	const { status } = campaign || {};
+	if ( 'sent' === status || 'sending' === status ) {
+		return true;
+	}
+	if ( 'publish' === postStatus || 'private' === postStatus ) {
+		return true;
+	}
+	return false;
+}
+
 export default {
 	validateNewsletter,
 	ProviderSidebar,
 	renderPreSendInfo,
+	isCampaignSent
 };

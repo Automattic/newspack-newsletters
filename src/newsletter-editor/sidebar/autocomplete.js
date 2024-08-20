@@ -22,19 +22,6 @@ const Autocomplete = ( {
 	const selectedInfo = selected[ type ] || null;
 
 	if ( selected[ type ] && ! isEditing ) {
-		if ( ! selectedInfo?.name ) {
-			return (
-				<p>
-					{
-						sprintf(
-							// Translators: Message shown while fetching selected list or sublist info.  %s is the provider's label for the given entity type (list or sublist).
-							__( 'Retrieving %s info…', 'newspack-newsletters' ),
-							label
-						)
-					}
-				</p>
-			);
-		}
 		return (
 			<div className="newspack-newsletters__send-to">
 				<p className="newspack-newsletters__send-to-details">

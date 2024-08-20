@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';import { Notice } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import {
@@ -38,13 +38,14 @@ registerStore();
 registerEditorPlugin();
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
-	const { layoutId, postId, sendTo } = useSelect( select => {
-		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+	const { layoutId, postId, sendTo, status } = useSelect( select => {
+		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			layoutId: meta.template_id,
 			postId: getCurrentPostId(),
 			sendTo: meta.send_to,
+			status: getCurrentPostAttribute( 'status' ),
 		};
 	} );
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
@@ -60,7 +61,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	const editPost = useDispatch( 'core/editor' ).editPost;
 	const updateMeta = ( meta ) => editPost( { meta } );
 
-	const { name: serviceProviderName, hasOauth } = getServiceProvider();
+	const { name: serviceProviderName, hasOauth, isCampaignSent } = getServiceProvider();
 
 	const verifyToken = () => {
 		const params = {
@@ -137,6 +138,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 	const stylingId = 'newspack-newsletters-styling';
 	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
+	const campaignIsSent = newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
 
 	return isDisplayingInitModal ? (
 		<InitModal
@@ -156,15 +158,26 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				name="newsletters-settings-panel"
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
-				<Sidebar isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
 				{
-					'manual' !== serviceProviderName && (
+					! campaignIsSent && (
+						<Sidebar isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
+					)
+				}
+				{
+					! campaignIsSent && 'manual' !== serviceProviderName && (
 						<SendTo
 							fetchSendLists={ fetchSendLists }
 							inFlight={ inFlight }
 							selected={ sendTo || {} }
 							updateMeta={ updateMeta }
 						/>
+					)
+				}
+				{
+					campaignIsSent && (
+						<Notice status="success" isDismissible={ false }>
+							{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
+						</Notice>
 					)
 				}
 				{ isConnected && <PublicSettings /> }

@@ -742,22 +742,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Set sender data.
 	 *
-	 * @param string $post_id Numeric ID of the campaign.
-	 * @param string $from_name Sender name.
-	 * @param string $reply_to Reply to email address.
-	 * @return object|WP_Error API Response or error.
+	 * @param string $email Reply to email address.
+	 * @return boolean|WP_Error True if the email address is valid, otherwise error.
 	 */
-	public function sender( $post_id, $from_name, $reply_to ) {
-		$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
-		if ( ! $mc_campaign_id ) {
-			return new WP_Error(
-				'newspack_newsletters_no_campaign_id',
-				__( 'Mailchimp campaign ID not found.', 'newspack-newsletters' )
-			);
-		}
+	public function validate_sender_email( $email ) {
 		try {
 			$mc = new Mailchimp( $this->api_key() );
-
 			$result = $this->validate(
 				$mc->get( 'verified-domains', [ 'count' => 1000 ] ),
 				__( 'Error retrieving verified domains from Mailchimp.', 'newspack-newsletters' )
@@ -775,7 +765,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			);
 
-			$explode = explode( '@', $reply_to );
+			$explode = explode( '@', $email );
 			$domain  = strtolower( trim( array_pop( $explode ) ) );
 
 			if ( ! in_array( $domain, $verified_domains ) ) {
@@ -790,25 +780,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				);
 			}
 
-			$settings = [];
-			if ( $from_name ) {
-				$settings['from_name'] = $from_name;
-			}
-			if ( $reply_to ) {
-				$settings['reply_to'] = $reply_to;
-			}
-			$payload = [
-				'settings' => $settings,
-			];
-			$result  = $this->validate(
-				$mc->patch( "campaigns/$mc_campaign_id", $payload ),
-				__( 'Error setting sender name and email.', 'newspack_newsletters' )
-			);
-
-			$data           = $this->retrieve( $post_id );
-			$data['result'] = $result;
-
-			return \rest_ensure_response( $data );
+			return true;
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
@@ -938,12 +910,32 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 							break;
 						case 'segment':
 							$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $sublist_id, $list['id'] );
-							if ( $segment_data ) {
-								$payload['recipients']['segment_opts'] = $segment_data['options'];
+							if ( is_wp_error( $segment_data ) ) {
+								return $segment_data;
 							}
+							if ( ! empty( $segment_data['options'] ) ) {
+								$payload['recipients']['segment_opts'] = $segment_data['options'];
+							} else {
+								return new WP_Error( 'newspack_newsletters_mailchimp_error', __( 'Could not fetch segment criteria for segment ', 'newspack-newsletters' ) . $sublist['name'] );
+							}
+							break;
 					}
 				}
 			}
+		}
+
+		// Sync sender name + email.
+		if ( ! empty( $sender['name'] ) ) {
+			$payload['settings']['from_name'] = $sender['name'];
+		}
+		if ( ! empty( $sender['email'] ) ) {
+			$is_valid_email = $this->validate_sender_email( $sender['email'] );
+			if ( is_wp_error( $is_valid_email ) ) {
+				unset( $sender['email'] );
+				update_post_meta( $post->ID, 'sender', $sender ); // Delete invalid email so we can't accidentally attempt to send with it.
+				return $is_valid_email;
+			}
+			$payload['settings']['reply_to'] = $sender['email'];
 		}
 
 		return $payload;
@@ -984,6 +976,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			 * @param string $mc_campaign_id Mailchimp campaign ID, if defined.
 			 */
 			$payload = apply_filters( 'newspack_newsletters_mc_payload_sync', $payload, $post, $mc_campaign_id );
+
+			// If we have any errors in the payload, throw an exception.
+			if ( is_wp_error( $payload ) ) {
+				throw new Exception( esc_html( $payload->get_error_message() ) );
+			}
 
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
