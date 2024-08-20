@@ -1596,8 +1596,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			'search-members',
 			[
 				'query' => $email,
-			],
-			__( 'Error reaching search-members endpoint.', 'newspack_newsletters' )
+			]
 		);
 
 		if ( ! isset( $result['exact_matches']['members'] ) ) {

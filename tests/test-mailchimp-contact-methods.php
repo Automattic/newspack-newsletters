@@ -339,4 +339,277 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $result );
 		self::delete_lists();
 	}
+
+	/**
+	 * Mock responses for get_contact_data and get_contact_lists tests
+	 *
+	 * @param array  $response The api response.
+	 * @param string $endpoint The endpoint being called.
+	 * @param array  $args The arguments passed to the endpoint.
+	 * @return array
+	 */
+	public static function get_contact_mock_response( $response, $endpoint, $args = [] ) {
+		$expected_request = false;
+		$base_member_response = [
+			'full_name'     => 'Sample User',
+			'list_id'       => 'list1',
+			'email_address' => $args['query'] ?? '',
+			'id'            => '123',
+			'contact_id'    => 'aaa',
+			'status'        => 'subscribed',
+		];
+		$base_success_response = [
+			'exact_matches' => [
+				'members' => [],
+			],
+			// We always return something in the full_search key to make sure it is ignored.
+			'full_search'   => [
+				'members' => [
+					[
+						'full_name'     => 'Ignored User',
+						'list_id'       => 'ignoredlist1',
+						'email_address' => 'ignored@example.com',
+						'id'            => '1234',
+						'contact_id'    => 'aaaa',
+						'status'        => 'subscribed',
+					],
+				],
+			],
+		];
+
+		$response = false;
+
+		if ( 'search-members' === $endpoint ) {
+			if ( 'two-audiences-one-tag@example.com' === $args['query'] ) {
+
+				$response = $base_success_response;
+				$response['exact_matches']['members'][] = $base_member_response;
+				$response['exact_matches']['members'][] = $base_member_response;
+				$response['exact_matches']['members'][0]['tags'] = [
+					[
+						'id'   => 'tag-1',
+						'name' => 'tag-1',
+					],
+				];
+
+				$response['exact_matches']['members'][1]['list_id'] = 'list2';
+				$response['exact_matches']['members'][1]['tags'] = [
+					[
+						'id'   => 'tag-2',
+						'name' => 'tag-2',
+					],
+				];
+				$response['exact_matches']['members'][1]['id'] = '456';
+				$response['exact_matches']['members'][1]['contact_id'] = 'bbb';
+
+			} elseif ( 'one-audience-tag-and-group@example.com' === $args['query'] ) {
+
+				$response = $base_success_response;
+				$response['exact_matches']['members'][] = $base_member_response;
+				$response['exact_matches']['members'][0]['tags'] = [
+					[
+						'id'   => 'tag-1',
+						'name' => 'tag-1',
+					],
+				];
+				$response['exact_matches']['members'][0]['interests'] = [
+					'interest-1' => true,
+					'interest-2' => false,
+				];
+
+				// some noise to make sure it doesn't change anything.
+				$response['exact_matches']['members'][0]['noise'] = 'noise';
+
+			} elseif ( 'found-empty@example.com' === $args['query'] ) {
+				// Simulates a response of a contact with zero lists.
+				$response = $base_success_response;
+				$response['exact_matches']['members'][] = $base_member_response;
+				$response['exact_matches']['members'][0]['status'] = 'unsubscribed';
+
+			} elseif ( 'not-found@example.com' === $args['query'] ) {
+				// Simulates a response of a contact not found.
+				$response = $base_success_response;
+
+			} elseif ( 'failure@example.com' === $args['query'] ) {
+				// Simulates an error response from the API.
+				$response = [
+					'type'     => 'https://mailchimp.com/developer/marketing/docs/errors/',
+					'title'    => 'Resource Not Found',
+					'status'   => 404,
+					'detail'   => 'The requested resource could not be found.',
+					'instance' => '995c5cb0-3280-4a6e-808b-3b096d0bb219',
+				];
+			}
+		}
+		return $response;
+	}
+
+	/**
+	 * Data provider for test_get_contact_data
+	 *
+	 * @return array
+	 */
+	public function get_contact_data_data_provider() {
+		return [
+			[
+				'two-audiences-one-tag@example.com',
+				[
+					'full_name'     => 'Sample User',
+					'email_address' => 'two-audiences-one-tag@example.com',
+					'id'            => '123',
+					'interests'     => [],
+					'tags'          => [
+						'list1' => [
+							[
+								'id'   => 'tag-1',
+								'name' => 'tag-1',
+							],
+						],
+						'list2' => [
+							[
+								'id'   => 'tag-2',
+								'name' => 'tag-2',
+							],
+						],
+					],
+					'lists'         => [
+						'list1' => [
+							'id'         => '123',
+							'contact_id' => 'aaa',
+							'status'     => 'subscribed',
+						],
+						'list2' => [
+							'id'         => '456',
+							'contact_id' => 'bbb',
+							'status'     => 'subscribed',
+						],
+					],
+				],
+			],
+			[
+				'one-audience-tag-and-group@example.com',
+				[
+					'full_name'     => 'Sample User',
+					'email_address' => 'one-audience-tag-and-group@example.com',
+					'id'            => '123',
+					'interests'     => [
+						'list1' => [
+							'interest-1' => true,
+							'interest-2' => false,
+						],
+					],
+					'tags'          => [
+						'list1' => [
+							[
+								'id'   => 'tag-1',
+								'name' => 'tag-1',
+							],
+						],
+					],
+					'lists'         => [
+						'list1' => [
+							'id'         => '123',
+							'contact_id' => 'aaa',
+							'status'     => 'subscribed',
+						],
+					],
+				],
+			],
+			[
+				'not-found@example.com',
+				false,
+			],
+			[
+				'failure@example.com',
+				false,
+			],
+		];
+	}
+
+	/**
+	 * Tests the get_contact_data method
+	 *
+	 * @param string      $email The email to search for.
+	 * @param false|array $expected The expected contact data or false if an error is expected.
+	 * @dataProvider get_contact_data_data_provider
+	 * @return void
+	 */
+	public function test_get_contact_data( $email, $expected ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+
+		add_filter( 'mailchimp_mock_get', [ __CLASS__, 'get_contact_mock_response' ], 10, 3 );
+
+		$contact_data = $provider->get_contact_data( $email );
+
+		if ( false !== $expected ) {
+			$this->assertEquals( $expected, $contact_data );
+		} else {
+			$this->assertTrue( is_wp_error( $contact_data ) );
+		}
+
+		remove_filter( 'mailchimp_mock_get', [ __CLASS__, 'get_contact_mock_response' ] );
+	}
+
+	/**
+	 * Data provider for test_get_contact_lists
+	 *
+	 * @return array
+	 */
+	public function get_contact_lists_data_provider() {
+		return [
+			[
+				'two-audiences-one-tag@example.com',
+				[
+					'list1',
+					'list2',
+					'tag-tag-1-list1',
+					'tag-tag-2-list2',
+				],
+			],
+			[
+				'one-audience-tag-and-group@example.com',
+				[
+					'list1',
+					'group-interest-1-list1',
+					'tag-tag-1-list1',
+				],
+			],
+			[
+				'found-empty@example.com',
+				[],
+			],
+			[
+				'not-found@example.com',
+				[],
+			],
+			[
+				'failure@example.com',
+				[],
+			],
+		];
+	}
+
+	/**
+	 * Tests the get_contact_lists method
+	 *
+	 * @param string      $email The email to search for.
+	 * @param false|array $expected The expected contact lists or false if an error is expected.
+	 * @dataProvider get_contact_lists_data_provider
+	 * @return void
+	 */
+	public function test_get_contact_lists_lists( $email, $expected ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+
+		add_filter( 'mailchimp_mock_get', [ __CLASS__, 'get_contact_mock_response' ], 10, 3 );
+
+		$contact_lists = $provider->get_contact_lists( $email );
+
+		if ( false !== $expected ) {
+			$this->assertEquals( $expected, $contact_lists );
+		} else {
+			$this->assertTrue( is_wp_error( $contact_lists ) );
+		}
+
+		remove_filter( 'mailchimp_mock_get', [ __CLASS__, 'get_contact_mock_response' ] );
+	}
 }
