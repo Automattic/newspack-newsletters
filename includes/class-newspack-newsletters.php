@@ -208,32 +208,6 @@ final class Newspack_Newsletters {
 				'register_meta_args' => $default_register_meta_args,
 			],
 			[
-				'name'               => 'newsletter_sync_errors',
-				'register_meta_args' => [
-					'show_in_rest' => [
-						'schema' => [
-							'context' => [ 'edit' ],
-							'type'    => 'array',
-							'items'   => [
-								'type'                 => 'object',
-								'additionalProperties' => false,
-								'properties'           => [
-									'timestamp' => [
-										'name' => 'timestamp',
-										'type' => 'integer',
-									],
-									'message'   => [
-										'name' => 'message',
-										'type' => 'string',
-									],
-								],
-							],
-						],
-					],
-					'type'         => 'object',
-				],
-			],
-			[
 				'name'               => 'newsletter_send_errors',
 				'register_meta_args' => [
 					'show_in_rest' => [

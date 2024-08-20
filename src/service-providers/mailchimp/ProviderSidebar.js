@@ -6,7 +6,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { Fragment, useEffect } from '@wordpress/element';
-import { SelectControl, Spinner, Notice } from '@wordpress/components';
+import { SelectControl, Notice } from '@wordpress/components';
 
 /**
  * Internal dependencies

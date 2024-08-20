@@ -470,20 +470,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'sublists'     => [], // Will be populated later if needed.
 			];
 
-			// Check for past sync errors.
-			$sync_errors = get_post_meta( $post_id, 'newsletter_sync_errors', true );
-			if ( $sync_errors ) {
-				$newsletter_data['sync_errors'] = array_map(
-					function( $sync_error ) {
-						return [
-							'timestamp' => $sync_error['timestamp'],
-							'message'   => $sync_error['message'],
-						];
-					},
-					$sync_errors
-				);
-			}
-
 			return $newsletter_data;
 		} catch ( Exception $e ) {
 			// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.
@@ -973,6 +959,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @throws Exception Error message.
 	 */
 	public function sync( $post ) {
+		// Clear prior error messages.
+		$transient_name = $this->get_transient_name( $post->ID );
+		delete_transient( $transient_name );
 		try {
 			$api_key = $this->api_key();
 			if ( ! $api_key ) {
@@ -1029,17 +1018,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_result'  => $content_result,
 			];
 		} catch ( Exception $e ) {
-			$errors = get_post_meta( $post->ID, 'newsletter_sync_errors', true );
-			if ( ! is_array( $errors ) ) {
-				$errors = [];
-			}
-			$error_message = __( 'Error syncing with Mailchimp campaign: ', 'newspack-newsletters' ) . $e->getMessage();
-			$errors[] = [
-				'timestamp' => time(),
-				'message'   => $error_message,
-			];
-			$errors   = array_slice( $errors, -10, 10, true );
-			update_post_meta( $post->ID, 'newsletter_sync_errors', $errors );
+			set_transient( $transient_name, 'Mailchimp: ' . $e->getMessage(), 45 );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
 	}
