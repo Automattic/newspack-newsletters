@@ -49,6 +49,7 @@ final class Newspack_Newsletters_Editor {
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		add_filter( 'block_categories_all', [ __CLASS__, 'add_custom_block_category' ] );
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_exclude_sponsored_posts' ], 10, 2 );
@@ -247,6 +248,23 @@ final class Newspack_Newsletters_Editor {
 				],
 			]
 		);
+	}
+
+	/**
+	 * Add the "Newspack" block category.
+	 *
+	 * @param array $block_categories Default block categories.
+	 * @return array
+	 */
+	public static function add_custom_block_category( $block_categories ) {
+		array_unshift( $block_categories,
+			[
+				'slug'	=> 'newspack',
+				'title' => 'Newspack'
+			]
+		);
+
+		return $block_categories;
 	}
 
 	/**
