@@ -9,6 +9,11 @@ import { useEffect, useRef, useState } from '@wordpress/element';
 import { refreshEmailHtml } from '../../newsletter-editor/utils';
 
 /**
+ * Internal dependencies
+ */
+import { fetchNewsletterData } from '../../newsletter-editor/store';
+
+/**
  * Custom hook for fetching the prior value of a prop.
  *
  * @param {*} value The prop to track.
@@ -105,6 +110,10 @@ function MJML() {
 				.finally( () => {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
 					setIsRefreshingHTML( false );
+
+					// Rehydrate ESP newsletter data after completing sync.
+					fetchNewsletterData( postId );
+
 					// Check for sync errors after refreshing the HTML.
 					apiFetch( {
 						path: `/newspack-newsletters/v1/${ postId }/sync-error`,

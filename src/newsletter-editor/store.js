@@ -1,4 +1,8 @@
 /**
+ * A Redux store for ESP newsletter data to be used across editor components.
+ */
+
+/**
  * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
@@ -15,7 +19,8 @@ const createAction = type => payload => ( { type, payload } );
 const reducer = ( state = DEFAULT_STATE, { type, payload = {} } ) => {
 	switch ( type ) {
 		case 'SET_DATA':
-			return { ...state, newsletterData: payload };
+			const updatedNewsletterData = { ...state.newsletterData, ...payload };
+			return { ...state, newsletterData: updatedNewsletterData };
 		case 'SET_ERROR':
 			return { ...state, error: payload };
 		default:
@@ -50,7 +55,11 @@ export const useNewsletterData = () =>
 		select( STORE_NAMESPACE ).getData()
 	);
 
-// Dispatcher to rehydrate newsletter data from the server.
+// Dispatcher to update newsletter data in the store.
+export const updateNewsletterData = data =>
+	dispatch( STORE_NAMESPACE ).setData( data );
+
+// Dispatcher to fetch newsletter data from the server.
 export const fetchNewsletterData = async postId => {
 	try {
 		const response = await apiFetch( {
@@ -61,7 +70,3 @@ export const fetchNewsletterData = async postId => {
 		dispatch( STORE_NAMESPACE ).setError( error );
 	}
 };
-
-// Dispatcher to update newsletter data in the store.
-export const updateNewsletterData = data =>
-	dispatch( STORE_NAMESPACE ).setData( data );
