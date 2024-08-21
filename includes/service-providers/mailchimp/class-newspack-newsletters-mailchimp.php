@@ -470,6 +470,49 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'sublists'     => [], // Will be populated later if needed.
 			];
 
+			// Reconcile campaign settings with info fetched from the ESP.
+			$sender       = get_post_meta( $post_id, 'sender', true );
+			$sender_name  = $sender['name'] ?? '';
+			$sender_email = $sender['email'] ?? '';
+			if ( ! empty( $campaign['settings']['from_name'] ) && $campaign['settings']['from_name'] !== $sender_name ) {
+				$newsletter_data['fetched_sender'] = [ 'name' => $campaign['settings']['from_name'] ];
+			}
+			if ( ! empty( $campaign['settings']['reply_to'] ) && $campaign['settings']['reply_to'] !== $sender_email ) {
+				if ( ! isset( $newsletter_data['fetched_sender'] ) ) {
+					$newsletter_data['fetched_sender'] = [];
+				}
+				$newsletter_data['fetched_sender']['email'] = $campaign['settings']['reply_to'];
+			}
+			$send_to          = get_post_meta( $post_id, 'send_to', true );
+			$selected_list    = $send_to['list'] ?? null;
+			$selected_sublist = $send_to['sublist'] ?? null;
+			if ( ! empty( $campaign['recipients'] ) ) {
+				$recipients = $campaign['recipients'];
+				if ( ! empty( $recipients['list_id'] ) ) {
+					$list = $this->get_send_lists( $recipients['list_id'], 'list', null, 1 );
+					if ( ! empty( $list[0] ) && ! empty( array_diff_assoc( (array) $selected_list, (array) $list[0] ) ) ) {
+						$newsletter_data['fetched_list'] = $list[0];
+					}
+
+					if ( ! empty( $recipients['segment_opts'] ) ) {
+						$target_id_raw = $recipients['segment_opts']['saved_segment_id'] ?? null;
+						if ( ! $target_id_raw ) {
+							$target_id_raw = $recipients['segment_opts']['conditions'][0]['value'] ?? null;
+						}
+						if ( $target_id_raw ) {
+							$target_id = strval( is_array( $target_id_raw ) && ! empty( $target_id_raw[0] ) ? $target_id_raw[0] : $target_id_raw );
+							if ( ! $target_id ) {
+								$target_id = (string) $target_id_raw;
+							}
+							$sublist = $this->get_send_lists( $target_id, 'sublist', $recipients['list_id'], 1 );
+							if ( ! empty( $sublist[0] ) && ! empty( array_diff_assoc( (array) $selected_sublist, (array) $sublist[0] ) ) ) {
+								$newsletter_data['fetched_sublist'] = $sublist[0];
+							}
+						}
+					}
+				}
+			}
+
 			return $newsletter_data;
 		} catch ( Exception $e ) {
 			// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.

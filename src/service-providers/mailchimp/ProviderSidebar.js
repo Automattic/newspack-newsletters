@@ -3,9 +3,6 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
-import { compose } from '@wordpress/compose';
-import { withSelect } from '@wordpress/data';
-import { Fragment, useEffect } from '@wordpress/element';
 import { SelectControl } from '@wordpress/components';
 
 /**
@@ -13,11 +10,9 @@ import { SelectControl } from '@wordpress/components';
  */
 import { useNewsletterData } from '../../newsletter-editor/store';
 
-const ProviderSidebarComponent = ( {
-	renderFrom,
+export const ProviderSidebar = ( {
 	inFlight,
 	postId,
-	updateMeta,
 } ) => {
 	const newsletterData = useNewsletterData();
 	const { campaign, folders } = newsletterData;
@@ -44,34 +39,8 @@ const ProviderSidebarComponent = ( {
 			},
 		} );
 
-	const setSender = ( { senderName, senderEmail } ) =>
-		apiFetch( {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/sender`,
-			data: {
-				from_name: senderName,
-				reply_to: senderEmail,
-			},
-			method: 'POST',
-		} );
-
-	useEffect( () => {
-		if ( campaign && campaign.settings ) {
-			const { from_name, reply_to } = campaign.settings;
-			updateMeta( {
-				...( from_name
-					? {
-						senderName: from_name,
-					} : {} ),
-				...( reply_to
-					? {
-						senderEmail: reply_to,
-					} : {} ),
-			} );
-		}
-	}, [ campaign ] );
-
 	return (
-		<Fragment>
+		<>
 			<SelectControl
 				label={ __( 'Campaign Folder', 'newspack-newsletters' ) }
 				value={ campaign?.settings?.folder_id }
@@ -79,19 +48,6 @@ const ProviderSidebarComponent = ( {
 				onChange={ setFolder }
 				disabled={ inFlight || ! folders.length }
 			/>
-			<hr />
-			{ renderFrom( { handleSenderUpdate: setSender } ) }
-		</Fragment>
+		</>
 	);
 };
-
-const mapStateToProps = select => {
-	const { getEditedPostAttribute } = select( 'core/editor' );
-	return {
-		meta: getEditedPostAttribute( 'meta' ),
-	};
-};
-
-export const ProviderSidebar = compose( [ withSelect( mapStateToProps ) ] )(
-	ProviderSidebarComponent
-);

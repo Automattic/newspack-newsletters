@@ -257,10 +257,11 @@ final class Newspack_Newsletters_Editor {
 	 * @return array
 	 */
 	public static function add_custom_block_category( $block_categories ) {
-		array_unshift( $block_categories,
+		array_unshift(
+			$block_categories,
 			[
-				'slug'	=> 'newspack',
-				'title' => 'Newspack'
+				'slug'  => 'newspack',
+				'title' => 'Newspack',
 			]
 		);
 

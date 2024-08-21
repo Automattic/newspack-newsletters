@@ -23,7 +23,8 @@ const SendTo = (
 	}
 ) => {
 	const [ error, setError ] = useState( null );
-	const { lists = [], sublists = [] } = useNewsletterData();
+	const newsletterData = useNewsletterData();
+	const { lists = [], sublists = [] } = newsletterData;
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
@@ -93,6 +94,13 @@ const SendTo = (
 					{ error }
 				</Notice>
 			) }
+			{
+				( newsletterData?.fetched_list || newsletterData?.fetched_sublist ) && (
+					<Notice status="success" isDismissible={ false }>
+						{ __( 'Updated send-to info fetched from ESP.', 'newspack-newsletters' ) }
+					</Notice>
+				)
+			}
 			<Autocomplete
 				type="list"
 				availableItems={ lists }

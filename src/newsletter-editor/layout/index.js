@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isEqual, find, pick } from 'lodash';
+import { isEqual, find } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -28,21 +28,30 @@ export default compose( [
 		const { getEditedPostAttribute, isEditedPostEmpty, getCurrentPostId } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
+		const layoutMeta = {
+			background_color: meta.background_color,
+			font_body: meta.font_body,
+			font_header: meta.font_header,
+			custom_css: meta.custom_css,
+		};
+
+		// ESP-agnostic sender and send_to defaults.
+		if ( meta?.sender || meta?.send_to ) {
+			layoutMeta.campaign_defaults = JSON.stringify(
+				{
+					sender: meta.sender,
+					send_to: meta.send_to,
+				}
+			)
+		}
+
 		return {
 			layoutId: meta.template_id,
 			postTitle: getEditedPostAttribute( 'title' ),
 			postBlocks: getBlocks(),
 			isEditedPostEmpty: isEditedPostEmpty(),
 			currentPostId: getCurrentPostId(),
-			layoutMeta: {
-				background_color: meta.background_color,
-				font_body: meta.font_body,
-				font_header: meta.font_header,
-				custom_css: meta.custom_css,
-				layout_defaults: JSON.stringify(
-					pick( meta, [ 'senderEmail', 'senderName', 'newsletterData' ] )
-				),
-			},
+			layoutMeta,
 		};
 	} ),
 	withDispatch( dispatch => {

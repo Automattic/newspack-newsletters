@@ -77,7 +77,7 @@ final class Newspack_Newsletters_Layouts {
 		\register_meta( 'post', 'font_body', $meta_default_params );
 		\register_meta( 'post', 'background_color', $meta_default_params );
 		\register_meta( 'post', 'custom_css', $meta_default_params );
-		\register_meta( 'post', 'layout_defaults', $meta_default_params );
+		\register_meta( 'post', 'campaign_defaults', $meta_default_params );
 	}
 
 	/**

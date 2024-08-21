@@ -132,6 +132,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		}
 
 		updateNewsletterData( updatedNewsletterData );
+		return updatedSendLists;
 	}, 500 );
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
@@ -164,7 +165,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 					)
 				}
 				{
-					! campaignIsSent && 'manual' !== serviceProviderName && (
+					newsletterData?.campaign && ! campaignIsSent && 'manual' !== serviceProviderName && (
 						<SendTo
 							fetchSendLists={ fetchSendLists }
 							inFlight={ inFlight }
