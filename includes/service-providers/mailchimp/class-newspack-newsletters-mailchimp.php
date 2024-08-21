@@ -1354,12 +1354,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$return = [];
 		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status_if_new'] ) ) {
 			$return['status_if_new'] = $contact['metadata']['status_if_new'];
-			unset( $contact['metadata']['status_if_new'] );
 		}
 
 		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
 			$return['status'] = $contact['metadata']['status'];
-			unset( $contact['metadata']['status'] );
 		}
 
 		// If we're subscribing the contact to a newsletter, they should have some status
