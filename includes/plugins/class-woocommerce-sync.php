@@ -29,6 +29,17 @@ abstract class WooCommerce_Sync {
 	];
 
 	/**
+	 * Log a message to the Newspack logger and/or WP CLI.
+	 *
+	 * @param string $message The message to log.
+	 */
+	protected static function log( $message ) {
+		if ( class_exists( 'Newspack\Logger' ) ) {
+			\Newspack\Logger::log( $message, 'NEWSPACK-NEWSLETTERS' );
+		}
+	}
+
+	/**
 	 * Does the given user have any subscriptions with an active status?
 	 *
 	 * @param int $user_id User ID.
@@ -52,24 +63,55 @@ abstract class WooCommerce_Sync {
 	}
 
 	/**
-	 * Force disable RAS reader data syncing to ESP while running migrations on test/staging sites.
-	 * Don't disable if connected to production manager, or data might be lost from actual reader activity.
+	 * Whether contacts can be synced to the ESP
 	 *
-	 * @param mixed $value The option value.
+	 * @param bool $return_errors Optional. Whether to return WP_Error on failure. Default false.
 	 *
-	 * @return mixed Filtered option value.
+	 * @return bool|WP_Error True if contacts can be synced, false otherwise. WP_Error if return_errors is true.
 	 */
-	protected static function maybe_disable_esp_syncing( $value ) {
-		// If a production site, don't do anything.
-		if ( method_exists( 'Newspack_Manager', 'is_connected_to_production_manager' ) && \Newspack_Manager::is_connected_to_production_manager() ) {
-			return $value;
-		}
-		// If a staging/test site, disable ESP syncing unless we set a constant. The newspack_reader_activation_sync_esp option value will still be honored, if set.
-		if ( defined( 'NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC' ) && NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC ) {
-			return $value;
+	protected static function can_sync_contacts( $return_errors = false ) {
+		$errors = new \WP_Error();
+		if ( ! class_exists( 'Newspack\Reader_Activation' ) ) {
+			$errors->add(
+				'ras_not_available',
+				__( 'Reader Activation is not available.', 'newspack-newsletters' )
+			);
 		}
 
-		return false;
+		if ( ! \Newspack\Reader_Activation::is_enabled() ) {
+			$errors->add(
+				'ras_not_enabled',
+				__( 'Reader Activation is not enabled.', 'newspack-newsletters' )
+			);
+		}
+
+		if ( ! \Newspack\Reader_Activation::get_setting( 'sync_esp' ) ) {
+			$errors->add(
+				'esp_sync_not_enabled',
+				__( 'ESP sync is not enabled.', 'newspack-newsletters' )
+			);
+		}
+
+		// If not a production site, only sync if the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC constant is set.
+		if (
+			( ! method_exists( 'Newspack_Manager', 'is_connected_to_production_manager' ) || ! \Newspack_Manager::is_connected_to_production_manager() ) &&
+			( ! defined( 'NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC' ) || ! NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC )
+		) {
+			$errors->add(
+				'esp_sync_not_allowed',
+				__( 'ESP sync is disabled for non-production sites. Set NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC to allow sync.', 'newspack-newsletters' )
+			);
+		}
+
+		if ( $return_errors ) {
+			return $errors;
+		}
+
+		if ( $errors->has_errors() ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -80,14 +122,9 @@ abstract class WooCommerce_Sync {
 	 * @return true|\WP_Error True if succeeded or WP_Error.
 	 */
 	protected static function sync_contact( $contact ) {
-		// Only if Reader Activation is available.
-		if ( ! class_exists( 'Newspack\Reader_Activation' ) ) {
-			return new \WP_Error( 'newspack_newsletters_resync_woo_contacts', __( 'Reader Activation is not available.', 'newspack-newsletters' ) );
-		}
-
-		// Only if RAS + ESP sync is enabled.
-		if ( ! \Newspack\Reader_Activation::is_enabled() || ! \Newspack\Reader_Activation::get_setting( 'sync_esp' ) ) {
-			return new \WP_Error( 'newspack_newsletters_resync_woo_contacts', __( 'Reader Activation ESP sync is not enabled.', 'newspack-newsletters' ) );
+		$can_sync = static::can_sync_contacts( true );
+		if ( $can_sync->has_errors() ) {
+			return $can_sync;
 		}
 
 		$master_list_id = \Newspack\Reader_Activation::get_esp_master_list_id();
@@ -98,17 +135,6 @@ abstract class WooCommerce_Sync {
 			return $result;
 		}
 		return true;
-	}
-
-	/**
-	 * Log a message to the Newspack logger and/or WP CLI.
-	 *
-	 * @param string $message The message to log.
-	 */
-	protected static function log( $message ) {
-		if ( class_exists( 'Newspack\Logger' ) ) {
-			\Newspack\Logger::log( $message, 'NEWSPACK-NEWSLETTERS' );
-		}
 	}
 
 	/**
@@ -194,13 +220,9 @@ abstract class WooCommerce_Sync {
 
 		static::log( __( 'Running WooCommerce-to-ESP contact resync...', 'newspack-newsletters' ) );
 
-		// If not doing a dry run, make sure the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC
-		// constant is set or the sync will fail silently.
-		if ( ! $config['is_dry_run'] && ! static::maybe_disable_esp_syncing( true ) ) {
-			return new \WP_Error(
-				'newspack_newsletters_resync_woo_contacts',
-				__( 'Unable to sync due to disabled ESP sync option. Is the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC constant defined?', 'newspack-newsletters' )
-			);
+		$can_sync = static::can_sync_contacts( true );
+		if ( ! $config['is_dry_run'] && $can_sync->has_errors() ) {
+			return $can_sync;
 		}
 
 		// If resyncing only migrated subscriptions.
@@ -362,6 +384,11 @@ abstract class WooCommerce_Sync {
 	 * @return bool True if the contact was resynced successfully, false otherwise.
 	 */
 	protected static function resync_contact( $user_id = 0, $order = null, $is_dry_run = false ) {
+		$can_sync = static::can_sync_contacts( true );
+		if ( ! $is_dry_run && $can_sync->has_errors() ) {
+			return $can_sync;
+		}
+
 		$result            = false;
 		$registration_site = false;
 

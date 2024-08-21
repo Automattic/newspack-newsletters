@@ -152,7 +152,7 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 			\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
-		$redirect = \add_query_arg( [ 'update' => $action ], \remove_query_arg( [ 'action', 'uid', '_wpnonce' ] ) );
+		$redirect = \add_query_arg( [ 'update' => $action ], \remove_query_arg( [ 'action', 'uid', '_wpnonce', 'synced-contacts' ] ) );
 		\wp_safe_redirect( $redirect );
 		exit;
 	}

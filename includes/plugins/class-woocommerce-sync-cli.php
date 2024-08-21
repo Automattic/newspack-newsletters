@@ -22,6 +22,17 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 	}
 
 	/**
+	 * Log to WP CLI.
+	 *
+	 * @param string $message The message to log.
+	 */
+	protected static function log( $message ) {
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::log( $message );
+		}
+	}
+
+	/**
 	 * Add CLI commands.
 	 */
 	public static function wp_cli() {
@@ -129,17 +140,6 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 				$processed
 			)
 		);
-	}
-
-	/**
-	 * Log to WP CLI.
-	 *
-	 * @param string $message The message to log.
-	 */
-	protected static function log( $message ) {
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			\WP_CLI::log( $message );
-		}
 	}
 }
 WooCommerce_Sync_CLI::init_hooks();
