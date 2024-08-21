@@ -1,7 +1,6 @@
 <?php
 /**
- * WP CLI scripts for managing WooCommerce Reader Revenue data syncing with
- * the connected ESP.
+ * WooCommerce Reader Revenue data syncing with the connected ESP.
  *
  * @package Newspack
  */
@@ -24,18 +23,15 @@ class WooCommerce_Sync {
 	 * The final results object.
 	 *
 	 * @var array
-	 * @codeCoverageIgnore
 	 */
 	protected static $results = [
 		'processed' => 0,
 	];
 
 	/**
-	 * Initialize.
-	 *
-	 * @codeCoverageIgnore
+	 * Initialize hooks.
 	 */
-	public static function init() {
+	public static function init_hooks() {
 		\add_action( 'init', [ __CLASS__, 'wp_cli' ] );
 	}
 
@@ -311,6 +307,7 @@ class WooCommerce_Sync {
 			'batch_size'       => 10,
 			'offset'           => 0,
 			'max_batches'      => 0,
+			'is_dry_run'       => false,
 		];
 		$config = \wp_parse_args( $config, $default_config );
 
@@ -553,4 +550,4 @@ class WooCommerce_Sync {
 		return ! empty( $results ) ? $results : false;
 	}
 }
-WooCommerce_Sync::init();
+WooCommerce_Sync::init_hooks();
