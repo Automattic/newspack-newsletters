@@ -26,7 +26,7 @@ class WooCommerce_Sync {
 	 * @var array
 	 * @codeCoverageIgnore
 	 */
-	private static $results = [
+	protected static $results = [
 		'processed' => 0,
 	];
 
@@ -156,7 +156,7 @@ class WooCommerce_Sync {
 	 *
 	 * @return bool
 	 */
-	public static function user_has_active_subscriptions( $user_id ) {
+	protected static function user_has_active_subscriptions( $user_id ) {
 		$subcriptions = array_reduce(
 			array_keys( \wcs_get_users_subscriptions( $user_id ) ),
 			function( $acc, $subscription_id ) {
@@ -180,7 +180,7 @@ class WooCommerce_Sync {
 	 *
 	 * @return mixed Filtered option value.
 	 */
-	private static function maybe_disable_esp_syncing( $value ) {
+	protected static function maybe_disable_esp_syncing( $value ) {
 		// If a production site, don't do anything.
 		if ( method_exists( 'Newspack_Manager', 'is_connected_to_production_manager' ) && \Newspack_Manager::is_connected_to_production_manager() ) {
 			return $value;
@@ -197,8 +197,10 @@ class WooCommerce_Sync {
 	 * Sync contact to the ESP.
 	 *
 	 * @param array $contact The contact data to sync.
+	 *
+	 * @return void|\WP_Error WP_Error if an error occurred.
 	 */
-	public static function sync_contact( $contact ) {
+	protected static function sync_contact( $contact ) {
 		// Only if Reader Activation is available.
 		if ( ! class_exists( 'Newspack\Reader_Activation' ) ) {
 			return;
@@ -216,8 +218,6 @@ class WooCommerce_Sync {
 		if ( \is_wp_error( $result ) ) {
 			return $result;
 		}
-
-		return true;
 	}
 
 	/**
@@ -225,7 +225,7 @@ class WooCommerce_Sync {
 	 *
 	 * @param string $message The message to log.
 	 */
-	private static function log( $message ) {
+	protected static function log( $message ) {
 		if ( class_exists( 'Newspack\Logger' ) ) {
 			\Newspack\Logger::log( $message, 'NEWSPACK-NEWSLETTERS' );
 		}
@@ -247,7 +247,7 @@ class WooCommerce_Sync {
 	 *
 	 * @return array|\WP_Error Array of subscription IDs, or WP_Error if an error occurred.
 	 */
-	private static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
+	protected static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
 		if (
 			! class_exists( '\Newspack_Subscription_Migrations\Stripe_Sync' ) ||
 			! class_exists( '\Newspack_Subscription_Migrations\CSV_Importers\CSV_Importer' )
@@ -301,7 +301,7 @@ class WooCommerce_Sync {
 	 *
 	 * @return int|\WP_Error Number of resynced contacts, or WP_Error if an error occurred.
 	 */
-	private static function resync_woo_contacts( $config ) {
+	protected static function resync_woo_contacts( $config ) {
 		$default_config = [
 			'active_only'      => false,
 			'migrated_only'    => false,
@@ -443,7 +443,7 @@ class WooCommerce_Sync {
 	 *
 	 * @return bool True if the contact was resynced successfully, false otherwise.
 	 */
-	public static function resync_contact( $user_id = 0, $order = null, $is_dry_run = false ) {
+	protected static function resync_contact( $user_id = 0, $order = null, $is_dry_run = false ) {
 		$result            = false;
 		$registration_site = false;
 
@@ -531,7 +531,7 @@ class WooCommerce_Sync {
 	 *
 	 * @return array|false Array of customer IDs, or false if no more to fetch.
 	 */
-	public static function get_batch_of_customers( $batch_size, $offset = 0 ) {
+	protected static function get_batch_of_customers( $batch_size, $offset = 0 ) {
 		$customer_roles = self::CUSTOMER_ROLES;
 		if ( defined( 'NEWSPACK_NETWORK_READER_ROLE' ) ) {
 			$customer_roles[] = NEWSPACK_NETWORK_READER_ROLE;
