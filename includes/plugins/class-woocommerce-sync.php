@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * WooCommerce Sync Class.
  */
-class WooCommerce_Sync {
+abstract class WooCommerce_Sync {
 	// User roles that a customer can have.
 	const CUSTOMER_ROLES = [ 'customer', 'subscriber' ];
 
@@ -27,123 +27,6 @@ class WooCommerce_Sync {
 	protected static $results = [
 		'processed' => 0,
 	];
-
-	/**
-	 * Initialize hooks.
-	 */
-	public static function init_hooks() {
-		\add_action( 'init', [ __CLASS__, 'wp_cli' ] );
-	}
-
-	/**
-	 * Add CLI commands.
-	 */
-	public static function wp_cli() {
-		if ( ! defined( 'WP_CLI' ) ) {
-			return;
-		}
-
-		\WP_CLI::add_command(
-			'newspack-newsletters woo resync',
-			[ __CLASS__, 'cli_resync_woo_contacts' ],
-			[
-				'shortdesc' => __( 'Resync customer and transaction data to the connected ESP.', 'newspack-newsletters' ),
-				'synopsis'  => [
-					[
-						'type'     => 'flag',
-						'name'     => 'dry-run',
-						'optional' => true,
-					],
-					[
-						'type'     => 'flag',
-						'name'     => 'active-only',
-						'optional' => true,
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'migrated-subscriptions',
-						'default'  => false,
-						'optional' => true,
-						'options'  => [ 'stripe', 'piano-csv', 'stripe-csv', false ],
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'subscription-ids',
-						'default'  => false,
-						'optional' => true,
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'user-ids',
-						'default'  => false,
-						'optional' => true,
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'order-ids',
-						'default'  => false,
-						'optional' => true,
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'batch-size',
-						'default'  => 10,
-						'optional' => true,
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'offset',
-						'default'  => 0,
-						'optional' => true,
-					],
-					[
-						'type'     => 'assoc',
-						'name'     => 'max-batches',
-						'default'  => 0,
-						'optional' => true,
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * CLI command for resyncing contact data from WooCommerce customers to the connected ESP.
-	 *
-	 * @param array $args Positional args.
-	 * @param array $assoc_args Associative args.
-	 */
-	public static function cli_resync_woo_contacts( $args, $assoc_args ) {
-		$config = [];
-		$config['is_dry_run']       = ! empty( $assoc_args['dry-run'] );
-		$config['active_only']      = ! empty( $assoc_args['active-only'] );
-		$config['migrated_only']    = ! empty( $assoc_args['migrated-subscriptions'] ) ? $assoc_args['migrated-subscriptions'] : false;
-		$config['subscription_ids'] = ! empty( $assoc_args['subscription-ids'] ) ? explode( ',', $assoc_args['subscription-ids'] ) : false;
-		$config['user_ids']         = ! empty( $assoc_args['user-ids'] ) ? explode( ',', $assoc_args['user-ids'] ) : false;
-		$config['order_ids']        = ! empty( $assoc_args['order-ids'] ) ? explode( ',', $assoc_args['order-ids'] ) : false;
-		$config['batch_size']       = ! empty( $assoc_args['batch-size'] ) ? intval( $assoc_args['batch-size'] ) : 10;
-		$config['offset']           = ! empty( $assoc_args['offset'] ) ? intval( $assoc_args['offset'] ) : 0;
-		$config['max_batches']      = ! empty( $assoc_args['max-batches'] ) ? intval( $assoc_args['max-batches'] ) : 0;
-
-		$processed = self::resync_woo_contacts( $config );
-
-		if ( is_wp_error( $processed ) ) {
-			\WP_CLI::error( $processed->get_error_message() );
-			return;
-		}
-
-		\WP_CLI::line( "\n" );
-		\WP_CLI::success(
-			sprintf(
-				// Translators: total number of resynced contacts.
-				__(
-					'Resynced %d contacts.',
-					'newspack-newsletters'
-				),
-				$processed
-			)
-		);
-	}
 
 	/**
 	 * Does the given user have any subscriptions with an active status?
@@ -194,17 +77,17 @@ class WooCommerce_Sync {
 	 *
 	 * @param array $contact The contact data to sync.
 	 *
-	 * @return void|\WP_Error WP_Error if an error occurred.
+	 * @return true|\WP_Error True if succeeded or WP_Error.
 	 */
 	protected static function sync_contact( $contact ) {
 		// Only if Reader Activation is available.
 		if ( ! class_exists( 'Newspack\Reader_Activation' ) ) {
-			return;
+			return new \WP_Error( 'newspack_newsletters_resync_woo_contacts', __( 'Reader Activation is not available.', 'newspack-newsletters' ) );
 		}
 
 		// Only if RAS + ESP sync is enabled.
 		if ( ! \Newspack\Reader_Activation::is_enabled() || ! \Newspack\Reader_Activation::get_setting( 'sync_esp' ) ) {
-			return;
+			return new \WP_Error( 'newspack_newsletters_resync_woo_contacts', __( 'Reader Activation ESP sync is not enabled.', 'newspack-newsletters' ) );
 		}
 
 		$master_list_id = \Newspack\Reader_Activation::get_esp_master_list_id();
@@ -214,6 +97,7 @@ class WooCommerce_Sync {
 		if ( \is_wp_error( $result ) ) {
 			return $result;
 		}
+		return true;
 	}
 
 	/**
@@ -224,9 +108,6 @@ class WooCommerce_Sync {
 	protected static function log( $message ) {
 		if ( class_exists( 'Newspack\Logger' ) ) {
 			\Newspack\Logger::log( $message, 'NEWSPACK-NEWSLETTERS' );
-		}
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			\WP_CLI::log( $message );
 		}
 	}
 
@@ -311,11 +192,11 @@ class WooCommerce_Sync {
 		];
 		$config = \wp_parse_args( $config, $default_config );
 
-		self::log( __( 'Running WooCommerce-to-ESP contact resync...', 'newspack-newsletters' ) );
+		static::log( __( 'Running WooCommerce-to-ESP contact resync...', 'newspack-newsletters' ) );
 
 		// If not doing a dry run, make sure the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC
 		// constant is set or the sync will fail silently.
-		if ( ! $config['is_dry_run'] && ! self::maybe_disable_esp_syncing( true ) ) {
+		if ( ! $config['is_dry_run'] && ! static::maybe_disable_esp_syncing( true ) ) {
 			return new \WP_Error(
 				'newspack_newsletters_resync_woo_contacts',
 				__( 'Unable to sync due to disabled ESP sync option. Is the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC constant defined?', 'newspack-newsletters' )
@@ -324,7 +205,7 @@ class WooCommerce_Sync {
 
 		// If resyncing only migrated subscriptions.
 		if ( $config['migrated_only'] ) {
-			$config['subscription_ids'] = self::get_migrated_subscriptions( $config['migrated_only'], $config['batch_size'], $config['offset'], $config['active_only'] );
+			$config['subscription_ids'] = static::get_migrated_subscriptions( $config['migrated_only'], $config['batch_size'], $config['offset'], $config['active_only'] );
 			if ( \is_wp_error( $config['subscription_ids'] ) ) {
 				return $config['subscription_ids'];
 			}
@@ -332,14 +213,14 @@ class WooCommerce_Sync {
 		}
 
 		if ( ! empty( $config['subscription_ids'] ) ) {
-			self::log( __( 'Syncing by subscription ID...', 'newspack-newsletters' ) );
+			static::log( __( 'Syncing by subscription ID...', 'newspack-newsletters' ) );
 
 			while ( ! empty( $config['subscription_ids'] ) ) {
 				$subscription_id = array_shift( $config['subscription_ids'] );
 				$subscription    = \wcs_get_subscription( $subscription_id );
 
 				if ( \is_wp_error( $subscription ) ) {
-					self::log(
+					static::log(
 						sprintf(
 							// Translators: %d is the subscription ID arg passed to the script.
 							__( 'No subscription with ID %d. Skipping.', 'newspack-newsletters' ),
@@ -350,7 +231,17 @@ class WooCommerce_Sync {
 					continue;
 				}
 
-				self::resync_contact( 0, $subscription, $config['is_dry_run'] );
+				$result = static::resync_contact( 0, $subscription, $config['is_dry_run'] );
+				if ( \is_wp_error( $result ) ) {
+					static::log(
+						sprintf(
+							// Translators: %1$d is the subscription ID arg passed to the script. %2$s is the error message.
+							__( 'Error resyncing contact info for subscription ID %1$d. %2$s', 'newspack-newsletters' ),
+							$subscription_id,
+							$result->get_error_message()
+						)
+					);
+				}
 
 				// Get the next batch.
 				if ( $config['migrated_only'] && empty( $config['subscription_ids'] ) ) {
@@ -361,19 +252,19 @@ class WooCommerce_Sync {
 					}
 
 					$next_batch_offset = $config['offset'] + ( $batches * $config['batch_size'] );
-					$config['subscription_ids'] = self::get_migrated_subscriptions( $config['migrated_only'], $config['batch_size'], $next_batch_offset, $config['active_only'] );
+					$config['subscription_ids'] = static::get_migrated_subscriptions( $config['migrated_only'], $config['batch_size'], $next_batch_offset, $config['active_only'] );
 				}
 			}
 		}
 
 		// If order-ids flag is passed, resync contacts for those orders.
 		if ( ! empty( $config['order_ids'] ) ) {
-			self::log( __( 'Syncing by order ID...', 'newspack-newsletters' ) );
+			static::log( __( 'Syncing by order ID...', 'newspack-newsletters' ) );
 			foreach ( $config['order_ids'] as $order_id ) {
 				$order = new \WC_Order( $order_id );
 
 				if ( \is_wp_error( $order ) ) {
-					self::log(
+					static::log(
 						sprintf(
 							// Translators: %d is the order ID arg passed to the script.
 							__( 'No order with ID %d. Skipping.', 'newspack-newsletters' ),
@@ -384,16 +275,36 @@ class WooCommerce_Sync {
 					continue;
 				}
 
-				self::resync_contact( 0, $order, $config['is_dry_run'] );
+				$result = static::resync_contact( 0, $order, $config['is_dry_run'] );
+				if ( \is_wp_error( $result ) ) {
+					static::log(
+						sprintf(
+							// Translators: %1$d is the order ID arg passed to the script. %2$s is the error message.
+							__( 'Error resyncing contact info for order ID %1$d. %2$s', 'newspack-newsletters' ),
+							$order_id,
+							$result->get_error_message()
+						)
+					);
+				}
 			}
 		}
 
 		// If user-ids flag is passed, resync those users.
 		if ( ! empty( $config['user_ids'] ) ) {
-			self::log( __( 'Syncing by customer user ID...', 'newspack-newsletters' ) );
+			static::log( __( 'Syncing by customer user ID...', 'newspack-newsletters' ) );
 			foreach ( $config['user_ids'] as $user_id ) {
-				if ( ! $config['active_only'] || self::user_has_active_subscriptions( $user_id ) ) {
-					self::resync_contact( $user_id, null, $config['is_dry_run'] );
+				if ( ! $config['active_only'] || static::user_has_active_subscriptions( $user_id ) ) {
+					$result = static::resync_contact( $user_id, null, $config['is_dry_run'] );
+					if ( \is_wp_error( $result ) ) {
+						static::log(
+							sprintf(
+								// Translators: %1$d is the user ID arg passed to the script. %2$s is the error message.
+								__( 'Error resyncing contact info for user ID %1$d. %2$s', 'newspack-newsletters' ),
+								$user_id,
+								$result->get_error_message()
+							)
+						);
+					}
 				}
 			}
 		}
@@ -405,14 +316,24 @@ class WooCommerce_Sync {
 			false === $config['subscription_ids'] &&
 			false === $config['migrated_only']
 		) {
-			self::log( __( 'Syncing all customers...', 'newspack-newsletters' ) );
-			$user_ids = self::get_batch_of_customers( $config['batch_size'], $config['offset'] );
+			static::log( __( 'Syncing all customers...', 'newspack-newsletters' ) );
+			$user_ids = static::get_batch_of_customers( $config['batch_size'], $config['offset'] );
 			$batches  = 0;
 
 			while ( $user_ids ) {
 				$user_id = array_shift( $user_ids );
-				if ( ! $config['active_only'] || self::user_has_active_subscriptions( $user_id ) ) {
-					self::resync_contact( $user_id, null, $config['is_dry_run'] );
+				if ( ! $config['active_only'] || static::user_has_active_subscriptions( $user_id ) ) {
+					$result = static::resync_contact( $user_id, null, $config['is_dry_run'] );
+					if ( \is_wp_error( $result ) ) {
+						static::log(
+							sprintf(
+								// Translators: $1$s is the contact's email address. %2$s is the error message.
+								__( 'Error resyncing contact info for %1$s. %2$s' ),
+								$customer->get_email(),
+								$result->get_error_message()
+							)
+						);
+					}
 				}
 
 				// Get the next batch.
@@ -423,12 +344,12 @@ class WooCommerce_Sync {
 						break;
 					}
 
-					$user_ids = self::get_batch_of_customers( $config['batch_size'], $config['offset'] + ( $batches * $config['batch_size'] ) );
+					$user_ids = static::get_batch_of_customers( $config['batch_size'], $config['offset'] + ( $batches * $config['batch_size'] ) );
 				}
 			}
 		}
 
-		return self::$results['processed'];
+		return static::$results['processed'];
 	}
 
 	/**
@@ -445,15 +366,7 @@ class WooCommerce_Sync {
 		$registration_site = false;
 
 		if ( ! $user_id && ! $order ) {
-			self::log(
-				sprintf(
-				// Translators: %d is the user ID arg passed to the script.
-					__( 'Must pass either a user ID or order. Skipping.', 'newspack-newsletters' ),
-					$user_id
-				)
-			);
-
-			return $result;
+			return new \WP_Error( 'newspack_newsletters_resync_contact', __( 'Must pass either a user ID or order.', 'newspack-newsletters' ) );
 		}
 
 		$user = \get_userdata( $user_id ? $user_id : $order->get_customer_id() );
@@ -471,15 +384,14 @@ class WooCommerce_Sync {
 
 		$customer = new \WC_Customer( $user_id ? $user_id : $order->get_customer_id() );
 		if ( ! $customer || ! $customer->get_id() ) {
-			self::log(
+			return new \WP_Error(
+				'newspack_newsletters_resync_contact',
 				sprintf(
 				// Translators: %d is the user ID arg passed to the script.
-					__( 'Customer with ID %d does not exist. Skipping.', 'newspack-newsletters' ),
+					__( 'Customer with ID %d does not exist.', 'newspack-newsletters' ),
 					$user_id
 				)
 			);
-
-			return $result;
 		}
 
 		// Ensure the customer has a billing address.
@@ -492,10 +404,10 @@ class WooCommerce_Sync {
 		if ( $registration_site ) {
 			$contact['metadata']['network_registration_site'] = $registration_site;
 		}
-		$result = $is_dry_run ? true : self::sync_contact( $contact );
+		$result = $is_dry_run ? true : static::sync_contact( $contact );
 
 		if ( $result && ! \is_wp_error( $result ) ) {
-			self::log(
+			static::log(
 				sprintf(
 					// Translators: %1$s is the resync status and %2$s is the contact's email address.
 					__( '%1$s contact data for %2$s.', 'newspack-newsletters' ),
@@ -503,18 +415,11 @@ class WooCommerce_Sync {
 					$customer->get_email()
 				)
 			);
-			self::$results['processed']++;
+			static::$results['processed']++;
 		}
 
 		if ( \is_wp_error( $result ) ) {
-			\WP_CLI::warning(
-				sprintf(
-					// Translators: $1$s is the contact's email address. %2$s is the error message.
-					__( 'Error resyncing contact info for %1$s. %2$s' ),
-					$customer->get_email(),
-					$result->get_error_message()
-				)
-			);
+			return $result;
 		}
 
 		return $result;
@@ -529,7 +434,7 @@ class WooCommerce_Sync {
 	 * @return array|false Array of customer IDs, or false if no more to fetch.
 	 */
 	protected static function get_batch_of_customers( $batch_size, $offset = 0 ) {
-		$customer_roles = self::CUSTOMER_ROLES;
+		$customer_roles = static::CUSTOMER_ROLES;
 		if ( defined( 'NEWSPACK_NETWORK_READER_ROLE' ) ) {
 			$customer_roles[] = NEWSPACK_NETWORK_READER_ROLE;
 		}
@@ -550,4 +455,3 @@ class WooCommerce_Sync {
 		return ! empty( $results ) ? $results : false;
 	}
 }
-WooCommerce_Sync::init_hooks();

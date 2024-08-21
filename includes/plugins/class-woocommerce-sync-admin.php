@@ -40,9 +40,9 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 		}
 		return \add_query_arg(
 			[
-				'action'   => self::ADMIN_ACTION,
+				'action'   => static::ADMIN_ACTION,
 				'uid'      => $user_id,
-				'_wpnonce' => \wp_create_nonce( self::ADMIN_ACTION ),
+				'_wpnonce' => \wp_create_nonce( static::ADMIN_ACTION ),
 			]
 		);
 	}
@@ -57,8 +57,8 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 	 */
 	public static function user_row_actions( $actions, $user ) {
 		if ( \current_user_can( 'edit_user', $user->ID ) ) {
-			$url = self::get_admin_action_url( $user->ID );
-			$actions[ self::ADMIN_ACTION ] = '<a href="' . $url . '">' . \esc_html__( 'Resync contact to ESP', 'newspack-newsletters' ) . '</a>';
+			$url = static::get_admin_action_url( $user->ID );
+			$actions[ static::ADMIN_ACTION ] = '<a href="' . $url . '">' . \esc_html__( 'Resync contact to ESP', 'newspack-newsletters' ) . '</a>';
 		}
 		return $actions;
 	}
@@ -74,7 +74,7 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return $actions;
 		}
-		$actions[ self::ADMIN_ACTION ] = \esc_html__( 'Resync to the ESP', 'newspack-newsletters' );
+		$actions[ static::ADMIN_ACTION ] = \esc_html__( 'Resync to the ESP', 'newspack-newsletters' );
 		return $actions;
 	}
 
@@ -92,16 +92,18 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 			if ( ! \current_user_can( 'edit_users' ) ) {
 				\wp_die( \esc_html__( 'You do not have permission to do that.', 'newspack-newsletters' ) );
 			}
-			$config = [
-				'user_ids' => $items,
-			];
-			$result = self::resync_woo_contacts( $config );
+			foreach ( $items as $user_id ) {
+				$result = static::resync_contact( $user_id );
+				if ( \is_wp_error( $result ) ) {
+					\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
+			}
 			if ( \is_wp_error( $result ) ) {
 				\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 			$sendback = \add_query_arg(
 				[
-					'update'          => self::ADMIN_ACTION,
+					'update'          => static::ADMIN_ACTION,
 					'synced-contacts' => count( $items ),
 				],
 				$sendback
@@ -115,7 +117,7 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 	 */
 	public static function process_admin_action() {
 
-		if ( ! isset( $_GET['action'] ) || self::ADMIN_ACTION !== $_GET['action'] ) {
+		if ( ! isset( $_GET['action'] ) || static::ADMIN_ACTION !== $_GET['action'] ) {
 			return;
 		}
 
@@ -145,7 +147,7 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 		$config = [
 			'user_ids' => [ $user_id ],
 		];
-		$result = self::resync_woo_contacts( $config );
+		$result = static::resync_contact( $user_id );
 		if ( \is_wp_error( $result ) ) {
 			\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
@@ -164,7 +166,7 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 			return;
 		}
 		$update = sanitize_text_field( wp_unslash( $_GET['update'] ) );
-		if ( self::ADMIN_ACTION !== $update ) {
+		if ( static::ADMIN_ACTION !== $update ) {
 			return;
 		}
 		$message = __( 'Contact resynced to the ESP.', 'newspack-newsletters' );

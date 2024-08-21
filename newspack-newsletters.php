@@ -73,6 +73,7 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-admin.
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsletters.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/class-woocommerce-memberships.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/class-woocommerce-sync.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/class-woocommerce-sync-cli.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/class-woocommerce-sync-admin.php';
 
 // This MUST be initialized after Newspack_Newsletter class.
