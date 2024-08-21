@@ -49,7 +49,7 @@ class WooCommerce_Sync {
 
 		\WP_CLI::add_command(
 			'newspack-newsletters woo resync',
-			[ __CLASS__, 'resync_woo_contacts' ],
+			[ __CLASS__, 'cli_resync_woo_contacts' ],
 			[
 				'shortdesc' => __( 'Resync customer and transaction data to the connected ESP.', 'newspack-newsletters' ),
 				'synopsis'  => [
@@ -108,6 +108,44 @@ class WooCommerce_Sync {
 					],
 				],
 			]
+		);
+	}
+
+	/**
+	 * CLI command for resyncing contact data from WooCommerce customers to the connected ESP.
+	 *
+	 * @param array $args Positional args.
+	 * @param array $assoc_args Associative args.
+	 */
+	public static function cli_resync_woo_contacts( $args, $assoc_args ) {
+		$config = [];
+		$config['is_dry_run']       = ! empty( $assoc_args['dry-run'] );
+		$config['active_only']      = ! empty( $assoc_args['active-only'] );
+		$config['migrated_only']    = ! empty( $assoc_args['migrated-subscriptions'] ) ? $assoc_args['migrated-subscriptions'] : false;
+		$config['subscription_ids'] = ! empty( $assoc_args['subscription-ids'] ) ? explode( ',', $assoc_args['subscription-ids'] ) : false;
+		$config['user_ids']         = ! empty( $assoc_args['user-ids'] ) ? explode( ',', $assoc_args['user-ids'] ) : false;
+		$config['order_ids']        = ! empty( $assoc_args['order-ids'] ) ? explode( ',', $assoc_args['order-ids'] ) : false;
+		$config['batch_size']       = ! empty( $assoc_args['batch-size'] ) ? intval( $assoc_args['batch-size'] ) : 10;
+		$config['offset']           = ! empty( $assoc_args['offset'] ) ? intval( $assoc_args['offset'] ) : 0;
+		$config['max_batches']      = ! empty( $assoc_args['max-batches'] ) ? intval( $assoc_args['max-batches'] ) : 0;
+
+		$processed = self::resync_woo_contacts( $config );
+
+		if ( is_wp_error( $processed ) ) {
+			\WP_CLI::error( $processed->get_error_message() );
+			return;
+		}
+
+		\WP_CLI::line( "\n" );
+		\WP_CLI::success(
+			sprintf(
+				// Translators: total number of resynced contacts.
+				__(
+					'Resynced %d contacts.',
+					'newspack-newsletters'
+				),
+				$processed
+			)
 		);
 	}
 
@@ -171,76 +209,140 @@ class WooCommerce_Sync {
 			return;
 		}
 
-		// Only if we have the ESP Data Events connectors.
-		if ( ! class_exists( 'Newspack\Data_Events\Connectors\Mailchimp' ) || ! class_exists( 'Newspack\Data_Events\Connectors\ActiveCampaign' ) ) {
-			return;
+		$master_list_id = \Newspack\Reader_Activation::get_esp_master_list_id();
+
+		$result = \Newspack_Newsletters_Contacts::upsert( $contact, $master_list_id, 'WooCommerce Sync' );
+
+		if ( \is_wp_error( $result ) ) {
+			return $result;
 		}
 
-		\Newspack_Newsletters_Contacts::upsert( $contact, false, 'WooCommerce Sync' );
+		return true;
 	}
 
 	/**
-	 * CLI command for resyncing contact data from WooCommerce customers to the connected ESP.
+	 * Log a message to the Newspack logger and/or WP CLI.
 	 *
-	 * @param array $args Positional args.
-	 * @param array $assoc_args Associative args.
+	 * @param string $message The message to log.
 	 */
-	public static function resync_woo_contacts( $args, $assoc_args ) {
-		$is_dry_run       = ! empty( $assoc_args['dry-run'] );
-		$active_only      = ! empty( $assoc_args['active-only'] );
-		$migrated_only    = ! empty( $assoc_args['migrated-subscriptions'] ) ? $assoc_args['migrated-subscriptions'] : false;
-		$subscription_ids = ! empty( $assoc_args['subscription-ids'] ) ? explode( ',', $assoc_args['subscription-ids'] ) : false;
-		$user_ids         = ! empty( $assoc_args['user-ids'] ) ? explode( ',', $assoc_args['user-ids'] ) : false;
-		$order_ids        = ! empty( $assoc_args['order-ids'] ) ? explode( ',', $assoc_args['order-ids'] ) : false;
-		$batch_size       = ! empty( $assoc_args['batch-size'] ) ? intval( $assoc_args['batch-size'] ) : 10;
-		$offset           = ! empty( $assoc_args['offset'] ) ? intval( $assoc_args['offset'] ) : 0;
-		$max_batches      = ! empty( $assoc_args['max-batches'] ) ? intval( $assoc_args['max-batches'] ) : 0;
-
-		\WP_CLI::log(
-			'
-
-Running WooCommerce-to-ESP contact resync...
-
-		'
-		);
-
-		if ( $migrated_only && ! class_exists( '\Newspack_Subscription_Migrations\Stripe_Sync' ) ) {
-			\WP_CLI::error( __( 'The migrated-subscriptions flag requires the Newspack_Subscription_Migrations plugin to installed and active.', 'newspack-newsletters' ) );
+	private static function log( $message ) {
+		if ( class_exists( 'Newspack\Logger' ) ) {
+			\Newspack\Logger::log( $message, 'NEWSPACK-NEWSLETTERS' );
 		}
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::log( $message );
+		}
+	}
+
+	/**
+	 * Get a batch of migrated subscriptions.
+	 *
+	 * This method requires the Newspack_Subscription_Migrations plugin to be
+	 * installed and active, otherwise it will return a WP_Error.
+	 *
+	 * @param string $source The source of the subscriptions. One of 'stripe', 'piano-csv', 'stripe-csv'.
+	 * @param int    $batch_size Number of subscriptions to get.
+	 * @param int    $offset Number to skip.
+	 * @param bool   $active_only Whether to get only active subscriptions.
+	 *
+	 * @return array|\WP_Error Array of subscription IDs, or WP_Error if an error occurred.
+	 */
+	private static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
+		if (
+			! class_exists( '\Newspack_Subscription_Migrations\Stripe_Sync' ) ||
+			! class_exists( '\Newspack_Subscription_Migrations\CSV_Importers\CSV_Importer' )
+		) {
+			return new \WP_Error(
+				'newspack_newsletters_resync_woo_contacts',
+				__( 'The migrated-subscriptions flag requires the Newspack_Subscription_Migrations plugin to be installed and active.', 'newspack-newsletters' )
+			);
+		}
+		$subscription_ids = [];
+		switch ( $source ) {
+			case 'stripe':
+				$subscription_ids = Stripe_Sync::get_migrated_subscriptions( $batch_size, $offset, $active_only );
+				break;
+			case 'piano-csv':
+				$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'piano', $batch_size, $offset, $active_only );
+				break;
+			case 'stripe-csv':
+				$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'stripe', $batch_size, $offset, $active_only );
+				break;
+			default:
+				return new \WP_Error(
+					'newspack_newsletters_resync_woo_contacts',
+					sprintf(
+						// Translators: %s is the source of the subscriptions.
+						__( 'Invalid subscription migration type: %s', 'newspack-newsletters' ),
+						$source
+					)
+				);
+		}
+		return $subscription_ids;
+	}
+
+	/**
+	 * Resync contact data from WooCommerce customers to the connected ESP.
+	 *
+	 * @param array $config {
+	 *   Configuration options.
+	 *
+	 *   @type bool        $config['is_dry_run'] True if a dry run.
+	 *   @type bool        $config['active_only'] True if only active subscriptions should be synced.
+	 *   @type string|bool $config['migrated_only'] If set, only sync subscriptions migrated from the given source.
+	 *   @type array|bool  $config['subscription_ids'] If set, only sync the given subscription IDs.
+	 *   @type array|bool  $config['user_ids'] If set, only sync the given user IDs.
+	 *   @type array|bool  $config['order_ids'] If set, only sync the given order IDs.
+	 *   @type int         $config['batch_size'] Number of contacts to sync per batch.
+	 *   @type int         $config['offset'] Number of contacts to skip.
+	 *   @type int         $config['max_batches'] Maximum number of batches to process.
+	 *   @type bool        $config['is_dry_run'] True if a dry run.
+	 * }
+	 *
+	 * @return int|\WP_Error Number of resynced contacts, or WP_Error if an error occurred.
+	 */
+	private static function resync_woo_contacts( $config ) {
+		$default_config = [
+			'active_only'      => false,
+			'migrated_only'    => false,
+			'subscription_ids' => false,
+			'user_ids'         => false,
+			'order_ids'        => false,
+			'batch_size'       => 10,
+			'offset'           => 0,
+			'max_batches'      => 0,
+		];
+		$config = \wp_parse_args( $config, $default_config );
+
+		self::log( __( 'Running WooCommerce-to-ESP contact resync...', 'newspack-newsletters' ) );
 
 		// If not doing a dry run, make sure the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC
 		// constant is set or the sync will fail silently.
-		if ( ! $is_dry_run && ! self::maybe_disable_esp_syncing( true ) ) {
-			\WP_CLI::error( __( 'Unable to sync due to disabled ESP sync option. Is the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC constant defined?', 'newspack-newsletters' ) );
+		if ( ! $config['is_dry_run'] && ! self::maybe_disable_esp_syncing( true ) ) {
+			return new \WP_Error(
+				'newspack_newsletters_resync_woo_contacts',
+				__( 'Unable to sync due to disabled ESP sync option. Is the NEWSPACK_SUBSCRIPTION_MIGRATIONS_ALLOW_ESP_SYNC constant defined?', 'newspack-newsletters' )
+			);
 		}
 
 		// If resyncing only migrated subscriptions.
-		if ( $migrated_only ) {
-			switch ( $migrated_only ) {
-				case 'stripe':
-					$subscription_ids = Stripe_Sync::get_migrated_subscriptions( $batch_size, $offset, $active_only );
-					break;
-				case 'piano-csv':
-					$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'piano', $batch_size, $offset, $active_only );
-					break;
-				case 'stripe-csv':
-					$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'stripe', $batch_size, $offset, $active_only );
-					break;
-				default:
-					\WP_CLI::error( __( 'Invalid subscription migration type ', 'newspack-newsletters' ) . $migrated_only );
+		if ( $config['migrated_only'] ) {
+			$config['subscription_ids'] = self::get_migrated_subscriptions( $config['migrated_only'], $config['batch_size'], $config['offset'], $config['active_only'] );
+			if ( \is_wp_error( $config['subscription_ids'] ) ) {
+				return $config['subscription_ids'];
 			}
 			$batches = 0;
 		}
 
-		if ( ! empty( $subscription_ids ) ) {
-			\WP_CLI::log( __( 'Syncing by subscription ID...', 'newspack-newsletters' ) ) . "\n\n";
+		if ( ! empty( $config['subscription_ids'] ) ) {
+			self::log( __( 'Syncing by subscription ID...', 'newspack-newsletters' ) );
 
-			while ( ! empty( $subscription_ids ) ) {
-				$subscription_id = array_shift( $subscription_ids );
+			while ( ! empty( $config['subscription_ids'] ) ) {
+				$subscription_id = array_shift( $config['subscription_ids'] );
 				$subscription    = \wcs_get_subscription( $subscription_id );
 
 				if ( \is_wp_error( $subscription ) ) {
-					\WP_CLI::log(
+					self::log(
 						sprintf(
 							// Translators: %d is the subscription ID arg passed to the script.
 							__( 'No subscription with ID %d. Skipping.', 'newspack-newsletters' ),
@@ -251,42 +353,30 @@ Running WooCommerce-to-ESP contact resync...
 					continue;
 				}
 
-				self::resync_contact( 0, $subscription, $is_dry_run );
+				self::resync_contact( 0, $subscription, $config['is_dry_run'] );
 
 				// Get the next batch.
-				if ( $migrated_only && empty( $subscription_ids ) ) {
+				if ( $config['migrated_only'] && empty( $config['subscription_ids'] ) ) {
 					$batches++;
 
-					if ( $max_batches && $batches >= $max_batches ) {
+					if ( $config['max_batches'] && $batches >= $config['max_batches'] ) {
 						break;
 					}
 
-					$next_batch = $offset + ( $batches * $batch_size );
-					switch ( $migrated_only ) {
-						case 'stripe':
-							$subscription_ids = Stripe_Sync::get_migrated_subscriptions( $batch_size, $next_batch, $active_only );
-							break;
-						case 'piano-csv':
-							$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'piano', $batch_size, $next_batch, $active_only );
-							break;
-						case 'stripe-csv':
-							$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'stripe', $batch_size, $next_batch, $active_only );
-							break;
-						default:
-							\WP_CLI::error( __( 'Invalid subscription migration type ', 'newspack-newsletters' ) . $migrated_only );
-					}
+					$next_batch_offset = $config['offset'] + ( $batches * $config['batch_size'] );
+					$config['subscription_ids'] = self::get_migrated_subscriptions( $config['migrated_only'], $config['batch_size'], $next_batch_offset, $config['active_only'] );
 				}
 			}
 		}
 
 		// If order-ids flag is passed, resync contacts for those orders.
-		if ( ! empty( $order_ids ) ) {
-			\WP_CLI::log( __( 'Syncing by order ID...', 'newspack-newsletters' ) );
-			foreach ( $order_ids as $order_id ) {
+		if ( ! empty( $config['order_ids'] ) ) {
+			self::log( __( 'Syncing by order ID...', 'newspack-newsletters' ) );
+			foreach ( $config['order_ids'] as $order_id ) {
 				$order = new \WC_Order( $order_id );
 
 				if ( \is_wp_error( $order ) ) {
-					\WP_CLI::log(
+					self::log(
 						sprintf(
 							// Translators: %d is the order ID arg passed to the script.
 							__( 'No order with ID %d. Skipping.', 'newspack-newsletters' ),
@@ -297,56 +387,51 @@ Running WooCommerce-to-ESP contact resync...
 					continue;
 				}
 
-				self::resync_contact( 0, $order, $is_dry_run );
+				self::resync_contact( 0, $order, $config['is_dry_run'] );
 			}
 		}
 
 		// If user-ids flag is passed, resync those users.
-		if ( ! empty( $user_ids ) ) {
-			\WP_CLI::log( __( 'Syncing by customer user ID...', 'newspack-newsletters' ) );
-			foreach ( $user_ids as $user_id ) {
-				if ( ! $active_only || self::user_has_active_subscriptions( $user_id ) ) {
-					self::resync_contact( $user_id, null, $is_dry_run );
+		if ( ! empty( $config['user_ids'] ) ) {
+			self::log( __( 'Syncing by customer user ID...', 'newspack-newsletters' ) );
+			foreach ( $config['user_ids'] as $user_id ) {
+				if ( ! $config['active_only'] || self::user_has_active_subscriptions( $user_id ) ) {
+					self::resync_contact( $user_id, null, $config['is_dry_run'] );
 				}
 			}
 		}
 
 		// Default behavior: resync all customers and subscribers.
-		if ( false === $user_ids && false === $order_ids && false === $subscription_ids && false === $migrated_only ) {
-			\WP_CLI::log( __( 'Syncing all customers...', 'newspack-newsletters' ) );
-			$user_ids = self::get_batch_of_customers( $batch_size, $offset );
+		if (
+			false === $config['user_ids'] &&
+			false === $config['order_ids'] &&
+			false === $config['subscription_ids'] &&
+			false === $config['migrated_only']
+		) {
+			self::log( __( 'Syncing all customers...', 'newspack-newsletters' ) );
+			$user_ids = self::get_batch_of_customers( $config['batch_size'], $config['offset'] );
 			$batches  = 0;
 
 			while ( $user_ids ) {
 				$user_id = array_shift( $user_ids );
-				if ( ! $active_only || self::user_has_active_subscriptions( $user_id ) ) {
-					self::resync_contact( $user_id, null, $is_dry_run );
+				if ( ! $config['active_only'] || self::user_has_active_subscriptions( $user_id ) ) {
+					self::resync_contact( $user_id, null, $config['is_dry_run'] );
 				}
 
 				// Get the next batch.
 				if ( empty( $user_ids ) ) {
 					$batches++;
 
-					if ( $max_batches && $batches >= $max_batches ) {
+					if ( $config['max_batches'] && $batches >= $config['max_batches'] ) {
 						break;
 					}
 
-					$user_ids = self::get_batch_of_customers( $batch_size, $offset + ( $batches * $batch_size ) );
+					$user_ids = self::get_batch_of_customers( $config['batch_size'], $config['offset'] + ( $batches * $config['batch_size'] ) );
 				}
 			}
 		}
 
-		\WP_CLI::line( "\n" );
-		\WP_CLI::success(
-			sprintf(
-				// Translators: total number of resynced contacts.
-				__(
-					'Resynced %d contacts.',
-					'newspack-newsletters'
-				),
-				self::$results['processed']
-			)
-		);
+		return self::$results['processed'];
 	}
 
 	/**
@@ -363,7 +448,7 @@ Running WooCommerce-to-ESP contact resync...
 		$registration_site = false;
 
 		if ( ! $user_id && ! $order ) {
-			\WP_CLI::log(
+			self::log(
 				sprintf(
 				// Translators: %d is the user ID arg passed to the script.
 					__( 'Must pass either a user ID or order. Skipping.', 'newspack-newsletters' ),
@@ -389,7 +474,7 @@ Running WooCommerce-to-ESP contact resync...
 
 		$customer = new \WC_Customer( $user_id ? $user_id : $order->get_customer_id() );
 		if ( ! $customer || ! $customer->get_id() ) {
-			\WP_CLI::log(
+			self::log(
 				sprintf(
 				// Translators: %d is the user ID arg passed to the script.
 					__( 'Customer with ID %d does not exist. Skipping.', 'newspack-newsletters' ),
@@ -413,7 +498,7 @@ Running WooCommerce-to-ESP contact resync...
 		$result = $is_dry_run ? true : self::sync_contact( $contact );
 
 		if ( $result && ! \is_wp_error( $result ) ) {
-			\WP_CLI::log(
+			self::log(
 				sprintf(
 					// Translators: %1$s is the resync status and %2$s is the contact's email address.
 					__( '%1$s contact data for %2$s.', 'newspack-newsletters' ),
