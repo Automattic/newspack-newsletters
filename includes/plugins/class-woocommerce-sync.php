@@ -7,9 +7,6 @@
 
 namespace Newspack_Newsletters\Plugins;
 
-use Newspack_Subscription_Migrations\CSV_Importers\CSV_Importer;
-use Newspack_Subscription_Migrations\Stripe_Sync;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
