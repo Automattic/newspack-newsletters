@@ -118,13 +118,12 @@ abstract class WooCommerce_Sync {
 		}
 
 		$is_order = $user_id_or_order instanceof \WC_Order;
-		$order    = $is_order ? $user_id_or_order : \wc_get_order( $user_id_or_order );
-		if ( ! $is_order && ! $order ) {
+		$order    = $is_order ? $user_id_or_order : false;
+		if ( $is_order && ! $order ) {
 			return new \WP_Error( 'newspack_newsletters_resync_contact', __( 'Order does not exist.', 'newspack-newsletters' ) );
 		}
 		$user_id = $is_order ? $order->get_customer_id() : $user_id_or_order;
-
-		$user = \get_userdata( $user_id );
+		$user    = \get_userdata( $user_id );
 
 		// Backfill Network Registration Site field if needed.
 		if ( $user && defined( 'NEWSPACK_NETWORK_READER_ROLE' ) && defined( 'Newspack_Network\Utils\Users::USER_META_REMOTE_SITE' ) ) {
