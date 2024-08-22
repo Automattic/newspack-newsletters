@@ -56,10 +56,14 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 	 * @return string[] User row actions.
 	 */
 	public static function user_row_actions( $actions, $user ) {
-		if ( \current_user_can( 'edit_user', $user->ID ) ) {
-			$url = static::get_admin_action_url( $user->ID );
-			$actions[ static::ADMIN_ACTION ] = '<a href="' . $url . '">' . \esc_html__( 'Resync contact to ESP', 'newspack-newsletters' ) . '</a>';
+		if ( ! \current_user_can( 'edit_user', $user->ID ) ) {
+			return $actions;
 		}
+		if ( ! self::can_sync_contacts() ) {
+			return $actions;
+		}
+		$url = static::get_admin_action_url( $user->ID );
+		$actions[ static::ADMIN_ACTION ] = '<a href="' . $url . '">' . \esc_html__( 'Resync contact to ESP', 'newspack-newsletters' ) . '</a>';
 		return $actions;
 	}
 
@@ -72,6 +76,9 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 	 */
 	public static function bulk_actions( $actions ) {
 		if ( ! current_user_can( 'edit_users' ) ) {
+			return $actions;
+		}
+		if ( ! self::can_sync_contacts() ) {
 			return $actions;
 		}
 		$actions[ static::ADMIN_ACTION ] = \esc_html__( 'Resync to the ESP', 'newspack-newsletters' );
@@ -88,27 +95,32 @@ class WooCommerce_Sync_Admin extends WooCommerce_Sync {
 	 * @return string The redirect URL.
 	 */
 	public static function handle_bulk_actions( $sendback, $doaction, $items ) {
-		if ( 'newspack-newsletters-wc-resync' === $doaction ) {
-			if ( ! \current_user_can( 'edit_users' ) ) {
-				\wp_die( \esc_html__( 'You do not have permission to do that.', 'newspack-newsletters' ) );
-			}
-			foreach ( $items as $user_id ) {
-				$result = static::resync_contact( $user_id );
-				if ( \is_wp_error( $result ) ) {
-					\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				}
-			}
+		if ( 'newspack-newsletters-wc-resync' !== $doaction ) {
+			return $sendback;
+		}
+		$can_sync = self::can_sync_contacts( true );
+		if ( $can_sync->has_errors() ) {
+			\wp_die( $can_sync ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		if ( ! \current_user_can( 'edit_users' ) ) {
+			\wp_die( \esc_html__( 'You do not have permission to do that.', 'newspack-newsletters' ) );
+		}
+		foreach ( $items as $user_id ) {
+			$result = static::resync_contact( $user_id );
 			if ( \is_wp_error( $result ) ) {
 				\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
-			$sendback = \add_query_arg(
-				[
-					'update'          => static::ADMIN_ACTION,
-					'synced-contacts' => count( $items ),
-				],
-				$sendback
-			);
 		}
+		if ( \is_wp_error( $result ) ) {
+			\wp_die( $result ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		$sendback = \add_query_arg(
+			[
+				'update'          => static::ADMIN_ACTION,
+				'synced-contacts' => count( $items ),
+			],
+			$sendback
+		);
 		return $sendback;
 	}
 

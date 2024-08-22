@@ -304,17 +304,17 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 	}
 
 	/**
-	 * Get a batch of customer IDs.
+	 * Get a batch of reader IDs.
 	 *
-	 * @param int $batch_size Number of customers to get.
+	 * @param int $batch_size Number of readers to get.
 	 * @param int $offset     Number to skip.
 	 *
 	 * @return array|false Array of customer IDs, or false if no more to fetch.
 	 */
-	protected static function get_batch_of_customers( $batch_size, $offset = 0 ) {
-		$customer_roles = static::CUSTOMER_ROLES;
-		if ( defined( 'NEWSPACK_NETWORK_READER_ROLE' ) ) {
-			$customer_roles[] = NEWSPACK_NETWORK_READER_ROLE;
+	protected static function get_batch_of_readers( $batch_size, $offset = 0 ) {
+		$roles = \Newspack\Reader_Activation::get_reader_roles();
+		if ( defined( 'NEWSPACK_NETWORK_READER_ROLE' ) && ! in_array( NEWSPACK_NETWORK_READER_ROLE, $roles, true ) ) {
+			$roles[] = NEWSPACK_NETWORK_READER_ROLE;
 		}
 
 		$query = new \WP_User_Query(
@@ -324,7 +324,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 				'offset'   => $offset,
 				'order'    => 'DESC',
 				'orderby'  => 'registered',
-				'role__in' => $customer_roles,
+				'role__in' => $roles,
 			]
 		);
 

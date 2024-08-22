@@ -16,9 +16,6 @@ defined( 'ABSPATH' ) || exit;
  * WooCommerce Sync Class.
  */
 abstract class WooCommerce_Sync {
-	// User roles that a customer can have.
-	const CUSTOMER_ROLES = [ 'customer', 'subscriber' ];
-
 	/**
 	 * Log a message to the Newspack logger and/or WP CLI.
 	 *
@@ -78,7 +75,7 @@ abstract class WooCommerce_Sync {
 
 		if ( ! \Newspack\Reader_Activation::get_setting( 'sync_esp' ) ) {
 			$errors->add(
-				'esp_sync_not_enabled',
+				'ras_esp_sync_not_enabled',
 				__( 'ESP sync is not enabled.', 'newspack-newsletters' )
 			);
 		}
@@ -139,7 +136,7 @@ abstract class WooCommerce_Sync {
 	 * @param int    $offset Number to skip.
 	 * @param bool   $active_only Whether to get only active subscriptions.
 	 *
-	 * @return array|\WP_Error Array of subscription IDs, or WP_Error if an error occurred.
+	 * @return array|\WP_Error Array of subscription IDs or WP_Error.
 	 */
 	protected static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
 		if (
@@ -244,11 +241,9 @@ abstract class WooCommerce_Sync {
 					$customer->get_email()
 				)
 			);
-			static::$results['processed']++;
-		}
-
-		if ( \is_wp_error( $result ) ) {
-			return $result;
+			if ( ! empty( static::$results ) ) {
+				static::$results['processed']++;
+			}
 		}
 
 		return $result;
