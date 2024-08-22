@@ -263,15 +263,15 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 			}
 		}
 
-		// Default behavior: resync all customers and subscribers.
+		// Default behavior: resync all readers.
 		if (
 			false === $config['user_ids'] &&
 			false === $config['order_ids'] &&
 			false === $config['subscription_ids'] &&
 			false === $config['migrated_only']
 		) {
-			static::log( __( 'Syncing all customers...', 'newspack-newsletters' ) );
-			$user_ids = static::get_batch_of_customers( $config['batch_size'], $config['offset'] );
+			static::log( __( 'Syncing all readers...', 'newspack-newsletters' ) );
+			$user_ids = static::get_batch_of_readers( $config['batch_size'], $config['offset'] );
 			$batches  = 0;
 
 			while ( $user_ids ) {
@@ -298,7 +298,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 						break;
 					}
 
-					$user_ids = static::get_batch_of_customers( $config['batch_size'], $config['offset'] + ( $batches * $config['batch_size'] ) );
+					$user_ids = static::get_batch_of_readers( $config['batch_size'], $config['offset'] + ( $batches * $config['batch_size'] ) );
 				}
 			}
 		}
