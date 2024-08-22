@@ -182,7 +182,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 					continue;
 				}
 
-				$result = static::resync_contact( 0, $subscription, $config['is_dry_run'] );
+				$result = static::resync_contact( $subscription, $config['is_dry_run'] );
 				if ( \is_wp_error( $result ) ) {
 					static::log(
 						sprintf(
@@ -217,7 +217,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 				if ( \is_wp_error( $order ) ) {
 					static::log(
 						sprintf(
-							// Translators: %d is the order ID arg passed to the script.
+							// Translators: %d is the order ID.
 							__( 'No order with ID %d. Skipping.', 'newspack-newsletters' ),
 							$order_id
 						)
@@ -226,7 +226,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 					continue;
 				}
 
-				$result = static::resync_contact( 0, $order, $config['is_dry_run'] );
+				$result = static::resync_contact( $order, $config['is_dry_run'] );
 				if ( \is_wp_error( $result ) ) {
 					static::log(
 						sprintf(
@@ -245,7 +245,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 			static::log( __( 'Syncing by customer user ID...', 'newspack-newsletters' ) );
 			foreach ( $config['user_ids'] as $user_id ) {
 				if ( ! $config['active_only'] || static::user_has_active_subscriptions( $user_id ) ) {
-					$result = static::resync_contact( $user_id, null, $config['is_dry_run'] );
+					$result = static::resync_contact( $user_id, $config['is_dry_run'] );
 					if ( \is_wp_error( $result ) ) {
 						static::log(
 							sprintf(
@@ -274,7 +274,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 			while ( $user_ids ) {
 				$user_id = array_shift( $user_ids );
 				if ( ! $config['active_only'] || static::user_has_active_subscriptions( $user_id ) ) {
-					$result = static::resync_contact( $user_id, null, $config['is_dry_run'] );
+					$result = static::resync_contact( $user_id, $config['is_dry_run'] );
 					if ( \is_wp_error( $result ) ) {
 						static::log(
 							sprintf(
@@ -301,6 +301,76 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 		}
 
 		return static::$results['processed'];
+	}
+
+	/**
+	 * Does the given user have any subscriptions with an active status?
+	 *
+	 * @param int $user_id User ID.
+	 *
+	 * @return bool
+	 */
+	protected static function user_has_active_subscriptions( $user_id ) {
+		$subcriptions = array_reduce(
+			array_keys( \wcs_get_users_subscriptions( $user_id ) ),
+			function( $acc, $subscription_id ) {
+				$subscription = \wcs_get_subscription( $subscription_id );
+				if ( $subscription->has_status( [ 'active', 'pending', 'pending-cancel' ] ) ) {
+					$acc[] = $subscription_id;
+				}
+				return $acc;
+			},
+			[]
+		);
+
+		return ! empty( $subcriptions );
+	}
+
+	/**
+	 * Get a batch of migrated subscriptions.
+	 *
+	 * This method requires the Newspack_Subscription_Migrations plugin to be
+	 * installed and active, otherwise it will return a WP_Error.
+	 *
+	 * @param string $source The source of the subscriptions. One of 'stripe', 'piano-csv', 'stripe-csv'.
+	 * @param int    $batch_size Number of subscriptions to get.
+	 * @param int    $offset Number to skip.
+	 * @param bool   $active_only Whether to get only active subscriptions.
+	 *
+	 * @return array|\WP_Error Array of subscription IDs or WP_Error.
+	 */
+	protected static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
+		if (
+			! class_exists( '\Newspack_Subscription_Migrations\Stripe_Sync' ) ||
+			! class_exists( '\Newspack_Subscription_Migrations\CSV_Importers\CSV_Importer' )
+		) {
+			return new \WP_Error(
+				'newspack_newsletters_resync_woo_contacts',
+				__( 'The migrated-subscriptions flag requires the Newspack_Subscription_Migrations plugin to be installed and active.', 'newspack-newsletters' )
+			);
+		}
+		$subscription_ids = [];
+		switch ( $source ) {
+			case 'stripe':
+				$subscription_ids = Stripe_Sync::get_migrated_subscriptions( $batch_size, $offset, $active_only );
+				break;
+			case 'piano-csv':
+				$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'piano', $batch_size, $offset, $active_only );
+				break;
+			case 'stripe-csv':
+				$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'stripe', $batch_size, $offset, $active_only );
+				break;
+			default:
+				return new \WP_Error(
+					'newspack_newsletters_resync_woo_contacts',
+					sprintf(
+						// Translators: %s is the source of the subscriptions.
+						__( 'Invalid subscription migration type: %s', 'newspack-newsletters' ),
+						$source
+					)
+				);
+		}
+		return $subscription_ids;
 	}
 
 	/**

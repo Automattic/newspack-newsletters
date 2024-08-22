@@ -28,29 +28,6 @@ abstract class WooCommerce_Sync {
 	}
 
 	/**
-	 * Does the given user have any subscriptions with an active status?
-	 *
-	 * @param int $user_id User ID.
-	 *
-	 * @return bool
-	 */
-	protected static function user_has_active_subscriptions( $user_id ) {
-		$subcriptions = array_reduce(
-			array_keys( \wcs_get_users_subscriptions( $user_id ) ),
-			function( $acc, $subscription_id ) {
-				$subscription = \wcs_get_subscription( $subscription_id );
-				if ( $subscription->has_status( [ 'active', 'pending', 'pending-cancel' ] ) ) {
-					$acc[] = $subscription_id;
-				}
-				return $acc;
-			},
-			[]
-		);
-
-		return ! empty( $subcriptions );
-	}
-
-	/**
 	 * Whether contacts can be synced to the ESP.
 	 *
 	 * @param bool $return_errors Optional. Whether to return a WP_Error object. Default false.
@@ -109,16 +86,9 @@ abstract class WooCommerce_Sync {
 	 *
 	 * @return true|\WP_Error True if succeeded or WP_Error.
 	 */
-	protected static function sync_contact( $contact ) {
-		$can_sync = static::can_sync_contacts( true );
-		if ( $can_sync->has_errors() ) {
-			return $can_sync;
-		}
-
+	private static function sync( $contact ) {
 		$master_list_id = \Newspack\Reader_Activation::get_esp_master_list_id();
-
-		$result = \Newspack_Newsletters_Contacts::upsert( $contact, $master_list_id, 'WooCommerce Sync' );
-
+		$result         = \Newspack_Newsletters_Contacts::upsert( $contact, $master_list_id, 'WooCommerce Sync' );
 		if ( \is_wp_error( $result ) ) {
 			return $result;
 		}
@@ -126,63 +96,15 @@ abstract class WooCommerce_Sync {
 	}
 
 	/**
-	 * Get a batch of migrated subscriptions.
-	 *
-	 * This method requires the Newspack_Subscription_Migrations plugin to be
-	 * installed and active, otherwise it will return a WP_Error.
-	 *
-	 * @param string $source The source of the subscriptions. One of 'stripe', 'piano-csv', 'stripe-csv'.
-	 * @param int    $batch_size Number of subscriptions to get.
-	 * @param int    $offset Number to skip.
-	 * @param bool   $active_only Whether to get only active subscriptions.
-	 *
-	 * @return array|\WP_Error Array of subscription IDs or WP_Error.
-	 */
-	protected static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
-		if (
-			! class_exists( '\Newspack_Subscription_Migrations\Stripe_Sync' ) ||
-			! class_exists( '\Newspack_Subscription_Migrations\CSV_Importers\CSV_Importer' )
-		) {
-			return new \WP_Error(
-				'newspack_newsletters_resync_woo_contacts',
-				__( 'The migrated-subscriptions flag requires the Newspack_Subscription_Migrations plugin to be installed and active.', 'newspack-newsletters' )
-			);
-		}
-		$subscription_ids = [];
-		switch ( $source ) {
-			case 'stripe':
-				$subscription_ids = Stripe_Sync::get_migrated_subscriptions( $batch_size, $offset, $active_only );
-				break;
-			case 'piano-csv':
-				$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'piano', $batch_size, $offset, $active_only );
-				break;
-			case 'stripe-csv':
-				$subscription_ids = CSV_Importer::get_migrated_subscriptions( 'stripe', $batch_size, $offset, $active_only );
-				break;
-			default:
-				return new \WP_Error(
-					'newspack_newsletters_resync_woo_contacts',
-					sprintf(
-						// Translators: %s is the source of the subscriptions.
-						__( 'Invalid subscription migration type: %s', 'newspack-newsletters' ),
-						$source
-					)
-				);
-		}
-		return $subscription_ids;
-	}
-
-	/**
 	 * Given a WP user ID for a Woo customer or order ID, resync that customer's
 	 * contact data in the connected ESP.
 	 *
-	 * @param int           $user_id WP user ID for the customer. If given, resync using the customer.
-	 * @param WC_Order|null $order If given, resync using the order instead of the customer.
-	 * @param bool          $is_dry_run True if a dry run.
+	 * @param int|\WC_order $user_id_or_order User ID or WC_Order object.
+	 * @param bool          $is_dry_run       True if a dry run.
 	 *
 	 * @return bool True if the contact was resynced successfully, false otherwise.
 	 */
-	protected static function resync_contact( $user_id = 0, $order = null, $is_dry_run = false ) {
+	protected static function resync_contact( $user_id_or_order = 0, $is_dry_run = false ) {
 		$can_sync = static::can_sync_contacts( true );
 		if ( ! $is_dry_run && $can_sync->has_errors() ) {
 			return $can_sync;
@@ -191,11 +113,18 @@ abstract class WooCommerce_Sync {
 		$result            = false;
 		$registration_site = false;
 
-		if ( ! $user_id && ! $order ) {
+		if ( ! $user_id_or_order ) {
 			return new \WP_Error( 'newspack_newsletters_resync_contact', __( 'Must pass either a user ID or order.', 'newspack-newsletters' ) );
 		}
 
-		$user = \get_userdata( $user_id ? $user_id : $order->get_customer_id() );
+		$is_order = $user_id_or_order instanceof \WC_Order;
+		$order    = $is_order ? $user_id_or_order : \wc_get_order( $user_id_or_order );
+		if ( ! $is_order && ! $order ) {
+			return new \WP_Error( 'newspack_newsletters_resync_contact', __( 'Order does not exist.', 'newspack-newsletters' ) );
+		}
+		$user_id = $is_order ? $order->get_customer_id() : $user_id_or_order;
+
+		$user = \get_userdata( $user_id );
 
 		// Backfill Network Registration Site field if needed.
 		if ( $user && defined( 'NEWSPACK_NETWORK_READER_ROLE' ) && defined( 'Newspack_Network\Utils\Users::USER_META_REMOTE_SITE' ) ) {
@@ -208,12 +137,12 @@ abstract class WooCommerce_Sync {
 			}
 		}
 
-		$customer = new \WC_Customer( $user_id ? $user_id : $order->get_customer_id() );
+		$customer = new \WC_Customer( $user_id );
 		if ( ! $customer || ! $customer->get_id() ) {
 			return new \WP_Error(
 				'newspack_newsletters_resync_contact',
 				sprintf(
-				// Translators: %d is the user ID arg passed to the script.
+				// Translators: %d is the user ID.
 					__( 'Customer with ID %d does not exist.', 'newspack-newsletters' ),
 					$user_id
 				)
@@ -226,11 +155,11 @@ abstract class WooCommerce_Sync {
 			$customer->save();
 		}
 
-		$contact = $user_id ? \Newspack\WooCommerce_Connection::get_contact_from_customer( $customer ) : \Newspack\WooCommerce_Connection::get_contact_from_order( $order );
+		$contact = $is_order ? \Newspack\WooCommerce_Connection::get_contact_from_order( $order ) : \Newspack\WooCommerce_Connection::get_contact_from_customer( $customer );
 		if ( $registration_site ) {
 			$contact['metadata']['network_registration_site'] = $registration_site;
 		}
-		$result = $is_dry_run ? true : static::sync_contact( $contact );
+		$result = $is_dry_run ? true : static::sync( $contact );
 
 		if ( $result && ! \is_wp_error( $result ) ) {
 			static::log(
