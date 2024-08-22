@@ -131,9 +131,9 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 	 *   @type bool        $config['is_dry_run'] True if a dry run.
 	 * }
 	 *
-	 * @return int|\WP_Error Number of resynced contacts, or WP_Error if an error occurred.
+	 * @return int|\WP_Error Number of resynced contacts or WP_Error.
 	 */
-	protected static function resync_woo_contacts( $config ) {
+	private static function resync_woo_contacts( $config ) {
 		$default_config = [
 			'active_only'      => false,
 			'migrated_only'    => false,
@@ -310,7 +310,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 	 *
 	 * @return bool
 	 */
-	protected static function user_has_active_subscriptions( $user_id ) {
+	private static function user_has_active_subscriptions( $user_id ) {
 		$subcriptions = array_reduce(
 			array_keys( \wcs_get_users_subscriptions( $user_id ) ),
 			function( $acc, $subscription_id ) {
@@ -339,7 +339,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 	 *
 	 * @return array|\WP_Error Array of subscription IDs or WP_Error.
 	 */
-	protected static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
+	private static function get_migrated_subscriptions( $source, $batch_size, $offset, $active_only ) {
 		if (
 			! class_exists( '\Newspack_Subscription_Migrations\Stripe_Sync' ) ||
 			! class_exists( '\Newspack_Subscription_Migrations\CSV_Importers\CSV_Importer' )
@@ -374,19 +374,18 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 	}
 
 	/**
-	 * Get a batch of reader IDs.
+	 * Get a batch of readers' IDs.
 	 *
 	 * @param int $batch_size Number of readers to get.
 	 * @param int $offset     Number to skip.
 	 *
-	 * @return array|false Array of customer IDs, or false if no more to fetch.
+	 * @return array|false Array of user IDs, or false if no more to fetch.
 	 */
-	protected static function get_batch_of_readers( $batch_size, $offset = 0 ) {
+	private static function get_batch_of_readers( $batch_size, $offset = 0 ) {
 		$roles = \Newspack\Reader_Activation::get_reader_roles();
 		if ( defined( 'NEWSPACK_NETWORK_READER_ROLE' ) && ! in_array( NEWSPACK_NETWORK_READER_ROLE, $roles, true ) ) {
 			$roles[] = NEWSPACK_NETWORK_READER_ROLE;
 		}
-
 		$query = new \WP_User_Query(
 			[
 				'fields'   => 'ID',
@@ -397,9 +396,7 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 				'role__in' => $roles,
 			]
 		);
-
 		$results = $query->get_results();
-
 		return ! empty( $results ) ? $results : false;
 	}
 
@@ -423,11 +420,10 @@ class WooCommerce_Sync_CLI extends WooCommerce_Sync {
 
 		$processed = static::resync_woo_contacts( $config );
 
-		if ( is_wp_error( $processed ) ) {
+		if ( \is_wp_error( $processed ) ) {
 			\WP_CLI::error( $processed->get_error_message() );
 			return;
 		}
-
 		\WP_CLI::line( "\n" );
 		\WP_CLI::success(
 			sprintf(
