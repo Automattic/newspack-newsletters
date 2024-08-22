@@ -89,10 +89,7 @@ abstract class WooCommerce_Sync {
 	private static function sync( $contact ) {
 		$master_list_id = \Newspack\Reader_Activation::get_esp_master_list_id();
 		$result         = \Newspack_Newsletters_Contacts::upsert( $contact, $master_list_id, 'WooCommerce Sync' );
-		if ( \is_wp_error( $result ) ) {
-			return $result;
-		}
-		return true;
+		return \is_wp_error( $result ) ? $result : true;
 	}
 
 	/**
@@ -102,7 +99,7 @@ abstract class WooCommerce_Sync {
 	 * @param int|\WC_order $user_id_or_order User ID or WC_Order object.
 	 * @param bool          $is_dry_run       True if a dry run.
 	 *
-	 * @return bool True if the contact was resynced successfully, false otherwise.
+	 * @return true|\WP_Error True if the contact was resynced successfully, WP_Error otherwise.
 	 */
 	protected static function resync_contact( $user_id_or_order = 0, $is_dry_run = false ) {
 		$can_sync = static::can_sync_contacts( true );
@@ -110,22 +107,17 @@ abstract class WooCommerce_Sync {
 			return $can_sync;
 		}
 
-		$result            = false;
-		$registration_site = false;
-
 		if ( ! $user_id_or_order ) {
 			return new \WP_Error( 'newspack_newsletters_resync_contact', __( 'Must pass either a user ID or order.', 'newspack-newsletters' ) );
 		}
 
 		$is_order = $user_id_or_order instanceof \WC_Order;
 		$order    = $is_order ? $user_id_or_order : false;
-		if ( $is_order && ! $order ) {
-			return new \WP_Error( 'newspack_newsletters_resync_contact', __( 'Order does not exist.', 'newspack-newsletters' ) );
-		}
-		$user_id = $is_order ? $order->get_customer_id() : $user_id_or_order;
-		$user    = \get_userdata( $user_id );
+		$user_id  = $is_order ? $order->get_customer_id() : $user_id_or_order;
+		$user     = \get_userdata( $user_id );
 
 		// Backfill Network Registration Site field if needed.
+		$registration_site = false;
 		if ( $user && defined( 'NEWSPACK_NETWORK_READER_ROLE' ) && defined( 'Newspack_Network\Utils\Users::USER_META_REMOTE_SITE' ) ) {
 			if ( ! empty( array_intersect( $user->roles, \Newspack_Network\Utils\Users::get_synced_user_roles() ) ) ) {
 				$registration_site = \esc_url( \get_site_url() ); // Default to current site.
