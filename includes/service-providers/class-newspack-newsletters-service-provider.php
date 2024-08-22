@@ -813,29 +813,4 @@ Details of the error message: "%3$s"
 	public function get_transient_name( $post_id ) {
 		return sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
 	}
-
-	/**
-	 * Check if the given search term matches any of the given strings.
-	 *
-	 * @param array|string $search Search term(s).
-	 * @param array        $matches An array of strings to match against.
-	 *
-	 * @return boolean
-	 */
-	public static function matches_search( $search, $matches = [] ) {
-		if ( empty( $search ) ) {
-			return true;
-		}
-		if ( ! is_array( $search ) ) {
-			$search = [ $search ];
-		}
-		foreach ( $search as $to_match ) {
-			$to_match = strtolower( strval( $to_match ) );
-			foreach ( $matches as $match ) {
-				if ( stripos( strtolower( strval( $match ) ), $to_match ) !== false ) {
-					return true;
-				}
-			}
-		}
-	}
 }

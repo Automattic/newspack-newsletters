@@ -98,23 +98,54 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	}, [ serviceProviderName ] );
 
 	// Fetch send lists for the "Send To" UI and update the newsletterData store.
-	const fetchSendLists = debounce( async ( search = '', type = 'list', parentId = null, limit = null, provider = null ) => {
+	const fetchSendLists = debounce( async ( opts = {} ) => {
 		if ( ! newsletterData?.lists ) {
 			return;
 		}
 
-		const sendLists = 'list' === type ? newsletterData.lists : newsletterData.sublists;
+		const args = {
+			ids: null,
+			search: null,
+			type: 'list',
+			parent_id: null,
+			limit: 10,
+			provider: serviceProviderName,
+		};
+
+		for ( const key in args ) {
+			if ( args.hasOwnProperty( key ) ) {
+				args[ key ] = opts[ key ] || args[ key ];
+			}
+		}
+
+		const sendLists = 'list' === args.type ? newsletterData.lists : newsletterData.sublists;
 
 		// If we already have a matching result, no need to fetch more.
-		const foundItem = sendLists.find( item => item.id === search || item.label.toLowerCase().includes( search.toLowerCase() ) );
-		if ( foundItem ) {
+		const foundItems = sendLists.filter( item => {
+			const ids = args.ids && ! Array.isArray( args.ids ) ? [ args.ids ] : args.ids;
+			const search = args.search && ! Array.isArray( args.search ) ? [ args.search ] : args.search;
+			if ( ids?.length ) {
+				ids.forEach( id => {
+					return item.id.toString() === id.toString();
+				} )
+			}
+			if ( search?.length ) {
+				search.forEach( term => {
+					return item.label.toLowerCase().includes( term.toLowerCase() );
+				} );
+			}
+
+			return false;
+		} );
+
+		if ( foundItems.length ) {
 			return;
 		}
 
 		const response = await apiFetchWithErrorHandling( {
 			path: addQueryArgs(
 				'/newspack-newsletters/v1/send-lists',
-				{ search, type, parentId, limit, provider }
+				args
 			)
 		} );
 
@@ -125,7 +156,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				updatedSendLists.push( item );
 			}
 		} );
-		if ( 'list' === type ) {
+		if ( 'list' === args.type ) {
 			updatedNewsletterData.lists = sortBy( updatedSendLists, 'label' );
 		} else {
 			updatedNewsletterData.sublists = sortBy( updatedSendLists, 'label' );

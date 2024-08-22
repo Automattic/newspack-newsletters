@@ -466,7 +466,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'campaign_id'  => $mc_campaign_id,
 				'folders'      => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
 				'merge_fields' => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
-				'lists'        => $this->get_send_lists( '', 'list', null, 10 ), // Get first 10 top-level send lists for autocomplete.
+				'lists'        => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
+					[
+						'type'  => 'list',
+						'limit' => 10,
+					]
+				),
 				'sublists'     => [], // Will be populated later if needed.
 			];
 
@@ -489,8 +494,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			if ( ! empty( $campaign['recipients'] ) ) {
 				$recipients = $campaign['recipients'];
 				if ( ! empty( $recipients['list_id'] ) ) {
-					$list = $this->get_send_lists( $recipients['list_id'], 'list', null, 1 );
-					if ( ! empty( $list[0] ) && ! empty( array_diff_assoc( (array) $selected_list, (array) $list[0] ) ) ) {
+					$list = $this->get_send_lists(
+						[
+							'ids'   => [ $recipients['list_id'] ],
+							'limit' => 1,
+						]
+					);
+					if ( ! empty( $list[0] ) && ( ! $selected_list || ! empty( array_diff_assoc( (array) $selected_list, (array) $list[0] ) ) ) ) {
 						$newsletter_data['fetched_list'] = $list[0];
 					}
 
@@ -504,8 +514,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 							if ( ! $target_id ) {
 								$target_id = (string) $target_id_raw;
 							}
-							$sublist = $this->get_send_lists( $target_id, 'sublist', $recipients['list_id'], 1 );
-							if ( ! empty( $sublist[0] ) && ! empty( array_diff_assoc( (array) $selected_sublist, (array) $sublist[0] ) ) ) {
+							$sublist = $this->get_send_lists(
+								[
+									'ids'       => [ $target_id ],
+									'limit'     => 1,
+									'parent_id' => $recipients['list_id'],
+									'type'      => 'sublist',
+								]
+							);
+							if ( ! empty( $sublist[0] ) && ( ! $selected_sublist || ! empty( array_diff_assoc( (array) $selected_sublist, (array) $sublist[0] ) ) ) ) {
 								$newsletter_data['fetched_sublist'] = $sublist[0];
 							}
 						}
@@ -592,21 +609,25 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
 	 *
-	 * @param array|string $search Optional. If given, only return lists whose names or entity types match the search string. Can provide a single string or an array of strings to match.
-	 * @param string       $list_type Optional: list or sublist. If given, only return Send Lists of the specified type.
-	 * @param string       $parent_id Optional: If given, only return sublists of the specified parent list.
-	 * @param int          $limit Optional: Maximum number of items of each entity type to return.
+	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
 	 *
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $search = '', $list_type = null, $parent_id = null, $limit = 10 ) {
+	public function get_send_lists( $args = [] ) {
+		$defaults   = Send_Lists::get_default_args();
+		$args       = wp_parse_args( $args, $defaults );
+		$by_id      = ! empty( $args['ids'] );
 		$admin_url  = self::get_admin_url();
-		$audiences  = Newspack_Newsletters_Mailchimp_Cached_Data::get_lists( $limit );
+		$audiences  = Newspack_Newsletters_Mailchimp_Cached_Data::get_lists( $args['limit'] );
 		$send_lists = [];
 
 		$entity_type = 'audience';
 		foreach ( $audiences as $audience ) {
-			if ( ( ! $list_type || 'list' === $list_type ) && self::matches_search( $search, [ $audience['id'], $audience['name'], $entity_type ] ) ) {
+			if ( ! empty( $args['parent_id'] ) && $audience['id'] !== $args['parent_id'] ) {
+				continue;
+			}
+			$matches = $by_id ? Send_Lists::matches_id( $args['ids'], $audience['id'] ) : Send_Lists::matches_search( $args['search'], [ $audience['id'], $audience['name'], $entity_type ] );
+			if ( ( ! $args['type'] || 'list' === $args['type'] ) && $matches ) {
 				$config = [
 					'provider'    => $this->service,
 					'type'        => 'list',
@@ -621,17 +642,18 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$send_lists[] = new Send_List( $config );
 			}
 
-			if ( $list_type && 'sublist' !== $list_type ) {
+			if ( 'list' === $args['type'] ) {
 				continue;
 			}
 
-			$groups      = Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( ( $parent_id ?? $audience['id'] ), $limit );
+			$groups      = Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( $audience['id'], $args['limit'] );
 			$entity_type = 'group';
 			if ( isset( $groups['categories'] ) ) {
 				foreach ( $groups['categories'] as $category ) {
 					if ( isset( $category['interests']['interests'] ) ) {
 						foreach ( $category['interests']['interests'] as $interest ) {
-							if ( self::matches_search( $search, [ $interest['id'], $interest['name'], $entity_type ] ) ) {
+							$matches = $by_id ? Send_Lists::matches_id( $args['ids'], $interest['id'] ) : Send_Lists::matches_search( $args['search'], [ $interest['id'], $interest['name'], $entity_type ] );
+							if ( $matches ) {
 								$config = [
 									'provider'    => $this->service,
 									'type'        => 'sublist',
@@ -651,10 +673,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$tags        = Newspack_Newsletters_Mailchimp_Cached_Data::get_tags( ( $parent_id ?? $audience['id'] ), $limit );
+			$tags        = Newspack_Newsletters_Mailchimp_Cached_Data::get_tags( $audience['id'], $args['limit'] );
 			$entity_type = 'tag';
 			foreach ( $tags as $tag ) {
-				if ( self::matches_search( $search, [ $tag['id'], $tag['name'], $entity_type ] ) ) {
+				$matches = $by_id ? Send_Lists::matches_id( $args['ids'], $tag['id'] ) : Send_Lists::matches_search( $args['search'], [ $tag['id'], $tag['name'], $entity_type ] );
+				if ( $matches ) {
 					$config = [
 						'provider'    => $this->service,
 						'type'        => 'sublist',
@@ -671,10 +694,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$segments    = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( ( $parent_id ?? $audience['id'] ), $limit );
+			$segments    = Newspack_Newsletters_Mailchimp_Cached_Data::get_segments( ( $parent_id ?? $audience['id'] ), $args['limit'] );
 			$entity_type = 'segment';
 			foreach ( $segments as $segment ) {
-				if ( self::matches_search( $search, [ $segment['id'], $segment['name'], $entity_type ] ) ) {
+				$matches = $by_id ? Send_Lists::matches_id( $args['ids'], $segment['id'] ) : Send_Lists::matches_search( $args['search'], [ $segment['id'], $segment['name'], $entity_type ] );
+				if ( $matches ) {
 					$config = [
 						'provider'    => $this->service,
 						'type'        => 'sublist',

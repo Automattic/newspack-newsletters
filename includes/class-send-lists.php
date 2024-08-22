@@ -63,6 +63,9 @@ class Send_Lists {
 				'callback'            => [ __CLASS__, 'api_get_send_lists' ],
 				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
 				'args'                => [
+					'ids'       => [
+						'type' => [ 'array', 'string' ],
+					],
 					'search'    => [
 						'type' => [ 'array', 'string' ],
 					],
@@ -84,6 +87,67 @@ class Send_Lists {
 	}
 
 	/**
+	 * Get default arguments for the send lists API. Supported keys;
+	 *
+	 * - ids: ID or array of send IDs to fetch. If passed, will take precedence over `search`.
+	 * - search: Search term or array of search terms to filter send lists. If `ids` is passed, will be ignored.
+	 * - type: Type of send list to filter. Supported terms are 'list' or 'sublist', otherwise all types will be fetched.
+	 * - parent_id: Parent ID to filter by when fetching sublists. If `type` is 'list`, will be ignored.
+	 * - limit: Limit the number of send lists to return.
+	 *
+	 * @return array
+	 */
+	public static function get_default_args() {
+		return [
+			'ids'       => null,
+			'search'    => null,
+			'type'      => null,
+			'parent_id' => null,
+			'limit'     => null,
+		];
+	}
+
+	/**
+	 * Check if an ID or array of IDs to search matches the given ID.
+	 *
+	 * @param array|string $ids ID or array of IDs to search.
+	 * @param string       $id ID to match against.
+	 *
+	 * @return boolean
+	 */
+	public static function matches_id( $ids, $id ) {
+		if ( is_array( $ids ) ) {
+			return in_array( $id, $ids, true );
+		}
+		return $id === $ids;
+	}
+
+	/**
+	 * Check if the given search term matches any of the given strings.
+	 *
+	 * @param array|string $search Search term or array of terms.
+	 * @param array        $matches An array of strings to match against.
+	 *
+	 * @return boolean
+	 */
+	public static function matches_search( $search, $matches = [] ) {
+		if ( empty( $search ) ) {
+			return true;
+		}
+		if ( ! is_array( $search ) ) {
+			$search = [ $search ];
+		}
+		foreach ( $search as $to_match ) {
+			$to_match = strtolower( strval( $to_match ) );
+			foreach ( $matches as $match ) {
+				if ( stripos( strtolower( strval( $match ) ), $to_match ) !== false ) {
+					return true;
+				}
+			}
+		}
+	}
+
+	/**
 	 * API handler to fetch send lists for the given provider.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
@@ -91,19 +155,20 @@ class Send_Lists {
 	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
 	 */
 	public static function api_get_send_lists( $request ) {
-		$search        = $request['search'] ?? null;
-		$list_type     = $request['type'] ?? null;
-		$parent_id     = $request['parent_id'] ?? null;
-		$limit         = $request['limit'] ?? null;
 		$provider_slug = $request['provider'] ?? null;
 		$provider      = $provider_slug ? Newspack_Newsletters::get_service_provider_instance( $provider_slug ) : Newspack_Newsletters::get_service_provider();
-
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Invalid provider, or provider not set.', 'newspack-newsletters' ) );
 		}
 
+		$defaults      = self::get_default_args();
+		$args          = [];
+		foreach ( $defaults as $key => $value ) {
+			$args[ $key ] = $request[ $key ] ?? $value;
+		}
+
 		return \rest_ensure_response(
-			$provider->get_send_lists( $search, $list_type, $parent_id, $limit )
+			$provider->get_send_lists( $args )
 		);
 	}
 }

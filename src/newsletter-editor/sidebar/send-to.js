@@ -31,10 +31,13 @@ const SendTo = (
 
 	useEffect( () => {
 		if ( ! lists.length ) {
-			fetchSendLists( '', 'list', null, 10 );
+			fetchSendLists();
 		}
 		if ( selected?.list && ! sublists.length ) {
-			fetchSendLists( '', 'sublist', selected.list.id, 10 );
+			fetchSendLists( {
+				type: 'sublist',
+				parent_id: selected.list.id
+			} );
 		}
 	}, [ selected ] );
 
@@ -124,10 +127,10 @@ const SendTo = (
 				} }
 				onFocus={ () => {
 					if ( ! lists.length ) {
-						fetchSendLists( '', 'list', null, 10 );
+						fetchSendLists();
 					}
 				} }
-				onInputChange={ search => fetchSendLists( search, 'list' ) }
+				onInputChange={ search => fetchSendLists( { search } ) }
 				reset={ () => {
 					updateMeta( { send_to: {} } )
 				} }
@@ -161,10 +164,17 @@ const SendTo = (
 						} }
 						onFocus={ () => {
 							if ( ! sublists.length ) {
-								fetchSendLists( '', 'sublist', selected.list.id, 10 );
+								fetchSendLists( {
+									type: 'sublist',
+									parentId: selected.list.id
+								} );
 							}
 						} }
-						onInputChange={ search => fetchSendLists( search, 'sublist', selected.list.id ) }
+						onInputChange={ search => fetchSendLists( {
+							search,
+							type: 'sublist',
+							parent_id: selected.list.id
+						} ) }
 						reset={ () => {
 							updateMeta( { send_to: { list: selected.list } } )
 						} }
