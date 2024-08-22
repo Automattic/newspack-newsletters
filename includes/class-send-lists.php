@@ -145,6 +145,7 @@ class Send_Lists {
 				}
 			}
 		}
+		return false;
 	}
 
 	/**
