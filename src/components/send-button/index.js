@@ -342,7 +342,7 @@ export default compose( [
 									/>
 								) }
 								<div className="newspack-newsletters__modal__spacer" />
-								{ renderPreSendInfo( newsletterData ) }
+								{ renderPreSendInfo( newsletterData, meta ) }
 								<div className="modal-buttons">
 									<Button
 										variant="secondary"

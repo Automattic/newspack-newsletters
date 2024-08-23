@@ -35,19 +35,35 @@ const validateNewsletter = ( meta = {} ) => {
 	return messages;
 };
 
-const renderPreSendInfo = newsletterData => {
-	if ( ! newsletterData.campaign ) {
+/**
+ * Utility to render newsletter campaign info in the pre-send confirmation modal.
+ *
+ * @param {Object} newsletterData          Data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.campaign Campaign data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.lists    Available send lists.
+ * @param {Object} newsletterData.sublists Available send sublists.
+ * @param {Object} meta                    Post meta.
+ * @param {string} meta.send_list_id       Send-to list ID.
+ * @param {string} meta.send_sublist_id    Send-to sublist ID.
+ */
+const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
+	const { campaign, lists = [], sublists = [] } = newsletterData;
+	const { send_list_id: listId, send_sublist_id: sublistId } = meta;
+	if ( ! campaign || ! listId ) {
 		return null;
 	}
-	let listData;
-	if ( newsletterData.campaign && newsletterData.lists ) {
-		const lists = newsletterData.lists || [];
-		const list = find( lists, [ 'id', newsletterData.campaign.recipients.list_id ] );
+	let listData, sublistData, subscriberCount;
+	if ( campaign?.recipients?.list_id && campaign.recipients.list_id === listId ) {
+		const list = find( lists, [ 'id', listId ] );
 		if ( list ) {
-			listData = {
-				name: list.name,
-				subscribers: parseInt( newsletterData.campaign.recipients.recipient_count ),
-			};
+			listData = list;
+		}
+		const sublist = find( sublists, [ 'id', sublistId.toString() ] );
+		if ( sublist ) {
+			sublistData = sublist;
+		}
+		if ( campaign?.recipients?.recipient_count ) {
+			subscriberCount = parseInt( campaign.recipients.recipient_count );
 		}
 	}
 
@@ -61,17 +77,18 @@ const renderPreSendInfo = newsletterData => {
 			<br />
 			<strong>{ listData.name }</strong>
 			<br />
-			{ listData.groupName && (
-				<Fragment>
-					{ __( 'Group:', 'newspack-newsletters' ) } <strong>{ listData.groupName }</strong>
+			{ sublistData && (
+				<>
+					{ sublistData.entity_type.charAt(0).toUpperCase() + sublistData.entity_type.slice(1) + ': '}
+					<strong>{ sublistData.name }</strong>
 					<br />
-				</Fragment>
+				</>
 			) }
 			<strong>
 				{ sprintf(
 					// Translators: subscriber count help message.
-					_n( '%d subscriber', '%d subscribers', listData.subscribers, 'newspack-newsletters' ),
-					listData.subscribers
+					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
+					subscriberCount
 				) }
 			</strong>
 		</p>
