@@ -5,6 +5,7 @@
  */
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { Notice } from '@wordpress/components';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
 
 /**
@@ -16,64 +17,75 @@ import { useNewsletterData } from '../store';
 // The container for list + sublist autocomplete fields.
 const SendTo = (
 	{
-		inFlight = false,
+		inFlight,
 		fetchSendLists = () => {},
-		selected = {},
-		updateMeta = () => {}
 	}
 ) => {
 	const [ error, setError ] = useState( null );
+	const { listId, sublistId } = useSelect( select => {
+		const { getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			listId: meta.send_list_id,
+			sublistId: meta.send_sublist_id,
+		};
+	} );
+	const editPost = useDispatch( 'core/editor' ).editPost;
+	const updateMeta = ( meta ) => editPost( { meta } );
+
 	const newsletterData = useNewsletterData();
 	const { lists = [], sublists = [] } = newsletterData;
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
+	const selectedList = lists.find( item => item.id === listId );
+	const selectedSublist = sublists.find( item => item.id === sublistId );
 
 	useEffect( () => {
-		if ( ! lists.length ) {
-			fetchSendLists();
+		if ( sublistId && ! sublists.length ) {
+			fetchSendLists(
+				{
+					ids: sublistId ? [ sublistId ] : null,
+					parent_id: listId || null,
+					type: 'sublist',
+				}
+			);
 		}
-		if ( selected?.list && ! sublists.length ) {
-			fetchSendLists( {
-				type: 'sublist',
-				parent_id: selected.list.id
-			} );
-		}
-	}, [ selected ] );
+	}, [ sublistId ] );
 
 	const renderSelectedSummary = () => {
-		if ( ! selected?.list?.name || ( selected?.sublist && ! selected?.sublist?.name ) ) {
+		if ( ! selectedList?.name || ( selectedSublist && ! selectedSublist.name ) ) {
 			return null;
 		}
 		let summary;
-		if ( selected.list && ! selected.sublist?.name ) {
+		if ( selectedList.list && ! selectedSublist?.name ) {
 			summary = sprintf(
 				// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
 				_n(
 					'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s.',
 					'This newsletter will be sent to <strong>all %1$s contacts</strong> in the <strong>%2$s</strong> %3$s.',
-					selected.list?.count || 0,
+					selectedList?.count || 0,
 					'newspack-newsletters'
 				),
-				selected.list?.count ? selected.list.count.toLocaleString() : '',
-				selected.list?.name,
-				selected.list?.entity_type?.toLowerCase()
+				selectedList?.count ? selectedList.count.toLocaleString() : '',
+				selectedList?.name,
+				selectedList?.entity_type?.toLowerCase()
 		  );
 		}
-		if ( selected.list && selected.sublist?.name ) {
+		if ( selectedList && selectedSublist?.name ) {
 			summary = sprintf(
 				// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
 				_n(
 					'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who is part of the <strong>%4$s</strong> %5$s.',
 					'This newsletter will be sent to <strong>all %1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
-					selected.sublist?.count || 0,
+					selectedSublist?.count || 0,
 					'newspack-newsletters'
 				),
-				selected.sublist.count ? selected.sublist.count.toLocaleString() : '',
-				selected.list?.name,
-				selected.list?.entity_type?.toLowerCase(),
-				selected.sublist.name,
-				selected.sublist.entity_type?.toLowerCase()
+				selectedSublist.count ? selectedSublist.count.toLocaleString() : '',
+				selectedList?.name,
+				selectedList?.entity_type?.toLowerCase(),
+				selectedSublist.name,
+				selectedSublist.entity_type?.toLowerCase()
 			);
 		}
 
@@ -105,7 +117,6 @@ const SendTo = (
 				)
 			}
 			<Autocomplete
-				type="list"
 				availableItems={ lists }
 				label={ listLabel }
 				inFlight={ inFlight }
@@ -121,34 +132,31 @@ const SendTo = (
 							)
 						);
 					}
-					const newSendTo = {}; // When selecting a new list, reset any sublist selection.
-					newSendTo.list = selectedSuggestion;
-					updateMeta( { send_to: newSendTo } );
+					updateMeta( { send_list_id: selectedSuggestion.id } );
 				} }
 				onFocus={ () => {
-					if ( ! lists.length ) {
+					if ( 1 >= lists?.length ) {
 						fetchSendLists();
 					}
 				} }
 				onInputChange={ search => search && fetchSendLists( { search } ) }
 				reset={ () => {
-					updateMeta( { send_to: {} } )
+					updateMeta( { send_list_id: null, send_sublist_id: null } )
 				} }
-				selected={ selected }
+				selectedInfo={ selectedList }
 				setError={ setError }
 				updateMeta={ updateMeta }
 			/>
 			{
-				selected?.list?.id && (
+				selectedList?.id && (
 					<Autocomplete
-						type="sublist"
-						availableItems={ sublists.filter( item => ! item.parent || selected.list.id === item.parent ) }
+						availableItems={ sublists.filter( item => ! item.parent || selectedList.id === item.parent ) }
 						label={ sublistLabel }
 						inFlight={ inFlight }
-						parentId={ selected.list.id }
+						parentId={ selectedList.id }
 						onChange={ selectedLabels => {
 							const selectedLabel = selectedLabels[ 0 ];
-							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && ( ! item.parent || selected.list.id === item.parent ) );
+							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && ( ! item.parent || selectedList.id === item.parent ) );
 							if ( ! selectedSuggestion?.id ) {
 								return setError(
 									sprintf(
@@ -158,27 +166,25 @@ const SendTo = (
 									)
 								);
 							}
-							const newSendTo = {  ...selected }; // When setting a sublist, retain list selection.
-							newSendTo.sublist = selectedSuggestion;
-							updateMeta( { send_to: newSendTo } );
+							updateMeta( { send_sublist_id: selectedSuggestion.id } );
 						} }
 						onFocus={ () => {
-							if ( ! sublists.length ) {
+							if ( 1 >= sublists?.length ) {
 								fetchSendLists( {
 									type: 'sublist',
-									parentId: selected.list.id
+									parentId: selectedList.id
 								} );
 							}
 						} }
 						onInputChange={ search => search && fetchSendLists( {
 							search,
 							type: 'sublist',
-							parent_id: selected.list.id
+							parent_id: selectedList.id
 						} ) }
 						reset={ () => {
-							updateMeta( { send_to: { list: selected.list } } )
+							updateMeta( { send_list_id: selectedList.id, send_sublist_id: null } )
 						} }
-						selected={ selected }
+						selectedInfo={ selectedSublist }
 						setError={ setError }
 						updateMeta={ updateMeta }
 					/>

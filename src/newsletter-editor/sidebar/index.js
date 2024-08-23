@@ -30,8 +30,8 @@ const Sidebar = ( {
 	errors,
 	editPost,
 	title,
-	sender,
-	sendTo,
+	senderEmail,
+	senderName,
 	campaignName,
 	previewText,
 	stringifiedCampaignDefaults,
@@ -43,28 +43,41 @@ const Sidebar = ( {
 
 	// Reconcile stored campaign data with data fetched from ESP.
 	useEffect( () => {
-		if ( newsletterData?.fetched_sender ) {
-			updateMeta( { sender: newsletterData.fetched_sender } );
+		const updatedMeta = {};
+		if ( newsletterData?.sender_email ) {
+			updatedMeta.senderEmail = newsletterData.sender_email;
 		}
-		if ( newsletterData?.fetched_list || newsletterData?.fetched_sublist ) {
-			const newSendTo = {
-				...sendTo,
-				list: newsletterData?.fetched_list || sendTo.list,
-				sublist: newsletterData?.fetched_sublist || sendTo.sublist
-			};
-			updateMeta( { send_to: newSendTo } );
+		if ( newsletterData?.sender_name ) {
+			updatedMeta.senderName = newsletterData.sender_name;
+		}
+		if ( newsletterData?.send_list_id ) {
+			updatedMeta.send_list_id = newsletterData.send_list_id;
+		}
+		if ( newsletterData?.send_sublist_id ) {
+			updatedMeta.send_sublist_id = newsletterData.send_sublist_id;
+		}
+		if ( Object.keys( updatedMeta ).length ) {
+			updateMeta( updatedMeta );
 		}
 	}, [ newsletterData ] );
 
 	useEffect( () => {
 		const campaignDefaults = 'string' === typeof stringifiedCampaignDefaults ? JSON.parse( stringifiedCampaignDefaults ) : stringifiedCampaignDefaults;
-		if ( campaignDefaults?.sender || campaignDefaults.send_to ) {
-			if ( campaignDefaults?.sender ) {
-				updateMeta( { sender: campaignDefaults.sender } );
-			}
-			if ( campaignDefaults?.send_to ) {
-				updateMeta( { send_to: campaignDefaults.send_to } );
-			}
+		const updatedMeta = {};
+		if ( campaignDefaults?.sender_email ) {
+			updatedMeta.senderEmail = campaignDefaults.sender_email;
+		}
+		if ( campaignDefaults?.sender_name ) {
+			updatedMeta.senderName = campaignDefaults.sender_name;
+		}
+		if ( campaignDefaults?.send_list_id ) {
+			updatedMeta.send_list_id = campaignDefaults.send_list_id;
+		}
+		if ( campaignDefaults?.send_sublist_id ) {
+			updatedMeta.send_sublist_id = campaignDefaults.send_sublist_id;
+		}
+		if ( Object.keys( updatedMeta ).length ) {
+			updateMeta( updatedMeta );
 		}
 	}, [ stringifiedCampaignDefaults ] );
 
@@ -112,7 +125,6 @@ const Sidebar = ( {
 		);
 	}
 
-	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
 	const { ProviderSidebar = () => null } = getServiceProvider();
 	return (
 		<div className="newspack-newsletters__sidebar">
@@ -147,7 +159,7 @@ const Sidebar = ( {
 				{ __( 'From', 'newspack-newsletters' ) }
 			</strong>
 			{
-				newsletterData?.fetched_sender && (
+				( newsletterData?.senderEmail || newsletterData?.senderName ) && (
 					<Notice status="success" isDismissible={ false }>
 						{ __( 'Updated sender info fetched from ESP.', 'newspack-newsletters' ) }
 					</Notice>
@@ -156,19 +168,19 @@ const Sidebar = ( {
 			<TextControl
 				label={ __( 'Name', 'newspack-newsletters' ) }
 				className="newspack-newsletters__name-textcontrol"
-				value={ sender.name }
+				value={ senderName }
 				disabled={ inFlight }
-				onChange={ value => updateMeta( { sender: { ...sender, name: value } } ) }
+				onChange={ value => updateMeta( { senderName: value } ) }
 				placeholder={ __( 'The campaign’s sender name.', 'newspack-newsletters' ) }
 			/>
 			<TextControl
 				label={ __( 'Email', 'newspack-newsletters' ) }
-				help={ sender.email && ! hasValidEmail( sender.email ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : null }
+				help={ senderEmail && ! hasValidEmail( senderEmail ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : null }
 				className={ senderEmailClasses }
-				value={ sender.email }
+				value={ senderEmail }
 				type="email"
 				disabled={ inFlight }
-				onChange={ value => updateMeta( { sender: { ...sender, email: value } } ) }
+				onChange={ value => updateMeta( { senderEmail: value } ) }
 				placeholder={ __( 'The campaign’s sender email.', 'newspack-newsletters' ) }
 			/>
 		</div>
@@ -178,15 +190,16 @@ const Sidebar = ( {
 export default compose( [
 	withApiHandler(),
 	withSelect( select => {
-		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
+		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
-			sender: meta.sender,
-			sendTo: meta.send_to,
+			senderEmail: meta.senderEmail,
+			senderName: meta.senderName,
 			campaignName: meta.campaign_name,
 			previewText: meta.preview_text || '',
+			status: getCurrentPostAttribute( 'status' ),
 			stringifiedCampaignDefaults: meta.stringifiedCampaignDefaults || {},
 		};
 	} ),

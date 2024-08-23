@@ -266,50 +266,66 @@ final class Newspack_Newsletters {
 		);
 		\register_meta(
 			'post',
-			'send_to',
+			'send_list_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => [
 					'schema' => [
-						'type'                 => 'object',
-						'context'              => [ 'edit' ],
-						'additionalProperties' => true,
+						'context' => [ 'edit' ],
 					],
 				],
-				'type'           => 'object',
+				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
 			'post',
-			'sender',
+			'send_sublist_id',
 			[
 				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
 				'show_in_rest'   => [
 					'schema' => [
-						'type'                 => 'object',
-						'context'              => [ 'edit' ],
-						'properties'           => [
-							'name'  => [
-								'name' => 'name',
-								'type' => 'string',
-							],
-							'email' => [
-								'name' => 'email',
-								'type' => 'string',
-							],
-						],
-						'additionalProperties' => false,
+						'context' => [ 'edit' ],
 					],
 				],
-				'type'           => 'object',
+				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
-				'default'        => [
-					'name'  => '',
-					'email' => '',
+				'default'        => '',
+			]
+		);
+		\register_meta(
+			'post',
+			'senderName',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
 				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+				'default'        => '',
+			]
+		);
+		\register_meta(
+			'post',
+			'senderEmail',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(

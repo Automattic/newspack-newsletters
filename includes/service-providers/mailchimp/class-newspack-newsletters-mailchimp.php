@@ -475,35 +475,18 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'sublists'     => [], // Will be populated later if needed.
 			];
 
-			// Reconcile campaign settings with info fetched from the ESP (and handle legacy sender meta too).
-			$sender       = get_post_meta( $post_id, 'sender', true );
-			$sender_name  = $sender['name'] ?? null;
-			$sender_email = $sender['email'] ?? null;
-
-			// Handle legacy meta keys.
-			if ( ! empty( $campaign['settings']['from_name'] ) && $campaign['settings']['from_name'] !== $sender_name ) {
-				$newsletter_data['fetched_sender'] = [ 'name' => $campaign['settings']['from_name'] ];
+			// Reconcile campaign settings with info fetched from the ESP.
+			if ( ! empty( $campaign['settings']['from_name'] ) && $campaign['settings']['from_name'] !== get_post_meta( $post_id, 'senderName', true ) ) {
+				$newsletter_data['sender_name'] = $campaign['settings']['from_name'];
 			}
-			if ( ! empty( $campaign['settings']['reply_to'] ) && $campaign['settings']['reply_to'] !== $sender_email ) {
-				if ( ! isset( $newsletter_data['fetched_sender'] ) ) {
-					$newsletter_data['fetched_sender'] = [];
-				}
-				$newsletter_data['fetched_sender']['email'] = $campaign['settings']['reply_to'];
+			if ( ! empty( $campaign['settings']['reply_to'] ) && $campaign['settings']['reply_to'] !== get_post_meta( $post_id, 'senderEmail', true ) ) {
+				$newsletter_data['sender_email'] = $campaign['settings']['reply_to'];
 			}
-			$send_to          = get_post_meta( $post_id, 'send_to', true );
-			$selected_list    = $send_to['list'] ?? null;
-			$selected_sublist = $send_to['sublist'] ?? null;
 			if ( ! empty( $campaign['recipients'] ) ) {
 				$recipients = $campaign['recipients'];
 				if ( ! empty( $recipients['list_id'] ) ) {
-					$list = $this->get_send_lists(
-						[
-							'ids'   => [ $recipients['list_id'] ],
-							'limit' => 1,
-						]
-					);
-					if ( ! empty( $list[0] ) && ( ! $selected_list || ! empty( array_diff_assoc( (array) $selected_list, (array) $list[0] ) ) ) ) {
-						$newsletter_data['fetched_list'] = $list[0];
+					if ( $recipients['list_id'] !== get_post_meta( $post_id, 'send_list_id', true ) ) {
+						$newsletter_data['list_id'] = $recipients['list_id'];
 					}
 
 					if ( ! empty( $recipients['segment_opts'] ) ) {
@@ -516,16 +499,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 							if ( ! $target_id ) {
 								$target_id = (string) $target_id_raw;
 							}
-							$sublist = $this->get_send_lists(
-								[
-									'ids'       => [ $target_id ],
-									'limit'     => 1,
-									'parent_id' => $recipients['list_id'],
-									'type'      => 'sublist',
-								]
-							);
-							if ( ! empty( $sublist[0] ) && ( ! $selected_sublist || ! empty( array_diff_assoc( (array) $selected_sublist, (array) $sublist[0] ) ) ) ) {
-								$newsletter_data['fetched_sublist'] = $sublist[0];
+							if ( $target_id && $target_id !== get_post_meta( $post_id, 'send_sublist_id', true ) ) {
+								$newsletter_data['sublist_id'] = $target_id;
 							}
 						}
 					}
@@ -935,21 +910,40 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'title'        => $this->get_campaign_name( $post ),
 			],
 		];
-		$send_to = get_post_meta( $post->ID, 'send_to', true );
-		$sender  = get_post_meta( $post->ID, 'sender', true );
+		$sender_name  = get_post_meta( $post->ID, 'senderName', true );
+		$sender_email = get_post_meta( $post->ID, 'senderEmail', true );
+
+		// Sync sender name + email.
+		if ( ! empty( $sender_name ) ) {
+			$payload['settings']['from_name'] = $sender_name;
+		}
+		if ( ! empty( $sender_email ) ) {
+			$is_valid_email = $this->validate_sender_email( $sender_email );
+			if ( is_wp_error( $is_valid_email ) ) {
+				delete_post_meta( $post->ID, 'senderEmail' ); // Delete invalid email so we can't accidentally attempt to send with it.
+				return $is_valid_email;
+			}
+			$payload['settings']['reply_to'] = $sender_email;
+		}
 
 		// Sync send-to selections.
-		if ( ! empty( $send_to['list']['id'] ) ) {
-			$list                  = $send_to['list'];
+		$send_list_id = get_post_meta( $post->ID, 'send_list_id', true );
+		if ( ! empty( $send_list_id ) ) {
 			$payload['recipients'] = [
-				'list_id' => $list['id'],
+				'list_id' => $send_list_id,
 			];
-			if ( ! empty( $send_to['sublist']['id'] ) && ! empty( $send_to['sublist']['entity_type'] ) ) {
-				$sublist = $send_to['sublist'];
-				if ( ! empty( $sublist ) ) {
-					$sublist_id   = $sublist['id'];
-					$sublist_type = $sublist['entity_type'];
-
+			$send_sublist_id = get_post_meta( $post->ID, 'send_sublist_id', true );
+			if ( ! empty( $send_sublist_id ) ) {
+				$sublist = $this->get_send_lists(
+					[
+						'ids'       => [ $send_sublist_id ],
+						'limit'     => 1,
+						'parent_id' => $send_list_id,
+						'type'      => 'sublist',
+					]
+				);
+				if ( ! empty( $sublist[0]->get( 'entity_type' ) ) ) {
+					$sublist_type = $sublist[0]->get( 'entity_type' );
 					switch ( $sublist_type ) {
 						case 'group':
 							$payload['recipients']['segment_opts'] = [
@@ -957,9 +951,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 								'conditions' => [
 									[
 										'condition_type' => 'Interests',
-										'field'          => 'interests-' . $sublist_id,
+										'field'          => 'interests-' . $send_sublist_id,
 										'op'             => 'interestcontains',
-										'value'          => [ $sublist_id ],
+										'value'          => [ $send_sublist_id ],
 									],
 								],
 							];
@@ -972,13 +966,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 										'condition_type' => 'StaticSegment',
 										'field'          => 'static_segment',
 										'op'             => 'static_is',
-										'value'          => $sublist_id,
+										'value'          => $send_sublist_id,
 									],
 								],
 							];
 							break;
 						case 'segment':
-							$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $sublist_id, $list['id'] );
+							$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $send_sublist_id, $send_list_id );
 							if ( is_wp_error( $segment_data ) ) {
 								return $segment_data;
 							}
@@ -991,20 +985,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					}
 				}
 			}
-		}
-
-		// Sync sender name + email.
-		if ( ! empty( $sender['name'] ) ) {
-			$payload['settings']['from_name'] = $sender['name'];
-		}
-		if ( ! empty( $sender['email'] ) ) {
-			$is_valid_email = $this->validate_sender_email( $sender['email'] );
-			if ( is_wp_error( $is_valid_email ) ) {
-				unset( $sender['email'] );
-				update_post_meta( $post->ID, 'sender', $sender ); // Delete invalid email so we can't accidentally attempt to send with it.
-				return $is_valid_email;
-			}
-			$payload['settings']['reply_to'] = $sender['email'];
 		}
 
 		return $payload;

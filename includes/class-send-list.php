@@ -134,8 +134,8 @@ class Send_List {
 					'required' => false,
 				],
 				// If this Send_List is a sublist, this property must indicate the ID of the parent list.
-				'parent'      => [
-					'name'     => 'parent',
+				'parent_id'   => [
+					'name'     => 'parent_id',
 					'type'     => 'string',
 					'required' => false,
 				],

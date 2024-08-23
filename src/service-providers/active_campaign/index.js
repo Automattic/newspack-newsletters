@@ -29,6 +29,7 @@ const validateNewsletter = ( newsletterData, meta = {} ) => {
 /**
  * A function to render additional info in the pre-send confirmation modal.
  * Can return null if no additional info is to be presented.
+ * TODO: handle meta sender/send_to info in this function
  *
  * @param {Object} newsletterData the data returned from the ESP retrieve method
  * @return {any} A React component

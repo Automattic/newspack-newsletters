@@ -16,11 +16,11 @@ import { addQueryArgs } from '@wordpress/url';
 /**
  * Internal dependencies
  */
+import SendTo from './sidebar/send-to';
 import InitModal from '../components/init-modal';
 import { getServiceProvider } from '../service-providers';
 import Layout from './layout/';
 import Sidebar from './sidebar/';
-import SendTo from './sidebar/send-to';
 import Testing from './testing/';
 import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
@@ -38,14 +38,12 @@ registerStore();
 registerEditorPlugin();
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
-	const { layoutId, postId, sendTo, status } = useSelect( select => {
-		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+	const { layoutId, postId } = useSelect( select => {
+		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			layoutId: meta.template_id,
 			postId: getCurrentPostId(),
-			sendTo: meta.send_to,
-			status: getCurrentPostAttribute( 'status' ),
 		};
 	} );
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
@@ -58,10 +56,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	const [ oauthUrl, setOauthUrl ] = useState( null );
 	const newsletterData = useNewsletterData();
 	const savePost = useDispatch( 'core/editor' ).savePost;
-	const editPost = useDispatch( 'core/editor' ).editPost;
-	const updateMeta = ( meta ) => editPost( { meta } );
-
 	const { name: serviceProviderName, hasOauth, isCampaignSent } = getServiceProvider();
+	const campaignIsSent = ! inFlight && newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
 
 	const verifyToken = () => {
 		const params = {
@@ -99,10 +95,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 	// Fetch send lists for the "Send To" UI and update the newsletterData store.
 	const fetchSendLists = debounce( async ( opts = {} ) => {
-		if ( ! newsletterData?.lists ) {
-			return;
-		}
-
 		const args = {
 			ids: null,
 			search: null,
@@ -118,7 +110,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			}
 		}
 
-		const sendLists = 'list' === args.type ? newsletterData.lists : newsletterData.sublists;
+		const sendLists = 'list' === args.type ? newsletterData?.lists || [] : newsletterData?.sublists || [];
 
 		// If we already have a matching result, no need to fetch more.
 		const foundItems = sendLists.filter( item => {
@@ -170,7 +162,14 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 	const stylingId = 'newspack-newsletters-styling';
 	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
-	const campaignIsSent = newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
+
+	if ( campaignIsSent ) {
+		return (
+			<Notice status="success" isDismissible={ false }>
+				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
+			</Notice>
+		);
+	}
 
 	return isDisplayingInitModal ? (
 		<InitModal
@@ -190,26 +189,19 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				name="newsletters-settings-panel"
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
+				<Sidebar
+					fetchSendLists={ fetchSendLists }
+					inFlight={ inFlight }
+					isConnected={ isConnected }
+					oauthUrl={ oauthUrl }
+					onAuthorize={ verifyToken }
+				/>
 				{
-					! campaignIsSent && (
-						<Sidebar isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
-					)
-				}
-				{
-					newsletterData?.campaign && ! campaignIsSent && 'manual' !== serviceProviderName && (
+					! campaignIsSent && 'manual' !== serviceProviderName && (
 						<SendTo
 							fetchSendLists={ fetchSendLists }
 							inFlight={ inFlight }
-							selected={ sendTo || {} }
-							updateMeta={ updateMeta }
 						/>
-					)
-				}
-				{
-					campaignIsSent && (
-						<Notice status="success" isDismissible={ false }>
-							{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
-						</Notice>
 					)
 				}
 				{ isConnected && <PublicSettings /> }

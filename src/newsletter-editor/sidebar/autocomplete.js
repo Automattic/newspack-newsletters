@@ -10,18 +10,15 @@ import { Icon, external } from '@wordpress/icons';
 const Autocomplete = ( {
 	availableItems,
 	label = '',
-	type = 'list' ,
 	onChange,
 	onFocus,
 	onInputChange,
 	reset,
-	selected,
+	selectedInfo,
 	inFlight,
 } ) => {
 	const [ isEditing, setIsEditing ] = useState( false );
-	const selectedInfo = selected[ type ] || null;
-
-	if ( selected[ type ] && ! isEditing ) {
+	if ( selectedInfo && ! isEditing ) {
 		return (
 			<div className="newspack-newsletters__send-to">
 				<p className="newspack-newsletters__send-to-details">
@@ -103,7 +100,7 @@ const Autocomplete = ( {
 					__experimentalShowHowTo={ false }
 				/>
 			</BaseControl>
-			{ selected[ type ] && (
+			{ selectedInfo && (
 				<ButtonGroup>
 					<Button
 						disabled={ inFlight }
