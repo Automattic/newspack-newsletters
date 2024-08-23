@@ -525,7 +525,7 @@ Details of the error message: "%3$s"
 		}
 		if ( $list->is_local() ) {
 			if ( ! $list->is_configured_for_provider( $this->service ) ) {
-				return new WP_Error( "List $list_id not properly configured for the provider" );
+				return new WP_Error( 'newspack_newsletters_list_not_configured_for_provider', "List $list_id not properly configured for the provider" );
 			}
 			$list_settings = $list->get_provider_settings( $this->service );
 			return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
