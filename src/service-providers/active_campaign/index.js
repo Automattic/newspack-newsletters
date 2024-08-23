@@ -6,9 +6,25 @@ import { Spinner } from '@wordpress/components';
 import { Fragment } from '@wordpress/element';
 
 /**
- * Internal dependencies
+ * Validation utility.
+ *
+ * @param {Object} newsletterData Data returned from the ESP retrieve method.
+ * @param {Object} meta           Post meta.
+ * @param {string} meta.sender    Sender info.
+ * @param {string} meta.send_to   Send-to info.
+ * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
-import { ProviderSidebar, validateNewsletter } from './ProviderSidebar';
+const validateNewsletter = ( newsletterData, meta = {} ) => {
+	const { sender, send_to: sendTo } = meta;
+	const messages = [];
+	if ( ! sender?.name || ! sender?.email ) {
+		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
+	}
+	if ( ! sendTo?.list?.id ) {
+		messages.push( __( 'Must select a list when sending in list mode', 'newspack-newsletters' ) );
+	}
+	return messages;
+};
 
 /**
  * A function to render additional info in the pre-send confirmation modal.
@@ -50,8 +66,15 @@ const renderPreSendInfo = ( newsletterData = {} ) => {
 	);
 };
 
+const isCampaignSent= ( newsletterData, postStatus = 'draft' ) => {
+	if ( 'publish' === postStatus || 'private' === postStatus ) {
+		return true;
+	}
+	return false;
+}
+
 export default {
 	validateNewsletter,
-	ProviderSidebar,
 	renderPreSendInfo,
+	isCampaignSent
 };

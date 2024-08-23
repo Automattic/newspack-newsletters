@@ -22,12 +22,12 @@ export const getEditPostPayload = newsletterData => {
 	};
 };
 
-export const validateNewsletter = newsletterData => {
+export const validateNewsletter = ( newsletterData, meta ) => {
 	const { validateNewsletter: validate } = getServiceProvider();
 	if ( ! validate ) {
 		return [];
 	}
-	return validate( newsletterData );
+	return validate( newsletterData, meta );
 };
 
 /**

@@ -48,6 +48,7 @@ const Editor = compose( [
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
 			),
+			meta,
 			sent,
 			isPublic: meta.is_public,
 			newsletterSendErrors: meta.newsletter_send_errors,
@@ -85,6 +86,7 @@ const Editor = compose( [
 		isPublic,
 		lockPostAutosaving,
 		lockPostSaving,
+		meta,
 		newsletterSendErrors,
 		openModal,
 		removeNotice,
@@ -94,7 +96,7 @@ const Editor = compose( [
 	} ) => {
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
 		const newsletterData = useNewsletterData();
-		const newsletterValidationErrors = validateNewsletter( newsletterData );
+		const newsletterValidationErrors = validateNewsletter( newsletterData, meta );
 		const isReady = newsletterValidationErrors.length === 0;
 
 		useEffect( () => {

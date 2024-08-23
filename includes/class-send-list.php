@@ -36,11 +36,6 @@ class Send_List {
 		$schema = self::get_config_schema();
 		$errors = [];
 
-		// If the type is a sublist but we're missing the parent property.
-		if ( 'sublist' === $config['type'] && ! isset( $config['parent'] ) ) {
-			$errors[] = __( 'Missing required parent ID for sublist type.', 'newspack-newsletters' );
-		}
-
 		foreach ( $schema['properties'] as $key => $property ) {
 			// If the property is required but not set, throw an error.
 			if ( ! empty( $property['required'] ) && ! isset( $config[ $key ] ) ) {

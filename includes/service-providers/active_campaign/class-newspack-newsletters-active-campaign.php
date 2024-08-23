@@ -7,6 +7,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Send_Lists;
+use Newspack\Newsletters\Send_List;
+
 /**
  * ActiveCampaign ESP Class.
  */
@@ -25,6 +28,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @var array
 	 */
 	private $lists = null;
+
+	/**
+	 * Cached segments.
+	 *
+	 * @var array
+	 */
+	private $segments = null;
 
 	/**
 	 * Cached contact data.
@@ -495,13 +505,39 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Get lists.
 	 *
+	 * @param array $args Query args to pass to the lists_lists endpoint.
+	 *                    For supported args, see: https://www.activecampaign.com/api/example.php?call=list_list.
+	 *
 	 * @return array|WP_Error List of existing lists or error.
 	 */
-	public function get_lists() {
+	public function get_lists( $args = [] ) {
 		if ( null !== $this->lists ) {
+			if ( ! empty( $args['ids'] ) ) {
+				return array_values(
+					array_filter(
+						$this->lists,
+						function ( $list ) use ( $args ) {
+							return Send_Lists::matches_id( $args['ids'], $list['id'] );
+						}
+					)
+				);
+			}
+			if ( ! empty( $args['filters[name]'] ) ) {
+				return array_values(
+					array_filter(
+						$this->lists,
+						function ( $list ) use ( $args ) {
+							return Send_Lists::matches_search( $args['filters[name]'], [ $list['name'] ] );
+						}
+					)
+				);
+			}
 			return $this->lists;
 		}
-		$lists = $this->api_v1_request( 'list_list', 'GET', [ 'query' => [ 'ids' => 'all' ] ] );
+		if ( empty( $args['ids'] ) && empty( $args['filters[name]'] ) ) {
+			$args['ids'] = 'all';
+		}
+		$lists = $this->api_v1_request( 'list_list', 'GET', [ 'query' => $args ] );
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
 		}
@@ -509,43 +545,159 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		unset( $lists['result_code'] );
 		unset( $lists['result_message'] );
 		unset( $lists['result_output'] );
-		$this->lists = array_values( $lists );
-		return $this->lists;
+
+		if ( ! empty( $args['ids'] ) && 'all' === $args['ids'] ) {
+			$this->lists = array_values( $lists );
+		}
+		return array_values( $lists );
+	}
+
+	/**
+	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
+	 *
+	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 *
+	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 */
+	public function get_send_lists( $args = [] ) {
+		$send_lists = [];
+		if ( empty( $args['type'] ) || 'list' === $args['type'] ) {
+			$list_args = [
+				'limit' => ! empty( $args['limit'] ) ? intval( $args['limit'] ) : 100,
+			];
+
+			// Search by IDs.
+			if ( ! empty( $args['ids'] ) ) {
+				$list_args['ids'] = implode( ',', $args['ids'] );
+			}
+
+			// Search by name.
+			if ( ! empty( $args['search'] ) ) {
+				if ( is_array( $args['search'] ) ) {
+					return new WP_Error(
+						'newspack_newsletters_active_campaign_fetch_send_lists',
+						__( 'ActiveCampaign supports searching by a single search term only.', 'newspack-newsletters' )
+					);
+				}
+				$list_args['filters[name]'] = $args['search'];
+			}
+
+			$lists = $this->get_lists( $list_args );
+			if ( is_wp_error( $lists ) ) {
+				return $lists;
+			}
+			foreach ( $lists as $list ) {
+				$send_lists[] = new Send_List(
+					[
+						'provider'    => $this->service,
+						'type'        => 'list',
+						'id'          => $list['id'],
+						'name'        => $list['name'],
+						'entity_type' => 'list',
+						'count'       => $list['subscriber_count'] ?? 0,
+					]
+				);
+			}
+		}
+
+		if ( empty( $args['type'] ) || 'sublist' === $args['type'] ) {
+			$segment_args = [];
+			if ( ! empty( $args['ids'] ) ) {
+				$segment_args['ids'] = $args['ids'];
+			}
+			if ( ! empty( $args['search'] ) ) {
+				$segment_args['search'] = $args['search'];
+			}
+			$segments = $this->get_segments( $segment_args );
+			if ( is_wp_error( $segments ) ) {
+				return $segments;
+			}
+			foreach ( $segments as $segment ) {
+				$segment_name = ! empty( $segment['name'] ) ?
+					$segment['name'] . ' (ID ' . $segment['id'] . ')' :
+					sprintf(
+						// Translators: %s is the segment ID.
+						__( 'Untitled %s', 'newspack-newsletters' ),
+						$segment['id']
+					);
+				$send_lists[] = new Send_List(
+					[
+						'provider'    => $this->service,
+						'type'        => 'sublist',
+						'id'          => $segment['id'],
+						'parent'      => $args['parent'] ?? null,
+						'name'        => $segment_name,
+						'entity_type' => 'segment',
+						'count'       => $segment['subscriber_count'] ?? null,
+					]
+				);
+			}
+		}
+
+		return $send_lists;
 	}
 
 	/**
 	 * Get segments.
 	 *
+	 * @param array $args Array of search args.
+	 *
 	 * @return array|WP_Error List os existing segments or error.
 	 */
-	public function get_segments() {
-		$limit  = 100;
-		$offset = 0;
+	public function get_segments( $args = [] ) {
+		if ( null !== $this->segments ) {
+			if ( ! empty( $args['ids'] ) ) {
+				$filtered = array_values(
+					array_filter(
+						$this->segments,
+						function ( $segment ) use ( $args ) {
+							return Send_Lists::matches_id( $args['ids'], $segment['id'] );
+						}
+					)
+				);
+				return array_slice( $filtered, 0, $args['limit'] ?? count( $filtered ) );
+			}
+			if ( ! empty( $args['search'] ) ) {
+				$filtered = array_values(
+					array_filter(
+						$this->segments,
+						function ( $segment ) use ( $args ) {
+							return Send_Lists::matches_search( $args['search'], [ $segment['name'] ] );
+						}
+					)
+				);
+				return array_slice( $filtered, 0, $args['limit'] ?? count( $filtered ) );
+			}
+			return $this->segments;
+		}
+
+		$query_args           = $args;
+		$query_args['limit']  = $args['limit'] ?? 100;
+		$query_args['offset'] = 0;
 		$result = $this->api_v3_request(
 			'segments',
 			'GET',
 			[
-				'query' => [
-					'limit'  => $limit,
-					'offset' => $offset,
-				],
+				'query' => $query_args,
 			]
 		);
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 		$segments = $result['segments'];
-		$total    = $result['meta']['total'];
-		while ( $total > $offset + $limit ) {
-			$offset = $offset + $limit;
+		if ( isset( $args['limit'] ) ) {
+			return $segments;
+		}
+
+		// If not passed a limit, get all the segments.
+		$total = $result['meta']['total'];
+		while ( $total > $query_args['offset'] + $query_args['limit'] ) {
+			$query_args['offset'] = $query_args['offset'] + $query_args['limit'];
 			$result = $this->api_v3_request(
 				'segments',
 				'GET',
 				[
-					'query' => [
-						'limit'  => $limit,
-						'offset' => $offset,
-					],
+					'query' => $query_args,
 				]
 			);
 			if ( is_wp_error( $result ) ) {
@@ -553,7 +705,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 			$segments = array_merge( $segments, $result['segments'] );
 		}
-		return $segments;
+
+		$this->segments = $segments;
+		if ( ! empty( $args['ids'] ) || ! empty( $args['search'] ) ) {
+			return $this->get_segments( $args );
+		}
+
+		return $this->segments;
 	}
 
 	/**
@@ -578,39 +736,86 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( ! $this->has_api_credentials() ) {
 			return [];
 		}
-		$lists = $this->get_lists();
-		if ( is_wp_error( $lists ) ) {
-			return $lists;
-		}
-		$segments = $this->get_segments();
-		if ( is_wp_error( $segments ) ) {
-			return $segments;
-		}
-		$campaign_id = get_post_meta( $post_id, 'ac_campaign_id', true );
-		$from_name   = get_post_meta( $post_id, 'ac_from_name', true );
-		$from_email  = get_post_meta( $post_id, 'ac_from_email', true );
-		$list_id     = get_post_meta( $post_id, 'ac_list_id', true );
-		$segment_id  = get_post_meta( $post_id, 'ac_segment_id', true );
-		$result      = [
+
+		$campaign_id     = get_post_meta( $post_id, 'ac_campaign_id', true );
+		$newsletter_data = [
 			'campaign'    => true, // Satisfy the JS API.
 			'campaign_id' => $campaign_id,
-			'from_name'   => $from_name,
-			'from_email'  => $from_email,
-			'list_id'     => $list_id,
-			'segment_id'  => $segment_id,
-			'lists'       => $lists,
-			'segments'    => $segments,
+			'lists'       => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
+				[
+					'type'  => 'list',
+					'limit' => 10,
+				]
+			),
+			'sublists'    => [], // Will be populated later if needed.
 		];
+
+		$sender      = get_post_meta( $post_id, 'sender', true );
+		$from_name   = $sender['name'] ?? null;
+		$from_email  = $sender['email'] ?? null;
+
+		// Handle legacy sender meta.
+		if ( ! $from_name ) {
+			$legacy_from_name = get_post_meta( $post_id, 'ac_from_name', true );
+			if ( $legacy_from_name ) {
+				$newsletter_data['fetched_sender'] = [
+					'name' => $legacy_from_name,
+				];
+			}
+		}
+		if ( ! $from_email ) {
+			$legacy_from_email = get_post_meta( $post_id, 'ac_from_email', true );
+			if ( $legacy_from_email ) {
+				if ( ! isset( $newsletter_data['fetched_sender'] ) ) {
+					$newsletter_data['fetched_sender'] = [];
+				}
+				$newsletter_data['fetched_sender']['email'] = $legacy_from_email;
+			}
+		}
+
+		// Handle legacy send-to meta.
+		$send_to          = get_post_meta( $post_id, 'send_to', true );
+		$selected_list    = $send_to['list'] ?? null;
+		$selected_sublist = $send_to['sublist'] ?? null;
+		if ( ! $selected_list ) {
+			$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
+			if ( $legacy_list_id ) {
+				$selected_list = $this->get_send_lists(
+					[
+						'ids'  => [ $legacy_list_id ],
+						'type' => 'list',
+					]
+				);
+				if ( ! empty( $selected_list[0] ) ) {
+					$newsletter_data['fetched_list'] = $selected_list[0];
+				}
+			}
+		}
+		if ( ! $selected_sublist ) {
+			$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
+			if ( $legacy_sublist_id ) {
+				$selected_sublist = $this->get_send_lists(
+					[
+						'ids'  => [ $legacy_sublist_id ],
+						'type' => 'sublist',
+					]
+				);
+				if ( ! empty( $selected_sublist[0] ) ) {
+					$newsletter_data['fetched_sublist'] = $selected_sublist[0];
+				}
+			}
+		}
+
 		if ( ! $campaign_id && true !== $skip_sync ) {
 			$sync_result = $this->sync( get_post( $post_id ) );
 			if ( ! is_wp_error( $sync_result ) ) {
-				$result = wp_parse_args(
+				$newsletter_data = wp_parse_args(
 					$sync_result,
-					$result
+					$newsletter_data
 				);
 			}
 		}
-		return $result;
+		return $newsletter_data;
 	}
 
 	/**
@@ -714,17 +919,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$transient_name = $this->get_transient_name( $post->ID );
 		delete_transient( $transient_name );
 
-		$from_name  = get_post_meta( $post->ID, 'ac_from_name', true );
-		$from_email = get_post_meta( $post->ID, 'ac_from_email', true );
-		$list_id    = get_post_meta( $post->ID, 'ac_list_id', true );
-		$is_public  = get_post_meta( $post->ID, 'is_public', true );
-		$message_id = get_post_meta( $post->ID, 'ac_message_id', true );
+		$sender        = get_post_meta( $post->ID, 'sender', true );
+		$from_name     = $sender['name'] ?? null;
+		$from_email    = $sender['email'] ?? null;
+		$send_to       = get_post_meta( $post->ID, 'send_to', true );
+		$selected_list = $send_to['list'] ?? null;
+		$list_id       = ! empty( $selected_list['id'] ) ? $selected_list['id'] : null;
+		$message_id    = get_post_meta( $post->ID, 'ac_message_id', true );
 
 		$renderer = new Newspack_Newsletters_Renderer();
 		$content  = $renderer->retrieve_email_html( $post );
 
 		$message_action = 'message_add';
 		$message_data   = [];
+		$sync_data = [
+			'campaign' => true, // Satisfy JS API.
+		];
 
 		if ( $message_id ) {
 			$message = $this->api_v1_request( 'message_view', 'GET', [ 'query' => [ 'id' => $message_id ] ] );
@@ -736,10 +946,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 			// If sender data is not available locally, update from ESP.
 			if ( ! $from_name || ! $from_email ) {
-				$from_name  = $message['fromname'];
-				$from_email = $message['fromemail'];
-				update_post_meta( $post->ID, 'ac_from_name', $from_name );
-				update_post_meta( $post->ID, 'ac_from_email', $from_email );
+				$sync_data['fetched_sender'] = [
+					'name'  => $message['fromname'],
+					'email' => $message['fromemail'],
+				];
 			}
 		} else {
 			// Validate required meta if campaign and message are not yet created.
@@ -776,14 +986,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 
 		update_post_meta( $post->ID, 'ac_message_id', $message['id'] );
-
-		$sync_data = [
-			'campaign'   => true, // Satisfy JS API.
-			'message_id' => $message['id'],
-			'list_id'    => $list_id,
-			'from_email' => $from_email,
-			'from_name'  => $from_name,
-		];
+		$sync_data['message_id'] = $message['id'];
 
 		// Retrieve and store campaign data.
 		$data = $this->retrieve( $post->ID, true );
@@ -792,7 +995,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return $data;
 		} else {
 			$data = array_merge( $data, $sync_data );
-			update_post_meta( $post->ID, 'newsletterData', $data );
 		}
 
 		return $sync_data;
@@ -811,8 +1013,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
 		}
-		$segment_id = get_post_meta( $post->ID, 'ac_segment_id', true );
-		$is_public  = get_post_meta( $post->ID, 'is_public', true );
+		$sender           = get_post_meta( $post->ID, 'sender', true );
+		$from_name        = $sender['name'] ?? null;
+		$from_email       = $sender['email'] ?? null;
+		$send_to          = get_post_meta( $post->ID, 'send_to', true );
+		$selected_list    = $send_to['list'] ?? null;
+		$selected_sublist = $send_to['sublist'] ?? null;
+
+		$is_public = get_post_meta( $post->ID, 'is_public', true );
 		if ( empty( $campaign_name ) ) {
 			$campaign_name = $this->get_campaign_name( $post );
 		}
@@ -821,10 +1029,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'status'                                => 0, // 0 = Draft; 1 = Scheduled.
 			'public'                                => (int) $is_public,
 			'name'                                  => $campaign_name,
-			'fromname'                              => $sync_result['from_name'],
-			'fromemail'                             => $sync_result['from_email'],
-			'segmentid'                             => $segment_id ?? 0, // 0 = No segment.
-			'p[' . $sync_result['list_id'] . ']'    => $sync_result['list_id'],
+			'fromname'                              => $from_name,
+			'fromemail'                             => $from_email,
+			'segmentid'                             => $selected_sublist['id'] ?? 0, // 0 = No segment.
+			'p[' . $selected_list['id'] . ']'       => $selected_list['id'],
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
 		];
 		if ( defined( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING' ) && NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING ) {
@@ -1335,6 +1543,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'name'                   => 'Active Campaign',
 				'list_explanation'       => __( 'Active Campaign List', 'newspack-newsletters' ),
 				'local_list_explanation' => __( 'Active Campaign Tag', 'newspack-newsletters' ),
+				'list'                   => __( 'list', 'newspack-newsletters' ), // "list" in lower case singular format.
+				'lists'                  => __( 'lists', 'newspack-newsletters' ), // "list" in lower case plural format.
+				'sublist'                => __( 'segment', 'newspack-newsletters' ), // Sublist entities in lowercase singular format.
+				'List'                   => __( 'List', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+				'Lists'                  => __( 'Lists', 'newspack-newsletters' ), // "list" in uppercase case plural format.
+				'Sublist'                => __( 'Segments', 'newspack-newsletters' ), // Sublist entities in uppercase singular format.
 			]
 		);
 	}

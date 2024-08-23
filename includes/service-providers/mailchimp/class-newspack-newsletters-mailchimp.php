@@ -475,10 +475,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'sublists'     => [], // Will be populated later if needed.
 			];
 
-			// Reconcile campaign settings with info fetched from the ESP.
+			// Reconcile campaign settings with info fetched from the ESP (and handle legacy sender meta too).
 			$sender       = get_post_meta( $post_id, 'sender', true );
-			$sender_name  = $sender['name'] ?? '';
-			$sender_email = $sender['email'] ?? '';
+			$sender_name  = $sender['name'] ?? null;
+			$sender_email = $sender['email'] ?? null;
+
+			// Handle legacy meta keys.
 			if ( ! empty( $campaign['settings']['from_name'] ) && $campaign['settings']['from_name'] !== $sender_name ) {
 				$newsletter_data['fetched_sender'] = [ 'name' => $campaign['settings']['from_name'] ];
 			}

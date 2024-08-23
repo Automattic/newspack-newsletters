@@ -130,7 +130,7 @@ const SendTo = (
 						fetchSendLists();
 					}
 				} }
-				onInputChange={ search => fetchSendLists( { search } ) }
+				onInputChange={ search => search && fetchSendLists( { search } ) }
 				reset={ () => {
 					updateMeta( { send_to: {} } )
 				} }
@@ -142,13 +142,13 @@ const SendTo = (
 				selected?.list?.id && (
 					<Autocomplete
 						type="sublist"
-						availableItems={ sublists.filter( item => selected.list.id === item.parent ) }
+						availableItems={ sublists.filter( item => ! item.parent || selected.list.id === item.parent ) }
 						label={ sublistLabel }
 						inFlight={ inFlight }
 						parentId={ selected.list.id }
 						onChange={ selectedLabels => {
 							const selectedLabel = selectedLabels[ 0 ];
-							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && selected.list.id === item.parent );
+							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && ( ! item.parent || selected.list.id === item.parent ) );
 							if ( ! selectedSuggestion?.id ) {
 								return setError(
 									sprintf(
@@ -170,7 +170,7 @@ const SendTo = (
 								} );
 							}
 						} }
-						onInputChange={ search => fetchSendLists( {
+						onInputChange={ search => search && fetchSendLists( {
 							search,
 							type: 'sublist',
 							parent_id: selected.list.id

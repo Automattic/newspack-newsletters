@@ -8,6 +8,11 @@
 import apiFetch from '@wordpress/api-fetch';
 import { createReduxStore, dispatch, register, useSelect } from '@wordpress/data';
 
+/**
+ * Internal dependencies
+ */
+import { getServiceProvider } from '../service-providers';
+
 export const STORE_NAMESPACE = 'newspack/newsletters';
 
 const DEFAULT_STATE = {
@@ -62,8 +67,9 @@ export const updateNewsletterData = data =>
 // Dispatcher to fetch newsletter data from the server.
 export const fetchNewsletterData = async postId => {
 	try {
+		const { name } = getServiceProvider();
 		const response = await apiFetch( {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/retrieve`,
+			path: `/newspack-newsletters/v1/${ name }/${ postId }/retrieve`,
 		} );
 		updateNewsletterData( response );
 	} catch ( error ) {

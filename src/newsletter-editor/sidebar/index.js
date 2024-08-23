@@ -113,7 +113,7 @@ const Sidebar = ( {
 	}
 
 	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
-	const { ProviderSidebar } = getServiceProvider();
+	const { ProviderSidebar = () => null } = getServiceProvider();
 	return (
 		<div className="newspack-newsletters__sidebar">
 			<TextControl

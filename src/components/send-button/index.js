@@ -168,7 +168,7 @@ export default compose( [
 		const { is_public } = meta;
 		const newsletterData = useNewsletterData();
 
-		const newsletterValidationErrors = validateNewsletter( newsletterData );
+		const newsletterValidationErrors = validateNewsletter( newsletterData, meta );
 
 		const {
 			name: serviceProviderName,
