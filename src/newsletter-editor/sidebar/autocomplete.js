@@ -24,7 +24,7 @@ const Autocomplete = ( {
 				<p className="newspack-newsletters__send-to-details">
 					{ selectedInfo.name }
 					<span>
-						{ selectedInfo.entity_type }
+						{ selectedInfo.entity_type.charAt(0).toUpperCase() + selectedInfo.entity_type.slice(1) }
 						{ selectedInfo?.hasOwnProperty( 'count' )
 							? ' • ' +
 							sprintf(

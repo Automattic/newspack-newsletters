@@ -8,20 +8,20 @@ import { Fragment } from '@wordpress/element';
 /**
  * Validation utility.
  *
- * @param {Object} newsletterData Data returned from the ESP retrieve method.
- * @param {Object} meta           Post meta.
- * @param {string} meta.sender    Sender info.
- * @param {string} meta.send_to   Send-to info.
+ * @param {Object} meta              Post meta.
+ * @param {string} meta.senderEmail  Sender email address.
+ * @param {string} meta.senderName   Sender name.
+ * @param {string} meta.send_list_id Send-to list ID.
  * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
-const validateNewsletter = ( newsletterData, meta = {} ) => {
-	const { sender, send_to: sendTo } = meta;
+const validateNewsletter = ( meta = {} ) => {
+	const { senderEmail, senderName, send_list_id: listId } = meta;
 	const messages = [];
-	if ( ! sender?.name || ! sender?.email ) {
+	if ( ! senderEmail || ! senderName ) {
 		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
 	}
-	if ( ! sendTo?.list?.id ) {
-		messages.push( __( 'Must select a list when sending in list mode', 'newspack-newsletters' ) );
+	if ( ! listId ) {
+		messages.push( __( 'Missing required list.', 'newspack-newsletters' ) );
 	}
 	return messages;
 };

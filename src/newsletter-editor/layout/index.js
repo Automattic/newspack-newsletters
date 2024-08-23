@@ -28,19 +28,31 @@ export default compose( [
 		const { getEditedPostAttribute, isEditedPostEmpty, getCurrentPostId } = select( 'core/editor' );
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
+		const {
+			background_color,
+			font_body,
+			font_header,
+			custom_css,
+			senderEmail,
+			senderName,
+			send_list_id,
+			send_sublist_id,
+		} = meta;
 		const layoutMeta = {
-			background_color: meta.background_color,
-			font_body: meta.font_body,
-			font_header: meta.font_header,
-			custom_css: meta.custom_css,
+			background_color,
+			font_body,
+			font_header,
+			custom_css,
 		};
 
 		// ESP-agnostic sender and send_to defaults.
-		if ( meta?.sender || meta?.send_to ) {
+		if ( senderEmail || senderName || send_list_id || send_sublist_id ) {
 			layoutMeta.campaign_defaults = JSON.stringify(
 				{
-					sender: meta.sender,
-					send_to: meta.send_to,
+					senderEmail,
+					senderName,
+					send_list_id,
+					send_sublist_id,
 				}
 			)
 		}

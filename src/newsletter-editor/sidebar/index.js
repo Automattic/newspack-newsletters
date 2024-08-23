@@ -44,11 +44,11 @@ const Sidebar = ( {
 	// Reconcile stored campaign data with data fetched from ESP.
 	useEffect( () => {
 		const updatedMeta = {};
-		if ( newsletterData?.sender_email ) {
-			updatedMeta.senderEmail = newsletterData.sender_email;
+		if ( newsletterData?.senderEmail ) {
+			updatedMeta.senderEmail = newsletterData.senderEmail;
 		}
-		if ( newsletterData?.sender_name ) {
-			updatedMeta.senderName = newsletterData.sender_name;
+		if ( newsletterData?.senderName ) {
+			updatedMeta.senderName = newsletterData.senderName;
 		}
 		if ( newsletterData?.send_list_id ) {
 			updatedMeta.send_list_id = newsletterData.send_list_id;
@@ -64,11 +64,11 @@ const Sidebar = ( {
 	useEffect( () => {
 		const campaignDefaults = 'string' === typeof stringifiedCampaignDefaults ? JSON.parse( stringifiedCampaignDefaults ) : stringifiedCampaignDefaults;
 		const updatedMeta = {};
-		if ( campaignDefaults?.sender_email ) {
-			updatedMeta.senderEmail = campaignDefaults.sender_email;
+		if ( campaignDefaults?.senderEmail ) {
+			updatedMeta.senderEmail = campaignDefaults.senderEmail;
 		}
-		if ( campaignDefaults?.sender_name ) {
-			updatedMeta.senderName = campaignDefaults.sender_name;
+		if ( campaignDefaults?.senderName ) {
+			updatedMeta.senderName = campaignDefaults.senderName;
 		}
 		if ( campaignDefaults?.send_list_id ) {
 			updatedMeta.send_list_id = campaignDefaults.send_list_id;

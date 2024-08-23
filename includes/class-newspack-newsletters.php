@@ -182,7 +182,7 @@ final class Newspack_Newsletters {
 		];
 		$fields = [
 			[
-				'name'               => 'stringifiedLayoutDefaults',
+				'name'               => 'stringifiedCampaignDefaults',
 				'register_meta_args' => $default_register_meta_args,
 			],
 			[

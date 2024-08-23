@@ -14,30 +14,24 @@ import { find } from 'lodash';
  */
 import { ProviderSidebar } from './ProviderSidebar';
 
-const validateNewsletter = ( { campaign } ) => {
-	const { recipients, settings } = campaign || {};
-	const { list_id: listId, recipient_count: recipientCount } = recipients || {};
-	const { from_name: senderName, reply_to: senderEmail } = settings || {};
-
+/**
+ * Validation utility.
+ *
+ * @param {Object} meta              Post meta.
+ * @param {string} meta.senderEmail  Sender email address.
+ * @param {string} meta.senderName   Sender name.
+ * @param {string} meta.send_list_id Send-to list ID.
+ * @return {string[]} Array of validation messages. If empty, newsletter is valid.
+ */
+const validateNewsletter = ( meta = {} ) => {
+	const { senderEmail, senderName, send_list_id: listId } = meta;
 	const messages = [];
-	if ( recipientCount === 0 ) {
-		messages.push( __( 'There are no contacts in the chosen audience.', 'newspack-newsletters' ) );
-	}
-	if ( isCampaignSent( campaign ) ) {
-		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
+	if ( ! senderEmail || ! senderName ) {
+		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
 	}
 	if ( ! listId ) {
-		messages.push(
-			__( 'A Mailchimp list must be selected before publishing.', 'newspack-newsletters' )
-		);
+		messages.push( __( 'Missing required list.', 'newspack-newsletters' ) );
 	}
-	if ( ! senderName || senderName.length < 1 ) {
-		messages.push( __( 'Sender name must be set.', 'newspack-newsletters' ) );
-	}
-	if ( ! senderEmail || senderEmail.length < 1 ) {
-		messages.push( __( 'Sender email must be set.', 'newspack-newsletters' ) );
-	}
-
 	return messages;
 };
 

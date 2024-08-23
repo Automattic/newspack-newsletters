@@ -460,52 +460,62 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				);
 			}
 
-			$list_id         = $campaign && isset( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+			$list_id         = ! empty( $campaign ) && ! empty( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
+			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
 			$newsletter_data = [
 				'campaign'     => $campaign,
 				'campaign_id'  => $mc_campaign_id,
 				'folders'      => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
 				'merge_fields' => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
-				'lists'        => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
-					[
-						'type'  => 'list',
-						'limit' => 10,
-					]
-				),
-				'sublists'     => [], // Will be populated later if needed.
 			];
 
-			// Reconcile campaign settings with info fetched from the ESP.
+			// Reconcile campaign settings with info fetched from the ESP for a true two-way sync.
 			if ( ! empty( $campaign['settings']['from_name'] ) && $campaign['settings']['from_name'] !== get_post_meta( $post_id, 'senderName', true ) ) {
-				$newsletter_data['sender_name'] = $campaign['settings']['from_name'];
+				$newsletter_data['senderName'] = $campaign['settings']['from_name']; // If campaign has different sender info set, update ours.
 			}
 			if ( ! empty( $campaign['settings']['reply_to'] ) && $campaign['settings']['reply_to'] !== get_post_meta( $post_id, 'senderEmail', true ) ) {
-				$newsletter_data['sender_email'] = $campaign['settings']['reply_to'];
+				$newsletter_data['senderEmail'] = $campaign['settings']['reply_to']; // If campaign has different sender info set, update ours.
 			}
-			if ( ! empty( $campaign['recipients'] ) ) {
-				$recipients = $campaign['recipients'];
-				if ( ! empty( $recipients['list_id'] ) ) {
-					if ( $recipients['list_id'] !== get_post_meta( $post_id, 'send_list_id', true ) ) {
-						$newsletter_data['list_id'] = $recipients['list_id'];
-					}
+			if ( $list_id && $list_id !== $send_list_id ) {
+				$newsletter_data['list_id'] = $list_id; // If campaign has a different list selected, update ours.
+				$send_list_id               = $list_id;
 
-					if ( ! empty( $recipients['segment_opts'] ) ) {
-						$target_id_raw = $recipients['segment_opts']['saved_segment_id'] ?? null;
-						if ( ! $target_id_raw ) {
-							$target_id_raw = $recipients['segment_opts']['conditions'][0]['value'] ?? null;
+				if ( ! empty( $campaign['recipients']['segment_opts'] ) ) {
+					$segment_opts  = $campaign['recipients']['segment_opts'];
+					$target_id_raw = $segment_opts['saved_segment_id'] ?? null;
+					if ( ! $target_id_raw ) {
+						$target_id_raw = $segment_opts['conditions'][0]['value'] ?? null;
+					}
+					if ( $target_id_raw ) {
+						$target_id = strval( is_array( $target_id_raw ) && ! empty( $target_id_raw[0] ) ? $target_id_raw[0] : $target_id_raw );
+						if ( ! $target_id ) {
+							$target_id = (string) $target_id_raw;
 						}
-						if ( $target_id_raw ) {
-							$target_id = strval( is_array( $target_id_raw ) && ! empty( $target_id_raw[0] ) ? $target_id_raw[0] : $target_id_raw );
-							if ( ! $target_id ) {
-								$target_id = (string) $target_id_raw;
-							}
-							if ( $target_id && $target_id !== get_post_meta( $post_id, 'send_sublist_id', true ) ) {
-								$newsletter_data['sublist_id'] = $target_id;
-							}
+						if ( $target_id && $target_id !== $send_sublist_id ) {
+							$newsletter_data['sublist_id'] = $target_id; // If campaign has a different sublist selected, update ours.
+							$send_sublist_id               = $target_id;
 						}
 					}
 				}
 			}
+
+			// Prefetch send list info if we have a selected list and/or sublist.
+			$newsletter_data['lists'] = $this->get_send_lists(
+				[
+					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
+					'type' => 'list',
+				]
+			);
+			$newsletter_data['sublists'] = $send_list_id || $send_sublist_id ? // Prefetch send lists only if we have something selected already.
+				$this->get_send_lists(
+					[
+						'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
+						'parent_id' => $send_list_id,
+						'type'      => 'sublist',
+					]
+				) :
+				[];
 
 			return $newsletter_data;
 		} catch ( Exception $e ) {

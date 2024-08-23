@@ -618,7 +618,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			foreach ( $interest_categories['categories'] as &$category ) {
 				$category_id           = $category['id'];
 				$category['interests'] = ( self::get_mc_instance() )->validate(
-					$mc->get( "lists/$list_id/interest-categories/$category_id/interests", [ 'count' => 1000 ], 60 ),
+					$mc->get( "lists/$list_id/interest-categories/$category_id/interests", [ 'count' => $limit ?? 1000 ], 60 ),
 					__( 'Error retrieving Mailchimp groups.', 'newspack_newsletters' )
 				);
 			}

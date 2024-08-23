@@ -117,7 +117,7 @@ class Send_Lists {
 	 */
 	public static function matches_id( $ids, $id ) {
 		if ( is_array( $ids ) ) {
-			return in_array( $id, $ids, true );
+			return in_array( $id, $ids, false ); // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
 		}
 		return $id === $ids;
 	}

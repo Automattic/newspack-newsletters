@@ -20,7 +20,6 @@ import { registerPlugin } from '@wordpress/plugins';
 import withApiHandler from '../../components/with-api-handler';
 import SendButton from '../../components/send-button';
 import './style.scss';
-import { useNewsletterData } from '../store';
 import { validateNewsletter } from '../utils';
 
 const Editor = compose( [
@@ -95,8 +94,7 @@ const Editor = compose( [
 		successNote,
 	} ) => {
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
-		const newsletterData = useNewsletterData();
-		const newsletterValidationErrors = validateNewsletter( newsletterData, meta );
+		const newsletterValidationErrors = validateNewsletter( meta );
 		const isReady = newsletterValidationErrors.length === 0;
 
 		useEffect( () => {
