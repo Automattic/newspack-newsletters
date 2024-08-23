@@ -750,59 +750,36 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'sublists'    => [], // Will be populated later if needed.
 		];
 
-		$sender      = get_post_meta( $post_id, 'sender', true );
-		$from_name   = $sender['name'] ?? null;
-		$from_email  = $sender['email'] ?? null;
+		$from_name   = get_post_meta( $post_id, 'senderName', true );
+		$from_email  = get_post_meta( $post_id, 'senderEmail', true );
 
 		// Handle legacy sender meta.
 		if ( ! $from_name ) {
 			$legacy_from_name = get_post_meta( $post_id, 'ac_from_name', true );
 			if ( $legacy_from_name ) {
-				$newsletter_data['fetched_sender'] = [
-					'name' => $legacy_from_name,
-				];
+				$newsletter_data['senderName'] = $legacy_from_name;
 			}
 		}
 		if ( ! $from_email ) {
 			$legacy_from_email = get_post_meta( $post_id, 'ac_from_email', true );
 			if ( $legacy_from_email ) {
-				if ( ! isset( $newsletter_data['fetched_sender'] ) ) {
-					$newsletter_data['fetched_sender'] = [];
-				}
-				$newsletter_data['fetched_sender']['email'] = $legacy_from_email;
+				$newsletter_data['senderEmail'] = $legacy_from_email;
 			}
 		}
 
 		// Handle legacy send-to meta.
-		$send_to          = get_post_meta( $post_id, 'send_to', true );
-		$selected_list    = $send_to['list'] ?? null;
-		$selected_sublist = $send_to['sublist'] ?? null;
-		if ( ! $selected_list ) {
+		$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
+		$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
+		if ( ! $send_list_id ) {
 			$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
 			if ( $legacy_list_id ) {
-				$selected_list = $this->get_send_lists(
-					[
-						'ids'  => [ $legacy_list_id ],
-						'type' => 'list',
-					]
-				);
-				if ( ! empty( $selected_list[0] ) ) {
-					$newsletter_data['fetched_list'] = $selected_list[0];
-				}
+				$newsletter_data['list_id'] = $legacy_list_id;
 			}
 		}
-		if ( ! $selected_sublist ) {
+		if ( ! $send_sublist_id ) {
 			$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
 			if ( $legacy_sublist_id ) {
-				$selected_sublist = $this->get_send_lists(
-					[
-						'ids'  => [ $legacy_sublist_id ],
-						'type' => 'sublist',
-					]
-				);
-				if ( ! empty( $selected_sublist[0] ) ) {
-					$newsletter_data['fetched_sublist'] = $selected_sublist[0];
-				}
+				$newsletter_data['sublist_id'] = $legacy_sublist_id;
 			}
 		}
 
@@ -919,13 +896,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$transient_name = $this->get_transient_name( $post->ID );
 		delete_transient( $transient_name );
 
-		$sender        = get_post_meta( $post->ID, 'sender', true );
-		$from_name     = $sender['name'] ?? null;
-		$from_email    = $sender['email'] ?? null;
-		$send_to       = get_post_meta( $post->ID, 'send_to', true );
-		$selected_list = $send_to['list'] ?? null;
-		$list_id       = ! empty( $selected_list['id'] ) ? $selected_list['id'] : null;
-		$message_id    = get_post_meta( $post->ID, 'ac_message_id', true );
+		$from_name    = get_post_meta( $post->ID, 'senderName', true );
+		$from_email   = get_post_meta( $post->ID, 'senderEmail', true );
+		$send_list_id = get_post_meta( $post->ID, 'send_list_id', true );
+		$message_id   = get_post_meta( $post->ID, 'ac_message_id', true );
 
 		$renderer = new Newspack_Newsletters_Renderer();
 		$content  = $renderer->retrieve_email_html( $post );
@@ -946,10 +920,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 			// If sender data is not available locally, update from ESP.
 			if ( ! $from_name || ! $from_email ) {
-				$sync_data['fetched_sender'] = [
-					'name'  => $message['fromname'],
-					'email' => $message['fromemail'],
-				];
+				$sync_data['senderName']  = $message['fromname'];
+				$sync_data['senderEmail'] = $message['fromemail'];
 			}
 		} else {
 			// Validate required meta if campaign and message are not yet created.
@@ -959,7 +931,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					__( 'Please input sender name and email address.', 'newspack-newsletters' )
 				);
 			}
-			if ( empty( $list_id ) ) {
+			if ( empty( $send_list_id ) ) {
 				return new \WP_Error(
 					'newspack_newsletters_active_campaign_invalid_list',
 					__( 'Please select a list.', 'newspack-newsletters' )
@@ -969,13 +941,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$message_data = wp_parse_args(
 			[
-				'format'              => 'html',
-				'htmlconstructor'     => 'editor',
-				'html'                => $content,
-				'p[' . $list_id . ']' => 1,
-				'fromemail'           => $from_email,
-				'fromname'            => $from_name,
-				'subject'             => $post->post_title,
+				'format'                   => 'html',
+				'htmlconstructor'          => 'editor',
+				'html'                     => $content,
+				'p[' . $send_list_id . ']' => 1,
+				'fromemail'                => $from_email,
+				'fromname'                 => $from_name,
+				'subject'                  => $post->post_title,
 			],
 			$message_data
 		);
@@ -1013,12 +985,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
 		}
-		$sender           = get_post_meta( $post->ID, 'sender', true );
-		$from_name        = $sender['name'] ?? null;
-		$from_email       = $sender['email'] ?? null;
-		$send_to          = get_post_meta( $post->ID, 'send_to', true );
-		$selected_list    = $send_to['list'] ?? null;
-		$selected_sublist = $send_to['sublist'] ?? null;
+
+		$from_name       = get_post_meta( $post->ID, 'senderName', true );
+		$from_email      = get_post_meta( $post->ID, 'senderEmail', true );
+		$send_list_id    = get_post_meta( $post->ID, 'send_list_id', true );
+		$send_sublist_id = get_post_meta( $post->ID, 'send_sublist_id', true );
 
 		$is_public = get_post_meta( $post->ID, 'is_public', true );
 		if ( empty( $campaign_name ) ) {
@@ -1031,8 +1002,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'name'                                  => $campaign_name,
 			'fromname'                              => $from_name,
 			'fromemail'                             => $from_email,
-			'segmentid'                             => $selected_sublist['id'] ?? 0, // 0 = No segment.
-			'p[' . $selected_list['id'] . ']'       => $selected_list['id'],
+			'segmentid'                             => $send_sublist_id ?? 0, // 0 = No segment.
+			'p[' . $send_list_id . ']'              => $send_list_id,
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
 		];
 		if ( defined( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING' ) && NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING ) {
