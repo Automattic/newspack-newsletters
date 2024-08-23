@@ -508,7 +508,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 					$groups = array_map(
 						function ( $group ) use ( $list ) {
-							$group['id']   = Subscription_List::mailchimp_create_public_id( $group['id'], $list['id'] );
+							$group['id']   = Subscription_List::mailchimp_generate_public_id( $group['id'], $list['id'] );
 							$group['type'] = 'mailchimp-group';
 							return $group;
 						},
@@ -518,7 +518,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 
 				foreach ( $all_tags as $tag ) {
-					$tag['id']   = Subscription_List::mailchimp_create_public_id( $tag['id'], $list['id'], 'tag' );
+					$tag['id']   = Subscription_List::mailchimp_generate_public_id( $tag['id'], $list['id'], 'tag' );
 					$tag['type'] = 'mailchimp-tag';
 					$lists[]     = $tag;
 				}
@@ -566,7 +566,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			foreach ( $categories['categories'] as &$category ) {
 				if ( ! empty( $category['interests']['interests'] ) ) {
 					foreach ( $category['interests']['interests'] as &$interest ) {
-						$local_id = Subscription_List::mailchimp_create_public_id( $interest['id'], $list_id );
+						$local_id = Subscription_List::mailchimp_generate_public_id( $interest['id'], $list_id );
 						if ( isset( $configured_lists[ $local_id ]['name'] ) ) {
 							$interest['local_name'] = $configured_lists[ $local_id ]['name'];
 						}
@@ -598,7 +598,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$configured_lists = Newspack_Newsletters_Subscription::get_lists_config();
 		if ( ! empty( $configured_lists ) ) {
 			foreach ( $tags as &$tag ) {
-				$local_id = Subscription_List::mailchimp_create_public_id( $tag['id'], $list_id, 'tag' );
+				$local_id = Subscription_List::mailchimp_generate_public_id( $tag['id'], $list_id, 'tag' );
 				if ( isset( $configured_lists[ $local_id ]['name'] ) ) {
 					$tag['local_name'] = $configured_lists[ $local_id ]['name'];
 				}
@@ -1506,14 +1506,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		foreach ( $contact['interests'] as $list_id => $interests ) {
 			foreach ( $interests as $group_id => $active ) {
 				if ( $active ) {
-					$groups_lists[] = Subscription_List::mailchimp_create_public_id( $group_id, $list_id );
+					$groups_lists[] = Subscription_List::mailchimp_generate_public_id( $group_id, $list_id );
 				}
 			}
 		}
 		$tags_lists = [];
 		foreach ( $contact['tags'] as $list_id => $tags ) {
 			foreach ( $tags as $tag ) {
-				$tags_lists[] = Subscription_List::mailchimp_create_public_id( $tag['id'], $list_id, 'tag' );
+				$tags_lists[] = Subscription_List::mailchimp_generate_public_id( $tag['id'], $list_id, 'tag' );
 			}
 		}
 		return array_merge( $audience_lists, $groups_lists, $tags_lists );

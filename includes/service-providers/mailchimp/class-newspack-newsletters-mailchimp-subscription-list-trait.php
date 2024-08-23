@@ -30,7 +30,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 	 * @param string $type 'group' or 'tag'.
 	 * @return string
 	 */
-	public static function mailchimp_create_public_id( $item_id, $list_id, $type = 'group' ) {
+	public static function mailchimp_generate_public_id( $item_id, $list_id, $type = 'group' ) {
 		return $type . '-' . $item_id . '-' . $list_id;
 	}
 
@@ -93,7 +93,7 @@ trait Newspack_Newsletters_Mailchimp_Subscription_List_Trait {
 	}
 
 	/**
-	 * Extract the group or tag + audience (list) ID from an ID created with self::mailchimp_create_public_id
+	 * Extract the group or tag + audience (list) ID from an ID created with self::mailchimp_generate_public_id
 	 *
 	 * @return array|false Array with the group/tag ID (key id), the Audience ID (key list_id), the list type (tag or group. key type) or false if the ID is not a group or tag list ID.
 	 */

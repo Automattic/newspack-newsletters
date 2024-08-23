@@ -42,25 +42,25 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 			),
 			'group1_in_audience_1'     => Subscription_Lists::get_or_create_remote_list(
 				[
-					'id'    => Subscription_List::mailchimp_create_public_id( 'group1', 'list1' ),
+					'id'    => Subscription_List::mailchimp_generate_public_id( 'group1', 'list1' ),
 					'title' => 'Group 1',
 				]
 			),
 			'group2_in_audience_1'     => Subscription_Lists::get_or_create_remote_list(
 				[
-					'id'    => Subscription_List::mailchimp_create_public_id( 'group2', 'list1' ),
+					'id'    => Subscription_List::mailchimp_generate_public_id( 'group2', 'list1' ),
 					'title' => 'Group 2',
 				]
 			),
 			'tag1_in_audience_1'       => Subscription_Lists::get_or_create_remote_list(
 				[
-					'id'    => Subscription_List::mailchimp_create_public_id( 'tag1', 'list1', 'tag' ),
+					'id'    => Subscription_List::mailchimp_generate_public_id( 'tag1', 'list1', 'tag' ),
 					'title' => 'Tag 1',
 				]
 			),
 			'tag2_in_audience_1'       => Subscription_Lists::get_or_create_remote_list(
 				[
-					'id'    => Subscription_List::mailchimp_create_public_id( 'tag2', 'list1', 'tag' ),
+					'id'    => Subscription_List::mailchimp_generate_public_id( 'tag2', 'list1', 'tag' ),
 					'title' => 'Tag 2',
 				]
 			),
@@ -73,7 +73,7 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 			),
 			'group_in_audience_2'      => Subscription_Lists::get_or_create_remote_list(
 				[
-					'id'    => Subscription_List::mailchimp_create_public_id( 'group', 'list2' ),
+					'id'    => Subscription_List::mailchimp_generate_public_id( 'group', 'list2' ),
 					'title' => 'Group',
 				]
 			),

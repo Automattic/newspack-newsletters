@@ -79,19 +79,19 @@ class Newsletters_Contacts_Test extends WP_UnitTestCase {
 		);
 		Subscription_Lists::get_or_create_remote_list(
 			[
-				'id'    => Subscription_List::mailchimp_create_public_id( 'group1', 'list1' ),
+				'id'    => Subscription_List::mailchimp_generate_public_id( 'group1', 'list1' ),
 				'title' => 'Group 1',
 			]
 		);
 		Subscription_Lists::get_or_create_remote_list(
 			[
-				'id'    => Subscription_List::mailchimp_create_public_id( '42', 'list1', 'tag' ),
+				'id'    => Subscription_List::mailchimp_generate_public_id( '42', 'list1', 'tag' ),
 				'title' => 'Supertag',
 			]
 		);
 		Subscription_Lists::get_or_create_remote_list(
 			[
-				'id'    => Subscription_List::mailchimp_create_public_id( '42', 'list2', 'tag' ),
+				'id'    => Subscription_List::mailchimp_generate_public_id( '42', 'list2', 'tag' ),
 				'title' => 'Supertag',
 			]
 		);
