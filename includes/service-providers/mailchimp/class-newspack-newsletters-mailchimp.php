@@ -1243,12 +1243,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	private function prepare_merge_fields( $audience_id, $data ) {
 		$merge_fields = [];
 
-		// Strip arrays.
+		// Strip arrays and statuses.
 		$data = array_filter(
 			$data,
-			function( $value ) {
-				return ! is_array( $value ) && 'status' !== $value && 'status_if_new' !== $value;
-			}
+			function( $value, $key ) {
+				return ! is_array( $value ) && 'status' !== $key && 'status_if_new' !== $key;
+			},
+			ARRAY_FILTER_USE_BOTH
 		);
 
 		// Get and match existing merge fields.
