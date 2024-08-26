@@ -448,12 +448,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$mc_campaign_id = $campaign['id'];
 			} else {
 				Newspack_Newsletters_Logger::log( 'Retrieving campaign ' . $mc_campaign_id . ' for post ID ' . $post_id );
-				$mc                  = new Mailchimp( $this->api_key() );
-				$campaign            = $this->validate(
+				$datacenter = explode( '-', $this->api_key() )[1];
+				$mc         = new Mailchimp( $this->api_key() );
+				$campaign   = $this->validate(
 					$mc->get(
 						"campaigns/$mc_campaign_id",
 						[
-							'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
+							'fields' => 'id,web_id,type,status,emails_sent,content_type,recipients,settings',
 						]
 					),
 					__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
@@ -466,6 +467,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$newsletter_data = [
 				'campaign'     => $campaign,
 				'campaign_id'  => $mc_campaign_id,
+				'link'         => sprintf( 'https://%s.admin.mailchimp.com/campaigns/edit?id=%d', $datacenter, $campaign['web_id'] ),
 				'folders'      => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
 				'merge_fields' => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
 			];

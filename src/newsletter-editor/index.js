@@ -1,13 +1,15 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';import { Notice } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import { Notice, Button } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import {
 	PluginDocumentSettingPanel,
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
+	PluginPostStatusInfo,
 } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
@@ -184,6 +186,19 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			<PluginSidebarMoreMenuItem target={ stylingId } icon={ styles }>
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
+
+			{ newsletterData?.link && (
+				<PluginPostStatusInfo>
+					<Button
+						variant="secondary"
+						href={ newsletterData.link }
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{ __( 'View Campaign', 'newspack-newsletters' ) }
+					</Button>
+				</PluginPostStatusInfo>
+			) }
 
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
