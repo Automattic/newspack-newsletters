@@ -155,6 +155,10 @@ class MailChimp {
 		return [];
 	}
 
+	public static function put( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
+		return self::post( $endpoint, $args );
+	}
+
 	public static function post( $endpoint, $args = [] ) { // phpcs:ignore Squiz.Commenting.FunctionComment.Missing
 		if ( ! self::is_api_configured() ) {
 			return [];
@@ -192,6 +196,16 @@ class MailChimp {
 		return [
 			'status' => 200,
 		];
+	}
+
+	/**
+	 * Get the subscriber hash.
+	 *
+	 * @param string $email Email address.
+	 * @return string
+	 */
+	public static function subscriberHash( $email ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return md5( strtolower( $email ) );
 	}
 }
 MailChimp::init();
