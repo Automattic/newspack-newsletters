@@ -460,7 +460,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				);
 			}
 
-			$list_id         = ! empty( $campaign ) && ! empty( $campaign['recipients']['list_id'] ) ? $campaign['recipients']['list_id'] : null;
+			$list_id         = $campaign['recipients']['list_id'] ?? null;
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
 			$newsletter_data = [

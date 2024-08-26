@@ -553,7 +553,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
+	 * Get all applicable lists and segments as Send_List objects.
 	 *
 	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
 	 *

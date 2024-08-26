@@ -5,18 +5,17 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
-import { Button, Notice, Spinner, TextControl, TextareaControl } from '@wordpress/components';
+import { Button, Spinner, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
  */
-import classnames from 'classnames';
 import { once } from 'lodash';
 
 /**
  * Internal dependencies
  */
-import { hasValidEmail } from '../utils';
+import Sender from './sender';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import { useNewsletterData } from '../store';
@@ -88,11 +87,6 @@ const Sidebar = ( {
 		return 'Newspack Newsletter (' + postId + ')';
 	};
 
-	const senderEmailClasses = classnames(
-		'newspack-newsletters__email-textcontrol',
-		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
-	);
-
 	if ( false === isConnected ) {
 		return (
 			<>
@@ -153,35 +147,14 @@ const Sidebar = ( {
 			<ProviderSidebar
 				inFlight={ inFlight }
 				postId={ postId }
+				updateMeta={ updateMeta }
 			/>
 			<hr />
-			<strong className="newspack-newsletters__label">
-				{ __( 'From', 'newspack-newsletters' ) }
-			</strong>
-			{
-				( newsletterData?.senderEmail || newsletterData?.senderName ) && (
-					<Notice status="success" isDismissible={ false }>
-						{ __( 'Updated sender info fetched from ESP.', 'newspack-newsletters' ) }
-					</Notice>
-				)
-			}
-			<TextControl
-				label={ __( 'Name', 'newspack-newsletters' ) }
-				className="newspack-newsletters__name-textcontrol"
-				value={ senderName }
-				disabled={ inFlight }
-				onChange={ value => updateMeta( { senderName: value } ) }
-				placeholder={ __( 'The campaign’s sender name.', 'newspack-newsletters' ) }
-			/>
-			<TextControl
-				label={ __( 'Email', 'newspack-newsletters' ) }
-				help={ senderEmail && ! hasValidEmail( senderEmail ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : null }
-				className={ senderEmailClasses }
-				value={ senderEmail }
-				type="email"
-				disabled={ inFlight }
-				onChange={ value => updateMeta( { senderEmail: value } ) }
-				placeholder={ __( 'The campaign’s sender email.', 'newspack-newsletters' ) }
+			<Sender
+				errors={ errors }
+				senderEmail={ senderEmail }
+				senderName={ senderName }
+				updateMeta={ updateMeta }
 			/>
 		</div>
 	);
