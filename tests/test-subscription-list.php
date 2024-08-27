@@ -22,35 +22,35 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	public function static_methods_data() {
 		return [
 			[
-				Subscription_List::FORM_ID_PREFIX . '123',
+				Subscription_List::PUBLIC_ID_PREFIX . '123',
 				true,
 				123,
 			],
 			[
-				Subscription_List::FORM_ID_PREFIX . '2',
+				Subscription_List::PUBLIC_ID_PREFIX . '2',
 				true,
 				2,
 			],
 			[
-				Subscription_List::FORM_ID_PREFIX . '0',
+				Subscription_List::PUBLIC_ID_PREFIX . '0',
 				false,
 				null,
 			],
 			[
-				Subscription_List::FORM_ID_PREFIX . '12d',
+				Subscription_List::PUBLIC_ID_PREFIX . '12d',
 				false,
 				null,
 			],
 			[
-				'a' . Subscription_List::FORM_ID_PREFIX . '2',
+				'a' . Subscription_List::PUBLIC_ID_PREFIX . '2',
 				false,
 				null,
 			],
 			[
-				Subscription_List::FORM_ID_PREFIX . '2.3',
+				Subscription_List::PUBLIC_ID_PREFIX . '2.3',
 				false,
 				null,
-				
+
 			],
 			[
 				'',
@@ -86,17 +86,17 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the form ID static methods
+	 * Tests the public ID static methods
 	 *
 	 * @param mixed $input The input for the methods.
-	 * @param mixed $is_local_form_id The expected result of is_local_form_id.
-	 * @param mixed $extracted_id The expected result of get_id_from_local_form_id.
+	 * @param mixed $is_local_public_id The expected result of is_local_public_id.
+	 * @param mixed $extracted_id The expected result of get_id_from_local_public_id.
 	 * @return void
 	 * @dataProvider static_methods_data
 	 */
-	public function test_static_methods( $input, $is_local_form_id, $extracted_id ) {
-		$this->assertSame( $is_local_form_id, Subscription_List::is_local_form_id( $input ) );
-		$this->assertSame( $extracted_id, Subscription_List::get_id_from_local_form_id( $input ) );
+	public function test_static_methods( $input, $is_local_public_id, $extracted_id ) {
+		$this->assertSame( $is_local_public_id, Subscription_List::is_local_public_id( $input ) );
+		$this->assertSame( $extracted_id, Subscription_List::get_id_from_local_public_id( $input ) );
 	}
 
 	/**
@@ -120,20 +120,20 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests constructor with form_id
+	 * Tests constructor with public_id
 	 */
-	public function test_constructor_with_form_id() {
-		$list = Subscription_List::from_form_id( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'] );
+	public function test_constructor_with_public_id() {
+		$list = Subscription_List::from_public_id( Subscription_List::PUBLIC_ID_PREFIX . self::$posts['without_settings'] );
 		$this->assertInstanceOf( Subscription_List::class, $list );
 		$this->assertSame( self::$posts['without_settings'], $list->get_id() );
 		$this->assertSame( 'Description 1', $list->get_description() );
 	}
 
 	/**
-	 * Tests constructor with form_id
+	 * Tests constructor with public_id
 	 */
-	public function test_constructor_with_non_existent_form_id() {
-		$list = Subscription_List::from_form_id( 'asdqwe' );
+	public function test_constructor_with_non_existent_public_id() {
+		$list = Subscription_List::from_public_id( 'asdqwe' );
 		$this->assertNull( $list );
 	}
 
@@ -164,11 +164,11 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests get_form_id
+	 * Tests get_public_id
 	 */
-	public function test_get_form_id() {
+	public function test_get_public_id() {
 		$list = new Subscription_List( self::$posts['without_settings'] );
-		$this->assertSame( Subscription_List::FORM_ID_PREFIX . self::$posts['without_settings'], $list->get_form_id() );
+		$this->assertSame( Subscription_List::PUBLIC_ID_PREFIX . self::$posts['without_settings'], $list->get_public_id() );
 	}
 
 	/**
@@ -192,7 +192,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 					'tag_name' => 'AC Tag',
 				],
 			],
-			$list->get_all_providers_settings() 
+			$list->get_all_providers_settings()
 		);
 	}
 
@@ -349,7 +349,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 
 	/**
 	 * Test has_other_configured_providers method
-	 */ 
+	 */
 	public function test_has_other_configured_providers() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
 
@@ -474,7 +474,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['without_settings'] );
 		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'local', $list->get_type() );
-		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( Subscription_List::PUBLIC_ID_PREFIX . $list->get_id(), $list->get_public_id() );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( true, $list->is_local() );
 		$this->assertSame( '', $list->get_provider() );
@@ -483,7 +483,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
 		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'local', $list->get_type() );
-		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( Subscription_List::PUBLIC_ID_PREFIX . $list->get_id(), $list->get_public_id() );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( true, $list->is_local() );
 		$this->assertSame( '', $list->get_provider() );
@@ -492,7 +492,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['two_settings'] );
 		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'local', $list->get_type() );
-		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( Subscription_List::PUBLIC_ID_PREFIX . $list->get_id(), $list->get_public_id() );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( true, $list->is_local() );
 		$this->assertSame( '', $list->get_provider() );
@@ -501,7 +501,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['mc_invalid'] );
 		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'local', $list->get_type() );
-		$this->assertSame( Subscription_List::FORM_ID_PREFIX . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( Subscription_List::PUBLIC_ID_PREFIX . $list->get_id(), $list->get_public_id() );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( true, $list->is_local() );
 		$this->assertSame( '', $list->get_provider() );
@@ -510,7 +510,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$list = new Subscription_List( self::$posts['remote_mailchimp'] );
 		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'remote', $list->get_type() );
-		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_public_id() );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( false, $list->is_local() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
@@ -521,7 +521,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$this->assertFalse( $list->is_configured_for_provider( 'active_campaign' ) );
 		$this->assertTrue( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'remote', $list->get_type() );
-		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_form_id() );
+		$this->assertSame( 'xyz-' . $list->get_id(), $list->get_public_id() );
 		$this->assertSame( false, $list->is_active() );
 		$this->assertSame( false, $list->is_local() );
 		$this->assertSame( 'mailchimp', $list->get_provider() );
@@ -531,7 +531,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 		$this->assertTrue( $list->is_configured_for_provider( 'active_campaign' ) );
 		$this->assertFalse( $list->is_configured_for_provider( 'mailchimp' ) );
 		$this->assertSame( 'remote', $list->get_type() );
-		$this->assertSame( (string) self::$conflicting_post_id, $list->get_form_id() );
+		$this->assertSame( (string) self::$conflicting_post_id, $list->get_public_id() );
 		$this->assertSame( true, $list->is_active() );
 		$this->assertSame( false, $list->is_local() );
 		$this->assertSame( 'active_campaign', $list->get_provider() );
@@ -629,8 +629,8 @@ class Subscription_List_Test extends WP_UnitTestCase {
 				[
 					'active' => true,
 					'title'  => 'New Title',
-				] 
-			) 
+				]
+			)
 		);
 		$this->assertTrue( $list->is_active() );
 		$this->assertSame( 'New Title', $list->get_title() );
@@ -645,8 +645,8 @@ class Subscription_List_Test extends WP_UnitTestCase {
 					'active'      => false,
 					'title'       => 'Super New Title',
 					'description' => 'New Description',
-				] 
-			) 
+				]
+			)
 		);
 		$this->assertFalse( $list->is_active() );
 		$this->assertSame( 'Super New Title', $list->get_title() );
