@@ -133,7 +133,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				$response['valid'] = true;
 				return $response;
 			}
+
 			// If we have a refresh token, we can get a new access token.
+			$credentials = $this->api_credentials();
 			if ( $refresh && ! empty( $credentials['refresh_token'] ) ) {
 				$token             = $cc->refresh_token( $credentials['refresh_token'] );
 				$response['valid'] = $this->set_access_token( $token->access_token, $token->refresh_token );
@@ -489,10 +491,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$segment_id      = $campaign->activity->segment_ids[0] ?? null;
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$newsletter_data = [
-				'campaign'                  => $campaign,
-				'campaign_id'               => $cc_campaign_id,
-				'confirmed_email_addresses' => $this->get_confirmed_email_addresses(),
-				'email_settings_url'        => 'https://app.constantcontact.com/pages/myaccount/settings/emails',
+				'campaign'              => $campaign,
+				'campaign_id'           => $cc_campaign_id,
+				'allowed_sender_emails' => $this->get_verified_email_addresses(), // Get allowed email addresses for sender UI.
+				'email_settings_url'    => 'https://app.constantcontact.com/pages/myaccount/settings/emails',
 			];
 
 			// Reconcile campaign settings with info fetched from the ESP for a true two-way sync.
@@ -615,26 +617,19 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
-	 * Get all of the confirmed email addresses associated with the CC account.
+	 * Get all of the verified email addresses associated with the CC account.
+	 * See: https://developer.constantcontact.com/api_reference/index.html#!/Account_Services/retrieveEmailAddresses.
 	 */
-	public function get_confirmed_email_addresses() {
+	public function get_verified_email_addresses() {
 		$cc              = $this->get_sdk();
-		$email_addresses = (array) $cc->get_email_addresses();
-		$confirmed_email_addresses = array_map(
-			function ( $email ) {
+		$email_addresses = (array) $cc->get_email_addresses( [ 'confirm_status' => 'CONFIRMED' ] );
+
+		return array_map(
+			function( $email ) {
 				return $email->email_address;
 			},
-			array_values(
-				array_filter(
-					$email_addresses,
-					function ( $email ) {
-						return 'CONFIRMED' === $email->confirm_status;
-					}
-				)
-			)
+			$email_addresses
 		);
-
-		return $confirmed_email_addresses;
 	}
 
 	/**
@@ -659,20 +654,20 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$sender_name = $account_info->first_name . ' ' . $account_info->last_name;
 		}
 
-		$confirmed_email_addresses = $this->get_confirmed_email_addresses();
-		if ( empty( $confirmed_email_addresses ) ) {
+		$verified_email_addresses = $this->get_verified_email_addresses();
+		if ( empty( $verified_email_addresses ) ) {
 			return new WP_Error(
 				'newspack_newsletters_constant_contact_error',
-				__( 'There are no confirmed email addresses in the Constant Contact account.', 'newspack-newsletters' )
+				__( 'There are no verified email addresses in the Constant Contact account.', 'newspack-newsletters' )
 			);
 		}
 		if ( ! $sender_email ) {
-			$sender_email = $confirmed_email_addresses[0];
+			$sender_email = $verified_email_addresses[0];
 		}
-		if ( ! in_array( $sender_email, $confirmed_email_addresses, true ) ) {
+		if ( ! in_array( $sender_email, $verified_email_addresses, true ) ) {
 			return new WP_Error(
 				'newspack_newsletters_constant_contact_error',
-				__( 'Sender email must be a confirmed Constant Contact account email address.', 'newspack-newsletters' )
+				__( 'Sender email must be a verified Constant Contact account email address.', 'newspack-newsletters' )
 			);
 		}
 		$payload = [
@@ -763,7 +758,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				}
 
 				$cc->update_campaign_activity( $campaign->activity->campaign_activity_id, $payload );
-				$cc->update_campaign_name( $cc_campaign_id, $this->get_campaign_name( $post ) );
+
+				// Update campaign name.
+				$campaign_name = $this->get_campaign_name( $post );
+				if ( $campaign->name !== $campaign_name ) {
+					$cc->update_campaign_name( $cc_campaign_id, $campaign_name );
+				}
 
 				$campaign_result = $cc->get_campaign( $cc_campaign_id );
 			} else {
@@ -980,6 +980,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 					'name'        => $list['name'],
 					'entity_type' => 'list',
 					'count'       => $list['membership_count'],
+					'edit_link'   => 'https://app.constantcontact.com/pages/contacts/ui#contacts/' . $list['id'],
 				];
 
 				return new Send_List( $config );
@@ -988,12 +989,14 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		);
 		$segments = array_map(
 			function( $segment ) {
-				$config = [
+				$segment_id = (string) $segment['id'];
+				$config      = [
 					'provider'    => $this->service,
 					'type'        => 'list', // In CC, segments and lists have the same hierarchy.
-					'id'          => $segment['id'],
+					'id'          => $segment_id,
 					'name'        => $segment['name'],
 					'entity_type' => 'segment',
+					'edit_link'   => "https://app.constantcontact.com/pages/contacts/ui#segments/$segment_id/preview",
 				];
 
 				return new Send_List( $config );

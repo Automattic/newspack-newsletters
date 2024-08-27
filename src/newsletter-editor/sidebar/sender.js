@@ -26,7 +26,7 @@ const Sender = (
 	}
 ) => {
 	const newsletterData = useNewsletterData();
-	const { confirmed_email_addresses: confirmedEmails, email_settings_url: settingsUrl } = newsletterData;
+	const { allowed_sender_emails: allowedEmails = null, email_settings_url: settingsUrl } = newsletterData;
 	const senderEmailClasses = classnames(
 		'newspack-newsletters__email-textcontrol',
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
@@ -52,7 +52,7 @@ const Sender = (
 				onChange={ value => updateMeta( { senderName: value } ) }
 				placeholder={ __( 'The campaign’s sender name.', 'newspack-newsletters' ) }
 			/>
-			{ ! inFlight && ! confirmedEmails && (
+			{ ! inFlight && null === allowedEmails && (
 				<TextControl
 					label={ __( 'Email', 'newspack-newsletters' ) }
 					help={ senderEmail && ! hasValidEmail( senderEmail ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : null }
@@ -64,28 +64,29 @@ const Sender = (
 					placeholder={ __( 'The campaign’s sender email.', 'newspack-newsletters' ) }
 				/>
 			) }
-			{ Array.isArray( confirmedEmails ) && (
+			{ Array.isArray( allowedEmails ) && (
 				<>
-					{ ! inFlight && ! confirmedEmails.length && (
+					{ ! inFlight && ! allowedEmails.length && (
 						<Notice status="warning" isDismissible={ false }>
-							{ __( 'The sender email must be a confirmed address, but there are no confirmed addresses.', 'newspack-newsletters' ) }
+							{ __( 'There are no verified email addresses.', 'newspack-newsletters' ) }
 						</Notice>
 					) }
-					{ confirmedEmails.length && (
+					{ allowedEmails.length && (
 						<SelectControl
 						label={ __( 'Email', 'newspack-newsletters' ) }
 						help={ __(
-							'The sender email must be a confirmed address.',
+							'Select a verified sender email.',
 							'newspack-newsletters'
 						) }
 						value={ senderEmail || '' }
 						onChange={ value => updateMeta( { senderEmail: value } ) }
 						options={ [
 							{
-								label: __( '-- Select a sender email --', 'newspack-newsletters' ),						value: ''
+								label: __( '-- Select a sender email --', 'newspack-newsletters' ),
+								value: ''
 							},
 						].concat(
-							confirmedEmails.map( email => ( {
+							allowedEmails.map( email => ( {
 								label: email,
 								value: email,
 							} ) )

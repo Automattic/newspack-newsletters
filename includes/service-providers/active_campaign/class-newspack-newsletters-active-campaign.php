@@ -739,15 +739,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		$campaign_id     = get_post_meta( $post_id, 'ac_campaign_id', true );
 		$newsletter_data = [
-			'campaign'    => true, // Satisfy the JS API.
-			'campaign_id' => $campaign_id,
-			'lists'       => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
+			'campaign'                          => true, // Satisfy the JS API.
+			'campaign_id'                       => $campaign_id,
+			'supports_multiple_test_recipients' => true,
+			'lists'                             => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
 				[
 					'type'  => 'list',
 					'limit' => 10,
 				]
 			),
-			'sublists'    => [], // Will be populated later if needed.
+			'sublists'                          => [], // Will be populated later if needed.
 		];
 
 		$from_name   = get_post_meta( $post_id, 'senderName', true );

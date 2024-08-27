@@ -294,10 +294,12 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 	/**
 	 * Get account email addresses
 	 *
+	 * @param array $args Array of query args.
+	 *
 	 * @return object Email addresses.
 	 */
-	public function get_email_addresses() {
-		return $this->request( 'GET', 'account/emails' );
+	public function get_email_addresses( $args = [] ) {
+		return $this->request( 'GET', 'account/emails', [ 'query' => $args ] );
 	}
 
 	/**
