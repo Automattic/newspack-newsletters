@@ -116,6 +116,14 @@ trait Lists_Setup {
 	}
 
 	/**
+	 * Tear down class
+	 */
+	public static function tear_down_after_class() {
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = %s" , Subscription_Lists::CPT ) ); // phpcs:ignore
+	}
+
+	/**
 	 * Create a test post
 	 *
 	 * @param string|int $index An index to identify the post title and description.
