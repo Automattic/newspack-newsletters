@@ -1191,6 +1191,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				'name'                   => 'Constant Contact',
 				'list_explanation'       => __( 'Constant Contact List', 'newspack-newsletters' ),
 				'local_list_explanation' => __( 'Constant Contact Tag', 'newspack-newsletters' ),
+				'list'                   => __( 'list or segment', 'newspack-newsletters' ), // "list" in lower case singular format.
+				'lists'                  => __( 'lists or segments', 'newspack-newsletters' ), // "list" in lower case plural format.
+				'List'                   => __( 'List or Segment', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+				'Lists'                  => __( 'Lists or Segments', 'newspack-newsletters' ), // "list" in uppercase case plural format.
 			]
 		);
 	}

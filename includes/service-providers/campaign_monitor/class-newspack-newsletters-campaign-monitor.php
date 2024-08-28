@@ -846,7 +846,11 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		return array_merge(
 			parent::get_labels(),
 			[
-				'name' => 'Campaign Monitor',
+				'name'  => 'Campaign Monitor',
+				'list'  => __( 'list or segment', 'newspack-newsletters' ), // "list" in lower case singular format.
+				'lists' => __( 'lists or segments', 'newspack-newsletters' ), // "list" in lower case plural format.
+				'List'  => __( 'List or Segment', 'newspack-newsletters' ), // "list" in uppercase case singular format.
+				'Lists' => __( 'Lists or Segments', 'newspack-newsletters' ), // "list" in uppercase case plural format.
 			]
 		);
 	}
