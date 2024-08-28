@@ -1,3 +1,5 @@
+/* global newspack_email_editor_data */
+
 /**
  * WordPress dependencies
  */
@@ -59,25 +61,29 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	const savePost = useDispatch( 'core/editor' ).savePost;
 	const { name: serviceProviderName, hasOauth, isCampaignSent } = getServiceProvider();
 	const campaignIsSent = ! inFlight && newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
+	const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
+	const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
 
 	const verifyToken = () => {
-		const params = {
-			path: `/newspack-newsletters/v1/${ serviceProviderName }/verify_token`,
-			method: 'GET',
-		};
-		setInFlightForAsync();
-		apiFetchWithErrorHandling( params ).then( async response => {
-			if ( false === isConnected && true === response.valid ) {
-				savePost();
-			}
-			setOauthUrl( response.auth_url );
-			setIsConnected( response.valid );
-		} );
+		if ( isSupportedESP && hasOauth ) {
+			const params = {
+				path: `/newspack-newsletters/v1/${ serviceProviderName }/verify_token`,
+				method: 'GET',
+			};
+			setInFlightForAsync();
+			apiFetchWithErrorHandling( params ).then( async response => {
+				if ( false === isConnected && true === response.valid ) {
+					savePost();
+				}
+				setOauthUrl( response.auth_url );
+				setIsConnected( response.valid );
+			} );
+		}
 	};
 
 	useEffect( () => {
 		// Fetch provider and campaign data.
-		if ( 'manual' !== serviceProviderName ) {
+		if ( isSupportedESP ) {
 			fetchNewsletterData( postId );
 		}
 
@@ -190,7 +196,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 					onAuthorize={ verifyToken }
 				/>
 				{
-					! campaignIsSent && 'manual' !== serviceProviderName && (
+					isSupportedESP && ! campaignIsSent && (
 						<SendTo
 							fetchSendLists={ fetchSendLists }
 							inFlight={ inFlight }
@@ -199,7 +205,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				}
 				{ isConnected && <PublicSettings /> }
 			</PluginDocumentSettingPanel>
-			{ 'manual' !== serviceProviderName && (
+			{ isSupportedESP && (
 				<PluginDocumentSettingPanel
 					name="newsletters-testing-panel"
 					title={ __( 'Testing', 'newspack-newsletters' ) }

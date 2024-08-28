@@ -564,7 +564,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 				$groups = array_map(
 					function ( $group ) use ( $list ) {
-						$group['id']   = $this->create_group_or_tag_list_id( $group['id'], $list['id'] );
+						$group['id']   = Subscription_List::mailchimp_generate_public_id( $group['id'], $list['id'] );
 						$group['type'] = 'mailchimp-group';
 						return $group;
 					},
@@ -574,7 +574,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			foreach ( $all_tags as $tag ) {
-				$tag['id']   = $this->create_group_or_tag_list_id( $tag['id'], $list['id'], 'tag' );
+				$tag['id']   = Subscription_List::mailchimp_generate_public_id( $tag['id'], $list['id'], 'tag' );
 				$tag['type'] = 'mailchimp-tag';
 				$lists[]     = $tag;
 			}
