@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { Button, Notice, SelectControl, TextControl } from '@wordpress/components';
 import { Icon, external } from '@wordpress/icons';
 
@@ -26,11 +26,18 @@ const Sender = (
 	}
 ) => {
 	const newsletterData = useNewsletterData();
-	const { allowed_sender_emails: allowedEmails = null, email_settings_url: settingsUrl } = newsletterData;
+	const { allowed_sender_domains: allowedDomains, allowed_sender_emails: allowedEmails = null, email_settings_url: settingsUrl } = newsletterData;
 	const senderEmailClasses = classnames(
 		'newspack-newsletters__email-textcontrol',
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
 	);
+	const validDomainsMessage = allowedDomains?.length && allowedDomains.every( domain => ! senderEmail || ! senderEmail.includes( domain ) ) ?
+		sprintf(
+			/* translators: %s: list of allowed domains */
+			__( 'Sender email must contain one of the following domains: %s', 'newspack-newsletters' ),
+			allowedDomains.join( ', ' )
+		) :
+		'';
 
 	return (
 		<>
@@ -55,7 +62,7 @@ const Sender = (
 			{ ! inFlight && null === allowedEmails && (
 				<TextControl
 					label={ __( 'Email', 'newspack-newsletters' ) }
-					help={ senderEmail && ! hasValidEmail( senderEmail ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : null }
+					help={ senderEmail && ! hasValidEmail( senderEmail ) ? __( 'Please enter a valid email address.', 'newspack-newsletters' ) : validDomainsMessage }
 					className={ senderEmailClasses }
 					value={ senderEmail }
 					type="email"
@@ -73,24 +80,24 @@ const Sender = (
 					) }
 					{ allowedEmails.length && (
 						<SelectControl
-						label={ __( 'Email', 'newspack-newsletters' ) }
-						help={ __(
-							'Select a verified sender email.',
-							'newspack-newsletters'
-						) }
-						value={ senderEmail || '' }
-						onChange={ value => updateMeta( { senderEmail: value } ) }
-						options={ [
-							{
-								label: __( '-- Select a sender email --', 'newspack-newsletters' ),
-								value: ''
-							},
-						].concat(
-							allowedEmails.map( email => ( {
-								label: email,
-								value: email,
-							} ) )
-						) }
+							label={ __( 'Email', 'newspack-newsletters' ) }
+							help={ __(
+								'Select a verified sender email.',
+								'newspack-newsletters'
+							) }
+							value={ senderEmail || '' }
+							onChange={ value => updateMeta( { senderEmail: value } ) }
+							options={ [
+								{
+									label: __( '-- Select a sender email --', 'newspack-newsletters' ),
+									value: ''
+								},
+							].concat(
+								allowedEmails.map( email => ( {
+									label: email,
+									value: email,
+								} ) )
+							) }
 						/>
 					) }
 					{ settingsUrl && (

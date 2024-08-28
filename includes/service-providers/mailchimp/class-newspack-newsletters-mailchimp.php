@@ -464,10 +464,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
 			$newsletter_data = [
-				'campaign'     => $campaign,
-				'campaign_id'  => $mc_campaign_id,
-				'folders'      => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
-				'merge_fields' => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
+				'campaign'               => $campaign,
+				'campaign_id'            => $mc_campaign_id,
+				'folders'                => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
+				'allowed_sender_domains' => $this->get_verified_domains(),
+				'merge_fields'           => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
 			];
 
 			// Reconcile campaign settings with info fetched from the ESP for a true two-way sync.
@@ -794,20 +795,19 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
-	 * Set sender data.
+	 * Get verified domains from the MC account.
 	 *
-	 * @param string $email Reply to email address.
-	 * @return boolean|WP_Error True if the email address is valid, otherwise error.
+	 * @return array List of verified domains.
 	 */
-	public function validate_sender_email( $email ) {
-		try {
-			$mc = new Mailchimp( $this->api_key() );
-			$result = $this->validate(
-				$mc->get( 'verified-domains', [ 'count' => 1000 ] ),
-				__( 'Error retrieving verified domains from Mailchimp.', 'newspack-newsletters' )
-			);
+	public function get_verified_domains() {
+		$mc = new Mailchimp( $this->api_key() );
+		$result = $this->validate(
+			$mc->get( 'verified-domains', [ 'count' => 1000 ] ),
+			__( 'Error retrieving verified domains from Mailchimp.', 'newspack-newsletters' )
+		);
 
-			$verified_domains = array_filter(
+		return array_values(
+			array_filter(
 				array_map(
 					function ( $domain ) {
 						return $domain['verified'] ? strtolower( trim( $domain['domain'] ) ) : null;
@@ -817,10 +817,21 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				function ( $domain ) {
 					return ! empty( $domain );
 				}
-			);
+			)
+		);
+	}
 
-			$explode = explode( '@', $email );
-			$domain  = strtolower( trim( array_pop( $explode ) ) );
+	/**
+	 * Set sender data.
+	 *
+	 * @param string $email Reply to email address.
+	 * @return boolean|WP_Error True if the email address is valid, otherwise error.
+	 */
+	public function validate_sender_email( $email ) {
+		try {
+			$verified_domains = $this->get_verified_domains();
+			$explode         = explode( '@', $email );
+			$domain          = strtolower( trim( array_pop( $explode ) ) );
 
 			if ( ! in_array( $domain, $verified_domains ) ) {
 				return new WP_Error(
