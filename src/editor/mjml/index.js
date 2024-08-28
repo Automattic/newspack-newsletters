@@ -12,6 +12,7 @@ import { refreshEmailHtml } from '../../newsletter-editor/utils';
  * Internal dependencies
  */
 import { fetchNewsletterData } from '../../newsletter-editor/store';
+import { getServiceProvider } from '../../service-providers';
 
 /**
  * Custom hook for fetching the prior value of a prop.
@@ -111,22 +112,27 @@ function MJML() {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
 					setIsRefreshingHTML( false );
 
-					// Rehydrate ESP newsletter data after completing sync.
-					fetchNewsletterData( postId );
+					const { name: serviceProviderName } = getServiceProvider();
+					const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
+					const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
+					if ( isSupportedESP ) {
+						// Rehydrate ESP newsletter data after completing sync.
+						fetchNewsletterData( postId );
 
-					// Check for sync errors after refreshing the HTML.
-					apiFetch( {
-						path: `/newspack-newsletters/v1/${ postId }/sync-error`,
-					}).then( ( { error_message } ) => {
-						if ( error_message ) {
-							createNotice( 'error', error_message, {
-								id: 'newspack-newsletters-newsletter-sync-error',
-								isDismissible: true,
-							} );
-						} else {
-							removeNotice( 'newspack-newsletters-newsletter-sync-error' );
-						}
-					} );
+						// Check for sync errors after refreshing the HTML.
+						apiFetch( {
+							path: `/newspack-newsletters/v1/${ postId }/sync-error`,
+						} ).then( ( { error_message } ) => {
+							if ( error_message ) {
+								createNotice( 'error', error_message, {
+									id: 'newspack-newsletters-newsletter-sync-error',
+									isDismissible: true,
+								} );
+							} else {
+								removeNotice( 'newspack-newsletters-newsletter-sync-error' );
+							}
+						} );
+					}
 				} );
 		}
 	}, [ isSaving, isAutosaving ] );
