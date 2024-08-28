@@ -9,6 +9,11 @@ import { __, _n, sprintf } from '@wordpress/i18n';
  */
 import mjml2html from 'mjml-browser';
 
+/**
+ * Internal dependencies
+ */
+import { getServiceProvider } from '../service-providers';
+
 export const getEditPostPayload = newsletterData => {
 	return {
 		meta: {
@@ -27,6 +32,10 @@ export const getEditPostPayload = newsletterData => {
  * @return {string[]} Array of validation messages. If empty, newsletter is valid.
  */
 export const validateNewsletter = ( meta = {} ) => {
+	const { name: serviceProviderName } = getServiceProvider();
+	if ( 'manual' === serviceProviderName ) {
+		return [];
+	}
 	const { senderEmail, senderName, send_list_id: listId } = meta;
 	const messages = [];
 	if ( ! senderEmail || ! senderName ) {

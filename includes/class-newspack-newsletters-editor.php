@@ -382,7 +382,7 @@ final class Newspack_Newsletters_Editor {
 					'is_service_provider_configured' => Newspack_Newsletters::is_service_provider_configured(),
 					'service_provider'               => Newspack_Newsletters::service_provider(),
 					'user_test_emails'               => self::get_current_user_test_emails(),
-					'labels'                         => $provider::get_labels(),
+					'labels'                         => $provider ? $provider::get_labels() : [],
 				]
 			);
 			wp_register_style(

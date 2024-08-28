@@ -165,8 +165,11 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		return updatedSendLists;
 	}, 500 );
 
-	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
+	if ( ! isSupportedESP ) {
+		return null;
+	}
 
+	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 	const stylingId = 'newspack-newsletters-styling';
 	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
 
