@@ -923,7 +923,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( is_int( $post ) ) {
 			$post = get_post( $post );
 		}
-		$payload        = [
+		$payload = [
 			'type'         => 'regular',
 			'content_type' => 'template',
 			'settings'     => [
@@ -931,10 +931,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'title'        => $this->get_campaign_name( $post ),
 			],
 		];
-		$sender_name  = get_post_meta( $post->ID, 'senderName', true );
-		$sender_email = get_post_meta( $post->ID, 'senderEmail', true );
 
 		// Sync sender name + email.
+		$sender_name  = get_post_meta( $post->ID, 'senderName', true );
+		$sender_email = get_post_meta( $post->ID, 'senderEmail', true );
 		if ( ! empty( $sender_name ) ) {
 			$payload['settings']['from_name'] = $sender_name;
 		}
@@ -1006,6 +1006,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					}
 				}
 			}
+		}
+
+		// Sync folder selection.
+		$folder_id = get_post_meta( $post->ID, 'mc_folder_id', true );
+		if ( $folder_id ) {
+			$payload['settings']['folder_id'] = $folder_id;
 		}
 
 		return $payload;

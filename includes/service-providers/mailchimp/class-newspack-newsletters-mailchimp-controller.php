@@ -45,7 +45,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			'mc_folder_id',
 			[
 				'object_subtype' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'show_in_rest'   => false,
+				'show_in_rest'   => true,
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',

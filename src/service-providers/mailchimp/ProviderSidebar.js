@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies
  */
-import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { SelectControl } from '@wordpress/components';
 
@@ -12,7 +11,8 @@ import { useNewsletterData } from '../../newsletter-editor/store';
 
 export const ProviderSidebar = ( {
 	inFlight,
-	postId,
+	meta,
+	updateMeta,
 } ) => {
 	const newsletterData = useNewsletterData();
 	const { campaign, folders } = newsletterData;
@@ -30,22 +30,13 @@ export const ProviderSidebar = ( {
 		return options;
 	};
 
-	const setFolder = folder_id =>
-		apiFetch( {
-			path: `/newspack-newsletters/v1/mailchimp/${ postId }/folder`,
-			method: 'POST',
-			data: {
-				folder_id,
-			},
-		} );
-
 	return (
 		<>
 			<SelectControl
 				label={ __( 'Campaign Folder', 'newspack-newsletters' ) }
-				value={ campaign?.settings?.folder_id }
+				value={ meta?.mc_folder_id || campaign?.settings?.folder_id }
 				options={ getFolderOptions() }
-				onChange={ setFolder }
+				onChange={ folderId => updateMeta( { mc_folder_id: folderId } ) }
 				disabled={ inFlight || ! folders.length }
 			/>
 		</>

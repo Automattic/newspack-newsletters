@@ -29,6 +29,7 @@ const Sidebar = ( {
 	errors,
 	editPost,
 	title,
+	meta,
 	senderEmail,
 	senderName,
 	status,
@@ -39,7 +40,7 @@ const Sidebar = ( {
 } ) => {
 	const newsletterData = useNewsletterData();
 	const campaign = newsletterData?.campaign;
-	const updateMeta = ( meta ) => editPost( { meta } );
+	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );
 
 	// Reconcile stored campaign data with data fetched from ESP.
 	useEffect( () => {
@@ -158,6 +159,7 @@ const Sidebar = ( {
 			<ProviderSidebar
 				inFlight={ inFlight }
 				postId={ postId }
+				meta={ meta }
 				updateMeta={ updateMeta }
 			/>
 			<hr />
@@ -179,6 +181,7 @@ export default compose( [
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
+			meta,
 			senderEmail: meta.senderEmail,
 			senderName: meta.senderName,
 			campaignName: meta.campaign_name,
