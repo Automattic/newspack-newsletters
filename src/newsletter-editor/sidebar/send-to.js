@@ -34,15 +34,15 @@ const SendTo = (
 	const updateMeta = ( meta ) => editPost( { meta } );
 
 	const newsletterData = useNewsletterData();
-	const { lists = [], sublists = [] } = newsletterData;
+	const { lists = [], sublists } = newsletterData; // All ESPs have lists, but not all have sublists.
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
 	const selectedList = lists.find( item => item.id === listId );
-	const selectedSublist = sublists.find( item => item.id === sublistId );
+	const selectedSublist = sublists?.find( item => item.id === sublistId );
 
 	useEffect( () => {
-		if ( sublistId && ! sublists.length ) {
+		if ( sublistId && ! sublists?.length ) {
 			fetchSendLists(
 				{
 					ids: sublistId ? [ sublistId ] : null,
@@ -132,7 +132,7 @@ const SendTo = (
 							)
 						);
 					}
-					updateMeta( { send_list_id: selectedSuggestion.id } );
+					updateMeta( { send_list_id: selectedSuggestion.id.toString() } );
 				} }
 				onFocus={ () => {
 					if ( 1 >= lists?.length ) {
@@ -148,7 +148,7 @@ const SendTo = (
 				updateMeta={ updateMeta }
 			/>
 			{
-				selectedList?.id && (
+				sublists && selectedList?.id && (
 					<Autocomplete
 						availableItems={ sublists.filter( item => ! item.parent || selectedList.id === item.parent ) }
 						label={ sublistLabel }
@@ -166,7 +166,7 @@ const SendTo = (
 									)
 								);
 							}
-							updateMeta( { send_sublist_id: selectedSuggestion.id } );
+							updateMeta( { send_sublist_id: selectedSuggestion.id.toString() } );
 						} }
 						onFocus={ () => {
 							if ( 1 >= sublists?.length ) {
