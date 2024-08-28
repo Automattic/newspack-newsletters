@@ -7,6 +7,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Send_Lists;
+use Newspack\Newsletters\Send_List;
+
 // Increase default timeout for 3rd-party API requests to 30s.
 define( 'CS_REST_CALL_TIMEOUT', 30 );
 
@@ -21,6 +24,21 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * @var string
 	 */
 	public $name = 'Campaign Monitor';
+
+	/**
+	 * Cached lists.
+	 *
+	 * @var array
+	 */
+	private $lists = null;
+
+	/**
+	 * Cached segments.
+	 *
+	 * @var array
+	 */
+	private $segments = null;
+
 
 	/**
 	 * Class constructor.
@@ -115,9 +133,13 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	/**
 	 * Get lists for a client iD.
 	 *
-	 * @return object|WP_Error API API Response or error.
+	 * @return array|WP_Error Array of lists, or error.
 	 */
 	public function get_lists() {
+		if ( null !== $this->lists ) {
+			return $this->lists;
+		}
+
 		$api_key   = $this->api_key();
 		$client_id = $this->client_id();
 
@@ -145,7 +167,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			);
 		}
 
-		return array_map(
+		$lists = array_map(
 			function ( $item ) {
 				return [
 					'id'   => $item->ListID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -154,14 +176,21 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			},
 			$lists->response
 		);
+
+		$this->lists = $lists;
+		return $this->lists;
 	}
 
 	/**
 	 * Get segments for a client iD.
 	 *
-	 * @return object|WP_Error API API Response or error.
+	 * @return array|WP_Error Array of segments, or error.
 	 */
 	public function get_segments() {
+		if ( null !== $this->segments ) {
+			return $this->segments;
+		}
+
 		$api_key   = $this->api_key();
 		$client_id = $this->client_id();
 
@@ -189,46 +218,169 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			);
 		}
 
-		return $segments->response;
+		$segments = array_map(
+			function ( $item ) {
+				return [
+					'id'     => $item->SegmentID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'name'   => $item->Title, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'parent' => $item->ListID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				];
+			},
+			$segments->response
+		);
+
+		$this->segments = $segments;
+		return $this->segments;
+	}
+
+	/**
+	 * Get all applicable lists and segments as Send_List objects.
+	 * Note that in CM, campaigns can be sent to either lists or segments, not both,
+	 * so both entity types should be treated as top-level send lists.
+	 *
+	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 *
+	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 */
+	public function get_send_lists( $args = [] ) {
+		$api_key   = $this->api_key();
+		$client_id = $this->client_id();
+
+		if ( ! $api_key ) {
+			return new WP_Error(
+				'newspack_newsletters_missing_api_key',
+				__( 'No Campaign Monitor API key available.', 'newspack-newsletters' )
+			);
+		}
+		if ( ! $client_id ) {
+			return new WP_Error(
+				'newspack_newsletters_missing_client_id',
+				__( 'No Campaign Monitor Client ID available.', 'newspack-newsletters' )
+			);
+		}
+
+		$send_lists = array_map(
+			function( $list ) use ( $api_key ) {
+				$config = [
+					'provider'    => $this->service,
+					'type'        => 'list',
+					'id'          => $list['id'],
+					'name'        => $list['name'],
+					'entity_type' => 'list',
+				];
+
+				$list_details = new CS_REST_Lists( $list['id'], [ 'api_key' => $api_key ] );
+				$list_stats   = $list_details->get_stats();
+				if ( ! empty( $list_stats->response->TotalActiveSubscribers ) ) {
+					$config['count'] = $list_stats->response->TotalActiveSubscribers;
+				}
+
+				return new Send_List( $config );
+			},
+			$this->get_lists()
+		);
+		$segments = array_map(
+			function( $segment ) {
+				$segment_id = (string) $segment['id'];
+				$config      = [
+					'provider'    => $this->service,
+					'type'        => 'list', // In CM, segments and lists have the same hierarchy.
+					'id'          => $segment_id,
+					'name'        => $segment['name'],
+					'entity_type' => 'segment',
+				];
+
+				return new Send_List( $config );
+			},
+			$this->get_segments()
+		);
+		$send_lists    = array_merge( $send_lists, $segments );
+		$filtered_lists = $send_lists;
+		if ( ! empty( $args['ids'] ) ) {
+			$ids           = ! is_array( $args['ids'] ) ? [ $args['ids'] ] : $args['ids'];
+			$filtered_lists = array_values(
+				array_filter(
+					$send_lists,
+					function ( $list ) use ( $ids ) {
+						return Send_Lists::matches_id( $ids, $list->get( 'id' ) );
+					}
+				)
+			);
+		}
+		if ( ! empty( $args['search'] ) ) {
+			$search        = ! is_array( $args['search'] ) ? [ $args['search'] ] : $args['search'];
+			$filtered_lists = array_values(
+				array_filter(
+					$send_lists,
+					function ( $list ) use ( $search ) {
+						return Send_Lists::matches_search(
+							$search,
+							[
+								$list->get( 'id' ),
+								$list->get( 'name' ),
+								$list->get( 'entity_type' ),
+							]
+						);
+					}
+				)
+			);
+		}
+
+		if ( ! empty( $args['limit'] ) ) {
+			$filtered_lists = array_slice( $filtered_lists, 0, $args['limit'] );
+		}
+
+		return $filtered_lists;
 	}
 
 	/**
 	 * Retrieve campaign details.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
-	 * @param boolean $fetch_all If true, returns all campaign data, even those stored in WP.
 	 * @return object|WP_Error API Response or error.
 	 */
-	public function retrieve( $post_id, $fetch_all = false ) {
+	public function retrieve( $post_id ) {
 		if ( ! $this->has_api_credentials() ) {
 			return [];
 		}
 		try {
-			$cm       = new CS_REST_General( $this->api_key() );
-			$response = [];
+			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
+			$newsletter_data = [
+				'campaign'                          => true, // Satisfy the JS API.
+				'supports_multiple_test_recipients' => true,
+				'lists'                             => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
+					[
+						'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
+						'type' => 'list',
+					]
+				),
+			];
 
-			$lists    = $this->get_lists();
-			$segments = $this->get_segments();
-
-			$response['lists']    = ! empty( $lists ) ? $lists : [];
-			$response['segments'] = ! empty( $segments ) ? $segments : [];
-
-			if ( $fetch_all ) {
-				$cm_send_mode  = $this->retrieve_send_mode( $post_id );
-				$cm_list_id    = $this->retrieve_list_id( $post_id );
-				$cm_segment_id = $this->retrieve_segment_id( $post_id );
-				$cm_from_name  = $this->retrieve_from_name( $post_id );
-				$cm_from_email = $this->retrieve_from_email( $post_id );
-
-				$response['send_mode']  = $cm_send_mode;
-				$response['list_id']    = $cm_list_id;
-				$response['segment_id'] = $cm_segment_id;
-				$response['from_name']  = $cm_from_name;
-				$response['from_email'] = $cm_from_email;
-				$response['campaign']   = true;
+			// Handle legacy sender meta.
+			$from_name   = get_post_meta( $post_id, 'senderName', true );
+			$from_email  = get_post_meta( $post_id, 'senderEmail', true );
+			if ( ! $from_name ) {
+				$legacy_from_name = get_post_meta( $post_id, 'cm_from_name', true );
+				if ( $legacy_from_name ) {
+					$newsletter_data['senderName'] = $legacy_from_name;
+				}
+			}
+			if ( ! $from_email ) {
+				$legacy_from_email = get_post_meta( $post_id, 'cm_from_email', true );
+				if ( $legacy_from_email ) {
+					$newsletter_data['senderEmail'] = $legacy_from_email;
+				}
 			}
 
-			return $response;
+			// Handle legacy send-to meta.
+			if ( ! $send_list_id ) {
+				$legacy_list_id = get_post_meta( $post_id, 'cm_list_id', true ) ?? get_post_meta( $post_id, 'cm_segment_id', true );
+				if ( $legacy_list_id ) {
+					$newsletter_data['list_id'] = $legacy_list_id;
+				}
+			}
+
+			return $newsletter_data;
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_campaign_monitor_error',
@@ -276,20 +428,20 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			}
 
 			// Use the temporary test campaign ID to send a preview.
-			$preview = new CS_REST_Campaigns( $test_campaign->response, [ 'api_key' => $api_key ] );
-			$preview->send_preview( $emails );
+			$preview          = new CS_REST_Campaigns( $test_campaign->response, [ 'api_key' => $api_key ] );
+			$preview_response = $preview->send_preview( $emails );
 
 			// After sending a preview, delete the temporary test campaign. We must do this because the API doesn't support updating campaigns.
-			$delete = $preview->delete();
-
-			$data['result']  = $test_campaign->response;
-			$data['message'] = sprintf(
-			// translators: Message after successful test email.
-				__( 'Campaign Monitor test sent successfully to %s.', 'newspack-newsletters' ),
-				implode( ', ', $emails )
-			);
-
-			return \rest_ensure_response( $data );
+			$deleted  = $preview->delete();
+			$response = [
+				'result'  => $preview_response->response,
+				'message' => sprintf(
+					// translators: Message after successful test email.
+					__( 'Campaign Monitor test sent successfully to %s.', 'newspack-newsletters' ),
+					implode( ', ', $emails )
+				),
+			];
+			return \rest_ensure_response( $response );
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_campaign_monitor_error',
@@ -305,7 +457,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * @return object Args for sending a campaign or campaign preview.
 	 */
 	public function format_campaign_args( $post_id ) {
-		$data      = $this->validate( $this->retrieve( $post_id, true ) );
 		$public_id = get_post_meta( $post_id, Newspack_Newsletters::PUBLIC_POST_ID_META, true );
 
 		// If we don't have a public ID, generate one and save it.
@@ -317,18 +468,25 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		$args = [
 			'Subject'   => get_the_title( $post_id ),
 			'Name'      => get_the_title( $post_id ) . ' ' . gmdate( 'h:i:s A' ), // Name must be unique.
-			'FromName'  => $data['from_name'],
-			'FromEmail' => $data['from_email'],
-			'ReplyTo'   => $data['from_email'],
+			'FromName'  => get_post_meta( $post_id, 'senderName', true ),
+			'FromEmail' => get_post_meta( $post_id, 'senderEmail', true ),
+			'ReplyTo'   => get_post_meta( $post_id, 'senderEmail', true ),
 			'HtmlUrl'   => rest_url(
 				$this::BASE_NAMESPACE . $this->service . '/' . $public_id . '/content'
 			),
 		];
 
-		if ( 'list' === $data['send_mode'] ) {
-			$args['ListIDs'] = [ $data['list_id'] ];
-		} else {
-			$args['SegmentIDs'] = [ $data['segment_id'] ];
+		$send_list_id = get_post_meta( $post_id, 'send_list_id', true );
+		if ( $send_list_id ) {
+			$send_list = $this->get_send_lists( [ 'ids' => $send_list_id ] );
+			if ( ! empty( $send_list[0] ) ) {
+				$send_mode = $send_list[0]->get( 'entity_type' );
+				if ( 'list' === $send_mode ) {
+					$args['ListIDs'] = [ $send_list_id ];
+				} elseif ( 'segment' === $send_mode ) {
+					$args['SegmentIDs'] = [ $send_list_id ];
+				}
+			}
 		}
 
 		return $args;

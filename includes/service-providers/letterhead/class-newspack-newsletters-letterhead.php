@@ -71,6 +71,15 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 	}
 
 	/**
+	 * Get send lists
+	 *
+	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 *
+	 * @return object|void|null API Response or Error
+	 */
+	public function get_send_lists( $args = [] ) {} // Not used.
+
+	/**
 	 * This will call the Letterhead promotions API with the specific date passed as the
 	 * argument and the appropriate credentials. It will return an array.
 	 *

@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
-import { Button, Spinner, TextControl, TextareaControl } from '@wordpress/components';
+import { Button, Notice, Spinner, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
@@ -31,6 +31,7 @@ const Sidebar = ( {
 	title,
 	senderEmail,
 	senderName,
+	status,
 	campaignName,
 	previewText,
 	stringifiedCampaignDefaults,
@@ -119,7 +120,17 @@ const Sidebar = ( {
 		);
 	}
 
-	const { ProviderSidebar = () => null } = getServiceProvider();
+	const { ProviderSidebar = () => null, isCampaignSent } = getServiceProvider();
+	const campaignIsSent = ! inFlight && newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
+
+	if ( campaignIsSent ) {
+		return (
+			<Notice status="success" isDismissible={ false }>
+				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
+			</Notice>
+		);
+	}
+
 	return (
 		<div className="newspack-newsletters__sidebar">
 			<TextControl

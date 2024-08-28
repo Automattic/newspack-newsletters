@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';import { Notice } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import {
@@ -38,12 +38,13 @@ registerStore();
 registerEditorPlugin();
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
-	const { layoutId, postId } = useSelect( select => {
-		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+	const { layoutId, postId, status } = useSelect( select => {
+		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			layoutId: meta.template_id,
 			postId: getCurrentPostId(),
+			status: getCurrentPostAttribute( 'status' ),
 		};
 	} );
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
@@ -162,14 +163,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 	const stylingId = 'newspack-newsletters-styling';
 	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
-
-	if ( campaignIsSent ) {
-		return (
-			<Notice status="success" isDismissible={ false }>
-				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
-			</Notice>
-		);
-	}
 
 	return isDisplayingInitModal ? (
 		<InitModal

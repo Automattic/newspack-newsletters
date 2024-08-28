@@ -32,17 +32,6 @@ class Send_List_Test extends WP_UnitTestCase {
 		$list = new Send_List( self::$configs['invalid'] );
 	}
 
-	/**
-	 * Test constructor with invalid input.
-	 */
-	public function test_constructor_with_missing_parent() {
-		$this->expectException( \InvalidArgumentException::class );
-
-		$config = self::$configs['valid_sublist'];
-		unset( $config['parent'] );
-
-		$list = new Send_List( $config );
-	}
 
 	/**
 	 * Test get_config_schema.

@@ -21,18 +21,18 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	use Newspack_Newsletters_Mailchimp_Groups;
 
 	/**
-	 * Whether the provider has support to tags and tags based Subscription Lists.
-	 *
-	 * @var boolean
-	 */
-	public static $support_local_lists = true;
-
-	/**
 	 * Provider name.
 	 *
 	 * @var string
 	 */
 	public $name = 'Mailchimp';
+
+	/**
+	 * Whether the provider has support to tags and tags based Subscription Lists.
+	 *
+	 * @var boolean
+	 */
+	public static $support_local_lists = true;
 
 	/**
 	 * Cache of contact added on execution. Control to avoid adding the same

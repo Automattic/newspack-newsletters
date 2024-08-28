@@ -14,6 +14,14 @@ use Newspack\Newsletters\Send_List;
  * Main Newspack Newsletters Class for Constant Contact ESP.
  */
 final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_Service_Provider {
+
+	/**
+	 * Provider name.
+	 *
+	 * @var string
+	 */
+	public $name = 'Contant Constact';
+
 	/**
 	 * Cached instance of the CC SDK.
 	 *
@@ -41,13 +49,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @var array
 	 */
 	private $contact_data = [];
-
-	/**
-	 * Provider name.
-	 *
-	 * @var string
-	 */
-	public $name = 'Contant Constact';
 
 	/**
 	 * Whether the provider has support to tags and tags based Subscription Lists.
