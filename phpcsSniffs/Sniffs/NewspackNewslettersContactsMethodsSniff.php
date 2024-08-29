@@ -44,13 +44,12 @@ class NewspackNewslettersContactsMethodsSniff implements PHP_CodeSniffer_Sniff {
 		'remove_esp_local_list_from_contact',
 		'add_tag_to_contact',
 		'remove_tag_from_contact',
-		'update_contact_local_lists',
 		'update_contact_lists_handling_local',
-		'add_contact_handling_local_list',
 		'add_contact_with_groups_and_tags',
 		'add_contact_to_provider',
 		'delete_user_subscription',
 		'update_contact_lists',
+		'upsert_contact',
 	];
 
 	/**
