@@ -155,13 +155,12 @@ final class Click {
 
 		// Double-check and make sure the URL is actually a URL within the email.
 		$url_without_query_args = untrailingslashit( strtok( $url, '?' ) );
-		$newsletter_content     = get_post_meta( $newsletter_id, 'newspack_email_html', true );
+		$newsletter_content     = (string) get_post_meta( $newsletter_id, 'newspack_email_html', true );
+		$is_admin_user          = current_user_can( 'edit_others_posts' );
 		if (
-			! $newsletter_content ||
-			(
-				false === stripos( $newsletter_content, $url_without_query_args ) &&
-				false === stripos( $newsletter_content, urlencode( $url_without_query_args ) ) // URL might be encoded via a block pattern.
-			)
+			false === stripos( $newsletter_content, $url_without_query_args ) &&
+			false === stripos( $newsletter_content, urlencode( $url_without_query_args ) ) && // URL might be encoded via a block pattern.
+			! $is_admin_user // Admin user might be testing the link from a preview.
 		) {
 			\wp_die( 'Invalid URL', '', 400 );
 			exit;
@@ -183,7 +182,10 @@ final class Click {
 			exit;
 		}
 
-		self::track_click( $newsletter_id, $email_address, $url );
+		// Only track the link if the user is not an admin user.
+		if ( ! $is_admin_user ) {
+			self::track_click( $newsletter_id, $email_address, $url );
+		}
 
 		if ( $with_redirect ) {
 			\wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
