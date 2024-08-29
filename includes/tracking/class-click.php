@@ -160,7 +160,7 @@ final class Click {
 		if (
 			false === stripos( $newsletter_content, $url_without_query_args ) &&
 			false === stripos( $newsletter_content, urlencode( $url_without_query_args ) ) && // URL might be encoded via a block pattern.
-			! $is_admin_user // Admin user might be testing the link from a preview.
+			! $is_admin_user // Allow redirect for logged-in editor or admin users.
 		) {
 			\wp_die( 'Invalid URL', '', 400 );
 			exit;
@@ -182,7 +182,7 @@ final class Click {
 			exit;
 		}
 
-		// Only track the link if the user is not an admin user.
+		// Don't track if the user is a logged-in editor or admin user.
 		if ( ! $is_admin_user ) {
 			self::track_click( $newsletter_id, $email_address, $url );
 		}
