@@ -19,6 +19,7 @@ import { get } from 'lodash';
  */
 import { getServiceProvider } from '../../service-providers';
 import { refreshEmailHtml, validateNewsletter } from '../../newsletter-editor/utils';
+import { useNewsletterData } from '../../newsletter-editor/store';
 import './style.scss';
 
 function PreviewHTML() {
@@ -111,7 +112,7 @@ export default compose( [
 		const { editPost, savePost } = dispatch( 'core/editor' );
 		return { editPost, savePost };
 	} ),
-	withSelect( ( select, { forceIsDirty } ) => {
+	withSelect( ( select ) => {
 		const {
 			didPostSaveRequestSucceed,
 			getCurrentPost,
@@ -125,7 +126,7 @@ export default compose( [
 			isCurrentPostPublished,
 		} = select( 'core/editor' );
 		return {
-			isPublishable: forceIsDirty || isEditedPostPublishable(),
+			isPublishable: isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
 			status: getEditedPostAttribute( 'status' ),
 			isSaving: isSavingPost(),
@@ -164,9 +165,10 @@ export default compose( [
 			}
 		}, [ saveDidSucceed ] );
 
-		const { newsletterData = {}, is_public } = meta;
+		const { is_public } = meta;
+		const newsletterData = useNewsletterData();
 
-		const newsletterValidationErrors = validateNewsletter( newsletterData );
+		const newsletterValidationErrors = validateNewsletter( meta );
 
 		const {
 			name: serviceProviderName,
@@ -340,7 +342,7 @@ export default compose( [
 									/>
 								) }
 								<div className="newspack-newsletters__modal__spacer" />
-								{ renderPreSendInfo( newsletterData ) }
+								{ renderPreSendInfo( newsletterData, meta ) }
 								<div className="modal-buttons">
 									<Button
 										variant="secondary"

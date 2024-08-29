@@ -182,32 +182,6 @@ final class Newspack_Newsletters {
 		];
 		$fields = [
 			[
-				'name'               => 'newsletterData',
-				'register_meta_args' => [
-					'show_in_rest' => [
-						'schema' => [
-							'type'                 => 'object',
-							'context'              => [ 'edit' ],
-							'additionalProperties' => true,
-							'properties'           => [],
-						],
-					],
-					'type'         => 'object',
-				],
-			],
-			[
-				'name'               => 'senderName',
-				'register_meta_args' => $default_register_meta_args,
-			],
-			[
-				'name'               => 'senderEmail',
-				'register_meta_args' => $default_register_meta_args,
-			],
-			[
-				'name'               => 'stringifiedLayoutDefaults',
-				'register_meta_args' => $default_register_meta_args,
-			],
-			[
 				'name'               => 'newsletter_send_errors',
 				'register_meta_args' => [
 					'show_in_rest' => [

@@ -27,11 +27,14 @@
 		}
 	}
 
-	&__send-to {
-		margin: 16px 0;
+	&__sidebar {
 		.components-notice + * {
 			margin-top: 16px;
 		}
+	}
+
+	&__send-to {
+		margin: 16px 0;
 		.components-button-group {
 			margin-top: 8px;
 		}
