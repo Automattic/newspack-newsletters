@@ -267,6 +267,7 @@ final class Newspack_Newsletters {
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
@@ -283,6 +284,70 @@ final class Newspack_Newsletters {
 				'single'         => true,
 				'auth_callback'  => '__return_true',
 				'default'        => -1,
+			]
+		);
+		\register_meta(
+			'post',
+			'send_list_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+				'default'        => '',
+			]
+		);
+		\register_meta(
+			'post',
+			'send_sublist_id',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+				'default'        => '',
+			]
+		);
+		\register_meta(
+			'post',
+			'senderName',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+				'default'        => '',
+			]
+		);
+		\register_meta(
+			'post',
+			'senderEmail',
+			[
+				'object_subtype' => self::NEWSPACK_NEWSLETTERS_CPT,
+				'show_in_rest'   => [
+					'schema' => [
+						'context' => [ 'edit' ],
+					],
+				],
+				'type'           => 'string',
+				'single'         => true,
+				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
@@ -314,6 +379,7 @@ final class Newspack_Newsletters {
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
@@ -329,6 +395,7 @@ final class Newspack_Newsletters {
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
@@ -344,6 +411,7 @@ final class Newspack_Newsletters {
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
@@ -359,6 +427,7 @@ final class Newspack_Newsletters {
 				'type'           => 'string',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => '',
 			]
 		);
 		\register_meta(
@@ -374,6 +443,7 @@ final class Newspack_Newsletters {
 				'type'           => 'boolean',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
+				'default'        => false,
 			]
 		);
 		\register_meta(
