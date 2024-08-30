@@ -229,6 +229,13 @@ class Send_List {
 	}
 
 	/**
+	 * Get the parent list's ID for this Send_List.
+	 */
+	public function get_parent_id() {
+		return $this->get( 'parent_id' );
+	}
+
+	/**
 	 * Get the type for this Send_List: list or sublist.
 	 */
 	public function get_type() {
@@ -272,6 +279,22 @@ class Send_List {
 	 */
 	public function set_local_name( $value ) {
 		return $this->set( 'local_name', $value );
+	}
+
+	/**
+	 * Get the contact count for this send list.
+	 */
+	public function get_count() {
+		return $this->get( 'count' );
+	}
+
+	/**
+	 * Update the contact count for this send list.
+	 *
+	 * @param string $value The new name.
+	 */
+	public function set_contact_count( $value ) {
+		return $this->set( 'count', $value );
 	}
 
 	/**
