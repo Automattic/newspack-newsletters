@@ -119,25 +119,29 @@ class Send_Lists {
 		if ( is_array( $ids ) ) {
 			return in_array( $id, $ids, false ); // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
 		}
-		return $id === $ids;
+		return (string) $id === (string) $ids;
 	}
 
 	/**
 	 * Check if the given search term matches any of the given strings.
 	 *
-	 * @param array|string $search Search term or array of terms.
-	 * @param array        $matches An array of strings to match against.
+	 * @param null|array|string $search Search term or array of terms. If null, return true.
+	 * @param array             $matches An array of strings to match against.
 	 *
 	 * @return boolean
 	 */
 	public static function matches_search( $search, $matches = [] ) {
-		if ( empty( $search ) ) {
+		if ( null === $search ) {
 			return true;
 		}
 		if ( ! is_array( $search ) ) {
 			$search = [ $search ];
 		}
 		foreach ( $search as $to_match ) {
+			// Don't try to match values that will convert to empty strings, or that we can't convert to a string.
+			if ( ! $to_match || is_array( $to_match ) ) {
+				continue;
+			}
 			$to_match = strtolower( strval( $to_match ) );
 			foreach ( $matches as $match ) {
 				if ( stripos( strtolower( strval( $match ) ), $to_match ) !== false ) {
