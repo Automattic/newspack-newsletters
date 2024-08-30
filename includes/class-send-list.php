@@ -27,13 +27,6 @@ class Send_List {
 	protected $config;
 
 	/**
-	 * If there were errors building the Send_List object due to invalid config, this will contain the error messages.
-	 *
-	 * @var WP_Error
-	 */
-	protected $errors;
-
-	/**
 	 * Initializes a new Send_List.
 	 *
 	 * @param array $config {
@@ -43,23 +36,25 @@ class Send_List {
 	 *   @type string $type        The type of list. Can be either 'list' or 'sublist'. If the latter, must specify a `parent` property (required).
 	 *   @type string $entity_type The type of entity this list or sublist is associated with in the ESP. Controls which ESP API endpoints to use to fetch/update (required).
 	 *   @type string $id          The ID of the list or sublist in the ESP (required).
-	 *   @type string $value       The value to use for autocomplete inputs. If not passed, will match `id`.
 	 *   @type string $parent_id   If this is a sublist of another list, the ID of the parent list.
 	 *   @type string $name        The name of the list or sublist as identified in the ESP (required).
 	 *   @type string $local_name  If the list is also a Subscription List, it could have a locally edited name.
-	 *   @type string $label       The label to use for autocomplete inputs. If not set, will be generated from other properties.
 	 *   @type int    $count       If available, the number of contacts associated with this list or sublist.
 	 *   @type string $edit_link   If available, the URL to edit this list or sublist in the ESP.
+	 *   @type string $label       The label to use for autocomplete inputs. If not set, will be generated from other properties.
+	 *   @type string $value       The value to use for autocomplete inputs. If not passed, will match `id`.
 	 * }
+	 *
+	 * @throws \InvalidArgumentException In case the Send_List object can't be built from the given config data.
 	 */
 	public function __construct( $config ) {
-		$this->errors = new WP_Error();
-		$schema       = self::get_config_schema();
+		$errors = new WP_Error();
+		$schema = self::get_config_schema();
 
 		foreach ( $schema['properties'] as $key => $property ) {
 			// If the property is required but not set, throw an error.
 			if ( ! empty( $property['required'] ) && ! isset( $config[ $key ] ) ) {
-				$this->errors->add( 'newspack_newsletters_send_list_invalid_config', __( 'Missing required config property: ', 'newspack-newsletters' ) . $key );
+				$errors->add( 'newspack_newsletters_send_list_invalid_config', __( 'Missing required property: ', 'newspack-newsletters' ) . $key );
 				continue;
 			}
 
@@ -69,7 +64,15 @@ class Send_List {
 			}
 
 			// Set the property.
-			$this->set( $key, $config[ $key ] );
+			$result = $this->set( $key, $config[ $key ] );
+			if ( \is_wp_error( $result ) ) {
+				$result->export_to( $errors );
+			}
+		}
+
+		// Throw an exception if there are errors.
+		if ( $errors->has_errors() ) {
+			throw new \InvalidArgumentException( esc_html( __( 'Error creating send list: ', 'newspack-newsletters' ) . implode( '. ', $errors->get_error_messages() ) ) );
 		}
 	}
 
@@ -157,14 +160,10 @@ class Send_List {
 	 * @return mixed|WP_Error The property value or null if not set/not a supported property.
 	 */
 	private function get( $key ) {
-		// Clear previous errors for this key.
-		$this->errors->remove( 'newspack_newsletters_send_list_missing_required_property_' . $key );
 		$value  = $this->{ $key } ?? null;
 		$schema = $this->get_config_schema();
 		if ( ! empty( $schema['properties'][ $key ]['required'] ) && null === $this->{ $key } ) {
-			$error_message = new WP_Error( 'newspack_newsletters_send_list_missing_required_property_' . $key, __( 'Could not get required property: ', 'newspack-newsletters' ) . $key );
-			$error_message->export_to( $this->get_errors() );
-			return $error_message;
+			return new WP_Error( 'newspack_newsletters_send_list_missing_required_property_' . $key, __( 'Could not get required property: ', 'newspack-newsletters' ) . $key );
 		}
 
 		return $value;
@@ -180,22 +179,15 @@ class Send_List {
 	 * @return mixed|WP_Error The property value or WP_Error if not set/not a supported property.
 	 */
 	private function set( $key, $value ) {
-		// Clear previous errors for this key.
-		$this->errors->remove( 'newspack_newsletters_send_list_invalid_property_' . $key );
 		$schema = $this->get_config_schema();
 		if ( ! isset( $schema['properties'][ $key ] ) ) {
-			$error_message = new WP_Error( 'newspack_newsletters_send_list_invalid_property_' . $key, __( 'Could not set invalid property: ', 'newspack-newsletters' ) . $key );
-			$error_message->export_to( $this->get_errors() );
-			return $error_message;
+			return new WP_Error( 'newspack_newsletters_send_list_invalid_property_' . $key, __( 'Could not set invalid property: ', 'newspack-newsletters' ) . $key );
 		}
 
 		// If the passed value isn't in the enum, throw an error.
-		$this->errors->remove( 'newspack_newsletters_send_list_invalid_property_value_' . $key );
 		$property = $schema['properties'][ $key ];
 		if ( isset( $property['enum'] ) && ! in_array( $value, $property['enum'], true ) ) {
-			$error_message = new WP_Error( 'newspack_newsletters_send_list_invalid_property_value_' . $key, __( 'Invalid value for property: ', 'newspack-newsletters' ) . $key );
-			$error_message->export_to( $this->get_errors() );
-			return $error_message;
+			return new WP_Error( 'newspack_newsletters_send_list_invalid_property_value_' . $key, __( 'Invalid value for property: ', 'newspack-newsletters' ) . $key );
 		}
 
 		// Cast value to the expected type.
@@ -203,15 +195,6 @@ class Send_List {
 
 		$this->{ $key } = $value;
 		return $this->get( $key );
-	}
-
-	/**
-	 * Get any errors associated with this Send_List.
-	 *
-	 * @return WP_Error
-	 */
-	public function get_errors() {
-		return $this->errors;
 	}
 
 	/**
@@ -299,7 +282,7 @@ class Send_List {
 
 	/**
 	 * Get a manually set or dynamic label for autocomplete inputs.
-	 * If not manually set, generate from entity_type, name, and count and store.
+	 * If not passed via __construct(), will be generated from entity_type, name, and count.
 	 *
 	 * @return string
 	 */
@@ -324,7 +307,8 @@ class Send_List {
 	}
 
 	/**
-	 * Get the value for autocomplete inputs. Defaults to the id.
+	 * Get the value for autocomplete inputs.
+	 * If not passed via __construct(), defaults to the id.
 	 *
 	 * @return string
 	 */
@@ -346,12 +330,8 @@ class Send_List {
 		$config = array_filter( $config ); // Remove empty values.
 
 		// Ensure label + value properties are set for JS components.
-		if ( ! isset( $config['label'] ) ) {
-			$config['label'] = $this->get_label();
-		}
-		if ( ! isset( $config['value'] ) ) {
-			$config['value'] = $this->get_value();
-		}
+		$config['label'] = $this->get_label();
+		$config['value'] = $this->get_value();
 
 		return $config;
 	}

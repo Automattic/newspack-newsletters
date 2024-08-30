@@ -22,21 +22,14 @@ class Send_List_Test extends WP_UnitTestCase {
 		$sublist = new Send_List( self::$configs['valid_sublist'] );
 		$this->assertInstanceOf( Send_List::class, $list );
 		$this->assertInstanceOf( Send_List::class, $sublist );
-		$this->assertFalse( $list->get_errors()->has_errors() );
-		$this->assertFalse( $sublist->get_errors()->has_errors() );
 	}
 
 	/**
 	 * Test constructor with invalid input.
 	 */
 	public function test_constructor_with_invalid() {
-		$list   = new Send_List( self::$configs['invalid'] );
-		$errors = $list->get_errors();
-		$this->assertTrue( $errors->has_errors() );
-		$error_codes = $errors->get_error_codes();
-		$this->assertContains( 'newspack_newsletters_send_list_invalid_property_value_provider', $error_codes );
-		$this->assertContains( 'newspack_newsletters_send_list_invalid_property_value_type', $error_codes );
-		$this->assertContains( 'newspack_newsletters_send_list_invalid_config', $error_codes );
+		$this->expectException( \InvalidArgumentException::class );
+		$list = new Send_List( self::$configs['invalid'] );
 	}
 
 	/**
@@ -55,7 +48,6 @@ class Send_List_Test extends WP_UnitTestCase {
 		foreach ( $list_config as $key => $value ) {
 			$this->assertArrayHasKey( $key, $schema['properties'] );
 		}
-		$this->assertFalse( $list->get_errors()->has_errors() );
 	}
 
 	/**
