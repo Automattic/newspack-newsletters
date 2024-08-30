@@ -293,7 +293,7 @@ class Send_List {
 	 *
 	 * @param string $value The new name.
 	 */
-	public function set_contact_count( $value ) {
+	public function set_count( $value ) {
 		return $this->set( 'count', $value );
 	}
 
