@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Class used to represent one Send_List.
- * 
+ *
  * A Send List is any list that can be used as a segment of contacts that you can send a Newsletter campaign to
  * The difference between Send_List and Subscription_List is that Send Lists are all the existing lists, audiences, tags, groups, segments, etc in the provider. We don't store them locally. Some of these can also be Subscription Lists, but not all are.
  *
@@ -27,7 +27,7 @@ class Send_List {
 	 *
 	 * @var array
 	 */
-	protected $config;
+	protected $config = [];
 
 	/**
 	 * Initializes a new Send_List.
@@ -163,9 +163,9 @@ class Send_List {
 	 * @return mixed|WP_Error The property value or null if not set/not a supported property.
 	 */
 	private function get( $key ) {
-		$value  = $this->{ $key } ?? null;
+		$value  = $this->config[ $key ] ?? null;
 		$schema = $this->get_config_schema();
-		if ( ! empty( $schema['properties'][ $key ]['required'] ) && null === $this->{ $key } ) {
+		if ( ! empty( $schema['properties'][ $key ]['required'] ) && empty( $this->config[ $key ] ) ) {
 			return new WP_Error( 'newspack_newsletters_send_list_missing_required_property_' . $key, __( 'Could not get required property: ', 'newspack-newsletters' ) . $key );
 		}
 
@@ -196,7 +196,7 @@ class Send_List {
 		// Cast value to the expected type.
 		settype( $value, $property['type'] );
 
-		$this->{ $key } = $value;
+		$this->config[ $key ] = $value;
 		return $this->get( $key );
 	}
 
@@ -325,12 +325,7 @@ class Send_List {
 	 * @return array
 	 */
 	public function to_array() {
-		$schema = self::get_config_schema();
-		$config  = [];
-		foreach ( $schema['properties'] as $key => $property ) {
-			$config[ $key ] = $this->get( $key ) ?? null;
-		}
-		$config = array_filter( $config ); // Remove empty values.
+		$config = $this->config;
 
 		// Ensure label + value properties are set for JS components.
 		$config['label'] = $this->get_label();
