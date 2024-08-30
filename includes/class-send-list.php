@@ -14,6 +14,9 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Class used to represent one Send_List.
+ * 
+ * A Send List is any list that can be used as a segment of contacts that you can send a Newsletter campaign to
+ * The difference between Send_List and Subscription_List is that Send Lists are all the existing lists, audiences, tags, groups, segments, etc in the provider. We don't store them locally. Some of these can also be Subscription Lists, but not all are.
  *
  * A Send_List can be either a top-level list or a sublist.
  * A sublist can optionally specify a parent list ID (required for Mailchimp).
