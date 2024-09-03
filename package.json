@@ -6,7 +6,7 @@
 		"cm": "newspack-scripts commit",
 		"semantic-release": "newspack-scripts release --files=newspack-newsletters.php",
 		"clean": "rm -rf dist",
-		"build": "npm run clean && newspack-scripts wp-scripts build",
+		"build": "newspack-scripts wp-scripts build",
 		"start": "npm ci --legacy-peer-deps && npm run watch",
 		"watch": "npm run clean && newspack-scripts wp-scripts start",
 		"test": "echo 'No JS unit tests in this repository.'",
