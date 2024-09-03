@@ -66,7 +66,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			function( $response ) {
 				$response['body'] = wp_json_encode(
 					array_merge(
-						json_decode( $response['body'] ?? [], true ),
+						json_decode( $response['body'], true ) ?? [],
 						[
 							'title'         => 'Embed',
 							'url'           => 'embed.com',
