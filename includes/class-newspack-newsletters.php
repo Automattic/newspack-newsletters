@@ -18,6 +18,7 @@ final class Newspack_Newsletters {
 	const EMAIL_HTML_META                   = 'newspack_email_html';
 	const NEWSPACK_NEWSLETTERS_PALETTE_META = 'newspack_newsletters_color_palette';
 	const PUBLIC_POST_ID_META               = 'newspack_nl_public_post_id';
+	const API_NAMESPACE                     = 'newspack-newsletters/v1';
 
 	/**
 	 * Supported fonts.
@@ -832,6 +833,15 @@ final class Newspack_Newsletters {
 		}
 
 		return $wp_error->has_errors() ? $wp_error : self::api_get_settings();
+	}
+
+	/**
+	 * Whether the current user can manage admin settings.
+	 *
+	 * @return bool Whether the current user can manage admin settings.
+	 */
+	public static function api_permission_callback() {
+		return current_user_can( 'manage_options' );
 	}
 
 	/**
