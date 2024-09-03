@@ -302,7 +302,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				array_filter(
 					$send_lists,
 					function ( $list ) use ( $ids ) {
-						return Send_Lists::matches_id( $ids, $list->get( 'id' ) );
+						return Send_Lists::matches_id( $ids, $list->get_id() );
 					}
 				)
 			);
@@ -316,9 +316,9 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 						return Send_Lists::matches_search(
 							$search,
 							[
-								$list->get( 'id' ),
-								$list->get( 'name' ),
-								$list->get( 'entity_type' ),
+								$list->get_id(),
+								$list->get_name(),
+								$list->get_entity_type(),
 							]
 						);
 					}
@@ -480,7 +480,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		if ( $send_list_id ) {
 			$send_list = $this->get_send_lists( [ 'ids' => $send_list_id ] );
 			if ( ! empty( $send_list[0] ) ) {
-				$send_mode = $send_list[0]->get( 'entity_type' );
+				$send_mode = $send_list[0]->get_entity_type();
 				if ( 'list' === $send_mode ) {
 					$args['ListIDs'] = [ $send_list_id ];
 				} elseif ( 'segment' === $send_mode ) {

@@ -687,10 +687,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$send_lists = $this->get_send_lists( [ 'ids' => get_post_meta( $post->ID, 'send_list_id', true ) ] );
 		if ( ! empty( $send_lists[0] ) ) {
 			$send_list = $send_lists[0];
-			if ( 'list' === $send_list->get( 'entity_type' ) ) {
-				$payload['contact_list_ids'] = [ $send_list->get( 'id' ) ];
-			} elseif ( 'segment' === $send_list->get( 'entity_type' ) ) {
-				$payload['segment_ids'] = [ $send_list->get( 'id' ) ];
+			if ( 'list' === $send_list->get_entity_type() ) {
+				$payload['contact_list_ids'] = [ $send_list->get_id() ];
+			} elseif ( 'segment' === $send_list->get_entity_type() ) {
+				$payload['segment_ids'] = [ $send_list->get_id() ];
 			}
 		}
 
@@ -1012,7 +1012,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				array_filter(
 					$send_lists,
 					function ( $list ) use ( $ids ) {
-						return Send_Lists::matches_id( $ids, $list->get( 'id' ) );
+						return Send_Lists::matches_id( $ids, $list->get_id() );
 					}
 				)
 			);
@@ -1026,9 +1026,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 						return Send_Lists::matches_search(
 							$search,
 							[
-								$list->get( 'id' ),
-								$list->get( 'name' ),
-								$list->get( 'entity_type' ),
+								$list->get_id(),
+								$list->get_name(),
+								$list->get_entity_type(),
 							]
 						);
 					}

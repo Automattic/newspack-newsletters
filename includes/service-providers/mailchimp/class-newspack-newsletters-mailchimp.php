@@ -963,8 +963,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'type'      => 'sublist',
 					]
 				);
-				if ( ! empty( $sublist[0]->get( 'entity_type' ) ) ) {
-					$sublist_type = $sublist[0]->get( 'entity_type' );
+				if ( ! empty( $sublist[0]->get_entity_type() ) ) {
+					$sublist_type = $sublist[0]->get_entity_type();
 					switch ( $sublist_type ) {
 						case 'group':
 							$payload['recipients']['segment_opts'] = [
