@@ -1012,8 +1012,8 @@ final class Newspack_Newsletters_Renderer {
 			 * Embed block.
 			 */
 			case 'core/embed':
-				$oembed = _wp_oembed_get_object();
-				$data   = $oembed->get_data( $attrs['url'] );
+				$oembed = apply_filters( 'newspack_newsletters_get_oembed_object', _wp_oembed_get_object() );
+				$data = $oembed->get_data( $attrs['url'] );
 
 				if ( ! $data || empty( $data->type ) ) {
 					break;
@@ -1063,7 +1063,7 @@ final class Newspack_Newsletters_Renderer {
 							'height' => $data->height,
 							'href'   => $attrs['url'],
 						);
-						$markup   .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
+						$markup .= '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
 						if ( ! empty( $caption ) ) {
 							$markup .= '<mj-text ' . self::array_to_attributes( $caption_attrs ) . '>' . esc_html( $caption ) . ' - ' . esc_html( $data->provider_name ) . '</mj-text>';
 						}
