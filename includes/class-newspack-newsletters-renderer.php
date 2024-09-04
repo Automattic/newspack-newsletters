@@ -1012,6 +1012,11 @@ final class Newspack_Newsletters_Renderer {
 			 * Embed block.
 			 */
 			case 'core/embed':
+				/**
+				 * Filters the retrieval of the WP oEmbed object. Used for testing purposes
+				 *
+				 * @param WP_oEmbed $oembed WP_oEmbed object.
+				 */
 				$oembed = apply_filters( 'newspack_newsletters_get_oembed_object', _wp_oembed_get_object() );
 				$data = $oembed->get_data( $attrs['url'] );
 
