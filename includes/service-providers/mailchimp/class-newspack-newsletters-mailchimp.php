@@ -1420,7 +1420,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$mc = new Mailchimp( $this->api_key() );
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-				$merge_fields = $this->prepare_merge_fields( $list_id, $contact['metadata'] );
+				$merge_fields = $this->prepare_merge_fields( $list_id, $contact );
 				if ( ! empty( $merge_fields ) ) {
 					$update_payload['merge_fields'] = $merge_fields;
 				}
