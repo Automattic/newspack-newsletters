@@ -1350,7 +1350,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'newspack_mailchimp_prepare_merge_fields',
 				$message,
 				[
-					'type'       => $created_field['merge_id'] ? 'debug' : 'error',
+					'type'       => empty( $created_field['merge_id'] ) ? 'error' : 'debug',
 					'data'       => [
 						'audience_id'   => $audience_id,
 						'field_data'    => $field_data,
