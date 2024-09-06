@@ -259,6 +259,10 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			);
 		}
 
+		$lists = $this->get_lists();
+		if ( is_wp_error( $lists ) ) {
+			return $lists;
+		}
 		$send_lists = array_map(
 			function( $list ) use ( $api_key ) {
 				$config = [
@@ -277,9 +281,13 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 
 				return new Send_List( $config );
 			},
-			$this->get_lists()
+			$lists
 		);
-		$segments = array_map(
+		$segments = $this->get_segments();
+		if ( is_wp_error( $segments ) ) {
+			return $segments;
+		}
+		$send_segments = array_map(
 			function( $segment ) {
 				$segment_id = (string) $segment['id'];
 				$config      = [
@@ -292,9 +300,9 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 
 				return new Send_List( $config );
 			},
-			$this->get_segments()
+			$segments
 		);
-		$send_lists    = array_merge( $send_lists, $segments );
+		$send_lists    = array_merge( $send_lists, $send_segments );
 		$filtered_lists = $send_lists;
 		if ( ! empty( $args['ids'] ) ) {
 			$ids           = ! is_array( $args['ids'] ) ? [ $args['ids'] ] : $args['ids'];
@@ -338,6 +346,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @return object|WP_Error API Response or error.
+	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
 		if ( ! $this->has_api_credentials() ) {
@@ -345,15 +354,19 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		}
 		try {
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
+			$send_lists      = $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
+				[
+					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
+					'type' => 'list',
+				]
+			);
+			if ( is_wp_error( $send_lists ) ) {
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
+			}
 			$newsletter_data = [
 				'campaign'                          => true, // Satisfy the JS API.
 				'supports_multiple_test_recipients' => true,
-				'lists'                             => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
-					[
-						'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
-						'type' => 'list',
-					]
-				),
+				'lists'                             => $send_lists,
 			];
 
 			// Handle legacy sender meta.
