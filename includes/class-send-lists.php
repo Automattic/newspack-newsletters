@@ -31,7 +31,7 @@ class Send_Lists {
 			return;
 		}
 
-		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+		\add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Send_Lists {
 	 * Register the endpoints needed to fetch send lists.
 	 */
 	public static function register_api_endpoints() {
-		register_rest_route(
+		\register_rest_route(
 			Newspack_Newsletters::API_NAMESPACE,
 			'/send-lists',
 			[
@@ -168,14 +168,15 @@ class Send_Lists {
 		foreach ( $defaults as $key => $value ) {
 			$args[ $key ] = $request[ $key ] ?? $value;
 		}
-
+		$send_lists = $provider->get_send_lists( $args );
 		return \rest_ensure_response(
-			array_map(
-				function( $send_list ) {
-					return $send_list->to_array();
-				},
-				$provider->get_send_lists( $args )
-			)
+			\is_wp_error( $send_lists ) ? $send_lists :
+				array_map(
+					function( $send_list ) {
+						return $send_list->to_array();
+					},
+					$send_lists
+				)
 		);
 	}
 }
