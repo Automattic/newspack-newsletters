@@ -1405,6 +1405,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$this->get_status_for_payload( $contact )
 		);
 
+		// Parse full name into first + last.
+		if ( isset( $contact['name'] ) ) {
+			$name_fragments = explode( ' ', $contact['name'], 2 );
+			$contact['metadata']['First Name'] = $name_fragments[0];
+			if ( isset( $name_fragments[1] ) ) {
+				$contact['metadata']['Last Name'] = $name_fragments[1];
+			}
+		}
+
 		try {
 
 			$mc = new Mailchimp( $this->api_key() );
