@@ -16,22 +16,13 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	const REPORTS_OPTION_NAME = 'newspack_newsletters_mailchimp_usage_reports';
 
 	/**
-	 * Retrieves the main Mailchimp instance
-	 *
-	 * @return Newspack_Newsletters_Mailchimp
-	 */
-	private static function get_mc_instance() {
-		return Newspack_Newsletters_Mailchimp::instance();
-	}
-
-	/**
 	 * Retrieves an instance of the Mailchimp api
 	 *
 	 * @return DrewM\MailChimp\MailChimp|WP_Error
 	 */
 	private static function get_mc_api() {
 		try {
-			return new Mailchimp( self::get_mc_instance()->api_key() );
+			return new Mailchimp( Newspack_Newsletters_Mailchimp::instance()->api_key() );
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
@@ -99,7 +90,7 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	 * Get usage reports for last n days.
 	 *
 	 * @param int $days_in_past How many days in past.
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[] Usage reports.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report[]|WP_Error Usage reports or error.
 	 */
 	public static function get_usage_reports( $days_in_past ) {
 
@@ -179,10 +170,13 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	/**
 	 * Creates a usage report.
 	 *
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report Usage report.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report|WP_Error Usage report or error.
 	 */
 	public static function get_usage_report() {
 		$reports = self::get_usage_reports( 1 );
+		if ( \is_wp_error( $reports ) ) {
+			return $reports;
+		}
 		return reset( $reports );
 	}
 }
