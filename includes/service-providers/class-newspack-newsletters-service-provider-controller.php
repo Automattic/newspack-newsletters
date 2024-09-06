@@ -33,12 +33,12 @@ abstract class Newspack_Newsletters_Service_Provider_Controller extends \WP_REST
 	 */
 	public function register_routes() {
 		\register_rest_route(
-			$this->service_provider::BASE_NAMESPACE,
+			Newspack_Newsletters::API_NAMESPACE,
 			'(?P<id>[\a-z]+)/sync-error',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'api_get_sync_error' ],
-				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id' => [
 						'sanitize_callback' => 'absint',

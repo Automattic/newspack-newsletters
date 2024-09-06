@@ -906,15 +906,6 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Whether the current user can manage admin settings.
-	 *
-	 * @return bool Whether the current user can manage admin settings.
-	 */
-	public static function api_permission_callback() {
-		return current_user_can( 'manage_options' );
-	}
-
-	/**
 	 * Retrieve settings.
 	 */
 	public static function api_settings() {

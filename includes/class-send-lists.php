@@ -8,10 +8,7 @@
 namespace Newspack\Newsletters;
 
 use Newspack_Newsletters;
-use Newspack_Newsletters_Settings;
-use Newspack_Newsletters_Subscription;
 use WP_Error;
-use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -61,7 +58,7 @@ class Send_Lists {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_send_lists' ],
-				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
 				'args'                => [
 					'ids'       => [
 						'type' => [ 'array', 'string' ],
@@ -173,7 +170,12 @@ class Send_Lists {
 		}
 
 		return \rest_ensure_response(
-			$provider->get_send_lists( $args )
+			array_map(
+				function( $send_list ) {
+					return $send_list->to_array();
+				},
+				$provider->get_send_lists( $args )
+			)
 		);
 	}
 }
