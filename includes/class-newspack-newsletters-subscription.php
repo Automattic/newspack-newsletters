@@ -73,7 +73,7 @@ class Newspack_Newsletters_Subscription {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_lists' ],
-				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
 			]
 		);
 		register_rest_route(
@@ -82,7 +82,7 @@ class Newspack_Newsletters_Subscription {
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ __CLASS__, 'api_update_lists' ],
-				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
 				'args'                => [
 					'lists' => [
 						'type'     => 'array',

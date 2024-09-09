@@ -338,6 +338,7 @@ final class Newspack_Newsletters_Editor {
 				'byline_connector_label' => __( 'and ', 'newspack-newsletters' ),
 			],
 			'supported_social_icon_services' => Newspack_Newsletters_Renderer::get_supported_social_icons_services(),
+			'supported_esps'                 => Newspack_Newsletters::get_supported_providers(),
 		];
 
 		if ( self::is_editing_email() ) {
@@ -381,6 +382,7 @@ final class Newspack_Newsletters_Editor {
 					'is_service_provider_configured' => Newspack_Newsletters::is_service_provider_configured(),
 					'service_provider'               => Newspack_Newsletters::service_provider(),
 					'user_test_emails'               => self::get_current_user_test_emails(),
+					'labels'                         => $provider ? $provider::get_labels() : [],
 				]
 			);
 			wp_register_style(

@@ -20,11 +20,11 @@ class Newsletters_Labels_Test extends WP_UnitTestCase {
 
 		$ac_labels = Newspack_Newsletters_Campaign_Monitor::get_labels();
 		$this->assertSame( 'Campaign Monitor', $ac_labels['name'] );
-		$this->assertSame( 'list', $ac_labels['list'] );
+		$this->assertSame( 'list or segment', $ac_labels['list'] );
 
 		$ac_labels = Newspack_Newsletters_Constant_Contact::get_labels();
 		$this->assertSame( 'Constant Contact', $ac_labels['name'] );
-		$this->assertSame( 'list', $ac_labels['list'] );
+		$this->assertSame( 'list or segment', $ac_labels['list'] );
 	}
 
 	/**
