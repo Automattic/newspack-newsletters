@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/Automattic/newspack-newsletters/compare/v3.1.1...v3.1.2) (2024-09-09)
+
+
+### Bug Fixes
+
+* **mailchimp:** remove cache and improve logs when preparing merge fields ([029d92c](https://github.com/Automattic/newspack-newsletters/commit/029d92cae324525758e0c134454c2c2a13721776))
+
 ## [3.1.1](https://github.com/Automattic/newspack-newsletters/compare/v3.1.0...v3.1.1) (2024-09-04)
 
 
