@@ -472,6 +472,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @return object|WP_Error API Response or error.
+	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
 		if ( ! $this->has_api_credentials() || ! $this->has_valid_connection() ) {
@@ -511,12 +512,16 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			}
 
 			// Prefetch send list info if we have a selected list and/or sublist.
-			$newsletter_data['lists'] = $this->get_send_lists(
+			$send_lists = $this->get_send_lists(
 				[
 					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 					'type' => 'list',
 				]
 			);
+			if ( is_wp_error( $send_lists ) ) {
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
+			}
+			$newsletter_data['lists'] = $send_lists;
 
 			return $newsletter_data;
 		} catch ( Exception $e ) {
@@ -687,10 +692,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$send_lists = $this->get_send_lists( [ 'ids' => get_post_meta( $post->ID, 'send_list_id', true ) ] );
 		if ( ! empty( $send_lists[0] ) ) {
 			$send_list = $send_lists[0];
-			if ( 'list' === $send_list->get( 'entity_type' ) ) {
-				$payload['contact_list_ids'] = [ $send_list->get( 'id' ) ];
-			} elseif ( 'segment' === $send_list->get( 'entity_type' ) ) {
-				$payload['segment_ids'] = [ $send_list->get( 'id' ) ];
+			if ( 'list' === $send_list->get_entity_type() ) {
+				$payload['contact_list_ids'] = [ $send_list->get_id() ];
+			} elseif ( 'segment' === $send_list->get_entity_type() ) {
+				$payload['segment_ids'] = [ $send_list->get_id() ];
 			}
 		}
 
@@ -972,6 +977,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
 	 */
 	public function get_send_lists( $args = [] ) {
+		$lists = $this->get_lists();
+		if ( is_wp_error( $lists ) ) {
+			return $lists;
+		}
 		$send_lists = array_map(
 			function( $list ) {
 				$config = [
@@ -986,9 +995,13 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 				return new Send_List( $config );
 			},
-			$this->get_lists()
+			$lists
 		);
-		$segments = array_map(
+		$segments = $this->get_segments();
+		if ( is_wp_error( $segments ) ) {
+			return $segments;
+		}
+		$send_segments = array_map(
 			function( $segment ) {
 				$segment_id = (string) $segment['id'];
 				$config      = [
@@ -1002,9 +1015,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 				return new Send_List( $config );
 			},
-			$this->get_segments()
+			$segments
 		);
-		$send_lists    = array_merge( $send_lists, $segments );
+		$send_lists     = array_merge( $send_lists, $send_segments );
 		$filtered_lists = $send_lists;
 		if ( ! empty( $args['ids'] ) ) {
 			$ids           = ! is_array( $args['ids'] ) ? [ $args['ids'] ] : $args['ids'];
@@ -1012,7 +1025,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				array_filter(
 					$send_lists,
 					function ( $list ) use ( $ids ) {
-						return Send_Lists::matches_id( $ids, $list->get( 'id' ) );
+						return Send_Lists::matches_id( $ids, $list->get_id() );
 					}
 				)
 			);
@@ -1026,9 +1039,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 						return Send_Lists::matches_search(
 							$search,
 							[
-								$list->get( 'id' ),
-								$list->get( 'name' ),
-								$list->get( 'entity_type' ),
+								$list->get_id(),
+								$list->get_name(),
+								$list->get_entity_type(),
 							]
 						);
 					}

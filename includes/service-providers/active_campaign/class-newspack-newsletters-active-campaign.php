@@ -740,17 +740,49 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$campaign_id     = get_post_meta( $post_id, 'ac_campaign_id', true );
 		$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 		$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
+
+		// Handle legacy send-to meta.
+		if ( ! $send_list_id ) {
+			$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
+			if ( $legacy_list_id ) {
+				$newsletter_data['list_id'] = $legacy_list_id;
+				$send_list_id               = $legacy_list_id;
+			}
+		}
+		if ( ! $send_sublist_id ) {
+			$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
+			if ( $legacy_sublist_id ) {
+				$newsletter_data['sublist_id'] = $legacy_sublist_id;
+				$send_sublist_id               = $legacy_sublist_id;
+			}
+		}
+		$send_lists = $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
+			[
+				'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
+				'type' => 'list',
+			]
+		);
+		if ( is_wp_error( $send_lists ) ) {
+			return $send_lists;
+		}
+		$send_sublists = $send_list_id || $send_sublist_id ?
+			$this->get_send_lists(
+				[
+					'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
+					'parent_id' => $send_list_id,
+					'type'      => 'sublist',
+				]
+			) :
+			[];
+		if ( is_wp_error( $send_sublists ) ) {
+			return $send_sublists;
+		}
 		$newsletter_data = [
 			'campaign'                          => true, // Satisfy the JS API.
 			'campaign_id'                       => $campaign_id,
 			'supports_multiple_test_recipients' => true,
-			'lists'                             => $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
-				[
-					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
-					'type' => 'list',
-				]
-			),
-			'sublists'                          => [], // Will be populated later if needed.
+			'lists'                             => $send_lists,
+			'sublists'                          => $send_sublists,
 		];
 
 		// Handle legacy sender meta.
@@ -766,20 +798,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$legacy_from_email = get_post_meta( $post_id, 'ac_from_email', true );
 			if ( $legacy_from_email ) {
 				$newsletter_data['senderEmail'] = $legacy_from_email;
-			}
-		}
-
-		// Handle legacy send-to meta.
-		if ( ! $send_list_id ) {
-			$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
-			if ( $legacy_list_id ) {
-				$newsletter_data['list_id'] = $legacy_list_id;
-			}
-		}
-		if ( ! $send_sublist_id ) {
-			$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
-			if ( $legacy_sublist_id ) {
-				$newsletter_data['sublist_id'] = $legacy_sublist_id;
 			}
 		}
 

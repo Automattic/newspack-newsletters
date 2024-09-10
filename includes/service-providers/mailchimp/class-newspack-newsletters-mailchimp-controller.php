@@ -67,7 +67,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'api_retrieve' ],
-				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id' => [
 						'sanitize_callback' => 'absint',
@@ -82,7 +82,7 @@ class Newspack_Newsletters_Mailchimp_Controller extends Newspack_Newsletters_Ser
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
 				'callback'            => [ $this, 'api_test' ],
-				'permission_callback' => [ $this->service_provider, 'api_authoring_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',

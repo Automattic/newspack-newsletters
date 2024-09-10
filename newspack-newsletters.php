@@ -8,7 +8,7 @@
  * License: GPL2
  * Text Domain:     newspack-newsletters
  * Domain Path:     /languages
- * Version:         3.1.0
+ * Version:         3.1.2
  *
  * @package         Newspack_Newsletters
  */
@@ -76,3 +76,4 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/class-woocomm
 
 // This MUST be initialized after Newspack_Newsletter class.
 \Newspack\Newsletters\Subscription_Lists::init();
+\Newspack\Newsletters\Send_Lists::init();

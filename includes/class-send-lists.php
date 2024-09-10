@@ -8,10 +8,7 @@
 namespace Newspack\Newsletters;
 
 use Newspack_Newsletters;
-use Newspack_Newsletters_Settings;
-use Newspack_Newsletters_Subscription;
 use WP_Error;
-use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,7 +31,7 @@ class Send_Lists {
 			return;
 		}
 
-		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
+		\add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 	}
 
 	/**
@@ -55,13 +52,13 @@ class Send_Lists {
 	 * Register the endpoints needed to fetch send lists.
 	 */
 	public static function register_api_endpoints() {
-		register_rest_route(
+		\register_rest_route(
 			Newspack_Newsletters::API_NAMESPACE,
 			'/send-lists',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_send_lists' ],
-				'permission_callback' => [ 'Newspack_Newsletters', 'api_permission_callback' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_authoring_permissions_check' ],
 				'args'                => [
 					'ids'       => [
 						'type' => [ 'array', 'string' ],
@@ -119,25 +116,29 @@ class Send_Lists {
 		if ( is_array( $ids ) ) {
 			return in_array( $id, $ids, false ); // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
 		}
-		return $id === $ids;
+		return (string) $id === (string) $ids;
 	}
 
 	/**
 	 * Check if the given search term matches any of the given strings.
 	 *
-	 * @param array|string $search Search term or array of terms.
-	 * @param array        $matches An array of strings to match against.
+	 * @param null|array|string $search Search term or array of terms. If null, return true.
+	 * @param array             $matches An array of strings to match against.
 	 *
 	 * @return boolean
 	 */
 	public static function matches_search( $search, $matches = [] ) {
-		if ( empty( $search ) ) {
+		if ( null === $search ) {
 			return true;
 		}
 		if ( ! is_array( $search ) ) {
 			$search = [ $search ];
 		}
 		foreach ( $search as $to_match ) {
+			// Don't try to match values that will convert to empty strings, or that we can't convert to a string.
+			if ( ! $to_match || is_array( $to_match ) ) {
+				continue;
+			}
 			$to_match = strtolower( strval( $to_match ) );
 			foreach ( $matches as $match ) {
 				if ( stripos( strtolower( strval( $match ) ), $to_match ) !== false ) {
@@ -167,9 +168,15 @@ class Send_Lists {
 		foreach ( $defaults as $key => $value ) {
 			$args[ $key ] = $request[ $key ] ?? $value;
 		}
-
+		$send_lists = $provider->get_send_lists( $args );
 		return \rest_ensure_response(
-			$provider->get_send_lists( $args )
+			\is_wp_error( $send_lists ) ? $send_lists :
+				array_map(
+					function( $send_list ) {
+						return $send_list->to_array();
+					},
+					$send_lists
+				)
 		);
 	}
 }
