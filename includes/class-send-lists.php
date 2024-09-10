@@ -168,15 +168,6 @@ class Send_Lists {
 		foreach ( $defaults as $key => $value ) {
 			$args[ $key ] = $request[ $key ] ?? $value;
 		}
-		$send_lists = $provider->get_send_lists( $args );
-		return \rest_ensure_response(
-			\is_wp_error( $send_lists ) ? $send_lists :
-				array_map(
-					function( $send_list ) {
-						return $send_list->to_array();
-					},
-					$send_lists
-				)
-		);
+		return \rest_ensure_response( $provider->get_send_lists( $args ) );
 	}
 }

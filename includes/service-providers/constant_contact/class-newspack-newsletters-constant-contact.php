@@ -1053,7 +1053,13 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$filtered_lists = array_slice( $filtered_lists, 0, $args['limit'] );
 		}
 
-		return $filtered_lists;
+		// Convert to arrays.
+		return array_map(
+			function ( $list ) {
+				return $list->to_array();
+			},
+			$filtered_lists
+		);
 	}
 
 	/**

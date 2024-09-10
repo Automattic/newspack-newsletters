@@ -634,7 +634,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 		}
 
-		return $send_lists;
+		// Convert to arrays.
+		return array_map(
+			function ( $list ) {
+				return $list->to_array();
+			},
+			$send_lists
+		);
 	}
 
 	/**

@@ -338,7 +338,13 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			$filtered_lists = array_slice( $filtered_lists, 0, $args['limit'] );
 		}
 
-		return $filtered_lists;
+		// Convert to arrays.
+		return array_map(
+			function ( $list ) {
+				return $list->to_array();
+			},
+			$filtered_lists
+		);
 	}
 
 	/**

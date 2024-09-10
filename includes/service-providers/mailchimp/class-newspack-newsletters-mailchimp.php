@@ -704,7 +704,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 		}
 
-		return $send_lists;
+		// Convert to arrays.
+		return array_map(
+			function ( $list ) {
+				return $list->to_array();
+			},
+			$send_lists
+		);
 	}
 
 	/**
