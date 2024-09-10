@@ -103,42 +103,37 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	// Fetch send lists for the "Send To" UI and update the newsletterData store.
 	const fetchSendLists = debounce( async ( opts = {} ) => {
 		const args = {
-			ids: null,
-			search: null,
 			type: 'list',
-			parent_id: null,
 			limit: 10,
 			provider: serviceProviderName,
+			...opts,
 		};
 
-		for ( const key in args ) {
-			if ( args.hasOwnProperty( key ) ) {
-				args[ key ] = opts[ key ] || args[ key ];
-			}
-		}
-
-		const sendLists = 'list' === args.type ? newsletterData?.lists || [] : newsletterData?.sublists || [];
+		const sendLists = 'list' === args.type ? [ ...newsletterData?.lists ] || [] : [ ...newsletterData?.sublists ] || [];
 
 		// If we already have a matching result, no need to fetch more.
 		const foundItems = sendLists.filter( item => {
 			const ids = args.ids && ! Array.isArray( args.ids ) ? [ args.ids ] : args.ids;
 			const search = args.search && ! Array.isArray( args.search ) ? [ args.search ] : args.search;
+			let found = false;
 			if ( ids?.length ) {
 				ids.forEach( id => {
-					return item.id.toString() === id.toString();
+					found = item.id.toString() === id.toString();
 				} )
 			}
 			if ( search?.length ) {
 				search.forEach( term => {
-					return item.label.toLowerCase().includes( term.toLowerCase() );
+					if ( item.label.toLowerCase().includes( term.toLowerCase() ) ) {
+						found = true;
+					}
 				} );
 			}
 
-			return false;
+			return found;
 		} );
 
 		if ( foundItems.length ) {
-			return;
+			return sendLists;
 		}
 
 		const response = await apiFetchWithErrorHandling( {
