@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 /**
  * External dependencies
@@ -79,21 +79,3 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 	return html;
 };
 
-/**
- * Get a label for the Send To autocomplete field.
- * Format: [ITEM TYPE] Item Name (contact count)
- *
- * @param {Object} item A list or sublist item.
- * @return {string} The autocomplete suggestion label for the item.
- */
-export const getSuggestionLabel = item => {
-	const contactCount =
-		item?.count && null !== item?.count
-			? sprintf(
-					// Translators: If available, show a contact count alongside the suggested item. %d is the number of contacts in the suggested item.
-					_n( '(%d contact)', '(%d contacts)', item.count, 'newspack-newsletters' ),
-					item.count
-			  )
-			: '';
-	return `[${ item.entity_type.toUpperCase() }] ${ item.name } ${ contactCount }`.trim();
-};

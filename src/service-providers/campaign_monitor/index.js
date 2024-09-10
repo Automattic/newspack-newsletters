@@ -9,27 +9,6 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 import { find } from 'lodash';
 
 /**
- * Validation utility.
- *
- * @param {Object} meta              Post meta.
- * @param {string} meta.senderEmail  Sender email address.
- * @param {string} meta.senderName   Sender name.
- * @param {string} meta.send_list_id Send-to list ID.
- * @return {string[]} Array of validation messages. If empty, newsletter is valid.
- */
-const validateNewsletter = ( meta = {} ) => {
-	const { senderEmail, senderName, send_list_id: listId } = meta;
-	const messages = [];
-	if ( ! senderEmail || ! senderName ) {
-		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
-	}
-	if ( ! listId ) {
-		messages.push( __( 'Missing required list.', 'newspack-newsletters' ) );
-	}
-	return messages;
-};
-
-/**
  * Utility to render newsletter campaign info in the pre-send confirmation modal.
  *
  * @param {Object} newsletterData          Data returned from the ESP retrieve method.
@@ -85,7 +64,6 @@ const isCampaignSent= ( newsletterData, postStatus = 'draft' ) => {
 
 
 export default {
-	validateNewsletter,
 	renderPreSendInfo,
 	isCampaignSent
 };
