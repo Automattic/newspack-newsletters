@@ -31,18 +31,21 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 	if ( ! campaign || ! listId ) {
 		return null;
 	}
-	let listData, sublistData, subscriberCount;
+	let listData, sublistData, subscriberCount = 0;
 	if ( campaign?.recipients?.list_id && campaign.recipients.list_id === listId ) {
 		const list = find( lists, [ 'id', listId ] );
 		if ( list ) {
 			listData = list;
 		}
+		if ( ! isNaN( listData?.count ) ) {
+			subscriberCount = parseInt( listData.count );
+		}
 		const sublist = find( sublists, [ 'id', sublistId.toString() ] );
 		if ( sublist ) {
 			sublistData = sublist;
 		}
-		if ( campaign?.recipients?.recipient_count ) {
-			subscriberCount = parseInt( campaign.recipients.recipient_count );
+		if ( ! isNaN( sublistData?.count ) ) {
+			subscriberCount = parseInt( sublistData.count );
 		}
 	}
 
@@ -63,13 +66,15 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 					<br />
 				</>
 			) }
-			<strong>
-				{ sprintf(
-					// Translators: subscriber count help message.
-					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
-					subscriberCount
-				) }
-			</strong>
+			{ subscriberCount && (
+				<strong>
+					{ sprintf(
+						// Translators: subscriber count help message.
+						_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
+						subscriberCount
+					) }
+				</strong>
+			) }
 		</p>
 	);
 };
