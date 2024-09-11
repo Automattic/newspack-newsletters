@@ -148,11 +148,6 @@ final class Pixel {
 	 * @return void
 	 */
 	public static function track_seen( $newsletter_id, $tracking_id, $email_address ) {
-		// Don't track for logged-in editor or admin users.
-		if ( current_user_can( 'edit_others_posts' ) ) {
-			return;
-		}
-
 		$newsletter_tracking_id = \get_post_meta( $newsletter_id, 'tracking_id', true );
 
 		// Bail if tracking ID mismatch.
