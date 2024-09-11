@@ -57,28 +57,48 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Filter the OEmbed return value.
+	 *
+	 * @param array $data The data to return.
+	 */
+	public function set_oembed_value( $data = [] ) {
+		global $newspack_newsletters_test_oembed_data;
+		$newspack_newsletters_test_oembed_data = $data;
+		add_filter(
+			'newspack_newsletters_get_oembed_object',
+			function() {
+				return new class() {
+					public function get_data() { // phpcs:disable Squiz.Commenting.FunctionComment.Missing
+						global $newspack_newsletters_test_oembed_data;
+						return (object) array_merge(
+							[
+								'title'            => 'Embed',
+								'url'              => 'embed.com',
+								'width'            => 480,
+								'height'           => 360,
+								'thumbnail_url'    => 'embed.com/image',
+								'thumbnail_width'  => 480,
+								'thumbnail_height' => 360,
+								'html'             => 'Embed',
+							],
+							$newspack_newsletters_test_oembed_data
+						);
+					}
+				};
+			}
+		);
+	}
+
+	/**
 	 * Test embed blocks rendering.
 	 */
 	public function test_render_embed_blocks() {
-		// Make the embed request return a static custom response.
-		add_filter(
-			'http_response',
-			function( $response ) {
-				$response['body'] = wp_json_encode(
-					array_merge(
-						json_decode( $response['body'], true ),
-						[
-							'title'         => 'Embed',
-							'url'           => 'embed.com',
-							'thumbnail_url' => 'embed.com/image',
-							'html'          => '<div>Embed</div>',
-						]
-					)
-				);
-				return $response;
-			}
+		$this->set_oembed_value(
+			[
+				'type'          => 'video',
+				'provider_name' => 'YouTube',
+			]
 		);
-
 		// Video embed.
 		$inner_html = '<figure><div>https://www.youtube.com/watch?v=aIRgcb3cQ1Q</div></figure>';
 		$this->assertEquals(
@@ -97,6 +117,12 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			'Renders image from video embed block with title as caption'
 		);
 
+		$this->set_oembed_value(
+			[
+				'type'          => 'photo',
+				'provider_name' => 'Flickr',
+			]
+		);
 		// Image with custom caption.
 		$inner_html = '<figure><div>https://flickr.com/photos/thomashawk/9274246246</div><figcaption>Automattic</figcaption></figure>';
 		$this->assertEquals(
@@ -111,13 +137,19 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => $inner_html,
 				]
 			),
-			'<mj-section url="https://flickr.com/photos/thomashawk/9274246246" padding="0"><mj-column padding="12px" width="100%"><mj-image src="embed.com" alt="Automattic" width="500" height="333" href="https://flickr.com/photos/thomashawk/9274246246" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >Automattic - Flickr</mj-text></mj-column></mj-section>',
+			'<mj-section url="https://flickr.com/photos/thomashawk/9274246246" padding="0"><mj-column padding="12px" width="100%"><mj-image src="embed.com" alt="Automattic" width="480" height="360" href="https://flickr.com/photos/thomashawk/9274246246" /><mj-text align="center" color="#555d66" line-height="1.56" font-size="13px" >Automattic - Flickr</mj-text></mj-column></mj-section>',
 			'Renders image with inline figcaption as caption'
 		);
 
 		// Rich embed as HTML.
-		$inner_html       = '<figure><div>https://twitter.com/automattic/status/1395447061336711181</div></figure>';
-		$rendered_string  = Newspack_Newsletters_Renderer::render_mjml_component(
+		$inner_html = '<figure><div>https://twitter.com/automattic/status/1395447061336711181</div></figure>';
+		$this->set_oembed_value(
+			[
+				'type'          => 'rich',
+				'provider_name' => 'Twitter',
+			]
+		);
+		$rendered_string = Newspack_Newsletters_Renderer::render_mjml_component(
 			[
 				'blockName'    => 'core/embed',
 				'attrs'        => [

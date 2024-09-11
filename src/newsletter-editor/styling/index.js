@@ -3,6 +3,7 @@
 /**
  * WordPress dependencies
  */
+import { PlainText } from '@wordpress/block-editor';
 import { compose, useInstanceId } from '@wordpress/compose';
 import { ColorPicker, BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -11,28 +12,9 @@ import { useEffect, useRef } from '@wordpress/element';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 /**
- * External dependencies
- */
-import { CSSLint } from 'csslint';
-import CodeMirror from '@uiw/react-codemirror';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import 'codemirror/mode/css/css';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import 'codemirror/addon/lint/lint';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import 'codemirror/addon/lint/lint.css';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import 'codemirror/addon/lint/css-lint';
-
-/**
  * Internal dependencies
  */
 import './style.scss';
-
-/**
- * Add CSSLint to global scope for CodeMirror.
- */
-window.CSSLint = window.CSSLint || CSSLint;
 
 const fontOptgroups = [
 	{
@@ -264,18 +246,12 @@ export const Styling = compose( [
 						) }
 						hideLabelFromVision
 					>
-						<CodeMirror
+						<PlainText
 							className="components-textarea-control__input"
 							value={ customCss }
-							height={ 250 }
-							onChange={ instance => editPost( { meta: { custom_css: instance.getValue() } } ) }
-							options={ {
-								gutters: [ 'CodeMirror-lint-markers' ],
-								height: 'auto',
-								indentWithTabs: true,
-								mode: 'css',
-								lint: true,
-							} }
+							onChange={ content => editPost( { meta: { custom_css: content } } ) }
+							aria-label={ __( 'Custom CSS', 'newspack-newsletters' ) }
+							placeholder={ __( 'Write custom CSS…', 'newspack-newsletters' ) }
 						/>
 					</BaseControl>
 				</PanelRow>
