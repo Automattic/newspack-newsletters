@@ -555,11 +555,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Get all applicable lists and segments as Send_List objects.
 	 *
-	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param array   $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param boolean $to_array If true, convert Send_List objects to arrays before returning.
 	 *
-	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 * @return Send_List[]|array|WP_Error Array of Send_List objects or arrays on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $args = [] ) {
+	public function get_send_lists( $args = [], $to_array = false ) {
 		$send_lists = [];
 		if ( empty( $args['type'] ) || 'list' === $args['type'] ) {
 			$list_args = [
@@ -634,13 +635,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			}
 		}
 
-		// Convert to arrays.
-		return array_map(
-			function ( $list ) {
-				return $list->to_array();
-			},
-			$send_lists
-		);
+		// Convert to arrays if requested.
+		if ( $to_array ) {
+			$send_lists = array_map(
+				function ( $list ) {
+					return $list->to_array();
+				},
+				$send_lists
+			);
+		}
+		return $send_lists;
 	}
 
 	/**
@@ -766,7 +770,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			[
 				'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 				'type' => 'list',
-			]
+			],
+			true
 		);
 		if ( is_wp_error( $send_lists ) ) {
 			return $send_lists;
@@ -777,7 +782,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
 					'parent_id' => $send_list_id,
 					'type'      => 'sublist',
-				]
+				],
+				true
 			) :
 			[];
 		if ( is_wp_error( $send_sublists ) ) {

@@ -516,7 +516,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				[
 					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 					'type' => 'list',
-				]
+				],
+				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
 				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
@@ -972,11 +973,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * Note that in CC, campaigns can be sent to either lists or segments, not both,
 	 * so both entity types should be treated as top-level send lists.
 	 *
-	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param array   $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param boolean $to_array If true, convert Send_List objects to arrays before returning.
 	 *
-	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 * @return Send_List[]|array|WP_Error Array of Send_List objects or arrays on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $args = [] ) {
+	public function get_send_lists( $args = [], $to_array = false ) {
 		$lists = $this->get_lists();
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
@@ -1053,13 +1055,16 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$filtered_lists = array_slice( $filtered_lists, 0, $args['limit'] );
 		}
 
-		// Convert to arrays.
-		return array_map(
-			function ( $list ) {
-				return $list->to_array();
-			},
-			$filtered_lists
-		);
+		// Convert to arrays if requested.
+		if ( $to_array ) {
+			$filtered_lists = array_map(
+				function ( $list ) {
+					return $list->to_array();
+				},
+				$filtered_lists
+			);
+		}
+		return $filtered_lists;
 	}
 
 	/**

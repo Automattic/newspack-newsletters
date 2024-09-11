@@ -151,6 +151,7 @@ class Send_Lists {
 
 	/**
 	 * API handler to fetch send lists for the given provider.
+	 * Send_List objects are converted to arrays of config data before being returned.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -168,6 +169,6 @@ class Send_Lists {
 		foreach ( $defaults as $key => $value ) {
 			$args[ $key ] = $request[ $key ] ?? $value;
 		}
-		return \rest_ensure_response( $provider->get_send_lists( $args ) );
+		return \rest_ensure_response( $provider->get_send_lists( $args, true ) );
 	}
 }
