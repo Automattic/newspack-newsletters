@@ -57,7 +57,9 @@ class Newspack_Newsletters_Contacts {
 		// This method is specific for handling Newsletter subscription, in which case there is no additional metadata being passed.
 		$accepted_metadata = [ 'status', 'name' ];
 		$subscribe_contact = $contact;
-		$subscribe_contact['metadata'] = array_intersect_key( $subscribe_contact['metadata'], array_flip( $accepted_metadata ) );
+		if ( ! empty( $subscribe_contact['metadata'] ) ) {
+			$subscribe_contact['metadata'] = array_intersect_key( $subscribe_contact['metadata'], array_flip( $accepted_metadata ) );
+		}
 
 		$result = self::upsert( $subscribe_contact, $lists, $context, $existing_contact );
 
