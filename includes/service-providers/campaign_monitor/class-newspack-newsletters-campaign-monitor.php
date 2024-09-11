@@ -499,7 +499,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		if ( $send_list_id ) {
 			$send_list = $this->get_send_lists( [ 'ids' => $send_list_id ] );
 			if ( ! empty( $send_list[0] ) ) {
-				$send_mode = $send_list[0]['entity_type'];
+				$send_mode = $send_list[0]->get_entity_type();
 				if ( 'list' === $send_mode ) {
 					$args['ListIDs'] = [ $send_list_id ];
 				} elseif ( 'segment' === $send_mode ) {

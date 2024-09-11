@@ -692,10 +692,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		$send_lists = $this->get_send_lists( [ 'ids' => get_post_meta( $post->ID, 'send_list_id', true ) ] );
 		if ( ! empty( $send_lists[0] ) ) {
 			$send_list = $send_lists[0];
-			if ( 'list' === $send_list['entity_type'] ) {
-				$payload['contact_list_ids'] = [ $send_list['id'] ];
-			} elseif ( 'segment' === $send_list['entity_type'] ) {
-				$payload['segment_ids'] = [ $send_list['id'] ];
+			if ( 'list' === $send_list->get_entity_type() ) {
+				$payload['contact_list_ids'] = [ $send_list->get_id() ];
+			} elseif ( 'segment' === $send_list->get_entity_type() ) {
+				$payload['segment_ids'] = [ $send_list->get_id() ];
 			}
 		}
 
