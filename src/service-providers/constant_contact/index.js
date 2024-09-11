@@ -57,7 +57,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 	);
 };
 
-const isCampaignSent= ( newsletterData, postStatus = 'draft' ) => {
+const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 	const { current_status: status } = newsletterData?.campaign || {};
 	if ( 'DRAFT' !== status ) {
 		return true;

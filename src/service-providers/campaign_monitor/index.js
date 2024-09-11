@@ -55,7 +55,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 	);
 };
 
-const isCampaignSent= ( newsletterData, postStatus = 'draft' ) => {
+const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 	if ( 'publish' === postStatus || 'private' === postStatus ) {
 		return true;
 	}

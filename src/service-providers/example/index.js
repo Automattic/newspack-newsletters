@@ -100,7 +100,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
  * @param {string} postStatus     The post's current status.
  * @return {boolean} True if the campaign has been sent, otherwise false.
  */
-const isCampaignSent= ( newsletterData, postStatus = 'draft' ) => {
+const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 	if ( 'publish' === postStatus || 'private' === postStatus ) {
 		return true;
 	}
