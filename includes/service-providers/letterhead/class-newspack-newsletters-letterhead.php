@@ -75,7 +75,7 @@ final class Newspack_Newsletters_Letterhead extends \Newspack_Newsletters_Servic
 	 *
 	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
 	 *
-	 * @return object|void|null API Response or Error
+	 * @return void|null API Response or Error
 	 */
 	public function get_send_lists( $args = [] ) {} // Not used.
 
