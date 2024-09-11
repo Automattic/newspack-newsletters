@@ -55,6 +55,7 @@ class Newspack_Newsletters_Contacts {
 		// When subscribing, we only want to keep the status and name metadata.
 		// Additional metadata can only be added when upserting a contact.
 		// This method is specific for handling Newsletter subscription, in which case there is no additional metadata being passed.
+		// Any additional metadata will be passes to the logs and filters though, so other actions can act upon it.
 		$accepted_metadata = [ 'status', 'name' ];
 		$subscribe_contact = $contact;
 		if ( ! empty( $subscribe_contact['metadata'] ) ) {
