@@ -486,7 +486,7 @@ Details of the error message: "%3$s"
 	public function upsert_contact( $contact, $lists ) {
 
 		if ( empty( $lists ) ) {
-			return $provider->add_contact( $contact );
+			return $this->add_contact( $contact );
 		}
 
 		foreach ( $lists as $list ) {
