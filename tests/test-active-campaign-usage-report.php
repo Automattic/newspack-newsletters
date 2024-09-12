@@ -86,7 +86,7 @@ class Newspack_Newsletters_Active_Campaign_Test_Wrapper {
 						'uniquelinkclicks' => 99,
 					],
 				];
-				$response['campaigns']     = $campaigns;
+				$response['campaigns']     = [ $campaigns[ (int) $params['query']['offset'] ] ]; // return one item per page.
 				$response['meta']['total'] = count( $campaigns );
 				break;
 		}
@@ -109,7 +109,9 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 		$expected_report->unsubscribes   = 0; // unsubs also rely on prior data.
 		$expected_report->total_contacts = 2;
 
-		$actual_report = ( new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() ) )->get_usage_report();
+		$usage_report_object = new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() );
+		$usage_report_object->campaign_fetch_batch_size = 1;
+		$actual_report = $usage_report_object->get_usage_report();
 
 		$this->assertEquals( $expected_report->to_array(), $actual_report->to_array() );
 	}
@@ -147,7 +149,9 @@ class ActiveCampaignUsageReportsTest extends WP_UnitTestCase {
 		$expected_report->unsubscribes   = 1;
 		$expected_report->total_contacts = 2;
 
-		$actual_report = ( new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() ) )->get_usage_report();
+		$usage_report_object = new Newspack_Newsletters_Active_Campaign_Usage_Reports( new Newspack_Newsletters_Active_Campaign_Test_Wrapper() );
+		$usage_report_object->campaign_fetch_batch_size = 1;
+		$actual_report = $usage_report_object->get_usage_report();
 
 		$this->assertEquals( $expected_report->to_array(), $actual_report->to_array() );
 	}
