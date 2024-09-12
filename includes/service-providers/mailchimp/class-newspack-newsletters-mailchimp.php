@@ -1076,7 +1076,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		try {
 			$api_key = $this->api_key();
 			if ( ! $api_key ) {
-				throw new Exception( __( 'No Mailchimp API key available.', 'newspack-newsletters' ) );
+				throw new Exception( __( 'Missing or invalid Mailchimp credentials.', 'newspack-newsletters' ) );
 			}
 			if ( empty( $post->post_title ) ) {
 				throw new Exception( __( 'The newsletter subject cannot be empty.', 'newspack-newsletters' ) );
