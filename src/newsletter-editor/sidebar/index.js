@@ -18,7 +18,7 @@ import { once } from 'lodash';
 import Sender from './sender';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
-import { useNewsletterData } from '../store';
+import { fetchNewsletterData, useNewsletterData, useNewsletterDataError } from '../store';
 import './style.scss';
 
 const Sidebar = ( {
@@ -39,6 +39,7 @@ const Sidebar = ( {
 	postId,
 } ) => {
 	const newsletterData = useNewsletterData();
+	const newsletterDataError = useNewsletterDataError();
 	const campaign = newsletterData?.campaign;
 	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );
 
@@ -99,7 +100,7 @@ const Sidebar = ( {
 					) }
 				</p>
 				<Button
-					isPrimary
+					variant="primary"
 					disabled={ inFlight }
 					onClick={ () => {
 						const authWindow = window.open( oauthUrl, 'esp_oauth', 'width=500,height=600' );
@@ -112,7 +113,26 @@ const Sidebar = ( {
 		);
 	}
 
-	if ( ! campaign ) {
+	if ( ! campaign && newsletterDataError?.message ) {
+		return (
+			<div className="newspack-newsletters__sidebar">
+				<Notice status="error" isDismissible={ false }>
+					{ __( 'There was an error retrieving campaign data. Please try again.', 'newspack-newsletters' ) }
+				</Notice>
+				<Button
+					variant="primary"
+					disabled={ inFlight }
+					onClick={ () => {
+						fetchNewsletterData( postId );
+					} }
+				>
+					{ __( 'Retrieve campaign data', 'newspack-newsletter' ) }
+				</Button>
+			</div>
+		);
+	}
+
+	if ( ! campaign && ! newsletterDataError?.message ) {
 		return (
 			<div className="newspack-newsletters__loading-data">
 				{ __( 'Retrieving campaign data…', 'newspack-newsletters' ) }

@@ -28,7 +28,7 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
-import { registerStore, fetchNewsletterData, updateNewsletterData, useNewsletterData } from './store';
+import { registerStore, fetchNewsletterData, updateNewsletterData, useNewsletterData, useNewsletterDataError } from './store';
 import './debug-send';
 
 /**
@@ -58,7 +58,9 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	const [ isConnected, setIsConnected ] = useState( null );
 	const [ oauthUrl, setOauthUrl ] = useState( null );
 	const newsletterData = useNewsletterData();
+	const newsletterDataError = useNewsletterDataError();
 	const savePost = useDispatch( 'core/editor' ).savePost;
+	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
 	const { name: serviceProviderName, hasOauth, isCampaignSent } = getServiceProvider();
 	const campaignIsSent = ! inFlight && newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
 	const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
@@ -99,6 +101,18 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			setIsConnected( true );
 		}
 	}, [ serviceProviderName ] );
+
+	// Handle error messages from retrieve/sync requests with connected ESP.
+	useEffect( () => {
+		if ( newsletterDataError ) {
+			createNotice( 'error', newsletterDataError?.message || __( 'Error communicating with service provider.', 'newspack-newseltters' ), {
+				id: 'newspack-newsletters-newsletter-data-error',
+				isDismissible: true,
+			} );
+		} else {
+			removeNotice( 'newspack-newsletters-newsletter-data-error' );
+		}
+	}, newsletterDataError );
 
 	// Fetch send lists for the "Send To" UI and update the newsletterData store.
 	const fetchSendLists = debounce( async ( opts = {} ) => {

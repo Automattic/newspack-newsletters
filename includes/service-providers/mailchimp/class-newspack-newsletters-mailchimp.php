@@ -425,6 +425,33 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Wrapper for fetching campaign from MC API.
+	 *
+	 * @param string $mc_campaign_id Campaign ID.
+	 * @return object|WP_Error API Response or error.
+	 */
+	private function fetch_synced_campaign( $mc_campaign_id ) {
+		try {
+			$mc                  = new Mailchimp( $this->api_key() );
+			$campaign            = $this->validate(
+				$mc->get(
+					"campaigns/$mc_campaign_id",
+					[
+						'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
+					]
+				),
+				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
+			);
+			return $campaign;
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
@@ -448,16 +475,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$mc_campaign_id = $campaign['id'];
 			} else {
 				Newspack_Newsletters_Logger::log( 'Retrieving campaign ' . $mc_campaign_id . ' for post ID ' . $post_id );
-				$mc                  = new Mailchimp( $this->api_key() );
-				$campaign            = $this->validate(
-					$mc->get(
-						"campaigns/$mc_campaign_id",
-						[
-							'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
-						]
-					),
-					__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
-				);
+				$campaign = $this->fetch_synced_campaign( $mc_campaign_id );
+
+				// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.
+				if ( is_wp_error( $campaign ) ) {
+					delete_post_meta( $post_id, 'mc_campaign_id' );
+					return $campaign;
+				}
 			}
 
 			$list_id         = $campaign['recipients']['list_id'] ?? null;
@@ -502,14 +526,19 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			// Prefetch send list info if we have a selected list and/or sublist.
-			$newsletter_data['lists'] = $this->get_send_lists(
+			$send_lists = $this->get_send_lists(
 				[
 					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 					'type' => 'list',
 				],
 				true
 			);
-			$newsletter_data['sublists'] = $send_list_id || $send_sublist_id ? // Prefetch send lists only if we have something selected already.
+			if ( is_wp_error( $send_lists ) ) {
+				return $send_lists;
+			}
+			$newsletter_data['lists'] = $send_lists;
+
+			$send_sublists = $send_list_id || $send_sublist_id ? // Prefetch send lists only if we have something selected already.
 				$this->get_send_lists(
 					[
 						'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
@@ -520,12 +549,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				) :
 				[];
 
+			if ( is_wp_error( $send_sublists ) ) {
+				return $send_sublists;
+			}
+			$newsletter_data['sublists'] = $send_sublists;
+
 			return $newsletter_data;
 		} catch ( Exception $e ) {
-			// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.
-			delete_post_meta( $post_id, 'mc_campaign_id' );
-			$this->retrieve( $post_id );
-
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
 				$e->getMessage()

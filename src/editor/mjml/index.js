@@ -11,7 +11,7 @@ import { refreshEmailHtml } from '../../newsletter-editor/utils';
 /**
  * Internal dependencies
  */
-import { fetchNewsletterData } from '../../newsletter-editor/store';
+import { fetchNewsletterData, updateNewsletterDataError } from '../../newsletter-editor/store';
 import { getServiceProvider } from '../../service-providers';
 
 /**
@@ -72,7 +72,6 @@ function MJML() {
 	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
 		'core/editor'
 	);
-	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
@@ -122,14 +121,9 @@ function MJML() {
 						// Check for sync errors after refreshing the HTML.
 						apiFetch( {
 							path: `/newspack-newsletters/v1/${ postId }/sync-error`,
-						} ).then( ( { error_message } ) => {
-							if ( error_message ) {
-								createNotice( 'error', error_message, {
-									id: 'newspack-newsletters-newsletter-sync-error',
-									isDismissible: true,
-								} );
-							} else {
-								removeNotice( 'newspack-newsletters-newsletter-sync-error' );
+						} ).then( ( error ) => {
+							if ( error?.message ) {
+								updateNewsletterDataError( error );
 							}
 						} );
 					}

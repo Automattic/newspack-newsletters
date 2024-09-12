@@ -17,7 +17,6 @@ export const STORE_NAMESPACE = 'newspack/newsletters';
 
 const DEFAULT_STATE = {
 	newsletterData: {},
-	isLoading: true,
 	error: null,
 };
 const createAction = type => payload => ( { type, payload } );
@@ -40,7 +39,6 @@ const actions = {
 };
 
 const selectors = {
-	isLoading: state => state.isLoading,
 	getData: state => state.newsletterData || {},
 	getError: state => state.error,
 };
@@ -60,19 +58,30 @@ export const useNewsletterData = () =>
 		select( STORE_NAMESPACE ).getData()
 	);
 
+// Hook to use newsletter data fetch errors from any editor component.
+export const useNewsletterDataError = () =>
+	useSelect( select =>
+		select( STORE_NAMESPACE ).getError()
+	);
+
 // Dispatcher to update newsletter data in the store.
 export const updateNewsletterData = data =>
 	dispatch( STORE_NAMESPACE ).setData( data );
 
+// Dispatcher to update newsletter data in the store.
+export const updateNewsletterDataError = data =>
+	dispatch( STORE_NAMESPACE ).setError( data );
+
 // Dispatcher to fetch newsletter data from the server.
 export const fetchNewsletterData = async postId => {
 	try {
+		dispatch( STORE_NAMESPACE ).setError( null );
 		const { name } = getServiceProvider();
 		const response = await apiFetch( {
 			path: `/newspack-newsletters/v1/${ name }/${ postId }/retrieve`,
 		} );
 		updateNewsletterData( response );
 	} catch ( error ) {
-		dispatch( STORE_NAMESPACE ).setError( error );
+		updateNewsletterDataError( error );
 	}
 };

@@ -356,7 +356,6 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @return object|WP_Error API Response or error.
-	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
 		if ( ! $this->has_api_credentials() ) {
@@ -372,7 +371,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
-				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
+				return $send_lists;
 			}
 			$newsletter_data = [
 				'campaign'                          => true, // Satisfy the JS API.

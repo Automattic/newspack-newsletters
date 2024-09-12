@@ -60,7 +60,7 @@ abstract class Newspack_Newsletters_Service_Provider_Controller extends \WP_REST
 		$error_message  = get_transient( $transient_name );
 		// Delete the transient after reading it.
 		delete_transient( $transient_name );
-		return self::get_api_response( [ 'error_message' => $error_message ] );
+		return self::get_api_response( [ 'message' => $error_message ] );
 	}
 
 	/**

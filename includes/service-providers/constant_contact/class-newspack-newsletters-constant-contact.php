@@ -468,6 +468,25 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Wrapper for fetching campaign from CC API.
+	 *
+	 * @param string $cc_campaign_id Campaign ID.
+	 * @return object|WP_Error API Response or error.
+	 */
+	private function fetch_synced_campaign( $cc_campaign_id ) {
+		try {
+			$cc       = $this->get_sdk();
+			$campaign = $cc->get_campaign( $cc_campaign_id );
+			return $campaign;
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_constant_contact_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
@@ -479,17 +498,22 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			return [];
 		}
 		try {
-			$cc             = $this->get_sdk();
 			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
-
 			if ( ! $cc_campaign_id ) {
 				$campaign = $this->sync( get_post( $post_id ) );
 				if ( is_wp_error( $campaign ) ) {
-					throw new Exception( esc_html( $campaign->get_error_message() ) );
+					return $campaign;
 				}
 				$cc_campaign_id = $campaign->campaign_id;
 			} else {
-				$campaign = $cc->get_campaign( $cc_campaign_id );
+				Newspack_Newsletters_Logger::log( 'Retrieving campaign ' . $cc_campaign_id . ' for post ID ' . $post_id );
+				$campaign = $this->fetch_synced_campaign( $cc_campaign_id );
+
+				// If we couldn't get the campaign, delete the cc_campaign_id so it gets recreated on the next sync.
+				if ( is_wp_error( $campaign ) ) {
+					delete_post_meta( $post_id, 'cc_campaign_id' );
+					return $campaign;
+				}
 			}
 
 			$list_id         = $campaign->activity->contact_list_ids[0] ?? null;
@@ -523,16 +547,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
-				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
+				return $send_lists;
 			}
 			$newsletter_data['lists'] = $send_lists;
 
 			return $newsletter_data;
 		} catch ( Exception $e ) {
-			// If we couldn't get the campaign, delete the cc_campaign_id so it gets recreated on the next sync.
-			delete_post_meta( $post_id, 'cc_campaign_id' );
-			$this->retrieve( $post_id );
-
 			return new WP_Error(
 				'newspack_newsletters_constant_contact_error',
 				$e->getMessage()
