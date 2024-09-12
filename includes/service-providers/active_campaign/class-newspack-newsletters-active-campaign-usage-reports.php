@@ -194,7 +194,7 @@ class Newspack_Newsletters_Active_Campaign_Usage_Reports {
 		$batch            = 0;
 		$campaigns_result = [];
 
-		while ( $batch < 5 ) { // Assuming there will be no more than 100 campaigns in the requested period (last n days).
+		while ( $batch < ceil( 100 / $batch_size ) ) { // Assuming there will be no more than 100 campaigns in the requested period (last n days).
 			$offset = $batch_size * $batch;
 			$params = [
 				'query' => [
