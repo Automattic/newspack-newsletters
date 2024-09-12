@@ -1,3 +1,10 @@
+## [3.1.3](https://github.com/Automattic/newspack-newsletters/compare/v3.1.2...v3.1.3) (2024-09-12)
+
+
+### Bug Fixes
+
+* active campaign usage report, fetch campaigns in batches ([#1649](https://github.com/Automattic/newspack-newsletters/issues/1649)) ([e8a4155](https://github.com/Automattic/newspack-newsletters/commit/e8a415534f7a2db0c7a308c47792d9583af7cc0a))
+
 ## [3.1.2](https://github.com/Automattic/newspack-newsletters/compare/v3.1.1...v3.1.2) (2024-09-09)
 
 
