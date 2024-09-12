@@ -459,10 +459,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
-		if ( ! $this->has_api_credentials() ) {
-			return [];
-		}
 		try {
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid Mailchimp credentials.', 'newspack-newsletters' ) );
+			}
 			$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
 
 			// If there's no synced campaign ID yet, create it.
