@@ -739,90 +739,99 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @param int  $post_id    Numeric ID of the Newsletter post.
 	 * @param bool $skip_sync Whether to skip syncing the campaign.
+	 * @throws Exception Error message.
 
 	 * @return array|WP_Error API Response or error.
 	 */
 	public function retrieve( $post_id, $skip_sync = false ) {
-		if ( ! $this->has_api_credentials() ) {
-			return [];
-		}
-
-		$campaign_id     = get_post_meta( $post_id, 'ac_campaign_id', true );
-		$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
-		$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
-
-		// Handle legacy send-to meta.
-		if ( ! $send_list_id ) {
-			$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
-			if ( $legacy_list_id ) {
-				$newsletter_data['list_id'] = $legacy_list_id;
-				$send_list_id               = $legacy_list_id;
+		try {
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid ActiveCampign credentials.', 'newspack-newsletters' ) );
 			}
-		}
-		if ( ! $send_sublist_id ) {
-			$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
-			if ( $legacy_sublist_id ) {
-				$newsletter_data['sublist_id'] = $legacy_sublist_id;
-				$send_sublist_id               = $legacy_sublist_id;
+
+			$campaign_id     = get_post_meta( $post_id, 'ac_campaign_id', true );
+			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
+			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
+
+			// Handle legacy send-to meta.
+			if ( ! $send_list_id ) {
+				$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
+				if ( $legacy_list_id ) {
+					$newsletter_data['list_id'] = $legacy_list_id;
+					$send_list_id               = $legacy_list_id;
+				}
 			}
-		}
-		$send_lists = $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
-			[
-				'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
-				'type' => 'list',
-			],
-			true
-		);
-		if ( is_wp_error( $send_lists ) ) {
-			return $send_lists;
-		}
-		$send_sublists = $send_list_id || $send_sublist_id ?
-			$this->get_send_lists(
+			if ( ! $send_sublist_id ) {
+				$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
+				if ( $legacy_sublist_id ) {
+					$newsletter_data['sublist_id'] = $legacy_sublist_id;
+					$send_sublist_id               = $legacy_sublist_id;
+				}
+			}
+			$send_lists = $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
 				[
-					'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
-					'parent_id' => $send_list_id,
-					'type'      => 'sublist',
+					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
+					'type' => 'list',
 				],
 				true
-			) :
-			[];
-		if ( is_wp_error( $send_sublists ) ) {
-			return $send_sublists;
-		}
-		$newsletter_data = [
-			'campaign'                          => true, // Satisfy the JS API.
-			'campaign_id'                       => $campaign_id,
-			'supports_multiple_test_recipients' => true,
-			'lists'                             => $send_lists,
-			'sublists'                          => $send_sublists,
-		];
-
-		// Handle legacy sender meta.
-		$from_name   = get_post_meta( $post_id, 'senderName', true );
-		$from_email  = get_post_meta( $post_id, 'senderEmail', true );
-		if ( ! $from_name ) {
-			$legacy_from_name = get_post_meta( $post_id, 'ac_from_name', true );
-			if ( $legacy_from_name ) {
-				$newsletter_data['senderName'] = $legacy_from_name;
+			);
+			if ( is_wp_error( $send_lists ) ) {
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
 			}
-		}
-		if ( ! $from_email ) {
-			$legacy_from_email = get_post_meta( $post_id, 'ac_from_email', true );
-			if ( $legacy_from_email ) {
-				$newsletter_data['senderEmail'] = $legacy_from_email;
+			$send_sublists = $send_list_id || $send_sublist_id ?
+				$this->get_send_lists(
+					[
+						'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
+						'parent_id' => $send_list_id,
+						'type'      => 'sublist',
+					],
+					true
+				) :
+				[];
+			if ( is_wp_error( $send_sublists ) ) {
+				throw new Exception( wp_kses_post( $send_sublists->get_error_message() ) );
 			}
-		}
+			$newsletter_data = [
+				'campaign'                          => true, // Satisfy the JS API.
+				'campaign_id'                       => $campaign_id,
+				'supports_multiple_test_recipients' => true,
+				'lists'                             => $send_lists,
+				'sublists'                          => $send_sublists,
+			];
 
-		if ( ! $campaign_id && true !== $skip_sync ) {
-			$sync_result = $this->sync( get_post( $post_id ) );
-			if ( ! is_wp_error( $sync_result ) ) {
+			// Handle legacy sender meta.
+			$from_name   = get_post_meta( $post_id, 'senderName', true );
+			$from_email  = get_post_meta( $post_id, 'senderEmail', true );
+			if ( ! $from_name ) {
+				$legacy_from_name = get_post_meta( $post_id, 'ac_from_name', true );
+				if ( $legacy_from_name ) {
+					$newsletter_data['senderName'] = $legacy_from_name;
+				}
+			}
+			if ( ! $from_email ) {
+				$legacy_from_email = get_post_meta( $post_id, 'ac_from_email', true );
+				if ( $legacy_from_email ) {
+					$newsletter_data['senderEmail'] = $legacy_from_email;
+				}
+			}
+
+			if ( ! $campaign_id && true !== $skip_sync ) {
+				$sync_result = $this->sync( get_post( $post_id ) );
+				if ( is_wp_error( $sync_result ) ) {
+					throw new Exception( $sync_result->get_error_message() );
+				}
 				$newsletter_data = wp_parse_args(
 					$sync_result,
 					$newsletter_data
 				);
 			}
+			return $newsletter_data;
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_active_campaign_error',
+				$e->getMessage()
+			);
 		}
-		return $newsletter_data;
 	}
 
 	/**

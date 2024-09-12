@@ -456,6 +456,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @return object|WP_Error API Response or error.
+	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
 		if ( ! $this->has_api_credentials() ) {
@@ -469,7 +470,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				Newspack_Newsletters_Logger::log( 'Creating new campaign for post ID ' . $post_id );
 				$sync_result = $this->sync( get_post( $post_id ) );
 				if ( is_wp_error( $sync_result ) ) {
-					return $sync_result;
+					throw new Exception( wp_kses_post( $sync_result->get_error_message() ) );
 				}
 				$campaign       = $sync_result['campaign_result'];
 				$mc_campaign_id = $campaign['id'];
@@ -480,7 +481,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.
 				if ( is_wp_error( $campaign ) ) {
 					delete_post_meta( $post_id, 'mc_campaign_id' );
-					return $campaign;
+					throw new Exception( wp_kses_post( $campaign->get_error_message() ) );
 				}
 			}
 
@@ -534,7 +535,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
-				return $send_lists;
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
 			}
 			$newsletter_data['lists'] = $send_lists;
 
@@ -550,7 +551,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				[];
 
 			if ( is_wp_error( $send_sublists ) ) {
-				return $send_sublists;
+				throw new Exception( wp_kses_post( $send_sublists->get_error_message() ) );
 			}
 			$newsletter_data['sublists'] = $send_sublists;
 

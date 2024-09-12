@@ -356,12 +356,13 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @return object|WP_Error API Response or error.
+	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
-		if ( ! $this->has_api_credentials() ) {
-			return [];
-		}
 		try {
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid Campaign Monitor credentials.', 'newspack-newsletters' ) );
+			}
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_lists      = $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
 				[
@@ -371,7 +372,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
-				return $send_lists;
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
 			}
 			$newsletter_data = [
 				'campaign'                          => true, // Satisfy the JS API.

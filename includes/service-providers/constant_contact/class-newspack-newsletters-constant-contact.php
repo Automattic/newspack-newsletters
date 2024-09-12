@@ -494,15 +494,19 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
-		if ( ! $this->has_api_credentials() || ! $this->has_valid_connection() ) {
-			return [];
-		}
 		try {
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid Constant Contact credentials.', 'newspack-newsletters' ) );
+			}
+			if ( ! $this->has_valid_connection() ) {
+				throw new Exception( esc_html__( 'Unable to connect to Constant Contact API. Please try authorizing your connection or obtaining new credentials.', 'newspack-newsletters' ) );
+			}
+
 			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
 			if ( ! $cc_campaign_id ) {
 				$campaign = $this->sync( get_post( $post_id ) );
 				if ( is_wp_error( $campaign ) ) {
-					return $campaign;
+					throw new Exception( wp_kses_post( $campaign->get_error_message() ) );
 				}
 				$cc_campaign_id = $campaign->campaign_id;
 			} else {
@@ -512,7 +516,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				// If we couldn't get the campaign, delete the cc_campaign_id so it gets recreated on the next sync.
 				if ( is_wp_error( $campaign ) ) {
 					delete_post_meta( $post_id, 'cc_campaign_id' );
-					return $campaign;
+					throw new Exception( wp_kses_post( $campaign->get_error_message() ) );
 				}
 			}
 
@@ -547,7 +551,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
-				return $send_lists;
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
 			}
 			$newsletter_data['lists'] = $send_lists;
 
