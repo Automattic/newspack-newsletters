@@ -113,8 +113,8 @@ function MJML() {
 					setIsRefreshingHTML( false );
 
 					const { name: serviceProviderName } = getServiceProvider();
-					const { supported_esps: suppportedESPs } = newspack_email_editor_data || [];
-					const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
+					const { supported_esps: supportedESPs } = newspack_email_editor_data || [];
+					const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && supportedESPs?.includes( serviceProviderName );
 					if ( isSupportedESP ) {
 						// Rehydrate ESP newsletter data after completing sync.
 						fetchNewsletterData( postId );

@@ -122,7 +122,7 @@ final class Newspack_Newsletters {
 
 		// Remove support for Campaign Monitor if we don't have the required environment flag.
 		if ( 'campaign_monitor' !== self::service_provider() && ( ! defined( 'NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR' ) || ! NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR ) ) {
-			$supported_providers = array_diff( $supported_providers, [ 'campaign_monitor' ] );
+			$supported_providers = array_values( array_diff( $supported_providers, [ 'campaign_monitor' ] ) );
 		}
 
 		return $supported_providers;
