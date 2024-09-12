@@ -483,7 +483,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
 
 			if ( ! $cc_campaign_id ) {
-				$campaign       = $this->sync( get_post( $post_id ) );
+				$campaign = $this->sync( get_post( $post_id ) );
+				if ( is_wp_error( $campaign ) ) {
+					throw new Exception( esc_html( $campaign->get_error_message() ) );
+				}
 				$cc_campaign_id = $campaign->campaign_id;
 			} else {
 				$campaign = $cc->get_campaign( $cc_campaign_id );
@@ -643,7 +646,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * Get a payload for syncing post data to the ESP campaign.
 	 *
 	 * @param WP_Post|int $post Post object or ID.
-	 * @return object Payload for syncing.
+	 *
+	 * @return array|WP_Error Payload for syncing or error.
 	 */
 	public function get_sync_payload( $post ) {
 		$cc              = $this->get_sdk();
@@ -691,6 +695,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 		// Sync send-to selections.
 		$send_lists = $this->get_send_lists( [ 'ids' => get_post_meta( $post->ID, 'send_list_id', true ) ] );
+		if ( is_wp_error( $send_lists ) ) {
+			return $send_lists;
+		}
 		if ( ! empty( $send_lists[0] ) ) {
 			$send_list = $send_lists[0];
 			if ( 'list' === $send_list->get_entity_type() ) {
@@ -737,6 +744,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$cc              = $this->get_sdk();
 			$cc_campaign_id  = get_post_meta( $post->ID, 'cc_campaign_id', true );
 			$payload         = $this->get_sync_payload( $post );
+
+			if ( is_wp_error( $payload ) ) {
+				throw new Exception( esc_html( $payload->get_error_message() ) );
+			}
 
 			/**
 			 * Filter the metadata payload sent to CC when syncing.
