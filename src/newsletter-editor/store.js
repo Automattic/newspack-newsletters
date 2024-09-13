@@ -1,5 +1,10 @@
 /**
  * A Redux store for ESP newsletter data to be used across editor components.
+ * This store is a centralized place for all data fetched from or updated via the ESP's API.
+ *
+ * Import use* hooks to read store data from any component.
+ * Import fetch* hooks to fetch updated ESP data from any component.
+ * Import update* hooks to update store data from any component.
  */
 
 /**
