@@ -13,7 +13,6 @@ import {
 } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
-import { addQueryArgs } from '@wordpress/url';
 
 /**
  * Internal dependencies
@@ -28,13 +27,8 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
-import { registerStore, fetchNewsletterData, updateNewsletterData, useNewsletterData, useNewsletterDataError } from './store';
+import { registerStore, fetchNewsletterData, useNewsletterData, useNewsletterDataError } from './store';
 import './debug-send';
-
-/**
- * External dependencies
- */
-import { debounce, sortBy } from 'lodash';
 
 registerStore();
 registerEditorPlugin();
@@ -88,10 +82,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		if ( isSupportedESP ) {
 			fetchNewsletterData( postId );
 		}
-
-		return () => {
-			fetchSendLists.cancel();
-		}
 	}, [] );
 
 	useEffect( () => {
@@ -113,66 +103,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			removeNotice( 'newspack-newsletters-newsletter-data-error' );
 		}
 	}, newsletterDataError );
-
-	// Fetch send lists for the "Send To" UI and update the newsletterData store.
-	const fetchSendLists = debounce( async ( opts = {} ) => {
-		const args = {
-			type: 'list',
-			limit: 10,
-			provider: serviceProviderName,
-			...opts,
-		};
-
-		const sendLists = 'list' === args.type ? [ ...newsletterData?.lists ] || [] : [ ...newsletterData?.sublists ] || [];
-
-		// If we already have a matching result, no need to fetch more.
-		const foundItems = sendLists.filter( item => {
-			const ids = args.ids && ! Array.isArray( args.ids ) ? [ args.ids ] : args.ids;
-			const search = args.search && ! Array.isArray( args.search ) ? [ args.search ] : args.search;
-			let found = false;
-			if ( ids?.length ) {
-				ids.forEach( id => {
-					found = item.id.toString() === id.toString();
-				} )
-			}
-			if ( search?.length ) {
-				search.forEach( term => {
-					if ( item.label.toLowerCase().includes( term.toLowerCase() ) ) {
-						found = true;
-					}
-				} );
-			}
-
-			return found;
-		} );
-
-		if ( foundItems.length ) {
-			return sendLists;
-		}
-
-		const response = await apiFetchWithErrorHandling( {
-			path: addQueryArgs(
-				'/newspack-newsletters/v1/send-lists',
-				args
-			)
-		} );
-
-		const updatedNewsletterData = { ...newsletterData };
-		const updatedSendLists = [ ...sendLists ];
-		response.forEach( item => {
-			if ( ! updatedSendLists.find( listItem => listItem.id === item.id ) ) {
-				updatedSendLists.push( item );
-			}
-		} );
-		if ( 'list' === args.type ) {
-			updatedNewsletterData.lists = sortBy( updatedSendLists, 'label' );
-		} else {
-			updatedNewsletterData.sublists = sortBy( updatedSendLists, 'label' );
-		}
-
-		updateNewsletterData( updatedNewsletterData );
-		return updatedSendLists;
-	}, 500 );
 
 	if ( ! isSupportedESP ) {
 		return null;
@@ -201,7 +131,6 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				title={ __( 'Newsletter', 'newspack-newsletters' ) }
 			>
 				<Sidebar
-					fetchSendLists={ fetchSendLists }
 					inFlight={ inFlight }
 					isConnected={ isConnected }
 					oauthUrl={ oauthUrl }
@@ -209,10 +138,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				/>
 				{
 					isSupportedESP && ! campaignIsSent && (
-						<SendTo
-							fetchSendLists={ fetchSendLists }
-							inFlight={ inFlight }
-						/>
+						<SendTo />
 					)
 				}
 				{ isConnected && <PublicSettings /> }

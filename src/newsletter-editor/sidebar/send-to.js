@@ -12,15 +12,10 @@ import { useEffect, useState } from '@wordpress/element';
  * Internal dependencies
  */
 import Autocomplete from './autocomplete';
-import { useNewsletterData } from '../store';
+import { fetchSendLists, useNewsletterData } from '../store';
 
 // The container for list + sublist autocomplete fields.
-const SendTo = (
-	{
-		inFlight,
-		fetchSendLists = () => {},
-	}
-) => {
+const SendTo = () => {
 	const [ error, setError ] = useState( null );
 	const { listId, sublistId } = useSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
@@ -30,6 +25,14 @@ const SendTo = (
 			sublistId: meta.send_sublist_id,
 		};
 	} );
+
+	// Cancel any queued fetches on unmount.
+	useEffect( () => {
+		return () => {
+			fetchSendLists.cancel();
+		}
+	}, [] );
+
 	const editPost = useDispatch( 'core/editor' ).editPost;
 	const updateMeta = ( meta ) => editPost( { meta } );
 
@@ -40,18 +43,6 @@ const SendTo = (
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
 	const selectedList = lists.find( item => item.id === listId );
 	const selectedSublist = sublists?.find( item => item.id === sublistId );
-
-	useEffect( () => {
-		if ( sublistId && ! sublists?.length ) {
-			fetchSendLists(
-				{
-					ids: sublistId ? [ sublistId ] : null,
-					parent_id: listId || null,
-					type: 'sublist',
-				}
-			);
-		}
-	}, [ sublistId ] );
 
 	const renderSelectedSummary = () => {
 		if ( ! selectedList?.name || ( selectedSublist && ! selectedSublist.name ) ) {
@@ -119,7 +110,6 @@ const SendTo = (
 			<Autocomplete
 				availableItems={ lists }
 				label={ listLabel }
-				inFlight={ inFlight }
 				onChange={ selectedLabels => {
 					const selectedLabel = selectedLabels[ 0 ];
 					const selectedSuggestion = lists.find( item => item.label === selectedLabel );
@@ -152,7 +142,6 @@ const SendTo = (
 					<Autocomplete
 						availableItems={ sublists.filter( item => ! item.parent || listId === item.parent ) }
 						label={ sublistLabel }
-						inFlight={ inFlight }
 						parentId={ listId }
 						onChange={ selectedLabels => {
 							const selectedLabel = selectedLabels[ 0 ];

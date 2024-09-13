@@ -6,6 +6,11 @@ import { BaseControl, FormTokenField, Button, ButtonGroup } from '@wordpress/com
 import { useState } from '@wordpress/element';
 import { Icon, external } from '@wordpress/icons';
 
+/**
+ * Internal dependencies
+ */
+import { useIsRetrieving, useNewsletterDataError } from '../store';
+
 // The autocomplete field for send lists and sublists.
 const Autocomplete = ( {
 	availableItems,
@@ -15,9 +20,11 @@ const Autocomplete = ( {
 	onInputChange,
 	reset,
 	selectedInfo,
-	inFlight,
 } ) => {
 	const [ isEditing, setIsEditing ] = useState( false );
+	const isRetrieving = useIsRetrieving();
+	const error = useNewsletterDataError();
+
 	if ( selectedInfo && ! isEditing ) {
 		return (
 			<div className="newspack-newsletters__send-to">
@@ -37,7 +44,7 @@ const Autocomplete = ( {
 				</p>
 				<ButtonGroup>
 					<Button
-						disabled={ inFlight }
+						disabled={ isRetrieving }
 						onClick={ () => setIsEditing( true ) }
 						size="small"
 						variant="secondary"
@@ -45,7 +52,7 @@ const Autocomplete = ( {
 						{ __( 'Edit', 'newspack-newsletters' ) }
 					</Button>
 					<Button
-						disabled={ inFlight }
+						disabled={ isRetrieving }
 						onClick={ reset }
 						size="small"
 						variant="secondary"
@@ -54,7 +61,7 @@ const Autocomplete = ( {
 					</Button>
 					{ selectedInfo?.edit_link && (
 						<Button
-							disabled={ inFlight }
+							disabled={ isRetrieving }
 							href={ selectedInfo.edit_link }
 							size="small"
 							target="_blank"
@@ -74,7 +81,7 @@ const Autocomplete = ( {
 		<div className="newspack-newsletters__send-to">
 			<BaseControl
 				id="newspack-newsletters__send-to-autocomplete-input"
-				help={ inFlight && sprintf(
+				help={ isRetrieving && sprintf(
 					// Translators: Message shown while fetching list or sublist info. %s is the provider's label for the given entity type (list or sublist).
 					__( 'Fetching %s info…', 'newspack-newsletters' ),
 					label.toLowerCase()
@@ -99,11 +106,16 @@ const Autocomplete = ( {
 					__experimentalExpandOnFocus={ true }
 					__experimentalShowHowTo={ false }
 				/>
+				{ error && (
+					<p className="newspack-newsletters__error">
+						{ error?.message || __( 'Error fetching send lists.', 'newspack-newsletters' ) }
+					</p>
+				) }
 			</BaseControl>
 			{ selectedInfo && (
 				<ButtonGroup>
 					<Button
-						disabled={ inFlight }
+						disabled={ isRetrieving }
 						onClick={ () => setIsEditing( false ) }
 						variant="secondary"
 						size="small"
