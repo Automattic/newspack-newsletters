@@ -425,16 +425,44 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Wrapper for fetching campaign from MC API.
+	 *
+	 * @param string $mc_campaign_id Campaign ID.
+	 * @return object|WP_Error API Response or error.
+	 */
+	private function fetch_synced_campaign( $mc_campaign_id ) {
+		try {
+			$mc                  = new Mailchimp( $this->api_key() );
+			$campaign            = $this->validate(
+				$mc->get(
+					"campaigns/$mc_campaign_id",
+					[
+						'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
+					]
+				),
+				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
+			);
+			return $campaign;
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
 	 * @return object|WP_Error API Response or error.
+	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
-		if ( ! $this->has_api_credentials() ) {
-			return [];
-		}
 		try {
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid Mailchimp credentials.', 'newspack-newsletters' ) );
+			}
 			$mc_campaign_id = get_post_meta( $post_id, 'mc_campaign_id', true );
 
 			// If there's no synced campaign ID yet, create it.
@@ -442,22 +470,19 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				Newspack_Newsletters_Logger::log( 'Creating new campaign for post ID ' . $post_id );
 				$sync_result = $this->sync( get_post( $post_id ) );
 				if ( is_wp_error( $sync_result ) ) {
-					return $sync_result;
+					throw new Exception( wp_kses_post( $sync_result->get_error_message() ) );
 				}
 				$campaign       = $sync_result['campaign_result'];
 				$mc_campaign_id = $campaign['id'];
 			} else {
 				Newspack_Newsletters_Logger::log( 'Retrieving campaign ' . $mc_campaign_id . ' for post ID ' . $post_id );
-				$mc                  = new Mailchimp( $this->api_key() );
-				$campaign            = $this->validate(
-					$mc->get(
-						"campaigns/$mc_campaign_id",
-						[
-							'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
-						]
-					),
-					__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
-				);
+				$campaign = $this->fetch_synced_campaign( $mc_campaign_id );
+
+				// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.
+				if ( is_wp_error( $campaign ) ) {
+					delete_post_meta( $post_id, 'mc_campaign_id' );
+					throw new Exception( wp_kses_post( $campaign->get_error_message() ) );
+				}
 			}
 
 			$list_id         = $campaign['recipients']['list_id'] ?? null;
@@ -502,28 +527,36 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 
 			// Prefetch send list info if we have a selected list and/or sublist.
-			$newsletter_data['lists'] = $this->get_send_lists(
+			$send_lists = $this->get_send_lists(
 				[
 					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 					'type' => 'list',
-				]
+				],
+				true
 			);
-			$newsletter_data['sublists'] = $send_list_id || $send_sublist_id ? // Prefetch send lists only if we have something selected already.
+			if ( is_wp_error( $send_lists ) ) {
+				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
+			}
+			$newsletter_data['lists'] = $send_lists;
+
+			$send_sublists = $send_list_id || $send_sublist_id ? // Prefetch send lists only if we have something selected already.
 				$this->get_send_lists(
 					[
 						'ids'       => [ $send_sublist_id ], // If we have a selected sublist, make sure to fetch it. Otherwise, we'll populate sublists later.
 						'parent_id' => $send_list_id,
 						'type'      => 'sublist',
-					]
+					],
+					true
 				) :
 				[];
 
+			if ( is_wp_error( $send_sublists ) ) {
+				throw new Exception( wp_kses_post( $send_sublists->get_error_message() ) );
+			}
+			$newsletter_data['sublists'] = $send_sublists;
+
 			return $newsletter_data;
 		} catch ( Exception $e ) {
-			// If we couldn't get the campaign, delete the mc_campaign_id so it gets recreated on the next sync.
-			delete_post_meta( $post_id, 'mc_campaign_id' );
-			$this->retrieve( $post_id );
-
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
 				$e->getMessage()
@@ -597,11 +630,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Get all applicable audiences, groups, tags, and segments as Send_List objects.
 	 *
-	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param array   $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param boolean $to_array If true, convert Send_List objects to arrays before returning.
 	 *
-	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 * @return Send_List[]|array|WP_Error Array of Send_List objects or arrays on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $args = [] ) {
+	public function get_send_lists( $args = [], $to_array = false ) {
 		$defaults   = Send_Lists::get_default_args();
 		$args       = wp_parse_args( $args, $defaults );
 		$by_id      = ! empty( $args['ids'] );
@@ -704,6 +738,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			}
 		}
 
+		// Convert to arrays if requested.
+		if ( $to_array ) {
+			$send_lists = array_map(
+				function ( $list ) {
+					return $list->to_array();
+				},
+				$send_lists
+			);
+		}
 		return $send_lists;
 	}
 
@@ -1033,7 +1076,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		try {
 			$api_key = $this->api_key();
 			if ( ! $api_key ) {
-				throw new Exception( __( 'No Mailchimp API key available.', 'newspack-newsletters' ) );
+				throw new Exception( __( 'Missing or invalid Mailchimp credentials.', 'newspack-newsletters' ) );
 			}
 			if ( empty( $post->post_title ) ) {
 				throw new Exception( __( 'The newsletter subject cannot be empty.', 'newspack-newsletters' ) );

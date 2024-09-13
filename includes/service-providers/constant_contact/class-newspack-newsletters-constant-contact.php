@@ -468,6 +468,25 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Wrapper for fetching campaign from CC API.
+	 *
+	 * @param string $cc_campaign_id Campaign ID.
+	 * @return object|WP_Error API Response or error.
+	 */
+	private function fetch_synced_campaign( $cc_campaign_id ) {
+		try {
+			$cc       = $this->get_sdk();
+			$campaign = $cc->get_campaign( $cc_campaign_id );
+			return $campaign;
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_constant_contact_error',
+				$e->getMessage()
+			);
+		}
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
@@ -475,18 +494,30 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
-		if ( ! $this->has_api_credentials() || ! $this->has_valid_connection() ) {
-			return [];
-		}
 		try {
-			$cc             = $this->get_sdk();
-			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid Constant Contact credentials.', 'newspack-newsletters' ) );
+			}
+			if ( ! $this->has_valid_connection() ) {
+				throw new Exception( esc_html__( 'Unable to connect to Constant Contact API. Please try authorizing your connection or obtaining new credentials.', 'newspack-newsletters' ) );
+			}
 
+			$cc_campaign_id = get_post_meta( $post_id, 'cc_campaign_id', true );
 			if ( ! $cc_campaign_id ) {
-				$campaign       = $this->sync( get_post( $post_id ) );
+				$campaign = $this->sync( get_post( $post_id ) );
+				if ( is_wp_error( $campaign ) ) {
+					throw new Exception( wp_kses_post( $campaign->get_error_message() ) );
+				}
 				$cc_campaign_id = $campaign->campaign_id;
 			} else {
-				$campaign = $cc->get_campaign( $cc_campaign_id );
+				Newspack_Newsletters_Logger::log( 'Retrieving campaign ' . $cc_campaign_id . ' for post ID ' . $post_id );
+				$campaign = $this->fetch_synced_campaign( $cc_campaign_id );
+
+				// If we couldn't get the campaign, delete the cc_campaign_id so it gets recreated on the next sync.
+				if ( is_wp_error( $campaign ) ) {
+					delete_post_meta( $post_id, 'cc_campaign_id' );
+					throw new Exception( wp_kses_post( $campaign->get_error_message() ) );
+				}
 			}
 
 			$list_id         = $campaign->activity->contact_list_ids[0] ?? null;
@@ -516,7 +547,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				[
 					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 					'type' => 'list',
-				]
+				],
+				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
 				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
@@ -525,10 +557,6 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 			return $newsletter_data;
 		} catch ( Exception $e ) {
-			// If we couldn't get the campaign, delete the cc_campaign_id so it gets recreated on the next sync.
-			delete_post_meta( $post_id, 'cc_campaign_id' );
-			$this->retrieve( $post_id );
-
 			return new WP_Error(
 				'newspack_newsletters_constant_contact_error',
 				$e->getMessage()
@@ -642,7 +670,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * Get a payload for syncing post data to the ESP campaign.
 	 *
 	 * @param WP_Post|int $post Post object or ID.
-	 * @return object Payload for syncing.
+	 *
+	 * @return array|WP_Error Payload for syncing or error.
 	 */
 	public function get_sync_payload( $post ) {
 		$cc              = $this->get_sdk();
@@ -690,6 +719,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 		// Sync send-to selections.
 		$send_lists = $this->get_send_lists( [ 'ids' => get_post_meta( $post->ID, 'send_list_id', true ) ] );
+		if ( is_wp_error( $send_lists ) ) {
+			return $send_lists;
+		}
 		if ( ! empty( $send_lists[0] ) ) {
 			$send_list = $send_lists[0];
 			if ( 'list' === $send_list->get_entity_type() ) {
@@ -736,6 +768,10 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$cc              = $this->get_sdk();
 			$cc_campaign_id  = get_post_meta( $post->ID, 'cc_campaign_id', true );
 			$payload         = $this->get_sync_payload( $post );
+
+			if ( is_wp_error( $payload ) ) {
+				throw new Exception( esc_html( $payload->get_error_message() ) );
+			}
 
 			/**
 			 * Filter the metadata payload sent to CC when syncing.
@@ -972,11 +1008,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * Note that in CC, campaigns can be sent to either lists or segments, not both,
 	 * so both entity types should be treated as top-level send lists.
 	 *
-	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param array   $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param boolean $to_array If true, convert Send_List objects to arrays before returning.
 	 *
-	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 * @return Send_List[]|array|WP_Error Array of Send_List objects or arrays on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $args = [] ) {
+	public function get_send_lists( $args = [], $to_array = false ) {
 		$lists = $this->get_lists();
 		if ( is_wp_error( $lists ) ) {
 			return $lists;
@@ -1053,6 +1090,15 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$filtered_lists = array_slice( $filtered_lists, 0, $args['limit'] );
 		}
 
+		// Convert to arrays if requested.
+		if ( $to_array ) {
+			$filtered_lists = array_map(
+				function ( $list ) {
+					return $list->to_array();
+				},
+				$filtered_lists
+			);
+		}
 		return $filtered_lists;
 	}
 

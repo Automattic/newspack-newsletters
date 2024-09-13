@@ -13,6 +13,7 @@ import { hasValidEmail } from '../utils';
  * Internal dependencies
  */
 import withApiHandler from '../../components/with-api-handler';
+import { useNewsletterData } from '../store';
 import './style.scss';
 
 const serviceProvider =
@@ -44,6 +45,7 @@ export default compose( [
 	} ) => {
 		const [ localInFlight, setLocalInFlight ] = useState( false );
 		const [ localMessage, setLocalMessage ] = useState( '' );
+		const { supports_multiple_test_recipients: supportsMultipleTestEmailRecipients } = useNewsletterData();
 		const sendTestEmail = async () => {
 			if ( inlineNotifications ) {
 				setLocalInFlight( true );
@@ -78,20 +80,18 @@ export default compose( [
 			}
 		};
 
-		const supportsMultipleTestEmailRecipients = serviceProvider !== 'active_campaign';
 		return (
 			<Fragment>
 				<TextControl
 					label={ __( 'Send a test to', 'newspack-newsletters' ) }
+					help={ supportsMultipleTestEmailRecipients
+						? __( 'Use commas to separate multiple emails. Any unsaved changes will be saved.', 'newspack-newsletters' )
+						: __( 'Any unsaved changes will be saved.', 'newspack-newsletters' )
+					}
 					value={ testEmail }
 					type="email"
 					onChange={ onChangeEmail }
 					disabled={ localInFlight || inFlight }
-					help={
-						supportsMultipleTestEmailRecipients
-							? __( 'Use commas to separate multiple emails.', 'newspack-newsletters' )
-							: ''
-					}
 				/>
 				<div className="newspack-newsletters__testing-controls">
 					<Button

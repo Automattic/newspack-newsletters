@@ -2,17 +2,17 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { _n, sprintf } from '@wordpress/i18n';
-
-/**
- * Internal dependencies
- */
-import { getServiceProvider } from '../service-providers';
+import { __ } from '@wordpress/i18n';
 
 /**
  * External dependencies
  */
 import mjml2html from 'mjml-browser';
+
+/**
+ * Internal dependencies
+ */
+import { getServiceProvider } from '../service-providers';
 
 export const getEditPostPayload = newsletterData => {
 	return {
@@ -22,12 +22,29 @@ export const getEditPostPayload = newsletterData => {
 	};
 };
 
-export const validateNewsletter = newsletterData => {
-	const { validateNewsletter: validate } = getServiceProvider();
-	if ( ! validate ) {
+/**
+ * Validation utility.
+ *
+ * @param {Object} meta              Post meta.
+ * @param {string} meta.senderEmail  Sender email address.
+ * @param {string} meta.senderName   Sender name.
+ * @param {string} meta.send_list_id Send-to list ID.
+ * @return {string[]} Array of validation messages. If empty, newsletter is valid.
+ */
+export const validateNewsletter = ( meta = {} ) => {
+	const { name: serviceProviderName } = getServiceProvider();
+	if ( 'manual' === serviceProviderName ) {
 		return [];
 	}
-	return validate( newsletterData );
+	const { senderEmail, senderName, send_list_id: listId } = meta;
+	const messages = [];
+	if ( ! senderEmail || ! senderName ) {
+		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
+	}
+	if ( ! listId ) {
+		messages.push( __( 'Missing required list.', 'newspack-newsletters' ) );
+	}
+	return messages;
 };
 
 /**
@@ -62,21 +79,3 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 	return html;
 };
 
-/**
- * Get a label for the Send To autocomplete field.
- * Format: [ITEM TYPE] Item Name (contact count)
- *
- * @param {Object} item A list or sublist item.
- * @return {string} The autocomplete suggestion label for the item.
- */
-export const getSuggestionLabel = item => {
-	const contactCount =
-		item?.count && null !== item?.count
-			? sprintf(
-					// Translators: If available, show a contact count alongside the suggested item. %d is the number of contacts in the suggested item.
-					_n( '(%d contact)', '(%d contacts)', item.count, 'newspack-newsletters' ),
-					item.count
-			  )
-			: '';
-	return `[${ item.typeLabel.toUpperCase() }] ${ item.name } ${ contactCount }`.trim();
-};

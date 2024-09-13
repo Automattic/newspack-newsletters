@@ -58,7 +58,7 @@ class Send_Lists {
 			[
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_send_lists' ],
-				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_authoring_permissions_check' ],
 				'args'                => [
 					'ids'       => [
 						'type' => [ 'array', 'string' ],
@@ -151,6 +151,7 @@ class Send_Lists {
 
 	/**
 	 * API handler to fetch send lists for the given provider.
+	 * Send_List objects are converted to arrays of config data before being returned.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -168,15 +169,6 @@ class Send_Lists {
 		foreach ( $defaults as $key => $value ) {
 			$args[ $key ] = $request[ $key ] ?? $value;
 		}
-		$send_lists = $provider->get_send_lists( $args );
-		return \rest_ensure_response(
-			\is_wp_error( $send_lists ) ? $send_lists :
-				array_map(
-					function( $send_list ) {
-						return $send_list->to_array();
-					},
-					$send_lists
-				)
-		);
+		return \rest_ensure_response( $provider->get_send_lists( $args, true ) );
 	}
 }

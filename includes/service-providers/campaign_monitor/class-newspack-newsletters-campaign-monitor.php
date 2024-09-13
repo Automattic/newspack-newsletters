@@ -238,11 +238,12 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * Note that in CM, campaigns can be sent to either lists or segments, not both,
 	 * so both entity types should be treated as top-level send lists.
 	 *
-	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param array   $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param boolean $to_array If true, convert Send_List objects to arrays before returning.
 	 *
-	 * @return Send_List[]|WP_Error Array of Send_List objects on success, or WP_Error object on failure.
+	 * @return Send_List[]|array|WP_Error Array of Send_List objects or arrays on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $args = [] ) {
+	public function get_send_lists( $args = [], $to_array = false ) {
 		$api_key   = $this->api_key();
 		$client_id = $this->client_id();
 
@@ -338,6 +339,15 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			$filtered_lists = array_slice( $filtered_lists, 0, $args['limit'] );
 		}
 
+		// Convert to arrays if requested.
+		if ( $to_array ) {
+			$filtered_lists = array_map(
+				function ( $list ) {
+					return $list->to_array();
+				},
+				$filtered_lists
+			);
+		}
 		return $filtered_lists;
 	}
 
@@ -349,16 +359,17 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 	 * @throws Exception Error message.
 	 */
 	public function retrieve( $post_id ) {
-		if ( ! $this->has_api_credentials() ) {
-			return [];
-		}
 		try {
+			if ( ! $this->has_api_credentials() ) {
+				throw new Exception( esc_html__( 'Missing or invalid Campaign Monitor credentials.', 'newspack-newsletters' ) );
+			}
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_lists      = $this->get_send_lists( // Get first 10 top-level send lists for autocomplete.
 				[
 					'ids'  => $send_list_id ? [ $send_list_id ] : null, // If we have a selected list, make sure to fetch it.
 					'type' => 'list',
-				]
+				],
+				true
 			);
 			if ( is_wp_error( $send_lists ) ) {
 				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );

@@ -1,76 +1,69 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
-import { Spinner } from '@wordpress/components';
-import { Fragment } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 /**
- * Internal dependencies
+ * External dependencies
  */
-import { ProviderSidebar, validateNewsletter } from './ProviderSidebar';
+import { find } from 'lodash';
 
 /**
- * A function to render additional info in the pre-send confirmation modal.
- * Can return null if no additional info is to be presented.
+ * Utility to render newsletter campaign info in the pre-send confirmation modal.
  *
- * @param {Object} newsletterData the data returned from the ESP retrieve method
- * @return {any} A React component
+ * @param {Object} newsletterData          Data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.campaign Campaign data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.lists    Available send lists.
+ * @param {Object} newsletterData.sublists Available send sublists.
+ * @param {Object} meta                    Post meta.
+ * @param {string} meta.send_list_id       Send-to list ID.
+ * @param {string} meta.send_sublist_id    Send-to sublist ID.
  */
-const renderPreSendInfo = ( newsletterData = {} ) => {
-	const { list_id, lists, segment_id, segments, send_mode } = newsletterData;
-	let sendToName = null;
-
-	if ( ! send_mode ) {
-		return <Spinner />;
+const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
+	const { lists = [] } = newsletterData;
+	const { send_list_id: listId } = meta;
+	if ( ! listId ) {
+		return null;
+	}
+	let listData, subscriberCount;
+	const list = find( lists, [ 'id', listId.toString() ] );
+	if ( list ) {
+		listData = list;
+		subscriberCount = listData?.count;
 	}
 
-	// Get the list name if in list mode.
-	if ( 'list' === send_mode && list_id ) {
-		const list = lists.find( thisList => list_id === thisList.ListID );
-
-		if ( list ) {
-			sendToName = list.Name;
-		}
-	}
-
-	// Get the segment name if in segment mode.
-	if ( 'segment' === send_mode && segment_id ) {
-		const segment = segments.find( thisSegment => segment_id === thisSegment.SegmentID );
-
-		if ( segment ) {
-			sendToName = segment.Title;
-		}
-	}
-
-	if ( ! sendToName ) {
-		return (
-			<p>
-				{ __(
-					'You’re about to send a Campaign Monitor newsletter. Are you sure you want to proceed?',
-					'newspack-newsletters'
-				) }
-			</p>
-		);
+	if ( ! listData ) {
+		return null;
 	}
 
 	return (
-		<Fragment>
-			<p>
-				{ __(
-					'You’re about to send a Campaign Monitor newsletter to the following ',
-					'newspack-newsletters'
-				) }
-				{ send_mode + ': ' }
-				<strong>{ sendToName }</strong>
-			</p>
-			<p>{ __( 'Are you sure you want to proceed?', 'newspack-newsletters' ) }</p>
-		</Fragment>
+		<p>
+			{ __( "You're sending a newsletter to:", 'newspack-newsletters' ) }
+			<br />
+			<strong>{ listData.name }</strong>
+			<br />
+			{ ! isNaN( subscriberCount ) && (
+				<strong>
+					{ sprintf(
+						// Translators: subscriber count help message.
+						_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
+						subscriberCount
+					) }
+				</strong>
+			) }
+		</p>
 	);
 };
 
+const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
+	if ( 'publish' === postStatus || 'private' === postStatus ) {
+		return true;
+	}
+	return false;
+}
+
+
 export default {
-	validateNewsletter,
-	ProviderSidebar,
 	renderPreSendInfo,
+	isCampaignSent
 };

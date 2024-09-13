@@ -77,13 +77,14 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	public function get_lists();
 
 	/**
-	 * Get the ESP's available lists and sublists, reformatted as Send_List items.
+	 * Get the ESP's available lists and sublists, reformatted as Send_List items or an array of config data.
 	 *
-	 * @param array $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param array   $args Array of search args. See Send_Lists::get_default_args() for supported params and default values.
+	 * @param boolean $to_array If true, convert Send_List objects to arrays before returning.
 	 *
-	 * @return array|WP_Error API Response or error.
+	 * @return Send_List[]|array|WP_Error Array of Send_List objects or arrays on success, or WP_Error object on failure.
 	 */
-	public function get_send_lists( $args );
+	public function get_send_lists( $args, $to_array = false );
 
 	/**
 	 * Add contact to a list.

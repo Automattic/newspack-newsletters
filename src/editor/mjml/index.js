@@ -9,6 +9,12 @@ import { useEffect, useRef, useState } from '@wordpress/element';
 import { refreshEmailHtml } from '../../newsletter-editor/utils';
 
 /**
+ * Internal dependencies
+ */
+import { fetchNewsletterData, updateNewsletterDataError } from '../../newsletter-editor/store';
+import { getServiceProvider } from '../../service-providers';
+
+/**
  * Custom hook for fetching the prior value of a prop.
  *
  * @param {*} value The prop to track.
@@ -66,7 +72,6 @@ function MJML() {
 	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
 		'core/editor'
 	);
-	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
@@ -105,19 +110,23 @@ function MJML() {
 				.finally( () => {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
 					setIsRefreshingHTML( false );
-					// Check for sync errors after refreshing the HTML.
-					apiFetch( {
-						path: `/newspack-newsletters/v1/${ postId }/sync-error`,
-					}).then( ( { error_message } ) => {
-						if ( error_message ) {
-							createNotice( 'error', error_message, {
-								id: 'newspack-newsletters-newsletter-sync-error',
-								isDismissible: true,
-							} );
-						} else {
-							removeNotice( 'newspack-newsletters-newsletter-sync-error' );
-						}
-					} );
+
+					const { name: serviceProviderName } = getServiceProvider();
+					const { supported_esps: supportedESPs } = newspack_email_editor_data || [];
+					const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && supportedESPs?.includes( serviceProviderName );
+					if ( isSupportedESP ) {
+						// Rehydrate ESP newsletter data after completing sync.
+						fetchNewsletterData( postId );
+
+						// Check for sync errors after refreshing the HTML.
+						apiFetch( {
+							path: `/newspack-newsletters/v1/${ postId }/sync-error`,
+						} ).then( ( error ) => {
+							if ( error?.message ) {
+								updateNewsletterDataError( error );
+							}
+						} );
+					}
 				} );
 		}
 	}, [ isSaving, isAutosaving ] );

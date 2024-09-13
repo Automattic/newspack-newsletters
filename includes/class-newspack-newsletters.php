@@ -122,7 +122,7 @@ final class Newspack_Newsletters {
 
 		// Remove support for Campaign Monitor if we don't have the required environment flag.
 		if ( 'campaign_monitor' !== self::service_provider() && ( ! defined( 'NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR' ) || ! NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR ) ) {
-			$supported_providers = array_diff( $supported_providers, [ 'campaign_monitor' ] );
+			$supported_providers = array_values( array_diff( $supported_providers, [ 'campaign_monitor' ] ) );
 		}
 
 		return $supported_providers;
@@ -181,32 +181,6 @@ final class Newspack_Newsletters {
 			'type'         => 'string',
 		];
 		$fields = [
-			[
-				'name'               => 'newsletterData',
-				'register_meta_args' => [
-					'show_in_rest' => [
-						'schema' => [
-							'type'                 => 'object',
-							'context'              => [ 'edit' ],
-							'additionalProperties' => true,
-							'properties'           => [],
-						],
-					],
-					'type'         => 'object',
-				],
-			],
-			[
-				'name'               => 'senderName',
-				'register_meta_args' => $default_register_meta_args,
-			],
-			[
-				'name'               => 'senderEmail',
-				'register_meta_args' => $default_register_meta_args,
-			],
-			[
-				'name'               => 'stringifiedLayoutDefaults',
-				'register_meta_args' => $default_register_meta_args,
-			],
 			[
 				'name'               => 'newsletter_send_errors',
 				'register_meta_args' => [
@@ -903,6 +877,15 @@ final class Newspack_Newsletters {
 		}
 
 		return $wp_error->has_errors() ? $wp_error : self::api_get_settings();
+	}
+
+	/**
+	 * Whether the current user can manage admin settings.
+	 *
+	 * @return bool Whether the current user can manage admin settings.
+	 */
+	public static function api_permission_callback() {
+		return current_user_can( 'manage_options' );
 	}
 
 	/**
