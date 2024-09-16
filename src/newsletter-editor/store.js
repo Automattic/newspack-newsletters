@@ -111,7 +111,17 @@ export const fetchNewsletterData = async postId => {
 		const response = await apiFetch( {
 			path: `/newspack-newsletters/v1/${ name }/${ postId }/retrieve`,
 		} );
-		updateNewsletterData( response );
+
+		// If we've already fetched list or sublist info, retain it.
+		const newsletterData = coreSelect( STORE_NAMESPACE ).getData();
+		const updatedNewsletterData = { ...response };
+		if ( newsletterData?.lists ) {
+			updatedNewsletterData.lists = newsletterData.lists;
+		}
+		if ( newsletterData?.sublists ) {
+			updatedNewsletterData.sublists = newsletterData.sublists;
+		}
+		updateNewsletterData( updatedNewsletterData );
 	} catch ( error ) {
 		updateNewsletterDataError( error );
 	}
