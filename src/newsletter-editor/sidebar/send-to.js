@@ -45,10 +45,19 @@ const SendTo = () => {
 	}, [] );
 
 	useEffect( () => {
-		if ( listId && newsletterData?.sublists ) {
-			if ( 1 >= newsletterData.sublists.length ) {
-				fetchSendLists( { type: 'sublist', parent_id: listId } );
-			}
+		// If we have a selected list ID but no list info, fetch it.
+		if ( listId && ! selectedList ) {
+			fetchSendLists( { ids: [ listId ] } );
+		}
+
+		// If we have a selected sublist ID but no sublist info, fetch it.
+		if ( listId && sublistId && ! selectedSublist ) {
+			fetchSendLists( { ids: [ sublistId ], type: 'sublist', parent_id: listId } );
+		}
+
+		// Prefetch sublist info when selecting a new list ID.
+		if ( listId && ! sublistId && newsletterData?.sublists && 1 >= newsletterData.sublists.length ) {
+			fetchSendLists( { type: 'sublist', parent_id: listId } );
 		}
 	}, [ newsletterData, listId, sublistId ] );
 
@@ -124,13 +133,13 @@ const SendTo = () => {
 					if ( ! selectedSuggestion?.id ) {
 						return setError(
 							sprintf(
-								// Translators: Error shown when we can't find info on the selected sublist. %s is the ESP's label for the list entity.
+								// Translators: Error shown when we can't find info on the selected list. %s is the ESP's label for the list entity.
 								__( 'Invalid %s selection.', 'newspack-newsletters' ),
 								listLabel
 							)
 						);
 					}
-					updateMeta( { send_list_id: selectedSuggestion.id.toString() } );
+					updateMeta( { send_list_id: selectedSuggestion.id.toString(), send_sublist_id: null } );
 				} }
 				onFocus={ () => {
 					if ( 1 >= lists?.length ) {
