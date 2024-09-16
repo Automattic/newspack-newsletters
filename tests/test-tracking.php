@@ -54,13 +54,18 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	 * Test tracking click.
 	 */
 	public function test_tracking_click() {
+		$content  = "<!-- wp:paragraph -->\n<p><a href=\"https://google.com\">Link</a><\/p>\n<!-- \/wp:paragraph -->";
 		$post_id  = $this->factory->post->create(
 			[
 				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				'post_title'   => 'A newsletter with link.',
-				'post_content' => "<!-- wp:paragraph -->\n<p><a href=\"https://google.com\">Link</a><\/p>\n<!-- \/wp:paragraph -->",
+				'post_content' => $content,
 			]
 		);
+
+		// Ensure the newspack_email_html meta is set.
+		update_post_meta( $post_id, 'newspack_email_html', $content );
+
 		$post     = \get_post( $post_id );
 		$rendered = Newspack_Newsletters_Renderer::post_to_mjml_components( $post );
 
