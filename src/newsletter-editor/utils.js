@@ -1,3 +1,5 @@
+/* global newspack_email_editor_data */
+
 /**
  * WordPress dependencies
  */
@@ -14,12 +16,15 @@ import mjml2html from 'mjml-browser';
  */
 import { getServiceProvider } from '../service-providers';
 
-export const getEditPostPayload = newsletterData => {
-	return {
-		meta: {
-			newsletterData,
-		},
-	};
+/**
+ * Is the current ESP a supported, connected ESP?
+ *
+ * @return {boolean} True if the ESP is supported and connected.
+ */
+export const isSupportedESP = () => {
+	const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
+	const { name: serviceProviderName } = getServiceProvider();
+	return serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
 };
 
 /**

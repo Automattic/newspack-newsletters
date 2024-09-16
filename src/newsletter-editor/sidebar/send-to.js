@@ -26,13 +26,6 @@ const SendTo = () => {
 		};
 	} );
 
-	// Cancel any queued fetches on unmount.
-	useEffect( () => {
-		return () => {
-			fetchSendLists.cancel();
-		}
-	}, [] );
-
 	const editPost = useDispatch( 'core/editor' ).editPost;
 	const updateMeta = ( meta ) => editPost( { meta } );
 
@@ -43,6 +36,21 @@ const SendTo = () => {
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
 	const selectedList = lists.find( item => item.id === listId );
 	const selectedSublist = sublists?.find( item => item.id === sublistId );
+
+	// Cancel any queued fetches on unmount.
+	useEffect( () => {
+		return () => {
+			fetchSendLists.cancel();
+		}
+	}, [] );
+
+	useEffect( () => {
+		if ( listId && ! sublistId && newsletterData?.sublists ) {
+			if ( 1 >= newsletterData.sublists.length ) {
+				fetchSendLists( { type: 'sublist', parent_id: listId } );
+			}
+		}
+	}, [ newsletterData, listId, sublistId ] );
 
 	const renderSelectedSummary = () => {
 		if ( ! selectedList?.name || ( selectedSublist && ! selectedSublist.name ) ) {

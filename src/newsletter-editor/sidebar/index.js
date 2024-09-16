@@ -16,9 +16,11 @@ import { once } from 'lodash';
  * Internal dependencies
  */
 import Sender from './sender';
+import SendTo from './send-to';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
 import { fetchNewsletterData, useIsRetrieving, useNewsletterData, useNewsletterDataError } from '../store';
+import { isSupportedESP } from '../utils';
 import './style.scss';
 
 const Sidebar = ( {
@@ -190,6 +192,11 @@ const Sidebar = ( {
 				senderName={ senderName }
 				updateMeta={ updateMeta }
 			/>
+			{
+				isSupportedESP() && (
+					<SendTo />
+				)
+			}
 		</div>
 	);
 };

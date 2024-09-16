@@ -1,5 +1,3 @@
-/* global newspack_email_editor_data */
-
 /**
  * WordPress dependencies
  */
@@ -17,7 +15,6 @@ import { styles } from '@wordpress/icons';
 /**
  * Internal dependencies
  */
-import SendTo from './sidebar/send-to';
 import InitModal from '../components/init-modal';
 import { getServiceProvider } from '../service-providers';
 import Layout from './layout/';
@@ -27,20 +24,20 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
-import { registerStore, fetchNewsletterData, useNewsletterData, useNewsletterDataError } from './store';
+import { registerStore, fetchNewsletterData, useNewsletterDataError } from './store';
+import { isSupportedESP } from './utils';
 import './debug-send';
 
 registerStore();
 registerEditorPlugin();
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
-	const { layoutId, postId, status } = useSelect( select => {
-		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+	const { layoutId, postId } = useSelect( select => {
+		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			layoutId: meta.template_id,
 			postId: getCurrentPostId(),
-			status: getCurrentPostAttribute( 'status' ),
 		};
 	} );
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
@@ -51,17 +48,13 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	);
 	const [ isConnected, setIsConnected ] = useState( null );
 	const [ oauthUrl, setOauthUrl ] = useState( null );
-	const newsletterData = useNewsletterData();
 	const newsletterDataError = useNewsletterDataError();
 	const savePost = useDispatch( 'core/editor' ).savePost;
 	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
-	const { name: serviceProviderName, hasOauth, isCampaignSent } = getServiceProvider();
-	const campaignIsSent = ! inFlight && newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
-	const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
-	const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
+	const { name: serviceProviderName, hasOauth } = getServiceProvider();
 
 	const verifyToken = () => {
-		if ( isSupportedESP && hasOauth ) {
+		if ( isSupportedESP() && hasOauth ) {
 			const params = {
 				path: `/newspack-newsletters/v1/${ serviceProviderName }/verify_token`,
 				method: 'GET',
@@ -79,7 +72,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 	useEffect( () => {
 		// Fetch provider and campaign data.
-		if ( isSupportedESP ) {
+		if ( isSupportedESP() ) {
 			fetchNewsletterData( postId );
 		}
 	}, [] );
@@ -104,7 +97,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		}
 	}, newsletterDataError );
 
-	if ( ! isSupportedESP ) {
+	if ( ! isSupportedESP() ) {
 		return null;
 	}
 
@@ -136,14 +129,9 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 					oauthUrl={ oauthUrl }
 					onAuthorize={ verifyToken }
 				/>
-				{
-					isSupportedESP && ! campaignIsSent && (
-						<SendTo />
-					)
-				}
 				{ isConnected && <PublicSettings /> }
 			</PluginDocumentSettingPanel>
-			{ isSupportedESP && (
+			{ isSupportedESP() && (
 				<PluginDocumentSettingPanel
 					name="newsletters-testing-panel"
 					title={ __( 'Testing', 'newspack-newsletters' ) }
