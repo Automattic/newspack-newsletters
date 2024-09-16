@@ -468,7 +468,7 @@ Details of the error message: "%3$s"
 					),
 					$post->post_title,
 					get_edit_post_link( $post_id ),
-					$error_message
+					$result->get_error_message()
 				);
 
 				\wp_mail( // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
