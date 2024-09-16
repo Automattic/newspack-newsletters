@@ -45,7 +45,7 @@ const SendTo = () => {
 	}, [] );
 
 	useEffect( () => {
-		if ( listId && ! sublistId && newsletterData?.sublists ) {
+		if ( listId && newsletterData?.sublists ) {
 			if ( 1 >= newsletterData.sublists.length ) {
 				fetchSendLists( { type: 'sublist', parent_id: listId } );
 			}
