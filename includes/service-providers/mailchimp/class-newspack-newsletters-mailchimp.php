@@ -1657,24 +1657,30 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Gets the status and/or status_if_new keys based on the contact data.
 	 *
-	 * @param array $contact      {
-	 *   Contact data.
+	 * @param array  $contact      {
+	 *    Contact data.
 	 *
 	 *    @type string   $email    Contact email address.
 	 *    @type string   $name     Contact name. Optional.
 	 *    @type string[] $metadata Contact additional metadata. Optional.
 	 * }
+	 * @param string $list_id List (Audience) to add the contact to, if any.
 	 *
 	 * @return array The status and/or status_if_new keys to be added to the payload
 	 */
-	private function get_status_for_payload( $contact ) {
+	private function get_status_for_payload( $contact, $list_id = null ) {
 		$return = [];
-		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status_if_new'] ) ) {
+		if ( ! empty( $contact['metadata']['status_if_new'] ) ) {
 			$return['status_if_new'] = $contact['metadata']['status_if_new'];
 		}
 
-		if ( isset( $contact['metadata'] ) && ! empty( $contact['metadata']['status'] ) ) {
+		if ( ! empty( $contact['metadata']['status'] ) ) {
 			$return['status'] = $contact['metadata']['status'];
+		}
+
+		// Check if the contact has unsubscribed before. Mailchimp requires a double opt-in to resubscribe, so we set the status to 'pending'.
+		if ( $list_id && ! empty( $contact['existing_contact_data']['lists'][ $list_id ]['status'] ) && 'unsubscribed' === $contact['existing_contact_data']['lists'][ $list_id ]['status'] ) {
+			$return['status'] = 'pending';
 		}
 
 		// If we're subscribing the contact to a newsletter, they should have some status
@@ -1718,7 +1724,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		$update_payload = array_merge(
 			$update_payload,
-			$this->get_status_for_payload( $contact )
+			$this->get_status_for_payload( $contact, $list_id )
 		);
 
 		// Parse full name into first + last.
