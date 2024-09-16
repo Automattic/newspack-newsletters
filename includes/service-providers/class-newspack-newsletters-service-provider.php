@@ -17,6 +17,8 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 
 	const BASE_NAMESPACE = 'newspack-newsletters/v1/';
 
+	const MAX_SCHEDULED_RETRIES = 5;
+
 	/**
 	 * The controller.
 	 *
@@ -187,14 +189,77 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			return;
 		}
 
+		// Handle scheduled newsletters.
 		if ( in_array( $new_status, self::$controlled_statuses, true ) && 'future' === $old_status ) {
 			update_post_meta( $post->ID, 'sending_scheduled', true );
 			$result = $this->send_newsletter( $post );
 			if ( is_wp_error( $result ) ) {
+				$prior_attempts = intval( get_post_meta( $post->ID, 'scheduled_send_attempts', true ) );
+				update_post_meta( $post->ID, 'scheduled_send_attempts', $prior_attempts + 1 );
+				$this->add_send_error( $post->ID, $result );
+
+				// If we've already tried to send this post too many times, give up.
+				if ( self::MAX_SCHEDULED_RETRIES <= $prior_attempts ) {
+					delete_post_meta( $post->ID, 'sending_scheduled' );
+					delete_post_meta( $post->ID, 'scheduled_send_attempts' );
+					wp_update_post(
+						[
+							'ID'          => $post->ID,
+							'post_status' => 'draft',
+						]
+					);
+					$max_attempts = new WP_Error(
+						'newspack_newsletter_send_error',
+						sprintf(
+							// Translators: An error message to explain that the scheduled send failed the maximum number times and won't be retried automatically.
+							__( 'Failed to send %d times. Please check the provider connection and try sending again.', 'newspack-newsletters' ),
+							self::MAX_SCHEDULED_RETRIES
+						)
+					);
+					do_action(
+						'newspack_log',
+						'newspack_esp_scheduled_send_error',
+						sprintf(
+							'Maximum send attempts hit for post ID: %d',
+							$post->ID
+						),
+						[
+							'type'       => 'error',
+							'data'       => [
+								'provider' => $this->service,
+								'errors'   => $result->get_error_message(),
+							],
+							'user_email' => '',
+							'file'       => 'newspack_' . $this->service,
+						]
+					);
+					wp_die( esc_html( $max_attempts->get_error_message() ), '', esc_html( $max_attempts->get_error_code() ) );
+				}
+
 				wp_update_post(
 					[
-						'ID'          => $post->ID,
-						'post_status' => 'draft',
+						'ID'            => $post->ID,
+						'post_date'     => gmdate( 'Y-m-d H:i:s', strtotime( current_time( 'Y-m-d H:i:s' ) . ' +5 minutes ' ) ),
+						'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( current_time( 'Y-m-d H:i:s', true ) . ' +5 minutes ' ) ),
+						'post_status'   => 'future', // Reset status to `future` so the newspack_scheduled_post_checker job retries it.
+					]
+				);
+
+				do_action(
+					'newspack_log',
+					'newspack_esp_scheduled_send_error',
+					sprintf(
+						'Error scheduling send for post ID: %d',
+						$post->ID
+					),
+					[
+						'type'       => 'error',
+						'data'       => [
+							'provider' => $this->service,
+							'errors'   => $result->get_error_message(),
+						],
+						'user_email' => '',
+						'file'       => 'newspack_' . $this->service,
 					]
 				);
 				wp_die( esc_html( $result->get_error_message() ), '', esc_html( $result->get_error_code() ) );
@@ -340,6 +405,26 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	}
 
 	/**
+	 * Add send errors to the post.
+	 *
+	 * @param int      $post_id The post ID.
+	 * @param WP_Error $error The WP_Error object to add.
+	 */
+	public function add_send_error( $post_id, $error ) {
+		$existing_errors = get_post_meta( $post_id, 'newsletter_send_errors', true );
+		if ( ! is_array( $existing_errors ) ) {
+			$existing_errors = [];
+		}
+		$error_message = $error->get_error_message();
+		$errors[] = [
+			'timestamp' => time(),
+			'message'   => $error_message,
+		];
+		$errors   = array_slice( $errors, -10, 10, true );
+		update_post_meta( $post_id, 'newsletter_send_errors', $errors );
+	}
+
+	/**
 	 * Send a newsletter.
 	 *
 	 * @param WP_Post $post The newsletter post.
@@ -364,17 +449,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		}
 
 		if ( \is_wp_error( $result ) ) {
-			$errors = get_post_meta( $post_id, 'newsletter_send_errors', true );
-			if ( ! is_array( $errors ) ) {
-				$errors = [];
-			}
-			$error_message = $result->get_error_message();
-			$errors[] = [
-				'timestamp' => time(),
-				'message'   => $error_message,
-			];
-			$errors   = array_slice( $errors, -10, 10, true );
-			update_post_meta( $post_id, 'newsletter_send_errors', $errors );
+			$this->add_send_error( $post_id, $result );
 
 			$email_sending_disabled = defined( 'NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL' ) && NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL;
 			if ( ! $email_sending_disabled ) {
