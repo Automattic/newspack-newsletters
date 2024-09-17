@@ -62,6 +62,10 @@
 		}
 	}
 
+	&__error {
+		color: wp-colors.$alert-red;
+	}
+
 	&__error input.components-text-control__input {
 		border-color: wp-colors.$alert-red;
 	}

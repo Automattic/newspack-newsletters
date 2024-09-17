@@ -16,9 +16,11 @@ import { once } from 'lodash';
  * Internal dependencies
  */
 import Sender from './sender';
+import SendTo from './send-to';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
-import { fetchNewsletterData, useNewsletterData, useNewsletterDataError } from '../store';
+import { fetchNewsletterData, useIsRetrieving, useNewsletterData, useNewsletterDataError } from '../store';
+import { isSupportedESP } from '../utils';
 import './style.scss';
 
 const Sidebar = ( {
@@ -38,6 +40,7 @@ const Sidebar = ( {
 	stringifiedCampaignDefaults,
 	postId,
 } ) => {
+	const isRetrieving = useIsRetrieving();
 	const newsletterData = useNewsletterData();
 	const newsletterDataError = useNewsletterDataError();
 	const campaign = newsletterData?.campaign;
@@ -121,12 +124,12 @@ const Sidebar = ( {
 				</Notice>
 				<Button
 					variant="primary"
-					disabled={ inFlight }
+					disabled={ inFlight || isRetrieving }
 					onClick={ () => {
 						fetchNewsletterData( postId );
 					} }
 				>
-					{ __( 'Retrieve campaign data', 'newspack-newsletter' ) }
+					{ isRetrieving ? __( 'Retrieving campaign data…', 'newspack-newsletter' ) : __( 'Retrieve campaign data', 'newspack-newsletter' ) }
 				</Button>
 			</div>
 		);
@@ -189,6 +192,11 @@ const Sidebar = ( {
 				senderName={ senderName }
 				updateMeta={ updateMeta }
 			/>
+			{
+				isSupportedESP() && (
+					<SendTo />
+				)
+			}
 		</div>
 	);
 };

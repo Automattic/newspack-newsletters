@@ -11,7 +11,7 @@ import { refreshEmailHtml } from '../../newsletter-editor/utils';
 /**
  * Internal dependencies
  */
-import { fetchNewsletterData, updateNewsletterDataError } from '../../newsletter-editor/store';
+import { fetchNewsletterData, fetchSyncErrors } from '../../newsletter-editor/store';
 import { getServiceProvider } from '../../service-providers';
 
 /**
@@ -119,13 +119,7 @@ function MJML() {
 						fetchNewsletterData( postId );
 
 						// Check for sync errors after refreshing the HTML.
-						apiFetch( {
-							path: `/newspack-newsletters/v1/${ postId }/sync-error`,
-						} ).then( ( error ) => {
-							if ( error?.message ) {
-								updateNewsletterDataError( error );
-							}
-						} );
+						fetchSyncErrors( postId );
 					}
 				} );
 		}

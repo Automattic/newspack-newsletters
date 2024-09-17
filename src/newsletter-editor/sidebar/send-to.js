@@ -12,15 +12,10 @@ import { useEffect, useState } from '@wordpress/element';
  * Internal dependencies
  */
 import Autocomplete from './autocomplete';
-import { useNewsletterData } from '../store';
+import { fetchSendLists, useNewsletterData } from '../store';
 
 // The container for list + sublist autocomplete fields.
-const SendTo = (
-	{
-		inFlight,
-		fetchSendLists = () => {},
-	}
-) => {
+const SendTo = () => {
 	const [ error, setError ] = useState( null );
 	const { listId, sublistId } = useSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
@@ -30,6 +25,7 @@ const SendTo = (
 			sublistId: meta.send_sublist_id,
 		};
 	} );
+
 	const editPost = useDispatch( 'core/editor' ).editPost;
 	const updateMeta = ( meta ) => editPost( { meta } );
 
@@ -41,17 +37,29 @@ const SendTo = (
 	const selectedList = lists.find( item => item.id === listId );
 	const selectedSublist = sublists?.find( item => item.id === sublistId );
 
+	// Cancel any queued fetches on unmount.
 	useEffect( () => {
-		if ( sublistId && ! sublists?.length ) {
-			fetchSendLists(
-				{
-					ids: sublistId ? [ sublistId ] : null,
-					parent_id: listId || null,
-					type: 'sublist',
-				}
-			);
+		return () => {
+			fetchSendLists.cancel();
 		}
-	}, [ sublistId ] );
+	}, [] );
+
+	useEffect( () => {
+		// If we have a selected list ID but no list info, fetch it.
+		if ( listId && ! selectedList ) {
+			fetchSendLists( { ids: [ listId ] } );
+		}
+
+		// If we have a selected sublist ID but no sublist info, fetch it.
+		if ( listId && sublistId && ! selectedSublist ) {
+			fetchSendLists( { ids: [ sublistId ], type: 'sublist', parent_id: listId } );
+		}
+
+		// Prefetch sublist info when selecting a new list ID.
+		if ( listId && ! sublistId && newsletterData?.sublists && 1 >= newsletterData.sublists.length ) {
+			fetchSendLists( { type: 'sublist', parent_id: listId } );
+		}
+	}, [ newsletterData, listId, sublistId ] );
 
 	const renderSelectedSummary = () => {
 		if ( ! selectedList?.name || ( selectedSublist && ! selectedSublist.name ) ) {
@@ -119,20 +127,19 @@ const SendTo = (
 			<Autocomplete
 				availableItems={ lists }
 				label={ listLabel }
-				inFlight={ inFlight }
 				onChange={ selectedLabels => {
 					const selectedLabel = selectedLabels[ 0 ];
 					const selectedSuggestion = lists.find( item => item.label === selectedLabel );
 					if ( ! selectedSuggestion?.id ) {
 						return setError(
 							sprintf(
-								// Translators: Error shown when we can't find info on the selected sublist. %s is the ESP's label for the list entity.
+								// Translators: Error shown when we can't find info on the selected list. %s is the ESP's label for the list entity.
 								__( 'Invalid %s selection.', 'newspack-newsletters' ),
 								listLabel
 							)
 						);
 					}
-					updateMeta( { send_list_id: selectedSuggestion.id.toString() } );
+					updateMeta( { send_list_id: selectedSuggestion.id.toString(), send_sublist_id: null } );
 				} }
 				onFocus={ () => {
 					if ( 1 >= lists?.length ) {
@@ -152,7 +159,6 @@ const SendTo = (
 					<Autocomplete
 						availableItems={ sublists.filter( item => ! item.parent || listId === item.parent ) }
 						label={ sublistLabel }
-						inFlight={ inFlight }
 						parentId={ listId }
 						onChange={ selectedLabels => {
 							const selectedLabel = selectedLabels[ 0 ];
