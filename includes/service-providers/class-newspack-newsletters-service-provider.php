@@ -249,7 +249,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 					'newspack_log',
 					'newspack_esp_scheduled_send_error',
 					sprintf(
-						'Error scheduling send for post ID: %d',
+						'Error sending scheduled newsletter ID: %d',
 						$post->ID
 					),
 					[
