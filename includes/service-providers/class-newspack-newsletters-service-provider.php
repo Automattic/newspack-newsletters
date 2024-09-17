@@ -194,14 +194,12 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			update_post_meta( $post->ID, 'sending_scheduled', true );
 			$result = $this->send_newsletter( $post );
 			if ( is_wp_error( $result ) ) {
-				$prior_attempts = intval( get_post_meta( $post->ID, 'scheduled_send_attempts', true ) );
-				update_post_meta( $post->ID, 'scheduled_send_attempts', $prior_attempts + 1 );
 				$this->add_send_error( $post->ID, $result );
+				$send_errors   = get_post_meta( $post->ID, 'newsletter_send_errors', true );
+				$send_attempts = is_array( $send_errors ) ? count( $send_errors ) : 0;
 
 				// If we've already tried to send this post too many times, give up.
-				if ( self::MAX_SCHEDULED_RETRIES <= $prior_attempts ) {
-					delete_post_meta( $post->ID, 'sending_scheduled' );
-					delete_post_meta( $post->ID, 'scheduled_send_attempts' );
+				if ( self::MAX_SCHEDULED_RETRIES <= $send_attempts ) {
 					wp_update_post(
 						[
 							'ID'          => $post->ID,
@@ -216,6 +214,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 							self::MAX_SCHEDULED_RETRIES
 						)
 					);
+					$this->add_send_error( $post->ID, $max_attempts );
 					do_action(
 						'newspack_log',
 						'newspack_esp_scheduled_send_error',
@@ -416,12 +415,12 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			$existing_errors = [];
 		}
 		$error_message = $error->get_error_message();
-		$errors[] = [
+		$existing_errors[] = [
 			'timestamp' => time(),
 			'message'   => $error_message,
 		];
-		$errors   = array_slice( $errors, -10, 10, true );
-		update_post_meta( $post_id, 'newsletter_send_errors', $errors );
+		$existing_errors   = array_slice( $existing_errors, -10, 10, true );
+		update_post_meta( $post_id, 'newsletter_send_errors', $existing_errors );
 	}
 
 	/**
@@ -452,7 +451,18 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			$this->add_send_error( $post_id, $result );
 
 			$email_sending_disabled = defined( 'NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL' ) && NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL;
+
+			$is_scheduled  = get_post_meta( $post->ID, 'sending_scheduled', true );
+			$send_errors   = get_post_meta( $post->ID, 'newsletter_send_errors', true );
+			$send_attempts = is_array( $send_errors ) ? count( $send_errors ) : 0;
+
+			// For scheduled sends with auto-retry, only send an email on the last failed send attempt.
+			if ( $is_scheduled && self::MAX_SCHEDULED_RETRIES > $send_attempts ) {
+				$email_sending_disabled = true;
+			}
+
 			if ( ! $email_sending_disabled ) {
+				$errors  = is_array( $send_errors ) ? implode( PHP_EOL, array_column( $send_errors, 'message' ) ) : $result->get_error_message();
 				$message = sprintf(
 					/* translators: %1$s is the campaign title, %2$s is the edit link, %3$s is the error message. */
 					__(
@@ -460,20 +470,22 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 
 A newsletter campaign called "%1$s" failed to send on your site.
 
-You can edit the campaign here: %2$s.
+You can edit the campaign here: %2$s
 
-Details of the error message: "%3$s"
+Error message(s) received:
+
+%3$s
 	',
 						'newspack-newsletters'
 					),
 					$post->post_title,
 					get_edit_post_link( $post_id ),
-					$result->get_error_message()
+					$errors
 				);
 
 				\wp_mail( // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
 					get_option( 'admin_email' ),
-					__( 'Sending a newsletter failed', 'newspack-newsletters' ),
+					__( 'ERROR: Sending a newsletter failed', 'newspack-newsletters' ),
 					$message
 				);
 			}
