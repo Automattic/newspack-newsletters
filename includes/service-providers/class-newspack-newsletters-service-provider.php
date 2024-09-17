@@ -17,7 +17,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 
 	const BASE_NAMESPACE = 'newspack-newsletters/v1/';
 
-	const MAX_SCHEDULED_RETRIES = 5;
+	const MAX_SCHEDULED_RETRIES = 10;
 
 	/**
 	 * The controller.
@@ -235,11 +235,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 					wp_die( esc_html( $max_attempts->get_error_message() ), '', esc_html( $max_attempts->get_error_code() ) );
 				}
 
+				// Schedule a retry with exponential backoff maxed to 12 hours.
+				$delay = min( 720, pow( 2, $send_attempts ) );
 				wp_update_post(
 					[
 						'ID'            => $post->ID,
-						'post_date'     => gmdate( 'Y-m-d H:i:s', strtotime( current_time( 'Y-m-d H:i:s' ) . ' +5 minutes ' ) ),
-						'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( current_time( 'Y-m-d H:i:s', true ) . ' +5 minutes ' ) ),
+						'post_date'     => gmdate( 'Y-m-d H:i:s', strtotime( current_time( 'Y-m-d H:i:s' ) . ' +' . $delay . ' minutes ' ) ),
+						'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( current_time( 'Y-m-d H:i:s', true ) . ' +' . $delay . ' minutes ' ) ),
 						'post_status'   => 'future', // Reset status to `future` so the newspack_scheduled_post_checker job retries it.
 					]
 				);
