@@ -182,6 +182,10 @@ final class Newspack_Newsletters {
 		];
 		$fields = [
 			[
+				'name'               => 'stringifiedCampaignDefaults',
+				'register_meta_args' => $default_register_meta_args,
+			],
+			[
 				'name'               => 'newsletter_send_errors',
 				'register_meta_args' => [
 					'show_in_rest' => [
@@ -813,11 +817,11 @@ final class Newspack_Newsletters {
 		$user_layouts  = array_map(
 			function ( $post ) {
 				$post->meta = [
-					'background_color' => get_post_meta( $post->ID, 'background_color', true ),
-					'font_body'        => get_post_meta( $post->ID, 'font_body', true ),
-					'font_header'      => get_post_meta( $post->ID, 'font_header', true ),
-					'custom_css'       => get_post_meta( $post->ID, 'custom_css', true ),
-					'layout_defaults'  => get_post_meta( $post->ID, 'layout_defaults', true ),
+					'background_color'  => get_post_meta( $post->ID, 'background_color', true ),
+					'font_body'         => get_post_meta( $post->ID, 'font_body', true ),
+					'font_header'       => get_post_meta( $post->ID, 'font_header', true ),
+					'custom_css'        => get_post_meta( $post->ID, 'custom_css', true ),
+					'campaign_defaults' => get_post_meta( $post->ID, 'campaign_defaults', true ),
 				];
 				return $post;
 			},

@@ -67,10 +67,11 @@ export default compose( [
 		};
 	} ),
 	withDispatch( dispatch => {
-		const { editPost } = dispatch( 'core/editor' );
+		const { editPost, savePost } = dispatch( 'core/editor' );
 		const { saveEntityRecord } = dispatch( 'core' );
 		return {
 			editPost,
+			savePost,
 			saveLayout: payload =>
 				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
 					status: 'publish',
@@ -79,7 +80,16 @@ export default compose( [
 		};
 	} ),
 ] )(
-	( { editPost, layoutId, saveLayout, postBlocks, postTitle, isEditedPostEmpty, layoutMeta } ) => {
+	( {
+		editPost,
+		savePost,
+		layoutId,
+		saveLayout,
+		postBlocks,
+		postTitle,
+		isEditedPostEmpty,
+		layoutMeta
+	} ) => {
 		const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 		const { layouts, isFetchingLayouts } = useLayoutsState();
 
@@ -111,6 +121,8 @@ export default compose( [
 				post_title: updatedLayout.title.raw,
 				post_type: LAYOUT_CPT_SLUG,
 			} );
+
+			savePost();
 		};
 
 		const postContent = useMemo( () => serialize( postBlocks ), [ postBlocks ] );
