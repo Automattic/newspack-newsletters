@@ -1,3 +1,24 @@
+## [3.1.5](https://github.com/Automattic/newspack-newsletters/compare/v3.1.4...v3.1.5) (2024-09-16)
+
+
+### Bug Fixes
+
+* **cc:** urlencode query args before passing to CC API ([#1659](https://github.com/Automattic/newspack-newsletters/issues/1659)) ([4f645d2](https://github.com/Automattic/newspack-newsletters/commit/4f645d251e07ed0142f8111aa8e5f667639c9f81))
+
+## [3.1.4](https://github.com/Automattic/newspack-newsletters/compare/v3.1.3...v3.1.4) (2024-09-12)
+
+
+### Bug Fixes
+
+* handle encoded URLs and block patterns in redirect check ([#1635](https://github.com/Automattic/newspack-newsletters/issues/1635)) ([2fa5d16](https://github.com/Automattic/newspack-newsletters/commit/2fa5d166e3794abdb5242a5e82ed0528f14eaaba))
+
+## [3.1.3](https://github.com/Automattic/newspack-newsletters/compare/v3.1.2...v3.1.3) (2024-09-12)
+
+
+### Bug Fixes
+
+* active campaign usage report, fetch campaigns in batches ([#1649](https://github.com/Automattic/newspack-newsletters/issues/1649)) ([e8a4155](https://github.com/Automattic/newspack-newsletters/commit/e8a415534f7a2db0c7a308c47792d9583af7cc0a))
+
 ## [3.1.2](https://github.com/Automattic/newspack-newsletters/compare/v3.1.1...v3.1.2) (2024-09-09)
 
 

@@ -138,55 +138,74 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 	 */
 	public function get_status_payload_data() {
 		return [
-			'empty'              => [
+			'empty'                  => [
 				[],
+				null,
 				[ 'status' => 'subscribed' ],
 			],
-			'empty_metadata'     => [
+			'empty_metadata'         => [
 				[
 					'metadata' => [],
 				],
+				null,
 				[ 'status' => 'subscribed' ],
 			],
-			'empty_status'       => [
+			'empty_status'           => [
 				[
 					'metadata' => [
 						'status' => '',
 					],
 				],
+				null,
 				[ 'status' => 'subscribed' ],
 			],
-			'only_status'        => [
+			'only_status'            => [
 				[
 					'metadata' => [
 						'status' => 'transactional',
 					],
 				],
+				null,
 				[
 					'status' => 'transactional',
 				],
 			],
-			'only status if new' => [
+			'only status if new'     => [
 				[
 					'metadata' => [
 						'status_if_new' => 'transactional',
 					],
 				],
+				null,
 				[
 					'status_if_new' => 'transactional',
 				],
 			],
-			'both'               => [
+			'both'                   => [
 				[
 					'metadata' => [
 						'status_if_new' => 'transactional',
 						'status'        => 'subscribed',
 					],
 				],
+				null,
 				[
 					'status_if_new' => 'transactional',
 					'status'        => 'subscribed',
 				],
+			],
+			'status_if_unsubscribed' => [
+				[
+					'existing_contact_data' => [
+						'lists' => [
+							'list1' => [
+								'status' => 'unsubscribed',
+							],
+						],
+					],
+				],
+				'list1',
+				[ 'status' => 'pending' ],
 			],
 		];
 	}
@@ -194,14 +213,15 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 	/**
 	 * Test get_status_for_payload
 	 *
-	 * @param array $input    Input data.
-	 * @param array $expected Expected output.
+	 * @param array       $arg1     Input data.
+	 * @param string|null $arg2     Input data.
+	 * @param array       $expected Expected output.
 	 * @dataProvider get_status_payload_data
 	 */
-	public function test_get_status_for_payload( $input, $expected ) {
+	public function test_get_status_for_payload( $arg1, $arg2, $expected ) {
 		$method = self::get_private_method( 'get_status_for_payload' );
 		$service = Newspack_Newsletters_Mailchimp::instance();
-		$this->assertSame( $expected, $method->invoke( $service, $input ) );
+		$this->assertSame( $expected, $method->invoke( $service, $arg1, $arg2 ) );
 	}
 
 	/**
