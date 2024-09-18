@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 import { __, sprintf, _n } from '@wordpress/i18n';
-import { Fragment } from '@wordpress/element';
 
 /**
  * External dependencies
@@ -91,6 +90,7 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 }
 
 export default {
+	displayName: 'Mailchimp',
 	ProviderSidebar,
 	renderPreSendInfo,
 	isCampaignSent

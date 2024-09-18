@@ -799,6 +799,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'sublists'                          => $send_sublists,
 			];
 
+			if ( $campaign_id ) {
+				$newsletter_data['link'] = sprintf(
+					'https://%s.activehosted.com/app/campaigns/%d',
+					explode( '.', str_replace( 'https://', '', $this->api_credentials()['url'] ) )[0],
+					$campaign_id
+				);
+			}
+
 			// Handle legacy sender meta.
 			$from_name   = get_post_meta( $post_id, 'senderName', true );
 			$from_email  = get_post_meta( $post_id, 'senderEmail', true );

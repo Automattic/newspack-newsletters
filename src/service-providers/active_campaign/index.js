@@ -56,6 +56,7 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 }
 
 export default {
+	displayName: 'ActiveCampaign',
 	renderPreSendInfo,
 	isCampaignSent
 };

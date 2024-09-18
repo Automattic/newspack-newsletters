@@ -26,6 +26,7 @@ import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
 import { registerStore, fetchNewsletterData, useNewsletterDataError } from './store';
 import { isSupportedESP } from './utils';
+import CampaignLink from './campaign-link';
 import './debug-send';
 
 registerStore();
@@ -118,6 +119,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			<PluginSidebarMoreMenuItem target={ stylingId } icon={ styles }>
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
+
+			<CampaignLink />
 
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
