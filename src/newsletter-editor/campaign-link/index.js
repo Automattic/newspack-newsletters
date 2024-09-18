@@ -24,7 +24,7 @@ export default function CampaignLink() {
 		>
 			{ sprintf(
 					// translators: %s: service provider name.
-					__('View Campaign in %s', 'newspack-newsletters'),
+					__( 'View Campaign in %s', 'newspack-newsletters' ),
 					getServiceProvider().displayName
 			) }
 		</Button>
