@@ -481,7 +481,7 @@ Error message(s) received:
 						'newspack-newsletters'
 					),
 					$post->post_title,
-					get_edit_post_link( $post_id ),
+					admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
 					$errors
 				);
 
