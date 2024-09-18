@@ -8,6 +8,7 @@ import {
 	PluginDocumentSettingPanel,
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
+	PluginPostStatusInfo,
 } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
@@ -120,7 +121,9 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
 
-			<CampaignLink />
+			<PluginPostStatusInfo>
+				<CampaignLink />
+			</PluginPostStatusInfo>
 
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"

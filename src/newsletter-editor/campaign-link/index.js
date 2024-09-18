@@ -3,7 +3,6 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
-import { PluginPostStatusInfo } from '@wordpress/edit-post';
 
 /**
  * Internal dependencies
@@ -13,23 +12,21 @@ import { useNewsletterData } from '../../newsletter-editor/store';
 
 export default function CampaignLink() {
 	const newsletterData = useNewsletterData();
-  if ( ! newsletterData.link ) {
-    return null;
-  }
+	if ( ! newsletterData.link ) {
+		return null;
+	}
 	return (
-		<PluginPostStatusInfo>
-			<Button
-				variant="secondary"
-				href={ newsletterData.link }
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				{ sprintf(
-            // translators: %s: service provider name.
-            __('View Campaign in %s', 'newspack-newsletters'),
-            getServiceProvider().displayName
-        ) }
-			</Button>
-		</PluginPostStatusInfo>
+		<Button
+			variant="secondary"
+			href={ newsletterData.link }
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			{ sprintf(
+					// translators: %s: service provider name.
+					__('View Campaign in %s', 'newspack-newsletters'),
+					getServiceProvider().displayName
+			) }
+		</Button>
 	);
 }
