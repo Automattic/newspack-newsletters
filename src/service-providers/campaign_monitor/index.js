@@ -64,6 +64,7 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 
 
 export default {
+	displayName: 'Campaign Monitor',
 	renderPreSendInfo,
 	isCampaignSent
 };

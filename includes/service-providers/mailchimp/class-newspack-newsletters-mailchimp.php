@@ -437,7 +437,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$mc->get(
 					"campaigns/$mc_campaign_id",
 					[
-						'fields' => 'id,type,status,emails_sent,content_type,recipients,settings',
+						'fields' => 'id,web_id,type,status,emails_sent,content_type,recipients,settings',
 					]
 				),
 				__( 'Error retrieving Mailchimp campaign.', 'newspack_newsletters' )
@@ -494,6 +494,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'folders'                => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
 				'allowed_sender_domains' => $this->get_verified_domains(),
 				'merge_fields'           => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
+				'link'                   => sprintf( 'https://%s.admin.mailchimp.com/campaigns/edit?id=%d', explode( '-', $this->api_key() )[1], $campaign['web_id'] ),
 			];
 
 			// Reconcile campaign settings with info fetched from the ESP for a true two-way sync.

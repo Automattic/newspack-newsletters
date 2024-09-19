@@ -8,6 +8,7 @@ import {
 	PluginDocumentSettingPanel,
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
+	PluginPostStatusInfo,
 } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
@@ -26,6 +27,7 @@ import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
 import { registerStore, fetchNewsletterData, useNewsletterDataError } from './store';
 import { isSupportedESP } from './utils';
+import CampaignLink from './campaign-link';
 import './debug-send';
 
 registerStore();
@@ -119,17 +121,21 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
 
+			<PluginPostStatusInfo>
+				{ isConnected && <PublicSettings /> }
+			</PluginPostStatusInfo>
+
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
-				title={ __( 'Newsletter', 'newspack-newsletters' ) }
+				title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }
 			>
+				<CampaignLink />
 				<Sidebar
 					inFlight={ inFlight }
 					isConnected={ isConnected }
 					oauthUrl={ oauthUrl }
 					onAuthorize={ verifyToken }
 				/>
-				{ isConnected && <PublicSettings /> }
 			</PluginDocumentSettingPanel>
 			{ isSupportedESP() && (
 				<PluginDocumentSettingPanel

@@ -487,6 +487,25 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Get the campaign link.
+	 *
+	 * @param object $campaign Campaign object.
+	 *
+	 * @return string Campaign link.
+	 */
+	private static function get_campaign_link( $campaign ) {
+		if ( empty( $campaign->campaign_activities ) ) {
+			return '';
+		}
+		$activity_index = array_search( 'primary_email', array_column( $campaign->campaign_activities, 'role' ) );
+		if ( false === $activity_index ) {
+			return '';
+		}
+		$activity = $campaign->campaign_activities[ $activity_index ];
+		return sprintf( 'https://app.constantcontact.com/pages/ace/v1#/%s', $activity->campaign_activity_id );
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
@@ -526,6 +545,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			$newsletter_data = [
 				'campaign'              => $campaign,
 				'campaign_id'           => $cc_campaign_id,
+				'link'                  => $this->get_campaign_link( $campaign ),
 				'allowed_sender_emails' => $this->get_verified_email_addresses(), // Get allowed email addresses for sender UI.
 				'email_settings_url'    => 'https://app.constantcontact.com/pages/myaccount/settings/emails',
 			];

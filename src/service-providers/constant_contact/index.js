@@ -69,6 +69,7 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 }
 
 export default {
+	displayName: 'Constant Contact',
 	hasOauth,
 	renderPreSendInfo,
 	isCampaignSent,
