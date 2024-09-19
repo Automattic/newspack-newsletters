@@ -16,17 +16,19 @@ export default function CampaignLink() {
 		return null;
 	}
 	return (
-		<Button
-			variant="secondary"
-			href={ newsletterData.link }
-			target="_blank"
-			rel="noopener noreferrer"
-		>
-			{ sprintf(
-					// translators: %s: service provider name.
-					__( 'View Campaign in %s', 'newspack-newsletters' ),
-					getServiceProvider().displayName
-			) }
-		</Button>
+		<p>
+			<Button
+				variant="secondary"
+				href={ newsletterData.link }
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				{ sprintf(
+						// translators: %s: service provider name.
+						__( 'View Campaign in %s', 'newspack-newsletters' ),
+						getServiceProvider().displayName
+				) }
+			</Button>
+		</p>
 	);
 }

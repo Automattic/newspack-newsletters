@@ -122,20 +122,20 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			</PluginSidebarMoreMenuItem>
 
 			<PluginPostStatusInfo>
-				<CampaignLink />
+				{ isConnected && <PublicSettings /> }
 			</PluginPostStatusInfo>
 
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
-				title={ __( 'Newsletter', 'newspack-newsletters' ) }
+				title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }
 			>
+				<CampaignLink />
 				<Sidebar
 					inFlight={ inFlight }
 					isConnected={ isConnected }
 					oauthUrl={ oauthUrl }
 					onAuthorize={ verifyToken }
 				/>
-				{ isConnected && <PublicSettings /> }
 			</PluginDocumentSettingPanel>
 			{ isSupportedESP() && (
 				<PluginDocumentSettingPanel
