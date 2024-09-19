@@ -735,6 +735,44 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Given legacy newsletterData, extract sender and send-to info.
+	 *
+	 * @param array $newsletter_data Newsletter data from the ESP.
+	 * @return array {
+	 *    Extracted sender and send-to info. All keys are optional and will be
+	 *    returned only if found in the campaign data.
+	 *
+	 *    @type string $senderName Sender name.
+	 *    @type string $senderEmail Sender email.
+	 *    @type string $list_id List ID.
+	 *    @type string $sublist_id Sublist ID.
+	 * }
+	 */
+	public function extract_campaign_info( $newsletter_data ) {
+		$campaign_info = [];
+
+		// Sender info.
+		if ( ! empty( $newsletter_data['from_name'] ) ) {
+			$campaign_info['from_name'] = $newsletter_data['from_name'];
+		}
+		if ( ! empty( $newsletter_data['from_email'] ) ) {
+			$campaign_info['senderEmail'] = $newsletter_data['from_email'];
+		}
+
+		// List.
+		if ( ! empty( $newsletter_data['list_id'] ) ) {
+			$campaign_info['list_id'] = $newsletter_data['list_id'];
+		}
+
+		// Segment.
+		if ( ! empty( $newsletter_data['segment_id'] ) ) {
+			$campaign_info['sublist_id'] = $newsletter_data['segment_id'];
+		}
+
+		return $campaign_info;
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param int  $post_id    Numeric ID of the Newsletter post.

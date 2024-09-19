@@ -224,7 +224,7 @@ final class Newspack_Newsletters_Layouts {
 						$campaign_defaults['senderEmail'] = $legacy_meta['senderEmail'];
 					}
 					$provider      = Newspack_Newsletters::get_service_provider();
-					$campaign_info = $provider->extract_campaign_info( $legacy_meta['newsletterData']['campaign'] ?? null );
+					$campaign_info = $provider->extract_campaign_info( $legacy_meta['newsletterData'] ?? null );
 					if ( ! empty( $campaign_info['list_id'] ) ) {
 						$campaign_defaults['send_list_id'] = $campaign_info['list_id'];
 					}

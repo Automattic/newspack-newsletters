@@ -452,9 +452,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
-	 * Given a campaign object from the ESP, extract sender and send-to info.
+	 * Given a campaign object from the ESP or legacy newsletterData, extract sender and send-to info.
 	 *
-	 * @param array $campaign Campaign data from the ESP.
+	 * @param array $newsletter_data Newsletter data from the ESP.
 	 * @return array {
 	 *    Extracted sender and send-to info. All keys are optional and will be
 	 *    returned only if found in the campaign data.
@@ -465,11 +465,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *    @type string $sublist_id Sublist ID.
 	 * }
 	 */
-	public function extract_campaign_info( $campaign ) {
-		$campaign_info = [];
-		if ( ! $campaign ) {
+	public function extract_campaign_info( $newsletter_data ) {
+		$campaign_info = [];if ( empty( $newsletter_data['campaign'] ) ) {
 			return $campaign_info;
 		}
+		$campaign = $newsletter_data['campaign'];
 
 		// Sender info.
 		if ( ! empty( $campaign['settings']['from_name'] ) ) {
@@ -479,12 +479,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$campaign_info['senderEmail'] = $campaign['settings']['reply_to'];
 		}
 
-		// Send list.
+		// Audience.
 		if ( ! empty( $campaign['recipients']['list_id'] ) ) {
 			$campaign_info['list_id'] = $campaign['recipients']['list_id'];
 		}
 
-		// Send sublist.
+		// Group, segment, or tag.
 		if ( ! empty( $campaign['recipients']['segment_opts'] ) ) {
 			$segment_opts  = $campaign['recipients']['segment_opts'];
 			$target_id_raw = $segment_opts['saved_segment_id'] ?? null;
@@ -539,7 +539,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				}
 			}
 
-			$campaign_info   = $this->extract_campaign_info( $campaign );
+			$campaign_info   = $this->extract_campaign_info( [ 'campaign' => $campaign ] );
 			$list_id         = $campaign_info['list_id'] ?? null;
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
