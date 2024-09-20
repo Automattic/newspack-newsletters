@@ -1,3 +1,24 @@
+## [3.1.6](https://github.com/Automattic/newspack-newsletters/compare/v3.1.5...v3.1.6) (2024-09-18)
+
+
+### Bug Fixes
+
+* automatically retry failed scheduled sends ([#1660](https://github.com/Automattic/newspack-newsletters/issues/1660)) ([e0cca64](https://github.com/Automattic/newspack-newsletters/commit/e0cca64305df9380fd0cda91f68e61bee840f52e))
+
+## [3.1.5](https://github.com/Automattic/newspack-newsletters/compare/v3.1.4...v3.1.5) (2024-09-16)
+
+
+### Bug Fixes
+
+* **cc:** urlencode query args before passing to CC API ([#1659](https://github.com/Automattic/newspack-newsletters/issues/1659)) ([4f645d2](https://github.com/Automattic/newspack-newsletters/commit/4f645d251e07ed0142f8111aa8e5f667639c9f81))
+
+## [3.1.4](https://github.com/Automattic/newspack-newsletters/compare/v3.1.3...v3.1.4) (2024-09-12)
+
+
+### Bug Fixes
+
+* handle encoded URLs and block patterns in redirect check ([#1635](https://github.com/Automattic/newspack-newsletters/issues/1635)) ([2fa5d16](https://github.com/Automattic/newspack-newsletters/commit/2fa5d166e3794abdb5242a5e82ed0528f14eaaba))
+
 ## [3.1.3](https://github.com/Automattic/newspack-newsletters/compare/v3.1.2...v3.1.3) (2024-09-12)
 
 
