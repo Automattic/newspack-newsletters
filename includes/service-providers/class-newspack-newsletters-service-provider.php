@@ -649,13 +649,47 @@ Error message(s) received:
 			return true;
 		}
 		if ( static::$support_local_lists ) {
-			$lists_to_add    = $this->update_contact_local_lists( $email, $lists_to_add, 'add' );
-			$lists_to_remove = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove' );
-			if ( is_wp_error( $lists_to_add ) ) {
-				return $lists_to_add;
+			$added_result   = $this->update_contact_local_lists( $email, $lists_to_add, 'add', true );
+			$removed_result = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove', true );
+
+			// If there are errors, log them but allow processing to continue.
+			if ( is_wp_error( $added_result ) ) {
+				do_action(
+					'newspack_log',
+					'newspack_esp_update_contact_lists_error',
+					sprintf(
+						'Error adding contact to lists: %s',
+						implode( ', ', $lists_to_add )
+					),
+					[
+						'type'       => 'error',
+						'data'       => [
+							'provider' => $this->service,
+							'errors'   => $added_result->get_error_messages(),
+						],
+						'user_email' => $email,
+						'file'       => 'newspack_' . $this->service,
+					]
+				);
 			}
-			if ( is_wp_error( $lists_to_remove ) ) {
-				return $lists_to_remove;
+			if ( is_wp_error( $removed_result ) ) {
+				do_action(
+					'newspack_log',
+					'newspack_esp_update_contact_lists_error',
+					sprintf(
+						'Error adding contact to lists: %s',
+						implode( ', ', $lists_to_remove )
+					),
+					[
+						'type'       => 'error',
+						'data'       => [
+							'provider' => $this->service,
+							'errors'   => $removed_result->get_error_messages(),
+						],
+						'user_email' => $email,
+						'file'       => 'newspack_' . $this->service,
+					]
+				);
 			}
 		}
 		return $this->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
