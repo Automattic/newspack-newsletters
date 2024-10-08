@@ -649,8 +649,8 @@ Error message(s) received:
 			return true;
 		}
 		if ( static::$support_local_lists ) {
-			$lists_to_add            = $this->update_contact_local_lists( $email, $lists_to_add, 'add', true );
-			$lists_to_remove         = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove', true );
+			$lists_to_add    = $this->update_contact_local_lists( $email, $lists_to_add, 'add', true );
+			$lists_to_remove = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove', true );
 		}
 		return $this->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
 	}
