@@ -42,6 +42,9 @@ require_once 'mocks/class-mailchimp-mock.php';
 // WC Memberships mock.
 require_once 'mocks/wc-memberships.php';
 
+// Abstract ESP tests.
+require_once 'abstract-esp-tests.php';
+
 ini_set( 'error_log', 'php://stdout' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
 
 
