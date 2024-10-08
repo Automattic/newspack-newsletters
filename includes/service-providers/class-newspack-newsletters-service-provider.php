@@ -649,48 +649,8 @@ Error message(s) received:
 			return true;
 		}
 		if ( static::$support_local_lists ) {
-			$added_result   = $this->update_contact_local_lists( $email, $lists_to_add, 'add', true );
-			$removed_result = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove', true );
-
-			// If there are errors, log them but allow processing to continue.
-			if ( is_wp_error( $added_result ) ) {
-				do_action(
-					'newspack_log',
-					'newspack_esp_update_contact_lists_error',
-					sprintf(
-						'Error adding contact to lists: %s',
-						implode( ', ', $lists_to_add )
-					),
-					[
-						'type'       => 'error',
-						'data'       => [
-							'provider' => $this->service,
-							'errors'   => $added_result->get_error_messages(),
-						],
-						'user_email' => $email,
-						'file'       => 'newspack_' . $this->service,
-					]
-				);
-			}
-			if ( is_wp_error( $removed_result ) ) {
-				do_action(
-					'newspack_log',
-					'newspack_esp_update_contact_lists_error',
-					sprintf(
-						'Error adding contact to lists: %s',
-						implode( ', ', $lists_to_remove )
-					),
-					[
-						'type'       => 'error',
-						'data'       => [
-							'provider' => $this->service,
-							'errors'   => $removed_result->get_error_messages(),
-						],
-						'user_email' => $email,
-						'file'       => 'newspack_' . $this->service,
-					]
-				);
-			}
+			$lists_to_add            = $this->update_contact_local_lists( $email, $lists_to_add, 'add', true );
+			$lists_to_remove         = $this->update_contact_local_lists( $email, $lists_to_remove, 'remove', true );
 		}
 		return $this->update_contact_lists( $email, $lists_to_add, $lists_to_remove );
 	}
@@ -701,7 +661,7 @@ Error message(s) received:
 	 * @param string $email The contact email.
 	 * @param array  $lists An array with List IDs, mixing local and providers lists. Only local lists will be handled.
 	 * @param string $action The action to be performed. add or remove.
-	 * @return array|WP_Error The remaining lists that were not handled by this method, because they are not local lists.
+	 * @return array The remaining lists that were not handled by this method, because they are not local lists.
 	 */
 	protected function update_contact_local_lists( $email, $lists = [], $action = 'add' ) {
 		foreach ( $lists as $key => $list_id ) {
@@ -710,7 +670,23 @@ Error message(s) received:
 					$list = Subscription_List::from_public_id( $list_id );
 
 					if ( ! $list->is_configured_for_provider( $this->service ) ) {
-						return new WP_Error( 'List not properly configured for the provider' );
+						do_action(
+							'newspack_log',
+							'newspack_esp_update_contact_lists_error',
+							sprintf(
+								'Error handling local list: %s',
+								$list_id
+							),
+							[
+								'type'       => 'error',
+								'data'       => [
+									'provider' => $this->service,
+									'errors'   => __( 'List not properly configured for the provider', 'newspack-newsletters' ),
+								],
+								'user_email' => $email,
+								'file'       => 'newspack_' . $this->service,
+							]
+						);
 					}
 					$list_settings = $list->get_provider_settings( $this->service );
 
@@ -719,11 +695,26 @@ Error message(s) received:
 					} elseif ( 'remove' === $action ) {
 						$this->remove_esp_local_list_from_contact( $email, $list_settings['tag_id'], $list_settings['list'] );
 					}
-
 					unset( $lists[ $key ] );
-
 				} catch ( \InvalidArgumentException $e ) {
-					return new WP_Error( 'List not found' );
+					do_action(
+						'newspack_log',
+						'newspack_esp_update_contact_lists_error',
+						sprintf(
+							'Error handling local list: %s',
+							$list_id
+						),
+						[
+							'type'       => 'error',
+							'data'       => [
+								'provider' => $this->service,
+								'errors'   => __( 'List not found', 'newspack-newsletters' ),
+							],
+							'user_email' => $email,
+							'file'       => 'newspack_' . $this->service,
+						]
+					);
+					unset( $lists[ $key ] );
 				}
 			}
 		}
