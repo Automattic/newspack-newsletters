@@ -1,3 +1,10 @@
+## [3.1.7](https://github.com/Automattic/newspack-newsletters/compare/v3.1.6...v3.1.7) (2024-10-08)
+
+
+### Bug Fixes
+
+* dynamically fetch message ID in tests ([#1666](https://github.com/Automattic/newspack-newsletters/issues/1666)) ([fd31f61](https://github.com/Automattic/newspack-newsletters/commit/fd31f61c8393ffe69f1c41ab874b0f6fb8f36cc7))
+
 ## [3.1.6](https://github.com/Automattic/newspack-newsletters/compare/v3.1.5...v3.1.6) (2024-09-18)
 
 
