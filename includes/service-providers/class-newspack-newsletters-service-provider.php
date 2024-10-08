@@ -687,6 +687,7 @@ Error message(s) received:
 								'file'       => 'newspack_' . $this->service,
 							]
 						);
+						unset( $lists[ $key ] );
 						continue;
 					}
 					$list_settings = $list->get_provider_settings( $this->service );
