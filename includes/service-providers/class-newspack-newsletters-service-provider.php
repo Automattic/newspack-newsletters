@@ -673,15 +673,12 @@ Error message(s) received:
 						do_action(
 							'newspack_log',
 							'newspack_esp_update_contact_lists_error',
-							sprintf(
-								'Error handling local list: %s',
-								$list_id
-							),
+							__( 'Local list not properly configured for the provider', 'newspack-newsletters' ),
 							[
 								'type'       => 'error',
 								'data'       => [
 									'provider' => $this->service,
-									'errors'   => __( 'List not properly configured for the provider', 'newspack-newsletters' ),
+									'list_id'  => $list_id,
 								],
 								'user_email' => $email,
 								'file'       => 'newspack_' . $this->service,
@@ -702,15 +699,12 @@ Error message(s) received:
 					do_action(
 						'newspack_log',
 						'newspack_esp_update_contact_lists_error',
-						sprintf(
-							'Error handling local list: %s',
-							$list_id
-						),
+						__( 'Local list not found', 'newspack-newsletters' ),
 						[
 							'type'       => 'error',
 							'data'       => [
 								'provider' => $this->service,
-								'errors'   => __( 'List not found', 'newspack-newsletters' ),
+								'list_id'  => $list_id,
 							],
 							'user_email' => $email,
 							'file'       => 'newspack_' . $this->service,
