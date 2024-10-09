@@ -753,7 +753,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 
 		// Sender info.
 		if ( ! empty( $newsletter_data['from_name'] ) ) {
-			$campaign_info['from_name'] = $newsletter_data['from_name'];
+			$campaign_info['senderName'] = $newsletter_data['from_name'];
 		}
 		if ( ! empty( $newsletter_data['from_email'] ) ) {
 			$campaign_info['senderEmail'] = $newsletter_data['from_email'];
@@ -942,7 +942,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $campaign_data ) ) {
 			return $campaign_data;
 		}
-		$campaign_messages = explode( ',', $campaign_data[0]['messageslist'] ); 
+		$campaign_messages = explode( ',', $campaign_data[0]['messageslist'] );
 		$message_id        = ! empty( $campaign_messages ) ? reset( $campaign_messages ) : 0;
 
 		$test_result = $this->api_v1_request(

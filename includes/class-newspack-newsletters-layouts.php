@@ -231,6 +231,12 @@ final class Newspack_Newsletters_Layouts {
 					if ( ! empty( $campaign_info['sublist_id'] ) ) {
 						$campaign_defaults['send_sublist_id'] = $campaign_info['sublist_id'];
 					}
+					if ( ! empty( $campaign_info['senderName'] ) ) {
+						$campaign_defaults['senderName'] = $campaign_info['senderName'];
+					}
+					if ( ! empty( $campaign_info['senderEmail'] ) ) {
+						$campaign_defaults['senderEmail'] = $campaign_info['senderEmail'];
+					}
 					if ( ! empty( $campaign_defaults ) ) {
 						$campaign_defaults = wp_json_encode( $campaign_defaults );
 						update_post_meta( $post->ID, 'campaign_defaults', $campaign_defaults );
