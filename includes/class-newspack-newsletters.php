@@ -683,7 +683,7 @@ final class Newspack_Newsletters {
 	 */
 	public static function rest_api_init() {
 		\register_rest_route(
-			'newspack-newsletters/v1',
+			self::API_NAMESPACE,
 			'layouts',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -692,7 +692,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1',
+			self::API_NAMESPACE,
 			'settings',
 			[
 				'methods'             => \WP_REST_Server::READABLE,
@@ -701,7 +701,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1',
+			self::API_NAMESPACE,
 			'settings',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -715,7 +715,7 @@ final class Newspack_Newsletters {
 			]
 		);
 		\register_rest_route(
-			'newspack-newsletters/v1',
+			self::API_NAMESPACE,
 			'color-palette',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -725,7 +725,7 @@ final class Newspack_Newsletters {
 		);
 
 		\register_rest_route(
-			'newspack-newsletters/v1',
+			self::API_NAMESPACE,
 			'post-mjml',
 			[
 				'methods'             => \WP_REST_Server::EDITABLE,
@@ -808,32 +808,7 @@ final class Newspack_Newsletters {
 	 * Retrieve Layouts.
 	 */
 	public static function api_get_layouts() {
-		$layouts_query = new WP_Query(
-			[
-				'post_type'      => Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
-				'posts_per_page' => -1,
-			]
-		);
-		$user_layouts  = array_map(
-			function ( $post ) {
-				$post->meta = [
-					'background_color'  => get_post_meta( $post->ID, 'background_color', true ),
-					'font_body'         => get_post_meta( $post->ID, 'font_body', true ),
-					'font_header'       => get_post_meta( $post->ID, 'font_header', true ),
-					'custom_css'        => get_post_meta( $post->ID, 'custom_css', true ),
-					'campaign_defaults' => get_post_meta( $post->ID, 'campaign_defaults', true ),
-				];
-				return $post;
-			},
-			$layouts_query->get_posts()
-		);
-		$layouts       = array_merge(
-			$user_layouts,
-			Newspack_Newsletters_Layouts::get_default_layouts(),
-			apply_filters( 'newspack_newsletters_templates', [] )
-		);
-
-		return \rest_ensure_response( $layouts );
+		return \rest_ensure_response( Newspack_Newsletters_Layouts::get_layouts() );
 	}
 
 	/**

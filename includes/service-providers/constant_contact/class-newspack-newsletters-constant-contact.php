@@ -506,6 +506,50 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Given a campaign object from the ESP or legacy newsletterData, extract sender and send-to info.
+	 *
+	 * @param array $newsletter_data Newsletter data from the ESP.
+	 * @return array {
+	 *    Extracted sender and send-to info. All keys are optional and will be
+	 *    returned only if found in the campaign data.
+	 *
+	 *    @type string $senderName Sender name.
+	 *    @type string $senderEmail Sender email.
+	 *    @type string $list_id List ID.
+	 *    @type string $sublist_id Sublist ID.
+	 * }
+	 */
+	public function extract_campaign_info( $newsletter_data ) {
+		$campaign_info = [];
+		if ( empty( $newsletter_data['campaign'] ) ) {
+			return $campaign_info;
+		}
+
+		// Convert stdClass object to an array.
+		$campaign = json_decode( wp_json_encode( $newsletter_data['campaign'] ), true );
+
+		// Sender info.
+		if ( ! empty( $campaign['activity']['from_name'] ) ) {
+			$campaign_info['senderName'] = $campaign['activity']['from_name'];
+		}
+		if ( ! empty( $campaign['activity']['from_email'] ) ) {
+			$campaign_info['senderEmail'] = $campaign['activity']['from_email'];
+		}
+
+		// List.
+		if ( ! empty( $campaign['activity']['contact_list_ids'][0] ) ) {
+			$campaign_info['list_id'] = $campaign['activity']['contact_list_ids'][0];
+		}
+
+		// Segment. CC campaigns can be sent to either lists or segments, so if a segment is set it'll override the list.
+		if ( ! empty( $campaign['activity']['segment_ids'][0] ) ) {
+			$campaign_info['list_id'] = $campaign['activity']['segment_ids'][0];
+		}
+
+		return $campaign_info;
+	}
+
+	/**
 	 * Retrieve a campaign.
 	 *
 	 * @param integer $post_id Numeric ID of the Newsletter post.
@@ -539,8 +583,8 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				}
 			}
 
-			$list_id         = $campaign->activity->contact_list_ids[0] ?? null;
-			$segment_id      = $campaign->activity->segment_ids[0] ?? null;
+			$campaign_info   = $this->extract_campaign_info( [ 'campaign' => $campaign ] );
+			$list_id         = $campaign_info['list_id'] ?? null;
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$newsletter_data = [
 				'campaign'              => $campaign,
@@ -551,14 +595,14 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			];
 
 			// Reconcile campaign settings with info fetched from the ESP for a true two-way sync.
-			if ( ! empty( $campaign->activity->from_name ) && $campaign->activity->from_name !== get_post_meta( $post_id, 'senderName', true ) ) {
-				$newsletter_data['senderName'] = $campaign->activity->from_name; // If campaign has different sender info set, update ours.
+			if ( ! empty( $campaign_info['senderName'] ) && $campaign_info['senderName'] !== get_post_meta( $post_id, 'senderName', true ) ) {
+				$newsletter_data['senderName'] = $campaign_info['senderName']; // If campaign has different sender info set, update ours.
 			}
-			if ( ! empty( $campaign->activity->from_email ) && $campaign->activity->from_email !== get_post_meta( $post_id, 'senderEmail', true ) ) {
-				$newsletter_data['senderEmail'] = $campaign->activity->from_email; // If campaign has different sender info set, update ours.
+			if ( ! empty( $campaign_info['senderEmail'] ) && $campaign_info['senderEmail'] !== get_post_meta( $post_id, 'senderEmail', true ) ) {
+				$newsletter_data['senderEmail'] = $campaign_info['senderEmail']; // If campaign has different sender info set, update ours.
 			}
-			if ( ( $list_id || $segment_id ) && $list_id !== $send_list_id && $segment_id !== $send_list_id ) {
-				$newsletter_data['send_list_id'] = strval( $list_id ?? $segment_id ); // If campaign has different list or segment set, update ours.
+			if ( $list_id && $list_id !== $send_list_id ) {
+				$newsletter_data['send_list_id'] = strval( $list_id ); // If campaign has different list or segment set, update ours.
 				$send_list_id                    = $newsletter_data['send_list_id'];
 			}
 
