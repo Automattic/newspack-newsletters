@@ -13,6 +13,7 @@ import { useEffect, useState } from '@wordpress/element';
  */
 import Autocomplete from './autocomplete';
 import { fetchSendLists, useNewsletterData } from '../store';
+import { usePrevious } from '../utils';
 
 // The container for list + sublist autocomplete fields.
 const SendTo = () => {
@@ -36,6 +37,7 @@ const SendTo = () => {
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
 	const selectedList = lists.find( item => item.id === listId );
 	const selectedSublist = sublists?.find( item => item.id === sublistId );
+	const prevListId = usePrevious( listId );
 
 	// Cancel any queued fetches on unmount.
 	useEffect( () => {
@@ -58,6 +60,11 @@ const SendTo = () => {
 		// Prefetch sublist info when selecting a new list ID.
 		if ( listId && ! sublistId && newsletterData?.sublists && 1 >= newsletterData.sublists.length ) {
 			fetchSendLists( { type: 'sublist', parent_id: listId } );
+		}
+
+		// If selecting a new list entirely.
+		if ( listId && listId !== prevListId ) {
+			fetchSendLists( { type: 'sublist', parent_id: listId }, true );
 		}
 	}, [ newsletterData, listId, sublistId ] );
 
