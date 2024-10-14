@@ -626,7 +626,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 						'provider'    => $this->service,
 						'type'        => 'sublist',
 						'id'          => $segment['id'],
-						'parent'      => $args['parent'] ?? null,
+						'parent_id'   => $args['parent_id'] ?? null,
 						'name'        => $segment_name,
 						'entity_type' => 'segment',
 						'count'       => $segment['subscriber_count'] ?? null,

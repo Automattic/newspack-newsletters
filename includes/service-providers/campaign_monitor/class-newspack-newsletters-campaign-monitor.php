@@ -221,9 +221,9 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 		$segments = array_map(
 			function ( $item ) {
 				return [
-					'id'     => $item->SegmentID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					'name'   => $item->Title, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					'parent' => $item->ListID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'id'        => $item->SegmentID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'name'      => $item->Title, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'parent_id' => $item->ListID, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				];
 			},
 			$segments->response

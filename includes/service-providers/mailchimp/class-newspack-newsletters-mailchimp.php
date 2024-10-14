@@ -725,7 +725,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 									'id'          => $interest['id'],
 									'name'        => $interest['name'],
 									'entity_type' => $entity_type,
-									'parent'      => $interest['list_id'],
+									'parent_id'   => $interest['list_id'],
 									'count'       => $interest['subscriber_count'],
 								];
 								if ( $admin_url && $audience['web_id'] ) {
@@ -749,7 +749,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'id'          => $tag['id'],
 						'name'        => $tag['name'],
 						'entity_type' => $entity_type,
-						'parent'      => $tag['list_id'],
+						'parent_id'   => $tag['list_id'],
 						'count'       => $tag['member_count'],
 					];
 					if ( $admin_url && $audience['web_id'] ) {
@@ -770,7 +770,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'id'          => $segment['id'],
 						'name'        => $segment['name'],
 						'entity_type' => $entity_type,
-						'parent'      => $segment['list_id'],
+						'parent_id'   => $segment['list_id'],
 						'count'       => $segment['member_count'],
 					];
 					if ( $admin_url && $audience['web_id'] ) {
@@ -1044,12 +1044,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$sublist = $this->get_send_lists(
 					[
 						'ids'       => [ $send_sublist_id ],
-						'limit'     => 1,
+						'limit'     => 1000,
 						'parent_id' => $send_list_id,
 						'type'      => 'sublist',
 					]
 				);
-				if ( ! empty( $sublist[0]->get_entity_type() ) ) {
+				if ( ! empty( $sublist ) && ! empty( $sublist[0]->get_entity_type() ) ) {
 					$sublist_type = $sublist[0]->get_entity_type();
 					switch ( $sublist_type ) {
 						case 'group':
