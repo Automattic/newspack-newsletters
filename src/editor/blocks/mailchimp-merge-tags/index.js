@@ -12,6 +12,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../../service-providers';
+import { STORE_NAMESPACE } from '../../../newsletter-editor/store';
 import tags from './merge-tags';
 import './style.scss';
 
@@ -25,8 +26,9 @@ const getCompleter = () => {
 		name: 'Mailchimp Merge Tags',
 		triggerPrefix: '*|',
 		options: () => {
-			const { getEditedPostAttribute } = wp.data.select( 'core/editor' );
-			const listMergeFields = getEditedPostAttribute( 'meta' )?.newsletterData?.merge_fields || [];
+			const { getData } = wp.data.select( STORE_NAMESPACE );
+			const newsletterData = getData();
+			const listMergeFields = newsletterData?.merge_fields || [];
 			return uniqBy(
 				[
 					...listMergeFields.map( mergeField => ( {

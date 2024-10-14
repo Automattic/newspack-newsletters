@@ -1,7 +1,15 @@
+/* global newspack_email_editor_data */
+
 /**
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
+import { __ } from '@wordpress/i18n';
+
+/**
+ * External dependencies
+ */
+import mjml2html from 'mjml-browser';
 
 /**
  * Internal dependencies
@@ -9,24 +17,39 @@ import apiFetch from '@wordpress/api-fetch';
 import { getServiceProvider } from '../service-providers';
 
 /**
- * External dependencies
+ * Is the current ESP a supported, connected ESP?
+ *
+ * @return {boolean} True if the ESP is supported and connected.
  */
-import mjml2html from 'mjml-browser';
-
-export const getEditPostPayload = newsletterData => {
-	return {
-		meta: {
-			newsletterData,
-		},
-	};
+export const isSupportedESP = () => {
+	const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
+	const { name: serviceProviderName } = getServiceProvider();
+	return serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
 };
 
-export const validateNewsletter = newsletterData => {
-	const { validateNewsletter: validate } = getServiceProvider();
-	if ( ! validate ) {
+/**
+ * Validation utility.
+ *
+ * @param {Object} meta              Post meta.
+ * @param {string} meta.senderEmail  Sender email address.
+ * @param {string} meta.senderName   Sender name.
+ * @param {string} meta.send_list_id Send-to list ID.
+ * @return {string[]} Array of validation messages. If empty, newsletter is valid.
+ */
+export const validateNewsletter = ( meta = {} ) => {
+	const { name: serviceProviderName } = getServiceProvider();
+	if ( 'manual' === serviceProviderName ) {
 		return [];
 	}
-	return validate( newsletterData );
+	const { senderEmail, senderName, send_list_id: listId } = meta;
+	const messages = [];
+	if ( ! senderEmail || ! senderName ) {
+		messages.push( __( 'Missing required sender info.', 'newspack-newsletters' ) );
+	}
+	if ( ! listId ) {
+		messages.push( __( 'Missing required list.', 'newspack-newsletters' ) );
+	}
+	return messages;
 };
 
 /**
@@ -60,3 +83,4 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 	const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
 	return html;
 };
+

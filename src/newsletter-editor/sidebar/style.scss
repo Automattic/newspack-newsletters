@@ -27,6 +27,27 @@
 		}
 	}
 
+	&__sidebar {
+		.components-notice + * {
+			margin-top: 16px;
+		}
+	}
+
+	&__send-to {
+		margin: 16px 0;
+		.components-button-group {
+			margin-top: 8px;
+		}
+		.newspack-newsletters__send-to-details {
+			font-weight: 500;
+			margin-bottom: 0;
+			span {
+				color: wp-colors.$gray-600;
+				display: block;
+			}
+		}
+	}
+
 	&__send-test {
 		.components-button + .components-button {
 			margin-left: 12px;
@@ -39,6 +60,10 @@
 		> li:last-child {
 			margin-bottom: 0;
 		}
+	}
+
+	&__error {
+		color: wp-colors.$alert-red;
 	}
 
 	&__error input.components-text-control__input {

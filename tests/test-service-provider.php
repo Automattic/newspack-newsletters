@@ -38,7 +38,7 @@ class Newsletters_Newsletter_Service_Provider_Test extends WP_UnitTestCase {
 		);
 
 		$this->expectException( WPDieException::class );
-		$this->expectExceptionMessage( 'No Mailchimp API key available.' );
+		$this->expectExceptionMessage( 'Missing or invalid Mailchimp credentials.' );
 
 		wp_update_post(
 			[

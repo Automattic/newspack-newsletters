@@ -8,7 +8,7 @@ import { find } from 'lodash';
  * WordPress dependencies
  */
 import { parse } from '@wordpress/blocks';
-import { Fragment, useState, useEffect } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { useDispatch } from '@wordpress/data';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -39,8 +39,8 @@ export default function LayoutPicker() {
 
 	const insertLayout = layoutId => {
 		const { post_content, meta = {} } = find( layouts, { ID: layoutId } ) || {};
-		if ( meta.layout_defaults !== undefined ) {
-			meta.stringifiedLayoutDefaults = meta.layout_defaults;
+		if ( meta.campaign_defaults && 'string' === typeof meta.campaign_defaults ) {
+			meta.stringifiedCampaignDefaults = meta.campaign_defaults;
 		}
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
@@ -60,7 +60,7 @@ export default function LayoutPicker() {
 	}, [ layouts.length ] );
 
 	return (
-		<Fragment>
+		<>
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__content__sidebar">
 					<div className="newspack-newsletters-modal__content__sidebar-wrapper">
@@ -136,6 +136,6 @@ export default function LayoutPicker() {
 					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
 				</Button>
 			</div>
-		</Fragment>
+		</>
 	);
 }
