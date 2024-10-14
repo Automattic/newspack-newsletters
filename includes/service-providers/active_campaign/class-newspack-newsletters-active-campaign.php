@@ -1066,7 +1066,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		// Retrieve and store campaign data.
 		$data = $this->retrieve( $post->ID, true );
 		if ( is_wp_error( $data ) ) {
-			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $data->get_error_message(), 45 );
+			set_transient( $transient_name, __( 'ActiveCampaign sync error: ', 'newspack-newsletters' ) . $data->get_error_message(), 45 );
 			return $data;
 		} else {
 			$data = array_merge( $data, $sync_data );

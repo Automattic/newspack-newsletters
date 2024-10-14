@@ -11,7 +11,7 @@ import { refreshEmailHtml } from '../../newsletter-editor/utils';
 /**
  * Internal dependencies
  */
-import { fetchNewsletterData, fetchSyncErrors } from '../../newsletter-editor/store';
+import { fetchNewsletterData, fetchSyncErrors, updateNewsletterDataError } from '../../newsletter-editor/store';
 import { getServiceProvider } from '../../service-providers';
 
 /**
@@ -105,7 +105,7 @@ function MJML() {
 					} );
 				} )
 				.catch( e => {
-					console.warn( e ); // eslint-disable-line no-console
+					updateNewsletterDataError( e );
 				} )
 				.finally( () => {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
@@ -116,10 +116,10 @@ function MJML() {
 					const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && supportedESPs?.includes( serviceProviderName );
 					if ( isSupportedESP ) {
 						// Rehydrate ESP newsletter data after completing sync.
-						fetchNewsletterData( postId );
-
-						// Check for sync errors after refreshing the HTML.
-						fetchSyncErrors( postId );
+						fetchNewsletterData( postId ).then( () => {
+							// Check for sync errors after refreshing the HTML.
+							fetchSyncErrors( postId );
+						} );
 					}
 				} );
 		}
