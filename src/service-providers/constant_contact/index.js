@@ -4,67 +4,73 @@
 import { __, sprintf, _n } from '@wordpress/i18n';
 
 /**
- * Internal dependencies
+ * External dependencies
  */
-import ProviderSidebar from './ProviderSidebar';
+import { find } from 'lodash';
 
 const hasOauth = true;
 
-const validateNewsletter = ( { campaign } ) => {
-	const messages = [];
-
-	// Exit early if campaign is not set
-	if ( ! campaign ) {
-		return [ __( 'Not connected to Constant Contact', 'newspack-newsletters' ) ];
-	}
-
-	if ( 'DRAFT' !== campaign.current_status ) {
-		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
-	}
-	if ( ! campaign?.activity?.contact_list_ids?.length ) {
-		messages.push(
-			__(
-				'At least one Constant Contact list must be selected before publishing.',
-				'newspack-newsletters'
-			)
-		);
-	}
-	return messages;
-};
-
-const renderPreSendInfo = newsletterData => {
-	if ( ! newsletterData.campaign ) {
+/**
+ * Utility to render newsletter campaign info in the pre-send confirmation modal.
+ *
+ * @param {Object} newsletterData          Data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.campaign Campaign data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.lists    Available send lists.
+ * @param {Object} newsletterData.sublists Available send sublists.
+ * @param {Object} meta                    Post meta.
+ * @param {string} meta.send_list_id       Send-to list ID.
+ * @param {string} meta.send_sublist_id    Send-to sublist ID.
+ */
+const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
+	const { campaign, lists = [] } = newsletterData;
+	const { send_list_id: listId } = meta;
+	if ( ! campaign || ! listId ) {
 		return null;
 	}
-	const campaignLists = newsletterData.lists.filter(
-		( { list_id } ) =>
-			newsletterData.campaign?.activity?.contact_list_ids?.indexOf( list_id ) !== -1
-	);
-	const subscriberCount = campaignLists.reduce(
-		( total, list ) => total + list.membership_count,
-		0
-	);
+	let listData, subscriberCount;
+	const list = find( lists, [ 'id', listId.toString() ] );
+	if ( list ) {
+		listData = list;
+		subscriberCount = listData?.count;
+	}
+
+	if ( ! listData ) {
+		return null;
+	}
 
 	return (
 		<p>
 			{ __( "You're sending a newsletter to:", 'newspack-newsletters' ) }
 			<br />
-			<strong>{ campaignLists.map( list => list.name ).join( ', ' ) }</strong>
+			<strong>{ listData.name }</strong>
 			<br />
-			<strong>
-				{ sprintf(
-					// Translators: subscriber count help message.
-					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
-					subscriberCount
-				) }
-			</strong>
+			{ ! isNaN( subscriberCount ) && (
+				<strong>
+					{ sprintf(
+						// Translators: subscriber count help message.
+						_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
+						subscriberCount
+					) }
+				</strong>
+			) }
 		</p>
 	);
 };
 
+const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
+	const { current_status: status } = newsletterData?.campaign || {};
+	if ( 'DRAFT' !== status ) {
+		return true;
+	}
+	if ( 'publish' === postStatus || 'private' === postStatus ) {
+		return true;
+	}
+	return false;
+}
+
 export default {
+	displayName: 'Constant Contact',
 	hasOauth,
-	validateNewsletter,
-	ProviderSidebar,
 	renderPreSendInfo,
+	isCampaignSent,
 };

@@ -1,8 +1,8 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
-import { Fragment } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
+import { TextControl } from '@wordpress/components';
 
 /**
  * @type {boolean} Whether the ESP requires OAuth authentication.
@@ -10,74 +10,106 @@ import { Fragment } from '@wordpress/element';
 const hasOauth = false;
 
 /**
- * Validation utility.
- *
- * @param {Object} data        Data returned from the ESP retrieve method.
- * @param {string} data.status Status of the newsletter being validated.
- * @return {string[]} Array of validation messages. If empty, newsletter is valid.
- */
-const validateNewsletter = ( { status } ) => {
-	const messages = [];
-	if ( 'sent' === status || 'sending' === status ) {
-		messages.push( __( 'Newsletter has already been sent.', 'newspack-newsletters' ) );
-	}
-
-	return messages;
-};
-
-/**
- * Component to be rendered in the sidebar panel.
+ * Component to be rendered in the sidebar panel for
+ * data and controls that are specific to the active ESP.
  * Has full control over the panel contents rendering,
  * so that it's possible to render e.g. a loader while
  * the data is not yet available.
  *
- * @param {Object}   props                   Component props.
- * @param {number}   props.postId            ID of the edited newsletter post.
- * @param {Function} props.apiFetch          Fetching handler. Receives config for @wordpress/api-fetch as argument.
- * @param {Function} props.renderSubject     Function that renders email subject input.
- * @param {Function} props.renderFrom        Function that renders from inputs - sender name and email.
- *                                           Has to receive an object with `handleSenderUpdate` function,
- *                                           which will receive a `{senderName, senderEmail}` object – so that
- *                                           the data can be sent to the backend.
- * @param {Function} props.renderPreviewText Function that renders preview text input
+ * @param {Object}   props            Component props.
+ * @param {boolean}  props.inFlight   True if the editor is in the middle of an async operation.
+ * @param {number}   props.postId     ID of the edited newsletter post.
+ * @param {Object}   props.meta       Current edited post meta.
+ * @param {Function} props.updateMeta Function to update meta by key.
  */
-const ProviderSidebar = ( { postId, apiFetch, renderSubject, renderFrom, renderPreviewText } ) => {
-	const handleSenderUpdate = ( { senderName, senderEmail } ) =>
-		apiFetch( {
-			path: `/newspack-newsletters/v1/example/${ postId }/sender`,
-			data: {
-				from_name: senderName,
-				reply_to: senderEmail,
-			},
-			method: 'POST',
-		} );
-
+const ProviderSidebar = ( { inFlight, postId, meta, updateMeta } ) => {
 	return (
-		<Fragment>
-			{ renderSubject() }
-			{ renderPreviewText() }
-			<hr />
-			{ renderFrom( { handleSenderUpdate } ) }
-		</Fragment>
+		<>
+			<strong className="newspack-newsletters__label">
+				{ __( 'Provider-specific sidebar content', 'newspack-newsletters' ) }
+			</strong>
+			<p>{ __( 'Post ID: ', 'newspack-newsletters' ) + postId }</p>
+			<TextControl
+				disabled={ inFlight }
+				label={ __( 'Name placeholder', 'newspack-newsletters' ) }
+				value={ meta?.field_name }
+				onChange={ value => updateMeta( { field_name: value } ) }
+			/>
+		</>
 	);
 };
 
 /**
- * A function to render additional info in the pre-send confirmation modal.
+ * Utility to render newsletter campaign info in the pre-send confirmation modal.
  * Can return null if no additional info is to be presented.
  *
- * @param {Object} newsletterData the data returned from the ESP retrieve method
- * @return {any} A React component
+ * @param {Object} newsletterData          Data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.campaign Campaign data returned from the ESP retrieve method.
+ * @param {Object} newsletterData.lists    Available send lists.
+ * @param {Object} newsletterData.sublists Available send sublists.
+ * @param {Object} meta                    Post meta.
+ * @param {string} meta.send_list_id       Send-to list ID.
+ * @param {string} meta.send_sublist_id    Send-to sublist ID.
  */
-const renderPreSendInfo = ( newsletterData = {} ) => (
-	<p>
-		{ __( 'Sending newsletter to:', 'newspack-newsletters' ) } { newsletterData.listName }
-	</p>
-);
+const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
+	const { campaign, lists = [], sublists = [] } = newsletterData;
+	const { send_list_id: listId, send_sublist_id: sublistId } = meta;
+	const list = find( lists, [ 'id', listId ] );
+
+	let listData, sublistData, subscriberCount;
+	if ( list ) {
+		listData = list;
+	}
+	const sublist = find( sublists, [ 'id', sublistId.toString() ] );
+	if ( sublist ) {
+		sublistData = sublist;
+	}
+	if ( campaign?.recipients?.recipient_count ) {
+		subscriberCount = parseInt( campaign.recipients.recipient_count );
+	}
+
+	return (
+		<p>
+			{ __( "You're sending a newsletter to:", 'newspack-newsletters' ) }
+			<br />
+			<strong>{ listData.name }</strong>
+			<br />
+			{ sublistData && (
+				<>
+					{ sublistData.entity_type.charAt(0).toUpperCase() + sublistData.entity_type.slice(1) + ': '}
+					<strong>{ sublistData.name }</strong>
+					<br />
+				</>
+			) }
+			<strong>
+				{ sprintf(
+					// Translators: subscriber count help message.
+					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
+					subscriberCount
+				) }
+			</strong>
+		</p>
+	)
+};
+
+/**
+ * Function to determine if the campaign has been sent.
+ * Can rely on data from the ESP retrieve method, on the current post status, or both.
+ *
+ * @param {Object} newsletterData The data returned from the ESP retrieve method
+ * @param {string} postStatus     The post's current status.
+ * @return {boolean} True if the campaign has been sent, otherwise false.
+ */
+const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
+	if ( 'publish' === postStatus || 'private' === postStatus ) {
+		return true;
+	}
+	return false;
+}
 
 export default {
 	hasOauth,
-	validateNewsletter,
 	ProviderSidebar,
 	renderPreSendInfo,
+	isCampaignSent,
 };

@@ -15,7 +15,7 @@ import { SHARE_BLOCK_NAME } from './consts';
 export default () => {
 	registerBlockType( SHARE_BLOCK_NAME, {
 		title: __( 'Share Newsletter', 'newspack-newsletters' ),
-		category: 'text',
+		category: 'newspack',
 		icon: <Icon icon={ customLink } />,
 		attributes: {
 			content: {
