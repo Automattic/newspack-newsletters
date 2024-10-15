@@ -62,6 +62,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 			add_action( 'rest_api_init', [ $this->controller, 'register_routes' ] );
 		}
 		add_action( 'pre_post_update', [ $this, 'pre_post_update' ], 10, 2 );
+		add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
 		add_action( 'transition_post_status', [ $this, 'transition_post_status' ], 10, 3 );
 		add_action( 'updated_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
 		add_action( 'wp_insert_post', [ $this, 'insert_post' ], 10, 3 );
@@ -142,6 +143,22 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 				wp_die( esc_html( $result->get_error_message() ), '', esc_html( $result->get_error_code() ) );
 			}
 		}
+	}
+
+	/**
+	 * Delete layout defaults meta after saving the post.
+	 * We don't want layout defaults overwriting saved values unless the layout has just been set.
+	 *
+	 * @param int $post_id The ID of the post being saved.
+	 * @return void
+	 */
+	public function save_post( $post_id ) {
+		$post_type = get_post_type( $post_id );
+		if ( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $post_type ) {
+			return;
+		}
+
+		delete_post_meta( $post_id, 'stringifiedCampaignDefaults' );
 	}
 
 	/**
