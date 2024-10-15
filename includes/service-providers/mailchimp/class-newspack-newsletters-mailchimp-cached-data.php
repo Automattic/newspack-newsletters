@@ -586,7 +586,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		}
 		$response = ( self::get_mc_instance() )->validate(
 			$mc->get(
-				"lists/$list_id/segment/$segment_id",
+				"lists/$list_id/segments/$segment_id",
 				[
 					'fields' => 'id,name,member_count,type,options,list_id',
 				],

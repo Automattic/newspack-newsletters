@@ -35,8 +35,8 @@ const SendTo = () => {
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
-	const selectedList = lists.find( item => item.id === listId );
-	const selectedSublist = sublists?.find( item => item.id === sublistId );
+	const selectedList = listId ? lists.find( item => item.id.toString() === listId.toString() ) : null;
+	const selectedSublist = sublistId ? sublists?.find( item => item.id.toString() === sublistId.toString() ) : null;
 	const prevListId = usePrevious( listId );
 
 	// Cancel any queued fetches on unmount.
@@ -57,14 +57,10 @@ const SendTo = () => {
 			fetchSendLists( { ids: [ sublistId ], type: 'sublist', parent_id: listId } );
 		}
 
-		// Prefetch sublist info when selecting a new list ID.
-		if ( listId && ! sublistId && newsletterData?.sublists && 1 >= newsletterData.sublists.length ) {
-			fetchSendLists( { type: 'sublist', parent_id: listId } );
-		}
-
 		// If selecting a new list entirely.
-		if ( listId && listId !== prevListId ) {
+		if ( listId && prevListId && listId !== prevListId ) {
 			fetchSendLists( { type: 'sublist', parent_id: listId }, true );
+			updateMeta( { send_sublist_id: null } );
 		}
 	}, [ newsletterData, listId, sublistId ] );
 

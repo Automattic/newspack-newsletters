@@ -19,7 +19,7 @@ import Sender from './sender';
 import SendTo from './send-to';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
-import { fetchNewsletterData, useIsRetrieving, useNewsletterData, useNewsletterDataError } from '../store';
+import { fetchNewsletterData, updateNewsletterData, useIsRetrieving, useNewsletterData, useNewsletterDataError } from '../store';
 import { isSupportedESP } from '../utils';
 import './style.scss';
 
@@ -49,22 +49,36 @@ const Sidebar = ( {
 	// Reconcile stored campaign data with data fetched from ESP.
 	useEffect( () => {
 		const updatedMeta = {};
+		const updatedNewsletterData = { ...newsletterData };
+
 		if ( newsletterData?.senderEmail ) {
 			updatedMeta.senderEmail = newsletterData.senderEmail;
+			delete updatedNewsletterData.senderEmail;
 		}
 		if ( newsletterData?.senderName ) {
 			updatedMeta.senderName = newsletterData.senderName;
+			delete updatedNewsletterData.senderName;
 		}
 		if ( newsletterData?.send_list_id ) {
 			updatedMeta.send_list_id = newsletterData.send_list_id;
+			delete updatedNewsletterData.send_list_id;
 		}
 		if ( newsletterData?.send_sublist_id ) {
 			updatedMeta.send_sublist_id = newsletterData.send_sublist_id;
+			delete updatedNewsletterData.send_sublist_id;
 		}
 		if ( Object.keys( updatedMeta ).length ) {
 			updateMeta( updatedMeta );
 		}
-	}, [ newsletterData ] );
+		if ( Object.keys( updatedNewsletterData ).length ) {
+			updateNewsletterData( updatedNewsletterData );
+		}
+	}, [
+		newsletterData?.senderEmail,
+		newsletterData?.senderName,
+		newsletterData?.send_list_id,
+		newsletterData?.send_sublist_id
+	] );
 
 	useEffect( () => {
 		if ( stringifiedCampaignDefaults ) {
