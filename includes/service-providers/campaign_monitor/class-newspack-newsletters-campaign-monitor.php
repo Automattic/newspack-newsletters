@@ -400,7 +400,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			if ( ! $send_list_id ) {
 				$legacy_list_id = get_post_meta( $post_id, 'cm_list_id', true ) ?? get_post_meta( $post_id, 'cm_segment_id', true );
 				if ( $legacy_list_id ) {
-					$newsletter_data['list_id'] = $legacy_list_id;
+					$newsletter_data['send_list_id'] = $legacy_list_id;
 				}
 			}
 

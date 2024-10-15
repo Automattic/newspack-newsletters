@@ -560,11 +560,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$newsletter_data['senderEmail'] = $campaign_info['senderEmail']; // If campaign has different sender info set, update ours.
 			}
 			if ( $list_id && $list_id !== $send_list_id ) {
-				$newsletter_data['list_id'] = $list_id; // If campaign has a different list selected, update ours.
-				$send_list_id               = $list_id;
+				$newsletter_data['send_list_id'] = $list_id; // If campaign has a different list selected, update ours.
+				$send_list_id                    = $list_id;
 
 				if ( ! empty( $campaign_info['sublist_id'] ) && $campaign_info['sublist_id'] !== $send_sublist_id ) {
-						$newsletter_data['sublist_id'] = $campaign_info['sublist_id']; // If campaign has a different sublist selected, update ours.
+						$newsletter_data['send_sublist_id'] = $campaign_info['sublist_id']; // If campaign has a different sublist selected, update ours.
 						$send_sublist_id = $campaign_info['sublist_id'];
 				}
 			}

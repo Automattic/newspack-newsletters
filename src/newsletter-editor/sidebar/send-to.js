@@ -125,7 +125,7 @@ const SendTo = () => {
 				</Notice>
 			) }
 			{
-				( newsletterData?.fetched_list || newsletterData?.fetched_sublist ) && (
+				( newsletterData?.send_list_id || newsletterData?.send_sublist_id ) && (
 					<Notice status="success" isDismissible={ false }>
 						{ __( 'Updated send-to info fetched from ESP.', 'newspack-newsletters' ) }
 					</Notice>
