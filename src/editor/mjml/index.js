@@ -112,11 +112,13 @@ function MJML() {
 					if ( isSupportedESP ) {
 						return fetchNewsletterData( postId );
 					}
+					return true;
 				} ).then ( () => {
 					// Check for sync errors after refreshing the HTML.
 					if ( isSupportedESP ) {
 						return fetchSyncErrors( postId );
 					}
+					return true;
 				} )
 				.catch( e => {
 					updateNewsletterDataError( e );
