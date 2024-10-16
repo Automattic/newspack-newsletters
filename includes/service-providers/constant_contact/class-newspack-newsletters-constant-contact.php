@@ -884,7 +884,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 
 			return $campaign_result;
 		} catch ( Exception $e ) {
-			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $e->getMessage(), 45 );
+			set_transient( $transient_name, 'Constant Contact campaign sync error: ' . wp_specialchars_decode( $e->getMessage(), ENT_QUOTES ), 45 );
 			return new WP_Error( 'newspack_newsletters_constant_contact_error', $e->getMessage() );
 		}
 	}

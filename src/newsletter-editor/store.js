@@ -126,6 +126,7 @@ export const fetchNewsletterData = async postId => {
 		updateNewsletterDataError( error );
 	}
 	updateIsRetrieving( false );
+	return true;
 };
 
 // Dispatcher to fetch any errors from the most recent sync attempt.
@@ -147,6 +148,7 @@ export const fetchSyncErrors = async postId => {
 		updateNewsletterDataError( error );
 	}
 	updateIsRetrieving( false );
+	return true;
 }
 
 // Dispatcher to fetch send lists and sublists from the connected ESP and update the newsletterData in store.
