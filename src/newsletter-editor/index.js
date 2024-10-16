@@ -8,6 +8,7 @@ import {
 	PluginDocumentSettingPanel,
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
+	PluginPostStatusInfo,
 } from '@wordpress/edit-post';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
@@ -24,16 +25,23 @@ import { Styling, ApplyStyling } from './styling/';
 import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
+import { registerStore, fetchNewsletterData, useNewsletterDataError } from './store';
+import { isSupportedESP } from './utils';
+import CampaignLink from './campaign-link';
 import './debug-send';
 
+registerStore();
 registerEditorPlugin();
 
-function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
-	const layoutId = useSelect(
-		select => select( 'core/editor' ).getEditedPostAttribute( 'meta' ).template_id
-	);
-	const savePost = useDispatch( 'core/editor' ).savePost;
-
+function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
+	const { layoutId, postId } = useSelect( select => {
+		const { getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' );
+		return {
+			layoutId: meta.template_id,
+			postId: getCurrentPostId(),
+		};
+	} );
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
 		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
 	);
@@ -42,23 +50,34 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
 	);
 	const [ isConnected, setIsConnected ] = useState( null );
 	const [ oauthUrl, setOauthUrl ] = useState( null );
-
+	const newsletterDataError = useNewsletterDataError();
+	const savePost = useDispatch( 'core/editor' ).savePost;
+	const { createNotice, removeNotice } = useDispatch( 'core/notices' );
 	const { name: serviceProviderName, hasOauth } = getServiceProvider();
 
 	const verifyToken = () => {
-		const params = {
-			path: `/newspack-newsletters/v1/${ serviceProviderName }/verify_token`,
-			method: 'GET',
-		};
-		setInFlightForAsync();
-		apiFetchWithErrorHandling( params ).then( async response => {
-			if ( false === isConnected && true === response.valid ) {
-				savePost();
-			}
-			setOauthUrl( response.auth_url );
-			setIsConnected( response.valid );
-		} );
+		if ( isSupportedESP() && hasOauth ) {
+			const params = {
+				path: `/newspack-newsletters/v1/${ serviceProviderName }/verify_token`,
+				method: 'GET',
+			};
+			setInFlightForAsync();
+			apiFetchWithErrorHandling( params ).then( async response => {
+				if ( false === isConnected && true === response.valid ) {
+					savePost();
+				}
+				setOauthUrl( response.auth_url );
+				setIsConnected( response.valid );
+			} );
+		}
 	};
+
+	useEffect( () => {
+		// Fetch provider and campaign data.
+		if ( isSupportedESP() ) {
+			fetchNewsletterData( postId );
+		}
+	}, [] );
 
 	useEffect( () => {
 		if ( ! isConnected && hasOauth ) {
@@ -68,8 +87,23 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
 		}
 	}, [ serviceProviderName ] );
 
-	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
+	// Handle error messages from retrieve/sync requests with connected ESP.
+	useEffect( () => {
+		if ( newsletterDataError ) {
+			createNotice( 'error', newsletterDataError?.message || __( 'Error communicating with service provider.', 'newspack-newseltters' ), {
+				id: 'newspack-newsletters-newsletter-data-error',
+				isDismissible: true,
+			} );
+		} else {
+			removeNotice( 'newspack-newsletters-newsletter-data-error' );
+		}
+	}, newsletterDataError );
 
+	if ( ! isSupportedESP() ) {
+		return null;
+	}
+
+	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 	const stylingId = 'newspack-newsletters-styling';
 	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
 
@@ -87,14 +121,23 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync } ) {
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
 
+			<PluginPostStatusInfo>
+				{ isConnected && <PublicSettings /> }
+			</PluginPostStatusInfo>
+
 			<PluginDocumentSettingPanel
 				name="newsletters-settings-panel"
-				title={ __( 'Newsletter', 'newspack-newsletters' ) }
+				title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }
 			>
-				<Sidebar isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
-				{ isConnected && <PublicSettings /> }
+				<CampaignLink />
+				<Sidebar
+					inFlight={ inFlight }
+					isConnected={ isConnected }
+					oauthUrl={ oauthUrl }
+					onAuthorize={ verifyToken }
+				/>
 			</PluginDocumentSettingPanel>
-			{ 'manual' !== serviceProviderName && (
+			{ isSupportedESP() && (
 				<PluginDocumentSettingPanel
 					name="newsletters-testing-panel"
 					title={ __( 'Testing', 'newspack-newsletters' ) }

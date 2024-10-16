@@ -4,21 +4,23 @@
 import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { Fragment } from '@wordpress/element';
-import { Button, TextControl, TextareaControl } from '@wordpress/components';
+import { useEffect } from '@wordpress/element';
+import { Button, Notice, Spinner, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
  * External dependencies
  */
-import classnames from 'classnames';
 import { once } from 'lodash';
 
 /**
  * Internal dependencies
  */
-import { getEditPostPayload, hasValidEmail } from '../utils';
+import Sender from './sender';
+import SendTo from './send-to';
 import { getServiceProvider } from '../../service-providers';
 import withApiHandler from '../../components/with-api-handler';
+import { fetchNewsletterData, useIsRetrieving, useNewsletterData, useNewsletterDataError } from '../store';
+import { isSupportedESP } from '../utils';
 import './style.scss';
 
 const Sidebar = ( {
@@ -29,22 +31,60 @@ const Sidebar = ( {
 	errors,
 	editPost,
 	title,
-	senderName,
+	meta,
 	senderEmail,
+	senderName,
+	status,
 	campaignName,
 	previewText,
-	newsletterData,
-	stringifiedLayoutDefaults,
-	apiFetchWithErrorHandling,
+	stringifiedCampaignDefaults,
 	postId,
 } ) => {
-	const apiFetch = config =>
-		apiFetchWithErrorHandling( config ).then( result => {
-			if ( typeof result === 'object' && result.campaign ) {
-				editPost( getEditPostPayload( result ) );
-			}
-			return result;
-		} );
+	const isRetrieving = useIsRetrieving();
+	const newsletterData = useNewsletterData();
+	const newsletterDataError = useNewsletterDataError();
+	const campaign = newsletterData?.campaign;
+	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );
+
+	// Reconcile stored campaign data with data fetched from ESP.
+	useEffect( () => {
+		const updatedMeta = {};
+		if ( newsletterData?.senderEmail ) {
+			updatedMeta.senderEmail = newsletterData.senderEmail;
+		}
+		if ( newsletterData?.senderName ) {
+			updatedMeta.senderName = newsletterData.senderName;
+		}
+		if ( newsletterData?.send_list_id ) {
+			updatedMeta.send_list_id = newsletterData.send_list_id;
+		}
+		if ( newsletterData?.send_sublist_id ) {
+			updatedMeta.send_sublist_id = newsletterData.send_sublist_id;
+		}
+		if ( Object.keys( updatedMeta ).length ) {
+			updateMeta( updatedMeta );
+		}
+	}, [ newsletterData ] );
+
+	useEffect( () => {
+		const campaignDefaults = 'string' === typeof stringifiedCampaignDefaults ? JSON.parse( stringifiedCampaignDefaults ) : stringifiedCampaignDefaults;
+		const updatedMeta = {};
+		if ( campaignDefaults?.senderEmail ) {
+			updatedMeta.senderEmail = campaignDefaults.senderEmail;
+		}
+		if ( campaignDefaults?.senderName ) {
+			updatedMeta.senderName = campaignDefaults.senderName;
+		}
+		if ( campaignDefaults?.send_list_id ) {
+			updatedMeta.send_list_id = campaignDefaults.send_list_id;
+		}
+		if ( campaignDefaults?.send_sublist_id ) {
+			updatedMeta.send_sublist_id = campaignDefaults.send_sublist_id;
+		}
+		if ( Object.keys( updatedMeta ).length ) {
+			updateMeta( updatedMeta );
+		}
+	}, [ stringifiedCampaignDefaults ] );
 
 	const getCampaignName = () => {
 		if ( typeof campaignName === 'string' ) {
@@ -53,79 +93,9 @@ const Sidebar = ( {
 		return 'Newspack Newsletter (' + postId + ')';
 	};
 
-	const renderCampaignName = () => (
-		<TextControl
-			label={ __( 'Campaign Name', 'newspack-newsletters' ) }
-			className="newspack-newsletters__campaign-name-textcontrol"
-			value={ getCampaignName() }
-			placeholder={ 'Newspack Newsletter (' + postId + ')' }
-			disabled={ inFlight }
-			onChange={ value => editPost( { meta: { campaign_name: value } } ) }
-		/>
-	);
-
-	const renderSubject = () => (
-		<TextControl
-			label={ __( 'Subject', 'newspack-newsletters' ) }
-			className="newspack-newsletters__subject-textcontrol"
-			value={ title }
-			disabled={ inFlight }
-			onChange={ value => editPost( { title: value } ) }
-		/>
-	);
-
-	const senderEmailClasses = classnames(
-		'newspack-newsletters__email-textcontrol',
-		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
-	);
-
-	const renderFrom = ( { handleSenderUpdate } ) => (
-		<Fragment>
-			<strong className="newspack-newsletters__label">
-				{ __( 'From', 'newspack-newsletters' ) }
-			</strong>
-			<TextControl
-				label={ __( 'Name', 'newspack-newsletters' ) }
-				className="newspack-newsletters__name-textcontrol"
-				value={ senderName }
-				disabled={ inFlight }
-				onChange={ value => {
-					editPost( { meta: { senderName: value } } );
-				} }
-			/>
-			<TextControl
-				label={ __( 'Email', 'newspack-newsletters' ) }
-				className={ senderEmailClasses }
-				value={ senderEmail }
-				type="email"
-				disabled={ inFlight }
-				onChange={ value => {
-					editPost( { meta: { senderEmail: value } } );
-				} }
-			/>
-			<Button
-				isLink
-				onClick={ () => handleSenderUpdate( { senderName, senderEmail } ) }
-				disabled={ inFlight || ( senderEmail.length ? ! hasValidEmail( senderEmail ) : false ) }
-			>
-				{ __( 'Update Sender', 'newspack-newsletters' ) }
-			</Button>
-		</Fragment>
-	);
-
-	const renderPreviewText = () => (
-		<TextareaControl
-			label={ __( 'Preview text', 'newspack-newsletters' ) }
-			className="newspack-newsletters__preview-textcontrol"
-			value={ previewText }
-			disabled={ inFlight }
-			onChange={ value => editPost( { meta: { preview_text: value } } ) }
-		/>
-	);
-
 	if ( false === isConnected ) {
 		return (
-			<Fragment>
+			<>
 				<p>
 					{ __(
 						'You must authorize your account before publishing your newsletter.',
@@ -133,7 +103,7 @@ const Sidebar = ( {
 					) }
 				</p>
 				<Button
-					isPrimary
+					variant="primary"
 					disabled={ inFlight }
 					onClick={ () => {
 						const authWindow = window.open( oauthUrl, 'esp_oauth', 'width=500,height=600' );
@@ -142,48 +112,115 @@ const Sidebar = ( {
 				>
 					{ __( 'Authorize', 'newspack-newsletter' ) }
 				</Button>
-			</Fragment>
+			</>
 		);
 	}
 
-	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
-	const { ProviderSidebar } = getServiceProvider();
+	if ( ! campaign && newsletterDataError?.message ) {
+		return (
+			<div className="newspack-newsletters__sidebar">
+				<Notice status="error" isDismissible={ false }>
+					{ __( 'There was an error retrieving campaign data. Please try again.', 'newspack-newsletters' ) }
+				</Notice>
+				<Button
+					variant="primary"
+					disabled={ inFlight || isRetrieving }
+					onClick={ () => {
+						fetchNewsletterData( postId );
+					} }
+				>
+					{ isRetrieving ? __( 'Retrieving campaign data…', 'newspack-newsletter' ) : __( 'Retrieve campaign data', 'newspack-newsletter' ) }
+				</Button>
+			</div>
+		);
+	}
+
+	if ( ! campaign && ! newsletterDataError?.message ) {
+		return (
+			<div className="newspack-newsletters__loading-data">
+				{ __( 'Retrieving campaign data…', 'newspack-newsletters' ) }
+				<Spinner />
+			</div>
+		);
+	}
+
+	const { ProviderSidebar = () => null, isCampaignSent } = getServiceProvider();
+	const campaignIsSent = ! inFlight && newsletterData && isCampaignSent && isCampaignSent( newsletterData, status );
+
+	if ( campaignIsSent ) {
+		return (
+			<Notice status="success" isDismissible={ false }>
+				{ __( 'Campaign has been sent.', 'newspack-newsletters' ) }
+			</Notice>
+		);
+	}
+
 	return (
-		<Fragment>
-			<ProviderSidebar
-				postId={ postId }
-				newsletterData={ newsletterData }
-				stringifiedLayoutDefaults={ stringifiedLayoutDefaults }
-				inFlight={ inFlight }
-				apiFetch={ apiFetch }
-				renderCampaignName={ renderCampaignName }
-				renderSubject={ renderSubject }
-				renderFrom={ renderFrom }
-				renderPreviewText={ renderPreviewText }
-				updateMeta={ meta => editPost( { meta } ) }
+		<div className="newspack-newsletters__sidebar">
+			<TextControl
+				label={ __( 'Campaign Name', 'newspack-newsletters' ) }
+				className="newspack-newsletters__campaign-name-textcontrol"
+				value={ getCampaignName() }
+				placeholder={ 'Newspack Newsletter (' + postId + ')' }
+				disabled={ inFlight }
+				onChange={ value => updateMeta( { campaign_name: value } ) }
 			/>
-		</Fragment>
+			<TextControl
+				label={ __( 'Subject', 'newspack-newsletters' ) }
+				className="newspack-newsletters__subject-textcontrol"
+				value={ title }
+				disabled={ inFlight }
+				onChange={ value => editPost( { title: value } ) }
+			/>
+			<TextareaControl
+				label={ __( 'Preview text', 'newspack-newsletters' ) }
+				className="newspack-newsletters__preview-textcontrol"
+				value={ previewText }
+				disabled={ inFlight }
+				onChange={ value => updateMeta( { preview_text: value } ) }
+			/>
+			<ProviderSidebar
+				inFlight={ inFlight }
+				postId={ postId }
+				meta={ meta }
+				updateMeta={ updateMeta }
+			/>
+			<hr />
+			<Sender
+				errors={ errors }
+				senderEmail={ senderEmail }
+				senderName={ senderName }
+				updateMeta={ updateMeta }
+			/>
+			{
+				isSupportedESP() && (
+					<SendTo />
+				)
+			}
+		</div>
 	);
 };
 
 export default compose( [
 	withApiHandler(),
 	withSelect( select => {
-		const { getEditedPostAttribute, getCurrentPostId } = select( 'core/editor' );
+		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
-			senderEmail: meta.senderEmail || '',
-			senderName: meta.senderName || '',
+			meta,
+			senderEmail: meta.senderEmail,
+			senderName: meta.senderName,
 			campaignName: meta.campaign_name,
 			previewText: meta.preview_text || '',
-			newsletterData: meta.newsletterData || {},
-			stringifiedLayoutDefaults: meta.stringifiedLayoutDefaults || {},
+			status: getCurrentPostAttribute( 'status' ),
+			stringifiedCampaignDefaults: meta.stringifiedCampaignDefaults || {},
 		};
 	} ),
 	withDispatch( dispatch => {
 		const { editPost } = dispatch( 'core/editor' );
-		return { editPost };
+		const { createErrorNotice } = dispatch( 'core/notices' );
+		return { editPost, createErrorNotice };
 	} ),
 ] )( Sidebar );

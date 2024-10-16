@@ -36,6 +36,9 @@ require $_tests_dir . '/includes/bootstrap.php';
 // Trait used to test Subscription Lists.
 require_once 'trait-lists-setup.php';
 
+// Trait used to test Send Lists.
+require_once 'trait-send-lists-setup.php';
+
 // MailChimp mock.
 require_once 'mocks/class-mailchimp-mock.php';
 

@@ -26,16 +26,12 @@ const Editor = compose( [
 	withApiHandler(),
 	withSelect( select => {
 		const {
-			getCurrentPostAttribute,
 			getEditedPostAttribute,
-			isCleanNewPost,
-			isCurrentPostPublished,
 		} = select( 'core/editor' );
-		const { getActiveGeneralSidebarName, getAllMetaBoxes } = select( 'core/edit-post' );
+		const { getAllMetaBoxes } = select( 'core/edit-post' );
 		const { getSettings } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
-		const status = getCurrentPostAttribute( 'status' );
-		const sent = getCurrentPostAttribute( 'meta' ).newsletter_sent;
+		const sent = meta.newsletter_sent;
 		const settings = getSettings();
 		const experimentalSettingsColors = get( settings, [
 			'__experimentalFeatures',
@@ -45,22 +41,15 @@ const Editor = compose( [
 		] );
 		const colors = settings.colors || experimentalSettingsColors || [];
 
-		const newsletterValidationErrors = validateNewsletter( meta.newsletterData );
-
 		return {
-			isCleanNewPost: isCleanNewPost(),
-			isPublished: isCurrentPostPublished(),
-			isReady: newsletterValidationErrors.length === 0,
-			activeSidebarName: getActiveGeneralSidebarName(),
 			html: meta[ newspack_email_editor_data.email_html_meta ],
 			colorPalette: colors.reduce(
 				( _colors, { slug, color } ) => ( { ..._colors, [ slug ]: color } ),
 				{}
 			),
-			status,
+			meta,
 			sent,
 			isPublic: meta.is_public,
-			campaignName: meta.campaign_name,
 			newsletterSendErrors: meta.newsletter_send_errors,
 			isCustomFieldsMetaBoxActive: getAllMetaBoxes().some( box => box.id === 'postcustom' ),
 		};
@@ -84,7 +73,6 @@ const Editor = compose( [
 			createNotice,
 			removeNotice,
 			openModal,
-			updateMetaValue: ( key, value ) => editPost( { meta: { [ key ]: value } } ),
 		};
 	} ),
 ] )(
@@ -95,9 +83,9 @@ const Editor = compose( [
 		html,
 		isCustomFieldsMetaBoxActive,
 		isPublic,
-		isReady,
 		lockPostAutosaving,
 		lockPostSaving,
+		meta,
 		newsletterSendErrors,
 		openModal,
 		removeNotice,
@@ -106,6 +94,8 @@ const Editor = compose( [
 		successNote,
 	} ) => {
 		const [ publishEl ] = useState( document.createElement( 'div' ) );
+		const newsletterValidationErrors = validateNewsletter( meta );
+		const isReady = newsletterValidationErrors.length === 0;
 
 		useEffect( () => {
 			// Create alternate publish button.
@@ -113,14 +103,6 @@ const Editor = compose( [
 				'editor-post-publish-button__button'
 			)[ 0 ];
 			publishButton.parentNode.insertBefore( publishEl, publishButton );
-
-			// Show async error messages.
-			if ( newspack_email_editor_data?.error_message ) {
-				createNotice( 'error', newspack_email_editor_data.error_message, {
-					id: 'newspack-newsletters-newsletter-async-error',
-					isDismissible: true,
-				} );
-			}
 		}, [] );
 
 		// Set color palette option.
