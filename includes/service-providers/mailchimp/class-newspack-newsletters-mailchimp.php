@@ -13,6 +13,8 @@ use Newspack\Newsletters\Subscription_Lists;
 use Newspack\Newsletters\Send_Lists;
 use Newspack\Newsletters\Send_List;
 
+use function cli\err;
+
 /**
  * Main Newspack Newsletters Class.
  */
@@ -1146,13 +1148,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
-					$mc->patch( "campaigns/$mc_campaign_id", $payload ),
-					__( 'Error updating existing campaign draft.', 'newspack_newsletters' )
+					$mc->patch( "campaigns/$mc_campaign_id", $payload )
 				);
 			} else {
 				$campaign_result = $this->validate(
-					$mc->post( 'campaigns', $payload ),
-					__( 'Error creating campaign.', 'newspack_newsletters' )
+					$mc->post( 'campaigns', $payload )
 				);
 				$mc_campaign_id  = $campaign_result['id'];
 				update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
@@ -1177,7 +1177,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_result'  => $content_result,
 			];
 		} catch ( Exception $e ) {
-			set_transient( $transient_name, 'Mailchimp: ' . $e->getMessage(), 45 );
+			set_transient( $transient_name, 'Mailchimp campaign sync error: ' . wp_specialchars_decode( $e->getMessage(), ENT_QUOTES ), 45 );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
 	}
