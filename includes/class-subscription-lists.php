@@ -564,6 +564,11 @@ class Subscription_Lists {
 
 			$stored_list = Subscription_List::from_public_id( $list['id'] );
 
+			// If a remote list was not found, create one.
+			if ( ! $stored_list instanceof Subscription_List && ! Subscription_List::is_local_public_id( $list['id'] ) ) {
+				$stored_list = self::get_or_create_remote_list( $list );
+			}
+
 			if ( ! $stored_list instanceof Subscription_List ) {
 				continue;
 			}
