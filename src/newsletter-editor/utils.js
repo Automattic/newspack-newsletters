@@ -4,6 +4,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
+import { useEffect, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -84,3 +85,16 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 	return html;
 };
 
+/**
+ * Custom hook to fetch a previous state or prop value.
+ *
+ * @param {string} value of the prop or state to fetch.
+ * @return {*} The previous value of the prop or state.
+ */
+export const usePrevious = value => {
+	const ref = useRef();
+	useEffect( () => {
+		ref.current = value;
+	},[ value ] );
+	return ref.current;
+}
