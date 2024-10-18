@@ -262,7 +262,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @param string $list_id The List ID.
 	 * @return boolean
 	 */
-	private static function is_cache_expired( $list_id = null ) {
+	private static function is_cache_expired( $list_id = 'lists' ) {
 		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
 		return $cache_date && ( time() - $cache_date ) > 20 * MINUTE_IN_SECONDS;
 	}

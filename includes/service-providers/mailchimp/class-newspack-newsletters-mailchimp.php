@@ -1093,6 +1093,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 							break;
 					}
 				}
+			} else {
+				$payload['recipients']['segment_opts'] = (object) [];
 			}
 		}
 
