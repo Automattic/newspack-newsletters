@@ -35,8 +35,8 @@ const Autocomplete = ( {
 						{ selectedInfo?.hasOwnProperty( 'count' )
 							? ' • ' +
 							sprintf(
-									// Translators: If available, show a contact count alongside the selected item's type. %d is the number of contacts in the item.
-									_n( '%d contact', '%d contacts', selectedInfo.count, 'newspack-newsletters' ),
+									// Translators: If available, show a contact count alongside the selected item's type. %s is the number of contacts in the item.
+									_n( '%s contact', '%s contacts', selectedInfo.count, 'newspack-newsletters' ),
 									selectedInfo.count.toLocaleString()
 							)
 							: '' }
