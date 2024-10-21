@@ -13,6 +13,8 @@ use Newspack\Newsletters\Subscription_Lists;
 use Newspack\Newsletters\Send_Lists;
 use Newspack\Newsletters\Send_List;
 
+use function cli\err;
+
 /**
  * Main Newspack Newsletters Class.
  */
@@ -560,11 +562,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$newsletter_data['senderEmail'] = $campaign_info['senderEmail']; // If campaign has different sender info set, update ours.
 			}
 			if ( $list_id && $list_id !== $send_list_id ) {
-				$newsletter_data['list_id'] = $list_id; // If campaign has a different list selected, update ours.
-				$send_list_id               = $list_id;
+				$newsletter_data['send_list_id'] = $list_id; // If campaign has a different list selected, update ours.
+				$send_list_id                    = $list_id;
 
 				if ( ! empty( $campaign_info['sublist_id'] ) && $campaign_info['sublist_id'] !== $send_sublist_id ) {
-						$newsletter_data['sublist_id'] = $campaign_info['sublist_id']; // If campaign has a different sublist selected, update ours.
+						$newsletter_data['send_sublist_id'] = $campaign_info['sublist_id']; // If campaign has a different sublist selected, update ours.
 						$send_sublist_id = $campaign_info['sublist_id'];
 				}
 			}
@@ -725,7 +727,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 									'id'          => $interest['id'],
 									'name'        => $interest['name'],
 									'entity_type' => $entity_type,
-									'parent'      => $interest['list_id'],
+									'parent_id'   => $interest['list_id'],
 									'count'       => $interest['subscriber_count'],
 								];
 								if ( $admin_url && $audience['web_id'] ) {
@@ -749,7 +751,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'id'          => $tag['id'],
 						'name'        => $tag['name'],
 						'entity_type' => $entity_type,
-						'parent'      => $tag['list_id'],
+						'parent_id'   => $tag['list_id'],
 						'count'       => $tag['member_count'],
 					];
 					if ( $admin_url && $audience['web_id'] ) {
@@ -770,7 +772,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'id'          => $segment['id'],
 						'name'        => $segment['name'],
 						'entity_type' => $entity_type,
-						'parent'      => $segment['list_id'],
+						'parent_id'   => $segment['list_id'],
 						'count'       => $segment['member_count'],
 					];
 					if ( $admin_url && $audience['web_id'] ) {
@@ -1044,12 +1046,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$sublist = $this->get_send_lists(
 					[
 						'ids'       => [ $send_sublist_id ],
-						'limit'     => 1,
+						'limit'     => 1000,
 						'parent_id' => $send_list_id,
 						'type'      => 'sublist',
 					]
 				);
-				if ( ! empty( $sublist[0]->get_entity_type() ) ) {
+				if ( ! empty( $sublist ) && ! empty( $sublist[0]->get_entity_type() ) ) {
 					$sublist_type = $sublist[0]->get_entity_type();
 					switch ( $sublist_type ) {
 						case 'group':
@@ -1091,6 +1093,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 							break;
 					}
 				}
+			} else {
+				$payload['recipients']['segment_opts'] = (object) [];
 			}
 		}
 
@@ -1146,13 +1150,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
-					$mc->patch( "campaigns/$mc_campaign_id", $payload ),
-					__( 'Error updating existing campaign draft.', 'newspack_newsletters' )
+					$mc->patch( "campaigns/$mc_campaign_id", $payload )
 				);
 			} else {
 				$campaign_result = $this->validate(
-					$mc->post( 'campaigns', $payload ),
-					__( 'Error creating campaign.', 'newspack_newsletters' )
+					$mc->post( 'campaigns', $payload )
 				);
 				$mc_campaign_id  = $campaign_result['id'];
 				update_post_meta( $post->ID, 'mc_campaign_id', $mc_campaign_id );
@@ -1177,7 +1179,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'content_result'  => $content_result,
 			];
 		} catch ( Exception $e ) {
-			set_transient( $transient_name, 'Mailchimp: ' . $e->getMessage(), 45 );
+			set_transient( $transient_name, 'Mailchimp campaign sync error: ' . wp_specialchars_decode( $e->getMessage(), ENT_QUOTES ), 45 );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
 	}

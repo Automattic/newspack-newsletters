@@ -126,6 +126,7 @@ export const fetchNewsletterData = async postId => {
 		updateNewsletterDataError( error );
 	}
 	updateIsRetrieving( false );
+	return true;
 };
 
 // Dispatcher to fetch any errors from the most recent sync attempt.
@@ -147,10 +148,11 @@ export const fetchSyncErrors = async postId => {
 		updateNewsletterDataError( error );
 	}
 	updateIsRetrieving( false );
+	return true;
 }
 
 // Dispatcher to fetch send lists and sublists from the connected ESP and update the newsletterData in store.
-export const fetchSendLists = debounce( async ( opts ) => {
+export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 	updateNewsletterDataError( null );
 	try {
 		const { name } = getServiceProvider();
@@ -190,7 +192,7 @@ export const fetchSendLists = debounce( async ( opts ) => {
 		}
 
 		const updatedNewsletterData = { ...newsletterData };
-		const updatedSendLists = [ ...sendLists ];
+		const updatedSendLists = replace ? [] : [ ...sendLists ];
 
 		// If no existing items found, fetch from the ESP.
 		const isRetrieving = coreSelect( STORE_NAMESPACE ).getIsRetrieving();
