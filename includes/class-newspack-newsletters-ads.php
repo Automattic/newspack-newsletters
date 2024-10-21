@@ -232,6 +232,7 @@ final class Newspack_Newsletters_Ads {
 		];
 		register_post_type( self::CPT, $cpt_args );
 
+		// Note: see overrides in Newspack Plugin release for Information Architecture > Newsletters_Wizard
 		register_taxonomy(
 			self::ADVERTISER_TAX,
 			[ self::CPT, Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ],
@@ -262,8 +263,6 @@ final class Newspack_Newsletters_Ads {
 				'hierarchical'      => true,
 				'show_in_rest'      => true,
 				'show_admin_column' => true,
-				// See filter usage in Newspack Plugin release for Information Architecture.
-				'show_in_menu'      => apply_filters( 'newspack_ia_nl_advertiser_tax_show_in_menu', true ),
 			]
 		);
 	}
