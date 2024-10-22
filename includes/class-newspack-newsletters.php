@@ -1030,6 +1030,8 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Enqueue style to handle Newspack branding.
+	 * 
+	 * Note: this callback is removed when Newspack Plugin's Information Architeture is active ( see Newspack Plugin > Newsletters_Wizard ).
 	 */
 	public static function branding_scripts() {
 		$screen = get_current_screen();

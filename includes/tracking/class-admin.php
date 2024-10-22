@@ -63,6 +63,9 @@ final class Admin {
 
 	/**
 	 * Add settings page submenu.
+	 * 
+	 * Note: callback replaced when Newspack Plugin active with Information Architecture. See Newspack Plugin > Newsletters_Wizard.
+	 * 
 	 */
 	public static function add_settings_page() {
 		\add_submenu_page(

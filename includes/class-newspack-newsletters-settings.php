@@ -31,6 +31,9 @@ class Newspack_Newsletters_Settings {
 	 * @return string URL to settings page.
 	 */
 	public static function get_settings_url() {
+
+		// @ TODO: how to test?
+
 		$url = admin_url( 'edit.php?post_type=newspack_nl_cpt&page=newspack-newsletters-settings-admin' );
 
 		/**
@@ -214,6 +217,9 @@ class Newspack_Newsletters_Settings {
 
 	/**
 	 * Add options page
+	 * 
+	 * Note: callback if replaced if Newspack Plugin is active with Information Architecture. See Newspack Plugin > Newsletters_Wizard.
+	 * 
 	 */
 	public static function add_plugin_page() {
 		add_submenu_page(
