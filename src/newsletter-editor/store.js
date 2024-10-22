@@ -28,7 +28,9 @@ export const STORE_NAMESPACE = 'newspack/newsletters';
 
 const DEFAULT_STATE = {
 	isRetrieving: false,
+	isRefreshingHtml: false,
 	newsletterData: {},
+	shouldSendTest: false,
 	error: null,
 };
 const createAction = type => payload => ( { type, payload } );
@@ -36,6 +38,8 @@ const reducer = ( state = DEFAULT_STATE, { type, payload = {} } ) => {
 	switch ( type ) {
 		case 'SET_IS_RETRIEVING':
 			return { ...state, isRetrieving: payload };
+		case 'SET_IS_REFRESHING_HTML':
+			return { ...state, isRefreshingHtml: payload };
 		case 'SET_DATA':
 			const updatedNewsletterData = { ...state.newsletterData, ...payload };
 			return { ...state, newsletterData: updatedNewsletterData };
@@ -49,12 +53,14 @@ const reducer = ( state = DEFAULT_STATE, { type, payload = {} } ) => {
 const actions = {
 	// Regular actions.
 	setIsRetrieving: createAction( 'SET_IS_RETRIEVING' ),
+	setIsRefreshingHtml: createAction( 'SET_IS_REFRESHING_HTML' ),
 	setData: createAction( 'SET_DATA' ),
 	setError: createAction( 'SET_ERROR' ),
 };
 
 const selectors = {
 	getIsRetrieving: state => state.isRetrieving,
+	getIsRefreshingHtml: state => state.isRefreshingHtml,
 	getData: state => state.newsletterData || {},
 	getError: state => state.error,
 };
@@ -74,6 +80,12 @@ export const useIsRetrieving = () =>
 		select( STORE_NAMESPACE ).getIsRetrieving()
 	);
 
+// Hook to use the refresh HTML status from any editor component.
+export const useIsRefreshingHtml = () =>
+	useSelect( select =>
+		select( STORE_NAMESPACE ).getIsRefreshingHtml()
+	);
+
 // Hook to use the newsletter data from any editor component.
 export const useNewsletterData = () =>
 	useSelect( select =>
@@ -86,9 +98,14 @@ export const useNewsletterDataError = () =>
 		select( STORE_NAMESPACE ).getError()
 	);
 
+
 // Dispatcher to update retrieval status in the store.
 export const updateIsRetrieving = isRetrieving =>
 	dispatch( STORE_NAMESPACE ).setIsRetrieving( isRetrieving );
+
+// Dispatcher to update refreshing HTML status in the store.
+export const updateIsRefreshingHtml = isRetrieving =>
+	dispatch( STORE_NAMESPACE ).setIsRefreshingHtml( isRetrieving );
 
 // Dispatcher to update newsletter data in the store.
 export const updateNewsletterData = data =>

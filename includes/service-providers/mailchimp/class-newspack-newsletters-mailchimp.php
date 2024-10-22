@@ -958,7 +958,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 		}
 		try {
-
 			$sync_result = $this->sync( get_post( $post_id ) );
 			if ( ! $sync_result ) {
 				return new WP_Error(

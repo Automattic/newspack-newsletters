@@ -5,31 +5,17 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { useEffect, useRef, useState } from '@wordpress/element';
-import { refreshEmailHtml } from '../../newsletter-editor/utils';
+import { useEffect } from '@wordpress/element';
+import { refreshEmailHtml, usePrevious } from '../../newsletter-editor/utils';
 
 /**
  * Internal dependencies
  */
-import { fetchNewsletterData, fetchSyncErrors, updateNewsletterDataError } from '../../newsletter-editor/store';
+import { fetchNewsletterData, fetchSyncErrors, updateNewsletterDataError, updateIsRefreshingHtml, useIsRefreshingHtml } from '../../newsletter-editor/store';
 import { getServiceProvider } from '../../service-providers';
 
-/**
- * Custom hook for fetching the prior value of a prop.
- *
- * @param {*} value The prop to track.
- * @return {*} The prior value of the prop.
- */
-const usePrevProp = value => {
-	const ref = useRef();
-	useEffect( () => {
-		ref.current = value;
-	}, [ value ] );
-	return ref.current;
-};
-
 function MJML() {
-	const [ isRefreshingHTML, setIsRefreshingHTML ] = useState( false );
+	const isRefreshingHTML = useIsRefreshingHtml();
 	const {
 		saveSucceeded,
 		isPublishing,
@@ -82,7 +68,7 @@ function MJML() {
 	}, [ isAutosaveLocked ] );
 
 	// After the post is successfully saved, refresh the email HTML.
-	const wasSaving = usePrevProp( isSaving );
+	const wasSaving = usePrevious( isSaving );
 	const { name: serviceProviderName } = getServiceProvider();
 	const { supported_esps: supportedESPs } = newspack_email_editor_data || [];
 	const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && supportedESPs?.includes( serviceProviderName );
@@ -97,7 +83,7 @@ function MJML() {
 			! isSent &&
 			saveSucceeded
 		) {
-			setIsRefreshingHTML( true );
+			updateIsRefreshingHtml( true );
 			lockPostSaving( 'newspack-newsletters-refresh-html' );
 			refreshEmailHtml( postId, postTitle, postContent )
 				.then( refreshedHtml => {
@@ -125,7 +111,7 @@ function MJML() {
 				} )
 				.finally( () => {
 					unlockPostSaving( 'newspack-newsletters-refresh-html' );
-					setIsRefreshingHTML( false );
+					updateIsRefreshingHtml( false );
 				} );
 		}
 	}, [ isSaving, isAutosaving ] );
