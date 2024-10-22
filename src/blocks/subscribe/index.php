@@ -437,13 +437,9 @@ function process_form() {
 		return;
 	}
 
-	if ( ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
-		return send_form_response( new \WP_Error( 'invalid_nonce', __( 'Invalid request.', 'newspack-newsletters' ) ) );
-	}
-
 	// Honeypot trap.
 	if ( ! empty( $_REQUEST['email'] ) ) {
-		return send_form_response( [ 'email' => \sanitize_email( $_REQUEST['email'] ) ] );
+		return send_form_response( [ 'email' => \sanitize_email( $_REQUEST['email'] ) ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
 	// reCAPTCHA test.
@@ -452,6 +448,9 @@ function process_form() {
 		if ( \is_wp_error( $captcha_result ) ) {
 			return send_form_response( $captcha_result );
 		}
+		// Fall back to nonce.
+	} elseif ( ! \wp_verify_nonce( \sanitize_text_field( $_REQUEST[ FORM_ACTION ] ), FORM_ACTION ) ) {
+		return send_form_response( new \WP_Error( 'invalid_nonce', __( 'Invalid request.', 'newspack-newsletters' ) ) );
 	}
 
 	if ( ! isset( $_REQUEST['npe'] ) || empty( $_REQUEST['npe'] ) ) {
