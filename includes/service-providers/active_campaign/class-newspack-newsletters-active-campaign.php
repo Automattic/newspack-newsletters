@@ -626,7 +626,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 						'provider'    => $this->service,
 						'type'        => 'sublist',
 						'id'          => $segment['id'],
-						'parent'      => $args['parent'] ?? null,
+						'parent_id'   => $args['parent_id'] ?? null,
 						'name'        => $segment_name,
 						'entity_type' => 'segment',
 						'count'       => $segment['subscriber_count'] ?? null,
@@ -790,19 +790,24 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$campaign_id     = get_post_meta( $post_id, 'ac_campaign_id', true );
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
+			$newsletter_data = [
+				'campaign'                          => true, // Satisfy the JS API.
+				'campaign_id'                       => $campaign_id,
+				'supports_multiple_test_recipients' => true,
+			];
 
 			// Handle legacy send-to meta.
 			if ( ! $send_list_id ) {
 				$legacy_list_id = get_post_meta( $post_id, 'ac_list_id', true );
 				if ( $legacy_list_id ) {
-					$newsletter_data['list_id'] = $legacy_list_id;
+					$newsletter_data['send_list_id'] = $legacy_list_id;
 					$send_list_id               = $legacy_list_id;
 				}
 			}
 			if ( ! $send_sublist_id ) {
 				$legacy_sublist_id = get_post_meta( $post_id, 'ac_segment_id', true );
 				if ( $legacy_sublist_id ) {
-					$newsletter_data['sublist_id'] = $legacy_sublist_id;
+					$newsletter_data['send_sublist_id'] = $legacy_sublist_id;
 					$send_sublist_id               = $legacy_sublist_id;
 				}
 			}
@@ -816,6 +821,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			if ( is_wp_error( $send_lists ) ) {
 				throw new Exception( wp_kses_post( $send_lists->get_error_message() ) );
 			}
+			$newsletter_data['lists'] = $send_lists;
 			$send_sublists = $send_list_id || $send_sublist_id ?
 				$this->get_send_lists(
 					[
@@ -829,13 +835,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			if ( is_wp_error( $send_sublists ) ) {
 				throw new Exception( wp_kses_post( $send_sublists->get_error_message() ) );
 			}
-			$newsletter_data = [
-				'campaign'                          => true, // Satisfy the JS API.
-				'campaign_id'                       => $campaign_id,
-				'supports_multiple_test_recipients' => true,
-				'lists'                             => $send_lists,
-				'sublists'                          => $send_sublists,
-			];
+			$newsletter_data['sublists'] = $send_sublists;
 
 			if ( $campaign_id ) {
 				$newsletter_data['link'] = sprintf(
@@ -1066,7 +1066,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		// Retrieve and store campaign data.
 		$data = $this->retrieve( $post->ID, true );
 		if ( is_wp_error( $data ) ) {
-			set_transient( $transient_name, __( 'Error syncing with ESP. ', 'newspack-newsletters' ) . $data->get_error_message(), 45 );
+			set_transient( $transient_name, __( 'ActiveCampaign sync error: ', 'newspack-newsletters' ) . $data->get_error_message(), 45 );
 			return $data;
 		} else {
 			$data = array_merge( $data, $sync_data );
