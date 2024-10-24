@@ -219,7 +219,6 @@ class Newspack_Newsletters_Settings {
 	 * Add options page
 	 * 
 	 * Note: callback is replaced by Newspack Plugin release for Information Architecture.  See Newspack Plugin => Newsletters_Wizard.
-	 * 
 	 */
 	public static function add_plugin_page() {
 		add_submenu_page(
