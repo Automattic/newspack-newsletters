@@ -505,6 +505,7 @@ final class Newspack_Newsletters {
 			$supports[] = 'comments';
 		}
 
+		// Note: Menu icon and position is updated by Newspack Plugin release for Information Architecture.  See Newspack Plugin => Newsletters_Wizard.
 		$cpt_args = [
 			'has_archive'      => $public_slug,
 			'labels'           => $labels,
@@ -1029,6 +1030,8 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Enqueue style to handle Newspack branding.
+	 * 
+	 * Note: this callback is removed by Newspack Plugin release for Information Architecture.  See Newspack Plugin => Newsletters_Wizard.
 	 */
 	public static function branding_scripts() {
 		$screen = get_current_screen();

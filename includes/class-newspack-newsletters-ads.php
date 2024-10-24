@@ -174,6 +174,8 @@ final class Newspack_Newsletters_Ads {
 
 	/**
 	 * Add ads page link.
+	 * 
+	 * Note: replaced by Newspack Plugin release for Information Architecture.  See Newspack Plugin => Newsletters_Wizard.
 	 */
 	public static function add_ads_page() {
 		add_submenu_page(
@@ -229,6 +231,7 @@ final class Newspack_Newsletters_Ads {
 		];
 		register_post_type( self::CPT, $cpt_args );
 
+		// Note: see overrides in Newspack Plugin release for Information Architecture.  See Newspack Plugin => Newsletters_Wizard.
 		register_taxonomy(
 			self::ADVERTISER_TAX,
 			[ self::CPT, Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ],
