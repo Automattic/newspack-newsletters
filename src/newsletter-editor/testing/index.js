@@ -5,15 +5,15 @@ import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { useState, Fragment } from '@wordpress/element';
+import { useEffect, useState, Fragment } from '@wordpress/element';
 import { Button, Spinner, TextControl } from '@wordpress/components';
-import { hasValidEmail } from '../utils';
+import { hasValidEmail , usePrevious } from '../utils';
 
 /**
  * Internal dependencies
  */
 import withApiHandler from '../../components/with-api-handler';
-import { useNewsletterData } from '../store';
+import { useIsRefreshingHtml, useNewsletterData } from '../store';
 import './style.scss';
 
 const serviceProvider =
@@ -43,16 +43,20 @@ export default compose( [
 		disabled,
 		inlineNotifications,
 	} ) => {
+		const isRefreshingHtml = useIsRefreshingHtml();
+		const wasRefreshingHtml = usePrevious( isRefreshingHtml );
+		const [ shouldSendTest, setShouldSendTest ] = useState( false );
 		const [ localInFlight, setLocalInFlight ] = useState( false );
 		const [ localMessage, setLocalMessage ] = useState( '' );
 		const { supports_multiple_test_recipients: supportsMultipleTestEmailRecipients } = useNewsletterData();
-		const sendTestEmail = async () => {
-			if ( inlineNotifications ) {
-				setLocalInFlight( true );
-			} else {
-				setInFlightForAsync();
+
+		useEffect( () => {
+			if ( wasRefreshingHtml && ! isRefreshingHtml && shouldSendTest ) {
+				sendTestEmail();
 			}
-			await savePost();
+		}, [ isRefreshingHtml ] );
+
+		const sendTestEmail = async () => {
 			const params = {
 				path: `/newspack-newsletters/v1/${ serviceProvider }/${ postId }/test`,
 				data: {
@@ -74,10 +78,22 @@ export default compose( [
 					} )
 					.finally( () => {
 						setLocalInFlight( false );
+						setShouldSendTest( false );
 					} );
 			} else {
-				apiFetchWithErrorHandling( params );
+				await apiFetchWithErrorHandling( params );
+				setShouldSendTest( false );
 			}
+		};
+
+		const triggerSave = async () => {
+			if ( inlineNotifications ) {
+				setLocalInFlight( true );
+			} else {
+				setInFlightForAsync();
+			}
+			await savePost();
+			setShouldSendTest( true );
 		};
 
 		return (
@@ -96,7 +112,7 @@ export default compose( [
 				<div className="newspack-newsletters__testing-controls">
 					<Button
 						variant="secondary"
-						onClick={ sendTestEmail }
+						onClick={ triggerSave }
 						disabled={ disabled || localInFlight || inFlight || ! hasValidEmail( testEmail ) }
 					>
 						{ inFlight || localInFlight

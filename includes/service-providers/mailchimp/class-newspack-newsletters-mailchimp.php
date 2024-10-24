@@ -958,18 +958,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 		}
 		try {
-
-			$sync_result = $this->sync( get_post( $post_id ) );
-			if ( ! $sync_result ) {
-				return new WP_Error(
-					'newspack_newsletters_mailchimp_error',
-					__( 'Unable to synchronize with Mailchimp.', 'newspack-newsletters' )
-				);
-			}
-			if ( is_wp_error( $sync_result ) ) {
-				return $sync_result;
-			}
-
 			$mc      = new Mailchimp( $this->api_key() );
 			$payload = [
 				'test_emails' => $emails,
