@@ -556,8 +556,8 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			),
 			__( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' )
 		);
-		if ( is_wp_error( $lists_response ) || empty( $lists_response['lists'] ) ) {
-			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing cache: ' . ( is_wp_error( $lists_response ) ? $lists_response->getMessage() : __( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' ) ) );
+		if ( method_exists( $lists_response, 'getMessage' ) || empty( $lists_response['lists'] ) ) {
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing cache: ' . ( method_exists( $lists_response, 'getMessage' ) ? $lists_response->getMessage() : __( 'Error retrieving Mailchimp lists.', 'newspack_newsletters' ) ) );
 			return is_wp_error( $lists_response ) ? $lists_response : [];
 		}
 
