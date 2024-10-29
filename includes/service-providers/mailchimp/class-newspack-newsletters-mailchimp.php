@@ -626,8 +626,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		// In addition to Audiences, we also automatically fetch all groups and tags and offer them as Subscription Lists.
 		// Build the final list inside the loop so groups are added after the list they belong to and we can then represent the hierarchy in the UI.
 		foreach ( $lists as $list ) {
-
-			$lists[]        = $list;
 			$all_categories = Newspack_Newsletters_Mailchimp_Cached_Data::get_interest_categories( $list['id'] );
 			$all_categories = $all_categories['categories'] ?? [];
 			$all_tags       = Newspack_Newsletters_Mailchimp_Cached_Data::get_tags( $list['id'] ) ?? [];
