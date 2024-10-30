@@ -184,7 +184,7 @@ const Sidebar = ( {
 			<TextControl
 				label={ __( 'Subject', 'newspack-newsletters' ) }
 				className="newspack-newsletters__subject-textcontrol"
-				value={ title }
+				value={ title.replace('&amp;', '&') }
 				disabled={ inFlight }
 				onChange={ value => editPost( { title: value } ) }
 			/>
