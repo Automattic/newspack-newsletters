@@ -127,7 +127,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		// existing.
 		$existing = [
 			'id'    => 'xyz-' . self::$posts['remote_mailchimp'],
-			'title' => 'Remote mailchimp new title',
+			'title' => 'Test List 5',
 		];
 		$list     = Subscription_Lists::get_or_create_remote_list( $existing );
 		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
@@ -150,6 +150,36 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		$count_after_new = count( Subscription_Lists::get_all() );
 		$this->assertSame( $count + 1, $count_after_new );
+	}
+
+	/**
+	 * Test update title on fetch from ESP
+	 */
+	public function test_update_title_when_fetching_from_esp() {
+
+		$existing = [
+			'id'    => 'xyz-' . self::$posts['remote_mailchimp'],
+			'title' => 'Remote mailchimp new title',
+		];
+		$list     = Subscription_Lists::get_or_create_remote_list( $existing );
+
+		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
+		$this->assertSame( 'Remote mailchimp new title', $list->get_title() );
+		$this->assertSame( 'Remote mailchimp new title', $list->get_remote_name() );
+
+		// Now we edit the local title.
+		$list->update( [ 'title' => 'Customized title' ] );
+
+		$existing = [
+			'id'    => 'xyz-' . self::$posts['remote_mailchimp'],
+			'title' => 'Remote mailchimp super new title',
+		];
+
+		$list = Subscription_Lists::get_or_create_remote_list( $existing );
+
+		$this->assertSame( self::$posts['remote_mailchimp'], $list->get_id() );
+		$this->assertSame( 'Customized title', $list->get_title(), 'The local name should not be updated if it was customized' );
+		$this->assertSame( 'Remote mailchimp super new title', $list->get_remote_name(), 'The remote name should always be updated' );
 	}
 
 	/**

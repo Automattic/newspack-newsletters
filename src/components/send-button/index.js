@@ -298,7 +298,7 @@ export default compose( [
 		}
 
 		return (
-			<Fragment>
+			<div style={{ display: 'flex' }}>
 				<PreviewHTMLButton />
 				<Button
 					className="editor-post-publish-button"
@@ -366,7 +366,7 @@ export default compose( [
 						</div>
 					</Modal>
 				) }
-			</Fragment>
+			</div>
 		);
 	}
 );
