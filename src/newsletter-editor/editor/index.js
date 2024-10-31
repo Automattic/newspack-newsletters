@@ -102,7 +102,7 @@ const Editor = compose( [
 			const publishButton = document.getElementsByClassName(
 				'editor-post-publish-button__button'
 			)[ 0 ];
-			publishButton.parentNode.insertBefore( publishEl, publishButton );
+			publishButton.parentNode.insertBefore( publishEl, publishButton.nextSibling );
 		}, [] );
 
 		// Set color palette option.
