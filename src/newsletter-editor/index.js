@@ -90,7 +90,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	// Handle error messages from retrieve/sync requests with connected ESP.
 	useEffect( () => {
 		if ( newsletterDataError ) {
-			createNotice( 'error', newsletterDataError?.message || __( 'Error communicating with service provider.', 'newspack-newseltters' ), {
+			createNotice( 'error', newsletterDataError?.message || __( 'Error communicating with service provider.', 'newspack-newsletters' ), {
 				id: 'newspack-newsletters-newsletter-data-error',
 				isDismissible: true,
 			} );
