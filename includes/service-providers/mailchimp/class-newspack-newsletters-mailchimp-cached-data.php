@@ -525,10 +525,18 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 */
 	public static function handle_cron() {
 		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Handling cron request to refresh cache' );
+		delete_option( self::get_lists_cache_key() );
+		delete_option( self::get_cache_date_key() );
+
 		try {
 			$lists = self::fetch_lists(); // Force a cache refresh.
 		} catch ( Exception $e ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing lists cache: ' . $e->getMessage() );
+			return;
+		}
+
+		if ( is_wp_error( $lists ) ) {
+			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing lists cache: ' . $lists->get_error_message() );
 			return;
 		}
 
@@ -549,7 +557,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	public static function fetch_lists( $limit = null ) {
 		$mc = self::get_mc_api();
 		if ( \is_wp_error( $mc ) ) {
-			return [];
+			return $mc;
 		}
 		$lists_response = ( self::get_mc_instance() )->validate(
 			$mc->get(
