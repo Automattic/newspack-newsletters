@@ -1574,12 +1574,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		// Get and match existing merge fields.
 		try {
-			$existing_fields = $mc->get(
-				"lists/$audience_id/merge-fields",
-				[
-					'count' => 1000,
-				],
-				60
+			$existing_fields = $mc->get( "lists/$audience_id/merge-fields", [ 'count' => 1000 ], 60 );
+			$result  = $this->validate(
+				$existing_fields,
+				__( 'Error fetching Mailchimp merge fields.', 'newspack_newsletters' )
 			)['merge_fields'];
 		} catch ( \Exception $e ) {
 			do_action(
