@@ -4,7 +4,7 @@
 import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { Button, Notice, Spinner, TextControl, TextareaControl } from '@wordpress/components';
 
 /**
@@ -40,11 +40,24 @@ const Sidebar = ( {
 	stringifiedCampaignDefaults,
 	postId,
 } ) => {
+	const [ plainTextTitle, setPlainTextTitle ] = useState( title );
 	const isRetrieving = useIsRetrieving();
 	const newsletterData = useNewsletterData();
 	const newsletterDataError = useNewsletterDataError();
 	const campaign = newsletterData?.campaign;
 	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );
+	const entityConverter = useRef( null );
+
+	// Create a temp textarea element that we can use to convert HTML entities like &amp; to unicode characters.
+	useEffect( () => {
+		if ( entityConverter.current ) {
+			entityConverter.current.innerHTML = title;
+			setPlainTextTitle( entityConverter.current.value );
+		} else {
+			entityConverter.current = document.createElement( 'textarea' );
+		}
+		return () => entityConverter?.current?.remove && entityConverter.current.remove(); // Clean up temp element from DOM on unmount.
+	}, [ title ] );
 
 	// Reconcile stored campaign data with data fetched from ESP.
 	useEffect( () => {
@@ -184,7 +197,7 @@ const Sidebar = ( {
 			<TextControl
 				label={ __( 'Subject', 'newspack-newsletters' ) }
 				className="newspack-newsletters__subject-textcontrol"
-				value={ title }
+				value={ plainTextTitle }
 				disabled={ inFlight }
 				onChange={ value => editPost( { title: value } ) }
 			/>

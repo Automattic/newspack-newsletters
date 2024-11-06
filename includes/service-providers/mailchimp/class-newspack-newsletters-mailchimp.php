@@ -1004,7 +1004,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			'type'         => 'regular',
 			'content_type' => 'template',
 			'settings'     => [
-				'subject_line' => $post->post_title,
+				'subject_line' => html_entity_decode( $post->post_title ),
 				'title'        => $this->get_campaign_name( $post ),
 			],
 		];

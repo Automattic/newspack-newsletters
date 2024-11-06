@@ -18,8 +18,9 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
-import { refreshEmailHtml, validateNewsletter } from '../../newsletter-editor/utils';
+import { validateNewsletter } from '../../newsletter-editor/utils';
 import { useNewsletterData } from '../../newsletter-editor/store';
+import { refreshEmailHtml } from '../../editor/mjml';
 import './style.scss';
 
 function PreviewHTML() {
