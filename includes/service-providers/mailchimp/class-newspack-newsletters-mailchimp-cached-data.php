@@ -82,6 +82,9 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
 		add_action( 'wp_ajax_nopriv_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
 
+		// Invalidate all cached data if API key changes.
+		add_action( 'update_option_newspack_mailchimp_api_key', [ __CLASS__, 'invalidate_cache' ] );
+
 		add_action( self::CRON_HOOK, [ __CLASS__, 'handle_cron' ] );
 		add_filter( 'cron_schedules', [ __CLASS__, 'add_cron_interval' ] ); // phpcs:ignore
 
@@ -519,24 +522,25 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
+	 * Invalidate cached data by clearing the cache date key for all lists.
+	 */
+	public static function invalidate_cache() {
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Invalidating cached data' );
+		delete_option( self::get_cache_date_key() );
+		delete_option( self::get_lists_cache_key() );
+	}
+
+	/**
 	 * Handles the cron job and triggers the async requests to refresh the cache for all lists
 	 *
 	 * @return void
 	 */
 	public static function handle_cron() {
 		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Handling cron request to refresh cache' );
-		delete_option( self::get_lists_cache_key() );
-		delete_option( self::get_cache_date_key() );
-
 		try {
 			$lists = self::fetch_lists(); // Force a cache refresh.
 		} catch ( Exception $e ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing lists cache: ' . $e->getMessage() );
-			return;
-		}
-
-		if ( is_wp_error( $lists ) ) {
-			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing lists cache: ' . $lists->get_error_message() );
 			return;
 		}
 
@@ -557,7 +561,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	public static function fetch_lists( $limit = null ) {
 		$mc = self::get_mc_api();
 		if ( \is_wp_error( $mc ) ) {
-			return $mc;
+			return [];
 		}
 		$lists_response = ( self::get_mc_instance() )->validate(
 			$mc->get(
