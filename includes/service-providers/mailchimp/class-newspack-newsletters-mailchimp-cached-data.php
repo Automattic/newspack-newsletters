@@ -317,6 +317,9 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				$list_id ? 'list ' . $list_id : 'all lists'
 			)
 		);
+		if ( ! $list_id ) {
+			$list_id = 'lists';
+		}
 		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
 		if ( $cache_date && ( time() - $cache_date ) > self::SURFACE_ERRORS_AFTER ) {
 			$errors             = get_option( self::ERRORS_OPTION, [] );
