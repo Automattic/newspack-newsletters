@@ -21,8 +21,8 @@ class Newsletters_Mailchimp_Cached_Data_Test extends WP_UnitTestCase {
 	 * Test the API setup.
 	 */
 	public function test_mailchimp_cached_data_api_setup() {
-		// This tests if an empty API key won't cause the code to error out.
+		// Makes sure cached data fetch_methods throw an exception in case of error.
+		$this->expectException( Exception::class );
 		$segments = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segments( 'list1' );
-		$this->assertEquals( [], $segments );
 	}
 }
