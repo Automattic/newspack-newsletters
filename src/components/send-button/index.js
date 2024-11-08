@@ -245,7 +245,7 @@ export default compose( [
 		// For sent newsletters, display the generic button text.
 		if ( isPublished || sent ) {
 			return (
-				<Fragment>
+				<div style={{ display: 'flex' }}>
 					<PreviewHTMLButton />
 					<Button
 						className="editor-post-publish-button"
@@ -294,7 +294,7 @@ export default compose( [
 							</div>
 						</Modal>
 					) }
-				</Fragment>
+				</div>
 			);
 		}
 
