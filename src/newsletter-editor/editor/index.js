@@ -134,6 +134,7 @@ const Editor = compose( [
 
 				// Show an editor notice if the newsletter has been sent.
 				createNotice( 'success', successNote + dateTime, {
+					id: 'newspack-newsletters-campaign-sent-notice',
 					isDismissible: false,
 				} );
 
@@ -151,6 +152,7 @@ const Editor = compose( [
 						'newspack-newsletters'
 					),
 					{
+						id: 'newspack-newsletters-custom-fields-warning',
 						isDismissible: false,
 						actions: [
 							{
