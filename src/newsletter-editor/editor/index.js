@@ -49,7 +49,6 @@ const Editor = compose( [
 			),
 			meta,
 			sent,
-			isPublic: meta.is_public,
 			newsletterSendErrors: meta.newsletter_send_errors,
 			isCustomFieldsMetaBoxActive: getAllMetaBoxes().some( box => box.id === 'postcustom' ),
 		};
@@ -82,7 +81,6 @@ const Editor = compose( [
 		createNotice,
 		html,
 		isCustomFieldsMetaBoxActive,
-		isPublic,
 		lockPostAutosaving,
 		lockPostSaving,
 		meta,
@@ -197,16 +195,6 @@ const Editor = compose( [
 				removeNotice( noticeId );
 			}
 		}, [ html ] );
-
-		useEffect( () => {
-			// Hide post title if the newsletter is a not a public post.
-			const editorTitleEl = document.querySelector( '.editor-post-title' );
-			if ( editorTitleEl ) {
-				editorTitleEl.classList[ isPublic ? 'remove' : 'add' ](
-					'newspack-newsletters-post-title-hidden'
-				);
-			}
-		}, [ isPublic ] );
 
 		return createPortal( <SendButton />, publishEl );
 	}
