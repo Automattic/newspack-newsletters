@@ -310,7 +310,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	 * @param string|null $list_id The List ID, or null for all lists.
 	 * @param string      $error The error message.
 	 */
-	private static function maybe_add_error( $list_id = null, $error ) {
+	private static function maybe_add_error( $list_id = null, $error = '' ) {
 		Newspack_Newsletters_Logger::log(
 			sprintf(
 				'Mailchimp cache: handling error while fetching cache for %s',
@@ -319,6 +319,9 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		);
 		if ( ! $list_id ) {
 			$list_id = 'lists';
+		}
+		if ( ! $error ) {
+			$error = __( 'Unknown error', 'newspack_newsletters' );
 		}
 		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
 		if ( $cache_date && ( time() - $cache_date ) > self::SURFACE_ERRORS_AFTER ) {
