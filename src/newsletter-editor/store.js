@@ -175,7 +175,6 @@ export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 		const { name } = getServiceProvider();
 		const args = {
 			type: 'list',
-			limit: 10,
 			provider: name,
 			...opts,
 		};
