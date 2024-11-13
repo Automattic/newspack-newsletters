@@ -36,8 +36,11 @@ class Sync_Membership_Tied_Subscribers_CLI {
 			'newspack-newsletters sync-membership-tied-subscribers',
 			[ __CLASS__, 'cli_sync_membership_tied_subscribers' ],
 			[
-				'shortdesc' => 'Synchronizes the membership-tied newsletter lists with the memberships.',
-				'synopsis'  => [],
+				'shortdesc' => 'Synchronizes the membership-tied newsletter lists with the memberships.
+For each Membership Plan set to restrict Subscription Lists, all members\' ESP subscription statuses will be
+realigned with the membership status.
+
+Note that if a member has unsubscribed from a list, but has an active membership, they will be re-subscribed.',
 			]
 		);
 	}
@@ -55,10 +58,6 @@ class Sync_Membership_Tied_Subscribers_CLI {
 	/**
 	 * CLI handler for membership-tied newsletter lists synchronization.
 	 *
-	 * @param array $args Indexed array of args.
-	 * @param array $assoc_args Associative array of args.
-	 * @return void
-	 *
 	 * ## OPTIONS
 	 *
 	 * [--live]
@@ -70,6 +69,10 @@ class Sync_Membership_Tied_Subscribers_CLI {
 	 * ## EXAMPLES
 	 *
 	 *     wp newspack-newsletters sync-membership-tied-subscribers
+	 *
+	 * @param array $args Positional arguments.
+	 * @param array $assoc_args Assoc arguments.
+	 * @return void
 	 */
 	public static function cli_sync_membership_tied_subscribers( $args, $assoc_args ) {
 		\WP_CLI::log( '' );
@@ -81,7 +84,10 @@ class Sync_Membership_Tied_Subscribers_CLI {
 		$live         = isset( $assoc_args['live'] ) ? true : false;
 		$verbose      = isset( $assoc_args['verbose'] ) ? true : false;
 		if ( $live ) {
-			\WP_CLI::log( 'Live mode.' );
+			\WP_CLI::log(
+				'Live mode.
+Note that if a member has unsubscribed from a list, but has an active membership, they will be re-subscribed.'
+			);
 		} else {
 			\WP_CLI::log( 'Dry run. Use --live flag to run in live mode.' );
 		}
