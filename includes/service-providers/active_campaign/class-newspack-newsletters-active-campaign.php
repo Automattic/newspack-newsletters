@@ -131,11 +131,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$errors = new WP_Error();
 			if ( isset( $response_body['errors'] ) && is_array( $response_body['errors'] ) ) {
 				foreach ( $response_body['errors'] as $error ) {
-					$errors->add( $error['code'], $error['title'] );
+					$errors->add( $error['code'] ?? 'error', $error['title'] );
 				}
-			}
-
-			if ( ! empty( $response_message ) ) {
+			} elseif ( ! empty( $response_message ) ) {
 				$errors->add( $response_code, $response_message );
 			}
 
