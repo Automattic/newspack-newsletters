@@ -141,7 +141,7 @@ Note that if a member has unsubscribed from a list, but has an active membership
 								\WP_CLI::log( sprintf( '    - Processing user %s with membership #%d of status %s.', $email, $membership_id, $membership_status ) );
 							}
 
-							$result = null;
+							// Determine which lists update.
 							$lists_to_add = [];
 							$lists_to_remove = [];
 							if ( self::is_membership_active( $user_membership ) ) {
@@ -150,19 +150,48 @@ Note that if a member has unsubscribed from a list, but has an active membership
 								$lists_to_remove = [ $list_remote_id ];
 							}
 
-							if ( $verbose ) {
-								\WP_CLI::log(
-									$live ? '      - Updating the contact in the ESP…' : '      - Would update the contact in the ESP.'
-								);
-							}
+							$result = null;
 
-							if ( $live ) {
-								$result = \Newspack_Newsletters_Contacts::add_and_remove_lists(
-									$email,
-									$lists_to_add,
-									$lists_to_remove,
-									'Updating contact when running the sync-membership-tied-subscribers CLI sync script.'
-								);
+							// Check user status in the ESP.
+							$contact_data = \Newspack_Newsletters_Subscription::get_contact_data( $email );
+							$should_create_contact = \is_wp_error( $contact_data );
+							if ( $should_create_contact ) {
+								if ( empty( $lists_to_add ) ) {
+									if ( $verbose ) {
+										\WP_CLI::log( '    - Contact not found in ESP, but there are no lists to add, skipping.' );
+									}
+									continue;
+								}
+								if ( $verbose ) {
+									\WP_CLI::log(
+										$live ? '      - Contact not found - adding the contact in the ESP…' : '      - Contact not found - would add the contact to the ESP.'
+									);
+								}
+								if ( $live ) {
+									$result = \Newspack_Newsletters_Contacts::subscribe(
+										[
+											'email' => $email,
+											'name'  => $user->display_name,
+										],
+										$lists_to_add,
+										false,
+										'Adding contact when running the sync-membership-tied-subscribers CLI sync script.'
+									);
+								}
+							} else {
+								if ( $verbose ) {
+									\WP_CLI::log(
+										$live ? '      - Updating the contact in the ESP…' : '      - Would update the contact in the ESP.'
+									);
+								}
+								if ( $live ) {
+									$result = \Newspack_Newsletters_Contacts::add_and_remove_lists(
+										$email,
+										$lists_to_add,
+										$lists_to_remove,
+										'Updating contact when running the sync-membership-tied-subscribers CLI sync script.'
+									);
+								}
 							}
 
 							if ( \is_wp_error( $result ) ) {

@@ -16,23 +16,35 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 
 	public static $users = [
 		[
-			'email'             => 'john@example.com',
-			'membership_status' => 'wcm-active',
-		],
-		[
 			'email'             => 'bob@example.com',
 			'membership_status' => 'wcm-cancelled',
+			'exists_in_esp'     => true,
+		],
+		[
+			'email'             => 'alice@example.com',
+			'membership_status' => 'wcm-active',
+			'exists_in_esp'     => true,
+		],
+		[
+			'email'             => 'john@example.com',
+			'membership_status' => 'wcm-active',
+			'exists_in_esp'     => false,
+		],
+		[
+			'email'             => 'jane@example.com',
+			'membership_status' => 'wcm-cancelled',
+			'exists_in_esp'     => false,
 		],
 	];
 	public static $list_remote_ids = [
 		'main' => 'group-tag1-list1',
 	];
 
-	public static function get_contact_mock_response( $response, $endpoint, $args = [] ) {
+	public static function get_mock_response( $response, $endpoint, $args = [] ) {
 		$matching_users = array_filter(
 			self::$users,
 			function ( $user ) use ( $args ) {
-				return $user['email'] === $args['query'];
+				return $user['exists_in_esp'] && $user['email'] === $args['query'];
 			}
 		);
 
@@ -48,6 +60,37 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 		}
 
 		return $response;
+	}
+
+	public static function put_mock_response( $response, $endpoint, $args = [] ) {
+		$members_endpoint = preg_match( '/lists\/(.*)\/members/', $endpoint, $matches );
+		if ( $members_endpoint ) {
+			return [ 'status' => 200 ];
+		}
+		return $response;
+	}
+
+	public static function create_test_membership( $user_data, $membership_plan ) {
+		$user_id = wp_insert_user(
+			[
+				'user_login' => $user_data['email'],
+				'user_pass'  => '123',
+				'user_email' => $user_data['email'],
+				'role'       => 'subscriber',
+			]
+		);
+		return wp_insert_post(
+			[
+				'post_title'  => 'Test User Membership',
+				'post_type'   => 'wc_user_membership',
+				'post_status' => $user_data['membership_status'],
+				'post_author' => $user_id,
+				'meta_input'  => [
+					'_membership_plan_id' => $membership_plan->get_id(),
+					'_start_date'         => current_time( 'mysql' ),
+				],
+			]
+		);
 	}
 
 	public static function setup_test_memberships() {
@@ -79,57 +122,66 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 
 		// Create user memberships.
 		foreach ( self::$users as $user_data ) {
-			$user_id = wp_insert_user(
-				[
-					'user_login' => $user_data['email'],
-					'user_pass'  => '123',
-					'user_email' => $user_data['email'],
-					'role'       => 'subscriber',
-				]
-			);
-			$membership_id = wp_insert_post(
-				[
-					'post_title'  => 'Test User Membership',
-					'post_type'   => 'wc_user_membership',
-					'post_status' => $user_data['membership_status'],
-					'post_author' => $user_id,
-					'meta_input'  => [
-						'_membership_plan_id' => $membership_plan->get_id(),
-						'_start_date'         => current_time( 'mysql' ),
-					],
-				]
-			);
+			self::create_test_membership( $user_data, $membership_plan );
 		}
 
-		// Setup contact in MC ESP.
-		add_filter( 'mailchimp_mock_get', [ __CLASS__, 'get_contact_mock_response' ], 10, 3 );
+		// Mock ESP responses.
+		add_filter( 'mailchimp_mock_get', [ __CLASS__, 'get_mock_response' ], 10, 3 );
+		add_filter( 'mailchimp_mock_put', [ __CLASS__, 'put_mock_response' ], 10, 3 );
 
 		return [ $membership_plan ];
 	}
 
 	public function test_cli_sync_membership_tied_subscribers() {
 		$expected = [
-			[
-				self::$users[0]['email'],
-				[ self::$list_remote_ids['main'] ], // Should be added to this list.
-				[], // Should not be removed from any list.
-			],
-			[
-				self::$users[1]['email'],
-				[], // Should not be added to any list.
-				[ self::$list_remote_ids['main'] ], // Should be removed from this list.
-			],
+			'existing_subscribers' => [],
+			'new_subscribers'      => [],
 		];
+		foreach ( self::$users as $user ) {
+			$result = [ $user['email'] ];
+			if ( $user['membership_status'] === 'wcm-active' ) {
+				$result[] = [ self::$list_remote_ids['main'] ]; // Lists to add.
+				$result[] = []; // Lists to remove.
+			} else {
+				$result[] = []; // Lists to add.
+				$result[] = [ self::$list_remote_ids['main'] ]; // Lists to remove.
+			}
+			if ( ! $user['exists_in_esp'] && $user['membership_status'] !== 'wcm-active' ) {
+				continue;
+			}
+			if ( ! $user['exists_in_esp'] ) {
+				$expected['new_subscribers'][] = $result;
+			} else {
+				$expected['existing_subscribers'][] = $result;
+			}
+		}
+
 		global $cli_sync_membership_tied_subscribers_test_results;
+		$cli_sync_membership_tied_subscribers_test_results['existing_subscribers'] = [];
+		$cli_sync_membership_tied_subscribers_test_results['new_subscribers'] = [];
 		add_action(
 			'newspack_newsletters_update_contact_lists',
 			function( $provider, $email, $lists_to_add, $lists_to_remove ) {
 				global $cli_sync_membership_tied_subscribers_test_results;
-				$cli_sync_membership_tied_subscribers_test_results[] = [ $email, $lists_to_add, $lists_to_remove ];
+				$cli_sync_membership_tied_subscribers_test_results['existing_subscribers'][] = [ $email, $lists_to_add, $lists_to_remove ];
 			},
 			10,
 			4
 		);
+		add_action(
+			'newspack_newsletters_contact_subscribed',
+			function( $provider, $contact, $lists, $result, $is_updating, $context ) {
+				if ( ! $is_updating ) {
+					$this->assertEquals( 'Adding contact when running the sync-membership-tied-subscribers CLI sync script.', $context );
+
+					global $cli_sync_membership_tied_subscribers_test_results;
+					$cli_sync_membership_tied_subscribers_test_results['new_subscribers'][] = [ $contact['email'], $lists, [] ];
+				}
+			},
+			10,
+			6
+		);
+
 		\Newspack_Newsletters\CLI\Sync_Membership_Tied_Subscribers_CLI::cli_sync_membership_tied_subscribers(
 			[],
 			[
@@ -137,6 +189,20 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 				'verbose' => true,
 			]
 		);
-		$this->assertEquals( $cli_sync_membership_tied_subscribers_test_results, $expected );
+
+		$users_to_process = array_filter(
+			self::$users,
+			function( $user ) {
+				return $user['exists_in_esp'] || $user['membership_status'] === 'wcm-active';
+			}
+		);
+		$this->assertEquals(
+			count( $users_to_process ),
+			count( \WP_CLI::get_test_output( 'success' ) ),
+			'All users were processed successfully.'
+		);
+
+		$this->assertEqualsCanonicalizing( $expected['existing_subscribers'], $cli_sync_membership_tied_subscribers_test_results['existing_subscribers'] );
+		$this->assertEqualsCanonicalizing( $expected['new_subscribers'], $cli_sync_membership_tied_subscribers_test_results['new_subscribers'] );
 	}
 }
