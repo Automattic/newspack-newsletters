@@ -1,6 +1,6 @@
 <?php // phpcs:disable WordPress.Files.FileName.InvalidClassFileName, Squiz.Commenting, Generic.Files.OneObjectStructurePerFile.MultipleFound
 /**
- * Class Newsletters Test Sync_Membership_Tied_Subscribers
+ * Class Newsletters Test Sync_Membership_Tied_Subscribers_CLI
  *
  * @package Newspack_Newsletters
  */
@@ -11,7 +11,7 @@ use Newspack\Newsletters\Subscription_Lists;
 /**
  * Tests the Subscription_List class
  */
-class Sync_Membership_Tied_Subscribers_Test extends WP_UnitTestCase {
+class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 	use WC_Memberships_Setup;
 
 	public static $users = [
@@ -130,7 +130,7 @@ class Sync_Membership_Tied_Subscribers_Test extends WP_UnitTestCase {
 			10,
 			4
 		);
-		\Newspack_Newsletters\CLI\Sync_Membership_Tied_Subscribers::cli_sync_membership_tied_subscribers(
+		\Newspack_Newsletters\CLI\Sync_Membership_Tied_Subscribers_CLI::cli_sync_membership_tied_subscribers(
 			[],
 			[
 				'live'    => true,

@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Manages Settings page.
  */
-class Sync_Membership_Tied_Subscribers {
+class Sync_Membership_Tied_Subscribers_CLI {
 	/**
 	 * Initialize the class
 	 *
@@ -173,4 +173,4 @@ class Sync_Membership_Tied_Subscribers {
 		\WP_CLI::log( '' );
 	}
 }
-Sync_Membership_Tied_Subscribers::init();
+Sync_Membership_Tied_Subscribers_CLI::init();

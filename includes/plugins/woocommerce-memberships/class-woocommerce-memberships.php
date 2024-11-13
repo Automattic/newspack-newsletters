@@ -15,6 +15,8 @@ use Newspack_Newsletters_Logger;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/woocommerce-memberships/class-sync-membership-tied-subscribers-cli.php';
+
 /**
  * Manages Settings page.
  */
