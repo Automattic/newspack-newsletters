@@ -16,24 +16,34 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 
 	public static $users = [
 		[
-			'email'             => 'bob@example.com',
-			'membership_status' => 'wcm-cancelled',
-			'exists_in_esp'     => true,
+			'email'                => 'bob@example.com',
+			'membership_status'    => 'wcm-cancelled',
+			'exists_in_esp'        => true,
+			'currently_subscribed' => false,
 		],
 		[
-			'email'             => 'alice@example.com',
-			'membership_status' => 'wcm-active',
-			'exists_in_esp'     => true,
+			'email'                => 'alice@example.com',
+			'membership_status'    => 'wcm-active',
+			'exists_in_esp'        => true,
+			'currently_subscribed' => false,
 		],
 		[
-			'email'             => 'john@example.com',
-			'membership_status' => 'wcm-active',
-			'exists_in_esp'     => false,
+			'email'                => 'francis@example.com',
+			'membership_status'    => 'wcm-active',
+			'exists_in_esp'        => true,
+			'currently_subscribed' => true,
 		],
 		[
-			'email'             => 'jane@example.com',
-			'membership_status' => 'wcm-cancelled',
-			'exists_in_esp'     => false,
+			'email'                => 'john@example.com',
+			'membership_status'    => 'wcm-active',
+			'exists_in_esp'        => false,
+			'currently_subscribed' => false,
+		],
+		[
+			'email'                => 'jane@example.com',
+			'membership_status'    => 'wcm-cancelled',
+			'exists_in_esp'        => false,
+			'currently_subscribed' => false,
 		],
 	];
 	public static $list_remote_ids = [
@@ -49,7 +59,7 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 		);
 
 		foreach ( $matching_users as $user_data ) {
-			$response['exact_matches']['members'][] = [
+			$response_data = [
 				'id'            => '123',
 				'contact_id'    => 'aaa',
 				'full_name'     => 'Test Name',
@@ -57,6 +67,12 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 				'status'        => 'subscribed',
 				'list_id'       => 'list1',
 			];
+			if ( $user_data['currently_subscribed'] ) {
+				$response_data['interests'] = [
+					'tag1' => true,
+				];
+			}
+			$response['exact_matches']['members'][] = $response_data;
 		}
 
 		return $response;
@@ -106,6 +122,7 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 				'post_status' => 'publish',
 				'meta_input'  => [
 					Subscription_List::REMOTE_ID_META => self::$list_remote_ids['main'],
+					Subscription_List::TYPE_META      => 'remote',
 				],
 			]
 		);
@@ -138,20 +155,29 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 			'new_subscribers'      => [],
 		];
 		foreach ( self::$users as $user ) {
+
+			if ( ! $user['exists_in_esp'] && $user['membership_status'] !== 'wcm-active' ) {
+				continue;
+			}
+
 			$result = [ $user['email'] ];
-			if ( $user['membership_status'] === 'wcm-active' ) {
+			if ( $user['membership_status'] === 'wcm-active' && ! $user['currently_subscribed'] ) {
 				$result[] = [ self::$list_remote_ids['main'] ]; // Lists to add.
 				$result[] = []; // Lists to remove.
-			} else {
+			} elseif ( $user['membership_status'] !== 'wcm-active' && $user['currently_subscribed'] ) {
 				$result[] = []; // Lists to add.
 				$result[] = [ self::$list_remote_ids['main'] ]; // Lists to remove.
 			}
+
 			if ( ! $user['exists_in_esp'] && $user['membership_status'] !== 'wcm-active' ) {
 				continue;
 			}
 			if ( ! $user['exists_in_esp'] ) {
 				$expected['new_subscribers'][] = $result;
-			} else {
+			} elseif (
+				( $user['membership_status'] === 'wcm-active' && ! $user['currently_subscribed'] ) ||
+				( $user['membership_status'] !== 'wcm-active' && $user['currently_subscribed'] )
+			) {
 				$expected['existing_subscribers'][] = $result;
 			}
 		}
@@ -193,9 +219,12 @@ class Sync_Membership_Tied_Subscribers_CLI_Test extends WP_UnitTestCase {
 		$users_to_process = array_filter(
 			self::$users,
 			function( $user ) {
-				return $user['exists_in_esp'] || $user['membership_status'] === 'wcm-active';
+				return ( $user['exists_in_esp'] && ( $user['membership_status'] === 'wcm-active' && ! $user['currently_subscribed'] ) ) ||
+				( $user['exists_in_esp'] && ( $user['membership_status'] !== 'wcm-active' && $user['currently_subscribed'] ) ) ||
+				( ! $user['exists_in_esp'] && $user['membership_status'] === 'wcm-active' );
 			}
 		);
+
 		$this->assertEquals(
 			count( $users_to_process ),
 			count( \WP_CLI::get_test_output( 'success' ) ),
