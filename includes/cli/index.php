@@ -5,4 +5,4 @@
  * @package Newspack
  */
 
-require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/cli/class-sync-premium-subscribers.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/cli/class-sync-membership-tied-subscribers.php';

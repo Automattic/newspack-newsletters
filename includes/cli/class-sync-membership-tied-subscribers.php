@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Newsletters Premium Subscribers CLI.
+ * Newspack Newsletters Membership-tied Subscribers CLI.
  *
  * @package Newspack
  */
@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Manages Settings page.
  */
-class Sync_Premium_Subscribers {
+class Sync_Membership_Tied_Subscribers {
 	/**
 	 * Initialize the class
 	 *
@@ -33,10 +33,10 @@ class Sync_Premium_Subscribers {
 		}
 
 		\WP_CLI::add_command(
-			'newspack-newsletters sync-premium-subscribers',
-			[ __CLASS__, 'cli_sync_premium_subscribers' ],
+			'newspack-newsletters sync-membership-tied-subscribers',
+			[ __CLASS__, 'cli_sync_membership_tied_subscribers' ],
 			[
-				'shortdesc' => 'Synchronizes the premium newsletter lists with the memberships.',
+				'shortdesc' => 'Synchronizes the membership-tied newsletter lists with the memberships.',
 				'synopsis'  => [],
 			]
 		);
@@ -53,7 +53,7 @@ class Sync_Premium_Subscribers {
 	}
 
 	/**
-	 * CLI handler for premium newsletter lists synchronization.
+	 * CLI handler for membership-tied newsletter lists synchronization.
 	 *
 	 * @param array $args Indexed array of args.
 	 * @param array $assoc_args Associative array of args.
@@ -69,9 +69,9 @@ class Sync_Premium_Subscribers {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp newspack-newsletters sync-premium-subscribers
+	 *     wp newspack-newsletters sync-membership-tied-subscribers
 	 */
-	public static function cli_sync_premium_subscribers( $args, $assoc_args ) {
+	public static function cli_sync_membership_tied_subscribers( $args, $assoc_args ) {
 		\WP_CLI::log( '' );
 
 		if ( ! function_exists( 'wc_memberships_get_membership_plans' ) ) {
@@ -155,7 +155,7 @@ class Sync_Premium_Subscribers {
 									$email,
 									$lists_to_add,
 									$lists_to_remove,
-									'Updating contact when running the sync-premium-subscribers CLI sync script.'
+									'Updating contact when running the sync-membership-tied-subscribers CLI sync script.'
 								);
 							}
 
@@ -173,4 +173,4 @@ class Sync_Premium_Subscribers {
 		\WP_CLI::log( '' );
 	}
 }
-Sync_Premium_Subscribers::init();
+Sync_Membership_Tied_Subscribers::init();

@@ -169,7 +169,7 @@ class Woocommerce_Memberships {
 	}
 
 	/**
-	 * Removes user from premium lists associated with a membership plan
+	 * Removes user from membership-tied lists associated with a membership plan
 	 *
 	 * @param \WC_Memberships_User_Membership $user_membership The User Membership object.
 	 * @return void
@@ -229,7 +229,7 @@ class Woocommerce_Memberships {
 	}
 
 	/**
-	 * Adds user to premium lists when a membership is granted
+	 * Adds user to membership-tied lists when a membership is granted
 	 *
 	 * @param \WC_Memberships_Membership_Plan $plan the plan that user was granted access to.
 	 * @param array                           $args {
@@ -266,7 +266,7 @@ class Woocommerce_Memberships {
 			return;
 		}
 
-		// If post-checkout newsletter signup is enabled, we only want to add the reader to premium lists if:
+		// If post-checkout newsletter signup is enabled, we only want to add the reader to membership-tied lists if:
 		// - The membership is going from `paused` to `active` status (when a prior subscription is renewed).
 		// - The reader was already subscribed to the list(s).
 		$post_checkout_newsletter_signup_enabled = defined( 'NEWSPACK_ENABLE_POST_CHECKOUT_NEWSLETTER_SIGNUP' ) && NEWSPACK_ENABLE_POST_CHECKOUT_NEWSLETTER_SIGNUP;
