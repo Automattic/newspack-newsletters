@@ -155,7 +155,7 @@ class Sync_Premium_Subscribers {
 									$email,
 									$lists_to_add,
 									$lists_to_remove,
-									'Updating contact when running the CLI sync script.'
+									'Updating contact when running the sync-premium-subscribers CLI sync script.'
 								);
 							}
 
