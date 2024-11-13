@@ -123,8 +123,8 @@ Note that if a member has unsubscribed from a list, but has an active membership
 
 					$plan_memberships = $plan->get_memberships();
 					foreach ( $restricted_lists as $list ) {
-						$list_remote_id = $list->get_remote_id();
-						\WP_CLI::log( sprintf( '  - Synchronizing list "%s" (#%d, remote ID: %s)', $list->get_title(), $list->get_id(), $list_remote_id ) );
+						$list_public_id = $list->get_public_id();
+						\WP_CLI::log( sprintf( '  - Synchronizing list "%s" (#%d, public ID: %s)', $list->get_title(), $list->get_id(), $list_public_id ) );
 						foreach ( $plan_memberships as $user_membership ) {
 							$user = $user_membership->get_user();
 							if ( ! $user ) {
@@ -138,16 +138,29 @@ Note that if a member has unsubscribed from a list, but has an active membership
 							$membership_id = $user_membership->get_id();
 							$membership_status = $user_membership->get_status();
 							if ( $verbose ) {
+								\WP_CLI::log( '' );
 								\WP_CLI::log( sprintf( '    - Processing user %s with membership #%d of status %s.', $email, $membership_id, $membership_status ) );
 							}
+
+							$contact_lists = \Newspack_Newsletters_Subscription::get_contact_lists( $email );
+							$currently_subscribed = is_array( $contact_lists ) && in_array( $list_public_id, $contact_lists, true );
 
 							// Determine which lists update.
 							$lists_to_add = [];
 							$lists_to_remove = [];
 							if ( self::is_membership_active( $user_membership ) ) {
-								$lists_to_add = [ $list_remote_id ];
-							} else {
-								$lists_to_remove = [ $list_remote_id ];
+								if ( ! $currently_subscribed ) {
+									$lists_to_add = [ $list_public_id ];
+								}
+							} elseif ( $currently_subscribed ) {
+								$lists_to_remove = [ $list_public_id ];
+							}
+
+							if ( empty( $lists_to_add ) && empty( $lists_to_remove ) ) {
+								if ( $verbose ) {
+									\WP_CLI::log( '    - No changes needed, skipping.' );
+								}
+								continue;
 							}
 
 							$result = null;
