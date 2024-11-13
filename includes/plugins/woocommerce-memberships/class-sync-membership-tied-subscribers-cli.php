@@ -156,6 +156,10 @@ Note that if a member has unsubscribed from a list, but has an active membership
 							$contact_data = \Newspack_Newsletters_Subscription::get_contact_data( $email );
 							$should_create_contact = \is_wp_error( $contact_data );
 							if ( $should_create_contact ) {
+
+								// allow subscription to restricted lists.
+								remove_filter( 'newspack_newsletters_contact_lists', [ 'Newspack_Newsletters\Plugins\Woocommerce_Memberships', 'filter_lists' ] );
+
 								if ( empty( $lists_to_add ) ) {
 									if ( $verbose ) {
 										\WP_CLI::log( '    - Contact not found in ESP, but there are no lists to add, skipping.' );
