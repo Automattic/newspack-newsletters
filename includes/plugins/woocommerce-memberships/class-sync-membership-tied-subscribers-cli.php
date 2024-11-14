@@ -145,7 +145,7 @@ Note that if a member has unsubscribed from a list, but has an active membership
 							$contact_lists = \Newspack_Newsletters_Subscription::get_contact_lists( $email );
 							$currently_subscribed = is_array( $contact_lists ) && in_array( $list_public_id, $contact_lists, true );
 
-							// Determine which lists update.
+							// Determine which lists to update.
 							$lists_to_add = [];
 							$lists_to_remove = [];
 							if ( self::is_membership_active( $user_membership ) ) {
