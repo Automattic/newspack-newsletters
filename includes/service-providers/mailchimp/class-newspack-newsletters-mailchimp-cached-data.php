@@ -570,6 +570,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		if ( ! $limit ) {
 			update_option( self::get_lists_cache_key(), $lists_response['lists'], false ); // auto-load false.
 			update_option( self::get_cache_date_key(), time(), false ); // auto-load false.
+			self::clear_errors();
 		}
 
 		return $lists_response['lists'];
