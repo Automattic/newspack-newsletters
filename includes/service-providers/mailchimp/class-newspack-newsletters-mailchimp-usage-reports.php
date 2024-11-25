@@ -52,7 +52,9 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		}
 
 		$reports = [];
-		$lists  = $mc_api->get( 'lists', [ 'count' => 1000 ] );
+		$lists   = Newspack_Newsletters_Mailchimp::instance()->validate(
+			$mc_api->get( 'lists', [ 'count' => 1000 ] )
+		);
 		if ( ! isset( $lists['lists'] ) ) {
 			return $reports;
 		}
@@ -112,7 +114,16 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 		// sent/opens/clicks data, the campaign reports have to be used.
 		// It appears that the sent/opens/clicks data in the lists activity are only added after a
 		// delay of 2-3 days.
-		$reports = self::get_list_activity_reports( $days_in_past );
+
+		try {
+			// Get the list activity reports.
+			$reports = self::get_list_activity_reports( $days_in_past );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_error',
+				$e->getMessage()
+			);
+		}
 
 		$campaign_reports = [];
 		// Look at reports for campaigns sent at most two weeks ago, unless $days_in_past is larger.
