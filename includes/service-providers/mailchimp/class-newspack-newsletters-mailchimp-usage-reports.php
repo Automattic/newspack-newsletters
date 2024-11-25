@@ -21,8 +21,15 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	 * @return DrewM\MailChimp\MailChimp|WP_Error
 	 */
 	private static function get_mc_api() {
+		$api_key = Newspack_Newsletters_Mailchimp::instance()->api_key();
+		if ( empty( $api_key ) ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_empty_api_key',
+				__( 'Mailchimp API key is not set.', 'newspack-newsletters' )
+			);
+		}
 		try {
-			return new Mailchimp( Newspack_Newsletters_Mailchimp::instance()->api_key() );
+			return new Mailchimp( $api_key );
 		} catch ( Exception $e ) {
 			return new WP_Error(
 				'newspack_newsletters_mailchimp_error',
@@ -170,11 +177,17 @@ class Newspack_Newsletters_Mailchimp_Usage_Reports {
 	/**
 	 * Creates a usage report.
 	 *
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report|WP_Error Usage report or error.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report|WP_Error|null Usage report, error or Null in case there's no need to check for a report.
 	 */
 	public static function get_usage_report() {
 		$reports = self::get_usage_reports( 1 );
 		if ( \is_wp_error( $reports ) ) {
+
+			// if the api key is not set, Mailchimp is not in use, we shouldn't even try to get the usage report.
+			if ( $reports->get_error_code() === 'newspack_newsletters_mailchimp_empty_api_key' ) {
+				return null;
+			}
+
 			return $reports;
 		}
 		return reset( $reports );
