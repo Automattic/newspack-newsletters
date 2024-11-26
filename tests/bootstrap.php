@@ -39,11 +39,17 @@ require_once 'trait-lists-setup.php';
 // Trait used to test Send Lists.
 require_once 'trait-send-lists-setup.php';
 
+// Trait used to test WC Memberships.
+require_once 'trait-wc-memberships-setup.php';
+
 // MailChimp mock.
 require_once 'mocks/class-mailchimp-mock.php';
 
 // WC Memberships mock.
 require_once 'mocks/wc-memberships.php';
+
+// WC CLI mock.
+require_once 'mocks/wp-cli.php';
 
 // Abstract ESP tests.
 require_once 'abstract-esp-tests.php';

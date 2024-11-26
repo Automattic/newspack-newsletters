@@ -22,6 +22,9 @@
 		],
 		"post-update-cmd": [
 			"vendor/bin/cghooks update"
+		],
+		"test-with-coverage": [
+			"XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html codecov"
 		]
 	},
 	"extra": {

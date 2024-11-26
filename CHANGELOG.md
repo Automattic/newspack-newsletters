@@ -1,3 +1,16 @@
+# [3.5.0](https://github.com/Automattic/newspack-newsletters/compare/v3.4.0...v3.5.0) (2024-11-25)
+
+
+### Bug Fixes
+
+* better handle error responses from AC api ([#1707](https://github.com/Automattic/newspack-newsletters/issues/1707)) ([17a21e2](https://github.com/Automattic/newspack-newsletters/commit/17a21e261695acfb229c0f9c13549abc9035aa77))
+* **mailchimp:** fatal error with invalid API keys ([#1690](https://github.com/Automattic/newspack-newsletters/issues/1690)) ([b7fd7e6](https://github.com/Automattic/newspack-newsletters/commit/b7fd7e69446aa613bbec16d96002a8f0eb42d3dd))
+
+
+### Features
+
+* **cli:** add command to synchronize premium lists ([#1699](https://github.com/Automattic/newspack-newsletters/issues/1699)) ([21d15a7](https://github.com/Automattic/newspack-newsletters/commit/21d15a779a6affbe900effb104c2da2e23d0617d))
+
 # [3.4.0](https://github.com/Automattic/newspack-newsletters/compare/v3.3.3...v3.4.0) (2024-11-11)
 
 

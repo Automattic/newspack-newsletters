@@ -82,6 +82,9 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
 		add_action( 'wp_ajax_nopriv_' . self::AJAX_ACTION, [ __CLASS__, 'handle_dispatch_refresh' ] );
 
+		// Invalidate all cached data if API key changes.
+		add_action( 'update_option_newspack_mailchimp_api_key', [ __CLASS__, 'invalidate_cache' ] );
+
 		add_action( self::CRON_HOOK, [ __CLASS__, 'handle_cron' ] );
 		add_filter( 'cron_schedules', [ __CLASS__, 'add_cron_interval' ] ); // phpcs:ignore
 
@@ -285,10 +288,14 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Clears the cache errors for a given list
 	 *
-	 * @param string $list_id The List ID.
+	 * @param string|null $list_id The List ID, or null for all lists.
 	 * @return void
 	 */
-	private static function clear_errors( $list_id ) {
+	private static function clear_errors( $list_id = null ) {
+		if ( ! $list_id ) {
+			delete_option( self::ERRORS_OPTION );
+			return;
+		}
 		$errors = get_option( self::ERRORS_OPTION, [] );
 		if ( isset( $errors[ $list_id ] ) ) {
 			unset( $errors[ $list_id ] );
@@ -300,11 +307,22 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	/**
 	 * Stores the last error for a given list, if the cache is older than self::SURFACE_ERRORS_AFTER
 	 *
-	 * @param string $list_id The List ID.
-	 * @param string $error The error message.
+	 * @param string|null $list_id The List ID, or null for all lists.
+	 * @param string      $error The error message.
 	 */
-	private static function maybe_add_error( $list_id, $error ) {
-		Newspack_Newsletters_Logger::log( 'Mailchimp cache: handling error while fetching cache for list ' . $list_id );
+	private static function maybe_add_error( $list_id = null, $error = '' ) {
+		Newspack_Newsletters_Logger::log(
+			sprintf(
+				'Mailchimp cache: handling error while fetching cache for %s',
+				$list_id ? 'list ' . $list_id : 'all lists'
+			)
+		);
+		if ( ! $list_id ) {
+			$list_id = 'lists';
+		}
+		if ( ! $error ) {
+			$error = __( 'Unknown error', 'newspack_newsletters' );
+		}
 		$cache_date = get_option( self::get_cache_date_key( $list_id ) );
 		if ( $cache_date && ( time() - $cache_date ) > self::SURFACE_ERRORS_AFTER ) {
 			$errors             = get_option( self::ERRORS_OPTION, [] );
@@ -519,6 +537,16 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 	}
 
 	/**
+	 * Invalidate cached data by clearing the cache date key for all lists.
+	 */
+	public static function invalidate_cache() {
+		Newspack_Newsletters_Logger::log( 'Mailchimp cache: Invalidating cached data' );
+		delete_option( self::get_cache_date_key() );
+		delete_option( self::get_lists_cache_key() );
+		self::clear_errors();
+	}
+
+	/**
 	 * Handles the cron job and triggers the async requests to refresh the cache for all lists
 	 *
 	 * @return void
@@ -529,6 +557,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 			$lists = self::fetch_lists(); // Force a cache refresh.
 		} catch ( Exception $e ) {
 			Newspack_Newsletters_Logger::log( 'Mailchimp cache: Error refreshing lists cache: ' . $e->getMessage() );
+			self::maybe_add_error( null, $e->getMessage() );
 			return;
 		}
 
