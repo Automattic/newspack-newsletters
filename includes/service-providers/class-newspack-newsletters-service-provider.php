@@ -940,10 +940,10 @@ Error message(s) received:
 	/**
 	 * Get usage data for yesterday.
 	 *
-	 * @return Newspack_Newsletters_Service_Provider_Usage_Report|WP_Error|null Usage report, error or Null in case there's no need to check for a report.
+	 * @return Newspack_Newsletters_Service_Provider_Usage_Report|WP_Error
 	 */
 	public function get_usage_report() {
-		return null; // Not implemented for the provider.
+		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
 	}
 
 	/**
