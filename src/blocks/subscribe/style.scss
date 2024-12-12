@@ -211,6 +211,16 @@
 	}
 }
 
+.newspack-recaptcha-error {
+	width: 100%;
+	p {
+		text-align: center;
+		font-size: 0.8em;
+		margin: 0;
+		color: var(--newspack-ui-color-error-50, #d63638);
+	}
+}
+
 @keyframes spin {
 	from {
 		transform: rotate(0deg);
