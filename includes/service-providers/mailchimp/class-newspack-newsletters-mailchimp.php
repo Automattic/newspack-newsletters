@@ -1557,6 +1557,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @param array  $contact     The contact.
 	 *
 	 * @return array Merge fields.
+	 *
+	 * @throws Exception Error message.
 	 */
 	private function prepare_merge_fields( $audience_id, $contact ) {
 		$mc           = new Mailchimp( $this->api_key() );
@@ -1572,14 +1574,26 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			ARRAY_FILTER_USE_BOTH
 		);
 
-		// Get and match existing merge fields.
+		// Get and match existing merge fields. Merge fields must always be fetched from the API to ensure we have the latest data.
 		try {
-			$existing_fields = Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $audience_id );
+			$response = $this->validate(
+				$mc->get(
+					"lists/$audience_id/merge-fields",
+					[ 'count' => 1000 ],
+					60
+				)
+			);
+
+			// If we didn't get ANY merge fields in the response, something is wrong. Bail to avoid creating duplicate fields.
+			if ( empty( $response['merge_fields'] ) ) {
+				throw new Exception( esc_html__( 'Could not fetch merge fields', 'newspack-newsletters' ) );
+			}
+			$existing_fields = $response['merge_fields'];
 		} catch ( \Exception $e ) {
 			do_action(
 				'newspack_log',
 				'newspack_mailchimp_prepare_merge_fields',
-				sprintf( 'Error getting merge fields: %s', $e->getMessage() ),
+				__( 'Error getting merge fields', 'newspack-newsletters' ),
 				[
 					'type'       => 'error',
 					'data'       => [
@@ -1590,10 +1604,17 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'file'       => 'newspack_mailchimp',
 				]
 			);
+			if ( method_exists( 'Newspack\Reader_Activation\ESP_Sync', 'schedule_sync' ) ) {
+				$user = get_user_by( 'email', $contact['email'] );
+				if ( $user ) {
+					\Newspack\Reader_Activation\ESP_Sync::schedule_sync(
+						$user->ID,
+						__( 'Scheduling retry sync after failing to fetch merge field data.', 'newspack-newsletters' ),
+						300 // Try again in 5 minutes.
+					);
+				}
+			}
 			return [];
-		}
-		if ( empty( $existing_fields ) ) {
-			$existing_fields = [];
 		}
 
 		usort(
@@ -1770,9 +1791,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
 				$merge_fields = $this->prepare_merge_fields( $list_id, $contact );
-				if ( ! empty( $merge_fields ) ) {
-					$update_payload['merge_fields'] = $merge_fields;
+				if ( empty( $merge_fields ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_fetch_merge_fields_failed',
+						__( 'Failed get fetch merge fields from list.', 'newspack-newsletters' )
+					);
 				}
+				$update_payload['merge_fields'] = $merge_fields;
 			}
 
 			// Add groups and tags, if any.
