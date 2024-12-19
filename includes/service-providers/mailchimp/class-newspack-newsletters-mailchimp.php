@@ -1791,6 +1791,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
 				$merge_fields = $this->prepare_merge_fields( $list_id, $contact );
+
+				/**
+				 * Filter the merge fields payload.
+				 *
+				 * @param array $merge_fields The merge fields payload to pass to the Mailchimp API.
+				 */
+				$merge_fields = apply_filters( 'newspack_mailchimp_merge_fields', $merge_fields );
 				if ( empty( $merge_fields ) ) {
 					return new WP_Error(
 						'newspack_newsletters_mailchimp_fetch_merge_fields_failed',
