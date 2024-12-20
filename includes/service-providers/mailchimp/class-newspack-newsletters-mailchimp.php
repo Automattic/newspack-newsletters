@@ -1605,20 +1605,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'file'       => 'newspack_mailchimp',
 				]
 			);
-			if ( method_exists( 'Newspack\Reader_Activation\ESP_Sync', 'schedule_sync' ) ) {
-				$user = get_user_by( 'email', $contact['email'] );
-				if ( $user ) {
-					\Newspack\Reader_Activation\ESP_Sync::schedule_sync(
-						$user->ID,
-						__( 'Scheduling retry sync after failing to fetch merge field data.', 'newspack-newsletters' ),
-						300 // Try again in 5 minutes.
-					);
-				}
-			}
-			return new \WP_Error(
-				'newspack_mailchimp_prepare_merge_fields',
-				$e->getMessage()
-			);
 		}
 
 		usort(
@@ -1803,10 +1789,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				 * @param array $merge_fields The merge fields payload to pass to the Mailchimp API.
 				 */
 				$merge_fields = apply_filters( 'newspack_mailchimp_merge_fields', $this->prepare_merge_fields( $list_id, $contact ) );
-				if ( is_wp_error( $merge_fields ) ) {
-					throw new Exception( $merge_fields->get_error_message() );
+				if ( ! empty( $merge_fields ) ) {
+					$update_payload['merge_fields'] = $merge_fields;
 				}
-				$update_payload['merge_fields'] = $merge_fields;
 			}
 
 			// Add groups and tags, if any.
