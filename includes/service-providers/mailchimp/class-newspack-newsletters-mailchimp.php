@@ -1426,6 +1426,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				throw new Exception( esc_html__( 'A Mailchimp error has occurred.', 'newspack-newsletters' ) );
 			}
 		}
+		// See Mailchimp error code glossary: https://mailchimp.com/developer/marketing/docs/errors/#error-glossary.
 		if ( ! empty( $result['status'] ) && (int) $result['status'] >= 400 ) {
 			if ( $preferred_error && ! Newspack_Newsletters::debug_mode() ) {
 				if ( ! empty( $result['detail'] ) ) {
@@ -1614,7 +1615,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					);
 				}
 			}
-			return [];
+			return new \WP_Error(
+				'newspack_mailchimp_prepare_merge_fields',
+				$e->getMessage()
+			);
 		}
 
 		usort(
@@ -1755,6 +1759,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @param array  $interests An array of interests as expected by the API, where the key is the interest ID and the value is a bool (add or remove).
 	 *
 	 * @return array|WP_Error Contact data if it was added, or error otherwise.
+	 *
+	 * @throws Exception Error message.
 	 */
 	public function add_contact( $contact, $list_id = false, $tags = [], $interests = [] ) {
 		if ( false === $list_id ) {
@@ -1790,19 +1796,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$mc = new Mailchimp( $this->api_key() );
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-				$merge_fields = $this->prepare_merge_fields( $list_id, $contact );
 
 				/**
 				 * Filter the merge fields payload.
 				 *
 				 * @param array $merge_fields The merge fields payload to pass to the Mailchimp API.
 				 */
-				$merge_fields = apply_filters( 'newspack_mailchimp_merge_fields', $merge_fields );
-				if ( empty( $merge_fields ) ) {
-					return new WP_Error(
-						'newspack_newsletters_mailchimp_fetch_merge_fields_failed',
-						__( 'Failed get fetch merge fields from list.', 'newspack-newsletters' )
-					);
+				$merge_fields = apply_filters( 'newspack_mailchimp_merge_fields', $this->prepare_merge_fields( $list_id, $contact ) );
+				if ( is_wp_error( $merge_fields ) ) {
+					throw new Exception( $merge_fields->get_error_message() );
 				}
 				$update_payload['merge_fields'] = $merge_fields;
 			}
@@ -1819,24 +1821,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			// Create or update a list member.
 			$member_hash = Mailchimp::subscriberHash( $email_address );
-			$result = $mc->put( "lists/$list_id/members/$member_hash", $update_payload );
-
-			if (
-				! $result ||
-				! isset( $result['status'] ) ||
-				// See Mailchimp error code glossary: https://mailchimp.com/developer/marketing/docs/errors/#error-glossary.
-				(int) $result['status'] >= 400 ||
-				( isset( $result['errors'] ) && count( $result['errors'] ) )
-			) {
-				return new WP_Error(
-					'newspack_newsletters_mailchimp_add_contact_failed',
-					sprintf(
-						/* translators: %s: Mailchimp error message */
-						__( 'Failed to add contact to list. %s', 'newspack-newsletters' ),
-						isset( $result['detail'] ) ? $result['detail'] : ''
-					)
-				);
-			}
+			$result      = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ) );
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_add_contact_failed',
