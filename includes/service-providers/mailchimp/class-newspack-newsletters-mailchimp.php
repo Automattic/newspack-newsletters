@@ -1607,6 +1607,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 		}
 
+		if ( empty( $existing_fields ) ) {
+			$existing_fields = [];
+		}
+
 		usort(
 			$existing_fields,
 			function( $a, $b ) {
