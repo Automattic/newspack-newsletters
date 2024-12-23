@@ -1587,14 +1587,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			// If we didn't get ANY merge fields in the response, something is wrong. Bail to avoid creating duplicate fields.
 			if ( empty( $response['merge_fields'] ) ) {
-				throw new Exception( esc_html__( 'Could not fetch merge fields', 'newspack-newsletters' ) );
+				throw new Exception( esc_html__( 'Response returned no merge_fields', 'newspack-newsletters' ) );
 			}
 			$existing_fields = $response['merge_fields'];
 		} catch ( \Exception $e ) {
 			do_action(
 				'newspack_log',
 				'newspack_mailchimp_prepare_merge_fields',
-				__( 'Error getting merge fields', 'newspack-newsletters' ),
+				'Error getting merge fields',
 				[
 					'type'       => 'error',
 					'data'       => [
