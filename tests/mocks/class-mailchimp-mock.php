@@ -6,6 +6,30 @@ namespace DrewM\MailChimp;
  * Mocks the MailChimp class.
  */
 class MailChimp {
+	/**
+	 * Init.
+	 */
+	public static function init() {
+		add_filter( 'newspack_mailchimp_merge_fields', [ __CLASS__, 'mock_merge_fields' ] );
+	}
+
+	/**
+	 * Remove mock filters.
+	 */
+	public static function remove_filters() {
+		echo 'removing filter';
+		remove_filter( 'newspack_mailchimp_merge_fields', [ __CLASS__, 'mock_merge_fields' ] );
+	}
+
+	/**
+	 * Mock merge fields payload so that we can test the MailChimp API.
+	 */
+	public static function mock_merge_fields() {
+		return [
+			'FNAME' => 'Contact First Name',
+			'LNAME' => 'Contact Last Name',
+		];
+	}
 
 	/**
 	 * Can use the mock API?
@@ -48,3 +72,5 @@ class MailChimp {
 		return md5( strtolower( $email ) );
 	}
 }
+
+Mailchimp::init();
