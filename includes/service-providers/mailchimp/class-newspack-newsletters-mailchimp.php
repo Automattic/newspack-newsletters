@@ -1800,6 +1800,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				if ( is_wp_error( $merge_fields ) ) {
 					throw new Exception( $merge_fields->get_error_message() );
 				}
+				$update_payload['merge_fields'] = $merge_fields;
 			}
 
 			// Add groups and tags, if any.
