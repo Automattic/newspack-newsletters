@@ -45,7 +45,7 @@
 		"qs": "^6.13.1"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.10.4",
+		"@rushstack/eslint-patch": "^1.10.5",
 		"@wordpress/browserslist-config": "^6.15.0",
 		"eslint": "^8.57.0",
 		"lint-staged": "^15.3.0",
