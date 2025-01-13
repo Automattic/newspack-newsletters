@@ -476,6 +476,23 @@ function process_form() {
 		'newsletters_subscription_method' => 'newsletters-subscription-block',
 	];
 
+	/**
+	 * Filter to allow short-circuiting the newsletter subscription form.
+	 *
+	 * This runs after the honeypot trap and reCAPTCHA validation.
+	 *
+	 * @param bool|WP_Error $preempt  Whether to short-circuit the form processing. Default false.
+	 * @param string        $email    Email address of the reader.
+	 * @param string        $name     Name of the reader.
+	 * @param array         $lists    List IDs the reader is subscribing to.
+	 * @param array         $metadata Some metadata about the subscription. Always contains `current_page_url`, `newspack_popup_id` and `newsletters_subscription_method` keys.
+	 */
+	$preempt = apply_filters( 'newspack_newsletters_subscribe_form_preempt', false, $email, $name, $lists, $metadata );
+
+	if ( $preempt ) {
+		return send_form_response( $preempt );
+	}
+
 	// Handle Mailchimp double opt-in option.
 	$provider = \Newspack_Newsletters::get_service_provider();
 	if ( $provider && 'mailchimp' === $provider->service && isset( $_REQUEST['double_optin'] ) && '1' === $_REQUEST['double_optin'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
