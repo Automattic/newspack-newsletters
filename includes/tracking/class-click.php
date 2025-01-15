@@ -160,6 +160,7 @@ final class Click {
 		if (
 			false === stripos( $newsletter_content, $url_without_query_args ) &&
 			false === stripos( $newsletter_content, urlencode( $url_without_query_args ) ) && // URL might be encoded via a block pattern.
+			\get_site_url() !== $url_without_query_args && // ESP might have replaced all links, so always allow redirects to the site URL.
 			! $is_admin_user // Allow redirect for logged-in editor or admin users.
 		) {
 			\wp_die( 'Invalid URL', '', 400 );
