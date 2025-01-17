@@ -1017,7 +1017,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 		if ( ! empty( $sender_email ) ) {
 			$is_valid_email = $this->validate_sender_email( $sender_email );
-			if ( is_wp_error( $is_valid_email ) ) {
+			if ( is_wp_error( $is_valid_email ) && $is_valid_email->get_error_code() === 'newspack_newsletters_unverified_sender_domain' ) {
 				delete_post_meta( $post->ID, 'senderEmail' ); // Delete invalid email so we can't accidentally attempt to send with it.
 				return $is_valid_email;
 			}
