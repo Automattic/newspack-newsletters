@@ -48,7 +48,7 @@
 		"@rushstack/eslint-patch": "^1.10.5",
 		"@wordpress/browserslist-config": "^6.15.0",
 		"eslint": "^8.57.0",
-		"lint-staged": "^15.3.0",
+		"lint-staged": "^15.4.1",
 		"newspack-scripts": "^5.5.2",
 		"postcss-scss": "^4.0.9"
 	}
