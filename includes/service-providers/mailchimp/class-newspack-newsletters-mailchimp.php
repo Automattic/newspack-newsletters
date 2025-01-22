@@ -1840,16 +1840,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			 * @param string $reader_error The default error message.
 			 * @param string $email_address The email address that was attempted to be subscribed.
 			 * @param string $list_id The Mailchimp list ID that the email address was attempted to be subscribed to.
-			 * @param array $tags The tags that were attempted to be added to the email address.
-			 * @param array $interests The interests that were attempted to be added to the email address.
 			 */
 			$reader_error = apply_filters(
-				'newspack_newsletters_mailchimp_add_contact_reader_error_message',
+				'newspack_newsletters_add_contact_reader_error_message',
 				__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
 				$email_address,
-				$list_id,
-				$tags,
-				$interests
+				$list_id
 			);
 			$result      = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
 		} catch ( \Exception $e ) {

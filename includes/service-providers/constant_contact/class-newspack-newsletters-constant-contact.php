@@ -1200,14 +1200,42 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			}
 		}
 
+		/**
+		 * A default error message to show to readers if their signup request results in an error.
+		 *
+		 * @param string $reader_error The default error message.
+		 * @param string $email_address The email address that was attempted to be subscribed.
+		 * @param string $list_id The Constant Contact list ID that the email address was attempted to be subscribed to.
+		 */
+		$reader_error = apply_filters(
+			'newspack_newsletters_add_contact_reader_error_message',
+			__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
+			$contact['email'],
+			$list_id
+		);
 		$result = $cc->upsert_contact( $contact['email'], $data );
 		if ( is_wp_error( $result ) ) {
-			return $result;
+			// Log the error with any details returned from the API.
+			do_action(
+				'newspack_log',
+				'newspack_constant_contact_add_contact_failed',
+				'Error adding contact to Constant Contact.',
+				[
+					'type'       => 'error',
+					'data'       => [
+						'messages' => $result->get_error_messages(),
+						'status'   => $result->get_error_code(),
+					],
+					'user_email' => $contact['email'],
+					'file'       => 'newspack_constant_contact',
+				]
+			);
+			return Newspack_Newsletters::debug_mode() ? $result : new \WP_Error( 'newspack_constant_contact_add_contact_failed', $reader_error );
 		}
 		if ( ! $result ) {
 			return new WP_Error(
-				'newspack_newsletters_error',
-				__( 'Failed to add contact.', 'newspack-newsletters' )
+				'newspack_constant_contact_add_contact_unknown_error',
+				$reader_error
 			);
 		}
 
