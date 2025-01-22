@@ -1414,26 +1414,21 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Throw an Exception if Mailchimp response indicates an error.
 	 *
 	 * @param Object $result Result of the Mailchimp operation.
-	 * @param String $preferred_error Preset error to use instead of Mailchimp errors.
+	 * @param String $preferred_error Error message to show to readers instead of showing Mailchimp API errors.
+	 * @param String $email_address Email address, for debugging purposes.
 	 * @throws Exception Error message.
 	 * @return The results of the API call.
 	 */
-	public function validate( $result, $preferred_error = null ) {
+	public function validate( $result, $preferred_error = null, $email_address = '' ) {
+		$default_error = __( 'Sorry, a Mailchimp error has occurred. Please try again later or contact us for support.', 'newspack-newsletters' );
+		if ( ! $preferred_error ) {
+			$preferred_error = $default_error;
+		}
 		if ( ! $result ) {
-			if ( $preferred_error ) {
-				throw new Exception( esc_html( $preferred_error ) );
-			} else {
-				throw new Exception( esc_html__( 'A Mailchimp error has occurred.', 'newspack-newsletters' ) );
-			}
+			throw new Exception( esc_html( $preferred_error ) );
 		}
 		// See Mailchimp error code glossary: https://mailchimp.com/developer/marketing/docs/errors/#error-glossary.
 		if ( ! empty( $result['status'] ) && (int) $result['status'] >= 400 ) {
-			if ( $preferred_error && ! Newspack_Newsletters::debug_mode() ) {
-				if ( ! empty( $result['detail'] ) ) {
-					$preferred_error .= ' ' . $result['detail'];
-				}
-				throw new Exception( esc_html( $preferred_error ) );
-			}
 			$messages = [];
 			if ( ! empty( $result['errors'] ) ) {
 				foreach ( $result['errors'] as $error ) {
@@ -1442,13 +1437,36 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					}
 				}
 			}
-			if ( ! count( $messages ) && ! empty( $result['detail'] ) ) {
+			if ( ! empty( $result['detail'] ) ) {
 				$messages[] = $result['detail'];
 			}
 			if ( ! count( $messages ) ) {
-				$message[] = __( 'A Mailchimp error has occurred.', 'newspack-newsletters' );
+				$message[] = $preferred_error;
 			}
-			throw new Exception( esc_html( implode( ' ', $messages ) ) );
+
+			// Log the error with any details returned from the API.
+			do_action(
+				'newspack_log',
+				'newspack_mailchimp_api_error',
+				'Error adding contact to Mailchimp.',
+				[
+					'type'       => 'error',
+					'data'       => [
+						'messages' => $messages,
+						'status'   => $result['status'],
+						'title'    => ! empty( $result['title'] ) ? $result['title'] : '',
+					],
+					'user_email' => $email_address,
+					'file'       => 'newspack_mailchimp',
+				]
+			);
+
+			if ( Newspack_Newsletters::debug_mode() ) {
+				// Show the "real" error message(s) if in debug mode.
+				throw new Exception( esc_html( implode( ' ', $messages ) ) );
+			} else {
+				throw new Exception( esc_html( $preferred_error ) );
+			}
 		}
 		return $result;
 	}
@@ -1815,7 +1833,25 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			// Create or update a list member.
 			$member_hash = Mailchimp::subscriberHash( $email_address );
-			$result      = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ) );
+
+			/**
+			 * A default error message to show to readers if their signup request results in an error.
+			 *
+			 * @param string $reader_error The default error message.
+			 * @param string $email_address The email address that was attempted to be subscribed.
+			 * @param string $list_id The Mailchimp list ID that the email address was attempted to be subscribed to.
+			 * @param array $tags The tags that were attempted to be added to the email address.
+			 * @param array $interests The interests that were attempted to be added to the email address.
+			 */
+			$reader_error = apply_filters(
+				'newspack_newsletters_mailchimp_add_contact_reader_error_message',
+				__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
+				$email_address,
+				$list_id,
+				$tags,
+				$interests
+			);
+			$result      = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_add_contact_failed',
