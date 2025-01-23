@@ -1832,22 +1832,16 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			Newspack_Newsletters_Logger::log( 'Mailchimp add_contact PUT payload: ' . wp_json_encode( $update_payload ) );
 
 			// Create or update a list member.
-			$member_hash = Mailchimp::subscriberHash( $email_address );
-
-			/**
-			 * A default error message to show to readers if their signup request results in an error.
-			 *
-			 * @param string $reader_error The default error message.
-			 * @param string $email_address The email address that was attempted to be subscribed.
-			 * @param string $list_id The Mailchimp list ID that the email address was attempted to be subscribed to.
-			 */
-			$reader_error = apply_filters(
-				'newspack_newsletters_add_contact_reader_error_message',
-				__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
-				$email_address,
-				$list_id
+			$member_hash  = Mailchimp::subscriberHash( $email_address );
+			$reader_error = $this->get_add_contact_reader_error_message(
+				[
+					'email'     => $contact['email'],
+					'list_id'   => $list_id,
+					'tags'      => $tags,
+					'interests' => $interests,
+				]
 			);
-			$result      = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
+			$result       = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_add_contact_failed',

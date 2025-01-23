@@ -867,19 +867,13 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				]
 			);
 
-			/**
-			 * A default error message to show to readers if their signup request results in an error.
-			 *
-			 * @param string $reader_error The default error message.
-			 * @param string $email_address The email address that was attempted to be subscribed.
-			 * @param string $list_id The Campaign Monitor list ID that the email address was attempted to be subscribed to.
-			 */
-			$reader_error = apply_filters(
-				'newspack_newsletters_add_contact_reader_error_message',
-				__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
-				$contact['email'],
-				$list_id
+			$reader_error = $this->get_add_contact_reader_error_message(
+				[
+					'email'   => $contact['email'],
+					'list_id' => $list_id,
+				]
 			);
+
 			return new \WP_Error(
 				'newspack_campaign_monitor_add_contact_failed',
 				Newspack_Newsletters::debug_mode() ? $e->getMessage() : $reader_error

@@ -1401,20 +1401,17 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				]
 			);
 
-			/**
-			 * A default error message to show to readers if their signup request results in an error.
-			 *
-			 * @param string $reader_error The default error message.
-			 * @param string $email_address The email address that was attempted to be subscribed.
-			 * @param string $list_id The ActiveCampaign list ID that the email address was attempted to be subscribed to.
-			 */
-			$reader_error = apply_filters(
-				'newspack_newsletters_add_contact_reader_error_message',
-				__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
-				$contact['email'],
-				$list_id
+			if ( Newspack_Newsletters::debug_mode() ) {
+				return $result;
+			}
+
+			$reader_error = $this->get_add_contact_reader_error_message(
+				[
+					'email'   => $contact['email'],
+					'list_id' => $list_id,
+				]
 			);
-			return Newspack_Newsletters::debug_mode() ? $result : new \WP_Error( 'newspack_active_campaign_add_contact_failed', $reader_error );
+			return new \WP_Error( 'newspack_active_campaign_add_contact_failed', $reader_error );
 		}
 
 		// On success, clear cached contact data to make sure we get updated data next time we need.
