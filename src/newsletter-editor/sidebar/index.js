@@ -48,14 +48,14 @@ const Sidebar = ( {
 	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );
 	const entityConverter = useRef( null );
 
-	// Create a temp textarea element that we can use to convert HTML entities like &amp; to unicode characters.
 	useEffect( () => {
+		// Create a temp textarea element that we can use to convert HTML entities like &amp; to unicode characters.
 		if ( entityConverter.current ) {
-			entityConverter.current.innerHTML = title;
-			setPlainTextTitle( entityConverter.current.value );
 		} else {
 			entityConverter.current = document.createElement( 'textarea' );
 		}
+		entityConverter.current.innerHTML = title;
+		setPlainTextTitle( entityConverter.current.value );
 		return () => entityConverter?.current?.remove && entityConverter.current.remove(); // Clean up temp element from DOM on unmount.
 	}, [ title ] );
 
@@ -199,7 +199,8 @@ const Sidebar = ( {
 				className="newspack-newsletters__subject-textcontrol"
 				value={ plainTextTitle }
 				disabled={ inFlight }
-				onChange={ value => editPost( { title: value } ) }
+				onChange={ value => setPlainTextTitle( value ) }
+				onBlur={ () => editPost( { title: plainTextTitle } ) }
 			/>
 			<TextareaControl
 				label={ __( 'Preview text', 'newspack-newsletters' ) }
