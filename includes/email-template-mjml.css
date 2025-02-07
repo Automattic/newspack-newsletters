@@ -6,7 +6,6 @@ p {
 
 /* Link */
 a {
-	color: inherit !important;
 	text-decoration: underline;
 }
 a:active, a:focus, a:hover {

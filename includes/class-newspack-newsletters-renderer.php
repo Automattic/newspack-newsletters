@@ -1277,10 +1277,18 @@ final class Newspack_Newsletters_Renderer {
 		 */
 		$body             = self::post_to_mjml_components( $post ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
+		$text_color       = get_post_meta( $post->ID, 'text_color', true );
+		$link_color       = get_post_meta( $post->ID, 'link_color', true );
 		$preview_text     = self::get_preview_text( $post );
 		$custom_css       = get_post_meta( $post->ID, 'custom_css', true );
 		if ( ! $background_color ) {
 			$background_color = '#ffffff';
+		}
+		if ( ! $text_color ) {
+			$text_color = '#000000';
+		}
+		if ( ! $link_color ) {
+			$link_color = '#0000ff';
 		}
 
 		ob_start();
