@@ -8,18 +8,18 @@ Tags: newsletters, Newspack, Mailchimp, Active Campaign, Constant Contact
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Create email newsletters with the Gutenberg editor and distribute them with your favorite ESP mailing lists.
+Create email newsletters with the block editor and distribute them with your favorite ESP mailing lists.
 
 == Description ==
-Create email newsletters with the Gutenberg editor and send them via ActiveCampaign, Campaign Monitor, Constant Contact, or Mailchimp, all without leaving WP Admin! Newspack Newsletters lets you build eye-catching newsletters using the WordPress editing tools you’re already familiar with, and lets you save drafts, create reusable layouts, send to your existing mailing list, and also publish them to your website.
+Create email newsletters with the block editor and send them via ActiveCampaign, Campaign Monitor, Constant Contact, or Mailchimp, all without leaving WP Admin! Newspack Newsletters lets you build eye-catching newsletters using the WordPress editing tools you’re already familiar with, and lets you save drafts, create reusable layouts, send to your existing mailing list, and also publish them to your website.
 
 = Use and create newsletter layouts =
 
 Newspack Newsletters comes with four default layouts to help you start building newsletters quickly. You can use an existing layout, or start fresh with a blank page. You can also create and save your own layouts, or alter the ones that come bundled with the plugin and save the settings, and use them for future campaigns.
 
-= Use Gutenberg blocks and settings =
+= Use blocks and settings =
 
-Newspack Newsletters supports most core Gutenberg blocks and configurations, letting you use blocks like Group, Button, Columns, and more, to create dynamic layouts. The plugin will warn you when a block will not display as expected in an email.
+Newspack Newsletters supports most core blocks and configurations, letting you use blocks like Group, Button, Columns, and more, to create dynamic layouts. The plugin will warn you when a block will not display as expected in an email.
 
 = Customize your newsletter’s appearance =
 
@@ -47,7 +47,8 @@ The Newspack Newletters plugin is part of Newspack, a suite of tools to help sma
 
 = Credits =
 
-The [beach photograph](https://www.pexels.com/photo/wind-grass-beach-sea-7763/) in the screenshot is by Life of Pix, licensed [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+The [town photograph](https://www.pexels.com/photo/colorful-coastline-of-menton-in-provence-alpes-cote-d-azur-29942561/) in the screenshot is by AXP Photography, licensed [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+The [bitcoin photograph](https://www.pexels.com/photo/close-up-shot-of-gold-coins-and-paper-money-on-the-keyboard-of-a-laptop-6771178/) in the screenshot is by Alesia Kozik, licensed [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 == Installation ==
 1. Upload the Newspack Newsletters plugin to your website, and activate it.
