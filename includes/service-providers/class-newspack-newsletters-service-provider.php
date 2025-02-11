@@ -611,7 +611,7 @@ Error message(s) received:
 		 */
 		$reader_error = apply_filters(
 			'newspack_newsletters_add_contact_reader_error_message',
-			__( 'Sorry, a Mailchimp error has occurred. Please try again later or contact us for support.', 'newspack-newsletters' ),
+			__( 'Sorry, an error has occurred. Please try again later or contact us for support.', 'newspack-newsletters' ),
 			$params,
 			$raw_error
 		);
