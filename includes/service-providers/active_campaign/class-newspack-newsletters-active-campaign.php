@@ -1388,7 +1388,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			// Log the error with any details returned from the API.
 			do_action(
 				'newspack_log',
-				'newspack_active_campaign_add_contact_failed',
+				'newspack_' . $this->service . '_api_error',
 				'Error adding contact to ActiveCampaign.',
 				[
 					'type'       => 'error',
@@ -1405,11 +1405,12 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				return $result;
 			}
 
-			$reader_error = $this->get_add_contact_reader_error_message(
+			$reader_error = $this->get_reader_error_message(
 				[
 					'email'   => $contact['email'],
 					'list_id' => $list_id,
-				]
+				],
+				$result
 			);
 			return new \WP_Error( 'newspack_active_campaign_add_contact_failed', $reader_error );
 		}

@@ -1206,7 +1206,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			// Log the error with any details returned from the API.
 			do_action(
 				'newspack_log',
-				'newspack_constant_contact_add_contact_failed',
+				'newspack_' . $this->service . '_api_error',
 				'Error adding contact to Constant Contact.',
 				[
 					'type'       => 'error',
@@ -1219,11 +1219,12 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 				]
 			);
 
-			$reader_error = $this->get_add_contact_reader_error_message(
+			$reader_error = $this->get_reader_error_message(
 				[
 					'email'   => $contact['email'],
 					'list_id' => $list_id,
-				]
+				],
+				$result
 			);
 
 			return Newspack_Newsletters::debug_mode() ? $result : new \WP_Error( 'newspack_constant_contact_add_contact_failed', $reader_error );

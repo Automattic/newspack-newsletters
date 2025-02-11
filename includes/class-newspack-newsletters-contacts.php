@@ -223,6 +223,8 @@ class Newspack_Newsletters_Contacts {
 		 */
 		do_action( 'newspack_newsletters_upsert', $provider->service, $contact, $lists, $result, $is_updating, $context );
 
+		// Logs the success or error resulting from the upsert request.
+		// To see errors returned by the ESP's API, look for the `newspack_{esp}_api_error` error code.
 		do_action(
 			'newspack_log',
 			'newspack_esp_sync_upsert_contact',

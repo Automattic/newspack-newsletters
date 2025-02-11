@@ -854,7 +854,7 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 			// Log the error with any details returned from the API.
 			do_action(
 				'newspack_log',
-				'newspack_campaign_monitor_add_contact_failed',
+				'newspack_' . $this->service . '_api_error',
 				'Error adding contact to Campaign Monitor.',
 				[
 					'type'       => 'error',
@@ -867,11 +867,12 @@ final class Newspack_Newsletters_Campaign_Monitor extends \Newspack_Newsletters_
 				]
 			);
 
-			$reader_error = $this->get_add_contact_reader_error_message(
+			$reader_error = $this->get_reader_error_message(
 				[
 					'email'   => $contact['email'],
 					'list_id' => $list_id,
-				]
+				],
+				$e
 			);
 
 			return new \WP_Error(
