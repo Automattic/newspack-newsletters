@@ -76,7 +76,6 @@ const customStylesSelector = select => {
 		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
 		backgroundColor: meta.background_color || '#ffffff',
 		textColor: meta.text_color || '#000000',
-		linkColor: meta.link_color || '#0000ff',
 		customCss: meta.custom_css || '',
 	};
 };
@@ -150,7 +149,7 @@ export const useCustomFontsInIframe = () => {
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )(
-	( { fontBody, fontHeader, backgroundColor, textColor, linkColor, customCss } ) => {
+	( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
 		useEffect( () => {
 			document.documentElement.style.setProperty( '--newspack-body-font', fontBody );
 		}, [ fontBody ] );
@@ -164,15 +163,6 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 				editorElement.style.color = textColor;
 			}
 		}, [ backgroundColor, textColor ] );
-		useEffect( () => {
-			const editorElement = document.querySelector( '.editor-styles-wrapper' );
-			if ( editorElement ) {
-				const links = editorElement.getElementsByTagName('a');
-				Array.from(links).forEach(link => {
-					link.style.color = linkColor;
-				});
-			}
-		}, [ linkColor ] );
 		useEffect( () => {
 			const editorElement = document.querySelector( '.edit-post-visual-editor' );
 			if ( editorElement ) {
@@ -200,7 +190,7 @@ export const Styling = compose( [
 		return { editPost };
 	} ),
 	withSelect( customStylesSelector ),
-] )( ( { editPost, fontBody, fontHeader, customCss, backgroundColor, textColor, linkColor } ) => {
+] )( ( { editPost, fontBody, fontHeader, customCss, backgroundColor, textColor } ) => {
 	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
 	};
@@ -248,16 +238,6 @@ export const Styling = compose( [
 							id={ `${ id }-text` }
 							color={ textColor }
 							onChangeComplete={ value => updateStyleValue( 'text_color', value.hex ) }
-							disableAlpha
-						/>
-					</BaseControl>
-				</PanelRow>
-				<PanelRow className="newspack-newsletters__color-panel">
-					<BaseControl label={ __( 'Link color', 'newspack-newsletters' ) } id={ `${ id }-link` }>
-						<ColorPicker
-							id={ `${ id }-link` }
-							color={ linkColor }
-							onChangeComplete={ value => updateStyleValue( 'link_color', value.hex ) }
 							disableAlpha
 						/>
 					</BaseControl>

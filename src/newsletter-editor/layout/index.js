@@ -31,7 +31,6 @@ export default compose( [
 		const {
 			background_color,
 			text_color,
-			link_color,
 			font_body,
 			font_header,
 			custom_css,
@@ -43,7 +42,6 @@ export default compose( [
 		const layoutMeta = {
 			background_color,
 			text_color,
-			link_color,
 			font_body,
 			font_header,
 			custom_css,

@@ -14,9 +14,7 @@
 		<mj-style>
 		<?php
 			$default_css = file_get_contents( dirname( __FILE__ ) . '/email-template-mjml.css' );
-			// Add global link color styling
-			$link_color_css = "a { color: " . ($link_color ?? '#0000ff') . "; }";
-			$css         = $default_css . "\n" . $link_color_css . "\n" . $custom_css;
+			$css         = $default_css . "\n" . $custom_css;
 
 			echo esc_html( $css );
 			echo Newspack_Newsletters_Editor::get_color_palette_css();

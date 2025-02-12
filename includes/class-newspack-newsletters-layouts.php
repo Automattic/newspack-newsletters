@@ -77,7 +77,6 @@ final class Newspack_Newsletters_Layouts {
 		\register_meta( 'post', 'font_body', $meta_default_params );
 		\register_meta( 'post', 'background_color', $meta_default_params );
 		\register_meta( 'post', 'text_color', $meta_default_params );
-		\register_meta( 'post', 'link_color', $meta_default_params );
 		\register_meta( 'post', 'custom_css', $meta_default_params );
 		\register_meta( 'post', 'campaign_defaults', $meta_default_params );
 	}
@@ -93,7 +92,6 @@ final class Newspack_Newsletters_Layouts {
 		$date               = gmdate( get_option( 'date_format' ) );
 		$bg_color           = '#ffffff';
 		$text_color         = '#000000';
-		$link_color         = '#0000ff';
 		$social_links_color = 'black';
 
 		// Check if service provider is Mailchimp.
@@ -210,7 +208,6 @@ final class Newspack_Newsletters_Layouts {
 				$post->meta = [
 					'background_color'  => get_post_meta( $post->ID, 'background_color', true ),
 					'text_color'        => get_post_meta( $post->ID, 'text_color', true ),
-					'link_color'        => get_post_meta( $post->ID, 'link_color', true ),
 					'font_body'         => get_post_meta( $post->ID, 'font_body', true ),
 					'font_header'       => get_post_meta( $post->ID, 'font_header', true ),
 					'custom_css'        => get_post_meta( $post->ID, 'custom_css', true ),

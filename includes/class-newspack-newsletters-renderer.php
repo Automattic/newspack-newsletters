@@ -263,12 +263,39 @@ final class Newspack_Newsletters_Renderer {
 			}
 		}
 
+		// Link color handling.
+		if ( isset( $block_attrs['style']['elements']['link']['color']['text'] ) ) {
+			$link_color = $block_attrs['style']['elements']['link']['color']['text'];
+			// Check if the color is a preset.
+			if ( strpos( $link_color, 'var:preset|color|' ) === 0 ) {
+				// Extract the color name and retrieve it in theme.json.
+				$color_name    = str_replace( 'var:preset|color|', '', $link_color );
+				$theme_json    = WP_Theme_JSON_Resolver::get_theme_data();
+				$color_palette = $theme_json->get_settings()['color']['palette']['theme'] ?? [];
+				$hex_color     = '#000000'; // Fallback color.
+				if ( ! empty( $color_palette ) && is_array( $color_palette ) ) {
+					foreach ( $color_palette as $color ) {
+						if ( isset( $color['slug'] ) && $color['slug'] === $color_name ) {
+							$hex_color = $color['color']; // Get the Hex value.
+							break;
+						}
+					}
+				}
+				$colors['link'] = $hex_color; // Set the Hex color.
+			} else {
+				$colors['link'] = $link_color;
+			}
+		}
+
 		// Add !important to all colors.
 		if ( isset( $colors['color'] ) ) {
 			$colors['color'] .= ' !important';
 		}
 		if ( isset( $colors['background-color'] ) ) {
 			$colors['background-color'] .= ' !important';
+		}
+		if ( isset( $colors['link'] ) ) {
+			$colors['link'] .= ' !important';
 		}
 
 		return $colors;
@@ -558,14 +585,27 @@ final class Newspack_Newsletters_Renderer {
 					$inner_html = sprintf( '<%1$s>%2$s</%1$s>', $tag_name, $inner_html );
 				}
 
+				// Initialize the MJML markup.
+				$block_mjml_markup = '';
+
 				// Only mj-text has to use container-background-color attr for background color.
 				if ( isset( $text_attrs['background-color'] ) ) {
 					$text_attrs['container-background-color'] = $text_attrs['background-color'];
 					unset( $text_attrs['background-color'] );
 				}
 
+				// Handle link colors.
+				if ( isset( $attrs['link'] ) ) {
+					// Apply inline style to links.
+					$inner_html = preg_replace(
+						'/<a([^>]*?)>/i',
+						'<a$1 style="color: ' . esc_attr( $attrs['link'] ) . ';">',
+						$inner_html
+					);
+				}
+
 				// Avoid wrapping markup in `mj-text` if the block is an inner block.
-				$block_mjml_markup = $is_in_list_or_quote ? $inner_html : '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
+				$block_mjml_markup .= $is_in_list_or_quote ? $inner_html : '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>' . $inner_html . '</mj-text>';
 				break;
 
 			/**
@@ -1009,6 +1049,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
+
 				$markup = '<mj-wrapper ' . self::array_to_attributes( $attrs ) . '>';
 				foreach ( $inner_blocks as $block ) {
 					$markup .= self::render_mjml_component( $block, false, true, $default_attrs );
@@ -1278,7 +1319,6 @@ final class Newspack_Newsletters_Renderer {
 		$body             = self::post_to_mjml_components( $post ); // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
 		$background_color = get_post_meta( $post->ID, 'background_color', true );
 		$text_color       = get_post_meta( $post->ID, 'text_color', true );
-		$link_color       = get_post_meta( $post->ID, 'link_color', true );
 		$preview_text     = self::get_preview_text( $post );
 		$custom_css       = get_post_meta( $post->ID, 'custom_css', true );
 		if ( ! $background_color ) {
@@ -1286,9 +1326,6 @@ final class Newspack_Newsletters_Renderer {
 		}
 		if ( ! $text_color ) {
 			$text_color = '#000000';
-		}
-		if ( ! $link_color ) {
-			$link_color = '#0000ff';
 		}
 
 		ob_start();

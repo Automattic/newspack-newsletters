@@ -70,7 +70,6 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
 				style={ {
 					backgroundColor: meta.background_color,
 					textColor: meta.text_color,
-					linkColor: meta.link_color,
 				} }
 			>
 				<BlockPreview { ...props } />

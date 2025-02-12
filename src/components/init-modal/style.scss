@@ -80,6 +80,10 @@
 				line-height: 1;
 			}
 		}
+
+		.components-modal__header + div:not([class]) {
+			height: 100%;
+		}
 	}
 
 	&__content {
