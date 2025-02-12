@@ -601,7 +601,7 @@ Error message(s) received:
 	 *
 	 * @return string
 	 */
-	public function get_reader_error_message( $params = [], $raw_error ) {
+	public function get_reader_error_message( $params = [], $raw_error = null ) {
 		/**
 		 * A default error message to show to readers if their signup request results in an error.
 		 *
