@@ -1478,7 +1478,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'status'   => $result['status'],
 						'title'    => ! empty( $result['title'] ) ? $result['title'] : '',
 					],
-					'user_email' => $email_address,
+					'user_email' => $payload['email'] ?? '',
 					'file'       => 'newspack_mailchimp',
 				]
 			);
