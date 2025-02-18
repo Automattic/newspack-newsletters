@@ -1421,12 +1421,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function reader_error_message( $reader_error, $params, $raw_error ) {
 		// Handle special case where a user is in compliance state.
-		if (
-			! empty( $raw_error['status'] ) &&
-			(int) $raw_error['status'] >= 400 &&
-			! empty( $raw_error['title'] ) &&
-			$raw_error['title'] === 'Member In Compliance State'
-		) {
+		if ( is_wp_error( $raw_error ) && false !== strpos( $raw_error->get_error_message(), 'Member In Compliance State' ) ) {
 			$reader_error = __( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' );
 		}
 		return $reader_error;
@@ -1437,12 +1432,11 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 *
 	 * @param Object $result Result of the Mailchimp operation.
 	 * @param String $preferred_error Error message to show to readers instead of showing Mailchimp API errors.
-	 * @param Array  $payload Payload data, for debugging purposes.
 	 * @throws Exception Error message.
 	 * @return The results of the API call.
 	 */
-	public function validate( $result, $preferred_error = null, $payload = [] ) {
-		$default_error = $this->get_reader_error_message( $payload, $result );
+	public function validate( $result, $preferred_error = null ) {
+		$default_error = __( 'An unknown Mailchimp error occurred.', 'newspack-newsletters' );
 		if ( ! $preferred_error ) {
 			$preferred_error = $default_error;
 		}
@@ -1452,6 +1446,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		// See Mailchimp error code glossary: https://mailchimp.com/developer/marketing/docs/errors/#error-glossary.
 		if ( ! empty( $result['status'] ) && (int) $result['status'] >= 400 ) {
 			$messages = [];
+			if ( ! empty( $result['title'] ) ) {
+				$messages[] = $result['title'] . ':';
+			}
 			if ( ! empty( $result['errors'] ) ) {
 				foreach ( $result['errors'] as $error ) {
 					if ( ! empty( $error['message'] ) ) {
@@ -1463,32 +1460,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$messages[] = $result['detail'];
 			}
 			if ( ! count( $messages ) ) {
-				$message[] = $preferred_error;
+				$messages[] = $preferred_error;
 			}
 
-			// Log the error with any details returned from the API.
-			do_action(
-				'newspack_log',
-				'newspack_' . $this->service . '_api_error',
-				'Error adding contact to Mailchimp.',
-				[
-					'type'       => 'error',
-					'data'       => [
-						'messages' => $messages,
-						'status'   => $result['status'],
-						'title'    => ! empty( $result['title'] ) ? $result['title'] : '',
-					],
-					'user_email' => $payload['email'] ?? '',
-					'file'       => 'newspack_mailchimp',
-				]
-			);
-
-			if ( Newspack_Newsletters::debug_mode() ) {
-				// Show the "real" error message(s) if in debug mode.
-				throw new Exception( esc_html( implode( ' ', $messages ) ) );
-			} else {
-				throw new Exception( esc_html( $preferred_error ) );
-			}
+			throw new Exception( esc_html( implode( ' ', $messages ) ), ! empty( $result['status'] ) ? intval( $result['status'] ) : 400 );
 		}
 		return $result;
 	}
@@ -1867,7 +1842,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
-				'newspack_newsletters_mailchimp_add_contact_failed',
+				'newspack_newsletters_mailchimp_api_error',
 				$e->getMessage()
 			);
 		}

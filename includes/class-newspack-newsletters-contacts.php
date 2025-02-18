@@ -236,6 +236,7 @@ class Newspack_Newsletters_Contacts {
 					'lists'    => $lists,
 					'contact'  => $contact,
 					'errors'   => $errors->get_error_messages(),
+					'status'   => $errors->get_error_codes(),
 				],
 				'user_email' => $contact['email'],
 				'file'       => 'newspack_esp_sync',
@@ -243,7 +244,15 @@ class Newspack_Newsletters_Contacts {
 		);
 
 		if ( $errors->has_errors() ) {
-			return $errors;
+			// Get a reader-friendly error message to show to the user.
+			$reader_error = $provider->get_reader_error_message(
+				[
+					'email' => $contact['email'],
+					'lists' => $lists,
+				],
+				is_wp_error( $result ) ? $result : $errors
+			);
+			return Newspack_Newsletters::debug_mode() ? $errors : new \WP_Error( 'newspack_newsletters_upsert_contact_error', $reader_error );
 		}
 
 		return $result;
