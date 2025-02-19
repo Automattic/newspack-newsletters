@@ -158,12 +158,13 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function get_social_icons_services_colors() {
 		return [
+			'bluesky'   => '#0a7aff',
 			'facebook'  => '#1977f2',
 			'instagram' => '#f00075',
 			'linkedin'  => '#0577b5',
+			'threads'   => '#000000',
 			'tiktok'    => '#000000',
 			'tumblr'    => '#011835',
-			'bluesky'   => '#0a7aff',
 			'twitter'   => '#21a1f3',
 			'x'         => '#000000',
 			'wordpress' => '#3499cd',
