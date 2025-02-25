@@ -1791,6 +1791,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return self::$contacts_added[ $cache_key ];
 		}
 
+		// Always use the email address from the contact data since this can be different from existing contact data.
 		$update_payload = [ 'email_address' => $email_address ];
 		$update_payload = array_merge(
 			$update_payload,
@@ -1834,7 +1835,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			Newspack_Newsletters_Logger::log( 'Mailchimp add_contact PUT payload: ' . wp_json_encode( $update_payload ) );
 
 			// Create or update a list member.
-			$member_hash  = Mailchimp::subscriberHash( $email_address );
+			$member_hash  = Mailchimp::subscriberHash( $existing_email_address ?? $email_address );
 			$reader_error = $this->get_add_contact_reader_error_message(
 				[
 					'email'     => $contact['email'],
