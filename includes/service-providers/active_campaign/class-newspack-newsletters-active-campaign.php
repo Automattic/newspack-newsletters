@@ -1310,7 +1310,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$payload[ 'p[' . $list_id . ']' ]      = $list_id;
 			$payload[ 'status[' . $list_id . ']' ] = 1;
 		}
-		$existing_contact = $this->get_contact_data( $contact['email'] );
+		$email            = $contact['email'];
+		$existing_email   = isset( $contact['existing_contact_data']['email'] ) ? $contact['existing_contact_data']['email'] : '';
+		$existing_contact = $this->get_contact_data( $existing_email ?? $email );
 		if ( is_wp_error( $existing_contact ) ) {
 			// Is a new contact.
 			$existing_contact = false;
@@ -1318,6 +1320,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$action               = 'contact_edit';
 			$payload['id']        = $existing_contact['id'];
 			$payload['overwrite'] = 0;
+			if ( $existing_email !== $email ) {
+				$payload['email'] = $email;
+			}
 		}
 
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {

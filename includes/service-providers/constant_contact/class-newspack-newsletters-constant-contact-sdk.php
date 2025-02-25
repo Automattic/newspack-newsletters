@@ -785,6 +785,11 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			if ( isset( $data['taggings'] ) ) { // Using isset and not empty because this can be an empty array.
 				$body['taggings'] = $data['taggings'];
 			}
+			if ( isset( $body['update_source'], $data['email'] ) ) {
+				$body['email_address'] = [
+					'address' => $data['email'],
+				];
+			}
 		}
 
 		try {
