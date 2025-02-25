@@ -136,7 +136,7 @@ class Newspack_Newsletters_Contacts {
 		}
 
 		if ( null !== $existing_contact ) {
-			$existing_contact = Newspack_Newsletters_Subscription::get_contact_data( $contact['email'], true );
+			$existing_contact = Newspack_Newsletters_Subscription::get_contact_data( $existing_contact['email'], true );
 		}
 
 		$contact['existing_contact_data'] = \is_wp_error( $existing_contact ) ? false : $existing_contact;

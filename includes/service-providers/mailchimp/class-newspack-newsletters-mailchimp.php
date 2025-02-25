@@ -1734,6 +1734,16 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array The status and/or status_if_new keys to be added to the payload
 	 */
 	private function get_status_for_payload( $contact, $list_id = null ) {
+		if ( $list_id && ! empty( $contact['existing_contact_data']['lists'][ $list_id ]['status'] ) ) {
+			$status = $contact['existing_contact_data']['lists'][ $list_id ]['status'];
+			if ( 'unsubscribed' === $status ) {
+				// Check if the contact has unsubscribed before. Mailchimp requires a double opt-in to resubscribe, so we set the status to 'pending'.
+				return [ 'status' => 'pending' ];
+			} else {
+				// Otherwise we set the status to the existing status.
+				return [ 'status' => $status ];
+			}
+		}
 		$return = [];
 		if ( ! empty( $contact['metadata']['status_if_new'] ) ) {
 			$return['status_if_new'] = $contact['metadata']['status_if_new'];
@@ -1741,11 +1751,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		if ( ! empty( $contact['metadata']['status'] ) ) {
 			$return['status'] = $contact['metadata']['status'];
-		}
-
-		// Check if the contact has unsubscribed before. Mailchimp requires a double opt-in to resubscribe, so we set the status to 'pending'.
-		if ( $list_id && ! empty( $contact['existing_contact_data']['lists'][ $list_id ]['status'] ) && 'unsubscribed' === $contact['existing_contact_data']['lists'][ $list_id ]['status'] ) {
-			$return['status'] = 'pending';
 		}
 
 		// If we're subscribing the contact to a newsletter, they should have some status
@@ -1778,7 +1783,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
-		$email_address = $contact['email'];
+		$existing_email_address = isset( $contact['existing_contact_data']['email_address'] ) ? $contact['existing_contact_data']['email_address'] : null;
+		$email_address          = $contact['email'];
 
 		// If contact was added in this execution, we can return the previous
 		// result and bail.
@@ -1787,8 +1793,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			return self::$contacts_added[ $cache_key ];
 		}
 
+		// Always use the email address from the contact data since this can be different from existing contact data.
 		$update_payload = [ 'email_address' => $email_address ];
-
 		$update_payload = array_merge(
 			$update_payload,
 			$this->get_status_for_payload( $contact, $list_id )
@@ -1804,7 +1810,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 
 		try {
-
 			$mc = new Mailchimp( $this->api_key() );
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
@@ -1832,7 +1837,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			Newspack_Newsletters_Logger::log( 'Mailchimp add_contact PUT payload: ' . wp_json_encode( $update_payload ) );
 
 			// Create or update a list member.
-			$member_hash  = Mailchimp::subscriberHash( $email_address );
+			$member_hash  = Mailchimp::subscriberHash( $existing_email_address ?? $email_address );
 			$reader_error = $this->get_add_contact_reader_error_message(
 				[
 					'email'     => $contact['email'],
@@ -1841,7 +1846,21 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'interests' => $interests,
 				]
 			);
-			$result       = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
+			// If we are updating the email address and the status is not 'subscribed', we need to temporarily set the status to 'subscribed'.
+			if ( $existing_email_address && $existing_email_address !== $email_address && 'subscribed' !== $update_payload['status'] ) {
+				$result = $this->validate(
+					$mc->put(
+						"lists/$list_id/members/$member_hash",
+						[
+							'email_address' => $existing_email_address,
+							'status'        => 'subscribed',
+						]
+					),
+					$reader_error,
+					$existing_email_address
+				);
+			}
+			$result = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_add_contact_failed',
