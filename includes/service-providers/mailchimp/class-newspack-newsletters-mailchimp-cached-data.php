@@ -375,7 +375,7 @@ final class Newspack_Newsletters_Mailchimp_Cached_Data {
 				<?php
 				echo esc_html(
 					__(
-						'Newspack Newsletters is having trouble to fetch data from Mailchimp Audiences. Please visit Newsletters > Settings for more details.',
+						'Newspack Newsletters is having trouble fetching data from Mailchimp Audiences. Please visit Newsletters > Settings for more details.',
 						'newspack_newsletters'
 					)
 				);
