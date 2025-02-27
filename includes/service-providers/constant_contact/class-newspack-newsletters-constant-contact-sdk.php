@@ -786,9 +786,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				$body['taggings'] = $data['taggings'];
 			}
 			if ( isset( $body['update_source'], $data['email'] ) ) {
-				$body['email_address'] = [
-					'address' => $data['email'],
-				];
+				$body['email_address']['address'] = $data['email'];
 			}
 		}
 
