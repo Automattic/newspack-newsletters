@@ -1422,7 +1422,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	public function reader_error_message( $reader_error, $params, $raw_error ) {
 		// Handle special case where a user is in compliance state.
 		if ( is_wp_error( $raw_error ) && false !== strpos( $raw_error->get_error_message(), 'Member In Compliance State' ) ) {
-			$reader_error = __( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' );
+			$reader_error = __( "We'll need to subscribe this email address manually. Please contact our support team.", 'newspack-newsletters' );
 		}
 		return $reader_error;
 	}
