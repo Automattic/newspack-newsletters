@@ -1844,8 +1844,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				]
 			);
 			$result = $this->validate( $mc->put( "lists/$list_id/members/$member_hash", $update_payload ), $reader_error, $email_address );
-			// Mailchimp will only allow subscribed contacts to update email address, so if a reader is attempting to update this
-			// we instead create a new contact, archive the old one, then create notes linking both contacts.
+			// Mailchimp will only allow subscribed contacts to update the email address field, so to work around this for unsubscribed accounts
+			// we are instead creating a new contact (via the request above), archiving the old one, then creating notes linking both contacts.
 			$existing_email_address = isset( $contact['existing_contact_data']['email_address'] ) ? $contact['existing_contact_data']['email_address'] : null;
 			if ( $existing_email_address && $existing_email_address !== $email_address ) {
 				$existing_member_hash = Mailchimp::subscriberHash( $existing_email_address );
