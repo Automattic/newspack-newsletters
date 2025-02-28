@@ -231,6 +231,26 @@ class Woocommerce_Memberships {
 	}
 
 	/**
+	 * Get list IDs for any lists shown in the post-checkout signup modal.
+	 *
+	 * @return array Array of list IDs enabled for the post-checkout signup-modal.
+	 */
+	private static function get_post_checkout_newsletter_signup_lists() {
+		$list_ids = [];
+		if ( ! method_exists( 'Newspack\Reader_Activation', 'get_settings' ) ) {
+			return $list_ids;
+		}
+		$settings = \Newspack\Reader_Activation::get_settings();
+		if ( ! empty( $settings['use_custom_lists'] ) && ! empty( $settings['newsletter_lists'] ) ) {
+			foreach ( $settings['newsletter_lists'] as $list ) {
+				$list_ids[] = $list['id'];
+			}
+		}
+
+		return $list_ids;
+	}
+
+	/**
 	 * Adds user to membership-tied lists when a membership is granted
 	 *
 	 * @param \WC_Memberships_Membership_Plan $plan the plan that user was granted access to.
@@ -265,17 +285,6 @@ class Woocommerce_Memberships {
 		// In this case, we don't want to add the user to the lists again.
 		if ( $previous_status && in_array( $previous_status, $active_statuses, true ) ) {
 			Newspack_Newsletters_Logger::log( 'Membership ' . $user_membership->get_id() . ' was already active. No need to subscribe user to lists' );
-			return;
-		}
-
-		// If post-checkout newsletter signup is enabled, we only want to add the reader to membership-tied lists if:
-		// - The membership is going from `paused` to `active` status (when a prior subscription is renewed).
-		// - The reader was already subscribed to the list(s).
-		$post_checkout_newsletter_signup_enabled = defined( 'NEWSPACK_ENABLE_POST_CHECKOUT_NEWSLETTER_SIGNUP' ) && NEWSPACK_ENABLE_POST_CHECKOUT_NEWSLETTER_SIGNUP;
-		if (
-			$post_checkout_newsletter_signup_enabled &&
-			( 'paused' !== $previous_status || ! $args['is_update'] || empty( $previous_lists[ $args['user_membership_id'] ] ) )
-		) {
 			return;
 		}
 
@@ -318,6 +327,26 @@ class Woocommerce_Memberships {
 
 		// No need to re-add the user to the lists they are already subscribed to.
 		$current_user_lists = \Newspack_Newsletters_Subscription::get_contact_lists( $user_email );
+
+		// If a list is shown in the post-checkout newsletter signup modal, we only want to add the reader to membership-tied lists if:
+		// - The membership is going from `paused` to `active` status (when a prior subscription is renewed).
+		// - The reader was already subscribed to the list(s).
+		// Otherwise, we want to let readers opt into the lists they want via the post-checkout signup modal.
+		$lists_in_post_checkout_signup_modal = self::get_post_checkout_newsletter_signup_lists();
+		foreach ( $lists_in_post_checkout_signup_modal as $list_id ) {
+			if (
+				'paused' !== $previous_status ||
+				! $args['is_update'] ||
+				empty( $previous_lists[ $args['user_membership_id'] ] ) ||
+				! is_array( $previous_lists[ $args['user_membership_id'] ] ) ||
+				! in_array( $list_id, $previous_lists[ $args['user_membership_id'] ], true )
+			) {
+				$lists_to_add = array_values(
+					array_diff( $lists_to_add, [ $list_id ] )
+				);
+			}
+		}
+
 		$lists_to_add = array_diff( $lists_to_add, $current_user_lists );
 		if ( empty( $lists_to_add ) ) {
 			return;
