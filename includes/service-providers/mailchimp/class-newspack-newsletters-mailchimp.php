@@ -2029,48 +2029,55 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
 	public function get_contact_data( $email, $return_details = false ) {
-		$mc    = new Mailchimp( $this->api_key() );
-		$result  = $mc->get(
-			'search-members',
-			[
-				'query' => $email,
-			]
-		);
+		try {
+			$mc    = new Mailchimp( $this->api_key() );
+			$result  = $mc->get(
+				'search-members',
+				[
+					'query' => $email,
+				]
+			);
 
-		if ( ! isset( $result['exact_matches']['members'] ) ) {
-			return new WP_Error( 'newspack_newsletters_mailchimp_search_members', __( 'Error reaching to search-members endpoint', 'newspack-newsletters' ) );
-		}
+			if ( ! isset( $result['exact_matches']['members'] ) ) {
+				return new WP_Error( 'newspack_newsletters_mailchimp_search_members', __( 'Error reaching to search-members endpoint', 'newspack-newsletters' ) );
+			}
 
-		$found = $result['exact_matches']['members'];
-		if ( empty( $found ) ) {
-			return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
-		}
+			$found = $result['exact_matches']['members'];
+			if ( empty( $found ) ) {
+				return new WP_Error( 'newspack_newsletters_mailchimp_contact_not_found', __( 'Contact not found', 'newspack-newsletters' ) );
+			}
 
-		$keys = [ 'full_name', 'email_address', 'id' ];
-		$data = [
-			'lists'     => [],
-			'tags'      => [],
-			'interests' => [],
-		];
-		foreach ( $found as $contact ) {
-			foreach ( $keys as $key ) {
-				if ( ! isset( $data[ $key ] ) || empty( $data[ $key ] ) ) {
-					$data[ $key ] = $contact[ $key ];
-				}
-			}
-			if ( isset( $contact['tags'] ) ) {
-				$data['tags'][ $contact['list_id'] ] = $contact['tags'];
-			}
-			if ( isset( $contact['interests'] ) ) {
-				$data['interests'][ $contact['list_id'] ] = $contact['interests'];
-			}
-			$data['lists'][ $contact['list_id'] ] = [
-				'id'         => $contact['id'], // md5 hash of email.
-				'contact_id' => $contact['contact_id'],
-				'status'     => $contact['status'],
+			$keys = [ 'full_name', 'email_address', 'id' ];
+			$data = [
+				'lists'     => [],
+				'tags'      => [],
+				'interests' => [],
 			];
+			foreach ( $found as $contact ) {
+				foreach ( $keys as $key ) {
+					if ( ! isset( $data[ $key ] ) || empty( $data[ $key ] ) ) {
+						$data[ $key ] = $contact[ $key ];
+					}
+				}
+				if ( isset( $contact['tags'] ) ) {
+					$data['tags'][ $contact['list_id'] ] = $contact['tags'];
+				}
+				if ( isset( $contact['interests'] ) ) {
+					$data['interests'][ $contact['list_id'] ] = $contact['interests'];
+				}
+				$data['lists'][ $contact['list_id'] ] = [
+					'id'         => $contact['id'], // md5 hash of email.
+					'contact_id' => $contact['contact_id'],
+					'status'     => $contact['status'],
+				];
+			}
+			return $data;
+		} catch ( \Exception $e ) {
+			return new WP_Error(
+				'newspack_newsletters_mailchimp_get_contact_data_failed',
+				$e->getMessage()
+			);
 		}
-		return $data;
 	}
 
 	/**
