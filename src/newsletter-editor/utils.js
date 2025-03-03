@@ -12,15 +12,25 @@ import { __ } from '@wordpress/i18n';
 import { getServiceProvider } from '../service-providers';
 
 /**
- * Is the current ESP a supported, connected ESP?
+ * Is the current ESP a supported ESP?
+ *
+ * @return {boolean} True if the ESP is supported.
+ */
+export const isSupportedESP = () => {
+	const { supported_esps: supportedESPs } = newspack_email_editor_data || {};
+	const { name: serviceProviderName } = getServiceProvider();
+	return serviceProviderName && supportedESPs?.includes( serviceProviderName );
+};
+
+/**
+ * Is the current ESP "manual"?
  *
  * @return {boolean} True if the ESP is supported and connected.
  */
-export const isSupportedESP = () => {
-	const { supported_esps: suppportedESPs } = newspack_email_editor_data || {};
+export const isManualESP = () => {
 	const { name: serviceProviderName } = getServiceProvider();
-	return serviceProviderName && 'manual' !== serviceProviderName && suppportedESPs?.includes( serviceProviderName );
-};
+	return 'manual' === serviceProviderName;
+}
 
 /**
  * Validation utility.
