@@ -787,6 +787,17 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 			}
 			if ( isset( $body['update_source'], $data['email'] ) ) {
 				$body['email_address']['address'] = $data['email'];
+				$existing_contact                 = $this->get_contact( $data['email'] );
+				if ( $existing_contact && ! \is_wp_error( $existing_contact ) ) {
+					try {
+						// If we are updating to an existing email address, delete the old one and update the existing one.
+						$this->request( 'DELETE', 'contacts/' . $contact->contact_id );
+					} catch ( Exception $e ) {
+						Newspack_Newsletters_Logger::log( 'Error deleting contact during upsert with email ' . $data['email'] . ': ' . $e->getMessage() );
+					}
+				}
+				$contact       = $existing_contact;
+				$email_address = $data['email'];
 			}
 		}
 
@@ -799,7 +810,6 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 		} catch ( Exception $e ) {
 			return new WP_Error( 'newspack_newsletter_error_upserting_contact', $e->getMessage() );
 		}
-
 		return $this->get_contact( $email_address );
 	}
 
