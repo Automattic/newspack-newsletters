@@ -1301,30 +1301,15 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$contact['metadata'] = [];
 		}
 		$action  = 'contact_add';
+		$email   = $contact['email'];
 		$payload = [
-			'email' => $contact['email'],
+			'email' => $email,
 		];
-
 		$has_list_id = false !== $list_id;
 		if ( $has_list_id ) {
 			$payload[ 'p[' . $list_id . ']' ]      = $list_id;
 			$payload[ 'status[' . $list_id . ']' ] = 1;
 		}
-		$email            = $contact['email'];
-		$existing_email   = isset( $contact['existing_contact_data']['email'] ) ? $contact['existing_contact_data']['email'] : '';
-		$existing_contact = $this->get_contact_data( $existing_email ?? $email );
-		if ( is_wp_error( $existing_contact ) ) {
-			// Is a new contact.
-			$existing_contact = false;
-		} else {
-			$action               = 'contact_edit';
-			$payload['id']        = $existing_contact['id'];
-			$payload['overwrite'] = 0;
-			if ( $existing_email !== $email ) {
-				$payload['email'] = $email;
-			}
-		}
-
 		if ( isset( $contact['name'] ) && ! empty( $contact['name'] ) ) {
 			$name_fragments = explode( ' ', $contact['name'], 2 );
 			$payload        = array_merge(
@@ -1335,7 +1320,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				]
 			);
 		}
-
 		/** Register metadata fields. */
 		if ( ! empty( $contact['metadata'] ) ) {
 			$existing_fields = $this->get_all_contact_fields();
@@ -1381,6 +1365,22 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				$payload[ 'field[%' . $field_perstag . '%,0]' ] = (string) $value; // Per ESP documentation, "leave 0 as is".
 			}
 		}
+
+		$contact_data          = $this->get_contact_data( $email );
+		$existing_email        = isset( $contact['existing_contact_data']['email'] ) ? $contact['existing_contact_data']['email'] : '';
+		$existing_contact_data = $this->get_contact_data( $existing_email );
+		if ( ! is_wp_error( $contact_data ) || ! is_wp_error( $existing_contact_data ) ) {
+			$action               = 'contact_edit';
+			$payload['id']        = is_wp_error( $contact_data ) ? $existing_contact_data['id'] : $contact_data['id'];
+			$payload['overwrite'] = 0;
+			// If the email address exists, but is different from the one we're trying to upsert, delete the existing contact.
+			if ( ! is_wp_error( $contact_data ) && ! is_wp_error( $existing_contact_data ) && $existing_email !== $email ) {
+				$delete_res = $this->delete_contact( $existing_email );
+				if ( is_wp_error( $delete_res ) ) {
+					Newspack_Newsletters_Logger::log( 'Error deleting existing contact during upsert: ' . $delete_res->get_error_message() );
+				}
+			}
+		}
 		$result = $this->api_v1_request(
 			$action,
 			'POST',
@@ -1420,7 +1420,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 
 		// On success, clear cached contact data to make sure we get updated data next time we need.
-		$this->clear_contact_data( $contact['email'] );
+		$this->clear_contact_data( $email );
 
 		return [ 'id' => $result['subscriber_id'] ];
 	}
@@ -1584,6 +1584,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
 	public function get_contact_data( $email, $return_details = false ) {
+		if ( ! is_email( $email ) ) {
+			return new WP_Error( 'newspack_newsletters', __( 'Invalid email address.' ) );
+		}
 		if ( isset( $this->contact_data[ $email ] ) ) {
 			$result = $this->contact_data[ $email ];
 		} else {
