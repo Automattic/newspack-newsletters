@@ -38,11 +38,10 @@ class Newspack_Newsletters_Contacts {
 	 * @param string[]|false $lists   Array of list IDs to subscribe the contact to. If empty or false, contact will be created but not subscribed to any lists.
 	 * @param bool           $async   Whether to add the contact asynchronously. Default is false.
 	 * @param string         $context Context of the update for logging purposes.
-	 * @param bool           $include_metadata Whether to include metadata when adding a contact, such as when subscribing via the Newsletter Subscription Form block. Default is false.
 	 *
 	 * @return array|WP_Error|true Contact data if it was added, or error otherwise. True if async.
 	 */
-	public static function subscribe( $contact, $lists = false, $async = false, $context = 'Subscribe contact', $include_metadata = false ) {
+	public static function subscribe( $contact, $lists = false, $async = false, $context = 'Subscribe contact' ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 
 		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
@@ -59,7 +58,7 @@ class Newspack_Newsletters_Contacts {
 		// Any additional metadata will be passes to the logs and filters though, so other actions can act upon it.
 		$accepted_metadata = [ 'status', 'name' ];
 		$subscribe_contact = $contact;
-		if ( ! empty( $subscribe_contact['metadata'] ) && ! $include_metadata ) {
+		if ( ! empty( $subscribe_contact['metadata'] ) ) {
 			$subscribe_contact['metadata'] = array_intersect_key( $subscribe_contact['metadata'], array_flip( $accepted_metadata ) );
 		}
 

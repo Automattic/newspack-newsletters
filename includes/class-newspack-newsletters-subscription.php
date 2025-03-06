@@ -582,8 +582,7 @@ class Newspack_Newsletters_Subscription {
 				],
 				$lists,
 				true, // Async.
-				'Reader registration hook on Newsletters plugin',
-				true // Include metadata.
+				'Reader registration hook on Newsletters plugin'
 			);
 		} catch ( \Exception $e ) {
 			// Avoid breaking the registration process.
