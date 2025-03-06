@@ -90,6 +90,11 @@
 
 		a {
 			font-family: inherit;
+			text-decoration: underline;
+		}
+
+		a:not(:is(.wp-block-paragraph.has-link-color a, .wp-block-paragraph.has-link-color * a)) {
+			color: inherit;
 		}
 
 		code {

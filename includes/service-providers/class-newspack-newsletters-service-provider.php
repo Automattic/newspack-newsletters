@@ -597,20 +597,23 @@ Error message(s) received:
 	 * Get a reader-facing error message to be shown when the add_contact method fails.
 	 *
 	 * @param array $params Additional information about the request that triggered the error.
+	 * @param mixed $raw_error Raw error data from the ESP's API. This can vary depending on the provider.
 	 *
 	 * @return string
 	 */
-	public function get_add_contact_reader_error_message( $params = [] ) {
+	public function get_reader_error_message( $params = [], $raw_error = null ) {
 		/**
 		 * A default error message to show to readers if their signup request results in an error.
 		 *
 		 * @param string $reader_error The default error message.
 		 * @param array  $params Additional information about the request that triggered the error.
+		 * @param mixed $raw_error Raw error data from the ESP's API. This can vary depending on the provider.
 		 */
 		$reader_error = apply_filters(
 			'newspack_newsletters_add_contact_reader_error_message',
-			__( "Sorry, this email cannot be subscribed to this newsletter. Please contact support with the email list you were trying to subscribe to and we'll add you to the list.", 'newspack-newsletters' ),
-			$params
+			__( 'Sorry, an error has occurred. Please try again later or contact us for support.', 'newspack-newsletters' ),
+			$params,
+			$raw_error
 		);
 		return $reader_error;
 	}

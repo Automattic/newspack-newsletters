@@ -12,7 +12,7 @@ import { select } from '@wordpress/data';
 import { ToolbarButton, ToolbarGroup, Placeholder } from '@wordpress/components';
 import { BlockControls, useBlockProps, RichText } from '@wordpress/block-editor';
 import { createBlock } from '@wordpress/blocks';
-import { globe } from '@wordpress/icons';
+import { envelope, layout } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -113,7 +113,7 @@ export default () => {
 						<BlockControls>
 							<ToolbarGroup>
 								<ToolbarButton
-									icon="email"
+									icon={ envelope }
 									label={ __( 'Preview email format', 'newspack-newsletters' ) }
 									isActive={ isViewingEmail }
 									onClick={ () => {
@@ -121,7 +121,7 @@ export default () => {
 									} }
 								/>
 								<ToolbarButton
-									icon={ globe }
+									icon={ layout }
 									label={ __( 'Preview web format', 'newspack-newsletters' ) }
 									isActive={ ! isViewingEmail }
 									onClick={ () => {

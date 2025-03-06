@@ -794,7 +794,7 @@ final class Newspack_Newsletters_Constant_Contact_SDK {
 				[ 'body' => wp_json_encode( $body ) ]
 			);
 		} catch ( Exception $e ) {
-			return new WP_Error( 'newspack_newsletter_error_upserting_contact', $e->getMessage() );
+			return new WP_Error( 'newspack_newsletters_constant_contact_api_error', $e->getMessage() );
 		}
 
 		return $this->get_contact( $email_address );

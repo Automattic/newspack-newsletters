@@ -1,3 +1,21 @@
+## [3.9.1](https://github.com/Automattic/newspack-newsletters/compare/v3.9.0...v3.9.1) (2025-03-05)
+
+
+### Bug Fixes
+
+* allow for context-specific reader-facing error messsages ([#1754](https://github.com/Automattic/newspack-newsletters/issues/1754)) ([db4e742](https://github.com/Automattic/newspack-newsletters/commit/db4e742f407f2b8ae992f801c298913ca003de15))
+* **editor:** allow newsletter editor JS to run for manual ESP ([#1770](https://github.com/Automattic/newspack-newsletters/issues/1770)) ([bc16567](https://github.com/Automattic/newspack-newsletters/commit/bc165678c7d0bece5f7468999152306cefe282b5))
+
+# [3.9.0](https://github.com/Automattic/newspack-newsletters/compare/v3.8.1...v3.9.0) (2025-03-04)
+
+
+### Features
+
+* add global control for text color and support link color in paragraph block ([#1755](https://github.com/Automattic/newspack-newsletters/issues/1755)) ([b698829](https://github.com/Automattic/newspack-newsletters/commit/b698829e0de71b4242e37d072d56f911fc3b4ddf))
+* add threads to supported social icons ([#1761](https://github.com/Automattic/newspack-newsletters/issues/1761)) ([d5b8f24](https://github.com/Automattic/newspack-newsletters/commit/d5b8f24570ca2ed5ff1d2e2919945a2f08b530e9))
+* **embed:** update icons ([#1756](https://github.com/Automattic/newspack-newsletters/issues/1756)) ([5a2cf28](https://github.com/Automattic/newspack-newsletters/commit/5a2cf283a22c39516ff6740d822ec86c5109a0ff))
+* update plugin with new brand ([#1752](https://github.com/Automattic/newspack-newsletters/issues/1752)) ([6d4b4be](https://github.com/Automattic/newspack-newsletters/commit/6d4b4be1c77405951d0b8d01071ada34b14c7f3a))
+
 ## [3.8.1](https://github.com/Automattic/newspack-newsletters/compare/v3.8.0...v3.8.1) (2025-02-17)
 
 

@@ -75,6 +75,7 @@ const customStylesSelector = select => {
 		fontBody: meta.font_body || fontOptgroups[ 1 ].options[ 0 ].value,
 		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
 		backgroundColor: meta.background_color || '#ffffff',
+		textColor: meta.text_color || '#000000',
 		customCss: meta.custom_css || '',
 	};
 };
@@ -148,7 +149,7 @@ export const useCustomFontsInIframe = () => {
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )(
-	( { fontBody, fontHeader, backgroundColor, customCss } ) => {
+	( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
 		useEffect( () => {
 			document.documentElement.style.setProperty( '--newspack-body-font', fontBody );
 		}, [ fontBody ] );
@@ -159,8 +160,9 @@ export const ApplyStyling = withSelect( customStylesSelector )(
 			const editorElement = document.querySelector( '.editor-styles-wrapper' );
 			if ( editorElement ) {
 				editorElement.style.backgroundColor = backgroundColor;
+				editorElement.style.color = textColor;
 			}
-		}, [ backgroundColor ] );
+		}, [ backgroundColor, textColor ] );
 		useEffect( () => {
 			const editorElement = document.querySelector( '.edit-post-visual-editor' );
 			if ( editorElement ) {
@@ -188,7 +190,7 @@ export const Styling = compose( [
 		return { editPost };
 	} ),
 	withSelect( customStylesSelector ),
-] )( ( { editPost, fontBody, fontHeader, customCss, backgroundColor } ) => {
+] )( ( { editPost, fontBody, fontHeader, customCss, backgroundColor, textColor } ) => {
 	const updateStyleValue = ( key, value ) => {
 		editPost( { meta: { [ key ]: value } } );
 	};
@@ -221,11 +223,21 @@ export const Styling = compose( [
 			</PanelBody>
 			<PanelBody name="newsletters-color-panel" title={ __( 'Color', 'newspack-newsletters' ) }>
 				<PanelRow className="newspack-newsletters__color-panel">
-					<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ id }>
+					<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ `${ id }-bg` }>
 						<ColorPicker
-							id={ id }
+							id={ `${ id }-bg` }
 							color={ backgroundColor }
 							onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
+							disableAlpha
+						/>
+					</BaseControl>
+				</PanelRow>
+				<PanelRow className="newspack-newsletters__color-panel">
+					<BaseControl label={ __( 'Text color', 'newspack-newsletters' ) } id={ `${ id }-text` }>
+						<ColorPicker
+							id={ `${ id }-text` }
+							color={ textColor }
+							onChangeComplete={ value => updateStyleValue( 'text_color', value.hex ) }
 							disableAlpha
 						/>
 					</BaseControl>

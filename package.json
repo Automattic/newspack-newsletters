@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "3.8.1",
+	"version": "3.9.1",
 	"description": "",
 	"scripts": {
 		"cm": "newspack-scripts commit",
@@ -39,6 +39,7 @@
 		"url": "https://github.com/Automattic/newspack-newsletters/issues"
 	},
 	"dependencies": {
+		"@wordpress/icons": "^10.18.0",
 		"classnames": "^2.5.1",
 		"mjml-browser": "^4.15.3",
 		"newspack-components": "^3.1.0",
@@ -46,7 +47,7 @@
 	},
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.10.5",
-		"@wordpress/browserslist-config": "^6.17.0",
+		"@wordpress/browserslist-config": "^6.18.0",
 		"eslint": "^8.57.0",
 		"lint-staged": "^15.4.3",
 		"newspack-scripts": "^5.5.2",

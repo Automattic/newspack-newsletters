@@ -69,6 +69,7 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
 				className="newspack-newsletters__layout-preview"
 				style={ {
 					backgroundColor: meta.background_color,
+					textColor: meta.text_color,
 				} }
 			>
 				<BlockPreview { ...props } />

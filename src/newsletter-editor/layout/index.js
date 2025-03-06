@@ -30,6 +30,7 @@ export default compose( [
 		const meta = getEditedPostAttribute( 'meta' );
 		const {
 			background_color,
+			text_color,
 			font_body,
 			font_header,
 			custom_css,
@@ -40,6 +41,7 @@ export default compose( [
 		} = meta;
 		const layoutMeta = {
 			background_color,
+			text_color,
 			font_body,
 			font_header,
 			custom_css,
