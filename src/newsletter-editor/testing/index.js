@@ -6,7 +6,7 @@ import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import { useEffect, useState, Fragment } from '@wordpress/element';
-import { Button, Spinner, TextControl } from '@wordpress/components';
+import { Button, TextControl } from '@wordpress/components';
 import { hasValidEmail , usePrevious } from '../utils';
 
 /**
@@ -113,13 +113,14 @@ export default compose( [
 					<Button
 						variant="secondary"
 						onClick={ triggerSave }
-						disabled={ disabled || localInFlight || inFlight || ! hasValidEmail( testEmail ) }
+						isBusy={ inFlight || localInFlight }
+						disabled={ disabled || ! hasValidEmail( testEmail ) }
+						__next40pxDefaultSize
 					>
 						{ inFlight || localInFlight
-							? __( 'Sending Test Email…', 'newspack-newsletters' )
-							: __( 'Send a Test Email', 'newspack-newsletters' ) }
+							? __( 'Sending test email…', 'newspack-newsletters' )
+							: __( 'Send a test email', 'newspack-newsletters' ) }
 					</Button>
-					{ ( inFlight || localInFlight ) && <Spinner /> }
 				</div>
 				{ localMessage ? (
 					<p className="newspack-newsletters__testing-message">{ localMessage }</p>

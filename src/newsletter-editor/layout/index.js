@@ -190,26 +190,31 @@ export default compose( [
 						variant="secondary"
 						disabled={ isEditedPostEmpty || isSavingLayout }
 						onClick={ () => setIsManageModalVisible( true ) }
+						__next40pxDefaultSize
 					>
-						{ __( 'Save New Layout', 'newspack-newsletters' ) }
+						{ __( 'Save new layout', 'newspack-newsletters' ) }
 					</Button>
 
 					{ isUsingCustomLayout && (
 						<Button
-							variant="tertiary"
-							disabled={ isPostContentSameAsLayout || isSavingLayout }
+							variant="secondary"
+							disabled={ isPostContentSameAsLayout || ( isSavingLayout && isManageModalVisible ) }
+							isBusy={ isSavingLayout && ! isManageModalVisible }
 							onClick={ handeLayoutUpdate }
+							__next40pxDefaultSize
 						>
-							{ __( 'Update Layout', 'newspack-newsletters' ) }
+							{ __( 'Update layout', 'newspack-newsletters' ) }
 						</Button>
 					) }
 
 					<Button
 						variant="secondary"
 						isDestructive
+						disabled={ isEditedPostEmpty || isSavingLayout }
 						onClick={ () => setWarningModalVisible( true ) }
+						__next40pxDefaultSize
 					>
-						{ __( 'Reset Layout', 'newspack-newsletters' ) }
+						{ __( 'Reset layout', 'newspack-newsletters' ) }
 					</Button>
 				</div>
 
@@ -218,6 +223,7 @@ export default compose( [
 						className="newspack-newsletters__modal"
 						title={ __( 'Save newsletter as a layout', 'newspack-newsletters' ) }
 						onRequestClose={ () => setIsManageModalVisible( null ) }
+						size="small"
 					>
 						<TextControl
 							label={ __( 'Title', 'newspack-newsletters' ) }
@@ -225,43 +231,50 @@ export default compose( [
 							value={ newLayoutName }
 							onChange={ setNewLayoutName }
 						/>
-						<Button
-							isPrimary
-							disabled={ isSavingLayout || newLayoutName.length === 0 }
-							onClick={ handleSaveAsLayout }
-						>
-							{ __( 'Save', 'newspack-newsletters' ) }
-						</Button>
-						<Button isSecondary onClick={ () => setIsManageModalVisible( null ) }>
-							{ __( 'Cancel', 'newspack-newsletters' ) }
-						</Button>
+						<div className="newspack-newsletters__modal-buttons">
+							<Button
+								variant="primary"
+								disabled={ newLayoutName.length === 0 }
+								isBusy={ isSavingLayout }
+								onClick={ handleSaveAsLayout }
+							>
+								{ __( 'Save', 'newspack-newsletters' ) }
+							</Button>
+							<Button variant="tertiary" onClick={ () => setIsManageModalVisible( null ) }>
+								{ __( 'Cancel', 'newspack-newsletters' ) }
+							</Button>
+						</div>
 					</Modal>
 				) }
 
 				{ warningModalVisible && (
 					<Modal
 						className="newspack-newsletters__modal"
-						title={ __( 'Overwrite newsletter content?', 'newspack-newsletters' ) }
+						title={ __( 'Reset newsletter layout?', 'newspack-newsletters' ) }
 						onRequestClose={ () => setWarningModalVisible( false ) }
+						size="small"
 					>
 						<p>
 							{ __(
-								"Changing the newsletter's layout will remove any customizations or edits you have already made.",
+								"Resetting the layout will remove all customizations and edits you’ve made. This action cannot be undone.",
 								'newspack-newsletters'
 							) }
 						</p>
-						<Button
-							isPrimary
-							onClick={ () => {
-								editPost( { content: '', meta: { template_id: -1 } } );
-								setWarningModalVisible( false );
-							} }
-						>
-							{ __( 'Reset layout', 'newspack-newsletters' ) }
-						</Button>
-						<Button isSecondary onClick={ () => setWarningModalVisible( false ) }>
-							{ __( 'Cancel', 'newspack-newsletters' ) }
-						</Button>
+						<div className="newspack-newsletters__modal-buttons">
+							<Button
+								variant="primary"
+								isDestructive
+								onClick={ () => {
+									editPost( { content: '', meta: { template_id: -1 } } );
+									setWarningModalVisible( false );
+								} }
+							>
+								{ __( 'Reset layout', 'newspack-newsletters' ) }
+							</Button>
+							<Button variant="tertiary" onClick={ () => setWarningModalVisible( false ) }>
+								{ __( 'Cancel', 'newspack-newsletters' ) }
+							</Button>
+						</div>
 					</Modal>
 				) }
 			</Fragment>

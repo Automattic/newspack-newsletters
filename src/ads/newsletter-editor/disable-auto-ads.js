@@ -93,6 +93,8 @@ export default function DisableAutoAds( { saveOnToggle = false } ) {
 						rel={ adsConfig.manageUrlRel }
 						target={ adsConfig.manageUrlTarget }
 						variant="secondary"
+						className="newspack-newsletters-button--full-width"
+						__next40pxDefaultSize
 					>
 						{
 							// Translators: "manage ad" message.
