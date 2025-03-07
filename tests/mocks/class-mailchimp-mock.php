@@ -1,11 +1,12 @@
 <?php // phpcs:ignore WordPress.Files.FileName
 
-namespace DrewM\MailChimp;
-
 /**
  * Mocks the MailChimp class.
+ *
+ * Note: This works because this file is explictitly included in the bootstrap.php file.
+ * When this class is invoked, it already exists, so Composer's autoload never loads the real class.
  */
-class MailChimp {
+class Newspack_Newsletters_Mailchimp_Api {
 	/**
 	 * Init.
 	 */
@@ -73,4 +74,4 @@ class MailChimp {
 	}
 }
 
-Mailchimp::init();
+Newspack_Newsletters_Mailchimp_Api::init();
