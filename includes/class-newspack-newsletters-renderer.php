@@ -407,10 +407,10 @@ final class Newspack_Newsletters_Renderer {
 			'utm_medium' => 'email',
 		];
 		if ( $campaign_name ) {
-			$utm_params['utm_campaign'] = $campaign_name;
+			$utm_params['utm_campaign'] = rawurlencode( $campaign_name );
 		}
 		if ( $send_list_id ) {
-			$utm_params['utm_source'] = $send_list_id;
+			$utm_params['utm_source'] = rawurlencode( $send_list_id );
 		}
 		foreach ( $urls as $index => $url ) {
 			/** Skip if link was already processed. */
