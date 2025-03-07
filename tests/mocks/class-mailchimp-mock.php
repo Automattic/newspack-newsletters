@@ -7,6 +7,7 @@
  * When this class is invoked, it already exists, so Composer's autoload never loads the real class.
  */
 class Newspack_Newsletters_Mailchimp_Api {
+ // phpcs:ignore Generic.Classes.DuplicateClassName.Found
 	/**
 	 * Init.
 	 */
