@@ -401,11 +401,14 @@ final class Newspack_Newsletters_Renderer {
 		$href_params   = $matches[0];
 		$urls          = $matches[1];
 		$provider      = Newspack_Newsletters::get_service_provider();
-		$campaign_name = $post ? $provider->get_campaign_name( $post ) : false;
+		$campaign_name = $post && $provider ? $provider->get_campaign_name( $post ) : false;
 		$send_list_id  = $post ? get_post_meta( $post->ID, 'send_list_id', true ) : false;
 		$utm_params    = [
 			'utm_medium' => 'email',
 		];
+		if ( ! $campaign_name && $post ) {
+			$campaign_name = get_the_title( $post );
+		}
 		if ( $campaign_name ) {
 			$utm_params['utm_campaign'] = rawurlencode( $campaign_name );
 		}
