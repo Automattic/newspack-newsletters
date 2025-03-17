@@ -87,7 +87,7 @@ class Woocommerce_Memberships {
 	 * Also filters lists that require a membership plan to be displayed in the subscription block and in the Manage Newsletters page in My Account
 	 *
 	 * @param array  $lists         The List IDs.
-	 * @param string $email_address The email address of the user to check against. Optional, defaults to the current user.
+	 * @param string $email_address The email address of the user to check against. Optional.
 	 * @return array
 	 */
 	public static function filter_lists( $lists, $email_address = '' ) {
@@ -96,7 +96,7 @@ class Woocommerce_Memberships {
 		}
 		$lists = array_filter(
 			$lists,
-			function ( $list ) {
+			function ( $list ) use ( $email_address ) {
 				$list_object = Subscription_List::from_public_id( $list );
 				if ( ! $list_object ) {
 					return false;
@@ -110,7 +110,11 @@ class Woocommerce_Memberships {
 
 				$user_id = self::$user_id_in_scope;
 				if ( ! $user_id ) {
-					$user_id = ! empty( $email_address ) ? get_user_by( 'email', $email_address )->ID : get_current_user_id();
+					if ( is_email( $email_address ) ) {
+						$user_id = get_user_by( 'email', $email_address )->ID;
+					} else {
+						$user_id = get_current_user_id();
+					}
 				}
 
 				return \wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
@@ -123,7 +127,7 @@ class Woocommerce_Memberships {
 	 * Receives an array of Lists and returns only the ones that the user has access to
 	 *
 	 * @param array  $lists         An array of lists in which the key are the list IDs.
-	 * @param string $email_address The email address of the user to check against. Optional, defaults to the current user.
+	 * @param string $email_address The email address of the user to check against. Optional.
 	 * @return array
 	 */
 	public static function filter_lists_objects( $lists, $email_address = '' ) {
