@@ -62,7 +62,7 @@ class Woocommerce_Memberships {
 		add_filter( 'newspack_newsletters_contact_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_subscription_block_available_lists', [ __CLASS__, 'filter_lists' ] );
 		add_filter( 'newspack_newsletters_manage_newsletters_available_lists', [ __CLASS__, 'filter_lists_objects' ] );
-		add_filter( 'newspack_post_registration_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ] );
+		add_filter( 'newspack_post_registration_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ], 10, 2 );
 		add_filter( 'newspack_auth_form_newsletters_lists', [ __CLASS__, 'filter_lists_objects' ] );
 		add_action( 'wc_memberships_user_membership_status_changed', [ __CLASS__, 'handle_membership_status_change' ], 10, 3 );
 		add_action( 'wc_memberships_user_membership_saved', [ __CLASS__, 'add_user_to_lists' ], 10, 2 );
@@ -86,10 +86,11 @@ class Woocommerce_Memberships {
 	 * Keep users from being added to lists that require a membership plan they dont have
 	 * Also filters lists that require a membership plan to be displayed in the subscription block and in the Manage Newsletters page in My Account
 	 *
-	 * @param array $lists The List IDs.
+	 * @param array  $lists         The List IDs.
+	 * @param string $email_address The email address of the user to check against. Optional, defaults to the current user.
 	 * @return array
 	 */
-	public static function filter_lists( $lists ) {
+	public static function filter_lists( $lists, $email_address = '' ) {
 		if ( ! self::is_enabled() || ! is_array( $lists ) || empty( $lists ) ) {
 			return $lists;
 		}
@@ -107,7 +108,10 @@ class Woocommerce_Memberships {
 					return true;
 				}
 
-				$user_id = self::$user_id_in_scope ?? get_current_user_id();
+				$user_id = self::$user_id_in_scope;
+				if ( ! $user_id ) {
+					$user_id = ! empty( $email_address ) ? get_user_by( 'email', $email_address )->ID : get_current_user_id();
+				}
 
 				return \wc_memberships_user_can( $user_id, 'view', [ 'post' => $list_object->get_id() ] );
 			}
@@ -118,15 +122,16 @@ class Woocommerce_Memberships {
 	/**
 	 * Receives an array of Lists and returns only the ones that the user has access to
 	 *
-	 * @param array $lists An array of lists in which the key are the list IDs.
+	 * @param array  $lists         An array of lists in which the key are the list IDs.
+	 * @param string $email_address The email address of the user to check against. Optional, defaults to the current user.
 	 * @return array
 	 */
-	public static function filter_lists_objects( $lists ) {
+	public static function filter_lists_objects( $lists, $email_address = '' ) {
 		if ( ! self::is_enabled() || ! is_array( $lists ) || empty( $lists ) ) {
 			return $lists;
 		}
 
-		$list_ids = self::filter_lists( array_keys( $lists ) );
+		$list_ids = self::filter_lists( array_keys( $lists ), $email_address );
 
 		return array_filter(
 			$lists,
