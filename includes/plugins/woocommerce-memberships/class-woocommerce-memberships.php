@@ -419,11 +419,12 @@ class Woocommerce_Memberships {
 	/**
 	 * Determines whether a given list id is associated with a membership plan.
 	 *
-	 * @param string $list_id The list ID.
+	 * @param string $list_id        The list ID.
+	 * @param bool   $return_plan_id Whether to return the plan ID if the list is tied to a plan.
 	 *
-	 * @return bool
+	 * @return bool|int False if the list is not tied to a plan, or the plan ID if $return_plan_id is true.
 	 */
-	public static function is_subscription_list_tied_to_plan( $list_id ) {
+	public static function is_subscription_list_tied_to_plan( $list_id, $return_plan_id = false ) {
 		if ( ! function_exists( 'wc_memberships_get_membership_plans' ) ) {
 			return false;
 		}
@@ -444,6 +445,9 @@ class Woocommerce_Memberships {
 
 				$object_ids = $rule->get_object_ids();
 				if ( in_array( $list_id, $object_ids, true ) ) {
+					if ( $return_plan_id ) {
+						return $plan->get_id();
+					}
 					return true;
 				}
 			}
