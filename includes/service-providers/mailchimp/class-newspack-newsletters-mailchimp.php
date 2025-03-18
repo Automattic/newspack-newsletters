@@ -546,12 +546,13 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
 			$newsletter_data = [
-				'campaign'               => $campaign,
-				'campaign_id'            => $mc_campaign_id,
-				'folders'                => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
-				'allowed_sender_domains' => $this->get_verified_domains(),
-				'merge_fields'           => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
-				'link'                   => sprintf( 'https://%s.admin.mailchimp.com/campaigns/edit?id=%d', explode( '-', $this->api_key() )[1], $campaign['web_id'] ),
+				'campaign'                          => $campaign,
+				'campaign_id'                       => $mc_campaign_id,
+				'folders'                           => Newspack_Newsletters_Mailchimp_Cached_Data::get_folders(),
+				'allowed_sender_domains'            => $this->get_verified_domains(),
+				'merge_fields'                      => $list_id ? Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id ) : [],
+				'link'                              => sprintf( 'https://%s.admin.mailchimp.com/campaigns/edit?id=%d', explode( '-', $this->api_key() )[1], $campaign['web_id'] ),
+				'supports_multiple_test_recipients' => true,
 			];
 
 			// Reconcile campaign settings with info fetched from the ESP for a true two-way sync.

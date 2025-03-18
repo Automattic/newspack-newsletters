@@ -799,9 +799,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$send_list_id    = get_post_meta( $post_id, 'send_list_id', true );
 			$send_sublist_id = get_post_meta( $post_id, 'send_sublist_id', true );
 			$newsletter_data = [
-				'campaign'                          => true, // Satisfy the JS API.
-				'campaign_id'                       => $campaign_id,
-				'supports_multiple_test_recipients' => true,
+				'campaign'    => true, // Satisfy the JS API.
+				'campaign_id' => $campaign_id,
 			];
 
 			// Handle legacy send-to meta.
