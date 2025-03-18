@@ -20,6 +20,14 @@ if ( ! defined( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE' ) ) {
 	define( 'NEWSPACK_NEWSLETTERS_PLUGIN_FILE', plugin_dir_path( __FILE__ ) );
 }
 
+// Load language files.
+add_action(
+	'init',
+	function () {
+		load_plugin_textdomain( 'newspack-newsletters', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	}
+);
+
 /**
  * If a Letterhead endpoint hasn't been added, for instance for development or to point at
  * a separate instance, we'll set a default.
