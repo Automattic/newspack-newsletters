@@ -1807,7 +1807,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$mc = new Mailchimp( $this->api_key() );
 
 			if ( isset( $contact['metadata'] ) && is_array( $contact['metadata'] ) && ! empty( $contact['metadata'] ) ) {
-
 				/**
 				 * Filter the merge fields payload.
 				 *
@@ -1828,11 +1827,58 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$update_payload['interests'] = $interests;
 			}
 
+			// Create or update a list member.
+			$member_hash = Mailchimp::subscriberHash( $email_address );
+
+			// Mailchimp will only allow subscribed contacts to update the email address field.
+			// To work around this for unsubscribed accounts, we archive the old contact, then creating notes linking old and new contacts.
+			$existing_email_address = isset( $contact['existing_contact_data']['email_address'] ) ? $contact['existing_contact_data']['email_address'] : null;
+			if ( $existing_email_address && $existing_email_address !== $email_address ) {
+				$existing_member_hash = Mailchimp::subscriberHash( $existing_email_address );
+				if ( isset( $update_payload['status'] ) && 'subscribed' !== $update_payload['status'] ) {
+					$this->validate(
+						$mc->post(
+							"lists/$list_id/members/$existing_member_hash/notes",
+							[
+								'note' => sprintf(
+									// Translators: 1 is a hash value representing the contact's new ID. 2 is the contact's new email address.
+									__( 'Contact requested email change. Migrated to %1$s (%2$s).', 'newspack-newsletters' ),
+									$member_hash,
+									$email_address
+								),
+							]
+						),
+						$reader_error,
+						$existing_email_address
+					);
+					$this->validate(
+						$mc->post(
+							"lists/$list_id/members/$member_hash/notes",
+							[
+								'note' => sprintf(
+									// Translators: 1 is a hash value representing the contact's previous ID. 2 is the contact's previous email address.
+									__( 'Contact requested email change. Migrated from %1$s (%2$s).', 'newspack-newsletters' ),
+									$existing_member_hash,
+									$existing_email_address
+								),
+							]
+						),
+						$reader_error,
+						$existing_email_address
+					);
+					$this->validate(
+						$mc->delete( "lists/$list_id/members/$existing_member_hash" ),
+						$reader_error,
+						$existing_email_address
+					);
+				} else {
+					$member_hash = $existing_member_hash;
+				}
+			}
+
 			Newspack_Newsletters_Logger::log( 'Mailchimp add_contact PUT payload: ' . wp_json_encode( $update_payload ) );
 
-			// Create or update a list member.
-			$member_hash  = Mailchimp::subscriberHash( $email_address );
-			$result       = $this->validate(
+			$result = $this->validate(
 				$mc->put( "lists/$list_id/members/$member_hash", $update_payload ),
 				null,
 				[
@@ -1842,48 +1888,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'interests' => $interests,
 				]
 			);
-
-			// Mailchimp will only allow subscribed contacts to update the email address field, so to work around this for unsubscribed accounts
-			// we are instead creating a new contact (via the request above), archiving the old one, then creating notes linking both contacts.
-			$existing_email_address = isset( $contact['existing_contact_data']['email_address'] ) ? $contact['existing_contact_data']['email_address'] : null;
-			if ( $existing_email_address && $existing_email_address !== $email_address ) {
-				$existing_member_hash = Mailchimp::subscriberHash( $existing_email_address );
-				$this->validate(
-					$mc->post(
-						"lists/$list_id/members/$existing_member_hash/notes",
-						[
-							'note' => sprintf(
-								// Translators: 1 is a hash value representing the contact's new ID. 2 is the contact's new email address.
-								__( 'Contact requested email change. Migrated to %1$s (%2$s).', 'newspack-newsletters' ),
-								$member_hash,
-								$email_address
-							),
-						]
-					),
-					$reader_error,
-					$existing_email_address
-				);
-				$this->validate(
-					$mc->post(
-						"lists/$list_id/members/$member_hash/notes",
-						[
-							'note' => sprintf(
-								// Translators: 1 is a hash value representing the contact's previous ID. 2 is the contact's previous email address.
-								__( 'Contact requested email change. Migrated from %1$s (%2$s).', 'newspack-newsletters' ),
-								$existing_member_hash,
-								$existing_email_address
-							),
-						]
-					),
-					$reader_error,
-					$existing_email_address
-				);
-				$this->validate(
-					$mc->delete( "lists/$list_id/members/$existing_member_hash" ),
-					$reader_error,
-					$existing_email_address
-				);
-			}
 		} catch ( \Exception $e ) {
 			return new \WP_Error(
 				'newspack_newsletters_mailchimp_api_error',
