@@ -1832,19 +1832,29 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$is_email_update        = $existing_email_address && $existing_email_address !== $email_address;
 			$is_subscribed          = isset( $update_payload['status'] ) && 'subscribed' === $update_payload['status'];
 
+			// Mailchimp only allows subscribed contacts to update the email address field
+			// so if the contact is not subscribed, we need to migrate existing merge fields.
+			if ( $is_email_update && ! $is_subscribed ) {
+				$existing_contact = $this->get_contact_data( $existing_email_address, true );
+				try {
+					if ( is_wp_error( $existing_contact ) ) {
+						throw new Exception( $existing_contact->get_error_message() );
+					}
+					$update_payload = array_merge( $update_payload, [ 'merge_fields' => $existing_contact['merge_fields'] ] );
+				} catch ( \Exception $e ) {
+					Newspack_Newsletters_Logger::log( 'Failed to migrate merge fields: ' . $e->getMessage() );
+				}
+			}
+
 			Newspack_Newsletters_Logger::log( 'Mailchimp add_contact PUT payload: ' . wp_json_encode( $update_payload ) );
 
-			$hash = $member_hash;
-			if ( $is_email_update && $is_subscribed ) {
-				$hash = $existing_member_hash;
-			}
+			$hash   = $is_email_update && $is_subscribed ? $existing_member_hash : $member_hash;
 			$result = $this->validate(
 				$mc->put( "lists/$list_id/members/$hash", $update_payload ),
 				__( 'Error upserting contact to Mailchimp.', 'newspack-newsletters' )
 			);
 			if ( $is_email_update && ! $is_subscribed ) {
-				// Mailchimp will only allow subscribed contacts to update the email address field.
-				// To work around this for unsubscribed accounts, we archive the old contact, then create notes linking old and new contacts.
+				// For non-subscribed accounts, we create notes linking old and new contacts and archive the old contact.
 				$this->validate(
 					$mc->post(
 						"lists/$list_id/members/$existing_member_hash/notes",
@@ -2017,11 +2027,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Get contact data by email.
 	 *
 	 * @param string $email          Email address.
-	 * @param bool   $return_details Fetch full contact data.
 	 *
 	 * @return array|WP_Error Response or error if contact was not found.
 	 */
-	public function get_contact_data( $email, $return_details = false ) {
+	public function get_contact_data( $email ) {
 		try {
 			$mc    = new Mailchimp( $this->api_key() );
 			$result  = $mc->get(
@@ -2042,9 +2051,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			$keys = [ 'full_name', 'email_address', 'id' ];
 			$data = [
-				'lists'     => [],
-				'tags'      => [],
-				'interests' => [],
+				'lists'        => [],
+				'tags'         => [],
+				'interests'    => [],
+				'merge_fields' => [],
 			];
 			foreach ( $found as $contact ) {
 				foreach ( $keys as $key ) {
@@ -2063,6 +2073,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'contact_id' => $contact['contact_id'],
 					'status'     => $contact['status'],
 				];
+				if ( isset( $contact['merge_fields'] ) ) {
+					$data['merge_fields'] = $contact['merge_fields'];
+				}
 			}
 			return $data;
 		} catch ( \Exception $e ) {
