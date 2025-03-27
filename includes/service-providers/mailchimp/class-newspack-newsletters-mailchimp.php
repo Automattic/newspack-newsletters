@@ -1833,14 +1833,26 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$is_subscribed          = isset( $update_payload['status'] ) && 'subscribed' === $update_payload['status'];
 
 			// Mailchimp only allows subscribed contacts to update the email address field
-			// so if the contact is not subscribed, we need to migrate existing merge fields.
+			// so if the contact is not subscribed, we need to migrate existing data.
 			if ( $is_email_update && ! $is_subscribed ) {
 				$existing_contact = $this->get_contact_data( $existing_email_address, true );
 				try {
 					if ( is_wp_error( $existing_contact ) ) {
 						throw new Exception( $existing_contact->get_error_message() );
 					}
-					$update_payload = array_merge( $update_payload, [ 'merge_fields' => $existing_contact['merge_fields'] ] );
+					$update_payload = array_merge(
+						$update_payload,
+						[
+							'interests'    => $existing_contact['interests'][ $list_id ] ?? [],
+							'merge_fields' => $existing_contact['merge_fields'],
+							'tags'         => array_map(
+								function ( $tag ) {
+									return $tag['name'];
+								},
+								$existing_contact['tags'][ $list_id ] ?? []
+							),
+						]
+					);
 				} catch ( \Exception $e ) {
 					Newspack_Newsletters_Logger::log( 'Failed to migrate merge fields: ' . $e->getMessage() );
 				}
