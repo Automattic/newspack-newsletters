@@ -305,16 +305,6 @@
 					padding: 0 7px;
 				}
 			}
-			&[data-type="core/social-link"] {
-				align-items: center;
-				display: flex;
-				justify-content: center;
-				padding: 0;
-
-				&:not([contenteditable]):focus::after {
-					right: 0;
-				}
-			}
 
 			&[data-type="core/separator"],
 			.wp-block-separator {
@@ -368,6 +358,17 @@
 			&[data-align="right"] {
 				.wp-block-social-links {
 					margin-right: 0;
+				}
+			}
+
+			.wp-social-link {
+				align-items: center;
+				display: flex;
+				justify-content: center;
+				padding: 0;
+
+				&:not([contenteditable]):focus::after {
+					right: 0;
 				}
 			}
 		}
