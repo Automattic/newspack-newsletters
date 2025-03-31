@@ -473,10 +473,22 @@ final class Newspack_Newsletters_Ads {
 			} else {
 				$position = intval( get_post_meta( $ad->ID, 'position_block_count', true ) );
 			}
-			$ads[ $position ] = $ad;
+
+			if ( ! isset( $ads[ $position ] ) ) {
+				$ads[ $position ] = [];
+			}
+			$ads[ $position ][] = $ad;
 		}
-		sort( $ads );
-		return array_values( $ads );
+
+		$flattened_ads = [];
+		foreach ( $ads as $position_ads ) {
+			foreach ( $position_ads as $ad ) {
+				$flattened_ads[] = $ad;
+			}
+		}
+
+		sort( $flattened_ads );
+		return $flattened_ads;
 	}
 
 	/**
