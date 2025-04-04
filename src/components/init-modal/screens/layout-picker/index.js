@@ -23,11 +23,11 @@ import SingleLayoutPreview from './SingleLayoutPreview';
 
 const LAYOUTS_TABS = [
 	{
-		title: __( 'Prebuilt Layouts', 'newspack-newsletters' ),
+		title: __( 'Prebuilt layouts', 'newspack-newsletters' ),
 		filter: layout => layout.post_author === undefined,
 	},
 	{
-		title: __( 'Saved Layouts', 'newspack-newsletters' ),
+		title: __( 'Saved layouts', 'newspack-newsletters' ),
 		filter: isUserDefinedLayout,
 		isEditable: true,
 	},
@@ -125,15 +125,15 @@ export default function LayoutPicker() {
 				</div>
 			</div>
 			<div className="newspack-newsletters-modal__action-buttons">
-				<Button isSecondary onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
-					{ __( 'Blank Newsletter', 'newspack-newsletters' ) }
+				<Button variant="secondary" onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
+					{ __( 'Blank newsletter', 'newspack-newsletters' ) }
 				</Button>
 				<Button
-					isPrimary
+					variant="primary"
 					disabled={ isFetchingLayouts || ! selectedLayoutId }
 					onClick={ () => insertLayout( selectedLayoutId ) }
 				>
-					{ __( 'Use Selected Layout', 'newspack-newsletters' ) }
+					{ __( 'Use selected layout', 'newspack-newsletters' ) }
 				</Button>
 			</div>
 		</>

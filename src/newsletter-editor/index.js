@@ -9,7 +9,7 @@ import {
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
 	PluginPostStatusInfo,
-} from '@wordpress/edit-post';
+} from '@wordpress/editor';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
 
@@ -26,7 +26,7 @@ import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
 import { registerStore, fetchNewsletterData, useNewsletterDataError } from './store';
-import { isSupportedESP } from './utils';
+import { isManualESP, isSupportedESP } from './utils';
 import CampaignLink from './campaign-link';
 import './debug-send';
 
@@ -125,19 +125,22 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				{ isConnected && <PublicSettings /> }
 			</PluginPostStatusInfo>
 
-			<PluginDocumentSettingPanel
-				name="newsletters-settings-panel"
-				title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }
-			>
-				<CampaignLink />
-				<Sidebar
-					inFlight={ inFlight }
-					isConnected={ isConnected }
-					oauthUrl={ oauthUrl }
-					onAuthorize={ verifyToken }
-				/>
-			</PluginDocumentSettingPanel>
-			{ isSupportedESP() && (
+			{ isSupportedESP() && ! isManualESP() && (
+				<PluginDocumentSettingPanel
+					name="newsletters-settings-panel"
+					title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }
+				>
+					<CampaignLink />
+					<Sidebar
+						inFlight={ inFlight }
+						isConnected={ isConnected }
+						oauthUrl={ oauthUrl }
+						onAuthorize={ verifyToken }
+					/>
+				</PluginDocumentSettingPanel>
+			) }
+
+			{ isSupportedESP() && ! isManualESP() && (
 				<PluginDocumentSettingPanel
 					name="newsletters-testing-panel"
 					title={ __( 'Testing', 'newspack-newsletters' ) }

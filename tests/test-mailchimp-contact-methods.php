@@ -504,6 +504,7 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 							'status'     => 'subscribed',
 						],
 					],
+					'merge_fields'  => [],
 				],
 			],
 			[
@@ -533,6 +534,7 @@ class MailchimpContactMethodsTest extends WP_UnitTestCase {
 							'status'     => 'subscribed',
 						],
 					],
+					'merge_fields'  => [],
 				],
 			],
 			[

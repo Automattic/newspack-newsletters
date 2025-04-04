@@ -10,7 +10,7 @@ function NewslettersAdsSettings() {
 	return (
 		<PluginDocumentSettingPanel
 			name="newsletters-ads-settings-panel"
-			title={ __( 'Ads Settings', 'newspack-newsletters' ) }
+			title={ __( 'Advertising', 'newspack-newsletters' ) }
 		>
 			<DisableAutoAds />
 		</PluginDocumentSettingPanel>

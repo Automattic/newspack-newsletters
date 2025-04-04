@@ -11,5 +11,10 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 12px;
+
+		.components-button {
+			flex: 1 1 100%;
+			justify-content: center;
+		}
 	}
 }

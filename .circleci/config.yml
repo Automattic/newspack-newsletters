@@ -26,10 +26,6 @@ workflows:
       - newspack/test-js:
           requires:
             - newspack/build
-      - newspack/build-distributable:
-          requires:
-            - newspack/build
-          archive-name: 'newspack-newsletters'
       - newspack/release:
           requires:
             - newspack/build
@@ -40,6 +36,12 @@ workflows:
                 - alpha
                 - /^hotfix\/.*/
                 - /^epic\/.*/
+      - newspack/build-distributable:
+          requires:
+            - newspack/build
+            # Running this after release ensure the version number in files will be correct.
+            - newspack/release
+          archive-name: 'newspack-newsletters'
       - newspack/post-release:
           requires:
             - newspack/release

@@ -3,7 +3,6 @@
 	"description": "Newsletter authoring plugin.",
 	"type": "wordpress-plugin",
 	"require": {
-		"drewm/mailchimp-api": "^2.5",
 		"campaignmonitor/createsend-php": "^7.0"
 	},
 	"require-dev": {

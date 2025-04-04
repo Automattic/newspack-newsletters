@@ -1,3 +1,79 @@
+## [3.11.1](https://github.com/Automattic/newspack-newsletters/compare/v3.11.0...v3.11.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* migrate tags and groups ([#1788](https://github.com/Automattic/newspack-newsletters/issues/1788)) ([efd3509](https://github.com/Automattic/newspack-newsletters/commit/efd35096a60e5d4bbae19c01d0c8a96a6837c226))
+
+# [3.11.0](https://github.com/Automattic/newspack-newsletters/compare/v3.10.1...v3.11.0) (2025-03-31)
+
+
+### Bug Fixes
+
+* add UTM parameters to link URLs inside newsletter content ([#1776](https://github.com/Automattic/newspack-newsletters/issues/1776)) ([b04cba3](https://github.com/Automattic/newspack-newsletters/commit/b04cba375d51dd8fc79e2ba289447aaa762ed54e))
+* **editor:** fix multiple-emails notice for AC and MC ESPs ([#1784](https://github.com/Automattic/newspack-newsletters/issues/1784)) ([974c133](https://github.com/Automattic/newspack-newsletters/commit/974c1330c74a4cdbab97098eac13de2964614176))
+* **modal-checkout:** filter post-checkout signup lists ([#1783](https://github.com/Automattic/newspack-newsletters/issues/1783)) ([e4d7af2](https://github.com/Automattic/newspack-newsletters/commit/e4d7af24bea8da5df13d25e7409b506efa8524ec))
+
+
+### Features
+
+* incorporate the Mailchimp API with a few tweaks ([#1774](https://github.com/Automattic/newspack-newsletters/issues/1774)) ([ee9fb11](https://github.com/Automattic/newspack-newsletters/commit/ee9fb114780e150e7c48293f78e3052eead4d5f9))
+* update buttons style in editor ([#1772](https://github.com/Automattic/newspack-newsletters/issues/1772)) ([0ffc150](https://github.com/Automattic/newspack-newsletters/commit/0ffc15095f9ccd5a959239bb44eefdbef09b69ed))
+
+## [3.10.1](https://github.com/Automattic/newspack-newsletters/compare/v3.10.0...v3.10.1) (2025-03-25)
+
+
+### Bug Fixes
+
+* mailchimp email change sync strategy ([#1787](https://github.com/Automattic/newspack-newsletters/issues/1787)) ([341ad39](https://github.com/Automattic/newspack-newsletters/commit/341ad39175dd29ad6a9050655e05ca346045de47))
+
+# [3.10.0](https://github.com/Automattic/newspack-newsletters/compare/v3.9.2...v3.10.0) (2025-03-18)
+
+
+### Bug Fixes
+
+* correct data fetching error ([#1765](https://github.com/Automattic/newspack-newsletters/issues/1765)) ([67d954f](https://github.com/Automattic/newspack-newsletters/commit/67d954fafc6e3b212e4e14ab7e9726f467ab6cad))
+* handle email change esp sync errors ([#1769](https://github.com/Automattic/newspack-newsletters/issues/1769)) ([ac3b598](https://github.com/Automattic/newspack-newsletters/commit/ac3b59829d101e5e6968f59aa5e7a9ab4e0b6586))
+* **modal-checkout:** filter post-checkout signup lists ([#1783](https://github.com/Automattic/newspack-newsletters/issues/1783)) ([6908cc3](https://github.com/Automattic/newspack-newsletters/commit/6908cc316a0a3ced8124aad34141fe6e54e37753))
+* **premium:** conditions for premium lists auto-signup ([#1766](https://github.com/Automattic/newspack-newsletters/issues/1766)) ([a850c5e](https://github.com/Automattic/newspack-newsletters/commit/a850c5ed24d10cc258879d41b3ce4ca8d866e1d5))
+
+
+### Features
+
+* allow email address updates to ESPs ([#1764](https://github.com/Automattic/newspack-newsletters/issues/1764)) ([f472d24](https://github.com/Automattic/newspack-newsletters/commit/f472d245b89e8543a1697005cc8b654fd67a034b))
+
+## [3.9.2](https://github.com/Automattic/newspack-newsletters/compare/v3.9.1...v3.9.2) (2025-03-18)
+
+
+### Bug Fixes
+
+* registration page event meta ([#1777](https://github.com/Automattic/newspack-newsletters/issues/1777)) ([062b8fb](https://github.com/Automattic/newspack-newsletters/commit/062b8fb3b8655ed03736199ff5c9aa15cee9c506))
+
+## [3.9.1](https://github.com/Automattic/newspack-newsletters/compare/v3.9.0...v3.9.1) (2025-03-05)
+
+
+### Bug Fixes
+
+* allow for context-specific reader-facing error messsages ([#1754](https://github.com/Automattic/newspack-newsletters/issues/1754)) ([db4e742](https://github.com/Automattic/newspack-newsletters/commit/db4e742f407f2b8ae992f801c298913ca003de15))
+* **editor:** allow newsletter editor JS to run for manual ESP ([#1770](https://github.com/Automattic/newspack-newsletters/issues/1770)) ([bc16567](https://github.com/Automattic/newspack-newsletters/commit/bc165678c7d0bece5f7468999152306cefe282b5))
+
+# [3.9.0](https://github.com/Automattic/newspack-newsletters/compare/v3.8.1...v3.9.0) (2025-03-04)
+
+
+### Features
+
+* add global control for text color and support link color in paragraph block ([#1755](https://github.com/Automattic/newspack-newsletters/issues/1755)) ([b698829](https://github.com/Automattic/newspack-newsletters/commit/b698829e0de71b4242e37d072d56f911fc3b4ddf))
+* add threads to supported social icons ([#1761](https://github.com/Automattic/newspack-newsletters/issues/1761)) ([d5b8f24](https://github.com/Automattic/newspack-newsletters/commit/d5b8f24570ca2ed5ff1d2e2919945a2f08b530e9))
+* **embed:** update icons ([#1756](https://github.com/Automattic/newspack-newsletters/issues/1756)) ([5a2cf28](https://github.com/Automattic/newspack-newsletters/commit/5a2cf283a22c39516ff6740d822ec86c5109a0ff))
+* update plugin with new brand ([#1752](https://github.com/Automattic/newspack-newsletters/issues/1752)) ([6d4b4be](https://github.com/Automattic/newspack-newsletters/commit/6d4b4be1c77405951d0b8d01071ada34b14c7f3a))
+
+## [3.8.1](https://github.com/Automattic/newspack-newsletters/compare/v3.8.0...v3.8.1) (2025-02-17)
+
+
+### Bug Fixes
+
+* avoid moving cursor when editing Subject input field ([#1748](https://github.com/Automattic/newspack-newsletters/issues/1748)) ([34a5632](https://github.com/Automattic/newspack-newsletters/commit/34a56320bcbf19b750355e3840f9772cae2824ad))
+
 # [3.8.0](https://github.com/Automattic/newspack-newsletters/compare/v3.7.5...v3.8.0) (2025-02-03)
 
 
