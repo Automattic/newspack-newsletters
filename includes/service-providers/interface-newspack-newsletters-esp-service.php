@@ -234,10 +234,11 @@ interface Newspack_Newsletters_ESP_API_Interface {
 	 * Get a reader-facing error message to be shown when the add_contact method fails.
 	 *
 	 * @param array $params Additional information about the request that triggered the error.
+	 * @param mixed $raw_error Raw error data from the ESP's API. This can vary depending on the provider.
 	 *
 	 * @return string
 	 */
-	public function get_add_contact_reader_error_message( $params = [] );
+	public function get_reader_error_message( $params = [], $raw_error = null );
 
 	/**
 	 * Get usage report for yesterday.
