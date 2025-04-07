@@ -455,7 +455,17 @@ final class Newspack_Newsletters_Ads {
 					continue;
 				}
 			}
+			$ads[] = $ad;
+		}
 
+		// Return early if there's only one ad. No need to sort.
+		if ( count( $ads ) <= 1 ) {
+			return $ads;
+		}
+
+		// Sort ads by position.
+		$ads_by_position = [];
+		foreach ( $ads as $ad ) {
 			$insertion_strategy = get_post_meta( $ad->ID, 'insertion_strategy', true );
 			if ( empty( $insertion_strategy ) ) {
 				$insertion_strategy = 'percentage';
@@ -474,14 +484,14 @@ final class Newspack_Newsletters_Ads {
 				$position = intval( get_post_meta( $ad->ID, 'position_block_count', true ) );
 			}
 
-			if ( ! isset( $ads[ $position ] ) ) {
-				$ads[ $position ] = [];
+			if ( ! isset( $ads_by_position[ $position ] ) ) {
+				$ads_by_position[ $position ] = [];
 			}
-			$ads[ $position ][] = $ad;
+			$ads_by_position[ $position ][] = $ad;
 		}
 
 		$flattened_ads = [];
-		foreach ( $ads as $position_ads ) {
+		foreach ( $ads_by_position as $position_ads ) {
 			foreach ( $position_ads as $ad ) {
 				$flattened_ads[] = $ad;
 			}
