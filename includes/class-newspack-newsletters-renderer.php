@@ -1174,7 +1174,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( ! empty( $attrs['adId'] ) ) {
 					$ad_post = get_post( $attrs['adId'] );
 				} elseif ( ! empty( self::$newsletter_id ) ) {
-					$ads = Newspack_Newsletters_Ads::get_newsletter_ads( self::$newsletter_id );
+					$ads = Newspack_Newsletters_Ads::get_newsletter_ads_flat( self::$newsletter_id );
 					foreach ( $ads as $ad ) {
 						if ( ! Newspack_Newsletters_Ads::is_ad_inserted( self::$newsletter_id, $ad->ID ) ) {
 							$ad_post = $ad;

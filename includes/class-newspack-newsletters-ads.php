@@ -480,6 +480,20 @@ final class Newspack_Newsletters_Ads {
 			$ads[ $position ][] = $ad;
 		}
 
+		sort( $ads );
+		return array_values( $ads );
+	}
+
+	/**
+	 * Get a flattened array of ads for automatic insertion.
+	 *
+	 * @param int $newsletter_id   Newsletter post ID.
+	 *
+	 * @return WP_Post[] Array of ad posts.
+	 */
+	public static function get_newsletter_ads_flat( $newsletter_id ) {
+		$ads = self::get_newsletter_ads( $newsletter_id );
+
 		$flattened_ads = [];
 		foreach ( $ads as $position_ads ) {
 			foreach ( $position_ads as $ad ) {
