@@ -390,15 +390,17 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Add a tag to a contact
 	 *
-	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID.
-	 * @param string     $list_id The List ID. Not needed for Active Campaign.
+	 * @param string|array $contact Either the contact email or the contact array with email, name and metadata.
+	 * @param string|int   $tag The tag name.
+	 * @param string       $list_id The List ID. Not needed for Active Campaign.
 	 * @return true|WP_Error
 	 */
-	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
+	public function add_tag_to_contact( $contact, $tag, $list_id = null ) {
+		$email = is_string( $contact ) ? $contact : $contact['email'];
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
-			return $existing_contact;
+			$contact['tags'] = $tag;
+			return $this->add_contact( $contact, $list_id );
 		}
 
 		$contact_tag = [
@@ -1319,6 +1321,16 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				]
 			);
 		}
+
+		if ( ! empty( $contact['tags'] ) ) {
+			if ( is_string( $contact['tags'] ) || is_int( $contact['tags'] ) ) {
+				$contact['tags'] = [ $contact['tags'] ];
+			}
+			if ( is_array( $contact['tags'] ) ) {
+				$payload['tags'] = implode( ',', $contact['tags'] );
+			}
+		}
+
 		/** Register metadata fields. */
 		if ( ! empty( $contact['metadata'] ) ) {
 			$existing_fields = $this->get_all_contact_fields();

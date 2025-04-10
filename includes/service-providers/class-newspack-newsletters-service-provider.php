@@ -647,7 +647,7 @@ Error message(s) received:
 		}
 
 		$list_settings = $list->get_provider_settings( $this->service );
-		return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
+		return $this->add_esp_local_list_to_contact( $contact, $list_settings['tag_name'], $list_settings['list'] );
 	}
 
 	/**
@@ -837,12 +837,12 @@ Error message(s) received:
 	/**
 	 * Add a tag to a contact
 	 *
-	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID.
-	 * @param string     $list_id The List ID.
+	 * @param string|array $contact Either the contact email or the contact array with email, name and metadata.
+	 * @param string|int   $tag The tag name.
+	 * @param string       $list_id The List ID.
 	 * @return true|WP_Error
 	 */
-	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
+	public function add_tag_to_contact( $contact, $tag, $list_id = null ) {
 		return new WP_Error( 'newspack_newsletters_not_implemented', __( 'Not implemented', 'newspack-newsletters' ), [ 'status' => 400 ] );
 	}
 
@@ -927,13 +927,13 @@ Error message(s) received:
 	 *
 	 * By default it will use Tags, but the provider can override this method to use something else
 	 *
-	 * @param string     $email The contact email.
-	 * @param string|int $esp_local_list The esp_local_list ID retrieved with get_esp_local_list_id() or the the esp_local_list string.
-	 * @param string     $list_id The List ID.
+	 * @param string|array $contact Either the contact email or the contact array with email, name and metadata.
+	 * @param string|int   $esp_local_list The esp_local_list ID retrieved with get_esp_local_list_id() or the the esp_local_list string.
+	 * @param string       $list_id The List ID.
 	 * @return true|WP_Error
 	 */
-	public function add_esp_local_list_to_contact( $email, $esp_local_list, $list_id = null ) {
-		return $this->add_tag_to_contact( $email, $esp_local_list, $list_id );
+	public function add_esp_local_list_to_contact( $contact, $esp_local_list, $list_id = null ) {
+		return $this->add_tag_to_contact( $contact, $esp_local_list, $list_id );
 	}
 
 	/**

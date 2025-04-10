@@ -81,13 +81,13 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	 *
 	 * Mailchimp overrides it to use Groups instead of Tags
 	 *
-	 * @param string     $email The contact email.
-	 * @param string|int $esp_local_list The esp_local_list ID retrieved with get_esp_local_list_id() or the the esp_local_list string.
-	 * @param string     $list_id The List ID.
+	 * @param string|array $contact Either the contact email or the contact array with email, name and metadata.
+	 * @param string|int   $esp_local_list The esp_local_list ID retrieved with get_esp_local_list_id() or the the esp_local_list string.
+	 * @param string       $list_id The List ID.
 	 * @return true|WP_Error
 	 */
-	public function add_esp_local_list_to_contact( $email, $esp_local_list, $list_id = null ) {
-		return $this->add_group_to_contact( $email, $esp_local_list, $list_id );
+	public function add_esp_local_list_to_contact( $contact, $esp_local_list, $list_id = null ) {
+		return $this->add_group_to_contact( $contact, $esp_local_list, $list_id );
 	}
 
 	/**
@@ -296,15 +296,16 @@ trait Newspack_Newsletters_Mailchimp_Groups {
 	/**
 	 * Add a group to a contact
 	 *
-	 * @param string $email The contact email.
-	 * @param string $group_id The group ID.
-	 * @param string $list_id The List ID.
+	 * @param string|array $contact Either the contact email or the contact array with email, name and metadata.
+	 * @param string       $group_id The group ID.
+	 * @param string       $list_id The List ID.
 	 * @return true|WP_Error
 	 */
-	public function add_group_to_contact( $email, $group_id, $list_id = null ) {
+	public function add_group_to_contact( $contact, $group_id, $list_id = null ) {
+		$email = is_string( $contact ) ? $contact : $contact['email'];
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
-			return $existing_contact;
+			return $this->add_contact( $contact, $list_id, [], [ $group_id => true ] );
 		}
 
 		$mc    = new Mailchimp( $this->api_key() );

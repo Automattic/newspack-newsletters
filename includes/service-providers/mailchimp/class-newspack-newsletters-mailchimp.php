@@ -274,15 +274,16 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	/**
 	 * Add a tag to a contact
 	 *
-	 * @param string     $email The contact email.
-	 * @param string|int $tag The tag ID.
-	 * @param string     $list_id The List ID.
+	 * @param string|array $contact Either the contact email or the contact array with email, name and metadata.
+	 * @param string|int   $tag The tag name.
+	 * @param string       $list_id The List ID.
 	 * @return true|WP_Error
 	 */
-	public function add_tag_to_contact( $email, $tag, $list_id = null ) {
+	public function add_tag_to_contact( $contact, $tag, $list_id = null ) {
+		$email = is_string( $contact ) ? $contact : $contact['email'];
 		$existing_contact = $this->get_contact_data( $email );
 		if ( is_wp_error( $existing_contact ) ) {
-			return $existing_contact;
+			return $this->add_contact( $contact, $list_id, [ $tag ] );
 		}
 		$mc      = new Mailchimp( $this->api_key() );
 		$created = $mc->post(
