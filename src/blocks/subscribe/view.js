@@ -44,7 +44,7 @@ domReady( function () {
 		const spinner = document.createElement( 'span' );
 		spinner.classList.add( 'spinner' );
 
-		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
+		form.endFlow = ( message, status = 500, wasSubscribed = false, wasRegistered = false, registrationMethod = 'newsletters-subscription' ) => {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
@@ -59,6 +59,17 @@ domReady( function () {
 			if ( status === 200 ) {
 				container.replaceChild( responseContainer, form );
 				form.dispatchEvent( successEvent );
+				if ( wasRegistered ) {
+					window.newspackRAS = window.newspackRAS || [];
+					window.newspackRAS.push( function( ras ) {
+						const activity = { email: emailInput.value, registration_method: registrationMethod };
+						const promptContainer = container.closest( '.newspack-popup-container' );
+						if ( promptContainer && promptContainer.id ) {
+							activity.popup_id = promptContainer.getAttribute( 'id' ).replace( 'id_', '' );
+						}
+						ras.dispatchActivity( 'reader_registered', activity );
+					} );
+				}
 			}
 		};
 		form.addEventListener( 'submit', ev => {
@@ -96,9 +107,11 @@ domReady( function () {
 							message,
 							newspack_newsletters_subscribed: wasSubscribed,
 							newspack_newsletters_subscribe,
+							registered: wasRegistered,
+							registration_method: registrationMethod,
 						} ) => {
 							nonce = newspack_newsletters_subscribe;
-							form.endFlow( message, res.status, wasSubscribed );
+							form.endFlow( message, res.status, wasSubscribed, wasRegistered, registrationMethod );
 						}
 					);
 			} );
