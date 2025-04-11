@@ -183,18 +183,14 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 		postContentBlocks.push( getSubtitleBlockTemplate( post, attributes ) );
 	}
 
-	if ( hasSponsors && 'underwritten' !== post.meta.newspack_sponsor_sponsorship_scope ) {
+	// If the meta is set, use it. Otherwise, if any sponsor is 'native', use 'native'. Otherwise, default to 'underwritten'.
+	const sponsorshipScope = post.meta.newspack_sponsor_sponsorship_scope 
+		|| ( ( post.newspack_sponsors_info || [] ).some( sponsor => sponsor.sponsor_scope ==='native' ) ? 'native' : 'underwritten' );
+	if ( hasSponsors && 'underwritten' !== sponsorshipScope ) {
 		// If the post is set to show only sponsor, OR set to inherit and all sponsors are set to show only sponsor, hide the byline.
 		if (
 			'sponsor' === post.meta.newspack_sponsor_native_byline_display ||
-			( 'inherit' === post.meta.newspack_sponsor_native_byline_display &&
-				false ===
-					post.newspack_sponsors_info.reduce( ( acc, sponsor ) => {
-						if ( 'author' === sponsor.sponsor_byline_display ) {
-							return true;
-						}
-						return acc;
-					}, false ) )
+			( 'inherit' === post.meta.newspack_sponsor_native_byline_display && sponsorshipScope !== 'underwritten' )
 		) {
 			displayAuthor = false;
 		}
