@@ -55,6 +55,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public static $support_local_lists = false;
 
 	/**
+	 * Memoization of existing contacts.
+	 *
+	 * @var array
+	 */
+	private $existing_contacts = [];
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -578,21 +585,6 @@ Error message(s) received:
 			return $this->add_contact( $contact );
 		}
 
-		// If subscribing to local lists only, the contact has to be created first.
-		// Local lists are tags/groups in ESP, so the contact has to exist first, in
-		// order to be added.
-		$only_local = array_reduce(
-			$lists,
-			fn( $carry, $list ) => $carry && $list->is_local(),
-			true
-		);
-		if ( $only_local ) {
-			$result = $this->add_contact( $contact );
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
-		}
-
 		foreach ( $lists as $list ) {
 			if ( $list->is_local() ) {
 				$result = $this->add_contact_to_local_list( $contact, $list );
@@ -634,6 +626,30 @@ Error message(s) received:
 	}
 
 	/**
+	 * Check if a contact exists in the ESP.
+	 *
+	 * @param string $email The contact email address.
+	 *
+	 * @return bool True if the contact exists, false otherwise.
+	 */
+	public function contact_exists( $email ) {
+		if ( in_array( $email, $this->existing_contacts, true ) ) {
+			return true;
+		}
+
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			// Don't memoize missing contacts.
+			return false;
+		}
+
+		// Memoize existing contacts.
+		$this->existing_contacts[] = $email;
+
+		return true;
+	}
+
+	/**
 	 * Handle adding to local lists.
 	 * If the $list_id is a local list, a tag will be added to the contact.
 	 *
@@ -659,6 +675,14 @@ Error message(s) received:
 
 		if ( ! $list->is_configured_for_provider( $this->service ) ) {
 			return new WP_Error( 'newspack_newsletters_list_not_configured_for_provider', "List $list_id not properly configured for the provider" );
+		}
+
+		// If the contact doesn't exist, create it.
+		if ( ! $this->contact_exists( $contact['email'] ) ) {
+			$result = $this->add_contact( $contact, $list_settings['list'] );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 		}
 
 		$list_settings = $list->get_provider_settings( $this->service );
