@@ -40,7 +40,7 @@ const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
 	return [
 		'core/paragraph',
 		assignFontSize( textFontSize, {
-			content: dateI18n( dateFormat, post.date_gmt ),
+			content: dateI18n( dateFormat, post.date ),
 			fontSize: 'normal',
 			style: { color: { text: textColor } },
 		} ),
@@ -215,7 +215,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			postContentBlocks.push( author );
 		}
 	}
-	if ( attributes.displayPostDate && post.date_gmt ) {
+	if ( attributes.displayPostDate && post.date ) {
 		postContentBlocks.push( getDateBlockTemplate( post, attributes ) );
 	}
 	if ( attributes.displayPostExcerpt ) {
