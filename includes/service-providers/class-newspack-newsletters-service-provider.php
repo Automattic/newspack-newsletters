@@ -578,6 +578,21 @@ Error message(s) received:
 			return $this->add_contact( $contact );
 		}
 
+		// If subscribing to local lists only, the contact has to be created first.
+		// Local lists are tags/groups in ESP, so the contact has to exist first, in
+		// order to be added.
+		$only_local = array_reduce(
+			$lists,
+			fn( $carry, $list ) => $carry && $list->is_local(),
+			true
+		);
+		if ( $only_local ) {
+			$result = $this->add_contact( $contact );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
 		foreach ( $lists as $list ) {
 			if ( $list->is_local() ) {
 				$result = $this->add_contact_to_local_list( $contact, $list );
