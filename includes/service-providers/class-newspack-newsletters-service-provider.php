@@ -677,6 +677,8 @@ Error message(s) received:
 			return new WP_Error( 'newspack_newsletters_list_not_configured_for_provider', "List $list_id not properly configured for the provider" );
 		}
 
+		$list_settings = $list->get_provider_settings( $this->service );
+
 		// If the contact doesn't exist, create it.
 		if ( ! $this->contact_exists( $contact['email'] ) ) {
 			$result = $this->add_contact( $contact, $list_settings['list'] );
@@ -685,7 +687,6 @@ Error message(s) received:
 			}
 		}
 
-		$list_settings = $list->get_provider_settings( $this->service );
 		return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
 	}
 
