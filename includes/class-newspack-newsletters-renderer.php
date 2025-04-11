@@ -114,8 +114,13 @@ final class Newspack_Newsletters_Renderer {
 			return '';
 		}
 
-		$alt        = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 		$attachment = get_post( $attachment_id );
+		// Sanity check.
+		if ( $attachment->post_type !== 'attachment' ) {
+			return '';
+		}
+
+		$alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 
 		if ( empty( $alt ) ) {
 			$alt = $attachment->post_content;
