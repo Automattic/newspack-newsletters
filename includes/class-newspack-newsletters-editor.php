@@ -500,6 +500,9 @@ final class Newspack_Newsletters_Editor {
 					];
 				}
 			}
+		} else {
+			// If we're not removing sponsors by modifying the query, make sure to ignore sticky posts.
+			$args['ignore_sticky_posts'] = true;
 		}
 
 		return $args;
