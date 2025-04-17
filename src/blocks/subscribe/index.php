@@ -497,6 +497,9 @@ function process_form() {
 			$metadata['registration_method'] = 'newsletters-subscription-popup';
 		}
 		$registered_user = \Newspack\Reader_Activation::register_reader( $email, $name, true, $metadata );
+		if ( $registered_user ) {
+			$metadata['registered'] = '1';
+		}
 	}
 
 	$result = \Newspack_Newsletters_Contacts::subscribe(
@@ -531,11 +534,8 @@ function process_form() {
 	// Propagate the form action for subsequent form submissions.
 	$result[ FORM_ACTION ] = '1';
 
-	// Whether the user was newly registered.
-	$result['registered'] = $registered_user && ! \is_wp_error( $registered_user );
-	if ( $result['registered'] ) {
-		$result['registration_method'] = $metadata['registration_method'];
-	}
+	// Append additional metadata to the result.
+	$result['metadata'] = $metadata;
 
 	return send_form_response( $result );
 }
