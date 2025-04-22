@@ -53,6 +53,7 @@ final class Newspack_Newsletters_Editor {
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_exclude_sponsored_posts' ], 10, 2 );
+		add_action( 'rest_post_query', [ __CLASS__, 'rest_post_query_filter' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 		add_filter( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
@@ -449,6 +450,19 @@ final class Newspack_Newsletters_Editor {
 	}
 
 	/**
+	 * Default settings for the rest post query.
+	 *
+	 * @param array $args Request arguments.
+	 *
+	 * @return array Modified request args.
+	 */
+	public static function rest_post_query_filter( $args ) {
+		// Ignore sticky posts in query.
+		$args['ignore_sticky_posts'] = true;
+		return $args;
+	}
+
+	/**
 	 * If excerpt length is set in Post Inserter block attributes, override the site's excerpt length using the setting.
 	 *
 	 * @param array           $args Request arguments.
@@ -500,9 +514,6 @@ final class Newspack_Newsletters_Editor {
 					];
 				}
 			}
-		} else {
-			// If we're not removing sponsors by modifying the query, make sure to ignore sticky posts.
-			$args['ignore_sticky_posts'] = true;
 		}
 
 		return $args;
