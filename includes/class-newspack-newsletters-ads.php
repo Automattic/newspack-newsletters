@@ -52,7 +52,10 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
 		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
+
+		// Menus are manually registered so the main Newspack plugin can deregister them.
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
+
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
 		add_filter( 'newspack_newsletters_newsletter_content', [ __CLASS__, 'filter_newsletter_content' ], 10, 2 );
@@ -184,6 +187,16 @@ final class Newspack_Newsletters_Ads {
 			'/edit.php?post_type=' . self::CPT,
 			null,
 			2
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			__( 'Advertisers', 'newspack-newsletters' ),
+			__( 'Advertisers', 'newspack-newsletters' ),
+			'edit_others_posts',
+			'edit-tags.php?taxonomy=' . self::ADVERTISER_TAX . '&post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			null,
+			3
 		);
 	}
 
