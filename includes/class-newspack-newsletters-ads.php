@@ -258,6 +258,7 @@ final class Newspack_Newsletters_Ads {
 				'public'            => true,
 				'hierarchical'      => true,
 				'show_in_rest'      => true,
+				'show_in_menu'      => false,
 				'show_admin_column' => true,
 			]
 		);
