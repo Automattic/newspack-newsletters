@@ -735,7 +735,7 @@ final class Newspack_Newsletters_Renderer {
 					$inner_blocks,
 					function ( $acc, $block ) {
 						if ( isset( $block['attrs']['width'] ) ) {
-							$acc .= intval( $block['attrs']['width'] );
+							$acc += intval( $block['attrs']['width'] );
 						}
 						return $acc;
 					},
@@ -766,7 +766,6 @@ final class Newspack_Newsletters_Renderer {
 					$is_multi_row  = true;
 				}
 
-				$remaining_width  = 100;
 				$block_mjml_array = [];
 
 				foreach ( $inner_blocks as $button_block ) {
@@ -832,46 +831,20 @@ final class Newspack_Newsletters_Renderer {
 						$column_width                  = $attrs['width'];
 						$default_button_attrs['width'] = '100%'; // Buttons with defined width should fill their column.
 					}
-
 					$column_attrs['width'] = $column_width . '%';
-					$remaining_width      -= $column_width;
-
 					$block_mjml_array[] = [
 						'<mj-column ' . self::array_to_attributes( $column_attrs ) . '>',
 						'<mj-button ' . self::array_to_attributes( $default_button_attrs ) . ">$text</mj-button>",
 						'</mj-column>',
 					];
-
-					if ( $remaining_width < $default_width ) {
-						$remaining_width    = 100;
-						$block_mjml_array[] = [
-							'<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>',
-							null,
-							'</mj-section>',
-						];
-					}
 				}
 
-				if ( $is_multi_row && $remaining_width < 100 ) {
-					$block_mjml_array[] = [
-						'<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>',
-						null,
-						'</mj-section>',
-					];
-				}
-
-				$markup     = '';
-				$button_row = '';
+				$markup = '<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>';
 				foreach ( $block_mjml_array as $block_mjml ) {
-					if ( isset( $block_mjml[1] ) ) {
-						// Add a button to the button row markup.
-						$button_row .= $block_mjml[0] . $block_mjml[1] . $block_mjml[2];
-					} else {
-						// Wrap button row in a section, then reset button row markup.
-						$markup    .= $block_mjml[0] . $button_row . $block_mjml[2];
-						$button_row = '';
-					}
+					$markup .= implode( $block_mjml );
 				}
+				$markup .= '</mj-section>';
+
 				$block_mjml_markup = '<mj-wrapper ' . self::array_to_attributes( $wrapper_attrs ) . '>' . $markup . '</mj-wrapper>';
 				break;
 

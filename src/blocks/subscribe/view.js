@@ -44,7 +44,7 @@ domReady( function () {
 		const spinner = document.createElement( 'span' );
 		spinner.classList.add( 'spinner' );
 
-		form.endFlow = ( message, status = 500, wasSubscribed = false ) => {
+		form.endFlow = ( message, status = 500, wasSubscribed = false, metadata = {} ) => {
 			container.setAttribute( 'data-status', status );
 			const messageNode = document.createElement( 'p' );
 			emailInput.removeAttribute( 'disabled' );
@@ -59,6 +59,26 @@ domReady( function () {
 			if ( status === 200 ) {
 				container.replaceChild( responseContainer, form );
 				form.dispatchEvent( successEvent );
+				window.newspackRAS = window.newspackRAS || [];
+				const formData = new FormData( form );
+				const lists = formData.getAll( 'lists[]' );
+				const baseActivity = { email: emailInput.value };
+				if ( metadata?.newspack_popup_id ) {
+					baseActivity.newspack_popup_id = metadata.newspack_popup_id;
+				}
+				if ( metadata?.gate_post_id ) {
+					baseActivity.gate_post_id = metadata.gate_post_id;
+				}
+				if ( lists.length && wasSubscribed ) {
+					window.newspackRAS.push( function( ras ) {
+						ras.dispatchActivity( 'newsletter_signup', { ...baseActivity, lists, newsletters_subscription_method: metadata?.newsletters_subscription_method || 'newsletters-subscription-block' } );
+					} );
+				}
+				if ( metadata?.registered ) {
+					window.newspackRAS.push( function( ras ) {
+						ras.dispatchActivity( 'reader_registered', { ...baseActivity, registration_method: metadata?.registration_method || 'newsletters-subscription' } );
+					} );
+				}
 			}
 		};
 		form.addEventListener( 'submit', ev => {
@@ -96,9 +116,10 @@ domReady( function () {
 							message,
 							newspack_newsletters_subscribed: wasSubscribed,
 							newspack_newsletters_subscribe,
+							metadata,
 						} ) => {
 							nonce = newspack_newsletters_subscribe;
-							form.endFlow( message, res.status, wasSubscribed );
+							form.endFlow( message, res.status, wasSubscribed, metadata );
 						}
 					);
 			} );

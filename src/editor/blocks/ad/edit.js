@@ -27,7 +27,7 @@ export default function SubscribeEdit( { setAttributes, attributes: { adId } } )
 	useEffect( () => {
 		setInFlight( true );
 		apiFetch( {
-			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?post_id=${ postId }`,
+			path: `/wp/v2/${ NEWSLETTER_AD_CPT_SLUG }/config/?postId=${ postId }`,
 		} )
 			.then( response => {
 				setAdsConfig( response );
