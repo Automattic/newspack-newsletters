@@ -47,36 +47,31 @@ class Newspack_Newsletters_Settings {
 	 * @return array Settings list.
 	 */
 	public static function get_settings_list() {
+
+		$esp_list = [
+			[
+				'name'  => esc_html__( 'Select service provider', 'newspack-newsletter' ),
+				'value' => '',
+			],
+		];
+
+		foreach ( Newspack_Newsletters::get_registered_providers() as $provider_slug => $provider ) {
+			$esp_list[] = [
+				'name'  => $provider['name'],
+				'value' => $provider_slug,
+			];
+		}
+
+		$esp_list[] = [
+			'name'  => esc_html__( 'Manual / Other', 'newspack-newsletters' ),
+			'value' => 'manual',
+		];
+
 		$settings_list = array(
 			array(
 				'description' => esc_html__( 'Service Provider', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_service_provider',
-				'options'     => array(
-					array(
-						'name'  => esc_html__( 'Select service provider', 'newspack-newsletter' ),
-						'value' => '',
-					),
-					array(
-						'name'  => esc_html__( 'Mailchimp', 'newspack-newsletters' ),
-						'value' => 'mailchimp',
-					),
-					array(
-						'name'  => esc_html__( 'Constant Contact', 'newspack-newsletters' ),
-						'value' => 'constant_contact',
-					),
-					array(
-						'name'  => esc_html__( 'Campaign Monitor', 'newspack-newsletters' ),
-						'value' => 'campaign_monitor',
-					),
-					array(
-						'name'  => esc_html__( 'ActiveCampaign', 'newspack-newsletters' ),
-						'value' => 'active_campaign',
-					),
-					array(
-						'name'  => esc_html__( 'Manual / Other', 'newspack-newsletters' ),
-						'value' => 'manual',
-					),
-				),
+				'options'     => $esp_list,
 				'type'        => 'select',
 				'onboarding'  => true,
 			),
@@ -209,7 +204,12 @@ class Newspack_Newsletters_Settings {
 			[]
 		);
 
-		return $settings_list;
+		/**
+		 * Filters the settings list.
+		 *
+		 * @param array $settings_list The settings list.
+		 */
+		return apply_filters( 'newspack_newsletters_settings_list', $settings_list );
 	}
 
 	/**

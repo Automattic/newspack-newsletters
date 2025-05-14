@@ -37,18 +37,6 @@ final class Newspack_Newsletters {
 	];
 
 	/**
-	 * List of the implemented Servide providers. Keys are providers slugs and values the providers class names
-	 *
-	 * @var array
-	 */
-	const REGISTERED_PROVIDERS = [
-		'mailchimp'        => 'Newspack_Newsletters_Mailchimp',
-		'constant_contact' => 'Newspack_Newsletters_Constant_Contact',
-		'campaign_monitor' => 'Newspack_Newsletters_Campaign_Monitor',
-		'active_campaign'  => 'Newspack_Newsletters_Active_Campaign',
-	];
-
-	/**
 	 * The single instance of the class.
 	 *
 	 * @var Newspack_Newsletters
@@ -110,12 +98,60 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Get the registered providers.
+	 *
+	 * @return array
+	 */
+	public static function get_registered_providers() {
+
+		$providers = [
+			'mailchimp'        => [
+				'name'  => 'Mailchimp',
+				'class' => 'Newspack_Newsletters_Mailchimp',
+			],
+			'constant_contact' => [
+				'name'  => 'Constant Contact',
+				'class' => 'Newspack_Newsletters_Constant_Contact',
+			],
+			'campaign_monitor' => [
+				'name'  => 'Campaign Monitor',
+				'class' => 'Newspack_Newsletters_Campaign_Monitor',
+			],
+			'active_campaign'  => [
+				'name'  => 'Active Campaign',
+				'class' => 'Newspack_Newsletters_Active_Campaign',
+			],
+		];
+
+		/**
+		 * Filter the registered providers.
+		 *
+		 * @param array $providers The registered providers. Keys are providers slugs and values the providers class names
+		 */
+		return apply_filters( 'newspack_newsletters_registered_providers', $providers );
+	}
+
+	/**
+	 * Get the provider class for a given provider slug.
+	 *
+	 * @param string $provider_slug The provider slug.
+	 * @return string|null The provider class or null if not found.
+	 */
+	public static function get_provider_class( $provider_slug ) {
+		$providers = self::get_registered_providers();
+		if ( isset( $providers[ $provider_slug ] ) ) {
+			return $providers[ $provider_slug ]['class'];
+		}
+		return null;
+	}
+
+	/**
 	 * In preparation for deprecating support for Campaign Monitor, locks support behind an environment flag.
 	 *
 	 * @return array
 	 */
 	public static function get_supported_providers() {
-		$supported_providers = array_keys( self::REGISTERED_PROVIDERS );
+		$supported_providers = array_keys( self::get_registered_providers() );
 
 		// Add support for manual/other.
 		$supported_providers[] = 'manual';
@@ -154,10 +190,10 @@ final class Newspack_Newsletters {
 	 * @return ?Newspack_Newsletters_Service_Provider
 	 */
 	public static function get_service_provider_instance( $provider_slug ) {
-		if ( empty( self::REGISTERED_PROVIDERS[ $provider_slug ] ) ) {
+		if ( empty( self::get_provider_class( $provider_slug ) ) ) {
 			return null;
 		}
-		return self::REGISTERED_PROVIDERS[ $provider_slug ]::instance();
+		return self::get_provider_class( $provider_slug )::instance();
 	}
 
 	/**
