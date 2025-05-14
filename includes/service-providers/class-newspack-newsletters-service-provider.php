@@ -55,6 +55,13 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public static $support_local_lists = false;
 
 	/**
+	 * Memoization of existing contacts.
+	 *
+	 * @var array
+	 */
+	private $existing_contacts = [];
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -603,6 +610,30 @@ Error message(s) received:
 	}
 
 	/**
+	 * Check if a contact exists in the ESP.
+	 *
+	 * @param string $email The contact email address.
+	 *
+	 * @return bool True if the contact exists, false otherwise.
+	 */
+	public function contact_exists( $email ) {
+		if ( in_array( $email, $this->existing_contacts, true ) ) {
+			return true;
+		}
+
+		$contact = $this->get_contact_data( $email );
+		if ( is_wp_error( $contact ) ) {
+			// Don't memoize missing contacts.
+			return false;
+		}
+
+		// Memoize existing contacts.
+		$this->existing_contacts[] = $email;
+
+		return true;
+	}
+
+	/**
 	 * Handle adding to local lists.
 	 * If the $list_id is a local list, a tag will be added to the contact.
 	 *
@@ -631,6 +662,15 @@ Error message(s) received:
 		}
 
 		$list_settings = $list->get_provider_settings( $this->service );
+
+		// If the contact doesn't exist, create it.
+		if ( ! $this->contact_exists( $contact['email'] ) ) {
+			$result = $this->add_contact( $contact, $list_settings['list'] );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
 		return $this->add_esp_local_list_to_contact( $contact['email'], $list_settings['tag_id'], $list_settings['list'] );
 	}
 

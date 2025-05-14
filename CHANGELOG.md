@@ -1,3 +1,70 @@
+# [3.13.0](https://github.com/Automattic/newspack-newsletters/compare/v3.12.2...v3.13.0) (2025-05-14)
+
+
+### Bug Fixes
+
+* **admin-menu:** hide advertisers menu from admin dashboard ([#1820](https://github.com/Automattic/newspack-newsletters/issues/1820)) ([a88e198](https://github.com/Automattic/newspack-newsletters/commit/a88e198d83cb8677a300653daa0749bb658951e6))
+* **CC:** update existing contact when changing email address ([#1795](https://github.com/Automattic/newspack-newsletters/issues/1795)) ([c44d4d9](https://github.com/Automattic/newspack-newsletters/commit/c44d4d9e2d91be7a2f40177e90d95fd4c376d8ea))
+* **editor:** ads config call ([#1813](https://github.com/Automattic/newspack-newsletters/issues/1813)) ([14cfcf0](https://github.com/Automattic/newspack-newsletters/commit/14cfcf0c5399115d8ffc2f425a891debedfa2092))
+* **email-html:** button rendering ([#1812](https://github.com/Automattic/newspack-newsletters/issues/1812)) ([0fbb6f5](https://github.com/Automattic/newspack-newsletters/commit/0fbb6f5a295460e90ccc23eda15b4b9729a453a4))
+* **email-html:** sanity check for img alt attr ([#1804](https://github.com/Automattic/newspack-newsletters/issues/1804)) ([63d20e6](https://github.com/Automattic/newspack-newsletters/commit/63d20e69ee15e5b7f75d5ff0512506f586c44136))
+* **posts-inserter-block:** sponsorship scope handling ([#1802](https://github.com/Automattic/newspack-newsletters/issues/1802)) ([55e265a](https://github.com/Automattic/newspack-newsletters/commit/55e265ade7f0a5bd8fde54a380840f16517b5e19))
+* **posts-inserter:** use post date in TZ (instead of GMT) ([#1803](https://github.com/Automattic/newspack-newsletters/issues/1803)) ([60f1b77](https://github.com/Automattic/newspack-newsletters/commit/60f1b7765e673a515edcec838516cba39307cdf5))
+* revert [#1820](https://github.com/Automattic/newspack-newsletters/issues/1820) ([#1822](https://github.com/Automattic/newspack-newsletters/issues/1822)) ([0c8dea5](https://github.com/Automattic/newspack-newsletters/commit/0c8dea504349353b0612463040ce64761fd256fd))
+
+
+### Features
+
+* disable Mailchimp notes ([#1816](https://github.com/Automattic/newspack-newsletters/issues/1816)) ([f3b3f94](https://github.com/Automattic/newspack-newsletters/commit/f3b3f9422334bb7928baa9e4b55aa3f6b4fcdb52))
+* **ga4:** dispatch newsletter_signup activity upon signup via block ([#1819](https://github.com/Automattic/newspack-newsletters/issues/1819)) ([548f1c3](https://github.com/Automattic/newspack-newsletters/commit/548f1c30b8b12cc3583b0f619dc482da177dde46))
+
+## [3.12.2](https://github.com/Automattic/newspack-newsletters/compare/v3.12.1...v3.12.2) (2025-04-22)
+
+
+### Bug Fixes
+
+* ignore sticky posts in the post inserter query when not otherwise manipulated ([#1814](https://github.com/Automattic/newspack-newsletters/issues/1814)) ([1a03722](https://github.com/Automattic/newspack-newsletters/commit/1a03722a9bcbd59d0988962dcc6e929314bf5d81))
+
+## [3.12.1](https://github.com/Automattic/newspack-newsletters/compare/v3.12.0...v3.12.1) (2025-04-21)
+
+
+### Bug Fixes
+
+* fix error handling for active campaign add tag ([#1818](https://github.com/Automattic/newspack-newsletters/issues/1818)) ([f9a31e1](https://github.com/Automattic/newspack-newsletters/commit/f9a31e101b5570c337292d552270fbdab575dd85))
+
+# [3.12.0](https://github.com/Automattic/newspack-newsletters/compare/v3.11.4...v3.12.0) (2025-04-14)
+
+
+### Bug Fixes
+
+* update social icon editor CSS selector for WP 6.8 ([#1790](https://github.com/Automattic/newspack-newsletters/issues/1790)) ([0f253f9](https://github.com/Automattic/newspack-newsletters/commit/0f253f9a4b1d3e75f2b12049bc1dd5e9b6d0cc69))
+
+
+### Features
+
+* add POT file to the plugin ([#1789](https://github.com/Automattic/newspack-newsletters/issues/1789)) ([f3d0066](https://github.com/Automattic/newspack-newsletters/commit/f3d0066e04ae8f0a499e4858fbff9e58727044aa))
+
+## [3.11.4](https://github.com/Automattic/newspack-newsletters/compare/v3.11.3...v3.11.4) (2025-04-11)
+
+
+### Bug Fixes
+
+* **local-lists:** create contact if adding to local lists only ([#1801](https://github.com/Automattic/newspack-newsletters/issues/1801)) ([08f788a](https://github.com/Automattic/newspack-newsletters/commit/08f788a3125d2669cadfe41cce5bee7b200247a3))
+
+## [3.11.3](https://github.com/Automattic/newspack-newsletters/compare/v3.11.2...v3.11.3) (2025-04-08)
+
+
+### Bug Fixes
+
+* **ads:** separate sort by position logic ([f473d1e](https://github.com/Automattic/newspack-newsletters/commit/f473d1e012a095e00783aa9c1fe28a96c145d383))
+
+## [3.11.2](https://github.com/Automattic/newspack-newsletters/compare/v3.11.1...v3.11.2) (2025-04-07)
+
+
+### Bug Fixes
+
+* **ads:** prevent ads with same position from replacing each other ([#1794](https://github.com/Automattic/newspack-newsletters/issues/1794)) ([b77d82f](https://github.com/Automattic/newspack-newsletters/commit/b77d82f1b7a3432741ef20599fb74bb7b858b3b9))
+
 ## [3.11.1](https://github.com/Automattic/newspack-newsletters/compare/v3.11.0...v3.11.1) (2025-04-03)
 
 

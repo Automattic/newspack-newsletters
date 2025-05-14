@@ -279,7 +279,6 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			'Renders right aligned button'
 		);
 
-
 		// Multiple buttons.
 		$this->assertEquals(
 			Newspack_Newsletters_Renderer::render_mjml_component(
@@ -311,6 +310,40 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 				]
 			),
 			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column><mj-column padding="12px" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'Renders multiple buttons'
+		);
+
+		// Multiple buttons, with widths.
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/buttons',
+					'attrs'        => [],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [ 'width' => '25' ],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [],
+							'innerBlocks'  => [],
+							'innerContent' => [ $inner_html ],
+							'innerHTML'    => $inner_html,
+						],
+					],
+					'innerContent' => [
+						'<div>',
+						null,
+						'</div>',
+					],
+					'innerHTML'    => '<div></div>',
+				]
+			),
+			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="25%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c" width="100%">Test Button</mj-button></mj-column><mj-column padding="12px" css-class="mj-column-has-width" width="75%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="999px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#32373c">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
 			'Renders multiple buttons'
 		);
 	}
