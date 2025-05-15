@@ -79,7 +79,7 @@ class Newspack_Newsletters_Settings {
 				'description' => esc_html__( 'Mailchimp API Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_mailchimp_api_key',
 				'type'        => 'text',
-				'default'     => get_option( 'newspack_mailchimp_api_key', '' ),
+				'default'     => get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key' ) ),
 				'provider'    => 'mailchimp',
 				'placeholder' => esc_attr( '123457103961b1f4dc0b2b2fd59c137b-us1' ),
 				'help'        => esc_html__( 'Find or generate your API key', 'newspack-newsletter' ),
