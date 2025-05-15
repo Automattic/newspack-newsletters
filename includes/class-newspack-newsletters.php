@@ -113,10 +113,6 @@ final class Newspack_Newsletters {
 				'name'  => 'Constant Contact',
 				'class' => 'Newspack_Newsletters_Constant_Contact',
 			],
-			'campaign_monitor' => [
-				'name'  => 'Campaign Monitor',
-				'class' => 'Newspack_Newsletters_Campaign_Monitor',
-			],
 			'active_campaign'  => [
 				'name'  => 'Active Campaign',
 				'class' => 'Newspack_Newsletters_Active_Campaign',
@@ -173,11 +169,6 @@ final class Newspack_Newsletters {
 
 		// Add support for manual/other.
 		$supported_providers[] = 'manual';
-
-		// Remove support for Campaign Monitor if we don't have the required environment flag.
-		if ( 'campaign_monitor' !== self::service_provider() && ( ! defined( 'NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR' ) || ! NEWSPACK_NEWSLETTERS_SUPPORT_DEPRECATED_CAMPAIGN_MONITOR ) ) {
-			$supported_providers = array_values( array_diff( $supported_providers, [ 'campaign_monitor' ] ) );
-		}
 
 		return $supported_providers;
 	}
