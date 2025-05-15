@@ -178,6 +178,13 @@ class Newspack_Newsletters_Settings {
 			);
 		}
 
+		/**
+		 * Filters the settings list.
+		 *
+		 * @param array $settings_list The settings list.
+		 */
+		$settings_list = apply_filters( 'newspack_newsletters_settings_list', $settings_list );
+
 		// Filter out options related to unsupported providers.
 		$supported_providers = Newspack_Newsletters::get_supported_providers();
 		$settings_list       = array_reduce(
@@ -204,12 +211,7 @@ class Newspack_Newsletters_Settings {
 			[]
 		);
 
-		/**
-		 * Filters the settings list.
-		 *
-		 * @param array $settings_list The settings list.
-		 */
-		return apply_filters( 'newspack_newsletters_settings_list', $settings_list );
+		return $settings_list;
 	}
 
 	/**
