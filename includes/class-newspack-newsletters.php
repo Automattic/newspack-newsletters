@@ -126,9 +126,27 @@ final class Newspack_Newsletters {
 		/**
 		 * Filter the registered providers.
 		 *
-		 * @param array $providers The registered providers. Keys are providers slugs and values the providers class names
+		 * In order to register a new provider, create a new class that extends Newspack_Newsletters_Service_Provider
+		 * and add it to the $providers array.
+		 *
+		 * Do not directly load the class file in your plugin/theme, instead, inform the class name and the file path
+		 * to the filter.
+		 *
+		 * @param array $providers The registered providers. The keys are the provider slugs and the values are arrays with the following structure: {
+		 *     @type string $name The provider name.
+		 *     @type string $class The provider class name.
+		 *     @type string $class_file The provider class file path.
+		 * }
 		 */
-		return apply_filters( 'newspack_newsletters_registered_providers', $providers );
+		$providers = apply_filters( 'newspack_newsletters_registered_providers', $providers );
+
+		foreach ( $providers as $provider_slug => $provider ) {
+			if ( ! class_exists( $provider['class'] ) && isset( $provider['class_file'] ) && file_exists( $provider['class_file'] ) ) {
+				require_once $provider['class_file'];
+			}
+		}
+
+		return $providers;
 	}
 
 	/**
