@@ -7,8 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-use Newspack_Newsletters_Mailchimp_Api as Mailchimp;
-
 /**
  * Main Newspack Newsletters Class.
  */
@@ -67,6 +65,7 @@ final class Newspack_Newsletters {
 	 * Constructor.
 	 */
 	public function __construct() {
+		add_action( 'init', [ __CLASS__, 'memoize_service_provider' ] );
 		add_action( 'init', [ __CLASS__, 'register_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_editor_only_meta' ] );
@@ -87,7 +86,6 @@ final class Newspack_Newsletters {
 		add_filter( 'render_block', [ __CLASS__, 'remove_email_only_block' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'display_newsletters_in_archives' ] );
 		add_action( 'the_post', [ __CLASS__, 'fix_public_status' ] );
-		self::set_service_provider( self::service_provider() );
 
 		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
 		if ( $needs_nag ) {
@@ -95,6 +93,22 @@ final class Newspack_Newsletters {
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
 			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
 		}
+	}
+
+	/**
+	 * Store the service provider instance in a static property.
+	 */
+	public static function memoize_service_provider() {
+		$service_provider = self::service_provider();
+		$is_esp_manual    = 'manual' === $service_provider;
+
+		// 'newspack_mailchimp_api_key' is a newer option introduced to manage MC API key accross Newspack plugins.
+		// Keeping the old option for backwards compatibility.
+		if ( ! $is_esp_manual && ! $service_provider && get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key' ) ) ) {
+			// Legacy – Mailchimp provider set before multi-provider handling was set up.
+			self::set_service_provider( 'mailchimp' );
+		}
+		self::$provider = self::get_service_provider_instance( $service_provider );
 	}
 
 	/**
@@ -121,6 +135,9 @@ final class Newspack_Newsletters {
 
 		/**
 		 * Filter the registered providers.
+		 *
+		 * To register a new provider, create a class that extends Newspack_Newsletters_Service_Provider
+		 * and add it to the $providers array. Include or require it on the 'init' action hook.
 		 *
 		 * In order to register a new provider, create a new class that extends Newspack_Newsletters_Service_Provider
 		 * and add it to the $providers array.
@@ -933,27 +950,15 @@ final class Newspack_Newsletters {
 	 */
 	public static function api_settings() {
 		$service_provider = self::service_provider();
+		$is_esp_manual    = 'manual' === $service_provider;
 		$response         = [
 			'service_provider' => $service_provider ? $service_provider : '',
 			'status'           => false,
 		];
-		$is_esp_manual    = 'manual' === $service_provider;
-
-		// 'newspack_mailchimp_api_key' is a new option introduced to manage MC API key accross Newspack plugins.
-		// Keeping the old option for backwards compatibility.
-		if ( ! $is_esp_manual && ! self::$provider && get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key' ) ) ) {
-			// Legacy – Mailchimp provider set before multi-provider handling was set up.
-			self::set_service_provider( 'mailchimp' );
-		}
-
 		if ( self::$provider ) {
 			$response['credentials'] = self::$provider->api_credentials();
 		}
-
-		if (
-			$is_esp_manual ||
-			( self::$provider && self::$provider->has_api_credentials() )
-		) {
+		if ( $is_esp_manual || ( self::$provider && self::$provider->has_api_credentials() ) ) {
 			$response['status'] = true;
 		}
 
