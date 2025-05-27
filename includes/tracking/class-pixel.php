@@ -292,7 +292,7 @@ final class Pixel {
 	 *
 	 * @param int $max_lines Maximum number of lines to process at a time.
 	 */
-	public static function process_logs( $max_lines = 100 ) {
+	public static function process_logs( $max_lines = 500 ) {
 		$current_log_file = \get_option( 'newspack_newsletters_tracking_pixel_log_file' );
 
 		if ( $current_log_file && file_exists( $current_log_file ) ) {
@@ -300,58 +300,46 @@ final class Pixel {
 			$handle = fopen( $current_log_file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 			$file_end = false;
 			$file_pointer_position = 0;
+			$last_offset = get_option( 'newspack_newsletters_pixel_log_offset', 0 );
 
-			while ( ! $file_end ) {
-				$file_size = filesize( $current_log_file );
-				$lines     = 0;
+			$lines = 0;
 
-				// Process a chunk of lines from the file.
-				while ( $lines < $max_lines ) {
-					// Process the tracking data.
-					$item = trim( fgets( $handle ) );
-
-					// If we've reached the end of the chunk or file, stop the loop.
-					if ( ! $item || feof( $handle ) ) {
-						break;
-					}
-
-					self::sanitize_and_track_item( $item );
-					$lines++;
-				}
-
-				// If we've reached the end of the file, stop the loop.
-				if ( feof( $handle ) ) {
-					$file_end = true;
-					break;
-				}
-
-				// Get the current position in the file after processing the chunk.
-				$file_pointer_position = ftell( $handle );
-				$file_length_remaining = $file_size - $file_pointer_position;
-				if ( $file_length_remaining <= 0 ) {
-					$file_end = true;
-					break;
-				}
-
-				// If there are more lines to process, truncate the file for the next chunk.
-				$truncated_contents = fread( $handle, $file_length_remaining ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
-
-				// Reopen the file in write mode.
-				fclose( $handle );
-				$handle = fopen( $current_log_file, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-				fputs( $handle, $truncated_contents ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_fputs
-
-				// Close and reopen truncated file in read mode.
-				fclose( $handle );
-				$handle = fopen( $current_log_file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-				rewind( $handle );
+			if ( $last_offset ) {
+				fseek( $handle, $last_offset );
 			}
 
-			// Remove the log file after processing.
-			fclose( $handle );
-			unlink( $current_log_file, null ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
-		}
+			// Process a chunk of lines from the file.
+			while ( $lines < $max_lines ) {
+				// Process the tracking data.
+				$item = trim( fgets( $handle ) );
 
+				// If we've reached the end of the chunk or file, stop the loop.
+				if ( ! $item || feof( $handle ) ) {
+					$file_end = true;
+					break;
+				}
+
+				self::sanitize_and_track_item( $item );
+				$lines++;
+			}
+
+			// Get the current position in the file after processing the chunk.
+			$file_pointer_position = ftell( $handle );
+			update_option( 'newspack_newsletters_pixel_log_offset', $file_pointer_position );
+
+			if ( $file_end ) {
+				fclose( $handle );
+				unlink( $current_log_file, null ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
+				delete_option( 'newspack_newsletters_pixel_log_offset' );
+				self::rotate_log_file();
+			}
+		}
+	}
+
+	/**
+	 * Rotate the log file.
+	 */
+	private static function rotate_log_file() {
 		// Generate a new log file.
 		$log_dir       = \wp_get_upload_dir()['path'];
 		$log_file_path = tempnam( $log_dir, 'newspack_newsletters_pixel_log_' ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_tempnam

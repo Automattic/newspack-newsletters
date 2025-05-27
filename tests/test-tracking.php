@@ -202,10 +202,20 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_5@example.com" . PHP_EOL, FILE_APPEND );
 		update_option( 'newspack_newsletters_tracking_pixel_log_file', $log_file_path );
 
-		Pixel::process_logs( 2 ); // 2 entries at a time – will have to batch the 5 log lines.
+		Pixel::process_logs( 2 ); // 2 entries at a time.
+
+		$this->assertFileExists( $log_file_path, 'the log file should have not been removed just yet' );
+
+		// Check that the log entries have been processed.
+		$this->assertEquals( 2, get_post_meta( $newsletter_id, 'tracking_pixel_seen', true ) );
+
+
+		Pixel::process_logs(); // Process the remaining 3 log lines.
 
 		// Check that the log entries have been processed.
 		$this->assertEquals( 5, get_post_meta( $newsletter_id, 'tracking_pixel_seen', true ) );
+
+		$this->assertFileDoesNotExist( $log_file_path, 'the log file should have been removed' );
 
 		// Clean up.
 		unlink( get_option( 'newspack_newsletters_tracking_pixel_log_file' ) );
