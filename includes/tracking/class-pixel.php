@@ -327,8 +327,9 @@ final class Pixel {
 			$file_pointer_position = ftell( $handle );
 			update_option( 'newspack_newsletters_pixel_log_offset', $file_pointer_position );
 
+			fclose( $handle );
+
 			if ( $file_end ) {
-				fclose( $handle );
 				unlink( $current_log_file, null ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
 				delete_option( 'newspack_newsletters_pixel_log_offset' );
 				self::rotate_log_file();
