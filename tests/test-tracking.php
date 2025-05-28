@@ -221,4 +221,33 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		unlink( get_option( 'newspack_newsletters_tracking_pixel_log_file' ) );
 		// phpcs:enable WordPressVIPMinimum.Functions.RestrictedFunctions
 	}
+
+	/**
+	 * Test logs processing – test ads hooks.
+	 */
+	public function test_process_logs_ads() {
+		$newsletter_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
+		$ad_id = $this->factory->post->create( [ 'post_type' => Newspack_Newsletters_Ads::CPT ] );
+		$tracking_id = 'tracking_id_1';
+		update_post_meta( $newsletter_id, 'tracking_id', $tracking_id );
+
+		Newspack_Newsletters_Ads::mark_ad_inserted( $newsletter_id, $ad_id );
+
+		// phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions
+		// Create a temporary log file.
+		$log_file_path = tempnam( sys_get_temp_dir(), 'newspack_newsletters_pixel_log_' );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_1@example.com" . PHP_EOL );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_2@example.com" . PHP_EOL, FILE_APPEND );
+		file_put_contents( $log_file_path, "$newsletter_id|$tracking_id|email_3@example.com" . PHP_EOL, FILE_APPEND );
+		update_option( 'newspack_newsletters_tracking_pixel_log_file', $log_file_path );
+
+		Pixel::process_logs();
+
+		// Check that the log entries have been processed.
+		$this->assertEquals( 3, get_post_meta( $ad_id, 'tracking_impressions', true ) );
+
+		// Clean up.
+		unlink( get_option( 'newspack_newsletters_tracking_pixel_log_file' ) );
+		// phpcs:enable WordPressVIPMinimum.Functions.RestrictedFunctions
+	}
 }

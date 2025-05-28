@@ -177,6 +177,46 @@ final class Pixel {
 	}
 
 	/**
+	 * Bulk track seen.
+	 *
+	 * @param array $events Events. an array where the keys have the newsletter ID and tracking ID concatenated, and the values are the number of views.
+	 * @return void
+	 */
+	public static function bulk_track_seen( $events ) {
+
+		if ( ! Admin::is_tracking_pixel_enabled() ) {
+			return;
+		}
+
+		foreach ( $events as $event => $views ) {
+			$newsletter_id = substr( $event, 0, strpos( $event, '|' ) );
+			$tracking_id   = substr( $event, strpos( $event, '|' ) + 1 );
+
+			$newsletter_tracking_id = \get_post_meta( $newsletter_id, 'tracking_id', true );
+
+			// Bail if tracking ID mismatch.
+			if ( $newsletter_tracking_id !== $tracking_id ) {
+				return;
+			}
+
+			$pixel_seen = \get_post_meta( $newsletter_id, 'tracking_pixel_seen', true );
+			if ( ! $pixel_seen ) {
+				$pixel_seen = 0;
+			}
+			$pixel_seen += $views;
+			\update_post_meta( $newsletter_id, 'tracking_pixel_seen', $pixel_seen );
+
+			/**
+			 * Fires when a batch of tracking pixels are seen and valid.
+			 *
+			 * @param int    $newsletter_id ID of the newsletter.
+			 * @param int    $views       Number of views.
+			 */
+			do_action( 'newspack_newsletters_bulk_tracking_pixel_seen', $newsletter_id, $views );
+		}
+	}
+
+	/**
 	 * Render the tracking pixel.
 	 */
 	public static function render() {
@@ -266,23 +306,49 @@ final class Pixel {
 	}
 
 	/**
+	 * Parse an item from the log.
+	 *
+	 * @param string $item The item to parse.
+	 *
+	 * @return array|null
+	 */
+	public static function parse_item( $item ) {
+		$item = explode( '|', $item );
+		if ( 3 !== count( $item ) ) {
+			return;
+		}
+		$result = [
+			'newsletter_id' => $item[0],
+			'tracking_id'   => $item[1],
+			'email_address' => $item[2],
+		];
+
+		if ( ! $result['newsletter_id'] || ! $result['tracking_id'] || ! $result['email_address'] ) {
+			return;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Sanitize and track an item from the log.
 	 *
 	 * @param string $item The item to sanitize and track.
 	 */
 	public static function sanitize_and_track_item( $item ) {
-		$item = explode( '|', $item );
+		$item = self::parse_item( $item );
+		if ( ! $item ) {
+			return;
+		}
+
 		if ( 3 !== count( $item ) ) {
 			return;
 		}
 
 		// Values must be sanitized as they are stored in the logs without sanitization.
-		$newsletter_id = isset( $item[0] ) ? intval( $item[0] ) : 0;
-		$tracking_id   = isset( $item[1] ) ? \sanitize_text_field( $item[1] ) : 0;
-		$email_address = isset( $item[2] ) ? \sanitize_email( $item[2] ) : '';
-		if ( ! $newsletter_id || ! $tracking_id || ! $email_address ) {
-			return;
-		}
+		$newsletter_id = $item['newsletter_id'];
+		$tracking_id   = $item['tracking_id'];
+		$email_address = $item['email_address'];
 
 		self::track_seen( $newsletter_id, $tracking_id, $email_address );
 	}
@@ -308,6 +374,8 @@ final class Pixel {
 				fseek( $handle, $last_offset );
 			}
 
+			$items_to_process = [];
+
 			// Process a chunk of lines from the file.
 			while ( $lines < $max_lines ) {
 				// Process the tracking data.
@@ -319,9 +387,21 @@ final class Pixel {
 					break;
 				}
 
-				self::sanitize_and_track_item( $item );
+				$parsed_item = self::parse_item( $item );
+				if ( ! $parsed_item ) {
+					continue;
+				}
+
+				$item_key = $parsed_item['newsletter_id'] . '|' . $parsed_item['tracking_id'];
+				if ( ! isset( $items_to_process[ $item_key ] ) ) {
+					$items_to_process[ $item_key ] = 0;
+				}
+				$items_to_process[ $item_key ]++;
+
 				$lines++;
 			}
+
+			self::bulk_track_seen( $items_to_process );
 
 			// Get the current position in the file after processing the chunk.
 			$file_pointer_position = ftell( $handle );
