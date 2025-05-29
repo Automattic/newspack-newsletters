@@ -86,13 +86,6 @@ final class Newspack_Newsletters {
 		add_filter( 'render_block', [ __CLASS__, 'remove_email_only_block' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'display_newsletters_in_archives' ] );
 		add_action( 'the_post', [ __CLASS__, 'fix_public_status' ] );
-
-		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
-		if ( $needs_nag ) {
-			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
-			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
-			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
-		}
 	}
 
 	/**
@@ -107,8 +100,16 @@ final class Newspack_Newsletters {
 		if ( ! $is_esp_manual && ! $service_provider && get_option( 'newspack_mailchimp_api_key', get_option( 'newspack_newsletters_mailchimp_api_key' ) ) ) {
 			// Legacy – Mailchimp provider set before multi-provider handling was set up.
 			self::set_service_provider( 'mailchimp' );
+			$service_provider = 'mailchimp';
 		}
 		self::$provider = self::get_service_provider_instance( $service_provider );
+
+		$needs_nag = is_admin() && ! self::is_service_provider_configured() && ! get_option( 'newspack_newsletters_activation_nag_viewed', false );
+		if ( $needs_nag ) {
+			add_action( 'admin_notices', [ __CLASS__, 'activation_nag' ] );
+			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'activation_nag_dismissal_script' ] );
+			add_action( 'wp_ajax_newspack_newsletters_activation_nag_dismissal', [ __CLASS__, 'activation_nag_dismissal_ajax' ] );
+		}
 	}
 
 	/**
