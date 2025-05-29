@@ -1,3 +1,10 @@
+# [3.14.0](https://github.com/Automattic/newspack-newsletters/compare/v3.13.0...v3.14.0) (2025-05-27)
+
+
+### Features
+
+* dont allow redirect to arbitrary urls ([#1834](https://github.com/Automattic/newspack-newsletters/issues/1834)) ([251f6cc](https://github.com/Automattic/newspack-newsletters/commit/251f6cc3d23fe42a04ff75a72e7624885da3fddd)), closes [#1635](https://github.com/Automattic/newspack-newsletters/issues/1635)
+
 # [3.13.0](https://github.com/Automattic/newspack-newsletters/compare/v3.12.2...v3.13.0) (2025-05-14)
 
 
