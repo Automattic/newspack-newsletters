@@ -66,7 +66,6 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsle
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-utils.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-pixel.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-click.php';
-require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-data-events.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-admin.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsletters.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/woocommerce-memberships/class-woocommerce-memberships.php';
