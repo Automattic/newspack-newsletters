@@ -358,7 +358,7 @@ final class Pixel {
 	 *
 	 * @param int $max_lines Maximum number of lines to process at a time.
 	 */
-	public static function process_logs( $max_lines = 500 ) {
+	public static function process_logs( $max_lines = 1000 ) {
 		$current_log_file = \get_option( 'newspack_newsletters_tracking_pixel_log_file' );
 
 		if ( $current_log_file && file_exists( $current_log_file ) ) {
