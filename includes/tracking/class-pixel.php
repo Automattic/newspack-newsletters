@@ -360,6 +360,22 @@ final class Pixel {
 	 */
 	public static function process_logs( $max_lines = 1000 ) {
 		$current_log_file = \get_option( 'newspack_newsletters_tracking_pixel_log_file' );
+		$previous_log_file = \get_option( 'newspack_newsletters_tracking_pixel_previous_log_file' );
+
+		/**
+		 * Sometimes we can receive a hit after the log file was deleted,
+		 * but just before the tracking file was written. In this case,
+		 * that hit will recreate the log file. This will result in some log files
+		 * being left behind, usually with a single entry.
+		 *
+		 * To clean up these left-behind log files, we check if there is a previous
+		 * log file and if it exists. If it does, we process it and delete it.
+		 */
+		$processing_previous_log_file = false;
+		if ( $previous_log_file && file_exists( $previous_log_file ) ) {
+			$current_log_file = $previous_log_file;
+			$processing_previous_log_file = true;
+		}
 
 		if ( $current_log_file && file_exists( $current_log_file ) ) {
 			// Read the tracking data from the log file. Process in batches to avoid memory issues.
@@ -370,7 +386,7 @@ final class Pixel {
 
 			$lines = 0;
 
-			if ( $last_offset ) {
+			if ( $last_offset && ! $processing_previous_log_file ) {
 				fseek( $handle, $last_offset );
 			}
 
@@ -404,15 +420,20 @@ final class Pixel {
 			self::bulk_track_seen( $items_to_process );
 
 			// Get the current position in the file after processing the chunk.
-			$file_pointer_position = ftell( $handle );
-			update_option( 'newspack_newsletters_pixel_log_offset', $file_pointer_position );
+			if ( ! $processing_previous_log_file ) {
+				$file_pointer_position = ftell( $handle );
+				update_option( 'newspack_newsletters_pixel_log_offset', $file_pointer_position );
+			}
 
 			fclose( $handle );
 
 			if ( $file_end ) {
 				unlink( $current_log_file, null ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
-				delete_option( 'newspack_newsletters_pixel_log_offset' );
-				self::rotate_log_file();
+				if ( ! $processing_previous_log_file ) {
+					update_option( 'newspack_newsletters_tracking_pixel_previous_log_file', $current_log_file );
+					delete_option( 'newspack_newsletters_pixel_log_offset' );
+					self::rotate_log_file();
+				}
 			}
 		}
 	}
