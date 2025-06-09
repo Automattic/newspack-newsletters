@@ -242,6 +242,14 @@ export default compose( [
 			savePost();
 		};
 
+		const unscheduleNewsletter = () => {
+			editPost( {
+				status: 'draft',
+				date: null // Reset the scheduled date.
+			} );
+			savePost();
+		};
+
 		// For sent newsletters, display the generic button text.
 		if ( isPublished || sent ) {
 			return (
@@ -300,6 +308,17 @@ export default compose( [
 
 		return (
 			<div style={{ display: 'flex' }}>
+				{ 'future' === status && (
+					<Button
+						className="newsletter-unschedule-button"
+						isBusy={ isSaving }
+						variant="tertiary"
+						disabled={ isSaving }
+						onClick={ unscheduleNewsletter }
+					>
+						{ __( 'Unschedule', 'newspack-newsletters' ) }
+					</Button>
+				) }
 				<PreviewHTMLButton />
 				<Button
 					className="editor-post-publish-button"
