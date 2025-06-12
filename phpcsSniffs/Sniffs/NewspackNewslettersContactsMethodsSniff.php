@@ -47,7 +47,6 @@ class NewspackNewslettersContactsMethodsSniff implements PHP_CodeSniffer_Sniff {
 		'update_contact_lists_handling_local',
 		'add_contact_with_groups_and_tags',
 		'add_contact_to_provider',
-		'delete_user_subscription',
 		'update_contact_lists',
 		'upsert_contact',
 	];
