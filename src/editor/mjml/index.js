@@ -60,6 +60,7 @@ function MJML() {
 		postId,
 		postTitle,
 		postType,
+		isTakeover,
 	} = useSelect( select => {
 		const {
 			didPostSaveRequestSucceed,
@@ -72,6 +73,7 @@ function MJML() {
 			isPostAutosavingLocked,
 			isAutosavingPost,
 			isCurrentPostPublished,
+			isPostLockTakeover,
 		} = select( 'core/editor' );
 
 		return {
@@ -85,6 +87,7 @@ function MJML() {
 			isSent: getCurrentPostAttribute( 'meta' ).newsletter_sent,
 			isAutosaving: isAutosavingPost(),
 			isAutosaveLocked: isPostAutosavingLocked(),
+			isTakeover: isPostLockTakeover(),
 		};
 	} );
 	const { createNotice } = useDispatch( 'core/notices' );
@@ -113,6 +116,7 @@ function MJML() {
 			! isAutosaving &&
 			! isPublishing &&
 			! isSent &&
+			! isTakeover &&
 			saveSucceeded
 		) {
 			refreshHtml();
