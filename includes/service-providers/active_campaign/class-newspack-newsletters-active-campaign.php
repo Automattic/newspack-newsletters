@@ -1100,6 +1100,17 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return $sync_result;
 		}
 
+		$message = $this->api_v1_request( 'message_view', 'GET', [ 'query' => [ 'id' => $sync_result['message_id'] ] ] );
+		if ( is_wp_error( $message ) ) {
+			return $message;
+		}
+		if ( empty( $message['html'] ) ) {
+			return new \WP_Error(
+				'newspack_newsletters_active_campaign_message_html_missing',
+				__( 'Error creating campaign: Message HTML is missing. Campaign not sent.', 'newspack-newsletters' )
+			);
+		}
+
 		$from_name       = get_post_meta( $post->ID, 'senderName', true );
 		$from_email      = get_post_meta( $post->ID, 'senderEmail', true );
 		$send_list_id    = get_post_meta( $post->ID, 'send_list_id', true );
