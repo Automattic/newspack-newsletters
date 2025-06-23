@@ -198,6 +198,23 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return $response;
 		}
 		$body = json_decode( $response['body'], true );
+
+		do_action(
+			'newspack_log',
+			'newspack_newsletters_active_campaign_api_v1_request',
+			'API v1 Request',
+			[
+				'log_level' => 1,
+				'file'      => 'newspack_newsletters_active_campaign_api_v1_request',
+				'data'      => [
+					'action'        => $action,
+					'method'        => $method,
+					'options'       => $options,
+					'response_body' => $body,
+				],
+			]
+		);
+
 		if ( 1 !== $body['result_code'] ) {
 			$message = ! empty( $body['result_message'] ) ? $body['result_message'] : __( 'An error occurred while communicating with ActiveCampaign.', 'newspack-newsletters' );
 			return new \WP_Error(
