@@ -601,6 +601,26 @@ final class Newspack_Newsletters {
 	}
 
 	/**
+	 * Check if the current user can edit newsletters.
+	 *
+	 * @param int $user_id Optional. User ID.
+	 * @return bool
+	 */
+	public static function user_can_edit_newsletters( $user_id = null ) {
+		if ( ! $user_id ) {
+			$user_id = get_current_user_id();
+		}
+
+		$post_type_object = get_post_type_object( self::NEWSPACK_NEWSLETTERS_CPT );
+
+		if ( ! $post_type_object ) {
+			return false;
+		}
+
+		return user_can( $user_id, $post_type_object->cap->edit_posts );
+	}
+
+	/**
 	 * Register blocks server-side for front-end rendering.
 	 */
 	public static function register_blocks() {

@@ -204,6 +204,11 @@ class Newspack_Newsletters_Settings {
 	 * Add options page
 	 */
 	public static function add_plugin_page() {
+
+		if ( ! \Newspack_Newsletters::user_can_edit_newsletters() ) {
+			return;
+		}
+
 		add_submenu_page(
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			esc_html__( 'Newsletters Settings', 'newspack-newsletters' ),

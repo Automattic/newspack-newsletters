@@ -177,6 +177,11 @@ final class Newspack_Newsletters_Ads {
 	 * Add ads page link.
 	 */
 	public static function add_ads_page() {
+
+		if ( ! \Newspack_Newsletters::user_can_edit_newsletters() ) {
+			return;
+		}
+
 		add_submenu_page(
 			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			__( 'Newsletters Ads', 'newspack-newsletters' ),

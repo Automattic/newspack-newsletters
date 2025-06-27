@@ -60,6 +60,11 @@ final class Admin {
 	 * Add settings page submenu.
 	 */
 	public static function add_settings_page() {
+
+		if ( ! \Newspack_Newsletters::user_can_edit_newsletters() ) {
+			return;
+		}
+
 		\add_submenu_page(
 			'edit.php?post_type=' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			esc_html__( 'Newsletters Tracking Options', 'newspack-newsletters' ),
