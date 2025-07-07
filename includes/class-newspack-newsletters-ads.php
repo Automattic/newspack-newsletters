@@ -176,15 +176,39 @@ final class Newspack_Newsletters_Ads {
 	 * Add ads page link.
 	 */
 	public static function add_ads_page() {
-		add_submenu_page(
-			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			__( 'Newsletters Ads', 'newspack-newsletters' ),
-			__( 'Ads', 'newspack-newsletters' ),
-			'edit_others_posts',
-			'/edit.php?post_type=' . self::CPT,
-			null,
-			2
-		);
+		// Check if user can access the newsletters CPT.
+		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
+
+		if ( $can_edit_newsletters ) {
+			// Add as submenu under newsletters if user has access.
+			$page_title = apply_filters( 'newspack_newsletters_ads_page_title', __( 'Newsletters Ads', 'newspack-newsletters' ) );
+			$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title', __( 'Ads', 'newspack-newsletters' ) );
+
+			add_submenu_page(
+				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				$page_title,
+				$menu_title,
+				'edit_others_posts',
+				'edit.php?post_type=' . self::CPT,
+				null,
+				2
+			);
+		} elseif ( current_user_can( 'edit_others_posts' ) ) {
+			// Add as top-level menu if user can't access newsletters but can edit ads.
+			$page_title = apply_filters( 'newspack_newsletters_ads_page_title_toplevel', __( 'Newsletter Ads', 'newspack-newsletters' ) );
+			$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title_toplevel', __( 'Newsletter Ads', 'newspack-newsletters' ) );
+
+			add_menu_page(
+				$page_title,
+				$menu_title,
+				'edit_others_posts',
+				'edit.php?post_type=' . self::CPT,
+				'',
+				'dashicons-megaphone',
+				30
+			);
+		}
 	}
 
 	/**
