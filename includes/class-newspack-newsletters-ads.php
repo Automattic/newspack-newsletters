@@ -176,46 +176,30 @@ final class Newspack_Newsletters_Ads {
 	 * Add ads page link.
 	 */
 	public static function add_ads_page() {
-		// Check if user can access the newsletters CPT.
-		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
+		$newsletter_ad_post_type_object = get_post_type_object( self::CPT );
+		$can_edit_newsletter_ads = current_user_can( $newsletter_ad_post_type_object->cap->edit_posts );
 
-		if ( $can_edit_newsletters ) {
-			// Add as submenu under newsletters if user has access.
-			$page_title = apply_filters( 'newspack_newsletters_ads_page_title', __( 'Newsletters Ads', 'newspack-newsletters' ) );
-			$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title', __( 'Ads', 'newspack-newsletters' ) );
+		$page_title = apply_filters( 'newspack_newsletters_ads_page_title', __( 'Newsletters Ads', 'newspack-newsletters' ) );
+		$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title', __( 'Ads', 'newspack-newsletters' ) );
 
-			add_submenu_page(
-				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				$page_title,
-				$menu_title,
-				'edit_others_posts',
-				'edit.php?post_type=' . self::CPT,
-				null,
-				2
-			);
-		} elseif ( current_user_can( 'edit_others_posts' ) ) {
-			// Add as top-level menu if user can't access newsletters but can edit ads.
-			$page_title = apply_filters( 'newspack_newsletters_ads_page_title_toplevel', __( 'Newsletter Ads', 'newspack-newsletters' ) );
-			$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title_toplevel', __( 'Newsletter Ads', 'newspack-newsletters' ) );
-
-			add_menu_page(
-				$page_title,
-				$menu_title,
-				'edit_others_posts',
-				'edit.php?post_type=' . self::CPT,
-				'',
-				'dashicons-megaphone',
-				30
-			);
-		}
+		add_submenu_page(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			$page_title,
+			$menu_title,
+			$newsletter_ad_post_type_object->cap->edit_posts,
+			'edit.php?post_type=' . self::CPT,
+			null,
+			2
+		);
 	}
 
 	/**
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_ads_cpt() {
-		if ( ! current_user_can( 'edit_others_posts' ) ) {
+		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
+		if ( ! $can_edit_newsletters ) {
 			return;
 		}
 
