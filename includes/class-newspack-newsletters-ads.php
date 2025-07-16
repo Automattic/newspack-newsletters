@@ -173,6 +173,21 @@ final class Newspack_Newsletters_Ads {
 	}
 
 	/**
+	 * Display Newsletter Ads as a separate menu item, if the user can't edit Newsletters but can edit Newsletter Ads.
+	 * Otherwise, the Newsletter Ads will be a submenu item under Newsletters.
+	 */
+	public static function display_ads_menu_item_separately() {
+		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		$newsletter_ad_post_type_object = get_post_type_object( self::CPT );
+		if ( $newsletter_ad_post_type_object ) {
+			$can_edit_newsletter_ads = current_user_can( $newsletter_ad_post_type_object->cap->edit_posts );
+		} else {
+			$can_edit_newsletter_ads = false;
+		}
+		return ! current_user_can( $newsletters_post_type_object->cap->edit_posts ) && $can_edit_newsletter_ads;
+	}
+
+	/**
 	 * Add ads page link.
 	 */
 	public static function add_ads_page() {
@@ -182,15 +197,27 @@ final class Newspack_Newsletters_Ads {
 		$page_title = apply_filters( 'newspack_newsletters_ads_page_title', __( 'Newsletters Ads', 'newspack-newsletters' ) );
 		$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title', __( 'Ads', 'newspack-newsletters' ) );
 
-		add_submenu_page(
-			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			$page_title,
-			$menu_title,
-			$newsletter_ad_post_type_object->cap->edit_posts,
-			'edit.php?post_type=' . self::CPT,
-			null,
-			2
-		);
+		if ( self::display_ads_menu_item_separately() ) {
+			add_menu_page(
+				$page_title,
+				$page_title,
+				$newsletter_ad_post_type_object->cap->edit_posts,
+				'edit.php?post_type=' . self::CPT,
+				null,
+				'data:image/svg+xml;base64,' . base64_encode( '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 7c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Zm2-.5h14c.3 0 .5.2.5.5v1L12 13.5 4.5 7.9V7c0-.3.2-.5.5-.5Zm-.5 3.3V17c0 .3.2.5.5.5h14c.3 0 .5-.2.5-.5V9.8L12 15.4 4.5 9.8Z"></path></svg>' )
+			);
+
+		} else {
+			add_submenu_page(
+				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				$page_title,
+				$menu_title,
+				$newsletter_ad_post_type_object->cap->edit_posts,
+				'edit.php?post_type=' . self::CPT,
+				null,
+				2
+			);
+		}
 	}
 
 	/**
