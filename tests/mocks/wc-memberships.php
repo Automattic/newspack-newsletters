@@ -1,6 +1,9 @@
 <?php // phpcs:disable Squiz.Commenting, Universal.Files, Generic.Files, WordPress.DB
 
 class WC_Memberships_User_Membership {
+	private $id;
+	private $user_id;
+
 	public function __construct( $id, $user_id ) {
 		$this->id   = $id;
 		$this->user_id   = $user_id;
