@@ -776,7 +776,7 @@ final class Newspack_Newsletters_Renderer {
 					// Parse block content.
 					$dom = new DomDocument();
 					libxml_use_internal_errors( true );
-					$dom->loadHTML( mb_convert_encoding( $button_block['innerHTML'], 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
+					$dom->loadHTML( htmlspecialchars_decode( htmlentities( mb_convert_encoding( $button_block['innerHTML'], 'UTF-8', get_bloginfo( 'charset' ) ) ) ) );
 					$xpath         = new DOMXpath( $dom );
 					$anchor        = $xpath->query( '//a' )[0];
 					$attrs         = self::process_attributes( $button_block['attrs'] );
@@ -1083,7 +1083,7 @@ final class Newspack_Newsletters_Renderer {
 				// Parse block caption.
 				$dom = new DomDocument();
 				libxml_use_internal_errors( true );
-				$dom->loadHTML( mb_convert_encoding( $inner_html, 'HTML-ENTITIES', get_bloginfo( 'charset' ) ) );
+				$dom->loadHTML( htmlspecialchars_decode( htmlentities( mb_convert_encoding( $inner_html, 'UTF-8', get_bloginfo( 'charset' ) ) ) ) );
 				$xpath      = new DOMXpath( $dom );
 				$figcaption = $xpath->query( '//figcaption/text()' )[0];
 				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
