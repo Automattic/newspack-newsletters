@@ -2286,7 +2286,7 @@ msgstr ""
 
 #: dist/newsletterAdsEditor.js:1
 #: release/newspack-newsletters/dist/newsletterAdsEditor.js:1
-msgid "Automatic ads insertion is disabled because this post contain manually inserted ad blocks."
+msgid "Automatic ads insertion is disabled because this post contains manually inserted ad blocks."
 msgstr ""
 
 #. Translators: help message showing number of active ads.

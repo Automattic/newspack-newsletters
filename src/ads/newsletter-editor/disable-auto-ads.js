@@ -68,7 +68,7 @@ export default function DisableAutoAds( { saveOnToggle = false } ) {
 			{ forceDisableAutoAds ? (
 				<p>
 					{ __(
-						'Automatic ads insertion is disabled because this post contain manually inserted ad blocks.',
+						'Automatic ads insertion is disabled because this post contains manually inserted ad blocks.',
 						'newspack-newsletters'
 					) }
 				</p>
