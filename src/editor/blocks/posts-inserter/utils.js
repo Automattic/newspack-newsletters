@@ -82,7 +82,20 @@ const getContinueReadingLinkBlockTemplate = ( post, { textFontSize, textColor } 
 };
 
 const getAuthorBlockTemplate = ( post, { textFontSize, textColor } ) => {
-	const { newspack_author_info } = post;
+	const { newspack_custom_byline, newspack_author_info } = post;
+
+	// Check for custom byline first.
+	if ( newspack_custom_byline ) {
+		return [
+			'core/heading',
+			assignFontSize( textFontSize, {
+				content: newspack_custom_byline,
+				fontSize: 'normal',
+				level: 6,
+				style: { color: { text: textColor } },
+			} ),
+		];
+	}
 
 	if ( Array.isArray( newspack_author_info ) && newspack_author_info.length ) {
 		const authorLinks = newspack_author_info.reduce( ( acc, author, index ) => {
