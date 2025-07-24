@@ -681,25 +681,11 @@ final class Newspack_Newsletters_Editor {
 	 * @return string|null Formatted custom byline HTML or null if not active.
 	 */
 	public static function newspack_get_custom_byline( $post ) {
-		if ( ! class_exists( 'Newspack\Bylines' ) || ! \Newspack\Bylines::is_enabled() ) {
+		if ( ! class_exists( 'Newspack\Bylines' ) ) {
 			return null;
 		}
 
-		$post_id       = $post['id'];
-		$byline_active = get_post_meta( $post_id, \Newspack\Bylines::META_KEY_ACTIVE, true );
-
-		if ( ! $byline_active ) {
-			return null;
-		}
-
-		$byline = get_post_meta( $post_id, \Newspack\Bylines::META_KEY_BYLINE, true );
-		
-		if ( empty( $byline ) ) {
-			return null;
-		}
-
-		// Process the byline shortcodes to get formatted HTML with links.
-		return \Newspack\Bylines::replace_author_shortcodes( $byline );
+		return \Newspack\Bylines::get_custom_byline_html( $post['id'] );
 	}
 
 	/**
