@@ -200,7 +200,7 @@ Note that if a member has unsubscribed from a list, but has an active membership
 						foreach ( $plan_memberships as $user_membership ) {
 
 							$user_count++;
-							if ( $user_count > 50 && function_exists( 'np_stop_the_insanity' ) ) {
+							if ( $user_count > 50 ) {
 								self::memory_cleanup();
 								$user_count = 0;
 							}
