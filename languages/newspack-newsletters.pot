@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-30T10:05:52+00:00\n"
+"POT-Creation-Date: 2025-08-01T20:08:43+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-newsletters\n"
@@ -39,196 +39,268 @@ msgstr ""
 msgid "https://newspack.com/"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:198
+#: includes/ads/class-ads-placements.php:38
+msgid "Ad Placements"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:39
+msgid "Ad Placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:40
+msgid "Search Ad Placements"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:41
+msgid "Popular Ad Placements"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:42
+msgid "All Ad Placements"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:43
+msgid "Parent Ad Placements"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:44
+msgid "Parent Ad Placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:45
+msgid "The ad placement name"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:47
+msgid "Assign a parent ad placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:48
+msgid "Optional description for this ad placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:49
+msgid "Edit Ad Placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:50
+msgid "View Ad Placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:51
+msgid "Update Ad Placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:52
+msgid "Add New Ad Placement"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:53
+msgid "New Ad Placement Name"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:54
+msgid "No ad placements found"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:55
+msgid "No ad placements"
+msgstr ""
+
+#: includes/ads/class-ads-placements.php:56
+msgid "Filter by ad placement"
+msgstr ""
+
+#: includes/ads/class-ads.php:189
 msgid "Newsletters Ads"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:199
+#: includes/ads/class-ads.php:190
 msgid "Ads"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:235
+#: includes/ads/class-ads.php:226
 msgctxt "post type general name"
 msgid "Newsletter Ads"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:236
+#: includes/ads/class-ads.php:227
 msgctxt "post type singular name"
 msgid "Newsletter Ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:237
+#: includes/ads/class-ads.php:228
 msgctxt "admin menu"
 msgid "Newsletter Ads"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:238
+#: includes/ads/class-ads.php:229
 msgctxt "add new on admin bar"
 msgid "Newsletter Ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:239
+#: includes/ads/class-ads.php:230
 msgctxt "popup"
 msgid "Add New"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:240
+#: includes/ads/class-ads.php:231
 msgid "Add New Newsletter Ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:241
+#: includes/ads/class-ads.php:232
 msgid "New Newsletter Ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:242
+#: includes/ads/class-ads.php:233
 msgid "Edit Newsletter Ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:243
+#: includes/ads/class-ads.php:234
 msgid "View Newsletter Ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:244
+#: includes/ads/class-ads.php:235
 msgid "All Newsletter Ads"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:245
+#: includes/ads/class-ads.php:236
 msgid "Search Newsletter Ads"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:246
+#: includes/ads/class-ads.php:237
 msgid "Parent Newsletter Ads:"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:247
+#: includes/ads/class-ads.php:238
 msgid "No Newsletter Ads found."
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:248
+#: includes/ads/class-ads.php:239
 msgid "No Newsletter Ads found in Trash."
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:249
+#: includes/ads/class-ads.php:240
 msgid "Newsletter Ads list"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:250
+#: includes/ads/class-ads.php:241
 msgid "Newsletter Ad published"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:251
+#: includes/ads/class-ads.php:242
 msgid "Newsletter Ad published privately"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:252
+#: includes/ads/class-ads.php:243
 msgid "Newsletter Ad reverted to draft"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:253
+#: includes/ads/class-ads.php:244
 msgid "Newsletter Ad scheduled"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:254
+#: includes/ads/class-ads.php:245
 msgid "Newsletter Ad updated"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:273
+#: includes/ads/class-ads.php:264
 msgid "Advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:274
+#: includes/ads/class-ads.php:265
 msgid "Advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:275
+#: includes/ads/class-ads.php:266
 msgid "Search Advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:276
+#: includes/ads/class-ads.php:267
 msgid "Popular Advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:277
+#: includes/ads/class-ads.php:268
 msgid "All Advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:278
+#: includes/ads/class-ads.php:269
 msgid "Parent Advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:279
+#: includes/ads/class-ads.php:270
 msgid "Parent Advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:280
+#: includes/ads/class-ads.php:271
 msgid "The advertiser name"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:282
+#: includes/ads/class-ads.php:273
 msgid "Assign a parent advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:283
+#: includes/ads/class-ads.php:274
 msgid "Optional description for this advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:284
+#: includes/ads/class-ads.php:275
 msgid "Edit Advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:285
+#: includes/ads/class-ads.php:276
 msgid "View Advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:286
+#: includes/ads/class-ads.php:277
 msgid "Update Advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:287
+#: includes/ads/class-ads.php:278
 msgid "Add New Advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:288
+#: includes/ads/class-ads.php:279
 msgid "New Advertiser Name"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:289
+#: includes/ads/class-ads.php:280
 msgid "No advertisers found"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:290
+#: includes/ads/class-ads.php:281
 msgid "No advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:291
+#: includes/ads/class-ads.php:282
 msgid "Filter by advertiser"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:293
+#: includes/ads/class-ads.php:284
 msgid "Newspack Newsletters Ads Advertisers"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:391
+#: includes/ads/class-ads.php:383
 msgid "promotion"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:391
+#: includes/ads/class-ads.php:383
 msgid "ad"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:588
+#: includes/ads/class-ads.php:580
 msgid "Start Date"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:589
+#: includes/ads/class-ads.php:581
 #: dist/adsEditor.js:19
-#: src/ads/editor/index.js:192
+#: src/ads/editor/index.js:306
 msgid "Expiration Date"
 msgstr ""
 
-#: includes/class-newspack-newsletters-ads.php:590
+#: includes/ads/class-ads.php:582
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:109
+#: src/ads/editor/index.js:136
 msgid "Price"
 msgstr ""
 
@@ -1405,79 +1477,100 @@ msgid "You must select a list."
 msgstr ""
 
 #: dist/adsEditor.js:1
-#: src/ads/editor/index.js:48
+#: src/ads/editor/index.js:69
 msgid "The expiration date is set in the past. This ad will not be displayed."
 msgstr ""
 
 #. translators: %s: date.
 #: dist/adsEditor.js:4
-#: src/ads/editor/index.js:58
+#: src/ads/editor/index.js:79
 #, js-format
 msgid "The expiration date is set before the start date (%s). This ad will not be displayed."
 msgstr ""
 
 #. translators: %1$s: date, %2$s: date.
 #: dist/adsEditor.js:7
-#: src/ads/editor/index.js:70
+#: src/ads/editor/index.js:91
 #, js-format
 msgid "This ad will be displayed between %1$s and %2$s."
 msgstr ""
 
 #. translators: %s: date.
 #: dist/adsEditor.js:10
-#: src/ads/editor/index.js:77
+#: src/ads/editor/index.js:101
 #, js-format
 msgid "This ad will be displayed starting %s."
 msgstr ""
 
 #. translators: %s: date.
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:83
+#: src/ads/editor/index.js:110
 #, js-format
 msgid "This ad will be displayed until %s."
 msgstr ""
 
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:105
+#: src/ads/editor/index.js:132
 msgid "Ad settings"
 msgstr ""
 
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:117
+#: src/ads/editor/index.js:144
 msgid "Insertion strategy"
 msgstr ""
 
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:118
-msgid "Whether to calculation the ad insertion by percentage or block count."
+#: src/ads/editor/index.js:145
+msgid "Whether to insert the ad at a percentage or block count of the newsletter content or assigned to a placement."
 msgstr ""
 
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:125
+#: src/ads/editor/index.js:156
 msgid "Percentage"
 msgstr ""
 
 #: dist/adsEditor.js:13
-#: src/ads/editor/index.js:126
+#: src/ads/editor/index.js:160
 msgid "Block count"
+msgstr ""
+
+#: dist/adsEditor.js:13
+#: src/ads/editor/index.js:164
+#: src/ads/editor/index.js:171
+msgid "Placement"
+msgstr ""
+
+#: dist/adsEditor.js:13
+#: src/ads/editor/index.js:187
+msgid "Select a placement"
+msgstr ""
+
+#: dist/adsEditor.js:13
+#: src/ads/editor/index.js:194
+msgid "New Placement"
+msgstr ""
+
+#: dist/adsEditor.js:13
+#: src/ads/editor/index.js:207
+msgid "New Placement Name"
 msgstr ""
 
 #. translators: %d: number.
 #: dist/adsEditor.js:16
-#: src/ads/editor/index.js:141
+#: src/ads/editor/index.js:251
 #, js-format
 msgid "The ad will be automatically inserted about %s into the newsletter content."
 msgstr ""
 
 #. translators: %d: number.
 #: dist/adsEditor.js:19
-#: src/ads/editor/index.js:162
+#: src/ads/editor/index.js:274
 #, js-format
 msgid "The ad will be automatically inserted after %d blocks of newsletter content."
 msgstr ""
 
 #: dist/adsEditor.js:19
-#: src/ads/editor/index.js:173
+#: src/ads/editor/index.js:285
 msgid "Custom Start Date"
 msgstr ""
 
