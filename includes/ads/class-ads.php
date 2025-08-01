@@ -5,23 +5,25 @@
  * @package Newspack
  */
 
+namespace Newspack_Newsletters;
+
+use Newspack_Newsletters;
+use Newspack_Newsletters_Letterhead;
+use DateTime;
+use WP_Query;
+use WP_Post;
+use WP_REST_Request;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Newsletters Ads Class.
  */
-final class Newspack_Newsletters_Ads {
+final class Ads {
 
 	const CPT = 'newspack_nl_ads_cpt';
 
 	const ADVERTISER_TAX = 'newspack_nl_advertiser';
-
-	/**
-	 * The single instance of the class.
-	 *
-	 * @var Newspack_Newsletters
-	 */
-	protected static $instance = null;
 
 	/**
 	 * Ads already inserted in the newsletter.
@@ -31,22 +33,9 @@ final class Newspack_Newsletters_Ads {
 	protected static $inserted_ads = [];
 
 	/**
-	 * Main Newspack Newsletter Ads Instance.
-	 * Ensures only one instance of Newspack Ads Instance is loaded or can be loaded.
-	 *
-	 * @return Newspack Ads Instance - Main instance.
+	 * Initialize hooks.
 	 */
-	public static function instance() {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
+	public static function init_hooks() {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
@@ -64,6 +53,8 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'manage_edit-' . self::CPT . '_sortable_columns', [ __CLASS__, 'sortable_columns' ] );
 		// Sorting.
 		add_action( 'pre_get_posts', [ __CLASS__, 'handle_sorting' ] );
+
+		require_once __DIR__ . '/class-ads-placements.php';
 	}
 
 	/**
@@ -303,7 +294,7 @@ final class Newspack_Newsletters_Ads {
 	 * Set default fields when Ad is created.
 	 *
 	 * @param int     $post_id ID of post being saved.
-	 * @param WP_POST $post The post being saved.
+	 * @param WP_Post $post The post being saved.
 	 * @param bool    $update True if this is an update, false if a newly created post.
 	 */
 	public static function ad_default_fields( $post_id, $post, $update ) {
@@ -375,7 +366,8 @@ final class Newspack_Newsletters_Ads {
 	 * Get properties required to render a useful modal in the editor that alerts
 	 * users of ads they're sending.
 	 *
-	 * @param WP_REST_REQUEST $request The WP Request Object.
+	 * @param WP_REST_Request $request The WP Request Object.
+	 *
 	 * @return array
 	 */
 	public static function get_ads_config( $request ) {
@@ -639,7 +631,7 @@ final class Newspack_Newsletters_Ads {
 	/**
 	 * Handle sorting.
 	 *
-	 * @param \WP_Query $query Query.
+	 * @param WP_Query $query Query.
 	 */
 	public static function handle_sorting( $query ) {
 		if ( ! is_admin() || ! $query->is_main_query() ) {
@@ -686,7 +678,7 @@ final class Newspack_Newsletters_Ads {
 	 * Some blocks should never have an ad right after them. For example, an ad right after a subheading
 	 * (header block) would not look good.
 	 *
-	 * @param object $block A block.
+	 * @param array $block A block.
 	 */
 	private static function can_block_be_followed_by_ad( $block ) {
 		if (
@@ -714,7 +706,7 @@ final class Newspack_Newsletters_Ads {
 	/**
 	 * Get content from a given block's inner blocks, and recursively from those blocks' inner blocks.
 	 *
-	 * @param object $block A block.
+	 * @param array $block A block.
 	 *
 	 * @return string The block's inner content.
 	 */
@@ -738,7 +730,7 @@ final class Newspack_Newsletters_Ads {
 	/**
 	 * Get content from given block, including content from the block's inner blocks, if any.
 	 *
-	 * @param object $block A block.
+	 * @param array $block A block.
 	 *
 	 * @return string The block's content.
 	 */
@@ -930,4 +922,4 @@ final class Newspack_Newsletters_Ads {
 		return $output;
 	}
 }
-Newspack_Newsletters_Ads::instance();
+Ads::init_hooks();

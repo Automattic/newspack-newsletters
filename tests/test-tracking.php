@@ -227,11 +227,11 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 	 */
 	public function test_process_logs_ads() {
 		$newsletter_id = $this->factory->post->create( [ 'post_type' => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT ] );
-		$ad_id = $this->factory->post->create( [ 'post_type' => Newspack_Newsletters_Ads::CPT ] );
+		$ad_id = $this->factory->post->create( [ 'post_type' => Newspack_Newsletters\Ads::CPT ] );
 		$tracking_id = 'tracking_id_1';
 		update_post_meta( $newsletter_id, 'tracking_id', $tracking_id );
 
-		Newspack_Newsletters_Ads::mark_ad_inserted( $newsletter_id, $ad_id );
+		Newspack_Newsletters\Ads::mark_ad_inserted( $newsletter_id, $ad_id );
 
 		// phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions
 		// Create a temporary log file.
