@@ -208,22 +208,49 @@ function AdEdit() {
 									'New Placement Name',
 									'newspack-newsletters'
 								)}
+								help={__(
+									'Press Enter to save the new placement.',
+									'newspack-newsletters'
+								)}
 								value={newPlacementName}
 								disabled={isSavingPlacement}
 								onChange={setNewPlacementName}
 								onKeyDown={async ev => {
 									if (ev.key === 'Enter') {
-										setIsSavingPlacement(true);
-										const newPlacement =
-											await saveEntityRecord(
-												'taxonomy',
-												'newspack_nl_ad_placement',
-												{ name: newPlacementName }
+										// If it matches an existing placement, use that.
+										const existingPlacement =
+											placements.find(
+												p =>
+													p.name
+														.toLowerCase()
+														.trim() ===
+													newPlacementName
+														.toLowerCase()
+														.trim()
 											);
-										if (newPlacement) {
-											await editPost({
-												ad_placement: [newPlacement.id],
+										if (existingPlacement) {
+											editPost({
+												ad_placement: [
+													existingPlacement.id,
+												],
 											});
+										} else {
+											setIsSavingPlacement(true);
+											const newPlacement =
+												await saveEntityRecord(
+													'taxonomy',
+													'newspack_nl_ad_placement',
+													{
+														name: newPlacementName.trim(),
+													}
+												);
+											if (newPlacement) {
+												await editPost({
+													ad_placement: [
+														newPlacement.id,
+													],
+												});
+											}
 										}
 										setNewPlacementName('');
 										setIsNewPlacement(false);

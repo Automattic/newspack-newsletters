@@ -184,7 +184,6 @@ final class Ads {
 	 */
 	public static function add_ads_page() {
 		$newsletter_ad_post_type_object = get_post_type_object( self::CPT );
-		$can_edit_newsletter_ads = current_user_can( $newsletter_ad_post_type_object->cap->edit_posts );
 
 		$page_title = apply_filters( 'newspack_newsletters_ads_page_title', __( 'Newsletters Ads', 'newspack-newsletters' ) );
 		$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title', __( 'Ads', 'newspack-newsletters' ) );
@@ -445,7 +444,7 @@ final class Ads {
 	 * Get available ads for a newsletter.
 	 *
 	 * @param int  $newsletter_id   Newsletter post ID.
-	 * @param bool $skip_validation Whether to skip validation of ad categories and advertisers.
+	 * @param bool $skip_validation Whether to skip validation of ad categories, advertisers, and placements.
 	 *
 	 * @return WP_Post[] Array of ad posts.
 	 */
@@ -465,6 +464,10 @@ final class Ads {
 			}
 			// Skip if ad is not active.
 			if ( ! self::is_ad_active( $ad->ID, $newsletter_id ) ) {
+				continue;
+			}
+			// Skip if the ad insertion is via placement.
+			if ( ! empty( wp_get_post_terms( $ad->ID, Ads_Placements::TAXONOMY ) ) ) {
 				continue;
 			}
 			$ad_categories = wp_get_post_terms( $ad->ID, 'category' );
