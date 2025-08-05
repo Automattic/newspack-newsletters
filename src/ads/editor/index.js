@@ -16,9 +16,12 @@ import {
 	DatePicker,
 	Notice,
 	RangeControl,
+	Button,
+	Modal,
 } from '@wordpress/components';
 import { format, isInTheFuture } from '@wordpress/date';
 import { SelectControl } from 'newspack-components';
+import AdPlacements from '../../components/ad-placements';
 
 function AdEdit() {
 	const {
@@ -59,6 +62,7 @@ function AdEdit() {
 	const [isNewPlacement, setIsNewPlacement] = useState(false);
 	const [newPlacementName, setNewPlacementName] = useState('');
 	const [isSavingPlacement, setIsSavingPlacement] = useState(false);
+	const [isManagingPlacements, setIsManagingPlacements] = useState(false);
 
 	const { editPost } = useDispatch('core/editor');
 	const { saveEntityRecord } = useDispatch('core');
@@ -258,6 +262,26 @@ function AdEdit() {
 									}
 								}}
 							/>
+						)}
+						<Button
+							variant="secondary"
+							onClick={() => setIsManagingPlacements(true)}
+						>
+							{__('Manage placements', 'newspack-newsletters')}
+						</Button>
+						{isManagingPlacements && (
+							<Modal
+								title={__(
+									'Manage Ad Placements',
+									'newspack-newsletters'
+								)}
+								size="small"
+								onRequestClose={() =>
+									setIsManagingPlacements(false)
+								}
+							>
+								<AdPlacements />
+							</Modal>
 						)}
 					</>
 				)}

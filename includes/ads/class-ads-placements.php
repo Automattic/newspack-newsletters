@@ -59,6 +59,9 @@ final class Ads_Placements {
 				'show_in_rest'      => true,
 				'hierarchical'      => false,
 				'show_admin_column' => true,
+				'show_in_menu'      => false,
+				'show_in_nav_menus' => false,
+				'show_ui'           => false,
 				'rest_base'         => 'ad_placement',
 			]
 		);
