@@ -70,12 +70,12 @@ final class Ads_Placements {
 	/**
 	 * Get ad by placement.
 	 *
-	 * @param int $placement_id Placement ID.
-	 * @param int $newsletter_id Newsletter ID.
+	 * @param int      $placement_id  Placement ID.
+	 * @param int|null $newsletter_id Optional newsletter ID to match category and advertiser.
 	 *
 	 * @return \WP_Post|null Ad post object if found, null otherwise.
 	 */
-	public static function get_ad_by_placement( $placement_id, $newsletter_id ) {
+	public static function get_ad_by_placement( $placement_id, $newsletter_id = null ) {
 		$placement_ads = get_posts(
 			[
 				'post_type'      => Ads::CPT,
@@ -95,37 +95,38 @@ final class Ads_Placements {
 		}
 
 		$ads = [];
-		foreach ( $placement_ads as $placement_ad ) {
-			if ( ! Ads::is_ad_active( $placement_ad->ID, $newsletter_id ) ) {
+		foreach ( $placement_ads as $ad ) {
+			if ( ! Ads::is_ad_active( $ad->ID, $newsletter_id ) ) {
 				continue;
 			}
 
-			$ad_categories = wp_get_post_terms( $placement_ad->ID, 'category' );
-			// Skip if the ad is not in the same category as the post.
-			if ( ! empty( $ad_categories ) ) {
-				$newsletter_categories = wp_get_post_terms( $newsletter_id, 'category' );
-				if ( empty( array_intersect( wp_list_pluck( $ad_categories, 'term_id' ), wp_list_pluck( $newsletter_categories, 'term_id' ) ) ) ) {
-					continue;
+			if ( ! empty( $newsletter_id ) ) {
+				$ad_categories = wp_get_post_terms( $ad->ID, 'category' );
+				// Skip if the ad is not in the same category as the newsletter.
+				if ( ! empty( $ad_categories ) ) {
+					$newsletter_categories = wp_get_post_terms( $newsletter_id, 'category' );
+					if ( empty( array_intersect( wp_list_pluck( $ad_categories, 'term_id' ), wp_list_pluck( $newsletter_categories, 'term_id' ) ) ) ) {
+						continue;
+					}
+				}
+				$newsletter_advertisers = wp_get_post_terms( $newsletter_id, Ads::ADVERTISER_TAX );
+				// Skip if the newsletter has advertisers that does not match the ad.
+				if ( ! empty( $newsletter_advertisers ) ) {
+					$ad_advertisers = wp_get_post_terms( $ad->ID, Ads::ADVERTISER_TAX );
+					if ( empty( array_intersect( wp_list_pluck( $newsletter_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
+						continue;
+					}
 				}
 			}
 
-			$newsletter_advertisers = wp_get_post_terms( $newsletter_id, Ads::ADVERTISER_TAX );
-			// Skip if the post has an advertiser and the ad is not from the same advertiser.
-			if ( ! empty( $newsletter_advertisers ) ) {
-				$ad_advertisers = wp_get_post_terms( $placement_ad->ID, Ads::ADVERTISER_TAX );
-				if ( empty( array_intersect( wp_list_pluck( $newsletter_advertisers, 'term_id' ), wp_list_pluck( $ad_advertisers, 'term_id' ) ) ) ) {
-					continue;
-				}
-			}
-
-			$ads[] = $placement_ad;
+			$ads[] = $ad;
 		}
 
 		if ( empty( $ads ) ) {
 			return null;
 		}
 
-		return array_shift( $ads );
+		return $ads[0];
 	}
 }
 Ads_Placements::init_hooks();

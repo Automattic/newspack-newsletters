@@ -215,12 +215,6 @@ final class Ads {
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_ads_cpt() {
-		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
-		if ( ! $can_edit_newsletters ) {
-			return;
-		}
-
 		$labels = [
 			'name'                     => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'            => _x( 'Newsletter Ad', 'post type singular name', 'newspack-newsletters' ),
