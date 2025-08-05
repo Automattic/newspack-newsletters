@@ -222,15 +222,9 @@ final class Newspack_Newsletters_Ads {
 	}
 
 	/**
-	 * Register the custom post type for layouts.
+	 * Register the custom post type for newsletters ads.
 	 */
 	public static function register_ads_cpt() {
-		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
-		if ( ! $can_edit_newsletters ) {
-			return;
-		}
-
 		$labels = [
 			'name'                     => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'            => _x( 'Newsletter Ad', 'post type singular name', 'newspack-newsletters' ),
@@ -255,13 +249,14 @@ final class Newspack_Newsletters_Ads {
 		];
 
 		$cpt_args = [
-			'public'       => false,
-			'labels'       => $labels,
-			'show_ui'      => true,
-			'show_in_menu' => false,
-			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
-			'taxonomies'   => [ 'category' ],
+			'public'          => false,
+			'labels'          => $labels,
+			'show_ui'         => true,
+			'show_in_menu'    => false,
+			'show_in_rest'    => true,
+			'supports'        => [ 'editor', 'title', 'custom-fields' ],
+			'taxonomies'      => [ 'category' ],
+			'capability_type' => 'newsletter_ad',
 		];
 		register_post_type( self::CPT, $cpt_args );
 
@@ -295,6 +290,12 @@ final class Newspack_Newsletters_Ads {
 				'hierarchical'      => true,
 				'show_in_rest'      => true,
 				'show_admin_column' => true,
+				'capabilities'      => [
+					'manage_terms' => 'manage_newsletter_ads',
+					'edit_terms'   => 'edit_newsletter_ads',
+					'delete_terms' => 'delete_newsletter_ads',
+					'assign_terms' => 'assign_newsletter_ads',
+				],
 			]
 		);
 	}
