@@ -53,6 +53,7 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
+		add_action( 'current_screen', [ __CLASS__, 'prevent_direct_taxonomy_access' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
 		add_action( 'newspack_newsletters_bulk_tracking_pixel_seen', [ __CLASS__, 'bulk_track_ad_impression' ], 10, 2 );
@@ -222,14 +223,31 @@ final class Newspack_Newsletters_Ads {
 	}
 
 	/**
+	 * Prevent direct access to the advertiser taxonomy admin page if user can't edit ads.
+	 *
+	 * @param string $screen The screen ID used to identify the current admin screen context.
+	 */
+	public static function prevent_direct_taxonomy_access( $screen ) {
+		// Check if we're on the taxonomy edit page for our advertiser taxonomy.
+		if ( $screen && 'edit-tags' === $screen->base && self::ADVERTISER_TAX === $screen->taxonomy ) {
+			$newsletter_ads_post_type_object = get_post_type_object( self::CPT );
+			$can_edit_newsletter_ads = current_user_can( $newsletter_ads_post_type_object->cap->edit_posts );
+
+			// If user can't edit ads, redirect them away.
+			if ( ! $can_edit_newsletter_ads ) {
+				wp_die(
+					esc_html__( 'Sorry, you are not allowed to manage newsletter advertisers.', 'newspack-newsletters' ),
+					esc_html__( 'You need permission to manage newsletter ads', 'newspack-newsletters' ),
+					403
+				);
+			}
+		}
+	}
+
+	/**
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_ads_cpt() {
-		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
-		if ( ! $can_edit_newsletters ) {
-			return;
-		}
 
 		$labels = [
 			'name'                     => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
