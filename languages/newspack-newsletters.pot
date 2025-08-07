@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-30T10:05:52+00:00\n"
+"POT-Creation-Date: 2025-08-07T20:47:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-newsletters\n"
@@ -2099,67 +2099,68 @@ msgstr ""
 msgid "Preview email"
 msgstr ""
 
-#: src/components/send-button/index.js:190
+#: src/components/send-button/index.js:194
 msgid "Sending"
 msgstr ""
 
-#: src/components/send-button/index.js:193
+#: src/components/send-button/index.js:197
 msgid "Sent and Published"
 msgstr ""
 
-#: src/components/send-button/index.js:194
+#: src/components/send-button/index.js:198
 msgid "Sent"
 msgstr ""
 
-#: src/components/send-button/index.js:198
-msgid "Scheduled"
-msgstr ""
-
-#: src/components/send-button/index.js:200
-msgid "Schedule sending"
-msgstr ""
-
-#: src/components/send-button/index.js:203
-msgid "Send and Publish"
-msgstr ""
-
-#: src/components/send-button/index.js:204
+#: src/components/send-button/index.js:201
+#: src/components/send-button/index.js:210
 msgid "Send"
 msgstr ""
 
+#: src/components/send-button/index.js:204
+msgid "Scheduled"
+msgstr ""
+
+#: src/components/send-button/index.js:206
+msgid "Schedule sending"
+msgstr ""
+
 #: src/components/send-button/index.js:209
+msgid "Send and Publish"
+msgstr ""
+
+#: src/components/send-button/index.js:215
 msgid "Updating…"
 msgstr ""
 
-#: src/components/send-button/index.js:211
+#: src/components/send-button/index.js:217
 msgid "Update and copy HTML"
 msgstr ""
 
-#: src/components/send-button/index.js:213
+#: src/components/send-button/index.js:219
 msgid "Update"
 msgstr ""
 
-#: src/components/send-button/index.js:234
+#: src/components/send-button/index.js:240
 msgid "Mark as sent and publish"
 msgstr ""
 
-#: src/components/send-button/index.js:235
+#: src/components/send-button/index.js:241
 msgid "Mark as sent"
 msgstr ""
 
-#: src/components/send-button/index.js:279
+#: src/components/send-button/index.js:285
 msgid "Newsletter HTML"
 msgstr ""
 
-#: src/components/send-button/index.js:319
+#: src/components/send-button/index.js:325
 msgid "Unschedule"
 msgstr ""
 
-#: src/components/send-button/index.js:344
+#: src/components/send-button/index.js:354
 msgid "Send your newsletter?"
 msgstr ""
 
-#: src/components/send-button/index.js:372
+#: src/components/send-button/index.js:382
 #: src/newsletter-editor/layout/index.js:244
 #: src/newsletter-editor/layout/index.js:275
 #: src/newsletter-editor/sidebar/autocomplete.js:123
