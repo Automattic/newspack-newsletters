@@ -461,7 +461,7 @@ final class Ads {
 				continue;
 			}
 			// Skip if the ad insertion is via placement.
-			if ( ! empty( wp_get_post_terms( $ad->ID, Ads_Placements::TAXONOMY ) ) ) {
+			if ( 'placement' === get_post_meta( $ad->ID, 'insertion_strategy', true ) ) {
 				continue;
 			}
 			$ad_categories = wp_get_post_terms( $ad->ID, 'category' );
