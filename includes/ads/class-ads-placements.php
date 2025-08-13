@@ -100,6 +100,11 @@ final class Ads_Placements {
 				continue;
 			}
 
+			// Bail if the ad insertion strategy is not "placement".
+			if ( 'placement' !== get_post_meta( $ad->ID, 'insertion_strategy', true ) ) {
+				continue;
+			}
+
 			if ( ! empty( $newsletter_id ) ) {
 				$ad_categories = wp_get_post_terms( $ad->ID, 'category' );
 				// Skip if the ad is not in the same category as the newsletter.
