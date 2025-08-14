@@ -515,14 +515,14 @@ final class Ads {
 			$ads_by_position[ $position ][] = $ad;
 		}
 
+		ksort( $ads_by_position );
+
 		$flattened_ads = [];
 		foreach ( $ads_by_position as $position_ads ) {
 			foreach ( $position_ads as $ad ) {
 				$flattened_ads[] = $ad;
 			}
 		}
-
-		sort( $flattened_ads );
 		return $flattened_ads;
 	}
 
