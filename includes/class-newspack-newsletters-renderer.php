@@ -967,6 +967,28 @@ final class Newspack_Newsletters_Renderer {
 					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes ) . '%';
 				}
 
+				// Recalculate total width including no-width columns that were just assigned.
+				$total_width = 0;
+				foreach ( $inner_blocks as $block ) {
+					if ( isset( $block['attrs']['width'] ) ) {
+						$total_width += floatval( $block['attrs']['width'] );
+					}
+				}
+
+				// If total width exceeds 100%, adjust all columns proportionally.
+				if ( $total_width > 100 ) {
+					$excess = $total_width - 100;
+					$adjustment_per_column = $excess / count( $inner_blocks );
+					
+					foreach ( $inner_blocks as $i => $block ) {
+						if ( isset( $block['attrs']['width'] ) ) {
+							$current_width = floatval( $block['attrs']['width'] );
+							$new_width = max( 1, $current_width - $adjustment_per_column ); // Ensure minimum 1% width.
+							$inner_blocks[ $i ]['attrs']['width'] = $new_width . '%';
+						}
+					}
+				}
+
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
