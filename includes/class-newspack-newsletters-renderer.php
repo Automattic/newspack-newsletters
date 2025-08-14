@@ -349,9 +349,18 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		if ( isset( $attrs['style']['spacing']['padding'] ) ) {
-			$padding = $attrs['style']['spacing']['padding'];
+			$padding = array_merge(
+				// Make sure we have all padding values set.
+				[
+					'top'    => '0',
+					'right'  => '0',
+					'bottom' => '0',
+					'left'   => '0',
+				],
+				$attrs['style']['spacing']['padding']
+			);
 			foreach ( $padding as $key => $value ) {
-				$padding[ $key ] = self::get_spacing_value( $value, $key );
+				$padding[ $key ] = self::get_spacing_value( $value );
 			}
 			$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
 		}
@@ -547,7 +556,7 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
-				'padding' => '12px',
+				'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
 			)
 		);
 
@@ -979,7 +988,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( $total_width > 100 ) {
 					$excess = $total_width - 100;
 					$adjustment_per_column = $excess / count( $inner_blocks );
-					
+
 					foreach ( $inner_blocks as $i => $block ) {
 						if ( isset( $block['attrs']['width'] ) ) {
 							$current_width = floatval( $block['attrs']['width'] );
