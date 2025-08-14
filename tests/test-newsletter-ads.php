@@ -74,6 +74,7 @@ class Newsletters_Newsletter_Ads_Test extends WP_UnitTestCase {
 				'post_title' => 'A sample ad',
 			]
 		);
+		update_post_meta( $ad_id, 'insertion_strategy', 'placement' );
 		wp_set_post_terms( $ad_id, [ $placement_id ], Ads_Placements::TAXONOMY );
 		$ad = Ads_Placements::get_ad_by_placement( $placement_id );
 		$this->assertNotEmpty( $ad );
@@ -129,6 +130,7 @@ class Newsletters_Newsletter_Ads_Test extends WP_UnitTestCase {
 				'name'     => 'Test Placement',
 			]
 		);
+		update_post_meta( $ad_id, 'insertion_strategy', 'placement' );
 		wp_set_post_terms( $ad_id, [ $placement_id ], Ads_Placements::TAXONOMY );
 
 		// Add the category to the ad.
@@ -181,6 +183,7 @@ class Newsletters_Newsletter_Ads_Test extends WP_UnitTestCase {
 				'name'     => 'Test Placement',
 			]
 		);
+		update_post_meta( $ad_id, 'insertion_strategy', 'placement' );
 		wp_set_post_terms( $ad_id, [ $placement_id ], Ads_Placements::TAXONOMY );
 
 		// Add advertiser to newsletter.
