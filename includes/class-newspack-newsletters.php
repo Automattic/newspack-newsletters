@@ -1089,6 +1089,27 @@ final class Newspack_Newsletters {
 							padding: 0 32px;;
 						}
 					<?php endif; ?>
+
+					/* Social Links Block Styles */
+					.wp-block-social-links {
+						gap: 0 !important;
+					}
+					.wp-block-social-links.is-style-circle-black .wp-social-link {
+						background: black;
+						color: white;
+					}
+					.wp-block-social-links.is-style-filled-black .wp-social-link {
+						background: transparent;
+						color: black;
+					}
+					.wp-block-social-links.is-style-circle-white .wp-social-link {
+						background: white;
+						color: black;
+					}
+					.wp-block-social-links.is-style-filled-white .wp-social-link {
+						background: transparent;
+						color: white;
+					}
 				</style>
 			<?php
 		}
