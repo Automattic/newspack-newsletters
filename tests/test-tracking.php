@@ -7,6 +7,7 @@
 
 use Newspack_Newsletters\Tracking\Pixel;
 use Newspack_Newsletters\Tracking\Click;
+use Newspack_Newsletters\Ads;
 
 /**
  * Newsletters Tracking Test.
@@ -57,8 +58,8 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		$content  = "<!-- wp:paragraph -->\n<p><a href=\"https://google.com\">Link</a><\/p>\n<!-- \/wp:paragraph -->";
 		$post_id  = $this->factory->post->create(
 			[
-				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-				'post_title'   => 'A newsletter with link.',
+				'post_type'    => Ads::CPT,
+				'post_title'   => 'A newsletter ad with link.',
 				'post_content' => $content,
 			]
 		);
@@ -101,6 +102,32 @@ class Newsletters_Tracking_Test extends WP_UnitTestCase {
 		// Assert clicked twice.
 		$clicks = \get_post_meta( $post_id, 'tracking_clicks', true );
 		$this->assertEquals( 2, $clicks );
+		$post_id = $this->factory->post->create(
+			[
+				'post_type'    => \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with link.',
+				'post_content' => $content,
+			]
+		);
+		// Ensure the newspack_email_html meta is set.
+		update_post_meta( $post_id, 'newspack_email_html', $content );
+
+		$post     = \get_post( $post_id );
+		$rendered = Newspack_Newsletters_Renderer::post_to_mjml_components( $post );
+
+		// Fetch the link URL from body.
+		$pattern = '/href="([^"]*)"/i';
+		$matches = [];
+		preg_match( $pattern, $rendered, $matches );
+		$link_url   = $matches[1];
+		$parsed_url = \wp_parse_url( $link_url );
+		$args       = \wp_parse_args( $parsed_url['query'] );
+
+		// Ensure id, url, em, and np_newsletters_click are NOT present.
+		$this->assertArrayNotHasKey( 'id', $args );
+		$this->assertArrayNotHasKey( 'url', $args );
+		$this->assertArrayNotHasKey( 'em', $args );
+		$this->assertArrayNotHasKey( 'np_newsletters_click', $args );
 	}
 
 	/**
