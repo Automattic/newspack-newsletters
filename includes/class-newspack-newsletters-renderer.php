@@ -1181,11 +1181,15 @@ final class Newspack_Newsletters_Renderer {
 			case 'newspack-newsletters/ad':
 				$ad_post = false;
 				if ( ! empty( $attrs['adId'] ) ) {
-					$ad_post = get_post( $attrs['adId'] );
+					if ( strpos( $attrs['adId'], 'placement:' ) === 0 ) {
+						$ad_post = Newspack_Newsletters\Ads_Placements::get_ad_by_placement( str_replace( 'placement:', '', $attrs['adId'] ), self::$newsletter_id );
+					} else {
+						$ad_post = get_post( $attrs['adId'] );
+					}
 				} elseif ( ! empty( self::$newsletter_id ) ) {
-					$ads = Newspack_Newsletters_Ads::get_newsletter_ads( self::$newsletter_id );
+					$ads = Newspack_Newsletters\Ads::get_newsletter_ads( self::$newsletter_id );
 					foreach ( $ads as $ad ) {
-						if ( ! Newspack_Newsletters_Ads::is_ad_inserted( self::$newsletter_id, $ad->ID ) ) {
+						if ( ! Newspack_Newsletters\Ads::is_ad_inserted( self::$newsletter_id, $ad->ID ) ) {
 							$ad_post = $ad;
 							break;
 						}
@@ -1194,7 +1198,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( $ad_post ) {
 					$block_mjml_markup = self::post_to_mjml_components( $ad_post );
 					if ( ! empty( self::$newsletter_id ) ) {
-						Newspack_Newsletters_Ads::mark_ad_inserted( self::$newsletter_id, $ad_post->ID );
+						Newspack_Newsletters\Ads::mark_ad_inserted( self::$newsletter_id, $ad_post->ID );
 					}
 				}
 				break;

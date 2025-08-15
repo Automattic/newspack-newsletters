@@ -1,3 +1,10 @@
+## [3.19.1](https://github.com/Automattic/newspack-newsletters/compare/v3.19.0...v3.19.1) (2025-08-12)
+
+
+### Bug Fixes
+
+* **ads:** ads in scheduled newsletters ([#1885](https://github.com/Automattic/newspack-newsletters/issues/1885)) ([a895989](https://github.com/Automattic/newspack-newsletters/commit/a895989acd94f3edeacfbfb342fd3a6158706e90))
+
 # [3.19.0](https://github.com/Automattic/newspack-newsletters/compare/v3.18.0...v3.19.0) (2025-08-11)
 
 

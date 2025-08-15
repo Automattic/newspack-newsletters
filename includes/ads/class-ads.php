@@ -5,23 +5,25 @@
  * @package Newspack
  */
 
+namespace Newspack_Newsletters;
+
+use Newspack_Newsletters;
+use Newspack_Newsletters_Letterhead;
+use DateTime;
+use WP_Query;
+use WP_Post;
+use WP_REST_Request;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Newspack Newsletters Ads Class.
  */
-final class Newspack_Newsletters_Ads {
+final class Ads {
 
 	const CPT = 'newspack_nl_ads_cpt';
 
 	const ADVERTISER_TAX = 'newspack_nl_advertiser';
-
-	/**
-	 * The single instance of the class.
-	 *
-	 * @var Newspack_Newsletters
-	 */
-	protected static $instance = null;
 
 	/**
 	 * Ads already inserted in the newsletter.
@@ -31,28 +33,16 @@ final class Newspack_Newsletters_Ads {
 	protected static $inserted_ads = [];
 
 	/**
-	 * Main Newspack Newsletter Ads Instance.
-	 * Ensures only one instance of Newspack Ads Instance is loaded or can be loaded.
-	 *
-	 * @return Newspack Ads Instance - Main instance.
+	 * Initialize hooks.
 	 */
-	public static function instance() {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
+	public static function init_hooks() {
 		add_action( 'init', [ __CLASS__, 'register_ads_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
 		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
+		add_action( 'current_screen', [ __CLASS__, 'prevent_direct_taxonomy_access' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );
 		add_action( 'newspack_newsletters_bulk_tracking_pixel_seen', [ __CLASS__, 'bulk_track_ad_impression' ], 10, 2 );
@@ -64,6 +54,8 @@ final class Newspack_Newsletters_Ads {
 		add_action( 'manage_edit-' . self::CPT . '_sortable_columns', [ __CLASS__, 'sortable_columns' ] );
 		// Sorting.
 		add_action( 'pre_get_posts', [ __CLASS__, 'handle_sorting' ] );
+
+		require_once __DIR__ . '/class-ads-placements.php';
 	}
 
 	/**
@@ -193,7 +185,6 @@ final class Newspack_Newsletters_Ads {
 	 */
 	public static function add_ads_page() {
 		$newsletter_ad_post_type_object = get_post_type_object( self::CPT );
-		$can_edit_newsletter_ads = current_user_can( $newsletter_ad_post_type_object->cap->edit_posts );
 
 		$page_title = apply_filters( 'newspack_newsletters_ads_page_title', __( 'Newsletters Ads', 'newspack-newsletters' ) );
 		$menu_title = apply_filters( 'newspack_newsletters_ads_menu_title', __( 'Ads', 'newspack-newsletters' ) );
@@ -222,15 +213,31 @@ final class Newspack_Newsletters_Ads {
 	}
 
 	/**
+	 * Prevent direct access to the advertiser taxonomy admin page if user can't edit ads.
+	 *
+	 * @param string $screen The screen ID used to identify the current admin screen context.
+	 */
+	public static function prevent_direct_taxonomy_access( $screen ) {
+		// Check if we're on the taxonomy edit page for our advertiser taxonomy.
+		if ( $screen && 'edit-tags' === $screen->base && self::ADVERTISER_TAX === $screen->taxonomy ) {
+			$newsletter_ads_post_type_object = get_post_type_object( self::CPT );
+			$can_edit_newsletter_ads = current_user_can( $newsletter_ads_post_type_object->cap->edit_posts );
+
+			// If user can't edit ads, redirect them away.
+			if ( ! $can_edit_newsletter_ads ) {
+				wp_die(
+					esc_html__( 'Sorry, you are not allowed to manage newsletter advertisers.', 'newspack-newsletters' ),
+					esc_html__( 'You need permission to manage newsletter ads', 'newspack-newsletters' ),
+					403
+				);
+			}
+		}
+	}
+
+	/**
 	 * Register the custom post type for layouts.
 	 */
 	public static function register_ads_cpt() {
-		$newsletters_post_type_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		$can_edit_newsletters = current_user_can( $newsletters_post_type_object->cap->edit_posts );
-		if ( ! $can_edit_newsletters ) {
-			return;
-		}
-
 		$labels = [
 			'name'                     => _x( 'Newsletter Ads', 'post type general name', 'newspack-newsletters' ),
 			'singular_name'            => _x( 'Newsletter Ad', 'post type singular name', 'newspack-newsletters' ),
@@ -303,7 +310,7 @@ final class Newspack_Newsletters_Ads {
 	 * Set default fields when Ad is created.
 	 *
 	 * @param int     $post_id ID of post being saved.
-	 * @param WP_POST $post The post being saved.
+	 * @param WP_Post $post The post being saved.
 	 * @param bool    $update True if this is an update, false if a newly created post.
 	 */
 	public static function ad_default_fields( $post_id, $post, $update ) {
@@ -375,7 +382,8 @@ final class Newspack_Newsletters_Ads {
 	 * Get properties required to render a useful modal in the editor that alerts
 	 * users of ads they're sending.
 	 *
-	 * @param WP_REST_REQUEST $request The WP Request Object.
+	 * @param WP_REST_Request $request The WP Request Object.
+	 *
 	 * @return array
 	 */
 	public static function get_ads_config( $request ) {
@@ -453,7 +461,7 @@ final class Newspack_Newsletters_Ads {
 	 * Get available ads for a newsletter.
 	 *
 	 * @param int  $newsletter_id   Newsletter post ID.
-	 * @param bool $skip_validation Whether to skip validation of ad categories and advertisers.
+	 * @param bool $skip_validation Whether to skip validation of ad categories, advertisers, and placements.
 	 *
 	 * @return WP_Post[] Array of ad posts.
 	 */
@@ -473,6 +481,10 @@ final class Newspack_Newsletters_Ads {
 			}
 			// Skip if ad is not active.
 			if ( ! self::is_ad_active( $ad->ID, $newsletter_id ) ) {
+				continue;
+			}
+			// Skip if the ad insertion is via placement.
+			if ( 'placement' === get_post_meta( $ad->ID, 'insertion_strategy', true ) ) {
 				continue;
 			}
 			$ad_categories = wp_get_post_terms( $ad->ID, 'category' );
@@ -526,14 +538,14 @@ final class Newspack_Newsletters_Ads {
 			$ads_by_position[ $position ][] = $ad;
 		}
 
+		ksort( $ads_by_position );
+
 		$flattened_ads = [];
 		foreach ( $ads_by_position as $position_ads ) {
 			foreach ( $position_ads as $ad ) {
 				$flattened_ads[] = $ad;
 			}
 		}
-
-		sort( $flattened_ads );
 		return $flattened_ads;
 	}
 
@@ -639,7 +651,7 @@ final class Newspack_Newsletters_Ads {
 	/**
 	 * Handle sorting.
 	 *
-	 * @param \WP_Query $query Query.
+	 * @param WP_Query $query Query.
 	 */
 	public static function handle_sorting( $query ) {
 		if ( ! is_admin() || ! $query->is_main_query() ) {
@@ -686,7 +698,7 @@ final class Newspack_Newsletters_Ads {
 	 * Some blocks should never have an ad right after them. For example, an ad right after a subheading
 	 * (header block) would not look good.
 	 *
-	 * @param object $block A block.
+	 * @param array $block A block.
 	 */
 	private static function can_block_be_followed_by_ad( $block ) {
 		if (
@@ -714,7 +726,7 @@ final class Newspack_Newsletters_Ads {
 	/**
 	 * Get content from a given block's inner blocks, and recursively from those blocks' inner blocks.
 	 *
-	 * @param object $block A block.
+	 * @param array $block A block.
 	 *
 	 * @return string The block's inner content.
 	 */
@@ -738,7 +750,7 @@ final class Newspack_Newsletters_Ads {
 	/**
 	 * Get content from given block, including content from the block's inner blocks, if any.
 	 *
-	 * @param object $block A block.
+	 * @param array $block A block.
 	 *
 	 * @return string The block's content.
 	 */
@@ -930,4 +942,4 @@ final class Newspack_Newsletters_Ads {
 		return $output;
 	}
 }
-Newspack_Newsletters_Ads::instance();
+Ads::init_hooks();

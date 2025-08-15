@@ -87,7 +87,7 @@ final class Newspack_Newsletters_Editor {
 	private static function get_email_editor_cpts() {
 		$email_cpts = [
 			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			Newspack_Newsletters_Ads::CPT,
+			Newspack_Newsletters\Ads::CPT,
 		];
 		return apply_filters( 'newspack_newsletters_email_editor_cpts', $email_cpts );
 	}
@@ -321,7 +321,7 @@ final class Newspack_Newsletters_Editor {
 	public static function enqueue_block_editor_assets() {
 		// Remove the Ads CPT - it does not need MJML handling since ads
 		// will be injected into email content before it's converted to MJML.
-		$mjml_handling_post_types = array_values( array_diff( self::get_email_editor_cpts(), [ Newspack_Newsletters_Ads::CPT ] ) );
+		$mjml_handling_post_types = array_values( array_diff( self::get_email_editor_cpts(), [ Newspack_Newsletters\Ads::CPT ] ) );
 		$provider                 = Newspack_Newsletters::get_service_provider();
 		$conditional_tag_support  = false;
 
@@ -445,7 +445,7 @@ final class Newspack_Newsletters_Editor {
 	 * Is editing a newsletter ad?
 	 */
 	private static function is_editing_newsletter_ad() {
-		return Newspack_Newsletters_Ads::CPT === get_post_type();
+		return Newspack_Newsletters\Ads::CPT === get_post_type();
 	}
 
 	/**
