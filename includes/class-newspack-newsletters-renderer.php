@@ -979,7 +979,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( $total_width > 100 ) {
 					$excess = $total_width - 100;
 					$adjustment_per_column = $excess / count( $inner_blocks );
-					
+
 					foreach ( $inner_blocks as $i => $block ) {
 						if ( isset( $block['attrs']['width'] ) ) {
 							$current_width = floatval( $block['attrs']['width'] );
