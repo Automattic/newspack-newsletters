@@ -1167,6 +1167,23 @@ final class Newspack_Newsletters_Renderer {
 					}
 				}
 				break;
+
+			/**
+			 * Remote Data Blocks.
+			 */
+			case 'remote-data-blocks/foundation-event':
+			case 'remote-data-blocks/foundation-events':
+			case 'remote-data-blocks/foundation-location':
+			case 'remote-data-blocks/foundation-locations':
+			case 'remote-data-blocks/foundation-movie':
+			case 'remote-data-blocks/foundation-movies':
+			case 'remote-data-blocks/template':
+				foreach ( $inner_blocks as $block ) {
+					$markup .= self::render_mjml_component( $block, true, false, $default_attrs );
+				}
+				$block_mjml_markup = $markup;
+				break;
+
 		}
 
 		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
