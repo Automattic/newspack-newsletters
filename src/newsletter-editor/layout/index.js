@@ -38,6 +38,7 @@ export default compose( [
 			senderName,
 			send_list_id,
 			send_sublist_id,
+			disable_auto_ads,
 		} = meta;
 		const layoutMeta = {
 			background_color,
@@ -45,6 +46,7 @@ export default compose( [
 			font_body,
 			font_header,
 			custom_css,
+			disable_auto_ads,
 		};
 
 		// ESP-agnostic sender and send_to defaults.
