@@ -349,9 +349,18 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		if ( isset( $attrs['style']['spacing']['padding'] ) ) {
-			$padding = $attrs['style']['spacing']['padding'];
+			$padding = array_merge(
+				// Make sure we have all padding values set.
+				[
+					'top'    => '0',
+					'right'  => '0',
+					'bottom' => '0',
+					'left'   => '0',
+				],
+				$attrs['style']['spacing']['padding']
+			);
 			foreach ( $padding as $key => $value ) {
-				$padding[ $key ] = self::get_spacing_value( $value, $key );
+				$padding[ $key ] = self::get_spacing_value( $value );
 			}
 			$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
 		}
@@ -547,7 +556,7 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the column which will envelop the component.
 		$column_attrs = array_merge(
 			array(
-				'padding' => '12px',
+				'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
 			)
 		);
 
@@ -967,6 +976,28 @@ final class Newspack_Newsletters_Renderer {
 					$inner_blocks[ $no_width_cols_index ]['attrs']['width'] = ( 100 - $widths_sum ) / count( $no_width_cols_indexes ) . '%';
 				}
 
+				// Recalculate total width including no-width columns that were just assigned.
+				$total_width = 0;
+				foreach ( $inner_blocks as $block ) {
+					if ( isset( $block['attrs']['width'] ) ) {
+						$total_width += floatval( $block['attrs']['width'] );
+					}
+				}
+
+				// If total width exceeds 100%, adjust all columns proportionally.
+				if ( $total_width > 100 ) {
+					$excess = $total_width - 100;
+					$adjustment_per_column = $excess / count( $inner_blocks );
+
+					foreach ( $inner_blocks as $i => $block ) {
+						if ( isset( $block['attrs']['width'] ) ) {
+							$current_width = floatval( $block['attrs']['width'] );
+							$new_width = max( 1, $current_width - $adjustment_per_column ); // Ensure minimum 1% width.
+							$inner_blocks[ $i ]['attrs']['width'] = $new_width . '%';
+						}
+					}
+				}
+
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
@@ -1150,11 +1181,15 @@ final class Newspack_Newsletters_Renderer {
 			case 'newspack-newsletters/ad':
 				$ad_post = false;
 				if ( ! empty( $attrs['adId'] ) ) {
-					$ad_post = get_post( $attrs['adId'] );
+					if ( strpos( $attrs['adId'], 'placement:' ) === 0 ) {
+						$ad_post = Newspack_Newsletters\Ads_Placements::get_ad_by_placement( str_replace( 'placement:', '', $attrs['adId'] ), self::$newsletter_id );
+					} else {
+						$ad_post = get_post( $attrs['adId'] );
+					}
 				} elseif ( ! empty( self::$newsletter_id ) ) {
-					$ads = Newspack_Newsletters_Ads::get_newsletter_ads( self::$newsletter_id );
+					$ads = Newspack_Newsletters\Ads::get_newsletter_ads( self::$newsletter_id );
 					foreach ( $ads as $ad ) {
-						if ( ! Newspack_Newsletters_Ads::is_ad_inserted( self::$newsletter_id, $ad->ID ) ) {
+						if ( ! Newspack_Newsletters\Ads::is_ad_inserted( self::$newsletter_id, $ad->ID ) ) {
 							$ad_post = $ad;
 							break;
 						}
@@ -1163,7 +1198,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( $ad_post ) {
 					$block_mjml_markup = self::post_to_mjml_components( $ad_post );
 					if ( ! empty( self::$newsletter_id ) ) {
-						Newspack_Newsletters_Ads::mark_ad_inserted( self::$newsletter_id, $ad_post->ID );
+						Newspack_Newsletters\Ads::mark_ad_inserted( self::$newsletter_id, $ad_post->ID );
 					}
 				}
 				break;

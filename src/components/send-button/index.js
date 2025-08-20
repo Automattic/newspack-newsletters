@@ -156,8 +156,12 @@ export default compose( [
 		meta,
 		sent,
 		isPublished,
+		postDate,
 	} ) => {
 		const [ modalVisible, setModalVisible ] = useState( false );
+
+		// Check if we're scheduling with a past date
+		const isSchedulingInPast = status = 'future' && postDate && new Date( postDate ) < new Date();
 
 		// If the save request failed, close any open modals so the error message can be seen underneath.
 		useEffect( () => {
@@ -193,6 +197,8 @@ export default compose( [
 					? __( 'Sent and Published', 'newspack-newsletters' )
 					: __( 'Sent', 'newspack-newsletters' );
 			}
+		} else if ( isSchedulingInPast ) {
+			label = __( 'Send', 'newspack-newsletters' );
 		} else if ( 'future' === status ) {
 			// Scheduled to be sent
 			label = __( 'Scheduled', 'newspack-newsletters' );
@@ -237,9 +243,9 @@ export default compose( [
 			modalSubmitLabel = label;
 		}
 
-		const triggerCampaignSend = () => {
+		const triggerCampaignSend = async () => {
 			editPost( { status: publishStatus } );
-			savePost();
+			await savePost();
 		};
 
 		const unscheduleNewsletter = () => {
@@ -249,7 +255,7 @@ export default compose( [
 			} );
 			savePost();
 		};
-
+		
 		// For sent newsletters, display the generic button text.
 		if ( isPublished || sent ) {
 			return (
@@ -325,13 +331,17 @@ export default compose( [
 					isBusy={ isSaving && 'publish' === status }
 					variant="primary"
 					onClick={ async () => {
-						try {
-							await savePost();
-							if ( saveDidSucceed ) {
-								setModalVisible( true );
+						if ( isSchedulingInPast ) {
+							setModalVisible( true );
+						} else {
+							try {
+								await savePost();
+								if ( saveDidSucceed ) {
+									setModalVisible( true );
+								}
+							} catch ( e ) {
+								setModalVisible( false );
 							}
-						} catch ( e ) {
-							setModalVisible( false );
 						}
 					} }
 					disabled={ ! isButtonEnabled }
