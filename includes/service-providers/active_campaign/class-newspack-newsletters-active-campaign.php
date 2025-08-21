@@ -764,6 +764,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Get the address ID to be used for the campaign. Default to 0, which will use AC default address.
+	 *
+	 * @return int
+	 */
+	private function get_address_id() {
+		if ( ! defined( 'NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID' ) ) {
+			return 0;
+		}
+		return NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID;
+	}
+
+	/**
 	 * Given legacy newsletterData, extract sender and send-to info.
 	 *
 	 * @param array $newsletter_data Newsletter data from the ESP.
@@ -1147,6 +1159,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'segmentid'                             => $send_sublist_id ?? 0, // 0 = No segment.
 			'p[' . $send_list_id . ']'              => $send_list_id,
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
+			'addressid'                             => $this->get_address_id(),
 		];
 		if ( defined( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING' ) && NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING ) {
 			$campaign_data['tracklinks'] = 'none';
