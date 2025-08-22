@@ -1214,7 +1214,7 @@ final class Newspack_Newsletters_Renderer {
 			case 'remote-data-blocks/foundation-movies':
 			case 'remote-data-blocks/template':
 				foreach ( $inner_blocks as $block ) {
-					$markup .= self::render_mjml_component( $block, true, false, $default_attrs );
+					$markup .= self::render_mjml_component( $block, false, false, $default_attrs );
 				}
 				$block_mjml_markup = $markup;
 				break;
