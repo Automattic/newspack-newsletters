@@ -62,7 +62,31 @@ const SendTo = () => {
 			fetchSendLists( { type: 'sublist', parent_id: listId }, true );
 			updateMeta( { send_sublist_id: null } );
 		}
-	}, [ newsletterData, listId, sublistId ] );
+
+		// If the list ID doesn't match any fetched lists reset the list and sublist IDs.
+		if ( listId && ! lists.find( item => item.id.toString() === listId.toString() ) ) {
+			updateMeta( { send_list_id: null, send_sublist_id: null } );
+			setError(
+				sprintf(
+					// Translators: Error shown when we can't find the selected list for a newsletter. %s is the ESP's label for the list entity.
+					__( 'Could not find the selected %s. It may have been deleted in your email service provider.', 'newspack-newsletters' ),
+					listLabel
+				)
+			);
+		}
+
+		// If the sublist ID doesn't match any fetched sublists reset the sublist ID.
+		if ( sublistId && listId && ! sublists?.find( item => item.id.toString() === sublistId.toString() ) ) {
+			updateMeta( { send_sublist_id: null } );
+			setError(
+				sprintf(
+					// Translators: Error shown when we can't find the selected sublist for a newsletter. %s is the ESP's label for the sublist entity or entities.
+					__( 'Could not find the selected %s. It may have been deleted in your email service provider.', 'newspack-newsletters' ),
+					sublistLabel
+				)
+			);
+		}
+	}, [ newsletterData?.lists, newsletterData?.sublists, listId, sublistId ] );
 
 	const renderSelectedSummary = () => {
 		if ( ! selectedList?.name || ( selectedSublist && ! selectedSublist.name ) ) {

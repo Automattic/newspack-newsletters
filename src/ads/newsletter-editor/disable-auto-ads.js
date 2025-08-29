@@ -15,7 +15,7 @@ export default function DisableAutoAds( { saveOnToggle = false } ) {
 		const { getBlocks } = select( 'core/block-editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
-			disableAutoAds: meta.disable_auto_ads,
+			disableAutoAds: !! meta.disable_auto_ads,
 			postId: getCurrentPostId(),
 			isSaving: isSavingPost(),
 			postBlocks: getBlocks(),
