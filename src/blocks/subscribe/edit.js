@@ -4,6 +4,7 @@
  * External dependencies.
  */
 import classnames from 'classnames';
+import React from 'react';
 
 /**
  * WordPress dependencies
@@ -342,7 +343,12 @@ export default function SubscribeEdit( {
 															<span className="list-title">{ listConfig[ listId ]?.title }</span>
 															{ displayDescription && (
 																<span className="list-description">
-																	{ listConfig[ listId ]?.description }
+																	{ listConfig[ listId ]?.description?.split( '\n' ).map( ( line, index ) => (
+																		<React.Fragment key={ index }>
+																			{ line }
+																			{ index < listConfig[ listId ].description.split( '\n' ).length - 1 && <br /> }
+																		</React.Fragment>
+																	) ) }
 																</span>
 															) }
 														</label>
