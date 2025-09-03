@@ -12,7 +12,7 @@ import { useEffect, useState } from '@wordpress/element';
  * Internal dependencies
  */
 import Autocomplete from './autocomplete';
-import { fetchSendLists, useNewsletterData } from '../store';
+import { fetchSendLists, useIsRetrieving, useNewsletterData } from '../store';
 import { usePrevious } from '../utils';
 
 // The container for list + sublist autocomplete fields.
@@ -31,6 +31,7 @@ const SendTo = () => {
 	const updateMeta = ( meta ) => editPost( { meta } );
 
 	const newsletterData = useNewsletterData();
+	const isRetrieving = useIsRetrieving();
 	const { lists = [], sublists } = newsletterData; // All ESPs have lists, but not all have sublists.
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
@@ -64,7 +65,7 @@ const SendTo = () => {
 		}
 
 		// If the list ID doesn't match any fetched lists reset the list and sublist IDs.
-		if ( listId && ! lists.find( item => item.id.toString() === listId.toString() ) ) {
+		if ( ! isRetrieving && listId && lists.length > 0 && ! lists.find( item => item.id.toString() === listId.toString() ) ) {
 			updateMeta( { send_list_id: null, send_sublist_id: null } );
 			setError(
 				sprintf(
@@ -76,7 +77,7 @@ const SendTo = () => {
 		}
 
 		// If the sublist ID doesn't match any fetched sublists reset the sublist ID.
-		if ( sublistId && listId && ! sublists?.find( item => item.id.toString() === sublistId.toString() ) ) {
+		if ( ! isRetrieving && sublistId && sublists.length > 0 && listId && ! sublists?.find( item => item.id.toString() === sublistId.toString() ) ) {
 			updateMeta( { send_sublist_id: null } );
 			setError(
 				sprintf(
@@ -86,7 +87,7 @@ const SendTo = () => {
 				)
 			);
 		}
-	}, [ newsletterData?.lists, newsletterData?.sublists, listId, sublistId ] );
+	}, [ newsletterData?.lists, newsletterData?.sublists, listId, sublistId, isRetrieving ] );
 
 	const renderSelectedSummary = () => {
 		if ( ! selectedList?.name || ( selectedSublist && ! selectedSublist.name ) ) {
