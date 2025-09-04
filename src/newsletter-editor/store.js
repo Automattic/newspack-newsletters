@@ -28,6 +28,9 @@ import { debounce, sortBy } from 'lodash';
 export const STORE_NAMESPACE = 'newspack/newsletters';
 
 const DEFAULT_STATE = {
+	hasRetrievedData: false,
+	hasRetrievedLists: false,
+	hasRetrievedSyncErrors: false,
 	isRetrievingData: false,
 	isRetrievingLists: false,
 	isRetrievingSyncErrors: false,
@@ -45,6 +48,12 @@ const reducer = ( state = DEFAULT_STATE, { type, payload = {} } ) => {
 			return { ...state, isRetrievingLists: payload };
 		case 'SET_IS_RETRIEVING_SYNC_ERRORS':
 			return { ...state, isRetrievingSyncErrors: payload };
+		case 'SET_HAS_RETRIEVED_DATA':
+			return { ...state, hasRetrievedData: payload };
+		case 'SET_HAS_RETRIEVED_LISTS':
+			return { ...state, hasRetrievedLists: payload };
+		case 'SET_HAS_RETRIEVED_SYNC_ERRORS':
+			return { ...state, hasRetrievedSyncErrors: payload };
 		case 'SET_IS_REFRESHING_HTML':
 			return { ...state, isRefreshingHtml: payload };
 		case 'SET_DATA':
@@ -62,6 +71,9 @@ const actions = {
 	setIsRetrievingData: createAction( 'SET_IS_RETRIEVING_DATA' ),
 	setIsRetrievingLists: createAction( 'SET_IS_RETRIEVING_LISTS' ),
 	setIsRetrievingSyncErrors: createAction( 'SET_IS_RETRIEVING_SYNC_ERRORS' ),
+	setHasRetrievedData: createAction( 'SET_HAS_RETRIEVED_DATA' ),
+	setHasRetrievedLists: createAction( 'SET_HAS_RETRIEVED_LISTS' ),
+	setHasRetrievedSyncErrors: createAction( 'SET_HAS_RETRIEVED_SYNC_ERRORS' ),
 	setIsRefreshingHtml: createAction( 'SET_IS_REFRESHING_HTML' ),
 	setData: createAction( 'SET_DATA' ),
 	setError: createAction( 'SET_ERROR' ),
@@ -71,6 +83,9 @@ const selectors = {
 	getIsRetrievingData: state => state.isRetrievingData,
 	getIsRetrievingLists: state => state.isRetrievingLists,
 	getIsRetrievingSyncErrors: state => state.isRetrievingSyncErrors,
+	getHasRetrievedData: state => state.hasRetrievedData,
+	getHasRetrievedLists: state => state.hasRetrievedLists,
+	getHasRetrievedSyncErrors: state => state.hasRetrievedSyncErrors,
 	getIsRefreshingHtml: state => state.isRefreshingHtml,
 	getData: state => state.newsletterData || {},
 	getError: state => state.error,
@@ -101,10 +116,13 @@ export const useIsRefreshingHtml = () =>
 // Hook to use the newsletter data from any editor component.
 export const useNewsletterData = () =>
 	useSelect( select => {
-		const { getData, getIsRetrievingData } = select( STORE_NAMESPACE );
+		const { getData, getIsRetrievingData, getIsRetrievingLists } = select( STORE_NAMESPACE );
 		return {
 			newsletterData: getData(),
-			isRetrieving: getIsRetrievingData(),
+			isRetrievingData: getIsRetrievingData(),
+			isRetrievingLists: getIsRetrievingLists(),
+			hasRetrievedData: select( STORE_NAMESPACE ).getHasRetrievedData(),
+			hasRetrievedLists: select( STORE_NAMESPACE ).getHasRetrievedLists(),
 		}
 	} );
 
@@ -125,6 +143,18 @@ export const updateIsRetrievingLists = isRetrieving =>
 // Dispatcher to update error retrieval status in the store.
 export const updateIsRetrievingSyncErrors = isRetrieving =>
 	dispatch( STORE_NAMESPACE ).setIsRetrievingSyncErrors( isRetrieving );
+
+// Dispatcher to update data retrieved status in the store.
+export const updateHasRetrievedData = hasRetrieved =>
+	dispatch( STORE_NAMESPACE ).setHasRetrievedData( hasRetrieved );
+
+// Dispatcher to update lists retrieved status in the store.
+export const updateHasRetrievedLists = hasRetrieved =>
+	dispatch( STORE_NAMESPACE ).setHasRetrievedLists( hasRetrieved );
+
+// Dispatcher to update sync errors retrieved status in the store.
+export const updateHasRetrievedSyncErrors = hasRetrieved =>
+	dispatch( STORE_NAMESPACE ).setHasRetrievedSyncErrors( hasRetrieved );
 
 // Dispatcher to update refreshing HTML status in the store.
 export const updateIsRefreshingHtml = isRetrieving =>
@@ -148,6 +178,7 @@ export const fetchNewsletterData = async postId => {
 	if ( isRetrieving ) {
 		return;
 	}
+	updateHasRetrievedData( false );
 	updateIsRetrievingData( true );
 	updateNewsletterDataError( null );
 	try {
@@ -166,8 +197,10 @@ export const fetchNewsletterData = async postId => {
 			updatedNewsletterData.sublists = newsletterData.sublists;
 		}
 		updateNewsletterData( updatedNewsletterData );
+		updateHasRetrievedData( true );
 	} catch ( error ) {
 		updateNewsletterDataError( error );
+		updateHasRetrievedData( false );
 	}
 	updateIsRetrievingData( false );
 	return true;
@@ -250,6 +283,7 @@ export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 		if ( isRetrieving ) {
 			return;
 		}
+		updateHasRetrievedLists( false );
 		updateIsRetrievingLists( true );
 		const response = await apiFetch( {
 			path: addQueryArgs(
@@ -270,8 +304,10 @@ export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 		}
 
 		updateNewsletterData( updatedNewsletterData );
+		updateHasRetrievedLists( true );
 	} catch ( error ) {
 		updateNewsletterDataError( error );
+		updateHasRetrievedLists( false );
 	}
 	updateIsRetrievingLists( false );
 }, 500 );
