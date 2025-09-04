@@ -47,8 +47,8 @@ function PreviewHTML() {
 
 	useEffect( () => {
 		if ( ! previewHtml ) {
-			refreshEmailHtml( postId, postTitle, postContent ).then( refreshedHtml => {
-				setPreviewHtml( refreshedHtml );
+			refreshEmailHtml( postId, postTitle, postContent ).then( ( { html } ) => {
+				setPreviewHtml( html );
 			} );
 		}
 	}, [] );
@@ -111,7 +111,8 @@ function PreviewHTMLButton() {
 export default compose( [
 	withDispatch( dispatch => {
 		const { editPost, savePost } = dispatch( 'core/editor' );
-		return { editPost, savePost };
+		const { createNotice } = dispatch( 'core/notices' );
+		return { editPost, savePost, createNotice };
 	} ),
 	withSelect( ( select ) => {
 		const {
@@ -125,7 +126,10 @@ export default compose( [
 			isSavingPost,
 			isEditedPostBeingScheduled,
 			isCurrentPostPublished,
+			getEditedPostContent,
+			getCurrentPostId,
 		} = select( 'core/editor' );
+
 		return {
 			isPublishable: isEditedPostPublishable(),
 			isSaveable: isEditedPostSaveable(),
@@ -139,12 +143,16 @@ export default compose( [
 			sent: getCurrentPostAttribute( 'meta' ).newsletter_sent,
 			isPublished: isCurrentPostPublished(),
 			postDate: getEditedPostAttribute( 'date' ),
+			postContent: getEditedPostContent(),
+			postId: getCurrentPostId(),
+			postTitle: getEditedPostAttribute( 'title' ),
 		};
 	} ),
 ] )(
 	( {
 		editPost,
 		savePost,
+		createNotice,
 		isPublishable,
 		isSaveable,
 		isSaving,
@@ -157,11 +165,11 @@ export default compose( [
 		sent,
 		isPublished,
 		postDate,
+		postContent,
+		postId,
+		postTitle,
 	} ) => {
 		const [ modalVisible, setModalVisible ] = useState( false );
-
-		// Check if we're scheduling with a past date
-		const isSchedulingInPast = status = 'future' && postDate && new Date( postDate ) < new Date();
 
 		// If the save request failed, close any open modals so the error message can be seen underneath.
 		useEffect( () => {
@@ -197,11 +205,14 @@ export default compose( [
 					? __( 'Sent and Published', 'newspack-newsletters' )
 					: __( 'Sent', 'newspack-newsletters' );
 			}
-		} else if ( isSchedulingInPast ) {
-			label = __( 'Send', 'newspack-newsletters' );
 		} else if ( 'future' === status ) {
-			// Scheduled to be sent
-			label = __( 'Scheduled', 'newspack-newsletters' );
+			if ( postDate && new Date( postDate ) < new Date() ) {
+				// Scheduled, but in the past ¯\_(ツ)_/¯.
+				label = __( 'Send', 'newspack-newsletters' );
+			} else {
+				// Scheduled to be sent.
+				label = __( 'Scheduled', 'newspack-newsletters' );
+			}
 		} else if ( isEditedPostBeingScheduled ) {
 			label = __( 'Schedule sending', 'newspack-newsletters' );
 		} else {
@@ -312,6 +323,20 @@ export default compose( [
 			);
 		}
 
+		const handleModalOpen = async () => {
+			const res = await refreshEmailHtml( postId, postTitle, postContent );
+			if ( res.result === 'success' ) {
+				setModalVisible( true );
+			} else {
+				let noticeString = __( 'Something went wrong when converting the post to email', 'newspack-newsletters' );
+				if ( res.error?.message ) {
+					noticeString += `: ${res.error.message}`
+				}
+				createNotice( 'error', noticeString );
+				setModalVisible( false );
+			}
+		}
+
 		return (
 			<div style={{ display: 'flex' }}>
 				{ 'future' === status && (
@@ -330,20 +355,7 @@ export default compose( [
 					className="editor-post-publish-button"
 					isBusy={ isSaving && 'publish' === status }
 					variant="primary"
-					onClick={ async () => {
-						if ( isSchedulingInPast ) {
-							setModalVisible( true );
-						} else {
-							try {
-								await savePost();
-								if ( saveDidSucceed ) {
-									setModalVisible( true );
-								}
-							} catch ( e ) {
-								setModalVisible( false );
-							}
-						}
-					} }
+					onClick={ handleModalOpen }
 					disabled={ ! isButtonEnabled }
 				>
 					{ label }
