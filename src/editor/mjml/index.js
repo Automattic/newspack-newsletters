@@ -33,7 +33,7 @@ import mjml2html from 'mjml-browser';
  * @return {Promise<string>} The refreshed email HTML.
  */
 export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
-	const mjml = await apiFetch( {
+	return apiFetch( {
 		path: `/newspack-newsletters/v1/post-mjml`,
 		method: 'POST',
 		data: {
@@ -41,11 +41,13 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 			title: postTitle,
 			content: postContent,
 		},
-	} );
-
-	// Once received MJML markup, convert it to email-compliant HTML and save as post meta.
-	const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
-	return html;
+	} ).then( mjml => {
+		// Once received MJML markup, convert it to email-compliant HTML and save as post meta.
+		const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
+		return { result: 'success', html };
+	}).catch( error => {
+		return { result: 'error', error }
+	});
 };
 
 function MJML() {
@@ -130,11 +132,16 @@ function MJML() {
 				updateIsRefreshingHtml( true );
 			}
 			const refreshedHtml = await refreshEmailHtml( postId, postTitle, postContent );
-			updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml );
+			if ( refreshedHtml.html ) {
+				updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml.html );
+			} else {
+				const errorMessage = __( 'Failed to refresh email HTML', 'newspack-newsletters');
+				throw new Error( `${ errorMessage }${ refreshedHtml.error?.message ? `: ${ refreshedHtml.error?.message }` : '.'}` ) ;
+			}
 
 			// Save the refreshed HTML to post meta.
 			await apiFetch( {
-				data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml } },
+				data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml.html } },
 				method: 'POST',
 				path: `/wp/v2/${ postType }/${ postId }`,
 			} );
