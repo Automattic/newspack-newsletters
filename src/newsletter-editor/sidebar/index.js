@@ -42,7 +42,7 @@ const Sidebar = ( {
 } ) => {
 	const [ plainTextTitle, setPlainTextTitle ] = useState( null );
 	const isRetrieving = useIsRetrieving();
-	const newsletterData = useNewsletterData();
+	const { newsletterData } = useNewsletterData();
 	const newsletterDataError = useNewsletterDataError();
 	const campaign = newsletterData?.campaign;
 	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );

@@ -12,7 +12,7 @@ import { useEffect, useState } from '@wordpress/element';
  * Internal dependencies
  */
 import Autocomplete from './autocomplete';
-import { fetchSendLists, useIsRetrieving, useNewsletterData } from '../store';
+import { fetchSendLists, useNewsletterData } from '../store';
 import { usePrevious } from '../utils';
 
 // The container for list + sublist autocomplete fields.
@@ -30,9 +30,7 @@ const SendTo = () => {
 	const editPost = useDispatch( 'core/editor' ).editPost;
 	const updateMeta = ( meta ) => editPost( { meta } );
 
-	const newsletterData = useNewsletterData();
-	const isRetrieving = useIsRetrieving();
-	const { lists = [], sublists } = newsletterData; // All ESPs have lists, but not all have sublists.
+	const { newsletterData: { lists = [], sublists, send_list_id = null, send_sublist_id = null }, isRetrieving } = useNewsletterData();
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
@@ -63,10 +61,10 @@ const SendTo = () => {
 			fetchSendLists( { type: 'sublist', parent_id: listId }, true );
 			updateMeta( { send_sublist_id: null } );
 		}
-	}, [ newsletterData, listId, sublistId ] );
+	}, [ lists, sublists, listId, sublistId ] );
 
 	useEffect( () => {
-		if ( isRetrieving || ! ( lists?.length || sublists?.length ) ) {
+		if ( isRetrieving || ! lists.length ) {
 			return;
 		}
 		// If the list ID doesn't match any fetched lists reset the list and sublist IDs.
@@ -152,7 +150,7 @@ const SendTo = () => {
 				</Notice>
 			) }
 			{
-				( newsletterData?.send_list_id || newsletterData?.send_sublist_id ) && (
+				( send_list_id || send_sublist_id ) && (
 					<Notice status="success" isDismissible={ false }>
 						{ __( 'Updated send-to info fetched from ESP.', 'newspack-newsletters' ) }
 					</Notice>

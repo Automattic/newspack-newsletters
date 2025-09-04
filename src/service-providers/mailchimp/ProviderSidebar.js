@@ -14,7 +14,7 @@ export const ProviderSidebar = ( {
 	meta,
 	updateMeta,
 } ) => {
-	const newsletterData = useNewsletterData();
+	const { newsletterData } = useNewsletterData();
 	const { campaign, folders } = newsletterData;
 
 	const getFolderOptions = () => {

@@ -25,7 +25,7 @@ const Sender = (
 		updateMeta
 	}
 ) => {
-	const newsletterData = useNewsletterData();
+	const { newsletterData } = useNewsletterData();
 	const { allowed_sender_domains: allowedDomains, allowed_sender_emails: allowedEmails = null, email_settings_url: settingsUrl } = newsletterData;
 	const senderEmailClasses = classnames(
 		'newspack-newsletters__email-textcontrol',

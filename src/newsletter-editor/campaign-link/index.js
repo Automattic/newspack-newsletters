@@ -11,7 +11,7 @@ import { getServiceProvider } from '../../service-providers';
 import { useNewsletterData } from '../../newsletter-editor/store';
 
 export default function CampaignLink() {
-	const newsletterData = useNewsletterData();
+	const { newsletterData } = useNewsletterData();
 	if ( ! newsletterData.link ) {
 		return null;
 	}

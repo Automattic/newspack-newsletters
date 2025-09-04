@@ -171,7 +171,7 @@ export default compose( [
 		}, [ saveDidSucceed ] );
 
 		const { is_public } = meta;
-		const newsletterData = useNewsletterData();
+		const { newsletterData } = useNewsletterData();
 
 		const newsletterValidationErrors = validateNewsletter( meta );
 
@@ -255,7 +255,7 @@ export default compose( [
 			} );
 			savePost();
 		};
-		
+
 		// For sent newsletters, display the generic button text.
 		if ( isPublished || sent ) {
 			return (
