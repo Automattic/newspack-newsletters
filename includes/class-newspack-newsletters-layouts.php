@@ -213,7 +213,7 @@ final class Newspack_Newsletters_Layouts {
 					'font_header'       => get_post_meta( $post->ID, 'font_header', true ),
 					'custom_css'        => get_post_meta( $post->ID, 'custom_css', true ),
 					'campaign_defaults' => get_post_meta( $post->ID, 'campaign_defaults', true ),
-					'disable_auto_ads'  => get_post_meta( $post->ID, 'disable_auto_ads', true ),
+					'disable_auto_ads'  => boolval( get_post_meta( $post->ID, 'disable_auto_ads', true ) ),
 				];
 
 				// Migrate layout defaults from legacy meta, if it exists.
