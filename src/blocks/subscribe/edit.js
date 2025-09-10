@@ -4,14 +4,13 @@
  * External dependencies.
  */
 import classnames from 'classnames';
-import React from 'react';
 
 /**
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
-import { useState, useEffect } from '@wordpress/element';
+import { Fragment, useState, useEffect } from '@wordpress/element';
 import {
 	TextControl,
 	ToggleControl,
@@ -343,11 +342,11 @@ export default function SubscribeEdit( {
 															<span className="list-title">{ listConfig[ listId ]?.title }</span>
 															{ displayDescription && (
 																<span className="list-description">
-																	{ listConfig[ listId ]?.description?.split( '\n' ).map( ( line, index ) => (
-																		<React.Fragment key={ index }>
+																	{ listConfig[ listId ]?.description?.split( '\n' ).map( ( line, index, arr ) => (
+																		<Fragment key={ index }>
 																			{ line }
-																			{ index < listConfig[ listId ].description.split( '\n' ).length - 1 && <br /> }
-																		</React.Fragment>
+																			{ index < arr.length - 1 && <br /> }
+																		</Fragment>
 																	) ) }
 																</span>
 															) }
