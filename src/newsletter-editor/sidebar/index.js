@@ -37,6 +37,7 @@ const Sidebar = ( {
 	status,
 	campaignName,
 	previewText,
+	savePost,
 	stringifiedCampaignDefaults,
 	postId,
 } ) => {
@@ -122,7 +123,9 @@ const Sidebar = ( {
 				updatedMeta.send_sublist_id = campaignDefaults.send_sublist_id;
 			}
 			if ( Object.keys( updatedMeta ).length ) {
+				updatedMeta.stringifiedCampaignDefaults = '';
 				updateMeta( updatedMeta );
+				savePost();
 			}
 		}
 	}, [ stringifiedCampaignDefaults ] );
@@ -260,8 +263,8 @@ export default compose( [
 		};
 	} ),
 	withDispatch( dispatch => {
-		const { editPost } = dispatch( 'core/editor' );
+		const { editPost, savePost } = dispatch( 'core/editor' );
 		const { createErrorNotice } = dispatch( 'core/notices' );
-		return { editPost, createErrorNotice };
+		return { editPost, savePost, createErrorNotice };
 	} ),
 ] )( Sidebar );

@@ -34,7 +34,7 @@ const LAYOUTS_TABS = [
 ];
 
 export default function LayoutPicker() {
-	const { savePost, editPost, resetEditorBlocks } = useDispatch( 'core/editor' );
+	const { editPost, resetEditorBlocks } = useDispatch( 'core/editor' );
 	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayoutsState();
 
 	const insertLayout = layoutId => {
@@ -44,7 +44,6 @@ export default function LayoutPicker() {
 		}
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
-		savePost();
 	};
 
 	const [ selectedLayoutId, setSelectedLayoutId ] = useState( null );
