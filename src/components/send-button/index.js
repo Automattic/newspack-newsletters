@@ -325,7 +325,8 @@ export default compose( [
 
 		const handleModalOpen = async () => {
 			const res = await refreshEmailHtml( postId, postTitle, postContent );
-			if ( res.result === 'success' ) {
+			await savePost();
+			if ( res.result === 'success' && saveDidSucceed ) {
 				setModalVisible( true );
 			} else {
 				let noticeString = __( 'Something went wrong when converting the post to email', 'newspack-newsletters' );
