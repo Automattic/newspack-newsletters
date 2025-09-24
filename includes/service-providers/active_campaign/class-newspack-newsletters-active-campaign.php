@@ -327,6 +327,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'GET'
 		);
 
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
 		return array_values(
 			array_map(
 				function ( $tag ) {
