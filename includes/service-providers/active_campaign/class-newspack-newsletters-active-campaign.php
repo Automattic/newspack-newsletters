@@ -181,7 +181,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		} else {
 			$url = add_query_arg( $params, $url );
 		}
-		$args     = [
+		$args = [
 			'method'  => $method,
 			'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			'headers' => [
@@ -189,8 +189,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'Accept'       => 'application/json',
 				'API-TOKEN'    => $credentials['key'],
 			],
-			'body'    => $body,
 		];
+		if ( $body ) {
+			$args['body'] = wp_json_encode( $body );
+		}
 		$response = wp_safe_remote_request( $url, $args + $options );
 		if ( is_wp_error( $response ) ) {
 			return $response;
