@@ -215,6 +215,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			]
 		);
 
+		if ( ! $body ) {
+			return new \WP_Error(
+				'newspack_newsletters_active_campaign_api_error',
+				! empty( $response['response']['message'] ) ? $response['response']['message'] : __( 'An error occurred while communicating with ActiveCampaign.', 'newspack-newsletters' )
+			);
+		}
+
 		if ( 1 !== $body['result_code'] ) {
 			$message = ! empty( $body['result_message'] ) ? $body['result_message'] : __( 'An error occurred while communicating with ActiveCampaign.', 'newspack-newsletters' );
 			return new \WP_Error(
