@@ -170,13 +170,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$options_query = $options['query'];
 			unset( $options['query'] );
 		}
-		$content_type = 'application/json';
-		$url          = rtrim( $credentials['url'], '/' ) . $api_path;
-		$body         = null;
-		$params       = wp_parse_args( $options_query, $params );
+		$url    = rtrim( $credentials['url'], '/' ) . $api_path;
+		$body   = null;
+		$params = wp_parse_args( $options_query, $params );
 		if ( 'POST' === $method ) {
-			$content_type = 'application/x-www-form-urlencoded';
-			$body         = wp_parse_args(
+			$body = wp_parse_args(
 				isset( $options['body'] ) ? $options['body'] : [],
 				$params
 			);
@@ -187,7 +185,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'method'  => $method,
 			'timeout' => 45, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			'headers' => [
-				'Content-Type' => $content_type,
+				'Content-Type' => 'application/json',
 				'Accept'       => 'application/json',
 				'API-TOKEN'    => $credentials['key'],
 			],
@@ -326,6 +324,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			sprintf( 'contacts/%d/contactTags', $contact_data['id'] ),
 			'GET'
 		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
 
 		return array_values(
 			array_map(
