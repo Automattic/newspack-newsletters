@@ -59,6 +59,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		$this->controller = new Newspack_Newsletters_Mailchimp_Controller( $this );
 		Newspack_Newsletters_Mailchimp_Cached_Data::init();
 
+		add_filter( 'newspack_newsletters_newsletter_content', [ $this, 'newsletter_content' ], 1, 2 );
 		add_action( 'updated_post_meta', [ $this, 'save' ], 10, 4 );
 		add_action( 'wp_trash_post', [ $this, 'trash' ], 10, 1 );
 		add_filter( 'newspack_newsletters_process_link', [ $this, 'process_link' ], 10, 2 );
@@ -1172,6 +1173,18 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			set_transient( $transient_name, 'Mailchimp campaign sync error: ' . wp_specialchars_decode( $e->getMessage(), ENT_QUOTES ), 45 );
 			return new WP_Error( 'newspack_newsletters_mailchimp_error', $e->getMessage() );
 		}
+	}
+
+	/**
+	 * Filter newsletter content prior to converting to MJML.
+	 *
+	 * @param string $content The post content.
+	 * @return string The filtered post content.
+	 */
+	public function newsletter_content( $content ) {
+		// Strip protocol prefixes from link-based Mailchimp merge tags.
+		$content = preg_replace( '/href="https?:\/\/\*\|/', 'href="*|', $content );
+		return $content;
 	}
 
 	/**
