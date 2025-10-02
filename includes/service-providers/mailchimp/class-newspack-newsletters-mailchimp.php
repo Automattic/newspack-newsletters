@@ -1183,7 +1183,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function newsletter_content( $content ) {
 		// Strip protocol prefixes from link-based Mailchimp merge tags.
-		$content = preg_replace( '/href="https?:\/\/\*\|/', 'href="*|', $content );
+		$content = preg_replace( '/href="(?:https?:)?\/\/\*\|/', 'href="*|', $content );
 		return $content;
 	}
 
