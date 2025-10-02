@@ -147,4 +147,98 @@ class MailchimpEspCommonMethodsTest extends Abstract_ESP_Tests {
 		}
 		return $response;
 	}
+
+	/**
+	 * Test protocol stripping from links containing Mailchimp merge tags.
+	 */
+	public function test_protocol_stripping_from_merge_tag_links() {
+		// Create a mock post with content containing links with merge tags and protocols.
+		$newsletter_post = self::factory()->post->create(
+			[
+				'post_type'    => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'Newsletter with merge tag links',
+				'post_content' => '<!-- wp:paragraph -->
+<p>Check out these links:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><a href="https://*|MERGE_TAG_HTTPS|*">Merge tag link with https</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><a href="http://*|MERGE_TAG_HTTP|*">Merge tag link with http</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><a href="//*|MERGE_TAG_RELATIVE|*">Merge tag link with protocol-relative prefix</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><a href="https://example.com">Normal link</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><a href="*|EMAIL|*">Merge tag link without protocol</a></p>
+<!-- /wp:paragraph -->',
+			]
+		);
+
+		$result = Newspack_Newsletters_Renderer::post_to_mjml_components(
+			get_post( $newsletter_post )
+		);
+
+		// Test that https:// is stripped from merge tag links.
+		$this->assertStringContainsString(
+			'href="*|MERGE_TAG_HTTPS|*"',
+			$result,
+			'Strips https:// protocol from merge tag links'
+		);
+
+		// Test that http:// is stripped from merge tag links.
+		$this->assertStringContainsString(
+			'href="*|MERGE_TAG_HTTP|*"',
+			$result,
+			'Strips http:// protocol from merge tag links'
+		);
+
+		// Test that // is stripped from merge tag links.
+		$this->assertStringContainsString(
+			'href="*|MERGE_TAG_RELATIVE|*"',
+			$result,
+			'Strips // protocol from merge tag links'
+		);
+
+		// Test that normal links without merge tags are not affected (should have UTM params added).
+		$this->assertStringContainsString(
+			'href="https://example.com?utm_medium=email',
+			$result,
+			'Does not strip protocol from normal links'
+		);
+
+		// Test that links with merge tags but no protocol are not affected.
+		$this->assertStringContainsString(
+			'href="*|EMAIL|*"',
+			$result,
+			'Does not modify merge tag links without protocol'
+		);
+
+		// Test that the original protocol-prefixed merge tag links are not present.
+		$this->assertStringNotContainsString(
+			'href="https://*|MERGE_TAG_HTTPS|*"',
+			$result,
+			'Original https:// protocol should be stripped from merge tag links'
+		);
+
+		$this->assertStringNotContainsString(
+			'href="http://*|MERGE_TAG_HTTP|*"',
+			$result,
+			'Original http:// protocol should be stripped from merge tag links'
+		);
+
+		$this->assertStringNotContainsString(
+			'href="//*|MERGE_TAG_RELATIVE|*"',
+			$result,
+			'Original // protocol should be stripped from merge tag links'
+		);
+	}
 }
