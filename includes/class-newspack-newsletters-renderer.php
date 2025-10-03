@@ -379,9 +379,6 @@ final class Newspack_Newsletters_Renderer {
 			$border_style = isset( $attrs['style']['border']['style'] ) ? $attrs['style']['border']['style'] : 'solid';
 			$attrs['border'] = $attrs['style']['border']['width'] . ' ' . $border_style . ' ' . $border_color;
 		}
-		if ( ! isset( $attrs['padding'] ) && isset( $attrs['background-color'] ) ) {
-			$attrs['padding'] = '0';
-		}
 
 		if ( isset( $attrs['textAlign'] ) && ! isset( $attrs['align'] ) ) {
 			$attrs['align'] = $attrs['textAlign'];
@@ -558,10 +555,8 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		// Default attributes for the column which will envelop the component.
-		$column_attrs = array_merge(
-			array(
-				'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
-			)
+		$column_attrs = array(
+			'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
 		);
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
@@ -569,6 +564,9 @@ final class Newspack_Newsletters_Renderer {
 		if ( ! empty( $inner_html ) ) {
 			// Replace <mark /> with <span />.
 			$inner_html = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $inner_html );
+
+			// Remove border styles from inner html to avoid duplicate borders, as border styles are applied to the container mj-section.
+			$inner_html = preg_replace( '/border-(.*);/is', '', $inner_html );
 		}
 
 		switch ( $block_name ) {
