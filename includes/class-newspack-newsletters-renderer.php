@@ -246,6 +246,9 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $block_attrs['backgroundColor'], self::$color_palette[ $block_attrs['backgroundColor'] ] ) ) {
 			$colors['background-color'] = self::$color_palette[ $block_attrs['backgroundColor'] ];
 		}
+		if ( isset( $block_attrs['borderColor'], self::$color_palette[ $block_attrs['borderColor'] ] ) ) {
+			$colors['border-color'] = self::$color_palette[ $block_attrs['borderColor'] ];
+		}
 		// customBackgroundColor is set inline, but not on mjml wrapper element.
 		if ( isset( $block_attrs['customBackgroundColor'] ) ) {
 			$colors['background-color'] = $block_attrs['customBackgroundColor'];
@@ -371,17 +374,11 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $attrs['style']['border']['radius'] ) ) {
 			$attrs['borderRadius'] = $attrs['style']['border']['radius'];
 		}
-
-		// Remove block-only attributes.
-		array_map(
-			function ( $key ) use ( &$attrs ) {
-				if ( isset( $attrs[ $key ] ) ) {
-					unset( $attrs[ $key ] );
-				}
-			},
-			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize', 'backgroundColor', 'style' ]
-		);
-
+		if ( isset( $attrs['style']['border']['width'] ) ) {
+			$border_color = isset( $attrs['border-color'] ) ? $attrs['border-color'] : 'black';
+			$border_style = isset( $attrs['style']['border']['style'] ) ? $attrs['style']['border']['style'] : 'solid';
+			$attrs['border'] = $attrs['style']['border']['width'] . ' ' . $border_style . ' ' . $border_color;
+		}
 		if ( ! isset( $attrs['padding'] ) && isset( $attrs['background-color'] ) ) {
 			$attrs['padding'] = '0';
 		}
@@ -533,11 +530,18 @@ final class Newspack_Newsletters_Renderer {
 			];
 		}
 
-		// Remove attributes that are not supported by MJML.
+		// Remove block-only attributes and attributes that are not supported by MJML.
 		$unsupported_attrs = [
 			'newsletterVisibility',
 			'conditionalBefore',
 			'conditionalAfter',
+			'customBackgroundColor',
+			'customTextColor',
+			'customFontSize',
+			'fontSize',
+			'backgroundColor',
+			'borderColor',
+			'style',
 		];
 		foreach ( $unsupported_attrs as $attr ) {
 			if ( isset( $attrs[ $attr ] ) ) {
