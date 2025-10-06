@@ -633,10 +633,8 @@ final class Newspack_Newsletters_Renderer {
 					unset( $text_attrs['background-color'] );
 				}
 
-				// Padding is applied to the container element, so we need to remove it from the text attributes.
-				if ( isset( $text_attrs['padding'] ) ) {
-					unset( $text_attrs['padding'] );
-				}
+				// Padding is applied to the container element, so we need to remove it from block attributes.
+				$text_attrs['padding'] = '0';
 
 				// Handle link colors.
 				if ( isset( $attrs['link'] ) ) {
