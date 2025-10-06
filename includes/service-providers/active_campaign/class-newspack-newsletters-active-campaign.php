@@ -1415,7 +1415,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 
 		$contact_data          = $this->get_contact_data( $email );
-		$existing_email        = isset( $contact['existing_contact_data']['email'] ) ? $contact['existing_contact_data']['email'] : '';
+		$existing_email        = isset( $contact['existing_contact_data']['email'] ) ? trim( strtolower( $contact['existing_contact_data']['email'] ) ) : '';
 		$existing_contact_data = $this->get_contact_data( $existing_email );
 		if ( ! is_wp_error( $contact_data ) || ! is_wp_error( $existing_contact_data ) ) {
 			$action               = 'contact_edit';

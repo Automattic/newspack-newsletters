@@ -1781,7 +1781,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		if ( false === $list_id ) {
 			return new WP_Error( 'newspack_newsletters_mailchimp_list_id', __( 'Missing list id.' ) );
 		}
-		$email_address = $contact['email'];
+		$email_address = trim( strtolower( $contact['email'] ) );
 		// If contact was added in this execution, we can return the previous
 		// result and bail.
 		$cache_key = md5( $list_id . $email_address . wp_json_encode( $tags ) . wp_json_encode( $interests ) );
@@ -1828,9 +1828,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$update_payload['interests'] = $interests;
 			}
 			$member_hash            = Mailchimp::subscriberHash( $email_address );
-			$existing_email_address = isset( $contact['existing_contact_data']['email_address'] ) ? $contact['existing_contact_data']['email_address'] : null;
+			$existing_email_address = isset( $contact['existing_contact_data']['email_address'] ) ? trim( strtolower( $contact['existing_contact_data']['email_address'] ) ) : null;
 			$existing_member_hash   = $existing_email_address ? Mailchimp::subscriberHash( $existing_email_address ) : null;
-			$is_email_update        = $existing_email_address && $existing_email_address !== $email_address;
+			$is_email_update        = $existing_email_address && isset( $contact['is_email_change'] ) && $contact['is_email_change'] && $existing_email_address !== $email_address;
 			$is_subscribed          = isset( $update_payload['status'] ) && 'subscribed' === $update_payload['status'];
 
 			// Mailchimp only allows subscribed contacts to update the email address field

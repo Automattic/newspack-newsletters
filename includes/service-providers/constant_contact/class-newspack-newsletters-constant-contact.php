@@ -1201,9 +1201,9 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 			}
 		}
 
-		$email = $contact['email'];
+		$email = trim( strtolower( $contact['email'] ) );
 		if ( isset( $contact['existing_contact_data']['email_address'] ) ) {
-			$existing_email = $contact['existing_contact_data']['email_address'];
+			$existing_email = trim( strtolower( $contact['existing_contact_data']['email_address'] ) );
 			if ( $existing_email->address !== $email ) {
 				$data['email_address'] = $email;
 				$email                 = $existing_email->address;
