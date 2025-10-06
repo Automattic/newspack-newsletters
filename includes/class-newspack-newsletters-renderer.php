@@ -565,8 +565,17 @@ final class Newspack_Newsletters_Renderer {
 			// Replace <mark /> with <span />.
 			$inner_html = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $inner_html );
 
-			// Remove border styles from inner html to avoid duplicate borders, as border styles are applied to the container mj-section.
-			$inner_html = preg_replace( '/border-(.*);/is', '', $inner_html );
+			// Remove border styles from inner html to avoid duplicate borders, as border styles are applied to the container.
+			if ( isset( $attrs['border'] ) ) {
+				$inner_html = preg_replace( '/border-(.*);/is', '', $inner_html );
+				$inner_html = preg_replace( '/border-(.*)"/is', '"', $inner_html );
+			}
+
+			// Remove padding styles from inner html to avoid duplicate paddings, as padding styles are applied to the container.
+			if ( isset( $attrs['padding'] ) ) {
+				$inner_html = preg_replace( '/padding-(.*);/is', '', $inner_html );
+				$inner_html = preg_replace( '/padding-(.*)"/is', '"', $inner_html );
+			}
 		}
 
 		switch ( $block_name ) {
@@ -622,6 +631,11 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $text_attrs['background-color'] ) ) {
 					$text_attrs['container-background-color'] = $text_attrs['background-color'];
 					unset( $text_attrs['background-color'] );
+				}
+
+				// Padding is applied to the container element, so we need to remove it from the text attributes.
+				if ( isset( $text_attrs['padding'] ) ) {
+					unset( $text_attrs['padding'] );
 				}
 
 				// Handle link colors.
