@@ -1349,7 +1349,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$contact['metadata'] = [];
 		}
 		$action  = 'contact_add';
-		$email   = $contact['email'];
+		$email   = trim( strtolower( $contact['email'] ) );
 		$payload = [
 			'email' => $email,
 		];
@@ -1421,11 +1421,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$action               = 'contact_edit';
 			$payload['id']        = is_wp_error( $contact_data ) ? $existing_contact_data['id'] : $contact_data['id'];
 			$payload['overwrite'] = 0;
-			// If the email address exists, but is different from the one we're trying to upsert, delete the existing contact.
+			// For email changes, if the email address exists, but is different from the one we're trying to upsert, delete the existing contact.
 			if ( ! is_wp_error( $contact_data ) && ! is_wp_error( $existing_contact_data ) && $existing_email !== $email ) {
-				$delete_res = $this->delete_contact( $existing_email );
-				if ( is_wp_error( $delete_res ) ) {
-					Newspack_Newsletters_Logger::log( 'Error deleting existing contact during upsert: ' . $delete_res->get_error_message() );
+				$is_email_change = isset( $contact['is_email_change'] ) && $contact['is_email_change'];
+				if ( $is_email_change ) {
+					$delete_res = $this->delete_contact( $existing_email );
+					if ( is_wp_error( $delete_res ) ) {
+						Newspack_Newsletters_Logger::log( 'Error deleting existing contact during upsert: ' . $delete_res->get_error_message() );
+					}
 				}
 			}
 		}
