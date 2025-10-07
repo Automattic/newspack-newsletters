@@ -29,6 +29,11 @@ import './style.scss';
 
 const ATTRIBUTE_NAME = 'newsletterVisibility';
 
+const EMAIL_ONLY_BLOCKS = [
+	'newspack-newsletters/ad',
+	'newspack-newsletters/share',
+];
+
 const visibilityOptions = [
 	{
 		label: __( 'Email and Web', 'newspack-newsletters' ),
@@ -63,7 +68,8 @@ const withVisibilityControl = createHigherOrderComponent(
 			} )
 		)( props => {
 			const { attributes, setAttributes } = props;
-			const value = attributes[ ATTRIBUTE_NAME ];
+			const isEmailOnlyBlock = EMAIL_ONLY_BLOCKS.includes( props.name );
+			const value = isEmailOnlyBlock ? 'email' : attributes[ ATTRIBUTE_NAME ];
 			if ( ! props.is_public ) {
 				return <BlockEdit { ...props } />;
 			}
@@ -92,6 +98,7 @@ const withVisibilityControl = createHigherOrderComponent(
 													} }
 													onClose={ onClose }
 													role="menuitemradio"
+													disabled={ isEmailOnlyBlock }
 												>
 													{ entry.label }
 												</MenuItem>
@@ -112,10 +119,16 @@ const withVisibilityControl = createHigherOrderComponent(
 								onChange={ selected => {
 									setAttributes( { [ ATTRIBUTE_NAME ]: selected } );
 								} }
-								help={ __(
-									"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
-									'newspack-newsletters'
-								) }
+								help={
+									isEmailOnlyBlock ? __(
+										"This block can't be visible on the web version of the newsletter.",
+										'newspack-newsletters'
+									) : __(
+										"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
+										'newspack-newsletters'
+									)
+								}
+								disabled={ isEmailOnlyBlock }
 							/>
 						</PanelBody>
 					</InspectorControls>
