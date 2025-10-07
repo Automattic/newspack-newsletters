@@ -1256,6 +1256,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		update_post_meta( $post_id, 'ac_campaign_id', $campaign['id'] );
 		$campaign_id = $campaign['id'];
+		// See https://www.activecampaign.com/api/example.php?call=campaign_status.
 		$send_result = $this->api_v1_request(
 			'campaign_status',
 			'GET',
@@ -1263,6 +1264,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'query' => [
 					'id'     => $campaign_id,
 					'status' => 1, // 0 = draft, 1 = scheduled, 2 = sending, 3 = paused, 4 = stopped, 5 = completed.
+					'sdate'  => '', // Empty means send immediately.
 				],
 			]
 		);
