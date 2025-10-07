@@ -121,7 +121,7 @@ const withVisibilityControl = createHigherOrderComponent(
 								} }
 								help={
 									isEmailOnlyBlock ? __(
-										"This block can't be visible on the web version of the newsletter.",
+										'This block is only available in the email version of the newsletter.',
 										'newspack-newsletters'
 									) : __(
 										"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
