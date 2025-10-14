@@ -449,4 +449,30 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			'Rendered email contains the custom CSS.'
 		);
 	}
+
+	/**
+	 * Test removing unwanted style properties from an HTML string.
+	 */
+	public function test_remove_unwanted_style_properties() {
+		$html = '<div style="border-bottom:1px solid #000;padding-bottom:0;font-size:12px;padding:1em;border:none">';
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::remove_unwanted_style_properties( [ 'padding', 'border' ], $html ),
+			'<div style="font-size:12px;">',
+			'Removes unwanted style properties from an HTML string while leaving other style properties intact.'
+		);
+
+		$html = '<p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="padding-bottom:0;padding:1em">The word "padding" outside of style attribute</p>';
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::remove_unwanted_style_properties( [ 'padding' ], $html ),
+			'<p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="">The word "padding" outside of style attribute</p>',
+			'Should not match the word "padding" outside of any style attributes.'
+		);
+
+		$html = '<p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="border-bottom:1px solid #000;padding-bottom:0;font-size:12px;padding:1em;border:none">First paragraph with the word "padding" outside of style attribute</p><p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="padding-bottom:0;padding:1em">Second paragraph with the word "padding" outside of style attribute</p>';
+		$this->assertEquals(
+			Newspack_Newsletters_Renderer::remove_unwanted_style_properties( [ 'padding', 'border' ], $html ),
+			'<p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="font-size:12px;">First paragraph with the word "padding" outside of style attribute</p><p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="">Second paragraph with the word "padding" outside of style attribute</p>',
+			'Works with multiple style attributes in the same HTML string.'
+		);
+	}
 }
