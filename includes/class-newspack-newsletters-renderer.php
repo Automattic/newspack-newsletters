@@ -246,6 +246,9 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $block_attrs['backgroundColor'], self::$color_palette[ $block_attrs['backgroundColor'] ] ) ) {
 			$colors['background-color'] = self::$color_palette[ $block_attrs['backgroundColor'] ];
 		}
+		if ( isset( $block_attrs['borderColor'], self::$color_palette[ $block_attrs['borderColor'] ] ) ) {
+			$colors['border-color'] = self::$color_palette[ $block_attrs['borderColor'] ];
+		}
 		// customBackgroundColor is set inline, but not on mjml wrapper element.
 		if ( isset( $block_attrs['customBackgroundColor'] ) ) {
 			$colors['background-color'] = $block_attrs['customBackgroundColor'];
@@ -371,19 +374,10 @@ final class Newspack_Newsletters_Renderer {
 		if ( isset( $attrs['style']['border']['radius'] ) ) {
 			$attrs['borderRadius'] = $attrs['style']['border']['radius'];
 		}
-
-		// Remove block-only attributes.
-		array_map(
-			function ( $key ) use ( &$attrs ) {
-				if ( isset( $attrs[ $key ] ) ) {
-					unset( $attrs[ $key ] );
-				}
-			},
-			[ 'customBackgroundColor', 'customTextColor', 'customFontSize', 'fontSize', 'backgroundColor', 'style' ]
-		);
-
-		if ( ! isset( $attrs['padding'] ) && isset( $attrs['background-color'] ) ) {
-			$attrs['padding'] = '0';
+		if ( isset( $attrs['style']['border']['width'] ) ) {
+			$border_color = isset( $attrs['border-color'] ) ? $attrs['border-color'] : 'black';
+			$border_style = isset( $attrs['style']['border']['style'] ) ? $attrs['style']['border']['style'] : 'solid';
+			$attrs['border'] = $attrs['style']['border']['width'] . ' ' . $border_style . ' ' . $border_color;
 		}
 
 		if ( isset( $attrs['textAlign'] ) && ! isset( $attrs['align'] ) ) {
@@ -533,11 +527,18 @@ final class Newspack_Newsletters_Renderer {
 			];
 		}
 
-		// Remove attributes that are not supported by MJML.
+		// Remove block-only attributes and attributes that are not supported by MJML.
 		$unsupported_attrs = [
 			'newsletterVisibility',
 			'conditionalBefore',
 			'conditionalAfter',
+			'customBackgroundColor',
+			'customTextColor',
+			'customFontSize',
+			'fontSize',
+			'backgroundColor',
+			'borderColor',
+			'style',
 		];
 		foreach ( $unsupported_attrs as $attr ) {
 			if ( isset( $attrs[ $attr ] ) ) {
@@ -554,10 +555,8 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		// Default attributes for the column which will envelop the component.
-		$column_attrs = array_merge(
-			array(
-				'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
-			)
+		$column_attrs = array(
+			'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
 		);
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
@@ -565,6 +564,18 @@ final class Newspack_Newsletters_Renderer {
 		if ( ! empty( $inner_html ) ) {
 			// Replace <mark /> with <span />.
 			$inner_html = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $inner_html );
+
+			// Remove border styles from inner html to avoid duplicate borders, as border styles are applied to the container.
+			if ( isset( $attrs['border'] ) ) {
+				$inner_html = preg_replace( '/border-(.*);/is', '', $inner_html );
+				$inner_html = preg_replace( '/border-(.*)"/is', '"', $inner_html );
+			}
+
+			// Remove padding styles from inner html to avoid duplicate paddings, as padding styles are applied to the container.
+			if ( isset( $attrs['padding'] ) ) {
+				$inner_html = preg_replace( '/padding-(.*);/is', '', $inner_html );
+				$inner_html = preg_replace( '/padding-(.*)"/is', '"', $inner_html );
+			}
 		}
 
 		switch ( $block_name ) {
@@ -621,6 +632,9 @@ final class Newspack_Newsletters_Renderer {
 					$text_attrs['container-background-color'] = $text_attrs['background-color'];
 					unset( $text_attrs['background-color'] );
 				}
+
+				// Padding is applied to the container element, so we need to remove it from block attributes.
+				$text_attrs['padding'] = '0';
 
 				// Handle link colors.
 				if ( isset( $attrs['link'] ) ) {
