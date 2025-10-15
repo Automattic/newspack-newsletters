@@ -41,13 +41,13 @@
 	"dependencies": {
 		"@wordpress/icons": "^10.29.0",
 		"classnames": "^2.5.1",
-		"mjml-browser": "^4.16.1",
+		"mjml-browser": "^4.15.3",
 		"newspack-components": "^3.1.0",
 		"qs": "^6.14.0"
 	},
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.12.0",
-		"@wordpress/browserslist-config": "^6.32.0",
+		"@wordpress/browserslist-config": "^6.31.0",
 		"eslint": "^8.57.0",
 		"lint-staged": "^15.5.1",
 		"newspack-scripts": "^5.5.2",
