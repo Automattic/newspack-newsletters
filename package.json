@@ -2,12 +2,20 @@
 	"name": "newspack-newsletters",
 	"version": "3.23.7",
 	"description": "",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Automattic/newspack-newsletters.git"
+	},
+	"license": "GPL-2.0-or-later",
+	"bugs": {
+		"url": "https://github.com/Automattic/newspack-newsletters/issues"
+	},
 	"scripts": {
 		"cm": "newspack-scripts commit",
 		"semantic-release": "newspack-scripts release --files=newspack-newsletters.php",
 		"clean": "rm -rf dist",
 		"build": "npm run clean && newspack-scripts wp-scripts build",
-		"start": "npm ci --legacy-peer-deps && npm run watch",
+		"start": "npm ci && npm run watch",
 		"watch": "npm run clean && newspack-scripts wp-scripts start",
 		"test": "echo 'No JS unit tests in this repository.'",
 		"lint": "npm run lint:scss && npm run lint:js",
@@ -21,36 +29,24 @@
 		"lint:scss": "newspack-scripts wp-scripts lint-style '**/{src,includes}/**/*.scss' --customSyntax postcss-scss",
 		"lint:scss:staged": "newspack-scripts wp-scripts lint-style --customSyntax postcss-scss",
 		"format:scss": "newspack-scripts wp-scripts lint-style '**/{src,includes}/**/*.scss' --customSyntax postcss-scss --fix",
-		"typescript:check": "echo 'No TypeScript files in this repository.'",
 		"release": "npm run build && npm run semantic-release",
 		"release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-newsletters --exclude-from='./.distignore' && cd release && zip -r newspack-newsletters.zip newspack-newsletters"
 	},
+	"browserslist": [
+		"extends @wordpress/browserslist-config"
+	],
 	"lint-staged": {
-		"*.js": "npm run lint:js:staged",
+		"*.{js,jsx,ts,tsx}": "npm run lint:js:staged",
 		"*.scss": "npm run lint:scss:staged",
 		"*.php": "npm run lint:php:staged"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/Automattic/newspack-newsletters.git"
-	},
-	"license": "GPL-2.0-or-later",
-	"bugs": {
-		"url": "https://github.com/Automattic/newspack-newsletters/issues"
-	},
 	"dependencies": {
-		"@wordpress/icons": "^10.29.0",
 		"classnames": "^2.5.1",
 		"mjml-browser": "^4.15.3",
-		"newspack-components": "^3.1.0",
+		"newspack-components": "^4.1.0",
 		"qs": "^6.14.0"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.12.0",
-		"@wordpress/browserslist-config": "^6.31.0",
-		"eslint": "^8.57.0",
-		"lint-staged": "^15.5.1",
-		"newspack-scripts": "^5.5.2",
-		"postcss-scss": "^4.0.9"
+		"newspack-scripts": "github:Automattic/newspack-scripts#chore/refresh-dependencies"
 	}
 }
