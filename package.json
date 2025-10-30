@@ -50,7 +50,7 @@
 		"@wordpress/browserslist-config": "^6.31.0",
 		"eslint": "^8.57.0",
 		"lint-staged": "^15.5.1",
-		"newspack-scripts": "^5.5.2",
+		"newspack-scripts": "^5.7.0",
 		"postcss-scss": "^4.0.9"
 	}
 }
