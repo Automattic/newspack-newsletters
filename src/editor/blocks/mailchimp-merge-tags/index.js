@@ -56,10 +56,7 @@ export default () => {
 	const { name: serviceProviderName } = getServiceProvider();
 	const updateParagraphPlaceholder = ( settings, name ) => {
 		if ( name === 'core/paragraph' ) {
-			settings.attributes.placeholder.default = __(
-				'Type / to choose a block, or *| to add a merge tag',
-				'newspack-newsletters'
-			);
+			settings.attributes.placeholder.default = __( 'Type / to choose a block, or *| to add a merge tag', 'newspack-newsletters' );
 		}
 		return settings;
 	};
@@ -67,15 +64,7 @@ export default () => {
 		return blockName === 'core/paragraph' ? [ ...completers, getCompleter() ] : completers;
 	};
 	if ( serviceProviderName === 'mailchimp' ) {
-		wp.hooks.addFilter(
-			'blocks.registerBlockType',
-			'newspack-newsletters/mailchimp-merge-tags-placeholder',
-			updateParagraphPlaceholder
-		);
-		wp.hooks.addFilter(
-			'editor.Autocomplete.completers',
-			'newspack-newsletters/autocompleters/mailchimp-merge-tags',
-			addMergeTagsCompleter
-		);
+		wp.hooks.addFilter( 'blocks.registerBlockType', 'newspack-newsletters/mailchimp-merge-tags-placeholder', updateParagraphPlaceholder );
+		wp.hooks.addFilter( 'editor.Autocomplete.completers', 'newspack-newsletters/autocompleters/mailchimp-merge-tags', addMergeTagsCompleter );
 	}
 };

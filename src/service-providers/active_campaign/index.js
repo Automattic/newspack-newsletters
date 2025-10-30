@@ -32,10 +32,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 	return (
 		<>
 			<p>
-				{ __(
-					'You’re about to send an ActiveCampaign newsletter to the following list:',
-					'newspack-newsletters'
-				) }{ ' ' }
+				{ __( 'You’re about to send an ActiveCampaign newsletter to the following list:', 'newspack-newsletters' ) }{ ' ' }
 				<strong>{ list.name }</strong>
 				{ segment && (
 					<>
@@ -53,10 +50,10 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 		return true;
 	}
 	return false;
-}
+};
 
 export default {
 	displayName: 'ActiveCampaign',
 	renderPreSendInfo,
-	isCampaignSent
+	isCampaignSent,
 };

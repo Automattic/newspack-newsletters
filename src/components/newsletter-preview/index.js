@@ -15,21 +15,24 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
 	const [ css, setCss ] = useState( '' );
 
 	// Generate inline layout styles for the preview.
-	useEffect( () => {
-		const _elementId = `preview-${ Math.round( Math.random() * 1000 ) }`;
-		setElementId( _elementId );
-		const cssRules = [];
-		if ( meta.font_body ) {
-			cssRules.push( `*:not( code ) { font-family: ${ meta.font_body }; }` );
-		}
-		if ( meta.font_header ) {
-			cssRules.push( `h1, h2, h3, h4, h5, h6 { font-family: ${ meta.font_header }; }` );
-		}
-		if ( meta.custom_css ) {
-			cssRules.push( meta.custom_css );
-		}
-		setCss( cssRules.length ? getScopedCss( `#${ _elementId }`, cssRules.join( '\n' ) ) : '' );
-	}, [ layoutId ].concat( Object.values( meta ) ) );
+	useEffect(
+		() => {
+			const _elementId = `preview-${ Math.round( Math.random() * 1000 ) }`;
+			setElementId( _elementId );
+			const cssRules = [];
+			if ( meta.font_body ) {
+				cssRules.push( `*:not( code ) { font-family: ${ meta.font_body }; }` );
+			}
+			if ( meta.font_header ) {
+				cssRules.push( `h1, h2, h3, h4, h5, h6 { font-family: ${ meta.font_header }; }` );
+			}
+			if ( meta.custom_css ) {
+				cssRules.push( meta.custom_css );
+			}
+			setCss( cssRules.length ? getScopedCss( `#${ _elementId }`, cssRules.join( '\n' ) ) : '' );
+		},
+		[ layoutId ].concat( Object.values( meta ) )
+	);
 
 	// Apply the styles to the iframe editor.
 	const useInlineStyles = () => {

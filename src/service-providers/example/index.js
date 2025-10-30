@@ -25,10 +25,8 @@ const hasOauth = false;
 const ProviderSidebar = ( { inFlight, postId, meta, updateMeta } ) => {
 	return (
 		<>
-			<strong className="newspack-newsletters__label">
-				{ __( 'Provider-specific sidebar content', 'newspack-newsletters' ) }
-			</strong>
-			<p>{ __( 'Post ID: ', 'newspack-newsletters' ) + postId }</p>
+			<strong className="newspack-newsletters__label">{ __( 'Provider-specific sidebar content', 'newspack-newsletters' ) }</strong>
+			<p>{ __( 'Post ID:', 'newspack-newsletters' ) + postId }</p>
 			<TextControl
 				disabled={ inFlight }
 				label={ __( 'Name placeholder', 'newspack-newsletters' ) }
@@ -76,20 +74,20 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 			<br />
 			{ sublistData && (
 				<>
-					{ sublistData.entity_type.charAt(0).toUpperCase() + sublistData.entity_type.slice(1) + ': '}
+					{ sublistData.entity_type.charAt( 0 ).toUpperCase() + sublistData.entity_type.slice( 1 ) + ': ' }
 					<strong>{ sublistData.name }</strong>
 					<br />
 				</>
 			) }
 			<strong>
 				{ sprintf(
-					// Translators: subscriber count help message.
+					// translators: %d: subscriber count.
 					_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
 					subscriberCount
 				) }
 			</strong>
 		</p>
-	)
+	);
 };
 
 /**
@@ -105,7 +103,7 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 		return true;
 	}
 	return false;
-}
+};
 
 export default {
 	hasOauth,

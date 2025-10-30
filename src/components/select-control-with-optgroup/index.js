@@ -45,13 +45,7 @@ export default function SelectControlWithOptGroup( {
 
 	/* eslint-disable jsx-a11y/no-onchange */
 	return (
-		<BaseControl
-			label={ label }
-			hideLabelFromVision={ hideLabelFromVision }
-			id={ id }
-			help={ help }
-			className={ className }
-		>
+		<BaseControl label={ label } hideLabelFromVision={ hideLabelFromVision } id={ id } help={ help } className={ className }>
 			<select
 				id={ id }
 				className="components-select-control__input"
@@ -61,9 +55,7 @@ export default function SelectControlWithOptGroup( {
 				{ ...props }
 			>
 				{ ( deselectedOptionLabel || deselectedOptionValue ) && (
-					<option value={ deselectedOptionValue }>
-						{ deselectedOptionLabel || __( '-- Select --', 'newspack-newsletters' ) }
-					</option>
+					<option value={ deselectedOptionValue }>{ deselectedOptionLabel || __( '-- Select --', 'newspack-newsletters' ) }</option>
 				) }
 				{ optgroups.map( ( { label: optgroupLabel, options }, optgroupIndex ) => (
 					<optgroup label={ optgroupLabel } key={ optgroupIndex }>

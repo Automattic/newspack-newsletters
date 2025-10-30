@@ -11,14 +11,7 @@ import { Fragment } from '@wordpress/element';
 import { compose, createHigherOrderComponent } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 import { BlockControls, InspectorControls } from '@wordpress/block-editor';
-import {
-	MenuGroup,
-	MenuItem,
-	PanelBody,
-	SelectControl,
-	Toolbar,
-	ToolbarDropdownMenu,
-} from '@wordpress/components';
+import { MenuGroup, MenuItem, PanelBody, SelectControl, Toolbar, ToolbarDropdownMenu } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { check } from '@wordpress/icons';
 
@@ -29,10 +22,7 @@ import './style.scss';
 
 const ATTRIBUTE_NAME = 'newsletterVisibility';
 
-const EMAIL_ONLY_BLOCKS = [
-	'newspack-newsletters/ad',
-	'newspack-newsletters/share',
-];
+const EMAIL_ONLY_BLOCKS = [ 'newspack-newsletters/ad', 'newspack-newsletters/share' ];
 
 const visibilityOptions = [
 	{
@@ -77,18 +67,13 @@ const withVisibilityControl = createHigherOrderComponent(
 				<Fragment>
 					<BlockControls>
 						<Toolbar>
-							<ToolbarDropdownMenu
-								label={ __( 'Visibility', 'newspack-newsletters' ) }
-								icon={ 'visibility' }
-							>
+							<ToolbarDropdownMenu label={ __( 'Visibility', 'newspack-newsletters' ) } icon={ 'visibility' }>
 								{ ( { onClose } ) => (
 									<MenuGroup>
 										{ visibilityOptions.map( entry => {
 											return (
 												<MenuItem
-													icon={
-														( value === entry.value || ( ! value && entry.value === '' ) ) && check
-													}
+													icon={ ( value === entry.value || ( ! value && entry.value === '' ) ) && check }
 													isSelected={ value === entry.value }
 													key={ entry.value }
 													onClick={ () => {
@@ -120,13 +105,12 @@ const withVisibilityControl = createHigherOrderComponent(
 									setAttributes( { [ ATTRIBUTE_NAME ]: selected } );
 								} }
 								help={
-									isEmailOnlyBlock ? __(
-										'This block is only available in the email version of the newsletter.',
-										'newspack-newsletters'
-									) : __(
-										"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
-										'newspack-newsletters'
-									)
+									isEmailOnlyBlock
+										? __( 'This block is only available in the email version of the newsletter.', 'newspack-newsletters' )
+										: __(
+												"If the newsletter is going to be viewable publicly on this site, select here if you'd like this block to be visible in a particular version.",
+												'newspack-newsletters'
+										  )
 								}
 								disabled={ isEmailOnlyBlock }
 							/>
@@ -163,10 +147,7 @@ const withVisibilityNotice = createHigherOrderComponent(
 						<span className="newsletters-block-visibility-label">
 							{ shouldBePublic ? (
 								<>
-									{ __(
-										'Newsletter is not public, this block will not be visible.',
-										'newspack-newsletters'
-									) }
+									{ __( 'Newsletter is not public, this block will not be visible.', 'newspack-newsletters' ) }
 									<button
 										onClick={ () => {
 											props.setAttributes( { [ ATTRIBUTE_NAME ]: '' } );
@@ -177,10 +158,8 @@ const withVisibilityNotice = createHigherOrderComponent(
 								</>
 							) : (
 								<Fragment>
-									{ value === 'web' &&
-										__( 'Only visible on public newsletter page.', 'newspack-newsletters' ) }
-									{ value === 'email' &&
-										__( 'Only visible in the sent email.', 'newspack-newsletters' ) }
+									{ value === 'web' && __( 'Only visible on public newsletter page.', 'newspack-newsletters' ) }
+									{ value === 'email' && __( 'Only visible in the sent email.', 'newspack-newsletters' ) }
 								</Fragment>
 							) }
 						</span>
@@ -194,19 +173,7 @@ const withVisibilityNotice = createHigherOrderComponent(
 );
 
 export default () => {
-	wp.hooks.addFilter(
-		'blocks.registerBlockType',
-		'newspack-newsletters/visibility-attribute',
-		addVisibilityAttribute
-	);
-	wp.hooks.addFilter(
-		'editor.BlockEdit',
-		'newspack-newsletters/visibility-control',
-		withVisibilityControl
-	);
-	wp.hooks.addFilter(
-		'editor.BlockListBlock',
-		'newspack-newsletters/visibility-notice',
-		withVisibilityNotice
-	);
+	wp.hooks.addFilter( 'blocks.registerBlockType', 'newspack-newsletters/visibility-attribute', addVisibilityAttribute );
+	wp.hooks.addFilter( 'editor.BlockEdit', 'newspack-newsletters/visibility-control', withVisibilityControl );
+	wp.hooks.addFilter( 'editor.BlockListBlock', 'newspack-newsletters/visibility-notice', withVisibilityNotice );
 };

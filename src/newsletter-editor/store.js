@@ -108,10 +108,7 @@ export const useIsRetrieving = () =>
 	} );
 
 // Hook to use the refresh HTML status from any editor component.
-export const useIsRefreshingHtml = () =>
-	useSelect( select =>
-		select( STORE_NAMESPACE ).getIsRefreshingHtml()
-	);
+export const useIsRefreshingHtml = () => useSelect( select => select( STORE_NAMESPACE ).getIsRefreshingHtml() );
 
 // Hook to use the newsletter data from any editor component.
 export const useNewsletterData = () =>
@@ -123,50 +120,38 @@ export const useNewsletterData = () =>
 			isRetrievingLists: getIsRetrievingLists(),
 			hasRetrievedData: select( STORE_NAMESPACE ).getHasRetrievedData(),
 			hasRetrievedLists: select( STORE_NAMESPACE ).getHasRetrievedLists(),
-		}
+		};
 	} );
 
 // Hook to use newsletter data fetch errors from any editor component.
-export const useNewsletterDataError = () =>
-	useSelect( select =>
-		select( STORE_NAMESPACE ).getError()
-	);
+export const useNewsletterDataError = () => useSelect( select => select( STORE_NAMESPACE ).getError() );
 
 // Dispatcher to update data retrieval status in the store.
-export const updateIsRetrievingData = isRetrieving =>
-	dispatch( STORE_NAMESPACE ).setIsRetrievingData( isRetrieving );
+export const updateIsRetrievingData = isRetrieving => dispatch( STORE_NAMESPACE ).setIsRetrievingData( isRetrieving );
 
 // Dispatcher to update data retrieval status in the store.
-export const updateIsRetrievingLists = isRetrieving =>
-	dispatch( STORE_NAMESPACE ).setIsRetrievingLists( isRetrieving );
+export const updateIsRetrievingLists = isRetrieving => dispatch( STORE_NAMESPACE ).setIsRetrievingLists( isRetrieving );
 
 // Dispatcher to update error retrieval status in the store.
-export const updateIsRetrievingSyncErrors = isRetrieving =>
-	dispatch( STORE_NAMESPACE ).setIsRetrievingSyncErrors( isRetrieving );
+export const updateIsRetrievingSyncErrors = isRetrieving => dispatch( STORE_NAMESPACE ).setIsRetrievingSyncErrors( isRetrieving );
 
 // Dispatcher to update data retrieved status in the store.
-export const updateHasRetrievedData = hasRetrieved =>
-	dispatch( STORE_NAMESPACE ).setHasRetrievedData( hasRetrieved );
+export const updateHasRetrievedData = hasRetrieved => dispatch( STORE_NAMESPACE ).setHasRetrievedData( hasRetrieved );
 
 // Dispatcher to update lists retrieved status in the store.
-export const updateHasRetrievedLists = hasRetrieved =>
-	dispatch( STORE_NAMESPACE ).setHasRetrievedLists( hasRetrieved );
+export const updateHasRetrievedLists = hasRetrieved => dispatch( STORE_NAMESPACE ).setHasRetrievedLists( hasRetrieved );
 
 // Dispatcher to update sync errors retrieved status in the store.
-export const updateHasRetrievedSyncErrors = hasRetrieved =>
-	dispatch( STORE_NAMESPACE ).setHasRetrievedSyncErrors( hasRetrieved );
+export const updateHasRetrievedSyncErrors = hasRetrieved => dispatch( STORE_NAMESPACE ).setHasRetrievedSyncErrors( hasRetrieved );
 
 // Dispatcher to update refreshing HTML status in the store.
-export const updateIsRefreshingHtml = isRetrieving =>
-	dispatch( STORE_NAMESPACE ).setIsRefreshingHtml( isRetrieving );
+export const updateIsRefreshingHtml = isRetrieving => dispatch( STORE_NAMESPACE ).setIsRefreshingHtml( isRetrieving );
 
 // Dispatcher to update newsletter data in the store.
-export const updateNewsletterData = data =>
-	dispatch( STORE_NAMESPACE ).setData( data );
+export const updateNewsletterData = data => dispatch( STORE_NAMESPACE ).setData( data );
 
 // Dispatcher to update newsletter error in the store.
-export const updateNewsletterDataError = error =>
-	dispatch( STORE_NAMESPACE ).setError( error );
+export const updateNewsletterDataError = error => dispatch( STORE_NAMESPACE ).setError( error );
 
 // Dispatcher to fetch newsletter data from the server.
 export const fetchNewsletterData = async postId => {
@@ -230,7 +215,7 @@ export const fetchSyncErrors = async postId => {
 	}
 	updateIsRetrievingSyncErrors( false );
 	return true;
-}
+};
 
 // Dispatcher to fetch send lists and sublists from the connected ESP and update the newsletterData in store.
 export const fetchSendLists = debounce( async ( opts, replace = false ) => {
@@ -258,7 +243,7 @@ export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 			if ( ids?.length ) {
 				ids.forEach( id => {
 					found = item.id.toString() === id.toString();
-				} )
+				} );
 			}
 			if ( search?.length ) {
 				search.forEach( term => {
@@ -286,10 +271,7 @@ export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 		updateHasRetrievedLists( false );
 		updateIsRetrievingLists( true );
 		const response = await apiFetch( {
-			path: addQueryArgs(
-				'/newspack-newsletters/v1/send-lists',
-				args
-			)
+			path: addQueryArgs( '/newspack-newsletters/v1/send-lists', args ),
 		} );
 
 		response.forEach( item => {

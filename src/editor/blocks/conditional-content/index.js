@@ -139,19 +139,7 @@ const withConditionalContentNotice = createHigherOrderComponent(
 );
 
 export default () => {
-	wp.hooks.addFilter(
-		'blocks.registerBlockType',
-		'newspack-newsletters/conditional-content-attributes',
-		addConditionalContentAttributes
-	);
-	wp.hooks.addFilter(
-		'editor.BlockEdit',
-		'newspack-newsletters/conditional-content-control',
-		withConditionalContentControl
-	);
-	wp.hooks.addFilter(
-		'editor.BlockListBlock',
-		'newspack-newsletters/conditional-content-notice',
-		withConditionalContentNotice
-	);
+	wp.hooks.addFilter( 'blocks.registerBlockType', 'newspack-newsletters/conditional-content-attributes', addConditionalContentAttributes );
+	wp.hooks.addFilter( 'editor.BlockEdit', 'newspack-newsletters/conditional-content-control', withConditionalContentControl );
+	wp.hooks.addFilter( 'editor.BlockListBlock', 'newspack-newsletters/conditional-content-notice', withConditionalContentNotice );
 };

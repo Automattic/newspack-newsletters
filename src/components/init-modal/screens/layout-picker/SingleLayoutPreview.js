@@ -50,10 +50,7 @@ const SingleLayoutPreview = ( {
 		}
 	};
 
-	const blockPreviewBlocks = useMemo(
-		() => setPreventDeduplicationForPostsInserter( parse( content ) ),
-		[ content ]
-	);
+	const blockPreviewBlocks = useMemo( () => setPreventDeduplicationForPostsInserter( parse( content ) ), [ content ] );
 
 	return (
 		<div
@@ -75,14 +72,7 @@ const SingleLayoutPreview = ( {
 				tabIndex="0"
 				aria-label={ title }
 			>
-				{ '' === content ? null : (
-					<NewsletterPreview
-						layoutId={ ID }
-						meta={ meta }
-						blocks={ blockPreviewBlocks }
-						viewportWidth={ 848 }
-					/>
-				) }
+				{ '' === content ? null : <NewsletterPreview layoutId={ ID } meta={ meta } blocks={ blockPreviewBlocks } viewportWidth={ 848 } /> }
 			</div>
 			{ isEditable ? (
 				<TextControl

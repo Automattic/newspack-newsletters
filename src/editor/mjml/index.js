@@ -13,11 +13,7 @@ import { usePrevious } from '../../newsletter-editor/utils';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
-import {
-	fetchNewsletterData,
-	fetchSyncErrors,
-	updateIsRefreshingHtml,
-} from '../../newsletter-editor/store';
+import { fetchNewsletterData, fetchSyncErrors, updateIsRefreshingHtml } from '../../newsletter-editor/store';
 
 /**
  * External dependencies
@@ -41,61 +37,50 @@ export const refreshEmailHtml = async ( postId, postTitle, postContent ) => {
 			title: postTitle,
 			content: postContent,
 		},
-	} ).then( mjml => {
-		// Once received MJML markup, convert it to email-compliant HTML and save as post meta.
-		const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
-		return { result: 'success', html };
-	}).catch( error => {
-		return { result: 'error', error }
-	});
+	} )
+		.then( mjml => {
+			// Once received MJML markup, convert it to email-compliant HTML and save as post meta.
+			const { html } = mjml2html( mjml, { keepComments: false, minify: true } );
+			return { result: 'success', html };
+		} )
+		.catch( error => {
+			return { result: 'error', error };
+		} );
 };
 
 function MJML() {
-	const {
-		saveSucceeded,
-		isPublishing,
-		isAutosaving,
-		isAutosaveLocked,
-		isSaving,
-		isSent,
-		postContent,
-		postId,
-		postTitle,
-		postType,
-		isTakeover,
-	} = useSelect( select => {
-		const {
-			didPostSaveRequestSucceed,
-			getCurrentPostAttribute,
-			getCurrentPostId,
-			getCurrentPostType,
-			getEditedPostAttribute,
-			getEditedPostContent,
-			isSavingPost,
-			isPostAutosavingLocked,
-			isAutosavingPost,
-			isCurrentPostPublished,
-			isPostLockTakeover,
-		} = select( 'core/editor' );
+	const { saveSucceeded, isPublishing, isAutosaving, isAutosaveLocked, isSaving, isSent, postContent, postId, postTitle, postType, isTakeover } =
+		useSelect( select => {
+			const {
+				didPostSaveRequestSucceed,
+				getCurrentPostAttribute,
+				getCurrentPostId,
+				getCurrentPostType,
+				getEditedPostAttribute,
+				getEditedPostContent,
+				isSavingPost,
+				isPostAutosavingLocked,
+				isAutosavingPost,
+				isCurrentPostPublished,
+				isPostLockTakeover,
+			} = select( 'core/editor' );
 
-		return {
-			postContent: getEditedPostContent(),
-			postId: getCurrentPostId(),
-			postTitle: getEditedPostAttribute( 'title' ),
-			postType: getCurrentPostType(),
-			isPublished: isCurrentPostPublished(),
-			saveSucceeded: didPostSaveRequestSucceed(),
-			isSaving: isSavingPost(),
-			isSent: getCurrentPostAttribute( 'meta' ).newsletter_sent,
-			isAutosaving: isAutosavingPost(),
-			isAutosaveLocked: isPostAutosavingLocked(),
-			isTakeover: isPostLockTakeover(),
-		};
-	} );
+			return {
+				postContent: getEditedPostContent(),
+				postId: getCurrentPostId(),
+				postTitle: getEditedPostAttribute( 'title' ),
+				postType: getCurrentPostType(),
+				isPublished: isCurrentPostPublished(),
+				saveSucceeded: didPostSaveRequestSucceed(),
+				isSaving: isSavingPost(),
+				isSent: getCurrentPostAttribute( 'meta' ).newsletter_sent,
+				isAutosaving: isAutosavingPost(),
+				isAutosaveLocked: isPostAutosavingLocked(),
+				isTakeover: isPostLockTakeover(),
+			};
+		} );
 	const { createNotice } = useDispatch( 'core/notices' );
-	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch(
-		'core/editor'
-	);
+	const { lockPostAutosaving, lockPostSaving, unlockPostSaving, editPost } = useDispatch( 'core/editor' );
 	const updateMetaValue = ( key, value ) => editPost( { meta: { [ key ]: value } } );
 
 	// Disable autosave requests in the editor.
@@ -112,15 +97,7 @@ function MJML() {
 	const isSupportedESP = serviceProviderName && 'manual' !== serviceProviderName && supportedESPs?.includes( serviceProviderName );
 
 	useEffect( () => {
-		if (
-			wasSaving &&
-			! isSaving &&
-			! isAutosaving &&
-			! isPublishing &&
-			! isSent &&
-			! isTakeover &&
-			saveSucceeded
-		) {
+		if ( wasSaving && ! isSaving && ! isAutosaving && ! isPublishing && ! isSent && ! isTakeover && saveSucceeded ) {
 			refreshHtml();
 		}
 	}, [ isSaving, isAutosaving ] );
@@ -135,8 +112,8 @@ function MJML() {
 			if ( refreshedHtml.html ) {
 				updateMetaValue( newspack_email_editor_data.email_html_meta, refreshedHtml.html );
 			} else {
-				const errorMessage = __( 'Failed to refresh email HTML', 'newspack-newsletters');
-				throw new Error( `${ errorMessage }${ refreshedHtml.error?.message ? `: ${ refreshedHtml.error?.message }` : '.'}` ) ;
+				const errorMessage = __( 'Failed to refresh email HTML', 'newspack-newsletters' );
+				throw new Error( `${ errorMessage }${ refreshedHtml.error?.message ? `: ${ refreshedHtml.error?.message }` : '.' }` );
 			}
 
 			// Save the refreshed HTML to post meta.
@@ -159,7 +136,7 @@ function MJML() {
 				isDismissible: true,
 			} );
 		}
-	}
+	};
 }
 
 export default MJML;

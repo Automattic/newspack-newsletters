@@ -4,12 +4,7 @@
 import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Fragment, useEffect, useState } from '@wordpress/element';
-import {
-	PluginDocumentSettingPanel,
-	PluginSidebar,
-	PluginSidebarMoreMenuItem,
-	PluginPostStatusInfo,
-} from '@wordpress/editor';
+import { PluginDocumentSettingPanel, PluginSidebar, PluginSidebarMoreMenuItem, PluginPostStatusInfo } from '@wordpress/editor';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
 
@@ -42,12 +37,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			postId: getCurrentPostId(),
 		};
 	} );
-	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
-		window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
-	);
-	const [ testEmail, setTestEmail ] = useState(
-		window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || ''
-	);
+	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState( window?.newspack_newsletters_data?.is_service_provider_configured !== '1' );
+	const [ testEmail, setTestEmail ] = useState( window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || '' );
 	const [ isConnected, setIsConnected ] = useState( null );
 	const [ oauthUrl, setOauthUrl ] = useState( null );
 	const newsletterDataError = useNewsletterDataError();
@@ -108,10 +99,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
 
 	return isDisplayingInitModal ? (
-		<InitModal
-			shouldDisplaySettings={ shouldDisplaySettings }
-			onSetupStatus={ setShouldDisplaySettings }
-		/>
+		<InitModal shouldDisplaySettings={ shouldDisplaySettings } onSetupStatus={ setShouldDisplaySettings } />
 	) : (
 		<Fragment>
 			<PluginSidebar name={ stylingId } icon={ styles } title={ stylingTitle }>
@@ -121,41 +109,21 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
 
-			<PluginPostStatusInfo>
-				{ isConnected && <PublicSettings /> }
-			</PluginPostStatusInfo>
+			<PluginPostStatusInfo>{ isConnected && <PublicSettings /> }</PluginPostStatusInfo>
 
 			{ isSupportedESP() && ! isManualESP() && (
-				<PluginDocumentSettingPanel
-					name="newsletters-settings-panel"
-					title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }
-				>
+				<PluginDocumentSettingPanel name="newsletters-settings-panel" title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }>
 					<CampaignLink />
-					<Sidebar
-						inFlight={ inFlight }
-						isConnected={ isConnected }
-						oauthUrl={ oauthUrl }
-						onAuthorize={ verifyToken }
-					/>
+					<Sidebar inFlight={ inFlight } isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
 				</PluginDocumentSettingPanel>
 			) }
 
 			{ isSupportedESP() && ! isManualESP() && (
-				<PluginDocumentSettingPanel
-					name="newsletters-testing-panel"
-					title={ __( 'Testing', 'newspack-newsletters' ) }
-				>
-					<Testing
-						testEmail={ testEmail }
-						onChangeEmail={ setTestEmail }
-						disabled={ ! isConnected }
-					/>
+				<PluginDocumentSettingPanel name="newsletters-testing-panel" title={ __( 'Testing', 'newspack-newsletters' ) }>
+					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } disabled={ ! isConnected } />
 				</PluginDocumentSettingPanel>
 			) }
-			<PluginDocumentSettingPanel
-				name="newsletters-layout-panel"
-				title={ __( 'Layout', 'newspack-newsletters' ) }
-			>
+			<PluginDocumentSettingPanel name="newsletters-layout-panel" title={ __( 'Layout', 'newspack-newsletters' ) }>
 				<Layout />
 			</PluginDocumentSettingPanel>
 

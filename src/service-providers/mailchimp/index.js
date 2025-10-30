@@ -30,7 +30,9 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 	if ( ! campaign || ! listId ) {
 		return null;
 	}
-	let listData, sublistData, subscriberCount = 0;
+	let listData,
+		sublistData,
+		subscriberCount = 0;
 	if ( campaign?.recipients?.list_id && campaign.recipients.list_id === listId ) {
 		const list = find( lists, [ 'id', listId ] );
 		if ( list ) {
@@ -60,7 +62,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 			<br />
 			{ sublistData && (
 				<>
-					{ sublistData.entity_type.charAt(0).toUpperCase() + sublistData.entity_type.slice(1) + ': '}
+					{ sublistData.entity_type.charAt( 0 ).toUpperCase() + sublistData.entity_type.slice( 1 ) + ': ' }
 					<strong>{ sublistData.name }</strong>
 					<br />
 				</>
@@ -68,7 +70,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 			{ subscriberCount && (
 				<strong>
 					{ sprintf(
-						// Translators: subscriber count help message.
+						// translators: %d: subscriber count.
 						_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
 						subscriberCount
 					) }
@@ -87,11 +89,11 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 		return true;
 	}
 	return false;
-}
+};
 
 export default {
 	displayName: 'Mailchimp',
 	ProviderSidebar,
 	renderPreSendInfo,
-	isCampaignSent
+	isCampaignSent,
 };

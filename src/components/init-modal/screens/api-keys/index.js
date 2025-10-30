@@ -44,17 +44,12 @@ export default ( { onSetupStatus } ) => {
 		if ( 'newspack_rest_forbidden' === error.code ) {
 			setInFlight( false );
 			setErrors( {
-				newspack_newsletters_invalid_keys: __(
-					'Only administrators can set API keys.',
-					'newspack-newsletters'
-				),
+				newspack_newsletters_invalid_keys: __( 'Only administrators can set API keys.', 'newspack-newsletters' ),
 			} );
 			return;
 		}
 		const allErrors = { [ error.code ]: error.message };
-		( error.additional_errors || [] ).forEach(
-			additionalError => ( allErrors[ additionalError.code ] = additionalError.message )
-		);
+		( error.additional_errors || [] ).forEach( additionalError => ( allErrors[ additionalError.code ] = additionalError.message ) );
 		setErrors( allErrors );
 		setInFlight( false );
 	};
@@ -87,8 +82,7 @@ export default ( { onSetupStatus } ) => {
 		}
 	};
 
-	const setCredentials = key => value =>
-		setSettings( { ...settings, credentials: { ...credentials, [ key ]: value } } );
+	const setCredentials = key => value => setSettings( { ...settings, credentials: { ...credentials, [ key ]: value } } );
 
 	return (
 		<Fragment>
@@ -134,9 +128,7 @@ export default ( { onSetupStatus } ) => {
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
 							/>
-							{ errors.newspack_newsletters_invalid_keys && (
-								<p className="error">{ errors.newspack_newsletters_invalid_keys }</p>
-							) }
+							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
 							<p>
 								<ExternalLink href="https://mailchimp.com/help/about-api-keys/#Find_or_generate_your_API_key">
@@ -147,12 +139,7 @@ export default ( { onSetupStatus } ) => {
 					) }
 					{ 'constant_contact' === serviceProvider && (
 						<Fragment>
-							<h4>
-								{ __(
-									'Enter your Constant Contact API key and access token',
-									'newspack-newsletters'
-								) }
-							</h4>
+							<h4>{ __( 'Enter your Constant Contact API key and access token', 'newspack-newsletters' ) }</h4>
 							<TextControl
 								label={ __( 'Constant Contact API key', 'newspack-newsletters' ) }
 								value={ credentials.api_key }
@@ -169,9 +156,7 @@ export default ( { onSetupStatus } ) => {
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
 							/>
-							{ errors.newspack_newsletters_invalid_keys && (
-								<p className="error">{ errors.newspack_newsletters_invalid_keys }</p>
-							) }
+							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
 							<p>
 								<ExternalLink href="https://constantcontact.mashery.com/">
@@ -186,12 +171,7 @@ export default ( { onSetupStatus } ) => {
 					) }
 					{ 'campaign_monitor' === serviceProvider && (
 						<Fragment>
-							<h4>
-								{ __(
-									'Enter your Campaign Monitor API key and client ID',
-									'newspack-newsletters'
-								) }
-							</h4>
+							<h4>{ __( 'Enter your Campaign Monitor API key and client ID', 'newspack-newsletters' ) }</h4>
 							<TextControl
 								label={ __( 'Campaign Monitor API key', 'newspack-newsletters' ) }
 								value={ credentials.api_key }
@@ -208,9 +188,7 @@ export default ( { onSetupStatus } ) => {
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
 							/>
-							{ errors.newspack_newsletters_invalid_keys && (
-								<p className="error">{ errors.newspack_newsletters_invalid_keys }</p>
-							) }
+							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
 							<p>
 								<ExternalLink href="https://help.campaignmonitor.com/api-keys">
@@ -238,9 +216,7 @@ export default ( { onSetupStatus } ) => {
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
 							/>
-							{ errors.newspack_newsletters_invalid_keys && (
-								<p className="error">{ errors.newspack_newsletters_invalid_keys }</p>
-							) }
+							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
 							<p>
 								<ExternalLink href="https://help.activecampaign.com/hc/en-us/articles/207317590-Getting-started-with-the-API">

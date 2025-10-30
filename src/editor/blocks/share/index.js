@@ -22,10 +22,7 @@ export default () => {
 				type: 'string',
 				source: 'html',
 				selector: 'p',
-				default: __(
-					'Thanks for reading. If you liked it, please send to a friend!',
-					'newspack-newsletters'
-				),
+				default: __( 'Thanks for reading. If you liked it, please send to a friend!', 'newspack-newsletters' ),
 				__experimentalRole: 'content',
 			},
 			shareMessage: {

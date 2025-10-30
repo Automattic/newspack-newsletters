@@ -10,14 +10,7 @@ import { AutocompleteTokenField } from 'newspack-components';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import {
-	Button,
-	QueryControls,
-	FormTokenField,
-	SelectControl,
-	ToggleControl,
-	Spinner,
-} from '@wordpress/components';
+import { Button, QueryControls, FormTokenField, SelectControl, ToggleControl, Spinner } from '@wordpress/components';
 import { addQueryArgs } from '@wordpress/url';
 import { Fragment, useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
@@ -74,9 +67,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 	);
 
 	const selectCategories = tokens => {
-		const hasNoSuggestion = tokens.some(
-			token => typeof token === 'string' && ! categorySuggestions[ token ]
-		);
+		const hasNoSuggestion = tokens.some( token => typeof token === 'string' && ! categorySuggestions[ token ] );
 		if ( hasNoSuggestion ) {
 			return;
 		}

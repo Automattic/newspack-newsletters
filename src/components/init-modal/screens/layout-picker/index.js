@@ -63,9 +63,7 @@ export default function LayoutPicker() {
 			<div className="newspack-newsletters-modal__content">
 				<div className="newspack-newsletters-modal__content__sidebar">
 					<div className="newspack-newsletters-modal__content__sidebar-wrapper">
-						<p>
-							{ __( 'Choose a layout or start with a blank newsletter.', 'newspack-newsletters' ) }
-						</p>
+						<p>{ __( 'Choose a layout or start with a blank newsletter.', 'newspack-newsletters' ) }</p>
 						<div className="newspack-newsletters-modal__content__layout-buttons">
 							{ LAYOUTS_TABS.map( ( { title }, i ) => (
 								<Button
@@ -88,13 +86,7 @@ export default function LayoutPicker() {
 					{ isFetchingLayouts ? (
 						<Spinner />
 					) : (
-						<div
-							className={
-								displayedLayouts.length > 0
-									? 'newspack-newsletters-layouts'
-									: 'newspack-newsletters-layouts--empty'
-							}
-						>
+						<div className={ displayedLayouts.length > 0 ? 'newspack-newsletters-layouts' : 'newspack-newsletters-layouts--empty' }>
 							{ displayedLayouts.length ? (
 								displayedLayouts.map( layout => (
 									<SingleLayoutPreview
@@ -127,11 +119,7 @@ export default function LayoutPicker() {
 				<Button variant="secondary" onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
 					{ __( 'Blank newsletter', 'newspack-newsletters' ) }
 				</Button>
-				<Button
-					variant="primary"
-					disabled={ isFetchingLayouts || ! selectedLayoutId }
-					onClick={ () => insertLayout( selectedLayoutId ) }
-				>
+				<Button variant="primary" disabled={ isFetchingLayouts || ! selectedLayoutId } onClick={ () => insertLayout( selectedLayoutId ) }>
 					{ __( 'Use selected layout', 'newspack-newsletters' ) }
 				</Button>
 			</div>

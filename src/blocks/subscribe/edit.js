@@ -11,22 +11,8 @@ import classnames from 'classnames';
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { Fragment, useState, useEffect } from '@wordpress/element';
-import {
-	TextControl,
-	ToggleControl,
-	CheckboxControl,
-	PanelBody,
-	Notice,
-	Spinner,
-	Button,
-} from '@wordpress/components';
-import {
-	useBlockProps,
-	InspectorControls,
-	RichText,
-	PanelColorSettings,
-	getColorObjectByColorValue,
-} from '@wordpress/block-editor';
+import { TextControl, ToggleControl, CheckboxControl, PanelBody, Notice, Spinner, Button } from '@wordpress/components';
+import { useBlockProps, InspectorControls, RichText, PanelColorSettings, getColorObjectByColorValue } from '@wordpress/block-editor';
 import { select } from '@wordpress/data';
 
 /**
@@ -94,7 +80,7 @@ export default function SubscribeEdit( {
 			.then( setListConfig )
 			.finally( () => {
 				setHasFetchedLists( true );
-				setInFlight( false )
+				setInFlight( false );
 			} );
 	};
 	useEffect( fetchLists, [] );
@@ -102,7 +88,7 @@ export default function SubscribeEdit( {
 	// Whether any of the selected lists are missing from the list config.
 	const isConfigMissingList = () => {
 		return lists.some( listId => ! listConfig.hasOwnProperty( listId ) );
-	}
+	};
 
 	useEffect( () => {
 		if ( ! hasFetchedLists ) {
@@ -115,7 +101,7 @@ export default function SubscribeEdit( {
 				setAttributes( { lists: lists.filter( listId => listConfig.hasOwnProperty( listId ) ) } );
 			}
 		} else {
-			setAttributes( { lists: [ Object.keys( listConfig )[0] ] } );
+			setAttributes( { lists: [ Object.keys( listConfig )[ 0 ] ] } );
 		}
 	}, [ hasFetchedLists ] );
 
@@ -246,9 +232,7 @@ export default function SubscribeEdit( {
 						/>
 					) ) }
 					<p>
-						<a href={ settingsUrl }>
-							{ __( 'Manage your subscription lists', 'newspack-newsletters' ) }
-						</a>
+						<a href={ settingsUrl }>{ __( 'Manage your subscription lists', 'newspack-newsletters' ) }</a>
 					</p>
 				</PanelBody>
 				{ newspack_newsletters_blocks.provider === 'mailchimp' && (
@@ -321,7 +305,10 @@ export default function SubscribeEdit( {
 							<form onSubmit={ ev => ev.preventDefault() }>
 								{ hasMissingLists && (
 									<Notice isDismissible={ false } status="error">
-										{ __( 'A previously selected list is no longer available. Please, revise the subscription lists selection.', 'newspack-newsletters' ) }
+										{ __(
+											'A previously selected list is no longer available. Please, revise the subscription lists selection.',
+											'newspack-newsletters'
+										) }
 									</Notice>
 								) }
 								{ lists.length > 1 && (

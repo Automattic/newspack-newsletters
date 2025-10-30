@@ -25,14 +25,8 @@ export default compose( [
 	return (
 		<div className="newspack-newsletters__copy_html">
 			<TextareaControl disabled value={ html } rows="10" />
-			<ClipboardButton
-				text={ html }
-				onCopy={ () => setHasCopied( true ) }
-				onFinishCopy={ () => setHasCopied( false ) }
-			>
-				{ hasCopied
-					? __( 'Copied!', 'newspack-newsletters' )
-					: __( 'Copy to clipboard', 'newspack-newsletters' ) }
+			<ClipboardButton text={ html } onCopy={ () => setHasCopied( true ) } onFinishCopy={ () => setHasCopied( false ) }>
+				{ hasCopied ? __( 'Copied!', 'newspack-newsletters' ) : __( 'Copy to clipboard', 'newspack-newsletters' ) }
 			</ClipboardButton>
 		</div>
 	);

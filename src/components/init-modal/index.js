@@ -23,11 +23,7 @@ export default ( { shouldDisplaySettings, onSetupStatus } ) => {
 			overlayClassName="newspack-newsletters-modal__screen-overlay"
 			shouldCloseOnClickOutside={ false }
 			shouldCloseOnEsc={ false }
-			title={
-				shouldDisplaySettings
-					? __( 'Configure Plugin', 'newspack-newsletters' )
-					: __( 'Add New Newsletter', 'newspack-newsletters' )
-			}
+			title={ shouldDisplaySettings ? __( 'Configure Plugin', 'newspack-newsletters' ) : __( 'Add New Newsletter', 'newspack-newsletters' ) }
 		>
 			{ shouldDisplaySettings ? <APIKeys onSetupStatus={ onSetupStatus } /> : <LayoutPicker /> }
 		</Modal>

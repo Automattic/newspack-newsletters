@@ -8,10 +8,7 @@ import DisableAutoAds from './disable-auto-ads';
 
 function NewslettersAdsSettings() {
 	return (
-		<PluginDocumentSettingPanel
-			name="newsletters-ads-settings-panel"
-			title={ __( 'Advertising', 'newspack-newsletters' ) }
-		>
+		<PluginDocumentSettingPanel name="newsletters-ads-settings-panel" title={ __( 'Advertising', 'newspack-newsletters' ) }>
 			<DisableAutoAds />
 		</PluginDocumentSettingPanel>
 	);

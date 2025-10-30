@@ -17,10 +17,7 @@ const PublicSettingsComponent = props => {
 			<ToggleControl
 				className="newspack-newsletters__public-toggle-control"
 				label={ __( 'Public newsletter', 'newspack-newsletters' ) }
-				help={ __(
-					'Choose whether this newsletter will be publicly viewable as an article after being sent.',
-					'newspack-newsletters'
-				) }
+				help={ __( 'Choose whether this newsletter will be publicly viewable as an article after being sent.', 'newspack-newsletters' ) }
 				checked={ is_public }
 				onChange={ value => updateIsPublic( value ) }
 			/>
@@ -44,7 +41,4 @@ const mapDispatchToProps = dispatch => {
 	};
 };
 
-export const PublicSettings = compose( [
-	withSelect( mapStateToProps ),
-	withDispatch( mapDispatchToProps ),
-] )( PublicSettingsComponent );
+export const PublicSettings = compose( [ withSelect( mapStateToProps ), withDispatch( mapDispatchToProps ) ] )( PublicSettingsComponent );

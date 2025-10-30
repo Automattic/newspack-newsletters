@@ -148,41 +148,39 @@ export const useCustomFontsInIframe = () => {
 	return ref;
 };
 
-export const ApplyStyling = withSelect( customStylesSelector )(
-	( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
-		useEffect( () => {
-			document.documentElement.style.setProperty( '--newspack-body-font', fontBody );
-		}, [ fontBody ] );
-		useEffect( () => {
-			document.documentElement.style.setProperty( '--newspack-header-font', fontHeader );
-		}, [ fontHeader ] );
-		useEffect( () => {
-			const editorElement = document.querySelector( '.editor-styles-wrapper' );
-			if ( editorElement ) {
-				editorElement.style.backgroundColor = backgroundColor;
-				editorElement.style.color = textColor;
+export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
+	useEffect( () => {
+		document.documentElement.style.setProperty( '--newspack-body-font', fontBody );
+	}, [ fontBody ] );
+	useEffect( () => {
+		document.documentElement.style.setProperty( '--newspack-header-font', fontHeader );
+	}, [ fontHeader ] );
+	useEffect( () => {
+		const editorElement = document.querySelector( '.editor-styles-wrapper' );
+		if ( editorElement ) {
+			editorElement.style.backgroundColor = backgroundColor;
+			editorElement.style.color = textColor;
+		}
+	}, [ backgroundColor, textColor ] );
+	useEffect( () => {
+		const editorElement = document.querySelector( '.edit-post-visual-editor' );
+		if ( editorElement ) {
+			let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
+			if ( ! styleEl ) {
+				styleEl = document.createElement( 'style' );
+				styleEl.setAttribute( 'type', 'text/css' );
+				styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
+				document.head.appendChild( styleEl );
 			}
-		}, [ backgroundColor, textColor ] );
-		useEffect( () => {
-			const editorElement = document.querySelector( '.edit-post-visual-editor' );
-			if ( editorElement ) {
-				let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
-				if ( ! styleEl ) {
-					styleEl = document.createElement( 'style' );
-					styleEl.setAttribute( 'type', 'text/css' );
-					styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
-					document.head.appendChild( styleEl );
-				}
 
-				const scopedCss = getScopedCss( '.edit-post-visual-editor', customCss );
+			const scopedCss = getScopedCss( '.edit-post-visual-editor', customCss );
 
-				styleEl.textContent = scopedCss;
-			}
-		}, [ customCss ] );
+			styleEl.textContent = scopedCss;
+		}
+	}, [ customCss ] );
 
-		return null;
-	}
-);
+	return null;
+} );
 
 export const Styling = compose( [
 	withDispatch( dispatch => {
@@ -200,10 +198,7 @@ export const Styling = compose( [
 
 	return (
 		<Panel>
-			<PanelBody
-				name="newsletters-typography-panel"
-				title={ __( 'Typography', 'newspack-newsletters' ) }
-			>
+			<PanelBody name="newsletters-typography-panel" title={ __( 'Typography', 'newspack-newsletters' ) }>
 				<PanelRow>
 					<SelectControlWithOptGroup
 						label={ __( 'Headings font', 'newspack-newsletters' ) }
@@ -243,11 +238,7 @@ export const Styling = compose( [
 					</BaseControl>
 				</PanelRow>
 			</PanelBody>
-			<PanelBody
-				name="newsletters-css-panel"
-				title={ __( 'Custom CSS', 'newspack-newsletters' ) }
-				initialOpen={ false }
-			>
+			<PanelBody name="newsletters-css-panel" title={ __( 'Custom CSS', 'newspack-newsletters' ) } initialOpen={ false }>
 				<PanelRow className="newspack-newsletters__css-panel">
 					<BaseControl
 						id={ `inspector-custom-css-control-${ instanceId }` }

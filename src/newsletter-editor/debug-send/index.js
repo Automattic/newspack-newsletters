@@ -20,16 +20,8 @@ function NewslettersDebugSend() {
 		return null;
 	}
 	return (
-		<PluginDocumentSettingPanel
-			name="newsletters-ads-settings-panel"
-			title={ __( 'Send Errors', 'newspack-newsletters' ) }
-		>
-			<p>
-				{ __(
-					'The following errors occurred when trying to send the newsletter:',
-					'newspack-newsletters'
-				) }
-			</p>
+		<PluginDocumentSettingPanel name="newsletters-ads-settings-panel" title={ __( 'Send Errors', 'newspack-newsletters' ) }>
+			<p>{ __( 'The following errors occurred when trying to send the newsletter:', 'newspack-newsletters' ) }</p>
 			<ul>
 				{ sendErrors
 					.slice( 0 )
@@ -43,9 +35,7 @@ function NewslettersDebugSend() {
 						</li>
 					) ) }
 			</ul>
-			{ sendErrors.length === 10 && (
-				<p>{ __( 'Only the last 10 errors are stored.', 'newspack-newsletters' ) }</p>
-			) }
+			{ sendErrors.length === 10 && <p>{ __( 'Only the last 10 errors are stored.', 'newspack-newsletters' ) }</p> }
 		</PluginDocumentSettingPanel>
 	);
 }

@@ -45,12 +45,7 @@ const getWarnings = props => {
 				const isAnyColumnCenterAligned = some( innerBlocks, isCenterAligned );
 				const areAllColumnsCenterAligned = every( innerBlocks, isCenterAligned );
 				if ( isAnyColumnCenterAligned && ! areAllColumnsCenterAligned ) {
-					warnings.push(
-						__(
-							'Unequal middle alignment. All or none of the columns should be middle-aligned.',
-							'newspack-newsletters'
-						)
-					);
+					warnings.push( __( 'Unequal middle alignment. All or none of the columns should be middle-aligned.', 'newspack-newsletters' ) );
 				}
 			}
 			break;
@@ -86,10 +81,7 @@ const withUnsupportedFeaturesNotices = createHigherOrderComponent( BlockListBloc
 		return warnings.length ? (
 			<div className="newspack-newsletters__editor-block">
 				<div className="newspack-newsletters__editor-block__warning components-notice is-error">
-					{ __(
-						'These features will not be displayed correctly in an email, please remove them:',
-						'newspack-newsletters'
-					) }
+					{ __( 'These features will not be displayed correctly in an email, please remove them:', 'newspack-newsletters' ) }
 					{ warnings.map( ( warning, i ) => (
 						<strong key={ i }>
 							<br />
@@ -106,9 +98,5 @@ const withUnsupportedFeaturesNotices = createHigherOrderComponent( BlockListBloc
 }, 'withInspectorControl' );
 
 export const addBlocksValidationFilter = () => {
-	addFilter(
-		'editor.BlockListBlock',
-		'newspack-newsletters/unsupported-features-notices',
-		withUnsupportedFeaturesNotices
-	);
+	addFilter( 'editor.BlockListBlock', 'newspack-newsletters/unsupported-features-notices', withUnsupportedFeaturesNotices );
 };

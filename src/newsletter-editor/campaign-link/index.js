@@ -17,16 +17,11 @@ export default function CampaignLink() {
 	}
 	return (
 		<p>
-			<Button
-				variant="secondary"
-				href={ newsletterData.link }
-				target="_blank"
-				rel="noopener noreferrer"
-			>
+			<Button variant="secondary" href={ newsletterData.link } target="_blank" rel="noopener noreferrer">
 				{ sprintf(
-						// translators: %s: service provider name.
-						__( 'View Campaign in %s', 'newspack-newsletters' ),
-						getServiceProvider().displayName
+					// translators: %s: service provider name.
+					__( 'View Campaign in %s', 'newspack-newsletters' ),
+					getServiceProvider().displayName
 				) }
 			</Button>
 		</p>

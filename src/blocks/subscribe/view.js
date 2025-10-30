@@ -35,9 +35,7 @@ domReady( function () {
 		if ( ! form ) {
 			return;
 		}
-		const responseContainer = container.querySelector(
-			'.newspack-newsletters-subscribe__response'
-		);
+		const responseContainer = container.querySelector( '.newspack-newsletters-subscribe__response' );
 		const messageContainer = container.querySelector( '.newspack-newsletters-subscribe__message' );
 		const emailInput = container.querySelector( 'input[type="email"]' );
 		const submit = container.querySelector( 'button[type="submit"]' );
@@ -51,9 +49,7 @@ domReady( function () {
 			submit.removeChild( spinner );
 			submit.removeAttribute( 'disabled' );
 			form.classList.remove( 'in-progress' );
-			messageNode.innerHTML = wasSubscribed
-				? container.getAttribute( 'data-success-message' )
-				: message;
+			messageNode.innerHTML = wasSubscribed ? container.getAttribute( 'data-success-message' ) : message;
 			messageContainer.appendChild( messageNode );
 			messageNode.className = `message status-${ status }`;
 			if ( status === 200 ) {
@@ -70,13 +66,20 @@ domReady( function () {
 					baseActivity.gate_post_id = metadata.gate_post_id;
 				}
 				if ( lists.length && wasSubscribed ) {
-					window.newspackRAS.push( function( ras ) {
-						ras.dispatchActivity( 'newsletter_signup', { ...baseActivity, lists, newsletters_subscription_method: metadata?.newsletters_subscription_method || 'newsletters-subscription-block' } );
+					window.newspackRAS.push( function ( ras ) {
+						ras.dispatchActivity( 'newsletter_signup', {
+							...baseActivity,
+							lists,
+							newsletters_subscription_method: metadata?.newsletters_subscription_method || 'newsletters-subscription-block',
+						} );
 					} );
 				}
 				if ( metadata?.registered ) {
-					window.newspackRAS.push( function( ras ) {
-						ras.dispatchActivity( 'reader_registered', { ...baseActivity, registration_method: metadata?.registration_method || 'newsletters-subscription' } );
+					window.newspackRAS.push( function ( ras ) {
+						ras.dispatchActivity( 'reader_registered', {
+							...baseActivity,
+							registration_method: metadata?.registration_method || 'newsletters-subscription',
+						} );
 					} );
 				}
 			}
@@ -109,19 +112,10 @@ domReady( function () {
 				},
 				body,
 			} ).then( res => {
-				res
-					.json()
-					.then(
-						( {
-							message,
-							newspack_newsletters_subscribed: wasSubscribed,
-							newspack_newsletters_subscribe,
-							metadata,
-						} ) => {
-							nonce = newspack_newsletters_subscribe;
-							form.endFlow( message, res.status, wasSubscribed, metadata );
-						}
-					);
+				res.json().then( ( { message, newspack_newsletters_subscribed: wasSubscribed, newspack_newsletters_subscribe, metadata } ) => {
+					nonce = newspack_newsletters_subscribe;
+					form.endFlow( message, res.status, wasSubscribed, metadata );
+				} );
 			} );
 		} );
 	} );

@@ -28,9 +28,13 @@ const SendTo = () => {
 	} );
 
 	const editPost = useDispatch( 'core/editor' ).editPost;
-	const updateMeta = ( meta ) => editPost( { meta } );
+	const updateMeta = meta => editPost( { meta } );
 
-	const { newsletterData: { lists = [], sublists, send_list_id = null, send_sublist_id = null }, isRetrievingLists, hasRetrievedLists } = useNewsletterData();
+	const {
+		newsletterData: { lists = [], sublists, send_list_id = null, send_sublist_id = null },
+		isRetrievingLists,
+		hasRetrievedLists,
+	} = useNewsletterData();
 	const { labels } = newspack_newsletters_data || {};
 	const listLabel = labels?.list || __( 'list', 'newspack-newsletters' );
 	const sublistLabel = labels?.sublist || __( 'sublist', 'newspack-newsletters' );
@@ -42,7 +46,7 @@ const SendTo = () => {
 	useEffect( () => {
 		return () => {
 			fetchSendLists.cancel();
-		}
+		};
 	}, [] );
 
 	// Handle fetching lists and sublists as needed.
@@ -114,11 +118,11 @@ const SendTo = () => {
 				selectedList?.count ? selectedList.count.toLocaleString() : '',
 				selectedList?.name,
 				selectedList?.entity_type?.toLowerCase()
-		  );
+			);
 		}
 		if ( selectedList && selectedSublist?.name ) {
 			summary = sprintf(
-				// Translators: A summary of which list the campaign is set to send to, and the total number of contacts, if available. %1$s is the number of contacts. %2$s is the label of the list (ex: Main), %3$s is the label for the type of the list (ex: "list" on Active Campaign and "audience" on Mailchimp).
+				// translators: %1$s: number of contacts, %2$s: list label, %3$s: list type, %4$s: sublist label, %5$s: sublist type.
 				_n(
 					'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who is part of the <strong>%4$s</strong> %5$s.',
 					'This newsletter will be sent to <strong>all %1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
@@ -145,21 +149,17 @@ const SendTo = () => {
 	return (
 		<>
 			<hr />
-			<strong className="newspack-newsletters__label">
-				{ __( 'Send to', 'newspack-newsletters' ) }
-			</strong>
+			<strong className="newspack-newsletters__label">{ __( 'Send to', 'newspack-newsletters' ) }</strong>
 			{ error && (
 				<Notice status="error" isDismissible={ false }>
 					{ error }
 				</Notice>
 			) }
-			{
-				( send_list_id || send_sublist_id ) && (
-					<Notice status="success" isDismissible={ false }>
-						{ __( 'Updated send-to info fetched from ESP.', 'newspack-newsletters' ) }
-					</Notice>
-				)
-			}
+			{ ( send_list_id || send_sublist_id ) && (
+				<Notice status="success" isDismissible={ false }>
+					{ __( 'Updated send-to info fetched from ESP.', 'newspack-newsletters' ) }
+				</Notice>
+			) }
 			<Autocomplete
 				availableItems={ lists }
 				label={ listLabel }
@@ -184,55 +184,58 @@ const SendTo = () => {
 				} }
 				onInputChange={ search => search && fetchSendLists( { search } ) }
 				reset={ () => {
-					updateMeta( { send_list_id: null, send_sublist_id: null } )
+					updateMeta( { send_list_id: null, send_sublist_id: null } );
 				} }
 				selectedInfo={ selectedList }
 				setError={ setError }
 				updateMeta={ updateMeta }
 			/>
-			{
-				sublists && listId && (
-					<Autocomplete
-						availableItems={ sublists.filter( item => ! item.parent || listId === item.parent ) }
-						label={ sublistLabel }
-						parentId={ listId }
-						onChange={ selectedLabels => {
-							const selectedLabel = selectedLabels[ 0 ];
-							const selectedSuggestion = sublists.find( item => item.label === selectedLabel && ( ! item.parent || listId === item.parent ) );
-							if ( ! selectedSuggestion?.id ) {
-								return setError(
-									sprintf(
-										// Translators: Error shown when we can't find info on the selected sublist. %s is the ESP's label for the sublist entity or entities.
-										__( 'Invalid %s selection.', 'newspack-newsletters' ),
-										sublistLabel
-									)
-								);
-							}
-							updateMeta( { send_sublist_id: selectedSuggestion.id.toString() } );
-						} }
-						onFocus={ () => {
-							if ( 1 >= sublists?.length ) {
-								fetchSendLists( {
-									type: 'sublist',
-									parent_id: listId
-								} );
-							}
-						} }
-						onInputChange={ search => search && fetchSendLists( {
+			{ sublists && listId && (
+				<Autocomplete
+					availableItems={ sublists.filter( item => ! item.parent || listId === item.parent ) }
+					label={ sublistLabel }
+					parentId={ listId }
+					onChange={ selectedLabels => {
+						const selectedLabel = selectedLabels[ 0 ];
+						const selectedSuggestion = sublists.find(
+							item => item.label === selectedLabel && ( ! item.parent || listId === item.parent )
+						);
+						if ( ! selectedSuggestion?.id ) {
+							return setError(
+								sprintf(
+									// Translators: Error shown when we can't find info on the selected sublist. %s is the ESP's label for the sublist entity or entities.
+									__( 'Invalid %s selection.', 'newspack-newsletters' ),
+									sublistLabel
+								)
+							);
+						}
+						updateMeta( { send_sublist_id: selectedSuggestion.id.toString() } );
+					} }
+					onFocus={ () => {
+						if ( 1 >= sublists?.length ) {
+							fetchSendLists( {
+								type: 'sublist',
+								parent_id: listId,
+							} );
+						}
+					} }
+					onInputChange={ search =>
+						search &&
+						fetchSendLists( {
 							search,
 							type: 'sublist',
-							parent_id: listId
-						} ) }
-						reset={ () => {
-							updateMeta( { send_list_id: listId, send_sublist_id: null } )
-						} }
-						selectedInfo={ selectedSublist }
-						setError={ setError }
-						updateMeta={ updateMeta }
-					/>
-				)
-			}
-			{ renderSelectedSummary()}
+							parent_id: listId,
+						} )
+					}
+					reset={ () => {
+						updateMeta( { send_list_id: listId, send_sublist_id: null } );
+					} }
+					selectedInfo={ selectedSublist }
+					setError={ setError }
+					updateMeta={ updateMeta }
+				/>
+			) }
+			{ renderSelectedSummary() }
 		</>
 	);
 };

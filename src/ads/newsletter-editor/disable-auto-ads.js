@@ -66,24 +66,14 @@ export default function DisableAutoAds( { saveOnToggle = false } ) {
 				} }
 			/>
 			{ forceDisableAutoAds ? (
-				<p>
-					{ __(
-						'Automatic ads insertion is disabled because this post contains manually inserted ad blocks.',
-						'newspack-newsletters'
-					) }
-				</p>
+				<p>{ __( 'Automatic ads insertion is disabled because this post contains manually inserted ad blocks.', 'newspack-newsletters' ) }</p>
 			) : null }
 			{ ! inFlight ? (
 				<>
 					<p>
 						{ sprintf(
-							// Translators: help message showing number of active ads.
-							_n(
-								'There is %1$d active %2$s.',
-								'There are %1$d active %2$ss.',
-								adsConfig.count,
-								'newspack-newsletters'
-							),
+							// translators: %1$d: number of active ads, %2$s: ad label.
+							_n( 'There is %1$d active %2$s.', 'There are %1$d active %2$ss.', adsConfig.count, 'newspack-newsletters' ),
 							adsConfig.count,
 							adsConfig.label
 						) }
@@ -97,7 +87,7 @@ export default function DisableAutoAds( { saveOnToggle = false } ) {
 						__next40pxDefaultSize
 					>
 						{
-							// Translators: "manage ad" message.
+							// translators: %s: ad label.
 							sprintf( __( 'Manage %ss', 'newspack-newsletters' ), adsConfig.label )
 						}
 					</Button>

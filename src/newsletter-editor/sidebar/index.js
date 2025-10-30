@@ -46,7 +46,7 @@ const Sidebar = ( {
 	const { newsletterData } = useNewsletterData();
 	const newsletterDataError = useNewsletterDataError();
 	const campaign = newsletterData?.campaign;
-	const updateMeta = ( toUpdate ) => editPost( { meta: toUpdate } );
+	const updateMeta = toUpdate => editPost( { meta: toUpdate } );
 	const entityConverter = useRef( null );
 
 	// Create a temp textarea element that we can use to convert HTML entities like &amp; to unicode characters.
@@ -99,16 +99,12 @@ const Sidebar = ( {
 		if ( Object.keys( updatedNewsletterData ).length ) {
 			updateNewsletterData( updatedNewsletterData );
 		}
-	}, [
-		newsletterData?.senderEmail,
-		newsletterData?.senderName,
-		newsletterData?.send_list_id,
-		newsletterData?.send_sublist_id
-	] );
+	}, [ newsletterData?.senderEmail, newsletterData?.senderName, newsletterData?.send_list_id, newsletterData?.send_sublist_id ] );
 
 	useEffect( () => {
 		if ( stringifiedCampaignDefaults ) {
-			const campaignDefaults = 'string' === typeof stringifiedCampaignDefaults ? JSON.parse( stringifiedCampaignDefaults ) : stringifiedCampaignDefaults;
+			const campaignDefaults =
+				'string' === typeof stringifiedCampaignDefaults ? JSON.parse( stringifiedCampaignDefaults ) : stringifiedCampaignDefaults;
 			const updatedMeta = {};
 			if ( campaignDefaults?.senderEmail ) {
 				updatedMeta.senderEmail = campaignDefaults.senderEmail;
@@ -140,12 +136,7 @@ const Sidebar = ( {
 	if ( false === isConnected ) {
 		return (
 			<>
-				<p>
-					{ __(
-						'You must authorize your account before publishing your newsletter.',
-						'newspack-newsletters'
-					) }
-				</p>
+				<p>{ __( 'You must authorize your account before publishing your newsletter.', 'newspack-newsletters' ) }</p>
 				<Button
 					variant="primary"
 					disabled={ inFlight }
@@ -173,7 +164,9 @@ const Sidebar = ( {
 						fetchNewsletterData( postId );
 					} }
 				>
-					{ isRetrieving ? __( 'Retrieving campaign data…', 'newspack-newsletter' ) : __( 'Retrieve campaign data', 'newspack-newsletter' ) }
+					{ isRetrieving
+						? __( 'Retrieving campaign data…', 'newspack-newsletter' )
+						: __( 'Retrieve campaign data', 'newspack-newsletter' ) }
 				</Button>
 			</div>
 		);
@@ -223,24 +216,10 @@ const Sidebar = ( {
 				disabled={ inFlight }
 				onChange={ value => updateMeta( { preview_text: value } ) }
 			/>
-			<ProviderSidebar
-				inFlight={ inFlight }
-				postId={ postId }
-				meta={ meta }
-				updateMeta={ updateMeta }
-			/>
+			<ProviderSidebar inFlight={ inFlight } postId={ postId } meta={ meta } updateMeta={ updateMeta } />
 			<hr />
-			<Sender
-				errors={ errors }
-				senderEmail={ senderEmail }
-				senderName={ senderName }
-				updateMeta={ updateMeta }
-			/>
-			{
-				isSupportedESP() && (
-					<SendTo />
-				)
-			}
+			<Sender errors={ errors } senderEmail={ senderEmail } senderName={ senderName } updateMeta={ updateMeta } />
+			{ isSupportedESP() && <SendTo /> }
 		</div>
 	);
 };

@@ -51,10 +51,7 @@ const PostsInserterBlock = ( {
 	const stringifiedPostList = JSON.stringify( postList );
 
 	// Stringify added to minimize flicker.
-	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [
-		stringifiedPostList,
-		attributes,
-	] );
+	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [ stringifiedPostList, attributes ] );
 
 	const stringifiedTemplateBlocks = JSON.stringify( templateBlocks );
 
@@ -243,13 +240,9 @@ const PostsInserterBlock = ( {
 				{ attributes.displayFeaturedImage && (
 					<>
 						<Toolbar controls={ blockControlsImages } />
-						{ ( attributes.featuredImageAlignment === 'left' ||
-							attributes.featuredImageAlignment === 'right' ) && (
+						{ ( attributes.featuredImageAlignment === 'left' || attributes.featuredImageAlignment === 'right' ) && (
 							<Toolbar>
-								<ToolbarDropdownMenu
-									text={ __( 'Image Size', 'newspack-newsletters' ) }
-									icon={ null }
-								>
+								<ToolbarDropdownMenu text={ __( 'Image Size', 'newspack-newsletters' ) } icon={ null }>
 									{ ( { onClose } ) => (
 										<MenuGroup>
 											{ imageSizeOptions.map( entry => {
@@ -283,11 +276,7 @@ const PostsInserterBlock = ( {
 				) }
 			</BlockControls>
 
-			<div
-				className={ `newspack-posts-inserter ${
-					! isReady ? 'newspack-posts-inserter--loading' : ''
-				}` }
-			>
+			<div className={ `newspack-posts-inserter ${ ! isReady ? 'newspack-posts-inserter--loading' : '' }` }>
 				<div className="newspack-posts-inserter__header">
 					<Icon icon={ pages } />
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
@@ -295,14 +284,8 @@ const PostsInserterBlock = ( {
 				<PostsPreview
 					isReady={ isReady }
 					blocks={ templateBlocks }
-					viewportWidth={
-						'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage
-							? 574
-							: 1148
-					}
-					className={
-						attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null
-					}
+					viewportWidth={ 'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage ? 574 : 1148 }
+					className={ attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null }
 				/>
 				<div className="newspack-posts-inserter__footer">
 					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
@@ -378,12 +361,8 @@ const PostsInserterBlockWithSelect = compose( [
 				if ( post.featured_media ) {
 					const image = getMedia( post.featured_media );
 					const fallbackImageURL = get( image, 'source_url', null );
-					const featuredImageMediumURL =
-						get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null ) ||
-						fallbackImageURL;
-					const featuredImageLargeURL =
-						get( image, [ 'media_details', 'sizes', 'large', 'source_url' ], null ) ||
-						fallbackImageURL;
+					const featuredImageMediumURL = get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null ) || fallbackImageURL;
+					const featuredImageLargeURL = get( image, [ 'media_details', 'sizes', 'large', 'source_url' ], null ) || fallbackImageURL;
 					return { ...post, featuredImageMediumURL, featuredImageLargeURL };
 				}
 				return post;
@@ -392,9 +371,7 @@ const PostsInserterBlockWithSelect = compose( [
 	} ),
 	withDispatch( ( dispatch, props ) => {
 		const { replaceBlocks } = dispatch( 'core/block-editor' );
-		const { setHandledPostsIds, setInsertedPostsIds, removeBlock } = dispatch(
-			POSTS_INSERTER_STORE_NAME
-		);
+		const { setHandledPostsIds, setInsertedPostsIds, removeBlock } = dispatch( POSTS_INSERTER_STORE_NAME );
 		return {
 			replaceBlocks: blocks => {
 				replaceBlocks( props.selectedBlock.clientId, blocks );

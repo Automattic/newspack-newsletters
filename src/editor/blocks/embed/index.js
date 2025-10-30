@@ -67,9 +67,7 @@ const EmbedPreview = props => {
 					onChange={ props.onCaptionChange }
 					allowedFormats={ [ 'core/bold', 'core/italic', 'core/text-color' ] }
 					inlineToolbar
-					__unstableOnSplitAtEnd={ () =>
-						props.insertBlocksAfter( createBlock( 'core/paragraph' ) )
-					}
+					__unstableOnSplitAtEnd={ () => props.insertBlocksAfter( createBlock( 'core/paragraph' ) ) }
 				/>
 			) }
 		</figure>
@@ -77,78 +75,70 @@ const EmbedPreview = props => {
 };
 
 export default () => {
-	wp.hooks.addFilter(
-		'blocks.registerBlockType',
-		'newspack-newsletters/embed-block/disable-align',
-		( settings, name ) => {
-			if ( name === 'core/embed' ) {
-				settings = {
-					...settings,
-					supports: {
-						...settings.supports,
-						align: false,
-					},
-				};
-			}
-			return settings;
-		}
-	);
-	wp.hooks.addFilter(
-		'editor.BlockEdit',
-		'newspack-newsletters/embed-block-edit-editor',
-		BlockEdit => {
-			return props => {
-				if ( props.name !== 'core/embed' ) {
-					return <BlockEdit { ...props } />;
-				}
-				const { getEmbedPreview } = select( 'core' );
-				const embedPreview = getEmbedPreview( props.attributes.url );
-				if ( ! embedPreview ) {
-					return <BlockEdit { ...props } />;
-				}
-				const [ isViewingEmail, setIsViewingEmail ] = useState( true );
-				const blockProps = useBlockProps();
-				return (
-					<Fragment>
-						<BlockControls>
-							<ToolbarGroup>
-								<ToolbarButton
-									icon={ envelope }
-									label={ __( 'Preview email format', 'newspack-newsletters' ) }
-									isActive={ isViewingEmail }
-									onClick={ () => {
-										setIsViewingEmail( true );
-									} }
-								/>
-								<ToolbarButton
-									icon={ layout }
-									label={ __( 'Preview web format', 'newspack-newsletters' ) }
-									isActive={ ! isViewingEmail }
-									onClick={ () => {
-										setIsViewingEmail( false );
-									} }
-								/>
-							</ToolbarGroup>
-						</BlockControls>
-						{ isViewingEmail ? (
-							<div { ...blockProps }>
-								<EmbedPreview
-									{ ...embedPreview }
-									caption={ props.caption }
-									onCaptionChange={ value => {
-										props.setAttributes( { caption: value } );
-									} }
-									insertBlocksAfter={ props.insertBlocksAfter }
-									isSelected={ props.isSelected }
-									className={ props.className }
-								/>
-							</div>
-						) : (
-							<BlockEdit { ...props } />
-						) }
-					</Fragment>
-				);
+	wp.hooks.addFilter( 'blocks.registerBlockType', 'newspack-newsletters/embed-block/disable-align', ( settings, name ) => {
+		if ( name === 'core/embed' ) {
+			settings = {
+				...settings,
+				supports: {
+					...settings.supports,
+					align: false,
+				},
 			};
 		}
-	);
+		return settings;
+	} );
+	wp.hooks.addFilter( 'editor.BlockEdit', 'newspack-newsletters/embed-block-edit-editor', BlockEdit => {
+		return props => {
+			if ( props.name !== 'core/embed' ) {
+				return <BlockEdit { ...props } />;
+			}
+			const { getEmbedPreview } = select( 'core' );
+			const embedPreview = getEmbedPreview( props.attributes.url );
+			if ( ! embedPreview ) {
+				return <BlockEdit { ...props } />;
+			}
+			const [ isViewingEmail, setIsViewingEmail ] = useState( true );
+			const blockProps = useBlockProps();
+			return (
+				<Fragment>
+					<BlockControls>
+						<ToolbarGroup>
+							<ToolbarButton
+								icon={ envelope }
+								label={ __( 'Preview email format', 'newspack-newsletters' ) }
+								isActive={ isViewingEmail }
+								onClick={ () => {
+									setIsViewingEmail( true );
+								} }
+							/>
+							<ToolbarButton
+								icon={ layout }
+								label={ __( 'Preview web format', 'newspack-newsletters' ) }
+								isActive={ ! isViewingEmail }
+								onClick={ () => {
+									setIsViewingEmail( false );
+								} }
+							/>
+						</ToolbarGroup>
+					</BlockControls>
+					{ isViewingEmail ? (
+						<div { ...blockProps }>
+							<EmbedPreview
+								{ ...embedPreview }
+								caption={ props.caption }
+								onCaptionChange={ value => {
+									props.setAttributes( { caption: value } );
+								} }
+								insertBlocksAfter={ props.insertBlocksAfter }
+								isSelected={ props.isSelected }
+								className={ props.className }
+							/>
+						</div>
+					) : (
+						<BlockEdit { ...props } />
+					) }
+				</Fragment>
+			);
+		};
+	} );
 };

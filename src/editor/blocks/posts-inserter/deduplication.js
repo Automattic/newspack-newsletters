@@ -88,10 +88,7 @@ registerStore( POSTS_INSERTER_STORE_NAME, {
 	actions,
 
 	selectors: {
-		getHandledPostIds(
-			{ postIdsByBlocks, existingBlockIdsInOrder, insertedPostIds },
-			blockClientId
-		) {
+		getHandledPostIds( { postIdsByBlocks, existingBlockIdsInOrder, insertedPostIds }, blockClientId ) {
 			const blockIndex = existingBlockIdsInOrder.indexOf( blockClientId );
 			const blocksBeforeIds = slice( existingBlockIdsInOrder, 0, blockIndex );
 			return [

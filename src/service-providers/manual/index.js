@@ -32,12 +32,7 @@ const ProviderSidebar = ( { renderSubject, renderPreviewText } ) => {
 const renderPreSendInfo = () => {
 	return (
 		<Fragment>
-			<p>
-				{ __(
-					'Copy the HTML code below to manually publish your newsletter with your provider.',
-					'newspack-newsletters'
-				) }
-			</p>
+			<p>{ __( 'Copy the HTML code below to manually publish your newsletter with your provider.', 'newspack-newsletters' ) }</p>
 			<CopyHTML />
 		</Fragment>
 	);
@@ -46,12 +41,7 @@ const renderPreSendInfo = () => {
 const renderPostUpdateInfo = () => {
 	return (
 		<Fragment>
-			<p>
-				{ __(
-					'Copy the HTML code below to manually publish your newsletter with your provider.',
-					'newspack-newsletters'
-				) }
-			</p>
+			<p>{ __( 'Copy the HTML code below to manually publish your newsletter with your provider.', 'newspack-newsletters' ) }</p>
 			<CopyHTML />
 		</Fragment>
 	);

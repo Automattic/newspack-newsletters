@@ -47,7 +47,7 @@ const renderPreSendInfo = ( newsletterData = {}, meta = {} ) => {
 			{ ! isNaN( subscriberCount ) && (
 				<strong>
 					{ sprintf(
-						// Translators: subscriber count help message.
+						// translators: %d: subscriber count.
 						_n( '%d subscriber', '%d subscribers', subscriberCount, 'newspack-newsletters' ),
 						subscriberCount
 					) }
@@ -66,7 +66,7 @@ const isCampaignSent = ( newsletterData, postStatus = 'draft' ) => {
 		return true;
 	}
 	return false;
-}
+};
 
 export default {
 	displayName: 'Constant Contact',

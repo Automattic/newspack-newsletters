@@ -65,9 +65,7 @@ const getExcerptBlockTemplate = ( post, { excerptLength, textFontSize, textColor
 
 	const needsEllipsis = excerptLength < excerpt.trim().split( ' ' ).length;
 
-	const postExcerpt = needsEllipsis
-		? `${ excerpt.split( ' ', excerptLength ).join( ' ' ) } […]`
-		: excerpt;
+	const postExcerpt = needsEllipsis ? `${ excerpt.split( ' ', excerptLength ).join( ' ' ) } […]` : excerpt;
 
 	const attributes = { content: postExcerpt.trim(), style: { color: { text: textColor } } };
 	return [ 'core/paragraph', assignFontSize( textFontSize, attributes ) ];
@@ -151,9 +149,7 @@ const getSponsorAttributionTemplate = ( sponsors, { textFontSize, textColor } ) 
 	const sponsorNames = [];
 
 	sponsorsToShow.forEach( sponsor => {
-		const sponsorName = sponsor.sponsor_url
-			? `<a href="${ sponsor.sponsor_url }">${ sponsor.sponsor_name }</a>`
-			: sponsor.sponsor_name;
+		const sponsorName = sponsor.sponsor_url ? `<a href="${ sponsor.sponsor_url }">${ sponsor.sponsor_name }</a>` : sponsor.sponsor_name;
 		sponsorNames.push( sponsorName );
 	} );
 
@@ -197,8 +193,9 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 	}
 
 	// If the meta is set, use it. Otherwise, if any sponsor is 'native', use 'native'. Otherwise, default to 'underwritten'.
-	const sponsorshipScope = post.meta.newspack_sponsor_sponsorship_scope 
-		|| ( ( post.newspack_sponsors_info || [] ).some( sponsor => sponsor.sponsor_scope ==='native' ) ? 'native' : 'underwritten' );
+	const sponsorshipScope =
+		post.meta.newspack_sponsor_sponsorship_scope ||
+		( ( post.newspack_sponsors_info || [] ).some( sponsor => sponsor.sponsor_scope === 'native' ) ? 'native' : 'underwritten' );
 	if ( hasSponsors && 'underwritten' !== sponsorshipScope ) {
 		// If the post is set to show only sponsor, OR set to inherit and all sponsors are set to show only sponsor, hide the byline.
 		if (
@@ -208,10 +205,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			displayAuthor = false;
 		}
 
-		const sponsorAttributions = getSponsorAttributionTemplate(
-			post.newspack_sponsors_info,
-			attributes
-		);
+		const sponsorAttributions = getSponsorAttributionTemplate( post.newspack_sponsors_info, attributes );
 		if ( sponsorAttributions?.length ) {
 			postContentBlocks.push( sponsorAttributions );
 		}
@@ -264,16 +258,8 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			}
 		}
 
-		const imageColumnBlock = [
-			'core/column',
-			{ width: imageColumnBlockSize },
-			[ getImageBlock() ],
-		];
-		const postContentColumnBlock = [
-			'core/column',
-			{ width: postContentColumnBlockSize },
-			postContentBlocks,
-		];
+		const imageColumnBlock = [ 'core/column', { width: imageColumnBlockSize }, [ getImageBlock() ] ];
+		const postContentColumnBlock = [ 'core/column', { width: postContentColumnBlockSize }, postContentBlocks ];
 
 		switch ( attributes.featuredImageAlignment ) {
 			case 'left':
@@ -295,8 +281,7 @@ const createBlockTemplatesForPosts = ( posts, attributes ) =>
 		return [ ...blocks, ...createBlockTemplatesForSinglePost( post, attributes ) ];
 	}, [] );
 
-export const getTemplateBlocks = ( postList, attributes ) =>
-	createBlockTemplatesForPosts( postList, attributes ).map( createBlockFromTemplate );
+export const getTemplateBlocks = ( postList, attributes ) => createBlockTemplatesForPosts( postList, attributes ).map( createBlockFromTemplate );
 
 /**
  * Converts a block object to a shape processable by the backend,

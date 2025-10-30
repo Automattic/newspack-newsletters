@@ -28,10 +28,8 @@ const entry = {
 	subscriptions: path.join( __dirname, 'src', 'subscriptions' ),
 };
 
-const webpackConfig = getBaseWebpackConfig(
-	{
-		entry,
-	}
-);
+const webpackConfig = getBaseWebpackConfig( {
+	entry,
+} );
 
 module.exports = webpackConfig;

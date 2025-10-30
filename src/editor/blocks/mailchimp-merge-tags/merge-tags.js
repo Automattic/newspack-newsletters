@@ -13,10 +13,7 @@ export default [
 	 */
 	{
 		tag: '*|ARCHIVE|*',
-		label: __(
-			'Creates a "View this email in your browser link" to your campaign page.',
-			'newspack-newsletters'
-		),
+		label: __( 'Creates a "View this email in your browser link" to your campaign page.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|CAMPAIGN_UID|*',
@@ -32,10 +29,7 @@ export default [
 	},
 	{
 		tag: '*|MC:TRANSLATE|*',
-		label: __(
-			'Inserts links to translate your sent campaign into different languages.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts links to translate your sent campaign into different languages.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|TRANSLATE:xx|*',
@@ -60,10 +54,7 @@ export default [
 	},
 	{
 		tag: '*|DATE:X|*',
-		label: __(
-			'Use to show the current date in a given format. Replace X with the format of your choice.',
-			'newspack-newsletters'
-		),
+		label: __( 'Use to show the current date in a given format. Replace X with the format of your choice.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:RECENTX|*',
@@ -78,28 +69,19 @@ export default [
 	},
 	{
 		tag: '*|MC:TOC_TEXT|*',
-		label: __(
-			'Creates a table of contents in your campaigns as plain-text.',
-			'newspack-newsletters'
-		),
+		label: __( 'Creates a table of contents in your campaigns as plain-text.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|MC_PREVIEW_TEXT|*',
-		label: __(
-			'Use this merge tag to generate preview text in a custom-coded campaign.',
-			'newspack-newsletters'
-		),
+		label: __( 'Use this merge tag to generate preview text in a custom-coded campaign.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|POLL:RATING:x|* *|END:POLL|*',
-		label: __( 'Creates a poll to record subscriber ratings of 1-10.', 'newspack-newsletters' ),
+		label: __( 'Creates a poll to record subscriber ratings of 1–10.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|SURVEY|* *|END:|*',
-		label: __(
-			'Creates a one-question survey with a set number of responses that subscribers can choose from.',
-			'newspack-newsletters'
-		),
+		label: __( 'Creates a one-question survey with a set number of responses that subscribers can choose from.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|PROMO_CODE:[$store_id=x, $rule_id=x, $code_id=x]|*',
@@ -113,18 +95,12 @@ export default [
 	 */
 	{
 		tag: '*|FNAME|*',
-		label: __(
-			"Inserts your subscriber's first name if it's available in your audience.",
-			'newspack-newsletters'
-		),
+		label: __( "Inserts your subscriber's first name if it's available in your audience.", 'newspack-newsletters' ),
 		keywords: [ 'first name' ],
 	},
 	{
 		tag: '*|LNAME|*',
-		label: __(
-			"Inserts your subscriber's last name if it's available in your audience.",
-			'newspack-newsletters'
-		),
+		label: __( "Inserts your subscriber's last name if it's available in your audience.", 'newspack-newsletters' ),
 		keywords: [ 'last name' ],
 	},
 	{
@@ -133,17 +109,11 @@ export default [
 	},
 	{
 		tag: '*|PHONE|*',
-		label: __(
-			'Inserts your subscriber’s phone number if it’s available in your audience.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts your subscriber’s phone number if it’s available in your audience.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|ADDRESS|*',
-		label: __(
-			'Inserts your subscriber’s address if it’s available in your audience.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts your subscriber’s address if it’s available in your audience.', 'newspack-newsletters' ),
 	},
 	/**
 	 * Email subject lines.
@@ -161,10 +131,7 @@ export default [
 	},
 	{
 		tag: '*|LIST:SUBSCRIBERS|*',
-		label: __(
-			'Inserts the number of subscribers in your audience in plain-text.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts the number of subscribers in your audience in plain-text.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|USER:COMPANY|*',
@@ -175,10 +142,7 @@ export default [
 	},
 	{
 		tag: '*|MC:DATE|*',
-		label: __(
-			'Displays MM/DD/YYYY or DD/MM/YYYY based on your settings in your account Details.',
-			'newspack-newsletters'
-		),
+		label: __( 'Displays MM/DD/YYYY or DD/MM/YYYY based on your settings in your account Details.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|CURRENT_YEAR|*',
@@ -210,10 +174,7 @@ export default [
 	},
 	{
 		tag: '*|LIST:ADDRESS_VCARD|*',
-		label: __(
-			'Inserts an "Add us to your address book" link to your campaign.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts an "Add us to your address book" link to your campaign.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:ADDRESS_VCARD_HREF|*',
@@ -232,31 +193,19 @@ export default [
 	},
 	{
 		tag: '*|LIST:UID|*',
-		label: __(
-			"Inserts your audience's unique ID from your audience's hosted forms.",
-			'newspack-newsletters'
-		),
+		label: __( "Inserts your audience's unique ID from your audience's hosted forms.", 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:URL|*',
-		label: __(
-			'Inserts the website URL set in the Required Email Footer Content for this audience.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts the website URL set in the Required Email Footer Content for this audience.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:ADDRESS|*',
-		label: __(
-			'Inserts your company or organization postal mailing address or P.O. Box as plain text.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts your company or organization postal mailing address or P.O. Box as plain text.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:ADDRESSLINE|*',
-		label: __(
-			'Inserts your mailing address as plain text on a single line.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts your mailing address as plain text on a single line.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:PHONE|*',
@@ -268,10 +217,7 @@ export default [
 	},
 	{
 		tag: '*|ABUSE_EMAIL|*',
-		label: __(
-			'Inserts the email address located in the Required Email Footer Content for this audience.',
-			'newspack-newsletters'
-		),
+		label: __( 'Inserts the email address located in the Required Email Footer Content for this audience.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|LIST:SUBSCRIBE|*',
@@ -283,10 +229,7 @@ export default [
 	},
 	{
 		tag: '*|FORWARD|*',
-		label: __(
-			"Inserts the URL to your audience's Forward to a Friend form.",
-			'newspack-newsletters'
-		),
+		label: __( "Inserts the URL to your audience's Forward to a Friend form.", 'newspack-newsletters' ),
 	},
 	/**
 	 * Subscriber counts.
@@ -317,10 +260,7 @@ export default [
 	},
 	{
 		tag: '*|TWITTER:PROFILEURL|*',
-		label: __(
-			'Displays your direct Twitter profile URL. For example: http://www.twitter.com/mailchimp.',
-			'newspack-newsletters'
-		),
+		label: __( 'Displays your direct Twitter profile URL. For example: http://www.twitter.com/mailchimp.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|TWITTER:TWEETS2|*',
@@ -338,10 +278,7 @@ export default [
 	},
 	{
 		tag: '*|TWITTER:TWEET|*',
-		label: __(
-			'Adds a Tweet button to your campaign that allows subscribers to share your campaign page link.',
-			'newspack-newsletters'
-		),
+		label: __( 'Adds a Tweet button to your campaign that allows subscribers to share your campaign page link.', 'newspack-newsletters' ),
 	},
 	{
 		tag: '*|TWITTER:TWEET [$text=my custom text here]|*',

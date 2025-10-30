@@ -9,11 +9,7 @@ import { SelectControl } from '@wordpress/components';
  */
 import { useNewsletterData } from '../../newsletter-editor/store';
 
-export const ProviderSidebar = ( {
-	inFlight,
-	meta,
-	updateMeta,
-} ) => {
+export const ProviderSidebar = ( { inFlight, meta, updateMeta } ) => {
 	const { newsletterData } = useNewsletterData();
 	const { campaign, folders } = newsletterData;
 

@@ -9,7 +9,7 @@ import { useState } from '@wordpress/element';
 
 import { SHARE_BLOCK_NOTICE_ID } from '../../editor/blocks/share/consts';
 
-const successNote = __( 'Campaign sent on ', 'newspack-newsletters' );
+const successNote = __( 'Campaign sent on', 'newspack-newsletters' );
 const shouldRemoveNotice = notice => {
 	return (
 		notice.id !== SHARE_BLOCK_NOTICE_ID &&
