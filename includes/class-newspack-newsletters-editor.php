@@ -317,6 +317,8 @@ final class Newspack_Newsletters_Editor {
 			'remote-data-blocks/foundation-locations',
 			'remote-data-blocks/foundation-movie',
 			'remote-data-blocks/foundation-movies',
+			'adrotate/advert',
+			'adrotate/group',
 		);
 		/**
 		 * Filters the allowed block types for the Newsletter CPT.

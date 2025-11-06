@@ -468,6 +468,8 @@ final class Newspack_Newsletters_Renderer {
 			'core/site-title',
 			'core/site-tagline',
 			'newspack-newsletters/ad',
+			'adrotate/advert',
+			'adrotate/group',
 		];
 
 		$empty_block_name = empty( $block['blockName'] );
@@ -1251,6 +1253,24 @@ final class Newspack_Newsletters_Renderer {
 					$markup .= self::render_mjml_component( $block, false, false, $default_attrs );
 				}
 				$block_mjml_markup = $markup;
+				break;
+
+			/**
+			 * AdRotate
+			 */
+			case 'adrotate/advert':
+			case 'adrotate/group':
+				if ( is_plugin_active( 'adrotate/adrotate.php' ) ) {
+					$ad_creative = false;
+					if ( ! empty( $attrs['advert_id'] ) ) {
+						$ad_creative = '<mj-raw>' . adrotate_ad( $attrs['advert_id'] ) . '</mj-raw>';
+					} elseif ( ! empty( $attrs['group_id'] ) ) {
+						$ad_creative = '<mj-raw>' . adrotate_group( $attrs['group_id'] ) . '</mj-raw>';
+					}
+					if ( $ad_creative ) {
+						$block_mjml_markup = $ad_creative;
+					}
+				}
 				break;
 
 		}
