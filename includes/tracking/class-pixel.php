@@ -196,7 +196,7 @@ final class Pixel {
 
 			// Bail if tracking ID mismatch.
 			if ( $newsletter_tracking_id !== $tracking_id ) {
-				return;
+				break;
 			}
 
 			$pixel_seen = \get_post_meta( $newsletter_id, 'tracking_pixel_seen', true );
