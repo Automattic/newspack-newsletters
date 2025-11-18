@@ -11,7 +11,7 @@ import { parse, serialize } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useState, useEffect, useMemo } from '@wordpress/element';
-import { BaseControl,Button, Modal, TextControl, Spinner } from '@wordpress/components';
+import { BaseControl, Button, Modal, TextControl, Spinner } from '@wordpress/components';
 
 /**
  * Internal dependencies
