@@ -31,7 +31,7 @@ const Autocomplete = ( {
 			<BaseControl
 				id="newspack-newsletters__send-to-info"
 				help={ postStatus === 'future' && sprintf(
-					// Translators: Message shown while fetching list or sublist info. %s is the provider's label for the given entity type (list or sublist).
+					// Translators: Message shown when a newsletter is scheduled and the user cannot edit the list or sublist. %s is the provider's label for the given entity type (list or sublist).
 					__( 'Unschedule this newsletter to edit %s.', 'newspack-newsletters' ),
 					label.toLowerCase()
 				) }
