@@ -10,8 +10,8 @@ import { compose } from '@wordpress/compose';
 import { parse, serialize } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
-import { Fragment, useState, useEffect, useMemo } from '@wordpress/element';
-import { Button, Modal, TextControl, Spinner } from '@wordpress/components';
+import { useState, useEffect, useMemo } from '@wordpress/element';
+import { BaseControl,Button, Modal, TextControl, Spinner } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -68,6 +68,7 @@ export default compose( [
 			isEditedPostEmpty: isEditedPostEmpty(),
 			currentPostId: getCurrentPostId(),
 			layoutMeta,
+			postStatus: getEditedPostAttribute( 'status' ),
 		};
 	} ),
 	withDispatch( dispatch => {
@@ -92,7 +93,8 @@ export default compose( [
 		postBlocks,
 		postTitle,
 		isEditedPostEmpty,
-		layoutMeta
+		layoutMeta,
+		postStatus,
 	} ) => {
 		const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 		const { layouts, isFetchingLayouts } = useLayoutsState();
@@ -164,7 +166,7 @@ export default compose( [
 		const isUsingCustomLayout = isUserDefinedLayout( usedLayout );
 
 		return (
-			<Fragment>
+			<BaseControl id="newspack-newsletters-layouts" help={ postStatus === 'future' && __( 'Unschedule this newsletter to edit layout.', 'newspack-newsletters' ) }>
 				{ Boolean( layoutId && isFetchingLayouts ) && (
 					<div className="newspack-newsletters-layouts__spinner">
 						<Spinner />
@@ -190,7 +192,7 @@ export default compose( [
 				<div className="newspack-newsletters-buttons-group">
 					<Button
 						variant="secondary"
-						disabled={ isEditedPostEmpty || isSavingLayout }
+						disabled={ isEditedPostEmpty || isSavingLayout || postStatus === 'future' }
 						onClick={ () => setIsManageModalVisible( true ) }
 						__next40pxDefaultSize
 					>
@@ -200,7 +202,7 @@ export default compose( [
 					{ isUsingCustomLayout && (
 						<Button
 							variant="secondary"
-							disabled={ isPostContentSameAsLayout || ( isSavingLayout && isManageModalVisible ) }
+							disabled={ isPostContentSameAsLayout || ( isSavingLayout && isManageModalVisible ) || postStatus === 'future' }
 							isBusy={ isSavingLayout && ! isManageModalVisible }
 							onClick={ handeLayoutUpdate }
 							__next40pxDefaultSize
@@ -212,7 +214,7 @@ export default compose( [
 					<Button
 						variant="secondary"
 						isDestructive
-						disabled={ isEditedPostEmpty || isSavingLayout }
+						disabled={ isEditedPostEmpty || isSavingLayout || postStatus === 'future' }
 						onClick={ () => setWarningModalVisible( true ) }
 						__next40pxDefaultSize
 					>
@@ -279,7 +281,7 @@ export default compose( [
 						</div>
 					</Modal>
 				) }
-			</Fragment>
+			</BaseControl>
 		);
 	}
 );

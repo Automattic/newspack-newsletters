@@ -18,12 +18,13 @@ import { usePrevious } from '../utils';
 // The container for list + sublist autocomplete fields.
 const SendTo = () => {
 	const [ error, setError ] = useState( null );
-	const { listId, sublistId } = useSelect( select => {
+	const { listId, sublistId, postStatus } = useSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			listId: meta.send_list_id,
 			sublistId: meta.send_sublist_id,
+			postStatus: getEditedPostAttribute( 'status' ),
 		};
 	} );
 
@@ -189,6 +190,7 @@ const SendTo = () => {
 				selectedInfo={ selectedList }
 				setError={ setError }
 				updateMeta={ updateMeta }
+				postStatus={ postStatus }
 			/>
 			{
 				sublists && listId && (
@@ -229,6 +231,7 @@ const SendTo = () => {
 						selectedInfo={ selectedSublist }
 						setError={ setError }
 						updateMeta={ updateMeta }
+						postStatus={ postStatus }
 					/>
 				)
 			}

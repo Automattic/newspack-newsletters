@@ -22,7 +22,8 @@ const Sender = (
 		inFlight,
 		senderEmail,
 		senderName,
-		updateMeta
+		updateMeta,
+		postStatus
 	}
 ) => {
 	const { newsletterData } = useNewsletterData();
@@ -54,8 +55,9 @@ const Sender = (
 			<TextControl
 				label={ __( 'Name', 'newspack-newsletters' ) }
 				className="newspack-newsletters__name-textcontrol"
+				help={ postStatus === 'future' && __( 'Unschedule this newsletter to edit sender info.', 'newspack-newsletters' ) }
 				value={ senderName }
-				disabled={ inFlight }
+				disabled={ inFlight || postStatus === 'future' }
 				onChange={ value => updateMeta( { senderName: value } ) }
 				placeholder={ __( 'The campaign’s sender name.', 'newspack-newsletters' ) }
 			/>
@@ -66,7 +68,7 @@ const Sender = (
 					className={ senderEmailClasses }
 					value={ senderEmail }
 					type="email"
-					disabled={ inFlight }
+					disabled={ inFlight || postStatus === 'future' }
 					onChange={ value => updateMeta( { senderEmail: value } ) }
 					placeholder={ __( 'The campaign’s sender email.', 'newspack-newsletters' ) }
 				/>

@@ -235,6 +235,7 @@ const Sidebar = ( {
 				senderEmail={ senderEmail }
 				senderName={ senderName }
 				updateMeta={ updateMeta }
+				postStatus={ status }
 			/>
 			{
 				isSupportedESP() && (
