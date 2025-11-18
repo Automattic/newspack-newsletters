@@ -45,6 +45,9 @@ domReady( () => {
 	unregisterBlockVariation( 'core/group', 'group-row' );
 	/* Unregister "grid" group block variation */
 	unregisterBlockVariation( 'core/group', 'group-grid' );
+	/* Unregister "stretchy" heading and paragraphblock variations */
+	unregisterBlockVariation( 'core/heading', 'stretchy-heading' );
+	unregisterBlockVariation( 'core/paragraph', 'stretchy-paragraph' );
 } );
 
 /* Remove Duotone filters */
