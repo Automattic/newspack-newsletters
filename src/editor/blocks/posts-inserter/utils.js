@@ -228,15 +228,15 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 		postContentBlocks.push( getContinueReadingLinkBlockTemplate( post, attributes ) );
 	}
 
-	const hasFeaturedImage = post.featuredImageLargeURL || post.featuredImageMediumURL;
+	const hasFeaturedImage = post.featured_media_info?.large_url || post.featured_media_info?.medium_url;
 
-	if ( attributes.displayFeaturedImage && hasFeaturedImage ) {
+	if ( attributes.displayFeaturedImage ) {
 		const featuredImageId = post.featured_media;
 		const getImageBlock = ( alignCenter = false ) => [
 			'core/image',
 			{
 				id: featuredImageId,
-				url: alignCenter ? post.featuredImageLargeURL : post.featuredImageMediumURL,
+				url: alignCenter ? post.featured_media_info?.large_url : post.featured_media_info?.medium_url,
 				href: post.link,
 				...( alignCenter ? { align: 'center' } : {} ),
 			},
@@ -258,7 +258,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			}
 		}
 
-		const imageColumnBlock = [ 'core/column', { width: imageColumnBlockSize }, [ getImageBlock() ] ];
+		const imageColumnBlock = [ 'core/column', { width: imageColumnBlockSize }, hasFeaturedImage ? [ getImageBlock() ] : [] ];
 		const postContentColumnBlock = [ 'core/column', { width: postContentColumnBlockSize }, postContentBlocks ];
 
 		switch ( attributes.featuredImageAlignment ) {

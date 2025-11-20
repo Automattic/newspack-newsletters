@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { isUndefined, find, pickBy, get } from 'lodash';
+import { isUndefined, find, pickBy } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -15,14 +15,13 @@ import {
 	Button,
 	ToggleControl,
 	FontSizePicker,
-	ColorPicker,
 	PanelBody,
 	MenuItem,
 	MenuGroup,
 	Toolbar,
 	ToolbarDropdownMenu,
 } from '@wordpress/components';
-import { InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
+import { ColorPaletteControl, InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
 import { Icon, check, pages } from '@wordpress/icons';
 
@@ -75,7 +74,12 @@ const PostsInserterBlock = ( {
 		if ( 0 < postList.length ) {
 			// Find all the featured images.
 			const images = [];
-			postList.map( post => post.featured_media && images.push( post.featured_media ) );
+			postList.map(
+				post =>
+					post.featured_media &&
+					( post.featured_media_info?.large_url || post.featured_media_info?.medium_url ) &&
+					images.push( post.featured_media )
+			);
 
 			// If no posts have featured media, skip loading state.
 			if ( 0 === images.length ) {
@@ -196,7 +200,31 @@ const PostsInserterBlock = ( {
 				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
 				</PanelBody>
-				<PanelBody title={ __( 'Text style', 'newspack-newsletters' ) }>
+				<PanelBody title={ __( 'Heading styles', 'newspack-newsletters' ) }>
+					<FontSizePicker
+						fontSizes={ blockEditorSettings.fontSizes }
+						value={ attributes.headingFontSize }
+						onChange={ value => setAttributes( { headingFontSize: value } ) }
+					/>
+					<ColorPaletteControl
+						value={ attributes.headingColor || '' }
+						onChange={ value => setAttributes( { headingColor: value } ) }
+						disableAlpha
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Subtitle styles', 'newspack-newsletters' ) }>
+					<FontSizePicker
+						fontSizes={ blockEditorSettings.fontSizes }
+						value={ attributes.subHeadingFontSize }
+						onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
+					/>
+					<ColorPaletteControl
+						value={ attributes.subHeadingColor || '' }
+						onChange={ value => setAttributes( { subHeadingColor: value } ) }
+						disableAlpha
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Text styles', 'newspack-newsletters' ) }>
 					<FontSizePicker
 						fontSizes={ blockEditorSettings.fontSizes }
 						value={ attributes.textFontSize }
@@ -204,33 +232,9 @@ const PostsInserterBlock = ( {
 							return setAttributes( { textFontSize: value } );
 						} }
 					/>
-					<ColorPicker
-						color={ attributes.textColor || '' }
-						onChangeComplete={ value => setAttributes( { textColor: value.hex } ) }
-						disableAlpha
-					/>
-				</PanelBody>
-				<PanelBody title={ __( 'Heading style', 'newspack-newsletters' ) }>
-					<FontSizePicker
-						fontSizes={ blockEditorSettings.fontSizes }
-						value={ attributes.headingFontSize }
-						onChange={ value => setAttributes( { headingFontSize: value } ) }
-					/>
-					<ColorPicker
-						color={ attributes.headingColor || '' }
-						onChangeComplete={ value => setAttributes( { headingColor: value.hex } ) }
-						disableAlpha
-					/>
-				</PanelBody>
-				<PanelBody title={ __( 'Subtitle style', 'newspack-newsletters' ) }>
-					<FontSizePicker
-						fontSizes={ blockEditorSettings.fontSizes }
-						value={ attributes.subHeadingFontSize }
-						onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
-					/>
-					<ColorPicker
-						color={ attributes.subHeadingColor || '' }
-						onChangeComplete={ value => setAttributes( { subHeadingColor: value.hex } ) }
+					<ColorPaletteControl
+						value={ attributes.textColor || '' }
+						onChange={ value => setAttributes( { textColor: value } ) }
 						disableAlpha
 					/>
 				</PanelBody>
@@ -288,7 +292,7 @@ const PostsInserterBlock = ( {
 					className={ attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null }
 				/>
 				<div className="newspack-posts-inserter__footer">
-					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
+					<Button variant="primary" onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
 						{ __( 'Insert posts', 'newspack-newsletters' ) }
 					</Button>
 				</div>
@@ -314,7 +318,7 @@ const PostsInserterBlockWithSelect = compose( [
 			excerptLength,
 			displaySponsoredPosts,
 		} = props.attributes;
-		const { getEntityRecords, getMedia } = select( 'core' );
+		const { getEntityRecords } = select( 'core' );
 		const { getSelectedBlock, getBlocks, getSettings } = select( 'core/block-editor' );
 		const catIds = categories && categories.length > 0 ? categories.map( cat => cat.id ) : [];
 
@@ -357,16 +361,7 @@ const PostsInserterBlockWithSelect = compose( [
 			existingBlocks: getBlocks(),
 			blockEditorSettings: getSettings(),
 			selectedBlock: getSelectedBlock(),
-			postList: posts.map( post => {
-				if ( post.featured_media ) {
-					const image = getMedia( post.featured_media );
-					const fallbackImageURL = get( image, 'source_url', null );
-					const featuredImageMediumURL = get( image, [ 'media_details', 'sizes', 'medium', 'source_url' ], null ) || fallbackImageURL;
-					const featuredImageLargeURL = get( image, [ 'media_details', 'sizes', 'large', 'source_url' ], null ) || fallbackImageURL;
-					return { ...post, featuredImageMediumURL, featuredImageLargeURL };
-				}
-				return post;
-			} ),
+			postList: posts,
 		};
 	} ),
 	withDispatch( ( dispatch, props ) => {

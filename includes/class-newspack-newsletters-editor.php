@@ -53,7 +53,7 @@ final class Newspack_Newsletters_Editor {
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'rest_post_query_filter' ], 10, 2 );
-		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_author_info' ] );
+		add_action( 'rest_api_init', [ __CLASS__, 'add_newspack_extra_info' ] );
 		add_filter( 'the_posts', [ __CLASS__, 'maybe_reset_excerpt_length' ] );
 		add_filter( 'should_load_remote_block_patterns', [ __CLASS__, 'strip_block_patterns' ] );
 	}
@@ -524,7 +524,7 @@ final class Newspack_Newsletters_Editor {
 	/**
 	 * Append author info to the posts REST response so we can append Coauthors, if they exist.
 	 */
-	public static function add_newspack_author_info() {
+	public static function add_newspack_extra_info() {
 		// Add author info source.
 		register_rest_field(
 			'post',
@@ -571,6 +571,15 @@ final class Newspack_Newsletters_Editor {
 				]
 			);
 		}
+
+		// Add featured media thumbnail URLs.
+		register_rest_field(
+			'post',
+			'featured_media_info',
+			[
+				'get_callback' => [ __CLASS__, 'newspack_get_featured_media_info' ],
+			]
+		);
 	}
 
 	/**
@@ -708,6 +717,25 @@ final class Newspack_Newsletters_Editor {
 	 */
 	public static function newspack_get_sponsors_info( $post ) {
 		return \Newspack_Sponsors\get_all_sponsors( $post['id'], null, 'post' );
+	}
+
+	/**
+	 * Get featured media info for the REST /posts response.
+	 *
+	 * @param object $post Post object for the post being returned.
+	 * @return object Formatted data for the featured media associated with the post.
+	 */
+	public static function newspack_get_featured_media_info( $post ) {
+		$featured_media_info = [];
+		$large_url = get_the_post_thumbnail_url( $post['id'], 'large' );
+		$medium_url = get_the_post_thumbnail_url( $post['id'], 'medium' );
+		if ( $large_url ) {
+			$featured_media_info['large_url'] = $large_url;
+		}
+		if ( $medium_url ) {
+			$featured_media_info['medium_url'] = $medium_url;
+		}
+		return $featured_media_info;
 	}
 }
 Newspack_Newsletters_Editor::instance();
