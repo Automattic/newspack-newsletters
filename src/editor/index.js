@@ -63,6 +63,10 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	if ( 'core/group' === name ) {
 		settings.supports = { ...settings.supports, align: [ 'full' ] };
 	}
+
+	/* Remove 'Hide' option for all blocks */
+	settings.supports = { ...settings.supports, blockVisibility: false };
+
 	return settings;
 } );
 
