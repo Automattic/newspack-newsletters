@@ -218,7 +218,7 @@ const Sidebar = ( {
 			/>
 			<ProviderSidebar inFlight={ inFlight } postId={ postId } meta={ meta } updateMeta={ updateMeta } />
 			<hr />
-			<Sender errors={ errors } senderEmail={ senderEmail } senderName={ senderName } updateMeta={ updateMeta } />
+			<Sender errors={ errors } senderEmail={ senderEmail } senderName={ senderName } updateMeta={ updateMeta } postStatus={ status } />
 			{ isSupportedESP() && <SendTo /> }
 		</div>
 	);

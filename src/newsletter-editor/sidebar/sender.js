@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { Button, Notice, SelectControl, TextControl } from '@wordpress/components';
+import { BaseControl, Button, Notice, SelectControl, TextControl } from '@wordpress/components';
 import { Icon, external } from '@wordpress/icons';
 
 /**
@@ -16,7 +16,7 @@ import classnames from 'classnames';
 import { useNewsletterData } from '../../newsletter-editor/store';
 import { hasValidEmail } from '../utils';
 
-const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => {
+const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta, postStatus } ) => {
 	const { newsletterData } = useNewsletterData();
 	const { allowed_sender_domains: allowedDomains, allowed_sender_emails: allowedEmails = null, email_settings_url: settingsUrl } = newsletterData;
 	const senderEmailClasses = classnames(
@@ -24,7 +24,7 @@ const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => 
 		errors.newspack_newsletters_unverified_sender_domain && 'newspack-newsletters__error'
 	);
 	const validDomainsMessage =
-		allowedDomains?.length && allowedDomains.every( domain => ! senderEmail || ! senderEmail.includes( domain ) )
+		postStatus !== 'future' && allowedDomains?.length && allowedDomains.every( domain => ! senderEmail || ! senderEmail.includes( domain ) )
 			? sprintf(
 					/* translators: %s: list of allowed domains */
 					__( 'Sender email must contain one of the following domains: %s', 'newspack-newsletters' ),
@@ -33,7 +33,10 @@ const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => 
 			: '';
 
 	return (
-		<>
+		<BaseControl
+			id="newspack-newsletters__sender"
+			help={ postStatus === 'future' && __( 'Unschedule this newsletter to edit sender info.', 'newspack-newsletters' ) }
+		>
 			<strong className="newspack-newsletters__label">{ __( 'Sender', 'newspack-newsletters' ) }</strong>
 			{ ( newsletterData?.senderEmail || newsletterData?.senderName ) && (
 				<Notice status="success" isDismissible={ false }>
@@ -44,7 +47,7 @@ const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => 
 				label={ __( 'Name', 'newspack-newsletters' ) }
 				className="newspack-newsletters__name-textcontrol"
 				value={ senderName }
-				disabled={ inFlight }
+				disabled={ inFlight || postStatus === 'future' }
 				onChange={ value => updateMeta( { senderName: value } ) }
 				placeholder={ __( 'The campaign’s sender name.', 'newspack-newsletters' ) }
 			/>
@@ -59,7 +62,7 @@ const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => 
 					className={ senderEmailClasses }
 					value={ senderEmail }
 					type="email"
-					disabled={ inFlight }
+					disabled={ postStatus === 'future' }
 					onChange={ value => updateMeta( { senderEmail: value } ) }
 					placeholder={ __( 'The campaign’s sender email.', 'newspack-newsletters' ) }
 				/>
@@ -74,6 +77,7 @@ const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => 
 					{ allowedEmails.length && (
 						<SelectControl
 							label={ __( 'Email', 'newspack-newsletters' ) }
+							disabled={ inFlight || postStatus === 'future' }
 							help={ __( 'Select a verified sender email.', 'newspack-newsletters' ) }
 							value={ senderEmail || '' }
 							onChange={ value => updateMeta( { senderEmail: value } ) }
@@ -98,7 +102,7 @@ const Sender = ( { errors, inFlight, senderEmail, senderName, updateMeta } ) => 
 					) }
 				</>
 			) }
-		</>
+		</BaseControl>
 	);
 };
 

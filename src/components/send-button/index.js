@@ -179,6 +179,7 @@ export default compose( [
 		isSaveable &&
 		! isPublished &&
 		! isSaving &&
+		'future' !== status &&
 		( newsletterData.campaign || 'manual' === serviceProviderName ) &&
 		0 === newsletterValidationErrors.length;
 	let label;
@@ -245,9 +246,20 @@ export default compose( [
 	};
 
 	// For sent newsletters, display the generic button text.
-	if ( isPublished || sent ) {
+	if ( isPublished || sent || 'future' === status ) {
 		return (
 			<div style={ { display: 'flex' } }>
+				{ 'future' === status && (
+					<Button
+						className="newsletter-unschedule-button"
+						isBusy={ isSaving }
+						variant="tertiary"
+						disabled={ isSaving }
+						onClick={ unscheduleNewsletter }
+					>
+						{ __( 'Unschedule', 'newspack-newsletters' ) }
+					</Button>
+				) }
 				<PreviewHTMLButton />
 				<Button
 					className="editor-post-publish-button"
@@ -312,17 +324,6 @@ export default compose( [
 
 	return (
 		<div style={ { display: 'flex' } }>
-			{ 'future' === status && (
-				<Button
-					className="newsletter-unschedule-button"
-					isBusy={ isSaving }
-					variant="tertiary"
-					disabled={ isSaving }
-					onClick={ unscheduleNewsletter }
-				>
-					{ __( 'Unschedule', 'newspack-newsletters' ) }
-				</Button>
-			) }
 			<PreviewHTMLButton />
 			<Button
 				className="editor-post-publish-button"

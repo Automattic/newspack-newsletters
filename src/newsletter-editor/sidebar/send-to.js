@@ -18,12 +18,13 @@ import { usePrevious } from '../utils';
 // The container for list + sublist autocomplete fields.
 const SendTo = () => {
 	const [ error, setError ] = useState( null );
-	const { listId, sublistId } = useSelect( select => {
+	const { listId, sublistId, postStatus } = useSelect( select => {
 		const { getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
 			listId: meta.send_list_id,
 			sublistId: meta.send_sublist_id,
+			postStatus: getEditedPostAttribute( 'status' ),
 		};
 	} );
 
@@ -122,7 +123,7 @@ const SendTo = () => {
 		}
 		if ( selectedList && selectedSublist?.name ) {
 			summary = sprintf(
-				// translators: %1$s: number of contacts, %2$s: list label, %3$s: list type, %4$s: sublist label, %5$s: sublist type.
+				// translators: A summary of which list and sublist the campaign is set to send to, and the total number of contacts, if available. %1$s: number of contacts, %2$s: list label, %3$s: list type, %4$s: sublist label, %5$s: sublist type.
 				_n(
 					'This newsletter will be sent to <strong>%1$s contact</strong> in the <strong>%2$s</strong> %3$s who is part of the <strong>%4$s</strong> %5$s.',
 					'This newsletter will be sent to <strong>all %1$s contacts</strong> in the <strong>%2$s</strong> %3$s who are part of the <strong>%4$s</strong> %5$s.',
@@ -189,6 +190,7 @@ const SendTo = () => {
 				selectedInfo={ selectedList }
 				setError={ setError }
 				updateMeta={ updateMeta }
+				postStatus={ postStatus }
 			/>
 			{ sublists && listId && (
 				<Autocomplete
@@ -233,6 +235,7 @@ const SendTo = () => {
 					selectedInfo={ selectedSublist }
 					setError={ setError }
 					updateMeta={ updateMeta }
+					postStatus={ postStatus }
 				/>
 			) }
 			{ renderSelectedSummary() }
