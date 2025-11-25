@@ -451,6 +451,88 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure variables passed to the MJML template are escaped.
+	 */
+	public function test_render_post_to_mjml_escapes_template_variables() {
+		$unsafe_title            = 'Unsafe title with "quotes" & unencoded entities';
+		$unsafe_background_color = '#fff" onmouseover="alert(2)';
+		$unsafe_text_color       = "#000' onfocus='alert(3)";
+		$unsafe_preview_text     = '<em>Preview</em> <script>alert("preview")</script>';
+		$unsafe_custom_css       = 'p:before { content: "<svg>"; } <script>alert("css")</script>';
+
+		$newsletter_post = self::factory()->post->create(
+			[
+				'post_type'    => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => $unsafe_title,
+				'post_content' => "<!-- wp:paragraph -->\n<p>Content<\/p>\n<!-- \/wp:paragraph -->",
+			]
+		);
+		$post            = get_post( $newsletter_post );
+
+		update_post_meta( $post->ID, 'background_color', $unsafe_background_color );
+		update_post_meta( $post->ID, 'text_color', $unsafe_text_color );
+		update_post_meta( $post->ID, 'preview_text', $unsafe_preview_text );
+		update_post_meta( $post->ID, 'custom_css', $unsafe_custom_css );
+
+		$rendered_output = Newspack_Newsletters_Renderer::render_post_to_mjml( $post );
+
+		$this->assertStringContainsString(
+			'<mj-title>' . esc_html( $unsafe_title ) . '</mj-title>',
+			$rendered_output,
+			'Newsletter title should be HTML escaped.'
+		);
+		$this->assertStringNotContainsString(
+			'<mj-title>' . $unsafe_title . '</mj-title>',
+			$rendered_output,
+			'Newsletter title should not appear unescaped.'
+		);
+
+		$this->assertStringContainsString(
+			'background-color="' . esc_attr( $unsafe_background_color ) . '"',
+			$rendered_output,
+			'Background color should be escaped before rendering.'
+		);
+		$this->assertStringNotContainsString(
+			'background-color="' . $unsafe_background_color . '"',
+			$rendered_output,
+			'Background color should not appear unescaped.'
+		);
+
+		$this->assertStringContainsString(
+			'color="' . esc_attr( $unsafe_text_color ) . '"',
+			$rendered_output,
+			'Text color should be escaped before rendering.'
+		);
+		$this->assertStringNotContainsString(
+			'color="' . $unsafe_text_color . '"',
+			$rendered_output,
+			'Text color should not appear unescaped.'
+		);
+
+		$this->assertStringContainsString(
+			'<mj-preview>' . esc_html( $unsafe_preview_text ) . '</mj-preview>',
+			$rendered_output,
+			'Preview text should be escaped before rendering.'
+		);
+		$this->assertStringNotContainsString(
+			'<mj-preview>' . $unsafe_preview_text . '</mj-preview>',
+			$rendered_output,
+			'Preview text should not appear unescaped.'
+		);
+
+		$this->assertStringContainsString(
+			esc_html( '<script>alert("css")</script>' ),
+			$rendered_output,
+			'Custom CSS should be escaped before rendering.'
+		);
+		$this->assertStringNotContainsString(
+			'<script>alert("css")</script>',
+			$rendered_output,
+			'Custom CSS should not appear unescaped.'
+		);
+	}
+
+	/**
 	 * Test removing unwanted style properties from an HTML string.
 	 */
 	public function test_remove_unwanted_style_properties() {
