@@ -96,7 +96,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
 	const stylingId = 'newspack-newsletters-styling';
-	const stylingTitle = __( 'Newsletter Styles', 'newspack-newsletters' );
+	const stylingTitle = __( 'Newsletter Global Styles', 'newspack-newsletters' );
 
 	return isDisplayingInitModal ? (
 		<InitModal shouldDisplaySettings={ shouldDisplaySettings } onSetupStatus={ setShouldDisplaySettings } />

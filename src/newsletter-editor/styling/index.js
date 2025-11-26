@@ -3,9 +3,9 @@
 /**
  * WordPress dependencies
  */
-import { PlainText } from '@wordpress/block-editor';
+import { PlainText, __experimentalPanelColorGradientSettings as PanelColorGradientSettings } from '@wordpress/block-editor'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { compose, useInstanceId } from '@wordpress/compose';
-import { ColorPicker, BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
+import { BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useSelect, withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useRef } from '@wordpress/element';
@@ -194,49 +194,38 @@ export const Styling = compose( [
 	};
 
 	const instanceId = useInstanceId( SelectControlWithOptGroup );
-	const id = `inspector-select-control-${ instanceId }`;
 
 	return (
 		<Panel>
+			<PanelColorGradientSettings
+				title={ __( 'Color', 'newspack-newsletters' ) }
+				gradients={ [] } // Pass empty array to disable gradients.
+				settings={ [
+					{
+						colorValue: backgroundColor,
+						onColorChange: value => updateStyleValue( 'background_color', value ),
+						label: __( 'Background color', 'newspack-newsletters' ),
+					},
+					{
+						colorValue: textColor,
+						onColorChange: value => updateStyleValue( 'text_color', value ),
+						label: __( 'Text color', 'newspack-newsletters' ),
+					},
+				] }
+			/>
 			<PanelBody name="newsletters-typography-panel" title={ __( 'Typography', 'newspack-newsletters' ) }>
-				<PanelRow>
-					<SelectControlWithOptGroup
-						label={ __( 'Headings font', 'newspack-newsletters' ) }
-						value={ fontHeader }
-						optgroups={ fontOptgroups }
-						onChange={ value => updateStyleValue( 'font_header', value ) }
-					/>
-				</PanelRow>
-				<PanelRow>
-					<SelectControlWithOptGroup
-						label={ __( 'Body font', 'newspack-newsletters' ) }
-						value={ fontBody }
-						optgroups={ fontOptgroups }
-						onChange={ value => updateStyleValue( 'font_body', value ) }
-					/>
-				</PanelRow>
-			</PanelBody>
-			<PanelBody name="newsletters-color-panel" title={ __( 'Color', 'newspack-newsletters' ) }>
-				<PanelRow className="newspack-newsletters__color-panel">
-					<BaseControl label={ __( 'Background color', 'newspack-newsletters' ) } id={ `${ id }-bg` }>
-						<ColorPicker
-							id={ `${ id }-bg` }
-							color={ backgroundColor }
-							onChangeComplete={ value => updateStyleValue( 'background_color', value.hex ) }
-							disableAlpha
-						/>
-					</BaseControl>
-				</PanelRow>
-				<PanelRow className="newspack-newsletters__color-panel">
-					<BaseControl label={ __( 'Text color', 'newspack-newsletters' ) } id={ `${ id }-text` }>
-						<ColorPicker
-							id={ `${ id }-text` }
-							color={ textColor }
-							onChangeComplete={ value => updateStyleValue( 'text_color', value.hex ) }
-							disableAlpha
-						/>
-					</BaseControl>
-				</PanelRow>
+				<SelectControlWithOptGroup
+					label={ __( 'Headings font', 'newspack-newsletters' ) }
+					value={ fontHeader }
+					optgroups={ fontOptgroups }
+					onChange={ value => updateStyleValue( 'font_header', value ) }
+				/>
+				<SelectControlWithOptGroup
+					label={ __( 'Body font', 'newspack-newsletters' ) }
+					value={ fontBody }
+					optgroups={ fontOptgroups }
+					onChange={ value => updateStyleValue( 'font_body', value ) }
+				/>
 			</PanelBody>
 			<PanelBody name="newsletters-css-panel" title={ __( 'Custom CSS', 'newspack-newsletters' ) } initialOpen={ false }>
 				<PanelRow className="newspack-newsletters__css-panel">

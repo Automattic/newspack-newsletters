@@ -8,7 +8,7 @@ import { isEmpty } from 'lodash';
  */
 import { __ } from '@wordpress/i18n';
 import { useInstanceId } from '@wordpress/compose';
-import { BaseControl } from '@wordpress/components';
+import { BaseControl, SelectControl } from '@wordpress/components';
 
 /**
  * SelectControl with optgroup support
@@ -27,15 +27,6 @@ export default function SelectControlWithOptGroup( {
 } ) {
 	const instanceId = useInstanceId( SelectControlWithOptGroup );
 	const id = `inspector-select-control-${ instanceId }`;
-	const onChangeValue = event => {
-		if ( multiple ) {
-			const selectedOptions = [ ...event.target.options ].filter( ( { selected } ) => selected );
-			const newValues = selectedOptions.map( ( { value } ) => value );
-			onChange( newValues );
-			return;
-		}
-		onChange( event.target.value );
-	};
 
 	// Disable reason: A select with an onchange throws a warning
 
@@ -46,10 +37,12 @@ export default function SelectControlWithOptGroup( {
 	/* eslint-disable jsx-a11y/no-onchange */
 	return (
 		<BaseControl label={ label } hideLabelFromVision={ hideLabelFromVision } id={ id } help={ help } className={ className }>
-			<select
+			<SelectControl
+				__next40pxDefaultSize
+				__nextHasNoMarginBottom
 				id={ id }
 				className="components-select-control__input"
-				onChange={ onChangeValue }
+				onChange={ onChange }
 				aria-describedby={ !! help ? `${ id }__help` : undefined }
 				multiple={ multiple }
 				{ ...props }
@@ -70,7 +63,7 @@ export default function SelectControlWithOptGroup( {
 						) ) }
 					</optgroup>
 				) ) }
-			</select>
+			</SelectControl>
 		</BaseControl>
 	);
 	/* eslint-enable jsx-a11y/no-onchange */

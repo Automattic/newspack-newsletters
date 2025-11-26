@@ -57,7 +57,6 @@ const PostsInserterBlock = ( {
 
 	// Stringify added to minimize flicker.
 	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [ stringifiedPostList, attributes ] );
-
 	const stringifiedTemplateBlocks = JSON.stringify( templateBlocks );
 
 	useEffect( () => {
