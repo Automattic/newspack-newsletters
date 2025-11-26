@@ -73,13 +73,12 @@ const PostsInserterBlock = ( {
 		// If we have a post to show, check for featured image blocks.
 		if ( 0 < postList.length ) {
 			// Find all the featured images.
-			const images = [];
-			postList.map(
-				post =>
-					post.featured_media &&
-					( post.featured_media_info?.large_url || post.featured_media_info?.medium_url ) &&
-					images.push( post.featured_media )
-			);
+			const images = postList.reduce( ( all, post ) => {
+				if ( post.featured_media && ( post.featured_media_info?.large_url || post.featured_media_info?.medium_url ) ) {
+					all.push( post.featured_media );
+				}
+				return all;
+			}, [] );
 
 			// If no posts have featured media, skip loading state.
 			if ( 0 === images.length ) {
@@ -90,7 +89,7 @@ const PostsInserterBlock = ( {
 			const imageBlocks = stringifiedTemplateBlocks.match( /\"name\":\"core\/image\"/g ) || [];
 
 			// Preview is ready once all image blocks are accounted for.
-			if ( imageBlocks.length === images.length ) {
+			if ( imageBlocks.length >= images.length ) {
 				setIsReady( true );
 			}
 		}

@@ -228,19 +228,24 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 		postContentBlocks.push( getContinueReadingLinkBlockTemplate( post, attributes ) );
 	}
 
-	const hasFeaturedImage = post.featured_media_info?.large_url || post.featured_media_info?.medium_url;
+	const hasFeaturedImage = post.featured_media_info?.large_url || post.featured_media_info?.medium_url ? true : false;
 
 	if ( attributes.displayFeaturedImage ) {
 		const featuredImageId = post.featured_media;
-		const getImageBlock = ( alignCenter = false ) => [
-			'core/image',
-			{
-				id: featuredImageId,
-				url: alignCenter ? post.featured_media_info?.large_url : post.featured_media_info?.medium_url,
-				href: post.link,
-				...( alignCenter ? { align: 'center' } : {} ),
-			},
-		];
+		const getImageBlock = ( alignCenter = false ) =>
+			featuredImageId && hasFeaturedImage
+				? [
+						[
+							'core/image',
+							{
+								id: featuredImageId,
+								url: alignCenter ? post.featured_media_info?.large_url : post.featured_media_info?.medium_url,
+								href: post.link,
+								...( alignCenter ? { align: 'center' } : {} ),
+							},
+						],
+				  ]
+				: [];
 
 		let imageColumnBlockSize = '50%';
 		let postContentColumnBlockSize = '50%';
@@ -258,7 +263,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			}
 		}
 
-		const imageColumnBlock = [ 'core/column', { width: imageColumnBlockSize }, hasFeaturedImage ? [ getImageBlock() ] : [] ];
+		const imageColumnBlock = [ 'core/column', { width: imageColumnBlockSize }, [ ...getImageBlock() ] ];
 		const postContentColumnBlock = [ 'core/column', { width: postContentColumnBlockSize }, postContentBlocks ];
 
 		switch ( attributes.featuredImageAlignment ) {
@@ -267,7 +272,7 @@ const createBlockTemplatesForSinglePost = ( post, attributes ) => {
 			case 'right':
 				return [ [ 'core/columns', {}, [ postContentColumnBlock, imageColumnBlock ] ] ];
 			case 'top':
-				return [ getImageBlock( true ), ...postContentBlocks ];
+				return [ ...getImageBlock( true ), ...postContentBlocks ];
 		}
 	}
 	return postContentBlocks;
