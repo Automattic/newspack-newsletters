@@ -24,6 +24,15 @@
 		}
 	}
 
+	&__font-size-picker {
+		> .components-base-control__field > .components-base-control__label {
+			margin-bottom: -16px !important;
+		}
+		.components-font-size-picker__header .components-base-control__label {
+			opacity: 0;
+		}
+	}
+
 	&__footer {
 		background: white;
 		border-top: 1px solid wp-colors.$gray-900;

@@ -9,9 +9,11 @@ import { omit } from 'lodash';
  * WordPress dependencies
  */
 import { _x } from '@wordpress/i18n';
+import { store as blockEditorStore } from '@wordpress/block-editor';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
 // eslint-disable-next-line @wordpress/no-unsafe-wp-apis
-import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
+import { useSelect } from '@wordpress/data';
+import { dateI18n, getSettings } from '@wordpress/date';
 
 /**
  * Internal dependencies
@@ -36,7 +38,7 @@ const getHeadingBlockTemplate = ( post, { headingFontSize, headingColor } ) => [
 ];
 
 const getDateBlockTemplate = ( post, { textFontSize, textColor } ) => {
-	const dateFormat = __experimentalGetSettings().formats.date;
+	const dateFormat = getSettings().formats.date;
 	return [
 		'core/paragraph',
 		assignFontSize( textFontSize, {
@@ -302,10 +304,12 @@ export const convertBlockSerializationFormat = block => ( {
 	innerBlocks: block.innerBlocks.map( convertBlockSerializationFormat ),
 } );
 
-// In some cases, the Posts Inserter block should not handle deduplication.
-// Previews might be displayed next to each other or next to a post, which results in multiple block lists.
-// The deduplication store relies on the assumption that a post has a single blocks list, which
-// is not true when there are block previews used.
+/**
+ * In some cases, the Posts Inserter block should not handle deduplication.
+ * Previews might be displayed next to each other or next to a post, which results in multiple block lists.
+ * The deduplication store relies on the assumption that a post has a single blocks list, which
+ * is not true when there are block previews used.
+ */
 export const setPreventDeduplicationForPostsInserter = blocks =>
 	blocks.map( block => {
 		if ( block.name === POSTS_INSERTER_BLOCK_NAME ) {
@@ -316,3 +320,19 @@ export const setPreventDeduplicationForPostsInserter = blocks =>
 		}
 		return block;
 	} );
+
+/**
+ * Get the theme's palette color presets.
+ *
+ * @return {Array} Theme palette colors
+ */
+export const useThemePalette = () => {
+	return useSelect( select => {
+		const settings = select( blockEditorStore ).getSettings();
+
+		const directColors = settings.colors || settings.palette?.colors;
+		const themeJsonColors = settings.__experimentalFeatures?.color?.palette?.theme;
+
+		return themeJsonColors || directColors || [];
+	}, [] );
+};

@@ -11,17 +11,23 @@ import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import {
-	RangeControl,
+	BaseControl,
 	Button,
-	ToggleControl,
 	FontSizePicker,
-	PanelBody,
 	MenuItem,
 	MenuGroup,
+	PanelBody,
+	RangeControl,
+	ToggleControl,
 	Toolbar,
 	ToolbarDropdownMenu,
 } from '@wordpress/components';
-import { ColorPaletteControl, InnerBlocks, InspectorControls, BlockControls } from '@wordpress/block-editor';
+import {
+	InnerBlocks,
+	InspectorControls,
+	BlockControls,
+	__experimentalPanelColorGradientSettings as PanelColorGradientSettings, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
 import { Icon, check, pages } from '@wordpress/icons';
 
@@ -155,7 +161,7 @@ const PostsInserterBlock = ( {
 	return attributes.areBlocksInserted ? null : (
 		<Fragment>
 			<InspectorControls>
-				<PanelBody title={ __( 'Post content settings', 'newspack-newsletters' ) }>
+				<PanelBody title={ __( 'Post Content', 'newspack-newsletters' ) }>
 					<ToggleControl
 						label={ __( 'Post subtitle', 'newspack-newsletters' ) }
 						checked={ attributes.displayPostSubtitle }
@@ -196,46 +202,64 @@ const PostsInserterBlock = ( {
 						onChange={ value => setAttributes( { displayContinueReading: value } ) }
 					/>
 				</PanelBody>
-				<PanelBody title={ __( 'Sorting and filtering', 'newspack-newsletters' ) }>
+				<PanelBody title={ __( 'Sorting & Filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
 				</PanelBody>
-				<PanelBody title={ __( 'Heading styles', 'newspack-newsletters' ) }>
-					<FontSizePicker
-						fontSizes={ blockEditorSettings.fontSizes }
-						value={ attributes.headingFontSize }
-						onChange={ value => setAttributes( { headingFontSize: value } ) }
-					/>
-					<ColorPaletteControl
-						value={ attributes.headingColor || '' }
-						onChange={ value => setAttributes( { headingColor: value } ) }
-						disableAlpha
-					/>
-				</PanelBody>
-				<PanelBody title={ __( 'Subtitle styles', 'newspack-newsletters' ) }>
-					<FontSizePicker
-						fontSizes={ blockEditorSettings.fontSizes }
-						value={ attributes.subHeadingFontSize }
-						onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
-					/>
-					<ColorPaletteControl
-						value={ attributes.subHeadingColor || '' }
-						onChange={ value => setAttributes( { subHeadingColor: value } ) }
-						disableAlpha
-					/>
-				</PanelBody>
-				<PanelBody title={ __( 'Text styles', 'newspack-newsletters' ) }>
-					<FontSizePicker
-						fontSizes={ blockEditorSettings.fontSizes }
-						value={ attributes.textFontSize }
-						onChange={ value => {
-							return setAttributes( { textFontSize: value } );
-						} }
-					/>
-					<ColorPaletteControl
-						value={ attributes.textColor || '' }
-						onChange={ value => setAttributes( { textColor: value } ) }
-						disableAlpha
-					/>
+			</InspectorControls>
+			<InspectorControls group="styles">
+				<PanelColorGradientSettings
+					title={ __( 'Color', 'newspack-newsletters' ) }
+					gradients={ [] } // Pass empty array to disable gradients.
+					settings={ [
+						{
+							colorValue: attributes.headingColor,
+							onColorChange: value => setAttributes( { headingColor: value } ),
+							label: __( 'Heading', 'newspack-newsletters' ),
+						},
+						{
+							colorValue: attributes.subHeadingColor,
+							onColorChange: value => setAttributes( { subHeadingColor: value } ),
+							label: __( 'Subtitle', 'newspack-newsletters' ),
+						},
+						{
+							colorValue: attributes.textColor,
+							onColorChange: value => setAttributes( { textColor: value } ),
+							label: __( 'Text', 'newspack-newsletters' ),
+						},
+					] }
+				/>
+				<PanelBody title={ __( 'Typography', 'newspack-newsletters' ) }>
+					<BaseControl
+						className="newspack-posts-inserter__font-size-picker"
+						label={ __( 'Heading size', 'newspack-plugin' ) }
+						id="heading-size"
+					>
+						<FontSizePicker
+							fontSizes={ blockEditorSettings.fontSizes }
+							value={ attributes.headingFontSize }
+							onChange={ value => setAttributes( { headingFontSize: value } ) }
+						/>
+					</BaseControl>
+					<BaseControl
+						className="newspack-posts-inserter__font-size-picker"
+						label={ __( 'Subtitle size', 'newspack-plugin' ) }
+						id="subtitle-size"
+					>
+						<FontSizePicker
+							fontSizes={ blockEditorSettings.fontSizes }
+							value={ attributes.subHeadingFontSize }
+							onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
+						/>
+					</BaseControl>
+					<BaseControl className="newspack-posts-inserter__font-size-picker" label={ __( 'Text size', 'newspack-plugin' ) } id="text-size">
+						<FontSizePicker
+							fontSizes={ blockEditorSettings.fontSizes }
+							value={ attributes.textFontSize }
+							onChange={ value => {
+								return setAttributes( { textFontSize: value } );
+							} }
+						/>
+					</BaseControl>
 				</PanelBody>
 			</InspectorControls>
 
