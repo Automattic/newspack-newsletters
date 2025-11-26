@@ -87,6 +87,15 @@ class Newspack_Newsletters_Settings {
 				'onboarding'  => true,
 			),
 			array(
+				'description'       => esc_html__( 'Append recommended Mailchimp footer to layouts', 'newspack-newsletters' ),
+				'key'               => 'newspack_mailchimp_auto_append_footer',
+				'type'              => 'checkbox',
+				'default'           => false,
+				'provider'          => 'mailchimp',
+				'sanitize_callback' => 'boolval',
+				'onboarding'        => true,
+			),
+			array(
 				'description' => esc_html__( 'Constant Contact API Key', 'newspack-newsletters' ),
 				'key'         => 'newspack_newsletters_constant_contact_api_key',
 				'type'        => 'text',
