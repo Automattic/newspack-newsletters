@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { isUndefined, find, pickBy } from 'lodash';
+import colors from 'newspack-colors';
 
 /**
  * WordPress dependencies
@@ -29,7 +30,7 @@ import {
 	__experimentalPanelColorGradientSettings as PanelColorGradientSettings, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
-import { Icon, check, pages } from '@wordpress/icons';
+import { Icon, check, verse } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -58,6 +59,15 @@ const PostsInserterBlock = ( {
 	// Stringify added to minimize flicker.
 	const templateBlocks = useMemo( () => getTemplateBlocks( postList, attributes ), [ stringifiedPostList, attributes ] );
 	const stringifiedTemplateBlocks = JSON.stringify( templateBlocks );
+	const subtitleColorSettings = [];
+
+	if ( attributes.displayPostSubtitle ) {
+		subtitleColorSettings.push( {
+			colorValue: attributes.subHeadingColor,
+			onColorChange: value => setAttributes( { subHeadingColor: value } ),
+			label: __( 'Subtitle', 'newspack-newsletters' ),
+		} );
+	}
 
 	useEffect( () => {
 		const { isDisplayingSpecificPosts, specificPosts } = attributes;
@@ -215,11 +225,7 @@ const PostsInserterBlock = ( {
 							onColorChange: value => setAttributes( { headingColor: value } ),
 							label: __( 'Heading', 'newspack-newsletters' ),
 						},
-						{
-							colorValue: attributes.subHeadingColor,
-							onColorChange: value => setAttributes( { subHeadingColor: value } ),
-							label: __( 'Subtitle', 'newspack-newsletters' ),
-						},
+						...subtitleColorSettings,
 						{
 							colorValue: attributes.textColor,
 							onColorChange: value => setAttributes( { textColor: value } ),
@@ -237,19 +243,23 @@ const PostsInserterBlock = ( {
 							fontSizes={ blockEditorSettings.fontSizes }
 							value={ attributes.headingFontSize }
 							onChange={ value => setAttributes( { headingFontSize: value } ) }
+							__next40pxDefaultSize
 						/>
 					</BaseControl>
-					<BaseControl
-						className="newspack-posts-inserter__font-size-picker"
-						label={ __( 'Subtitle size', 'newspack-plugin' ) }
-						id="subtitle-size"
-					>
-						<FontSizePicker
-							fontSizes={ blockEditorSettings.fontSizes }
-							value={ attributes.subHeadingFontSize }
-							onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
-						/>
-					</BaseControl>
+					{ attributes.displayPostSubtitle && (
+						<BaseControl
+							className="newspack-posts-inserter__font-size-picker"
+							label={ __( 'Subtitle size', 'newspack-plugin' ) }
+							id="subtitle-size"
+						>
+							<FontSizePicker
+								fontSizes={ blockEditorSettings.fontSizes }
+								value={ attributes.subHeadingFontSize }
+								onChange={ value => setAttributes( { subHeadingFontSize: value } ) }
+								__next40pxDefaultSize
+							/>
+						</BaseControl>
+					) }
 					<BaseControl className="newspack-posts-inserter__font-size-picker" label={ __( 'Text size', 'newspack-plugin' ) } id="text-size">
 						<FontSizePicker
 							fontSizes={ blockEditorSettings.fontSizes }
@@ -257,6 +267,7 @@ const PostsInserterBlock = ( {
 							onChange={ value => {
 								return setAttributes( { textFontSize: value } );
 							} }
+							__next40pxDefaultSize
 						/>
 					</BaseControl>
 				</PanelBody>
@@ -304,7 +315,7 @@ const PostsInserterBlock = ( {
 
 			<div className={ `newspack-posts-inserter ${ ! isReady ? 'newspack-posts-inserter--loading' : '' }` }>
 				<div className="newspack-posts-inserter__header">
-					<Icon icon={ pages } />
+					<Icon icon={ verse } />
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
 				</div>
 				<PostsPreview
@@ -403,8 +414,12 @@ const PostsInserterBlockWithSelect = compose( [
 export default () => {
 	registerBlockType( POSTS_INSERTER_BLOCK_NAME, {
 		...blockDefinition,
-		title: 'Posts Inserter',
-		icon: <Icon icon={ pages } />,
+		title: __( 'Posts Inserter', 'newspack-newsletters' ),
+		description: __( 'Lets you insert posts into your newsletter.', 'newspack-newsletters' ),
+		icon: {
+			src: verse,
+			foreground: colors[ 'primary-400' ],
+		},
 		edit: PostsInserterBlockWithSelect,
 		save: () => <InnerBlocks.Content />,
 	} );

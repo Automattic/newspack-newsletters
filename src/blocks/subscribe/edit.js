@@ -191,12 +191,12 @@ export default function SubscribeEdit( {
 							{
 								value: textColor,
 								onChange: onChangeTextColor,
-								label: __( 'Text color', 'newspack-newsletters' ),
+								label: __( 'Text', 'newspack-newsletters' ),
 							},
 							{
 								value: backgroundColor,
 								onChange: onChangeBackgroundColor,
-								label: __( 'Background color', 'newspack-newsletters' ),
+								label: __( 'Background', 'newspack-newsletters' ),
 							},
 						] }
 					/>

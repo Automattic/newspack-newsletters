@@ -58,6 +58,7 @@ const withConditionalContentControl = createHigherOrderComponent(
 								__( 'Opening tag for conditional content. E.g.: %s', 'newspack-newsletters' ),
 								config?.example?.before
 							) }
+							__next40pxDefaultSize
 						/>
 						<TextControl
 							label={ __( 'Closing tag', 'newspack-newsletters' ) }
@@ -68,6 +69,7 @@ const withConditionalContentControl = createHigherOrderComponent(
 								__( 'Closing tag for conditional content. E.g.: %s', 'newspack-newsletters' ),
 								config?.example?.after
 							) }
+							__next40pxDefaultSize
 						/>
 						<p>
 							<a href={ config?.support_url } target="_blank" rel="external noreferrer">

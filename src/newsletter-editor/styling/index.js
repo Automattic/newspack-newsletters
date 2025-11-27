@@ -202,14 +202,14 @@ export const Styling = compose( [
 				gradients={ [] } // Pass empty array to disable gradients.
 				settings={ [
 					{
-						colorValue: backgroundColor,
-						onColorChange: value => updateStyleValue( 'background_color', value ),
-						label: __( 'Background color', 'newspack-newsletters' ),
-					},
-					{
 						colorValue: textColor,
 						onColorChange: value => updateStyleValue( 'text_color', value ),
-						label: __( 'Text color', 'newspack-newsletters' ),
+						label: __( 'Text', 'newspack-newsletters' ),
+					},
+					{
+						colorValue: backgroundColor,
+						onColorChange: value => updateStyleValue( 'background_color', value ),
+						label: __( 'Background', 'newspack-newsletters' ),
 					},
 				] }
 			/>

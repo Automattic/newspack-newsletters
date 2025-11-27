@@ -1705,14 +1705,14 @@ msgstr ""
 #: dist/editorBlocks.js:5
 #: src/blocks/subscribe/edit.js:194
 #: src/newsletter-editor/styling/index.js:231
-msgid "Text color"
+msgid "Text"
 msgstr ""
 
 #: dist/blocks.js:1
 #: dist/editorBlocks.js:5
 #: src/blocks/subscribe/edit.js:199
 #: src/newsletter-editor/styling/index.js:221
-msgid "Background color"
+msgid "Background"
 msgstr ""
 
 #: dist/blocks.js:1

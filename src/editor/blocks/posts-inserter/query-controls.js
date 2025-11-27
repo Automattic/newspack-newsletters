@@ -208,6 +208,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 				options={ postTypesList }
 				value={ attributes.postType }
 				onChange={ postType => setAttributes( { postType } ) }
+				__next40pxDefaultSize
 			/>
 			<ToggleControl
 				label={ __( 'Display specific posts', 'newspack-newsletters' ) }
@@ -265,6 +266,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 								fetchSuggestions={ fetchTagSuggestions }
 								fetchSavedInfo={ fetchSavedTags }
 								label={ __( 'Tags', 'newspack-newsletters' ) }
+								__next40pxDefaultSize
 							/>
 							<AutocompleteTokenField
 								key="category-exclusion"
@@ -273,6 +275,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 								fetchSuggestions={ fetchCategorySuggestions }
 								fetchSavedInfo={ fetchSavedCategories }
 								label={ __( 'Excluded Categories', 'newspack-newsletters' ) }
+								__next40pxDefaultSize
 							/>
 							<AutocompleteTokenField
 								key="tag-exclusion"
@@ -281,6 +284,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 								fetchSuggestions={ fetchTagSuggestions }
 								fetchSavedInfo={ fetchSavedTags }
 								label={ __( 'Excluded Tags', 'newspack-newsletters' ) }
+								__next40pxDefaultSize
 							/>
 							<SelectControl
 								key="query-controls-order-select"
@@ -315,6 +319,7 @@ const QueryControlsSettings = ( { attributes, setAttributes } ) => {
 										setAttributes( { orderBy: newOrderBy } );
 									}
 								} }
+								__next40pxDefaultSize
 							/>
 						</Fragment>
 					) }
