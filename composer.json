@@ -12,7 +12,7 @@
 		"brainmaestro/composer-git-hooks": "^3.0",
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.0.0",
 		"yoast/phpunit-polyfills": "^4.0",
-		"phpunit/phpunit": "^9.5"
+		"phpunit/phpunit": "^12.4"
 	},
 	"license": "GPL-2.0-or-later",
 	"scripts": {
