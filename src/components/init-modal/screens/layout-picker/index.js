@@ -38,7 +38,7 @@ export default function LayoutPicker() {
 	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayoutsState();
 
 	const insertLayout = layoutId => {
-		let { post_content, meta = {} } = find( layouts, { ID: layoutId } ) || {};
+		let { post_content = '', meta = {} } = find( layouts, { ID: layoutId } ) || {};
 		if ( meta.campaign_defaults && 'string' === typeof meta.campaign_defaults ) {
 			meta.stringifiedCampaignDefaults = meta.campaign_defaults;
 		}
