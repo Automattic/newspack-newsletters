@@ -1,3 +1,10 @@
+## [3.25.1](https://github.com/Automattic/newspack-newsletters/compare/v3.25.0...v3.25.1) (2025-11-26)
+
+
+### Bug Fixes
+
+* **mjml:** escape values when converting post to MJML ([#1976](https://github.com/Automattic/newspack-newsletters/issues/1976)) ([8a61355](https://github.com/Automattic/newspack-newsletters/commit/8a61355813650901851b4218a79c66319feecdf9))
+
 # [3.25.0](https://github.com/Automattic/newspack-newsletters/compare/v3.24.2...v3.25.0) (2025-11-24)
 
 
