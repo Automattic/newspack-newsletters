@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Usage reports for Mailchimp.
+ * Append default Mailchimp footer to all newsletter drafts when `newspack_mailchimp_auto_append_footer` is true.
  */
 class Newspack_Newsletters_Mailchimp_Default_Footer {
 
