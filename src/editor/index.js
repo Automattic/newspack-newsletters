@@ -65,7 +65,7 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 	}
 
 	/* Remove 'Hide' option for all blocks */
-	settings.supports = { ...settings.supports, blockVisibility: false };
+	settings.supports = { ...settings.supports, visibility: false };
 
 	return settings;
 } );
