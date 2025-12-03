@@ -25,7 +25,7 @@ class Newspack_Newsletters_Mailchimp_Default_Footer {
 	 */
 	public static function get_footer_content() {
 
-		$should_append_footer = get_option( 'newspack_mailchimp_auto_append_footer', false );
+		$should_append_footer = 'mailchimp' === Newspack_Newsletters::service_provider() && get_option( 'newspack_mailchimp_auto_append_footer', false );
 		if ( ! $should_append_footer ) {
 			return '';
 		}
