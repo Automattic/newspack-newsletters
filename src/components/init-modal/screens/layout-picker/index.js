@@ -44,7 +44,7 @@ export default function LayoutPicker() {
 		}
 
 		// Append default Mailchimp footer if available.
-		post_content += window.newspackMailchimpDefaultFooter || '';
+		post_content += window.newspack_newsletters_editor_data?.mailchimp_default_footer || '';
 
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
