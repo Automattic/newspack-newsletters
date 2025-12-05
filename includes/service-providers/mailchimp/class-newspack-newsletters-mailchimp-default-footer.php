@@ -27,6 +27,15 @@ class Newspack_Newsletters_Mailchimp_Default_Footer {
 		if ( function_exists( 'wc_get_account_endpoint_url' ) && method_exists( 'Newspack\Reader_Activation', 'is_enabled' ) && \Newspack\Reader_Activation::is_enabled() ) {
 			$manage_preferences_url = wc_get_account_endpoint_url( Newspack_Newsletters_Subscription::WC_ENDPOINT );
 		}
-		return '<!-- wp:paragraph {"align":"center","fontSize":"small"} --><p class="has-text-align-center has-small-font-size"><br>This email was sent to *|EMAIL|*<br><a href="' . esc_url( $manage_preferences_url ) . '">Update your preferences</a>&nbsp;—&nbsp;<a href="http://*|UNSUB|*">Unsubscribe from all *|LIST:COMPANY|* newsletters</a><br>*|LIST_ADDRESSLINE_TEXT|**|IF:REWARDS|*<br><br>*|HTML:REWARDS|* *|END:IF|*</p><!-- /wp:paragraph -->';
+
+		// Translators: %s is replaced with the *|EMAIL|* Mailchimp merge tag.
+		$sent_to = sprintf( __( 'This email was sent to %s', 'newspack-newsletters' ), '*|EMAIL|*' );
+
+		$unsubscribe_this = __( 'Unsubscribe from this newsletter', 'newspack-newsletters' );
+
+		// Translators: %s is replaced with the *|LIST:COMPANY|* mailchimp merge tag.
+		$unsubscribe_all = sprintf( __( 'Opt out of all emails from %s', 'newspack-newsletters' ), '*|LIST:COMPANY|*' );
+
+		return '<!-- wp:paragraph {"align":"center","fontSize":"small"} --><p class="has-text-align-center has-small-font-size"><br>' . $sent_to . '<br><a href="' . esc_url( $manage_preferences_url ) . '">' . $unsubscribe_this . '</a>&nbsp;—&nbsp;<a href="http://*|UNSUB|*">' . $unsubscribe_all . '</a><br>*|LIST_ADDRESSLINE_TEXT|**|IF:REWARDS|*<br><br>*|HTML:REWARDS|* *|END:IF|*</p><!-- /wp:paragraph -->';
 	}
 }
