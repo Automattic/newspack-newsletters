@@ -337,8 +337,8 @@ class Newspack_Newsletters_Settings {
 									<input type="hidden" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
 									<input type="hidden" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]" value="<?php echo esc_attr( $list['description'] ); ?>" />
 								<?php else : ?>
-									<input type="text" placeholder="<?php echo esc_attr_e( 'List title', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
-									<textarea placeholder="<?php echo esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]"><?php echo esc_textarea( $list['description'] ); ?></textarea>
+									<input type="text" placeholder="<?php esc_attr_e( 'List title', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][title]" value="<?php echo esc_attr( $list['title'] ); ?>" />
+									<textarea placeholder="<?php esc_attr_e( 'List description', 'newspack-newsletters' ); ?>" name="lists[<?php echo esc_attr( $list['id'] ); ?>][description]"><?php echo esc_textarea( $list['description'] ); ?></textarea>
 								<?php endif; ?>
 							</td>
 						</tr>
