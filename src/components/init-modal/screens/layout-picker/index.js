@@ -43,8 +43,10 @@ export default function LayoutPicker() {
 			meta.stringifiedCampaignDefaults = meta.campaign_defaults;
 		}
 
-		// Append default Mailchimp footer if available.
-		post_content += window.newspack_newsletters_editor_data?.mailchimp_default_footer || '';
+		// Append default Mailchimp footer if available. Only if "*|UNSUB|*" tag is not already present.
+		if ( post_content && ! post_content.includes( '*|UNSUB|*' ) ) {
+			post_content += window.newspack_newsletters_editor_data?.mailchimp_default_footer || '';
+		}
 
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
