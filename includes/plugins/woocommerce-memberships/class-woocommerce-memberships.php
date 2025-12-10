@@ -7,9 +7,10 @@
 
 namespace Newspack_Newsletters\Plugins;
 
+use Newspack\Reader_Activation\ESP_Sync;
+use Newspack\Reader_Activation\Sync;
 use Newspack\Newsletters\Subscription_List;
 use Newspack\Newsletters\Subscription_Lists;
-use Newspack_Newsletters;
 use Newspack_Newsletters_Contacts;
 use Newspack_Newsletters_Logger;
 
@@ -181,6 +182,28 @@ class Woocommerce_Memberships {
 	}
 
 	/**
+	 * Sync the user's subscribed lists to the ESP.
+	 * If ESP_Sync is enabled, add to the sync queue. Otherwise, use the service provider's API.
+	 *
+	 * @param int    $user_id The user ID.
+	 * @param string $user_email The user's email address.
+	 * @param array  $lists_to_add The lists to add.
+	 * @param array  $lists_to_remove The lists to remove.
+	 * @param string $context The context.
+	 * @return bool|WP_Error
+	 */
+	public static function sync_user_lists( $user_id, $user_email, $lists_to_add, $lists_to_remove, $context ) {
+		$result = false;
+		if ( method_exists( 'Newspack\Reader_Activation\ESP_Sync', 'can_esp_sync' ) && method_exists( 'Newspack\Reader_Activation\Sync\WooCommerce', 'get_contact_from_customer' ) && ESP_Sync::can_esp_sync() ) {
+			$contact = Sync\WooCommerce::get_contact_from_customer( new \WC_Customer( $user_id ) );
+			$result = ESP_Sync::sync( $contact, $context, null, $lists_to_add, $lists_to_remove );
+		} else {
+			$result = Newspack_Newsletters_Contacts::add_and_remove_lists( $user_email, $lists_to_add, $lists_to_remove, $context );
+		}
+		return $result;
+	}
+
+	/**
 	 * Removes user from membership-tied lists associated with a membership plan
 	 *
 	 * @param \WC_Memberships_User_Membership $user_membership The User Membership object.
@@ -236,7 +259,12 @@ class Woocommerce_Memberships {
 
 		self::update_user_lists_on_deactivation( $user->ID, $user_membership->get_id(), $existing_lists );
 
-		Newspack_Newsletters_Contacts::add_and_remove_lists( $user_email, [], $lists_to_remove, 'Removing user from lists tied to Memberships being marked as inactive' );
+		$result = self::sync_user_lists( $user->ID, $user_email, [], $lists_to_remove, 'Removing user from lists tied to Memberships being marked as inactive' );
+		if ( is_wp_error( $result ) ) {
+			Newspack_Newsletters_Logger::log( 'An error occured while updating user lists for ' . $user_email . ': ' . $result->get_error_message() );
+			return;
+		}
+
 		Newspack_Newsletters_Logger::log( 'Reader ' . $user_email . ' removed from the following lists: ' . implode( ', ', $lists_to_remove ) );
 	}
 
@@ -374,8 +402,7 @@ class Woocommerce_Memberships {
 			return;
 		}
 
-		$result = Newspack_Newsletters_Contacts::add_and_remove_lists( $user_email, $lists_to_add, [], 'Adding user to lists tied to Memberships being marked as active' );
-
+		$result = self::sync_user_lists( $user_id, $user_email, $lists_to_add, [], 'Adding user to lists tied to Memberships being marked as active' );
 		if ( is_wp_error( $result ) ) {
 			Newspack_Newsletters_Logger::log( 'An error occured while updating lists for ' . $user_email . ': ' . $result->get_error_message() );
 			return;
