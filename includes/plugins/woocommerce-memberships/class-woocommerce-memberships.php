@@ -195,8 +195,21 @@ class Woocommerce_Memberships {
 	public static function sync_user_lists( $user_id, $user_email, $lists_to_add, $lists_to_remove, $context ) {
 		$result = false;
 		if ( method_exists( 'Newspack\Reader_Activation\ESP_Sync', 'can_esp_sync' ) && method_exists( 'Newspack\Reader_Activation\Sync\WooCommerce', 'get_contact_from_customer' ) && ESP_Sync::can_esp_sync() ) {
-			$contact = Sync\WooCommerce::get_contact_from_customer( new \WC_Customer( $user_id ) );
-			$result = ESP_Sync::sync( $contact, $context, null, $lists_to_add, $lists_to_remove );
+			$provider = Newspack_Newsletters::get_service_provider();
+			$contact  = Sync\WooCommerce::get_contact_from_customer( new \WC_Customer( $user_id ) );
+			$result   = ESP_Sync::sync( $contact, $context, null, $lists_to_add, $lists_to_remove );
+
+			/**
+			 * Fires after a contact's lists are updated.
+			 *
+			 * @param string        $provider        The provider name.
+			 * @param string        $user_email           Contact email address.
+			 * @param string[]      $lists_to_add    Array of list IDs to subscribe the contact to.
+			 * @param string[]      $lists_to_remove Array of list IDs to remove the contact from.
+			 * @param bool|WP_Error $result          True if the contact was updated or error if failed.
+			 * @param string        $context         Context of the update for logging purposes.
+			 */
+			do_action( 'newspack_newsletters_update_contact_lists', $provider->service, $user_email, $lists_to_add, $lists_to_remove, $result, $context );
 		} else {
 			$result = Newspack_Newsletters_Contacts::add_and_remove_lists( $user_email, $lists_to_add, $lists_to_remove, $context );
 		}
