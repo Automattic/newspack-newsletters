@@ -7,6 +7,7 @@
 
 namespace Newspack_Newsletters\Plugins;
 
+use Newspack_Newsletters;
 use Newspack\Reader_Activation\ESP_Sync;
 use Newspack\Reader_Activation\Sync;
 use Newspack\Newsletters\Subscription_List;
