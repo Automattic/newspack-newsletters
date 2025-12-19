@@ -1804,7 +1804,7 @@ msgstr ""
 
 #: dist/blocks.js:4
 #: src/blocks/subscribe/edit.js:308
-msgid "A previously selected list is no longer available. Please, revise the subscription lists selection."
+msgid "A previously selected list is no longer available. Please revise the subscription lists selection."
 msgstr ""
 
 #: dist/blocks.js:4
