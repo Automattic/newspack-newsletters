@@ -167,11 +167,13 @@ final class Newspack_Newsletters_Renderer {
 			'facebook'  => '#1977f2',
 			'instagram' => '#f00075',
 			'linkedin'  => '#0577b5',
+			'mastodon'  => '#3288d4',
 			'threads'   => '#000000',
 			'tiktok'    => '#000000',
 			'tumblr'    => '#011835',
 			'twitter'   => '#21a1f3',
 			'x'         => '#000000',
+			'whatsapp'  => '#25d366',
 			'wordpress' => '#3499cd',
 			'youtube'   => '#ff0100',
 		];
