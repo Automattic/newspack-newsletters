@@ -47,4 +47,5 @@ jobs:
         env:
           WP_ORG_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
           WP_ORG_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
+          WP_ORG_PLUGIN_NAME: ${{ github.event.repository.name }}
         run: ./node_modules/newspack-scripts/release-wporg.sh
