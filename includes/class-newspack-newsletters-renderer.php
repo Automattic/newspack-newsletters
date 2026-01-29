@@ -621,8 +621,14 @@ final class Newspack_Newsletters_Renderer {
 				}
 			}
 
-			// Update innerHTML with resolved values.
+			// Persist resolved values to block attrs and update innerHTML where needed.
 			if ( ! empty( $resolved_attrs ) ) {
+				if ( ! isset( $resolved_block['attrs'] ) || ! is_array( $resolved_block['attrs'] ) ) {
+					$resolved_block['attrs'] = [];
+				}
+				foreach ( $resolved_attrs as $attr_key => $attr_value ) {
+					$resolved_block['attrs'][ $attr_key ] = $attr_value;
+				}
 				$resolved_block = self::update_block_inner_html( $resolved_block, $resolved_attrs );
 			}
 		}
@@ -1556,7 +1562,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( ! class_exists( 'RemoteDataBlocks\Editor\DataBinding\BlockBindings' ) ) {
 					$markup = '';
 					foreach ( $inner_blocks as $block ) {
-						$markup .= self::render_mjml_component( $block, false, false, $default_attrs );
+						$markup .= self::render_mjml_component( $block, $is_in_column, $is_in_group, $default_attrs );
 					}
 					$block_mjml_markup = $markup;
 					break;
