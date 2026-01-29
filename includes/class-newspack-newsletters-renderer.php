@@ -748,7 +748,13 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function update_src_in_html( $html, $url ) {
 		// Replace src attribute value.
-		return preg_replace( '/src="[^"]*"/', 'src="' . esc_url( $url ) . '"', $html );
+		return preg_replace_callback(
+			'/src="[^"]*"/',
+			function ( $matches ) use ( $url ) {
+				return 'src="' . esc_url( $url ) . '"';
+			},
+			$html
+		);
 	}
 
 	/**
@@ -761,10 +767,23 @@ final class Newspack_Newsletters_Renderer {
 	private static function update_alt_in_html( $html, $alt ) {
 		// Replace alt attribute value.
 		if ( preg_match( '/alt="[^"]*"/', $html ) ) {
-			return preg_replace( '/alt="[^"]*"/', 'alt="' . esc_attr( $alt ) . '"', $html );
+			return preg_replace_callback(
+				'/alt="[^"]*"/',
+				function ( $matches ) use ( $alt ) {
+					return 'alt="' . esc_attr( $alt ) . '"';
+				},
+				$html
+			);
 		}
+
 		// Add alt if not present.
-		return preg_replace( '/<img/', '<img alt="' . esc_attr( $alt ) . '"', $html );
+		return preg_replace_callback(
+			'/<img/',
+			function ( $matches ) use ( $alt ) {
+				return '<img alt="' . esc_attr( $alt ) . '"';
+			},
+			$html
+		);
 	}
 
 	/**
@@ -775,7 +794,13 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string The updated HTML.
 	 */
 	private static function update_href_in_html( $html, $href ) {
-		return preg_replace( '/href="[^"]*"/', 'href="' . esc_url( $href ) . '"', $html );
+		return preg_replace_callback(
+			'/href="[^"]*"/',
+			function ( $matches ) use ( $href ) {
+				return 'href="' . esc_url( $href ) . '"';
+			},
+			$html
+		);
 	}
 
 	/**
@@ -786,7 +811,13 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string The updated HTML.
 	 */
 	private static function update_link_text_in_html( $html, $text ) {
-		return preg_replace( '/>([^<]*)<\/a>/', '>' . $text . '</a>', $html );
+		return preg_replace_callback(
+			'/>([^<]*)<\/a>/',
+			function ( $matches ) use ( $text ) {
+				return '>' . wp_kses_post( $text ) . '</a>';
+			},
+			$html
+		);
 	}
 
 	/**
@@ -797,9 +828,9 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function cleanup_rdb_html( $content ) {
 		if ( preg_match( '/^(.*<span class="rdb-block-label">.*<\/span>)(.*)$/is', $content, $matches ) ) {
-			return $matches[1] . ': ' . $matches[2];
+			$content = $matches[1] . ': ' . $matches[2];
 		}
-		return $content;
+		return wp_kses_post( $content );
 	}
 
 	/**
