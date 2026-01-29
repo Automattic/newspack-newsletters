@@ -11,6 +11,15 @@
 class Newsletters_Renderer_Test extends WP_UnitTestCase {
 
 	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		parent::tear_down();
+		// Reset stub RDB to prevent test pollution.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+	}
+
+	/**
 	 * Test the MJML rendering function.
 	 */
 	public function test_render_mjml_component() {
@@ -555,6 +564,593 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			Newspack_Newsletters_Renderer::remove_unwanted_style_properties( [ 'padding', 'border' ], $html ),
 			'<p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="font-size:12px;">First paragraph with the word "padding" outside of style attribute</p><p class="has-text-align-center has-primary-variation-color has-light-gray-background-color has-text-color has-background has-normal-font-size" style="">Second paragraph with the word "padding" outside of style attribute</p>',
 			'Works with multiple style attributes in the same HTML string.'
+		);
+	}
+
+	/**
+	 * Test RDB block rendering with resolved bindings for a single result.
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::get_rdb_context
+	 * @covers Newspack_Newsletters_Renderer::clone_blocks_with_index
+	 * @covers Newspack_Newsletters_Renderer::resolve_rdb_block_bindings
+	 * @covers Newspack_Newsletters_Renderer::update_block_inner_html
+	 * @covers Newspack_Newsletters_Renderer::reconstruct_paragraph_html
+	 */
+	public function test_render_rdb_block_with_single_result() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'content' => 'Resolved Event Title',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/foundation-event',
+					'results'          => [ [ 'title' => 'Event 1' ] ],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/paragraph',
+					'attrs'        => [
+						'metadata' => [
+							'bindings' => [
+								'content' => [
+									'source' => 'remote-data/binding',
+									'args'   => [
+										'field' => 'title',
+									],
+								],
+							],
+						],
+					],
+					'innerBlocks'  => [],
+					'innerContent' => [ '<p>Placeholder</p>' ],
+					'innerHTML'    => '<p>Placeholder</p>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify that BlockBindings::get_value() was called.
+		$calls = \RemoteDataBlocks\Editor\DataBinding\BlockBindings::$calls;
+		$this->assertNotEmpty( $calls, 'BlockBindings::get_value() should have been called' );
+		$this->assertEquals( 'content', $calls[0]['attribute_name'], 'Should resolve content binding' );
+
+		// Verify the resolved content appears in the output.
+		$this->assertStringContainsString(
+			'Resolved Event Title',
+			$result,
+			'Output should contain the resolved binding value'
+		);
+
+		// Verify the output contains mj-text (from MJML pipeline).
+		$this->assertStringContainsString(
+			'<mj-text',
+			$result,
+			'Output should be rendered through the MJML pipeline'
+		);
+	}
+
+	/**
+	 * Test RDB block rendering with multiple results (template looping).
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::get_rdb_context
+	 * @covers Newspack_Newsletters_Renderer::expand_rdb_template_blocks
+	 * @covers Newspack_Newsletters_Renderer::clone_blocks_with_index
+	 * @covers Newspack_Newsletters_Renderer::resolve_rdb_block_bindings
+	 * @covers Newspack_Newsletters_Renderer::update_block_inner_html
+	 * @covers Newspack_Newsletters_Renderer::reconstruct_paragraph_html
+	 */
+	public function test_render_rdb_block_with_multiple_results() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'content' => 'Event Title',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/template',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/template',
+					'results'          => [
+						[ 'title' => 'Event 1' ],
+						[ 'title' => 'Event 2' ],
+						[ 'title' => 'Event 3' ],
+					],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/paragraph',
+					'attrs'        => [
+						'metadata' => [
+							'bindings' => [
+								'content' => [
+									'source' => 'remote-data/binding',
+									'args'   => [
+										'field' => 'title',
+									],
+								],
+							],
+						],
+					],
+					'innerBlocks'  => [],
+					'innerContent' => [ '<p>Placeholder</p>' ],
+					'innerHTML'    => '<p>Placeholder</p>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify that BlockBindings::get_value() was called for each result.
+		$calls = \RemoteDataBlocks\Editor\DataBinding\BlockBindings::$calls;
+		$this->assertCount( 3, $calls, 'BlockBindings::get_value() should be called once per result' );
+
+		// Verify each call has the correct index.
+		$this->assertEquals( 0, $calls[0]['source_args']['index'], 'First call should have index 0' );
+		$this->assertEquals( 1, $calls[1]['source_args']['index'], 'Second call should have index 1' );
+		$this->assertEquals( 2, $calls[2]['source_args']['index'], 'Third call should have index 2' );
+
+		// Verify the output contains multiple mj-text elements (one per result).
+		$this->assertEquals(
+			3,
+			substr_count( $result, '<mj-text' ),
+			'Output should contain 3 mj-text elements for 3 results'
+		);
+	}
+
+	/**
+	 * Test RDB blocks are not wrapped in extra section/column elements.
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 */
+	public function test_rdb_block_no_extra_wrapping() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'content' => 'Test Content',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/foundation-event',
+					'results'          => [ [ 'title' => 'Event' ] ],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/paragraph',
+					'attrs'        => [
+						'metadata' => [
+							'bindings' => [
+								'content' => [
+									'source' => 'remote-data/binding',
+									'args'   => [ 'field' => 'title' ],
+								],
+							],
+						],
+					],
+					'innerBlocks'  => [],
+					'innerContent' => [ '<p>Placeholder</p>' ],
+					'innerHTML'    => '<p>Placeholder</p>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// The inner paragraph should have its own section/column wrapping from render_mjml_component.
+		// But the RDB container block itself should NOT add additional wrapping.
+		// Count mj-section occurrences - should be 1 (from the inner paragraph), not 2.
+		$section_count = substr_count( $result, '<mj-section' );
+		$this->assertEquals(
+			1,
+			$section_count,
+			'RDB block should not add extra section wrapping beyond what inner blocks need'
+		);
+	}
+
+	/**
+	 * Test RDB block with image binding.
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::resolve_rdb_block_bindings
+	 * @covers Newspack_Newsletters_Renderer::update_block_inner_html
+	 * @covers Newspack_Newsletters_Renderer::update_src_in_html
+	 * @covers Newspack_Newsletters_Renderer::update_alt_in_html
+	 */
+	public function test_render_rdb_block_with_image_binding() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'url' => 'https://example.com/image.jpg',
+				'alt' => 'Event Image',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/foundation-event',
+					'results'          => [ [ 'image' => 'https://example.com/image.jpg' ] ],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/image',
+					'attrs'        => [
+						'metadata' => [
+							'bindings' => [
+								'url' => [
+									'source' => 'remote-data/binding',
+									'args'   => [ 'field' => 'image_url' ],
+								],
+								'alt' => [
+									'source' => 'remote-data/binding',
+									'args'   => [ 'field' => 'image_alt' ],
+								],
+							],
+						],
+					],
+					'innerBlocks'  => [],
+					'innerContent' => [ '<figure class="wp-block-image"><img src="placeholder.jpg" alt=""/></figure>' ],
+					'innerHTML'    => '<figure class="wp-block-image"><img src="placeholder.jpg" alt=""/></figure>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify the resolved image URL appears in the output.
+		$this->assertStringContainsString(
+			'https://example.com/image.jpg',
+			$result,
+			'Output should contain the resolved image URL'
+		);
+
+		// Verify the resolved alt text appears in the output.
+		$this->assertStringContainsString(
+			'Event Image',
+			$result,
+			'Output should contain the resolved alt text'
+		);
+
+		// Verify the output contains mj-image.
+		$this->assertStringContainsString(
+			'<mj-image',
+			$result,
+			'Output should contain mj-image element'
+		);
+	}
+
+	/**
+	 * Test RDB block with heading binding.
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::resolve_rdb_block_bindings
+	 * @covers Newspack_Newsletters_Renderer::update_block_inner_html
+	 * @covers Newspack_Newsletters_Renderer::reconstruct_heading_html
+	 * @covers Newspack_Newsletters_Renderer::cleanup_rdb_html
+	 */
+	public function test_render_rdb_block_with_heading_binding() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'content' => 'Resolved Heading Text',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/foundation-event',
+					'results'          => [ [ 'title' => 'Event' ] ],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/heading',
+					'attrs'        => [
+						'level'    => 2,
+						'metadata' => [
+							'bindings' => [
+								'content' => [
+									'source' => 'remote-data/binding',
+									'args'   => [ 'field' => 'title' ],
+								],
+							],
+						],
+					],
+					'innerBlocks'  => [],
+					'innerContent' => [ '<h2>Placeholder</h2>' ],
+					'innerHTML'    => '<h2>Placeholder</h2>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify the resolved heading content appears in the output.
+		$this->assertStringContainsString(
+			'Resolved Heading Text',
+			$result,
+			'Output should contain the resolved heading text'
+		);
+
+		// Verify the output contains h2 tag.
+		$this->assertStringContainsString(
+			'<h2>',
+			$result,
+			'Output should preserve the h2 heading tag'
+		);
+	}
+
+	/**
+	 * Test that RDB blocks with no inner blocks don't call BlockBindings.
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::get_rdb_context
+	 * @covers Newspack_Newsletters_Renderer::clone_blocks_with_index
+	 */
+	public function test_rdb_block_with_no_inner_blocks() {
+		// Block without inner blocks (no bindings to resolve).
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [],
+			'innerBlocks'  => [],
+			'innerContent' => [ '<div><p>Static content</p></div>' ],
+			'innerHTML'    => '<div><p>Static content</p></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify BlockBindings::get_value() was NOT called since there are no inner blocks.
+		$calls = \RemoteDataBlocks\Editor\DataBinding\BlockBindings::$calls;
+		$this->assertEmpty( $calls, 'BlockBindings::get_value() should not be called when there are no inner blocks' );
+	}
+
+	/**
+	 * Test RDB block rendering with nested inner blocks (columns structure).
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::resolve_rdb_block_bindings
+	 * @covers Newspack_Newsletters_Renderer::update_block_inner_html
+	 * @covers Newspack_Newsletters_Renderer::reconstruct_paragraph_html
+	 * @covers Newspack_Newsletters_Renderer::update_src_in_html
+	 */
+	public function test_render_rdb_block_with_nested_structure() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'content' => 'Nested Content',
+				'url'     => 'https://example.com/nested.jpg',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/foundation-event',
+					'results'          => [ [ 'title' => 'Event' ] ],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/columns',
+					'attrs'        => [],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/column',
+							'attrs'        => [ 'width' => '50%' ],
+							'innerBlocks'  => [
+								[
+									'blockName'    => 'core/paragraph',
+									'attrs'        => [
+										'metadata' => [
+											'bindings' => [
+												'content' => [
+													'source' => 'remote-data/binding',
+													'args' => [ 'field' => 'description' ],
+												],
+											],
+										],
+									],
+									'innerBlocks'  => [],
+									'innerContent' => [ '<p>Placeholder</p>' ],
+									'innerHTML'    => '<p>Placeholder</p>',
+								],
+							],
+							'innerContent' => [ '<div class="wp-block-column">', null, '</div>' ],
+							'innerHTML'    => '<div class="wp-block-column"></div>',
+						],
+						[
+							'blockName'    => 'core/column',
+							'attrs'        => [ 'width' => '50%' ],
+							'innerBlocks'  => [
+								[
+									'blockName'    => 'core/image',
+									'attrs'        => [
+										'metadata' => [
+											'bindings' => [
+												'url' => [
+													'source' => 'remote-data/binding',
+													'args' => [ 'field' => 'image' ],
+												],
+											],
+										],
+									],
+									'innerBlocks'  => [],
+									'innerContent' => [ '<figure><img src="placeholder.jpg"/></figure>' ],
+									'innerHTML'    => '<figure><img src="placeholder.jpg"/></figure>',
+								],
+							],
+							'innerContent' => [ '<div class="wp-block-column">', null, '</div>' ],
+							'innerHTML'    => '<div class="wp-block-column"></div>',
+						],
+					],
+					'innerContent' => [ '<div class="wp-block-columns">', null, null, '</div>' ],
+					'innerHTML'    => '<div class="wp-block-columns"></div>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify both bindings were resolved.
+		$calls = \RemoteDataBlocks\Editor\DataBinding\BlockBindings::$calls;
+		$this->assertCount( 2, $calls, 'BlockBindings::get_value() should be called for both bindings' );
+
+		// Verify the output contains mj-column elements.
+		$this->assertStringContainsString(
+			'<mj-column',
+			$result,
+			'Output should contain mj-column elements for columns layout'
+		);
+
+		// Verify the resolved content appears.
+		$this->assertStringContainsString(
+			'Nested Content',
+			$result,
+			'Output should contain the resolved paragraph content'
+		);
+
+		$this->assertStringContainsString(
+			'https://example.com/nested.jpg',
+			$result,
+			'Output should contain the resolved image URL'
+		);
+	}
+
+	/**
+	 * Test RDB block with button binding (url and text).
+	 *
+	 * @covers Newspack_Newsletters_Renderer::render_mjml_component
+	 * @covers Newspack_Newsletters_Renderer::resolve_rdb_block_bindings
+	 * @covers Newspack_Newsletters_Renderer::update_block_inner_html
+	 * @covers Newspack_Newsletters_Renderer::update_href_in_html
+	 * @covers Newspack_Newsletters_Renderer::update_link_text_in_html
+	 */
+	public function test_render_rdb_block_with_button_binding() {
+		// Reset the mock.
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::reset();
+		\RemoteDataBlocks\Editor\DataBinding\BlockBindings::set_stub_values(
+			[
+				'url'  => 'https://example.com/event-link',
+				'text' => 'Register Now',
+			]
+		);
+
+		$block = [
+			'blockName'    => 'remote-data-blocks/foundation-event',
+			'attrs'        => [
+				'remoteData' => [
+					'blockName'        => 'remote-data-blocks/foundation-event',
+					'results'          => [ [ 'link' => 'https://example.com/event-link' ] ],
+					'enabledOverrides' => [],
+					'queryInputs'      => [],
+				],
+			],
+			'innerBlocks'  => [
+				[
+					'blockName'    => 'core/buttons',
+					'attrs'        => [],
+					'innerBlocks'  => [
+						[
+							'blockName'    => 'core/button',
+							'attrs'        => [
+								'metadata' => [
+									'bindings' => [
+										'url'  => [
+											'source' => 'remote-data/binding',
+											'args'   => [ 'field' => 'event_url' ],
+										],
+										'text' => [
+											'source' => 'remote-data/binding',
+											'args'   => [ 'field' => 'event_cta' ],
+										],
+									],
+								],
+							],
+							'innerBlocks'  => [],
+							'innerContent' => [ '<div class="wp-block-button"><a class="wp-block-button__link" href="https://placeholder.com">Placeholder</a></div>' ],
+							'innerHTML'    => '<div class="wp-block-button"><a class="wp-block-button__link" href="https://placeholder.com">Placeholder</a></div>',
+						],
+					],
+					'innerContent' => [ '<div class="wp-block-buttons">', null, '</div>' ],
+					'innerHTML'    => '<div class="wp-block-buttons"></div>',
+				],
+			],
+			'innerContent' => [ '<div>', null, '</div>' ],
+			'innerHTML'    => '<div></div>',
+		];
+
+		$result = Newspack_Newsletters_Renderer::render_mjml_component( $block );
+
+		// Verify the resolved URL appears in the output.
+		$this->assertStringContainsString(
+			'https://example.com/event-link',
+			$result,
+			'Output should contain the resolved button URL'
+		);
+
+		// Verify the resolved button text appears in the output.
+		$this->assertStringContainsString(
+			'Register Now',
+			$result,
+			'Output should contain the resolved button text'
+		);
+
+		// Verify the output contains mj-button.
+		$this->assertStringContainsString(
+			'<mj-button',
+			$result,
+			'Output should contain mj-button element'
 		);
 	}
 }

@@ -51,6 +51,9 @@ require_once 'mocks/wc-memberships.php';
 // WC CLI mock.
 require_once 'mocks/wp-cli.php';
 
+// Stubs for RDB methods.
+require_once __DIR__ . '/mocks/class-blockbindings.php';
+
 // Abstract ESP tests.
 require_once 'abstract-esp-tests.php';
 
