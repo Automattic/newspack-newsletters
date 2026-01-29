@@ -1638,8 +1638,7 @@ final class Newspack_Newsletters_Renderer {
 
 		$is_posts_inserter_block = 'newspack-newsletters/posts-inserter' == $block_name;
 		$is_grouped_block        = in_array( $block_name, [ 'core/group', 'core/list', 'core/list-item', 'core/quote' ], true );
-		// Remote Data Blocks are rendered to HTML then converted to MJML with proper structure,
-		// so they should not be wrapped in additional section/column elements.
+		// Remote Data Blocks require special handling to resolve bindings.
 		$is_rdb_block = strpos( $block_name, 'remote-data-blocks/' ) === 0;
 
 		if (
