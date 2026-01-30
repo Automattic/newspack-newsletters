@@ -7,11 +7,11 @@
 
 namespace RemoteDataBlocks\Editor\DataBinding;
 
-/**
- * Mock BlockBindings class to stub RDB's get_value() method for testing.
- * This must be loaded before the real RDB plugin to take precedence.
- */
 if ( ! class_exists( '\RemoteDataBlocks\Editor\DataBinding\BlockBindings' ) ) {
+	/**
+	 * Mock BlockBindings class to stub RDB's get_value() method for testing.
+	 * This must be loaded before the real RDB plugin to take precedence.
+	 */
 	class BlockBindings {
 		/**
 		 * Stubbed return values keyed by attribute name.
