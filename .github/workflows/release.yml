@@ -30,22 +30,7 @@ jobs:
   release-wporg:
     if: github.ref == 'refs/heads/release'
     needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Release to WordPress.org
-        env:
-          WP_ORG_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
-          WP_ORG_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
-          WP_ORG_PLUGIN_NAME: ${{ github.event.repository.name }}
-        run: ./node_modules/newspack-scripts/release-wporg.sh
+    uses: Automattic/newspack-scripts/.github/workflows/reusable-release-wporg.yml@trunk
+    secrets:
+      WP_ORG_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
+      WP_ORG_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
