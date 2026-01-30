@@ -30,7 +30,7 @@ jobs:
   release-wporg:
     if: github.ref == 'refs/heads/release'
     needs: release
-    uses: Automattic/newspack-scripts/.github/workflows/reusable-release-wporg.yml@refactor/deprecate-circle-ci
+    uses: Automattic/newspack-scripts/.github/workflows/reusable-release-wporg.yml@trunk
     secrets:
       WP_ORG_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
       WP_ORG_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
