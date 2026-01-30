@@ -812,7 +812,7 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function update_link_text_in_html( $html, $text ) {
 		return preg_replace_callback(
-			'/(>)(.*?)(<\/a>)/s',
+			'/(<a[^>]*>)(.*?)(<\/a>)/s',
 			function ( $matches ) use ( $text ) {
 				return $matches[1] . wp_kses_post( $text ) . $matches[3];
 			},
@@ -1156,16 +1156,17 @@ final class Newspack_Newsletters_Renderer {
 					$dom = new DomDocument();
 					libxml_use_internal_errors( true );
 					$dom->loadHTML( htmlspecialchars_decode( htmlentities( mb_convert_encoding( $button_block['innerHTML'], 'UTF-8', get_bloginfo( 'charset' ) ) ) ) );
-					$xpath         = new DOMXpath( $dom );
-					$anchor        = $xpath->query( '//a' )[0];
-					$attrs         = self::process_attributes( $button_block['attrs'] );
-					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '999px';
-					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
+					$xpath  = new DOMXpath( $dom );
+					$anchor = $xpath->query( '//a' )[0];
 
 					if ( ! $anchor ) {
 						break;
 					}
+
+					$attrs         = self::process_attributes( $button_block['attrs'] );
+					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '999px';
+					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
 						'align'         => $alignment,
