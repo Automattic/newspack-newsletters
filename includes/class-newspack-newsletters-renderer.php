@@ -515,7 +515,9 @@ final class Newspack_Newsletters_Renderer {
 	 * Expand template blocks for multiple query results.
 	 * Creates a copy of inner blocks for each result with the appropriate index.
 	 *
-	 * Heavily inspired by new RDB preview rendering.
+	 * Heavily inspired by new RDB preview rendering.  See changes to
+	 * src/block-editor/binding-sources/remote-data-binding.ts at
+	 * https://github.com/Automattic/remote-data-blocks/commit/a4b9249e248140c741e987f949b215be5edabf1d
 	 *
 	 * @param array $inner_blocks The inner blocks to clone.
 	 * @param array $results      The query results.
