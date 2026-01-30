@@ -812,9 +812,9 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function update_link_text_in_html( $html, $text ) {
 		return preg_replace_callback(
-			'/>([^<]*)<\/a>/',
+			'/(>)(.*?)(<\/a>)/s',
 			function ( $matches ) use ( $text ) {
-				return '>' . wp_kses_post( $text ) . '</a>';
+				return $matches[1] . wp_kses_post( $text ) . $matches[3];
 			},
 			$html
 		);
