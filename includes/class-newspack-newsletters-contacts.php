@@ -44,6 +44,19 @@ class Newspack_Newsletters_Contacts {
 	public static function subscribe( $contact, $lists = false, $async = false, $context = 'Subscribe contact' ) {
 		$provider = Newspack_Newsletters::get_service_provider();
 
+		/**
+		 * Enables asynchronous contact subscription processing. When enabled,
+		 * subscription requests return immediately and contacts are added
+		 * in the background. This improves front-end performance for high-traffic
+		 * sites but requires the caller to handle the request optimistically.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED
+		 * @type     bool
+		 * @default  Async subscriptions disabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED', true );
+		 */
 		if ( defined( 'NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED' ) && NEWSPACK_NEWSLETTERS_ASYNC_SUBSCRIPTION_ENABLED && true === $async ) {
 			Newspack_Newsletters_Subscription::add_subscription_intent( $contact, $lists, $context );
 			return true;

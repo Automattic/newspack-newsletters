@@ -1232,6 +1232,18 @@ final class Newspack_Newsletters {
 	 * @return boolean Is debug mode on?
 	 */
 	public static function debug_mode() {
+		/**
+		 * Enables debug mode for Newspack Newsletters, providing additional
+		 * logging and diagnostic information for troubleshooting email
+		 * campaign issues.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_DEBUG_MODE
+		 * @type     bool
+		 * @default  Debug mode disabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE', true );
+		 */
 		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
 

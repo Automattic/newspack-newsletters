@@ -442,6 +442,18 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		if ( \is_wp_error( $result ) ) {
 			$this->add_send_error( $post_id, $result );
 
+			/**
+			 * Disables the email notification sent to site administrators when
+			 * a newsletter campaign fails to send. Useful for sites that use
+			 * alternative monitoring systems.
+			 *
+			 * @constant NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL
+			 * @type     bool
+			 * @default  Failure emails enabled
+			 * @status   draft
+			 *
+			 * @example define( 'NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL', true );
+			 */
 			$email_sending_disabled = defined( 'NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL' ) && NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL;
 
 			$is_scheduled  = get_post_meta( $post->ID, 'sending_scheduled', true );

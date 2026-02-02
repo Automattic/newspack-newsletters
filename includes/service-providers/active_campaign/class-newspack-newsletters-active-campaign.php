@@ -780,6 +780,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return int
 	 */
 	private function get_address_id() {
+		/**
+		 * Specifies the ActiveCampaign address ID to use for campaigns.
+		 * If not set, ActiveCampaign's default address will be used.
+		 * Find your address ID in ActiveCampaign under Settings > Addresses.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID
+		 * @type     int
+		 * @default  0 (uses ActiveCampaign default address)
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID', 1 );
+		 */
 		if ( ! defined( 'NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID' ) ) {
 			return 0;
 		}
@@ -1172,6 +1184,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
 			'addressid'                             => $this->get_address_id(),
 		];
+		/**
+		 * Disables link click tracking in ActiveCampaign campaigns.
+		 * When enabled, ActiveCampaign will not track which links
+		 * subscribers click in your emails.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING
+		 * @type     bool
+		 * @default  Link tracking enabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING', true );
+		 */
 		if ( defined( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING' ) && NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING ) {
 			$campaign_data['tracklinks'] = 'none';
 		}
