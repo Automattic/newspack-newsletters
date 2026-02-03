@@ -14,6 +14,8 @@ import { SHARE_BLOCK_NAME } from './consts';
 
 export default () => {
 	registerBlockType( SHARE_BLOCK_NAME, {
+		$schema: 'https://schemas.wp.org/trunk/block.json',
+		apiVersion: 3,
 		title: __( 'Share Newsletter', 'newspack-newsletters' ),
 		category: 'newspack',
 		icon: <Icon icon={ customLink } />,
