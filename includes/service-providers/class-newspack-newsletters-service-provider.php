@@ -918,4 +918,18 @@ Error message(s) received:
 	public function get_transient_name( $post_id ) {
 		return sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
 	}
+
+	/**
+	 * Get contact fields for a list.
+	 *
+	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
+	 *
+	 * This is used by Newspack integrations to sync contact data.
+	 *
+	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
+	 * @return array The contact fields for the list. Each field should be an array with 'key' key at least.
+	 */
+	public function get_contact_fields( $list_id = null ) {
+		return [];
+	}
 }

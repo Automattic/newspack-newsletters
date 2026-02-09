@@ -1574,7 +1574,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @param number $offset Offset for pagination.
 	 */
-	private function get_contact_fields( $offset ) {
+	private function fetch_contact_fields( $offset ) {
 		return $this->api_v3_request(
 			'fields',
 			'GET',
@@ -1592,8 +1592,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @param number $offset Offset for pagination.
 	 */
-	private function get_all_contact_fields( $offset = 0 ) {
-		$response = $this->get_contact_fields( $offset );
+	public function get_all_contact_fields( $offset = 0 ) {
+		$response = $this->fetch_contact_fields( $offset );
 		if ( \is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -1740,5 +1740,29 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	public function get_usage_report() {
 		$ac_usage_reports = new Newspack_Newsletters_Active_Campaign_Usage_Reports();
 		return $ac_usage_reports->get_usage_report();
+	}
+
+	/**
+	 * Get contact fields for a list.
+	 *
+	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
+	 *
+	 * This is used by Newspack integrations to sync contact data.
+	 *
+	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
+	 * @return array The contact fields for the list. Each field should be an array with 'key' key at least.
+	 */
+	public function get_contact_fields( $list_id = null ) {
+		$all_fields = $this->get_all_contact_fields();
+		if ( is_wp_error( $all_fields ) ) {
+			return [];
+		}
+		$fields = [];
+		foreach ( $all_fields as $field ) {
+			$fields[] = [
+				'key' => $field['title'],
+			];
+		}
+		return $fields;
 	}
 }

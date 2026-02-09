@@ -2242,4 +2242,29 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	public function get_usage_report() {
 		return Newspack_Newsletters_Mailchimp_Usage_Reports::get_usage_report();
 	}
+
+	/**
+	 * Get contact fields for a list.
+	 *
+	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
+	 *
+	 * This is used by Newspack integrations to sync contact data.
+	 *
+	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
+	 * @return array The contact fields for the list. Each field should be an array with 'key' key at least.
+	 */
+	public function get_contact_fields( $list_id = null ) {
+		try {
+			$all_fields = Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id );
+		} catch ( Exception $e ) {
+			return [];
+		}
+		$fields = [];
+		foreach ( $all_fields as $field ) {
+			$fields[] = [
+				'key' => $field['name'],
+			];
+		}
+		return $fields;
+	}
 }

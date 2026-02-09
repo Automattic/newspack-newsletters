@@ -387,4 +387,22 @@ class Newspack_Newsletters_Contacts {
 
 		return $result;
 	}
+
+	/**
+	 * Get the contact fields from the provider.
+	 *
+	 * Used by Newspack integrations sync.
+	 *
+	 * @param string|null $list_id Optional list ID to get the fields for. Needed for Mailchimp.
+	 *
+	 * @return array|WP_Error Array of fields or error if failed.
+	 */
+	public static function get_fields( $list_id = null ) {
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
+		}
+
+		return $provider->get_contact_fields( $list_id );
+	}
 }
