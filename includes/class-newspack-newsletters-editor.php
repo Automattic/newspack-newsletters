@@ -48,7 +48,7 @@ final class Newspack_Newsletters_Editor {
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		add_action( 'enqueue_block_assets', [ __CLASS__, 'enqueue_block_assets' ] );
 		add_filter( 'block_categories_all', [ __CLASS__, 'add_custom_block_category' ] );
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
@@ -160,7 +160,7 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		$allowed_actions = [
-			__CLASS__ . '::enqueue_block_editor_assets',
+			__CLASS__ . '::enqueue_block_assets',
 			'newspack_enqueue_scripts',
 			'wp_enqueue_editor_format_library_assets',
 		];
@@ -330,7 +330,10 @@ final class Newspack_Newsletters_Editor {
 	/**
 	 * Load up common JS/CSS for newsletter editor.
 	 */
-	public static function enqueue_block_editor_assets() {
+	public static function enqueue_block_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
 		// Remove the Ads CPT - it does not need MJML handling since ads
 		// will be injected into email content before it's converted to MJML.
 		$mjml_handling_post_types = array_values( array_diff( self::get_email_editor_cpts(), [ Newspack_Newsletters\Ads::CPT ] ) );
