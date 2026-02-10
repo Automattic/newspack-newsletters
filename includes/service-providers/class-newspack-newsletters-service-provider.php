@@ -927,7 +927,7 @@ Error message(s) received:
 	 * This is used by Newspack integrations to sync contact data.
 	 *
 	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
-	 * @return array The contact fields for the list. Each field should be an array with 'key' key at least.
+	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
 	 */
 	public function get_contact_fields( $list_id = null ) {
 		return [];
