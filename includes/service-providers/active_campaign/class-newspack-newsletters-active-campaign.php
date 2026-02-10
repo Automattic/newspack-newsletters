@@ -1753,6 +1753,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return array The contact fields for the list. Each field should be an array with 'key' key at least.
 	 */
 	public function get_contact_fields( $list_id = null ) {
+		$cache_key = 'active_campaign_contact_fields';
+		$cached_fields = wp_cache_get( $cache_key );
+		if ( false !== $cached_fields ) {
+			return $cached_fields;
+		}
 		$all_fields = $this->get_all_contact_fields();
 		if ( is_wp_error( $all_fields ) ) {
 			return [];
@@ -1763,6 +1768,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'key' => $field['title'],
 			];
 		}
+		wp_cache_set( $cache_key, $fields, '', 5 * MINUTE_IN_SECONDS );
 		return $fields;
 	}
 }
