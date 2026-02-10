@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { isUndefined, find, pickBy, get } from 'lodash';
+import classnames from 'classnames';
 
 /**
  * WordPress dependencies
@@ -49,7 +50,9 @@ const PostsInserterBlock = ( {
 } ) => {
 	const [ isReady, setIsReady ] = useState( ! attributes.displayFeaturedImage );
 	const blockProps = useBlockProps( {
-		className: `newspack-posts-inserter ${ ! isReady ? 'newspack-posts-inserter--loading' : '' }`,
+		className: classnames( 'newspack-posts-inserter', {
+			'newspack-posts-inserter--loading': ! isReady,
+		} ),
 	} );
 	const stringifiedPostList = JSON.stringify( postList );
 
