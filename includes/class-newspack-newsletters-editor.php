@@ -186,12 +186,12 @@ final class Newspack_Newsletters_Editor {
 			$allowed_actions
 		);
 
-		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
-		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
+		$enqueue_block_assets_filters = $GLOBALS['wp_filter']['enqueue_block_assets']->callbacks;
+		foreach ( $enqueue_block_assets_filters as $index => $filter ) {
 			$action_handlers = array_keys( $filter );
 			foreach ( $action_handlers as $handler ) {
 				if ( ! in_array( $handler, $allowed_actions, true ) ) {
-					remove_action( 'enqueue_block_editor_assets', $handler, $index );
+					remove_action( 'enqueue_block_assets', $handler, $index );
 				}
 			}
 		}
