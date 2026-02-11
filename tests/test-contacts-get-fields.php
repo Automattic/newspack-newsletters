@@ -29,7 +29,6 @@ class Newspack_Newsletters_Contacts_Get_Fields_Test extends WP_UnitTestCase {
 	public function test_get_fields_without_provider() {
 		Newspack_Newsletters::set_service_provider( null );
 		$result = Newspack_Newsletters_Contacts::get_fields();
-		
 		$this->assertTrue( is_wp_error( $result ) );
 		$this->assertEquals( 'newspack_newsletters_invalid_provider', $result->get_error_code() );
 	}
@@ -40,9 +39,7 @@ class Newspack_Newsletters_Contacts_Get_Fields_Test extends WP_UnitTestCase {
 	public function test_mailchimp_get_fields_requires_list_id() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		update_option( 'newspack_mailchimp_api_key', 'test-us1' );
-		
 		$result = Newspack_Newsletters_Contacts::get_fields();
-		
 		$this->assertTrue( is_wp_error( $result ) );
 		$this->assertEquals( 'newspack_mailchimp_get_contact_fields_failed', $result->get_error_code() );
 	}
@@ -53,7 +50,6 @@ class Newspack_Newsletters_Contacts_Get_Fields_Test extends WP_UnitTestCase {
 	public function test_mailchimp_get_fields_with_list_id() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		update_option( 'newspack_mailchimp_api_key', 'test-us1' );
-		
 		// Pre-populate the Mailchimp cache with merge fields data.
 		update_option(
 			'newspack_nl_mailchimp_cache_test-list',
@@ -77,16 +73,13 @@ class Newspack_Newsletters_Contacts_Get_Fields_Test extends WP_UnitTestCase {
 				],
 			]
 		);
-		
 		$result = Newspack_Newsletters_Contacts::get_fields( 'test-list' );
-		
 		$this->assertFalse( is_wp_error( $result ) );
 		$this->assertIsArray( $result );
 		$this->assertCount( 3, $result );
 		$this->assertEquals( 'Email Address', $result[0]['key'] );
 		$this->assertEquals( 'First Name', $result[1]['key'] );
 		$this->assertEquals( 'Last Name', $result[2]['key'] );
-		
 		// Clean up.
 		delete_option( 'newspack_nl_mailchimp_cache_test-list' );
 	}
@@ -98,25 +91,19 @@ class Newspack_Newsletters_Contacts_Get_Fields_Test extends WP_UnitTestCase {
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 		update_option( 'newspack_newsletters_active_campaign_url', 'https://test.api-us1.com' );
 		update_option( 'newspack_newsletters_active_campaign_key', 'test-key' );
-		
 		// Mock the ActiveCampaign API response.
 		add_filter( 'pre_http_request', [ $this, 'mock_active_campaign_fields_response' ], 10, 3 );
-		
 		// First call should hit the API.
 		$result1 = Newspack_Newsletters_Contacts::get_fields();
-		
 		$this->assertFalse( is_wp_error( $result1 ) );
 		$this->assertIsArray( $result1 );
 		$this->assertCount( 2, $result1 );
 		$this->assertEquals( 'First Name', $result1[0]['key'] );
 		$this->assertEquals( 'Last Name', $result1[1]['key'] );
-		
 		// Remove filter to ensure second call uses cache.
 		remove_filter( 'pre_http_request', [ $this, 'mock_active_campaign_fields_response' ] );
-		
 		// Second call should use cached data.
 		$result2 = Newspack_Newsletters_Contacts::get_fields();
-		
 		$this->assertFalse( is_wp_error( $result2 ) );
 		$this->assertEquals( $result1, $result2 );
 	}
@@ -128,14 +115,10 @@ class Newspack_Newsletters_Contacts_Get_Fields_Test extends WP_UnitTestCase {
 		Newspack_Newsletters::set_service_provider( 'active_campaign' );
 		update_option( 'newspack_newsletters_active_campaign_url', 'https://test.api-us1.com' );
 		update_option( 'newspack_newsletters_active_campaign_key', 'test-key' );
-		
 		// Mock a failed API response.
 		add_filter( 'pre_http_request', [ $this, 'mock_active_campaign_error_response' ], 10, 3 );
-		
 		$result = Newspack_Newsletters_Contacts::get_fields();
-		
 		remove_filter( 'pre_http_request', [ $this, 'mock_active_campaign_error_response' ] );
-		
 		$this->assertTrue( is_wp_error( $result ) );
 	}
 
