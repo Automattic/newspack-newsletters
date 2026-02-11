@@ -2254,6 +2254,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
 	 */
 	public function get_contact_fields( $list_id = null ) {
+		// Validate list_id up front.
+		if ( empty( $list_id ) ) {
+			return new WP_Error(
+				'newspack_mailchimp_get_contact_fields_failed',
+				__( 'List ID is required.', 'newspack-newsletters' )
+			);
+		}
+
 		try {
 			$all_fields = Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id );
 		} catch ( Exception $e ) {
@@ -2262,6 +2270,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				$e->getMessage()
 			);
 		}
+
+		// Normalize to array to prevent PHP warnings when iterating.
+		if ( ! is_array( $all_fields ) ) {
+			$all_fields = [];
+		}
+
 		$fields = [];
 		foreach ( $all_fields as $field ) {
 			$fields[] = [
