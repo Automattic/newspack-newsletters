@@ -248,15 +248,19 @@ class Newspack_Newsletters_Contacts {
 		);
 
 		if ( $errors->has_errors() ) {
-			// Get a reader-friendly error message to show to the user.
-			$reader_error = $provider->get_reader_error_message(
-				[
-					'email' => $contact['email'],
-					'lists' => $lists,
-				],
-				is_wp_error( $result ) ? $result : $errors
+			$error = new WP_Error(
+				'newspack_newsletters_upsert_contact_error',
+				// Get a reader-friendly error message to show to the user.
+				$provider->get_reader_error_message(
+					[
+						'email' => $contact['email'],
+						'lists' => $lists,
+					],
+					is_wp_error( $result ) ? $result : $errors
+				)
 			);
-			return Newspack_Newsletters::debug_mode() ? $errors : new \WP_Error( 'newspack_newsletters_upsert_contact_error', $reader_error );
+			$error->merge_from( $errors );
+			return $error;
 		}
 
 		return $result;
@@ -293,7 +297,7 @@ class Newspack_Newsletters_Contacts {
 					'provider' => $provider->service,
 					'errors'   => is_wp_error( $result ) ? $result->get_error_message() : [],
 				],
-				'user_email' => $user['data']['user_email'],
+				'user_email' => $email,
 				'file'       => 'newspack_esp_sync',
 			]
 		);
