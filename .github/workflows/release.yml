@@ -34,7 +34,7 @@ jobs:
 
   release-wporg:
     if: github.ref == 'refs/heads/release'
-    needs: release
+    needs: post-release
     uses: Automattic/newspack-scripts/.github/workflows/reusable-release-wporg.yml@trunk
     with:
       plugin-name: newspack-newsletters
