@@ -248,19 +248,7 @@ class Newspack_Newsletters_Contacts {
 		);
 
 		if ( $errors->has_errors() ) {
-			$error = new WP_Error(
-				'newspack_newsletters_upsert_contact_error',
-				// Get a reader-friendly error message to show to the user.
-				$provider->get_reader_error_message(
-					[
-						'email' => $contact['email'],
-						'lists' => $lists,
-					],
-					is_wp_error( $result ) ? $result : $errors
-				)
-			);
-			$error->merge_from( $errors );
-			return $error;
+			return $errors;
 		}
 
 		return $result;
