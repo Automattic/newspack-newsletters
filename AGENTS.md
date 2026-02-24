@@ -30,37 +30,6 @@ npm run fix:php          # Auto-fix PHP issues (PHPCBF)
 - ESP sync happens across multiple plugins (Newsletters, newspack-plugin, newspack-network). The goal is to consolidate all ESP API calls into this plugin, which provides filters for other plugins to add data.
 - All ESP integration checks are defensive -- use `class_exists`/`function_exists`. The plugin must work standalone.
 
-## PHP Backend
-
-### Bootstrap & Autoloading
-
-- `newspack-newsletters.php`: main plugin file, defines `NEWSPACK_NEWSLETTERS_PLUGIN_FILE` and `NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT` constants, requires Composer autoloader, then manually includes ~30 files in order (ESP interfaces, service providers, all ESP implementations, feature classes).
-- Composer uses `classmap` strategy on `includes/` -- run `composer dump-autoload` after adding a new file.
-- Initialization at bottom of main file: `Subscription_Lists::init()` and `Send_Lists::init()`.
-
-### Class Initialization Patterns
-
-Four patterns coexist:
-
-1. **Singleton** via `instance()`: `Newspack_Newsletters`, `Newspack_Newsletters_Editor`.
-2. **Service Provider singleton**: `Newspack_Newsletters_Service_Provider::instance()` -- manages a static `$instances` array, supports multiple provider instances.
-3. **Static `init()`**: newer classes like `Subscription_Lists`, `Send_Lists`, `Newspack_Newsletters_Blocks`, `Newspack_Newsletters_Subscription_Attempts`.
-4. **Constructor-based hook registration**: older classes that hook into `init`, `rest_api_init`, `admin_menu` in `__construct()`.
-
-### Namespace Map
-
-| Namespace | Directory |
-|-----------|-----------|
-| *(none -- legacy)* | `includes/` (`Newspack_Newsletters_*` classes) |
-| `Newspack\Newsletters` | `includes/` (newer models: `Subscription_List`, `Send_List`, `Send_Lists`, `Subscription_Lists`) |
-| `Newspack_Newsletters` | `includes/ads/` (`Ads`, `Ads_Placements`) |
-| `Newspack_Newsletters\Tracking` | `includes/tracking/` |
-| `Newspack_Newsletters\Blocks\Subscribe` | `src/blocks/subscribe/index.php` |
-| `Newspack_Newsletters\Plugins` | `includes/plugins/woocommerce-memberships/` |
-| `Newspack_Newsletters\CLI` | `includes/plugins/woocommerce-memberships/` (CLI sync command) |
-
-Note: legacy classes use no namespace (just the `Newspack_Newsletters_*` prefix). Newer classes use proper PHP namespaces.
-
 ### ESP Service Provider Architecture
 
 This is the core abstraction of the plugin.
