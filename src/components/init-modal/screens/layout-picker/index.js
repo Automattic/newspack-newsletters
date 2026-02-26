@@ -10,7 +10,7 @@ import { find } from 'lodash';
 import { parse } from '@wordpress/blocks';
 import { useState, useEffect } from '@wordpress/element';
 import { useDispatch } from '@wordpress/data';
-import { Button, Spinner } from '@wordpress/components';
+import { Button, Spinner, __experimentalHStack as HStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -121,14 +121,14 @@ export default function LayoutPicker() {
 					) }
 				</div>
 			</div>
-			<div className="newspack-newsletters-modal__action-buttons">
+			<HStack align="center" className="newspack-newsletters-modal__action-buttons" justify="end">
 				<Button variant="secondary" onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
 					{ __( 'Blank newsletter', 'newspack-newsletters' ) }
 				</Button>
 				<Button variant="primary" disabled={ isFetchingLayouts || ! selectedLayoutId } onClick={ () => insertLayout( selectedLayoutId ) }>
 					{ __( 'Use selected layout', 'newspack-newsletters' ) }
 				</Button>
-			</div>
+			</HStack>
 		</>
 	);
 }
