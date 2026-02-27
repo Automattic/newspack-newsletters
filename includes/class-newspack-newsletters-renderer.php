@@ -147,12 +147,19 @@ final class Newspack_Newsletters_Renderer {
 		}
 		if ( isset( $block_attrs['fontSize'] ) ) {
 			$sizes = array(
-				'small'   => '12px',
-				'normal'  => '16px',
-				'medium'  => '16px',
-				'large'   => '24px',
-				'huge'    => '36px',
-				'x-large' => '36px',
+				'xx-small'     => '8px',
+				'x-small'      => '10px',
+				'small'        => '12px',
+				'normal'       => '16px',
+				'medium'       => '16px',
+				'large'        => '24px',
+				'huge'         => '36px',
+				'x-large'      => '36px',
+				'xx-large'     => '40px',
+				'xxx-large'    => '48px',
+				'xxxx-large'   => '56px',
+				'xxxxx-large'  => '64px',
+				'xxxxxx-large' => '72px',
 			);
 			return $sizes[ $block_attrs['fontSize'] ];
 		}

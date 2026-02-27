@@ -22,6 +22,7 @@ import {
 	MenuGroup,
 	Toolbar,
 	ToolbarDropdownMenu,
+	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
 import { InnerBlocks, InspectorControls, BlockControls, useBlockProps } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
@@ -283,21 +284,21 @@ const PostsInserterBlock = ( {
 			</BlockControls>
 
 			<div { ...blockProps }>
-				<div className="newspack-posts-inserter__header">
-					<Icon icon={ pages } />
-					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
-				</div>
+				<HStack className="newspack-posts-inserter__header" spacing={ 2 }>
+					<HStack spacing={ 1 } expanded={ false }>
+						<Icon icon={ pages } />
+						<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
+					</HStack>
+					<Button variant="primary" onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
+						{ __( 'Insert posts', 'newspack-newsletters' ) }
+					</Button>
+				</HStack>
 				<PostsPreview
 					isReady={ isReady }
 					blocks={ templateBlocks }
 					viewportWidth={ 'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage ? 574 : 1148 }
 					className={ attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null }
 				/>
-				<div className="newspack-posts-inserter__footer">
-					<Button isPrimary onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
-						{ __( 'Insert posts', 'newspack-newsletters' ) }
-					</Button>
-				</div>
 			</div>
 		</Fragment>
 	);

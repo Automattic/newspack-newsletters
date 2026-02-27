@@ -5,11 +5,18 @@
  */
 import { PlainText } from '@wordpress/block-editor';
 import { compose, useInstanceId } from '@wordpress/compose';
-import { ColorPicker, BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
+import {
+	BaseControl,
+	ColorPicker,
+	Panel,
+	PanelBody,
+	PanelRow,
+	SelectControl,
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useSelect, withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useRef } from '@wordpress/element';
-import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 /**
  * Internal dependencies
@@ -182,6 +189,20 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 	return null;
 } );
 
+const FontSelectControl = ( { label, value, onChange } ) => (
+	<SelectControl label={ label } value={ value } onChange={ onChange } __next40pxDefaultSize __nextHasNoMarginBottom>
+		{ fontOptgroups.map( group => (
+			<optgroup key={ group.label } label={ group.label }>
+				{ group.options.map( option => (
+					<option key={ option.value } value={ option.value }>
+						{ option.label }
+					</option>
+				) ) }
+			</optgroup>
+		) ) }
+	</SelectControl>
+);
+
 export const Styling = compose( [
 	withDispatch( dispatch => {
 		const { editPost } = dispatch( 'core/editor' );
@@ -193,28 +214,24 @@ export const Styling = compose( [
 		editPost( { meta: { [ key ]: value } } );
 	};
 
-	const instanceId = useInstanceId( SelectControlWithOptGroup );
+	const instanceId = useInstanceId( SelectControl );
 	const id = `inspector-select-control-${ instanceId }`;
 
 	return (
 		<Panel>
 			<PanelBody name="newsletters-typography-panel" title={ __( 'Typography', 'newspack-newsletters' ) }>
-				<PanelRow>
-					<SelectControlWithOptGroup
+				<VStack spacing={ 4 }>
+					<FontSelectControl
 						label={ __( 'Headings font', 'newspack-newsletters' ) }
 						value={ fontHeader }
-						optgroups={ fontOptgroups }
 						onChange={ value => updateStyleValue( 'font_header', value ) }
 					/>
-				</PanelRow>
-				<PanelRow>
-					<SelectControlWithOptGroup
+					<FontSelectControl
 						label={ __( 'Body font', 'newspack-newsletters' ) }
 						value={ fontBody }
-						optgroups={ fontOptgroups }
 						onChange={ value => updateStyleValue( 'font_body', value ) }
 					/>
-				</PanelRow>
+				</VStack>
 			</PanelBody>
 			<PanelBody name="newsletters-color-panel" title={ __( 'Color', 'newspack-newsletters' ) }>
 				<PanelRow className="newspack-newsletters__color-panel">

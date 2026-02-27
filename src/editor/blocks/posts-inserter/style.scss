@@ -1,33 +1,18 @@
 @use "~@wordpress/base-styles/colors" as wp-colors;
 
-:root {
-	--newspack-post-inserter-width: 574px;
-}
-
 .newspack-posts-inserter {
-	border: 1px solid wp-colors.$gray-900;
-	border-radius: 2px;
-	padding: 0;
-
 	&__header {
-		align-items: center;
 		background: white;
-		border-bottom: 1px solid wp-colors.$gray-900;
-		display: flex;
-		padding: 1em;
+		border: 1px solid wp-colors.$gray-900;
+		border-radius: 2px 2px 0 0;
+		padding: 18px 24px;
 		position: relative;
 		z-index: 1;
 
 		span {
-			font-size: 18pt;
-			margin-left: 1ch;
+			font-size: 13px;
+			font-weight: 600;
 		}
-	}
-
-	&__footer {
-		background: white;
-		border-top: 1px solid wp-colors.$gray-900;
-		padding: 1em;
 	}
 
 	&--loading {
@@ -39,10 +24,14 @@
 	}
 
 	&__preview {
+		border: 0 solid wp-colors.$gray-900;
+		border-radius: 0 0 2px 2px;
+		border-width: 0 1px 1px;
 		min-height: 6rem;
 
 		&:empty {
-			border: 0;
+			border-width: 0;
+			margin-bottom: -1px;
 			min-height: 0;
 		}
 
@@ -64,9 +53,7 @@
 		&.image-right {
 			.block-editor-block-preview__content {
 				@media only screen and ( min-width: 624px ) {
-					margin-left: calc(var(--newspack-post-inserter-width) / -2);
-					padding: 14px;
-					transform: scale(1) !important;
+					transform: scale(1) translateX(-50%) !important;
 					transform-origin: 0 50% 0;
 				}
 			}
