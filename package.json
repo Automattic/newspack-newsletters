@@ -43,7 +43,7 @@
 	"dependencies": {
 		"classnames": "^2.5.1",
 		"mjml-browser": "^4.17.1",
-		"newspack-components": "^4.2.0",
+		"newspack-components": "^4.3.0",
 		"qs": "^6.15.0"
 	},
 	"devDependencies": {
