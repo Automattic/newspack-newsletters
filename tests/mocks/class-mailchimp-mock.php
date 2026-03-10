@@ -36,6 +36,58 @@ class Newspack_Newsletters_Mailchimp_Api {
 	}
 
 	/**
+	 * Whether the last request was successful.
+	 *
+	 * @var bool
+	 */
+	private static $mock_success = true;
+
+	/**
+	 * The last error message.
+	 *
+	 * @var string
+	 */
+	private static $mock_last_error = '';
+
+	/**
+	 * Constructor (no-op for mock).
+	 *
+	 * @param string $api_key      API key.
+	 * @param string $api_endpoint Optional endpoint.
+	 */
+	public function __construct( $api_key = '', $api_endpoint = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed, Squiz.Commenting.FunctionComment.Missing
+	}
+
+	/**
+	 * Set mock success state.
+	 *
+	 * @param bool   $success    Whether the request was successful.
+	 * @param string $last_error The error message when not successful.
+	 */
+	public static function set_mock_success( $success, $last_error = '' ) {
+		self::$mock_success    = $success;
+		self::$mock_last_error = $last_error;
+	}
+
+	/**
+	 * Was the last request successful?
+	 *
+	 * @return bool
+	 */
+	public function success() {
+		return self::$mock_success;
+	}
+
+	/**
+	 * Get the last error.
+	 *
+	 * @return string|false
+	 */
+	public function getLastError() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return self::$mock_last_error ? self::$mock_last_error : false;
+	}
+
+	/**
 	 * Can use the mock API?
 	 */
 	public static function is_api_configured() {
