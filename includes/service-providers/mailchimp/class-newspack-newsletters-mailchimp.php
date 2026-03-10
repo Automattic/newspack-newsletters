@@ -98,6 +98,27 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Test the Mailchimp API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public function test_connection() {
+		if ( ! $this->has_api_credentials() ) {
+			return new \WP_Error( 'newspack_newsletters_missing_credentials', __( 'Missing Mailchimp API credentials.', 'newspack-newsletters' ) );
+		}
+		try {
+			$mc = new Mailchimp( $this->api_key() );
+			$mc->get( 'ping' );
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'newspack_newsletters_connection_error', $e->getMessage() );
+		}
+		if ( ! $mc->success() ) {
+			return new \WP_Error( 'newspack_newsletters_connection_error', $mc->getLastError() );
+		}
+		return true;
+	}
+
+	/**
 	 * Check if provider has all necessary credentials set.
 	 *
 	 * @return Boolean Result.

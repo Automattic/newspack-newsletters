@@ -921,6 +921,15 @@ Error message(s) received:
 	}
 
 	/**
+	 * Test the provider's API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public function test_connection() {
+		return true;
+	}
+
+	/**
 	 * Get transient name for async error messages.
 	 *
 	 * @param int $post_id The post ID.

@@ -88,6 +88,19 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Test the ActiveCampaign API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public function test_connection() {
+		$result = $this->api_v3_request( 'users/me' );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		return true;
+	}
+
+	/**
 	 * Perform v3 API request.
 	 *
 	 * @param string $resource Resource path.
