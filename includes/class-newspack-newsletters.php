@@ -654,8 +654,8 @@ final class Newspack_Newsletters {
 				'supports'        => $block_definition['supports'],
 			]
 		);
-		register_block_type(
-			'newspack-newsletters/share',
+		register_block_type_from_metadata(
+			__DIR__ . '/../src/editor/blocks/share/block.json',
 			[
 				'render_callback' => [ __CLASS__, 'render_share_block' ],
 			]
