@@ -17,6 +17,10 @@
 		"shareMessage": {
 			"type": "string",
 			"default": "I'd like to share this newsletter with you: [LINK]"
+		},
+		"href": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"supports": {

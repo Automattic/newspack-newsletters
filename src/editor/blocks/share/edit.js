@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { find } from 'lodash';
+import { stringify } from 'qs';
 
 /**
  * WordPress dependencies
@@ -9,8 +10,7 @@ import { find } from 'lodash';
 import { __ } from '@wordpress/i18n';
 import { RichText, useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, TextareaControl } from '@wordpress/components';
-import { withSelect, withDispatch } from '@wordpress/data';
-import { compose } from '@wordpress/compose';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
 /**
@@ -19,13 +19,52 @@ import { useEffect } from '@wordpress/element';
 import { SHARE_BLOCK_NOTICE_ID } from './consts';
 import './style.scss';
 
-const ShareBlock = ( { createTheNotice, removeNotice, is_public, attributes, setAttributes } ) => {
-	const { content } = attributes;
+export default function ShareBlockEdit( { attributes, setAttributes } ) {
+	const { content, shareMessage } = attributes;
+	const blockProps = useBlockProps( { className: 'newspack-newsletters-share-block' } );
+
+	const { is_public, permalink, postTitle, hasNotice } = useSelect( select => {
+		const { getEditedPostAttribute, getPermalink } = select( 'core/editor' );
+		const meta = getEditedPostAttribute( 'meta' ) || {};
+		return {
+			is_public: meta.is_public,
+			permalink: getPermalink() || '',
+			postTitle: getEditedPostAttribute( 'title' ) || '',
+			hasNotice: Boolean( find( select( 'core/notices' ).getNotices(), [ 'id', SHARE_BLOCK_NOTICE_ID ] ) ),
+		};
+	}, [] );
+
+	const { createWarningNotice, removeNotice } = useDispatch( 'core/notices' );
+	const { editPost } = useDispatch( 'core/editor' );
+
 	useEffect( () => {
-		// eslint-disable-next-line no-unused-expressions
-		is_public ? removeNotice() : createTheNotice();
-		return removeNotice;
+		if ( is_public ) {
+			removeNotice( SHARE_BLOCK_NOTICE_ID );
+		} else if ( ! hasNotice ) {
+			createWarningNotice(
+				__( 'This post is not public - the share block will not be displayed, since there is no post to link to.', 'newspack-newsletters' ),
+				{
+					id: SHARE_BLOCK_NOTICE_ID,
+					isDismissible: false,
+					actions: [
+						{
+							label: __( 'Make public', 'newspack-newsletters' ),
+							onClick: () => editPost( { meta: { is_public: true } } ),
+						},
+					],
+				}
+			);
+		}
+		return () => removeNotice( SHARE_BLOCK_NOTICE_ID );
 	}, [ is_public ] );
+
+	useEffect( () => {
+		const href = `mailto:?${ stringify( {
+			body: shareMessage.replace( '[LINK]', permalink ),
+			subject: 'Fwd: ' + postTitle,
+		} ) }`;
+		setAttributes( { href } );
+	}, [ shareMessage, permalink, postTitle ] );
 
 	return (
 		<>
@@ -37,7 +76,7 @@ const ShareBlock = ( { createTheNotice, removeNotice, is_public, attributes, set
 							'Content of the email that will be pre-filled when a reader clicks this link in their email client. Use the "[LINK]" placeholder where the link to the public post should be placed.',
 							'newspack-newsletters'
 						) }
-						value={ attributes.shareMessage }
+						value={ shareMessage }
 						onChange={ value => setAttributes( { shareMessage: value } ) }
 					/>
 				</PanelBody>
@@ -45,7 +84,7 @@ const ShareBlock = ( { createTheNotice, removeNotice, is_public, attributes, set
 			<RichText
 				identifier="content"
 				tagName="a"
-				{ ...useBlockProps( { className: 'newspack-newsletters-share-block' } ) }
+				{ ...blockProps }
 				value={ content }
 				allowedFormats={ [ 'core/bold', 'core/italic', 'core/text-color' ] }
 				onChange={ newContent => setAttributes( { content: newContent } ) }
@@ -54,44 +93,4 @@ const ShareBlock = ( { createTheNotice, removeNotice, is_public, attributes, set
 			/>
 		</>
 	);
-};
-
-const ShareBlockWithData = compose(
-	withSelect( select => {
-		const { getEditedPostAttribute } = select( 'core/editor' );
-		const { getNotices } = select( 'core/notices' );
-		const { is_public } = getEditedPostAttribute( 'meta' );
-		return {
-			is_public,
-			getNotices,
-		};
-	} ),
-	withDispatch( ( dispatch, { getNotices } ) => {
-		const { createWarningNotice, removeNotice } = dispatch( 'core/notices' );
-		const hasNotice = Boolean( find( getNotices(), [ 'id', SHARE_BLOCK_NOTICE_ID ] ) );
-		const { editPost } = dispatch( 'core/editor' );
-
-		const createTheNotice = hasNotice
-			? () => {}
-			: () =>
-					createWarningNotice(
-						__(
-							'This post is not public - the share block will not be displayed, since there is no post to link to.',
-							'newspack-newsletters'
-						),
-						{
-							id: SHARE_BLOCK_NOTICE_ID,
-							isDismissible: false,
-							actions: [
-								{
-									label: __( 'Make public', 'newspack-newsletters' ),
-									onClick: () => editPost( { meta: { is_public: true } } ),
-								},
-							],
-						}
-					);
-		return { createTheNotice, removeNotice: () => removeNotice( SHARE_BLOCK_NOTICE_ID ) };
-	} )
-)( ShareBlock );
-
-export default ShareBlockWithData;
+}
