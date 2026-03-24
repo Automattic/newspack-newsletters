@@ -23,6 +23,8 @@ import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import MJML from './mjml';
 
+const isEditingNewsletterCpt = newspack_email_editor_data.newsletter_post_type === newspack_email_editor_data.current_post_type;
+
 addBlocksValidationFilter();
 registerAdBlock();
 registerPostsInserterBlock();
@@ -64,8 +66,10 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 		settings.supports = { ...settings.supports, align: [ 'full' ] };
 	}
 
-	/* Remove 'Hide' option for all blocks */
-	settings.supports = { ...settings.supports, visibility: false };
+	/* Remove 'Hide' option only for the newsletter CPT. */
+	if ( isEditingNewsletterCpt ) {
+		settings.supports = { ...settings.supports, visibility: false };
+	}
 
 	return settings;
 } );
