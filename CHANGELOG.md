@@ -1,3 +1,10 @@
+## [3.29.1](https://github.com/Automattic/newspack-newsletters/compare/v3.29.0...v3.29.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* use URL params to determine email editing context ([#2051](https://github.com/Automattic/newspack-newsletters/issues/2051)) ([255dd0c](https://github.com/Automattic/newspack-newsletters/commit/255dd0c211c6d21060b089adee311f74b893c9dd))
+
 # [3.29.0](https://github.com/Automattic/newspack-newsletters/compare/v3.28.6...v3.29.0) (2026-03-16)
 
 

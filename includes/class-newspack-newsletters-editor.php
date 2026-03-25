@@ -103,6 +103,24 @@ final class Newspack_Newsletters_Editor {
 	}
 
 	/**
+	 * Is the current request an email editor admin page?
+	 *
+	 * Uses URL params rather than get_the_ID() to avoid false positives when
+	 * setup_postdata() has been called with a newsletter post during block
+	 * rendering on non-newsletter pages (e.g. a Homepage Articles block
+	 * configured to display newsletter posts).
+	 *
+	 * @return bool
+	 */
+	public static function is_email_editor_request() {
+		global $pagenow;
+		$email_editor_cpts = self::get_email_editor_cpts();
+		$is_editing_email  = 'post.php' === $pagenow && isset( $_GET['post'] ) && self::is_editing_email( absint( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_creating_email = 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && in_array( $_GET['post_type'], $email_editor_cpts ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return $is_editing_email || $is_creating_email;
+	}
+
+	/**
 	 * Get CSS rules for color palette.
 	 *
 	 * @param string $container_selector Optional selector to prefix as a container to every rule.
@@ -155,7 +173,7 @@ final class Newspack_Newsletters_Editor {
 	 * This is to prevent theme styles being loaded in the editor.
 	 */
 	public static function strip_editor_modifications() {
-		if ( ! self::is_editing_email() ) {
+		if ( ! self::is_email_editor_request() ) {
 			return;
 		}
 
@@ -225,11 +243,7 @@ final class Newspack_Newsletters_Editor {
 	 * Define Editor Font Sizes.
 	 */
 	public static function newspack_font_sizes() {
-		global $pagenow;
-		$email_editor_cpts = self::get_email_editor_cpts();
-		$is_editing_email  = 'post.php' === $pagenow && isset( $_GET['post'] ) && self::is_editing_email( absint( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$is_creating_email = 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && in_array( $_GET['post_type'], $email_editor_cpts ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! $is_editing_email && ! $is_creating_email ) {
+		if ( ! self::is_email_editor_request() ) {
 			return;
 		}
 		add_theme_support(
