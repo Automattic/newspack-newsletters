@@ -24,6 +24,13 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 	private static $newsletter_post_id;
 
 	/**
+	 * A newsletter ad post ID created for testing.
+	 *
+	 * @var int
+	 */
+	private static $newsletter_ad_post_id;
+
+	/**
 	 * A regular post ID created for testing.
 	 *
 	 * @var int
@@ -57,6 +64,13 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 			]
 		);
 
+		self::$newsletter_ad_post_id = self::factory()->post->create(
+			[
+				'post_type'   => \Newspack_Newsletters\Ads::CPT,
+				'post_status' => 'draft',
+			]
+		);
+
 		self::$regular_post_id = self::factory()->post->create(
 			[
 				'post_type'   => 'post',
@@ -69,6 +83,7 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 	 * Save and reset global state before each test.
 	 */
 	public function set_up() {
+		parent::set_up();
 		global $pagenow;
 		$this->original_pagenow = $pagenow;
 		$this->original_get     = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -82,6 +97,7 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 		global $pagenow;
 		$pagenow = $this->original_pagenow;
 		$_GET    = $this->original_get; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		parent::tear_down();
 	}
 
 	/**
@@ -178,6 +194,17 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 		$_GET['post_type'] = 'post'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$this->assertFalse( Newspack_Newsletters_Editor::is_email_editor_request() );
+	}
+
+	/**
+	 * Returns true when editing an existing newsletter ad (post.php + ad post ID).
+	 */
+	public function test_returns_true_when_editing_newsletter_ad() {
+		global $pagenow;
+		$pagenow      = 'post.php';
+		$_GET['post'] = self::$newsletter_ad_post_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$this->assertTrue( Newspack_Newsletters_Editor::is_email_editor_request() );
 	}
 
 	/**
