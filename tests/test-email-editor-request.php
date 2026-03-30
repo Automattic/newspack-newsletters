@@ -84,8 +84,7 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		global $pagenow;
-		$this->original_pagenow = $pagenow;
+		$this->original_pagenow = $GLOBALS['pagenow'] ?? null;
 		$this->original_get     = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$_GET                   = []; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
@@ -94,9 +93,12 @@ class Test_Email_Editor_Request extends WP_UnitTestCase {
 	 * Restore global state after each test.
 	 */
 	public function tear_down() {
-		global $pagenow;
-		$pagenow = $this->original_pagenow;
-		$_GET    = $this->original_get; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( null === $this->original_pagenow ) {
+			unset( $GLOBALS['pagenow'] );
+		} else {
+			$GLOBALS['pagenow'] = $this->original_pagenow;
+		}
+		$_GET = $this->original_get; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		parent::tear_down();
 	}
 
