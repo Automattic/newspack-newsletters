@@ -606,6 +606,12 @@ final class Newspack_Newsletters_Editor {
 			'featured_media_info',
 			[
 				'get_callback' => [ __CLASS__, 'newspack_get_featured_media_info' ],
+				'schema'       => [
+					'context' => [
+						'edit',
+					],
+					'type'    => 'array',
+				],
 			]
 		);
 	}
