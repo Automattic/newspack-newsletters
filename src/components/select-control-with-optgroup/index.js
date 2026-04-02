@@ -16,7 +16,6 @@ import { BaseControl, SelectControl } from '@wordpress/components';
 export default function SelectControlWithOptGroup( {
 	help,
 	label,
-	multiple = false,
 	onChange,
 	optgroups = [],
 	className,
@@ -44,7 +43,6 @@ export default function SelectControlWithOptGroup( {
 				className="components-select-control__input"
 				onChange={ onChange }
 				aria-describedby={ !! help ? `${ id }__help` : undefined }
-				multiple={ multiple }
 				{ ...props }
 			>
 				{ ( deselectedOptionLabel || deselectedOptionValue ) && (

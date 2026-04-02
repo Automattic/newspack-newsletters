@@ -242,7 +242,7 @@ const PostsInserterBlock = ( {
 				<PanelBody title={ __( 'Typography', 'newspack-newsletters' ) }>
 					<BaseControl
 						className="newspack-posts-inserter__font-size-picker"
-						label={ __( 'Heading size', 'newspack-plugin' ) }
+						label={ __( 'Heading size', 'newspack-newsletters' ) }
 						id="heading-size"
 					>
 						<FontSizePicker
@@ -255,7 +255,7 @@ const PostsInserterBlock = ( {
 					{ attributes.displayPostSubtitle && (
 						<BaseControl
 							className="newspack-posts-inserter__font-size-picker"
-							label={ __( 'Subtitle size', 'newspack-plugin' ) }
+							label={ __( 'Subtitle size', 'newspack-newsletters' ) }
 							id="subtitle-size"
 						>
 							<FontSizePicker
@@ -266,7 +266,11 @@ const PostsInserterBlock = ( {
 							/>
 						</BaseControl>
 					) }
-					<BaseControl className="newspack-posts-inserter__font-size-picker" label={ __( 'Text size', 'newspack-plugin' ) } id="text-size">
+					<BaseControl
+						className="newspack-posts-inserter__font-size-picker"
+						label={ __( 'Text size', 'newspack-newsletters' ) }
+						id="text-size"
+					>
 						<FontSizePicker
 							fontSizes={ blockEditorSettings.fontSizes }
 							value={ attributes.textFontSize }
