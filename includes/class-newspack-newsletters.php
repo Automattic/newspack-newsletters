@@ -77,6 +77,7 @@ final class Newspack_Newsletters {
 		add_action( 'wp_head', [ __CLASS__, 'public_newsletter_custom_style' ], 10, 2 );
 		add_filter( 'display_post_states', [ __CLASS__, 'display_post_states' ], 10, 2 );
 		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'add_public_page_column' ] );
+		add_filter( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_columns', [ __CLASS__, 'remove_stats_column' ], 99 );
 		add_action( 'manage_' . self::NEWSPACK_NEWSLETTERS_CPT . '_posts_custom_column', [ __CLASS__, 'public_page_column_content' ], 10, 2 );
 		add_filter( 'post_row_actions', [ __CLASS__, 'display_view_or_preview_link_in_admin' ] );
 		add_filter( 'jetpack_relatedposts_filter_options', [ __CLASS__, 'disable_jetpack_related_posts' ] );
@@ -229,6 +230,19 @@ final class Newspack_Newsletters {
 	 */
 	public static function get_service_provider() {
 		return self::$provider;
+	}
+
+	/**
+	 * Test the active provider's API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public static function test_connection() {
+		$provider = self::get_service_provider();
+		if ( ! $provider ) {
+			return new \WP_Error( 'newspack_newsletters_no_provider', __( 'No newsletter service provider configured.', 'newspack-newsletters' ) );
+		}
+		return $provider->test_connection();
 	}
 
 	/**
@@ -579,7 +593,16 @@ final class Newspack_Newsletters {
 			'item_link_description'    => __( 'A link to a newsletter.', 'newspack-newsletters' ),
 		];
 
-		$supports = [ 'author', 'editor', 'title', 'custom-fields', 'newspack_blocks', 'revisions', 'thumbnail', 'excerpt' ];
+		$supports = [
+			'author',
+			'editor' => [ 'notes' => true ],
+			'title',
+			'custom-fields',
+			'newspack_blocks',
+			'revisions',
+			'thumbnail',
+			'excerpt',
+		];
 
 		if ( get_option( 'newspack_newsletters_support_comments' ) ) {
 			$supports[] = 'comments';
@@ -644,8 +667,8 @@ final class Newspack_Newsletters {
 				'supports'        => $block_definition['supports'],
 			]
 		);
-		register_block_type(
-			'newspack-newsletters/share',
+		register_block_type_from_metadata(
+			__DIR__ . '/../src/editor/blocks/share/block.json',
 			[
 				'render_callback' => [ __CLASS__, 'render_share_block' ],
 			]
@@ -728,6 +751,18 @@ final class Newspack_Newsletters {
 	 */
 	public static function add_public_page_column( $columns ) {
 		return array_merge( $columns, [ 'public_page' => __( 'Public page', 'newspack-newsletters' ) ] );
+	}
+
+	/**
+	 * Remove the Jetpack Stats column from the Newsletters admin list table.
+	 *
+	 * @param array $columns Newsletters columns.
+	 *
+	 * @return array
+	 */
+	public static function remove_stats_column( $columns ) {
+		unset( $columns['stats'] );
+		return $columns;
 	}
 
 	/**
@@ -1210,6 +1245,18 @@ final class Newspack_Newsletters {
 	 * @return boolean Is debug mode on?
 	 */
 	public static function debug_mode() {
+		/**
+		 * Enables debug mode for Newspack Newsletters, providing additional
+		 * logging and diagnostic information for troubleshooting email
+		 * campaign issues.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_DEBUG_MODE
+		 * @type     bool
+		 * @default  Debug mode disabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE', true );
+		 */
 		return defined( 'NEWSPACK_NEWSLETTERS_DEBUG_MODE' ) ? NEWSPACK_NEWSLETTERS_DEBUG_MODE : false;
 	}
 

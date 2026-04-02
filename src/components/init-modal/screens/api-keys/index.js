@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { Button, ExternalLink, SelectControl, Spinner, TextControl } from '@wordpress/components';
+import { Button, ExternalLink, SelectControl, Spinner, TextControl, __experimentalHStack as HStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { ENTER } from '@wordpress/keycodes';
@@ -89,6 +89,7 @@ export default ( { onSetupStatus } ) => {
 			<div className={ classes }>
 				<div className="newspack-newsletters-modal__settings-wrapper">
 					{ inFlight && <Spinner /> }
+					<h1>{ __( 'Configure plugin', 'newspack-newsletters' ) }</h1>
 					<h4>{ __( 'Select your email service provider', 'newspack-newsletters' ) }</h4>
 					<SelectControl
 						label={ __( 'Service Provider', 'newspack-newsletters' ) }
@@ -116,6 +117,7 @@ export default ( { onSetupStatus } ) => {
 							},
 							{ value: 'manual', label: __( 'Manual / Other', 'newspack-newsletters' ) },
 						] }
+						__next40pxDefaultSize
 					/>
 					{ 'mailchimp' === serviceProvider && (
 						<Fragment>
@@ -127,6 +129,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
@@ -147,6 +150,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							<TextControl
 								label={ __( 'Constant Contact API Secret', 'newspack-newsletters' ) }
@@ -155,6 +159,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
@@ -179,6 +184,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							<TextControl
 								label={ __( 'Campaign Monitor Client ID', 'newspack-newsletters' ) }
@@ -187,6 +193,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
@@ -207,6 +214,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							<TextControl
 								label={ __( 'ActiveCampaign API Key', 'newspack-newsletters' ) }
@@ -215,6 +223,7 @@ export default ( { onSetupStatus } ) => {
 								disabled={ inFlight }
 								onKeyDown={ handleKeyDown }
 								className={ errors.newspack_newsletters_invalid_keys && 'has-error' }
+								__next40pxDefaultSize
 							/>
 							{ errors.newspack_newsletters_invalid_keys && <p className="error">{ errors.newspack_newsletters_invalid_keys }</p> }
 
@@ -227,11 +236,11 @@ export default ( { onSetupStatus } ) => {
 					) }
 				</div>
 			</div>
-			<div className="newspack-newsletters-modal__action-buttons">
-				<Button isPrimary onClick={ commitSettings } disabled={ inFlight || ! canSubmit }>
-					{ __( 'Save Settings', 'newspack-newsletter' ) }
+			<HStack align="center" className="newspack-newsletters-modal__action-buttons" justify="end">
+				<Button variant="primary" onClick={ commitSettings } disabled={ inFlight || ! canSubmit }>
+					{ __( 'Save settings', 'newspack-newsletter' ) }
 				</Button>
-			</div>
+			</HStack>
 		</Fragment>
 	);
 };

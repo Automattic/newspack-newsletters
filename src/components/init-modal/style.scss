@@ -2,117 +2,48 @@
 
 // Modal
 .newspack-newsletters-modal {
-	&__screen-overlay {
-		animation: none;
-		background: white;
-		top: 46px;
-
-		@media only screen and (min-width: 783px) {
-			left: 36px;
-			top: 32px;
-
-			// Fullscreen mode
-			.is-fullscreen-mode & {
-				left: 60px;
-				top: 0;
-			}
-		}
-
-		@media only screen and (min-width: 961px) {
-			// Not folded sidebar
-			body:not(.folded, .is-fullscreen-mode) & {
-				left: 160px;
-			}
-		}
-
+	&__frame {
 		.components-modal__header {
-			border-color: wp-colors.$gray-300;
-			height: 60px;
-			padding: 0 24px;
+			display: none;
 		}
 
 		.components-modal__content {
-			justify-content: start;
-			margin-top: 60px;
-			padding: 0;
+			flex: 1;
+			margin: 0;
+			padding: 0 0 65px;
 
-			@media only screen and (min-width: 783px) {
-				.is-fullscreen-mode & {
-					margin-left: -60px;
-					width: calc(100% + 60px);
+			div:has(.newspack-newsletters-modal__content) {
+				height: auto;
+
+				@media only screen and (min-width: 783px) {
+					height: 100%;
 				}
 			}
 		}
 	}
 
-	&__frame {
-		animation: none;
-		border: 0;
-		box-shadow: none;
-		height: 100%;
-		margin: 0;
-		max-height: 100%;
-		max-width: 100%;
-		min-height: 100%;
-		min-width: 100%;
-		overflow-y: hidden;
-		transform: none;
-		width: 100%;
-		inset: 0;
-
-		@media only screen and (min-width: 783px) {
-			.is-fullscreen-mode & {
-				overflow: visible;
-			}
-		}
-
-		.components-modal__header-heading {
-			display: none;
-			font-size: 0.8rem;
-			line-height: 1.25;
-
-			@media only screen and (min-width: 600px) {
-				display: block;
-			}
-
-			@media only screen and (min-width: 783px) {
-				font-size: 1rem;
-				line-height: 1;
-			}
-		}
-
-		.components-modal__header + div:not([class]) {
-			height: 100%;
-		}
-	}
-
 	&__content {
-		background: white;
 		height: 100%;
-		left: 0;
-		margin: 0;
 		width: 100%;
 
 		@media only screen and (min-width: 783px) {
 			display: grid;
-			gap: 0;
-			grid-template-columns: 280px 1fr;
-			grid-template-rows: 1fr;
+			grid-template-columns: 281px 1fr;
 		}
 
 		&__sidebar {
-			background: wp-colors.$gray-100;
-			border-bottom: 1px solid wp-colors.$gray-300;
-
 			@media only screen and (min-width: 783px) {
-				border-bottom: none;
 				border-right: 1px solid wp-colors.$gray-300;
 			}
 
 			&-wrapper {
-				padding: 24px;
+				padding: 32px 32px 0;
 				position: sticky;
 				top: 0;
+
+				@media only screen and (min-width: 783px) {
+					padding-bottom: 32px;
+				}
 			}
 
 			p {
@@ -122,28 +53,37 @@
 
 		&__layout-buttons {
 			display: grid;
-			grid-gap: 4px;
 			grid-template-columns: repeat(2, 1fr);
-			padding: 24px 0 0;
+			padding: 16px 0 0;
 
 			@media only screen and (min-width: 783px) {
 				grid-template-columns: 1fr;
+				padding-top: 32px;
+			}
+
+			.components-button {
+				height: 40px;
+				justify-content: center;
+
+				@media only screen and (min-width: 783px) {
+					justify-content: flex-start;
+				}
 			}
 		}
 	}
 
 	&__action-buttons {
-		align-items: center;
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-		position: absolute;
-		right: 24px;
-		top: 12px;
-		z-index: 11;
+		background: wp-colors.$white;
+		border-top: 1px solid wp-colors.$gray-300;
+		bottom: 0;
+		left: 0;
+		padding: 12px 32px;
+		position: fixed;
+		right: 0;
+		z-index: 2;
 
-		.components-button + .components-button {
-			margin-left: 8px;
+		.components-button {
+			height: 40px;
 		}
 	}
 
@@ -158,13 +98,20 @@
 
 		&-wrapper {
 			flex: 0 0 100%;
-			max-width: 600px;
-			padding-left: 24px;
-			padding-right: 24px;
+			max-width: calc(600px + 32px * 2);
+			padding: 0 32px;
 			position: relative;
 
-			@media only screen and (min-width: 648px) {
-				max-width: 648px;
+			h1 {
+				margin-top: 32px;
+			}
+
+			> :last-child {
+				margin-bottom: 32px;
+
+				@media only screen and (min-width: 783px) {
+					margin-bottom: calc(32px + 65px);
+				}
 			}
 		}
 
@@ -206,7 +153,7 @@
 
 	&__layouts {
 		max-height: 100%;
-		padding: 24px;
+		padding: 32px;
 
 		@media only screen and (min-width: 783px) {
 			overflow-y: scroll;
@@ -225,10 +172,6 @@
 			grid-auto-rows: minmax(min-content, max-content);
 			overflow: hidden;
 			padding: 0;
-
-			@media only screen and (min-width: 600px) {
-				grid-template-columns: 1fr;
-			}
 
 			@media only screen and (min-width: 783px) {
 				grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -268,7 +211,7 @@
 			}
 
 			&__item-preview {
-				background: white;
+				background: wp-colors.$white;
 				border: 1px solid wp-colors.$gray-300;
 				border-radius: 2px;
 				overflow: hidden;
@@ -277,7 +220,7 @@
 				width: 100%;
 
 				&::before {
-					border: 2px solid white;
+					border: 2px solid wp-colors.$white;
 					content: "";
 					display: block;
 					position: absolute;
@@ -337,7 +280,7 @@
 		// stylelint-disable-next-line
 		grid-row-end: 3;
 		align-items: center;
-		background: white;
+		background: wp-colors.$white;
 		border: 1px solid wp-colors.$gray-300;
 		border-top: none;
 		display: none;

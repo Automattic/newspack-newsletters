@@ -10,7 +10,7 @@ import { find } from 'lodash';
 import { parse } from '@wordpress/blocks';
 import { useState, useEffect } from '@wordpress/element';
 import { useDispatch } from '@wordpress/data';
-import { Button, Spinner } from '@wordpress/components';
+import { Button, Spinner, __experimentalHStack as HStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -38,10 +38,16 @@ export default function LayoutPicker() {
 	const { layouts, isFetchingLayouts, deleteLayoutPost } = useLayoutsState();
 
 	const insertLayout = layoutId => {
-		const { post_content, meta = {} } = find( layouts, { ID: layoutId } ) || {};
+		let { post_content = '', meta = {} } = find( layouts, { ID: layoutId } ) || {};
 		if ( meta.campaign_defaults && 'string' === typeof meta.campaign_defaults ) {
 			meta.stringifiedCampaignDefaults = meta.campaign_defaults;
 		}
+
+		// Append default Mailchimp footer if available. Only if "*|UNSUB|*" tag is not already present.
+		if ( post_content && ! post_content.includes( '*|UNSUB|*' ) ) {
+			post_content += window.newspack_newsletters_editor_data?.mailchimp_default_footer || '';
+		}
+
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
 	};
@@ -115,14 +121,14 @@ export default function LayoutPicker() {
 					) }
 				</div>
 			</div>
-			<div className="newspack-newsletters-modal__action-buttons">
+			<HStack align="center" className="newspack-newsletters-modal__action-buttons" justify="end">
 				<Button variant="secondary" onClick={ () => insertLayout( BLANK_LAYOUT_ID ) }>
 					{ __( 'Blank newsletter', 'newspack-newsletters' ) }
 				</Button>
 				<Button variant="primary" disabled={ isFetchingLayouts || ! selectedLayoutId } onClick={ () => insertLayout( selectedLayoutId ) }>
 					{ __( 'Use selected layout', 'newspack-newsletters' ) }
 				</Button>
-			</div>
+			</HStack>
 		</>
 	);
 }

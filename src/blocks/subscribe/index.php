@@ -528,6 +528,18 @@ function process_form() {
 	}
 
 	if ( \is_wp_error( $result ) ) {
+		// Get a reader-friendly error message to show to the user.
+		$provider = \Newspack_Newsletters::get_service_provider();
+		if ( $provider ) {
+			$reader_error = $provider->get_reader_error_message(
+				[
+					'email' => $email,
+					'lists' => $lists,
+				],
+				$result
+			);
+			$result = new \WP_Error( $result->get_error_code(), $reader_error );
+		}
 		return send_form_response( $result );
 	}
 

@@ -88,6 +88,19 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Test the ActiveCampaign API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public function test_connection() {
+		$result = $this->api_v3_request( 'users/me' );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		return true;
+	}
+
+	/**
 	 * Perform v3 API request.
 	 *
 	 * @param string $resource Resource path.
@@ -780,6 +793,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @return int
 	 */
 	private function get_address_id() {
+		/**
+		 * Specifies the ActiveCampaign address ID to use for campaigns.
+		 * If not set, ActiveCampaign's default address will be used.
+		 * Find your address ID in ActiveCampaign under Settings > Addresses.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID
+		 * @type     int
+		 * @default  0 (uses ActiveCampaign default address)
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID', 1 );
+		 */
 		if ( ! defined( 'NEWSPACK_NEWSLETTERS_ACTIVE_CAMPAIGN_ADDRESS_ID' ) ) {
 			return 0;
 		}
@@ -1172,6 +1197,18 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
 			'addressid'                             => $this->get_address_id(),
 		];
+		/**
+		 * Disables link click tracking in ActiveCampaign campaigns.
+		 * When enabled, ActiveCampaign will not track which links
+		 * subscribers click in your emails.
+		 *
+		 * @constant NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING
+		 * @type     bool
+		 * @default  Link tracking enabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING', true );
+		 */
 		if ( defined( 'NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING' ) && NEWSPACK_NEWSLETTERS_AC_DISABLE_LINK_TRACKING ) {
 			$campaign_data['tracklinks'] = 'none';
 		}
@@ -1574,7 +1611,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @param number $offset Offset for pagination.
 	 */
-	private function get_contact_fields( $offset ) {
+	private function fetch_contact_fields( $offset ) {
 		return $this->api_v3_request(
 			'fields',
 			'GET',
@@ -1593,7 +1630,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * @param number $offset Offset for pagination.
 	 */
 	private function get_all_contact_fields( $offset = 0 ) {
-		$response = $this->get_contact_fields( $offset );
+		$response = $this->fetch_contact_fields( $offset );
 		if ( \is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -1740,5 +1777,35 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	public function get_usage_report() {
 		$ac_usage_reports = new Newspack_Newsletters_Active_Campaign_Usage_Reports();
 		return $ac_usage_reports->get_usage_report();
+	}
+
+	/**
+	 * Get contact fields for a list.
+	 *
+	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
+	 *
+	 * This is used by Newspack integrations to sync contact data.
+	 *
+	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
+	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
+	 */
+	public function get_contact_fields( $list_id = null ) {
+		$cache_key = 'active_campaign_contact_fields';
+		$cached_fields = wp_cache_get( $cache_key );
+		if ( false !== $cached_fields ) {
+			return $cached_fields;
+		}
+		$all_fields = $this->get_all_contact_fields();
+		if ( is_wp_error( $all_fields ) ) {
+			return $all_fields;
+		}
+		$fields = [];
+		foreach ( $all_fields as $field ) {
+			$fields[] = [
+				'key' => $field['title'],
+			];
+		}
+		wp_cache_set( $cache_key, $fields, '', 5 * MINUTE_IN_SECONDS );
+		return $fields;
 	}
 }

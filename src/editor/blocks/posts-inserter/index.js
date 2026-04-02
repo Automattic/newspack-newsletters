@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { isUndefined, find, pickBy } from 'lodash';
-import colors from 'newspack-colors';
+import classnames from 'classnames';
 
 /**
  * WordPress dependencies
@@ -24,9 +24,10 @@ import {
 	ToolbarDropdownMenu,
 } from '@wordpress/components';
 import {
+	BlockControls,
 	InnerBlocks,
 	InspectorControls,
-	BlockControls,
+	useBlockProps,
 	__experimentalPanelColorGradientSettings as PanelColorGradientSettings, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
@@ -54,6 +55,11 @@ const PostsInserterBlock = ( {
 	blockEditorSettings,
 } ) => {
 	const [ isReady, setIsReady ] = useState( ! attributes.displayFeaturedImage );
+	const blockProps = useBlockProps( {
+		className: classnames( 'newspack-posts-inserter', {
+			'newspack-posts-inserter--loading': ! isReady,
+		} ),
+	} );
 	const stringifiedPostList = JSON.stringify( postList );
 
 	// Stringify added to minimize flicker.
@@ -313,7 +319,7 @@ const PostsInserterBlock = ( {
 				) }
 			</BlockControls>
 
-			<div className={ `newspack-posts-inserter ${ ! isReady ? 'newspack-posts-inserter--loading' : '' }` }>
+			<div { ...blockProps }>
 				<div className="newspack-posts-inserter__header">
 					<Icon icon={ verse } />
 					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
@@ -418,7 +424,7 @@ export default () => {
 		description: __( 'Lets you insert posts into your newsletter.', 'newspack-newsletters' ),
 		icon: {
 			src: verse,
-			foreground: colors[ 'primary-400' ],
+			foreground: '#406ebc',
 		},
 		edit: PostsInserterBlockWithSelect,
 		save: () => <InnerBlocks.Content />,

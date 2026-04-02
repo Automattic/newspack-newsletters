@@ -48,7 +48,7 @@ final class Newspack_Newsletters_Editor {
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
+		add_action( 'enqueue_block_assets', [ __CLASS__, 'enqueue_block_assets' ] );
 		add_filter( 'block_categories_all', [ __CLASS__, 'add_custom_block_category' ] );
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
 		add_action( 'rest_post_query', [ __CLASS__, 'maybe_filter_excerpt_length' ], 10, 2 );
@@ -100,6 +100,24 @@ final class Newspack_Newsletters_Editor {
 	public static function is_editing_email( $post_id = null ) {
 		$post_id = empty( $post_id ) ? get_the_ID() : $post_id;
 		return in_array( get_post_type( $post_id ), self::get_email_editor_cpts() );
+	}
+
+	/**
+	 * Is the current request an email editor admin page?
+	 *
+	 * Uses URL params rather than get_the_ID() to avoid false positives when
+	 * setup_postdata() has been called with a newsletter post during block
+	 * rendering on non-newsletter pages (e.g. a Homepage Articles block
+	 * configured to display newsletter posts).
+	 *
+	 * @return bool
+	 */
+	public static function is_email_editor_request() {
+		global $pagenow;
+		$email_editor_cpts = self::get_email_editor_cpts();
+		$is_editing_email  = 'post.php' === $pagenow && isset( $_GET['post'] ) && self::is_editing_email( absint( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_creating_email = 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && in_array( $_GET['post_type'], $email_editor_cpts ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return $is_editing_email || $is_creating_email;
 	}
 
 	/**
@@ -155,12 +173,12 @@ final class Newspack_Newsletters_Editor {
 	 * This is to prevent theme styles being loaded in the editor.
 	 */
 	public static function strip_editor_modifications() {
-		if ( ! self::is_editing_email() ) {
+		if ( ! self::is_email_editor_request() ) {
 			return;
 		}
 
 		$allowed_actions = [
-			__CLASS__ . '::enqueue_block_editor_assets',
+			__CLASS__ . '::enqueue_block_assets',
 			'newspack_enqueue_scripts',
 			'wp_enqueue_editor_format_library_assets',
 		];
@@ -186,12 +204,12 @@ final class Newspack_Newsletters_Editor {
 			$allowed_actions
 		);
 
-		$enqueue_block_editor_assets_filters = $GLOBALS['wp_filter']['enqueue_block_editor_assets']->callbacks;
-		foreach ( $enqueue_block_editor_assets_filters as $index => $filter ) {
+		$enqueue_block_assets_filters = $GLOBALS['wp_filter']['enqueue_block_assets']->callbacks;
+		foreach ( $enqueue_block_assets_filters as $index => $filter ) {
 			$action_handlers = array_keys( $filter );
 			foreach ( $action_handlers as $handler ) {
 				if ( ! in_array( $handler, $allowed_actions, true ) ) {
-					remove_action( 'enqueue_block_editor_assets', $handler, $index );
+					remove_action( 'enqueue_block_assets', $handler, $index );
 				}
 			}
 		}
@@ -225,11 +243,7 @@ final class Newspack_Newsletters_Editor {
 	 * Define Editor Font Sizes.
 	 */
 	public static function newspack_font_sizes() {
-		global $pagenow;
-		$email_editor_cpts = self::get_email_editor_cpts();
-		$is_editing_email  = 'post.php' === $pagenow && isset( $_GET['post'] ) && self::is_editing_email( absint( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$is_creating_email = 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && in_array( $_GET['post_type'], $email_editor_cpts ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! $is_editing_email && ! $is_creating_email ) {
+		if ( ! self::is_email_editor_request() ) {
 			return;
 		}
 		add_theme_support(
@@ -330,7 +344,10 @@ final class Newspack_Newsletters_Editor {
 	/**
 	 * Load up common JS/CSS for newsletter editor.
 	 */
-	public static function enqueue_block_editor_assets() {
+	public static function enqueue_block_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
 		// Remove the Ads CPT - it does not need MJML handling since ads
 		// will be injected into email content before it's converted to MJML.
 		$mjml_handling_post_types = array_values( array_diff( self::get_email_editor_cpts(), [ Newspack_Newsletters\Ads::CPT ] ) );
@@ -344,6 +361,8 @@ final class Newspack_Newsletters_Editor {
 		$email_editor_data = [
 			'email_html_meta'                => Newspack_Newsletters::EMAIL_HTML_META,
 			'mjml_handling_post_types'       => $mjml_handling_post_types,
+			'newsletter_post_type'           => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			'current_post_type'              => get_post_type(),
 			'conditional_tag_support'        => $conditional_tag_support,
 			'sponsors_flag_hex'              => get_theme_mod( 'sponsored_flag_hex', '#FED850' ),
 			'sponsors_flag_text_color'       => function_exists( 'newspack_get_color_contrast' ) ? newspack_get_color_contrast( \get_theme_mod( 'sponsored_flag_hex', '#FED850' ) ) : 'black',
@@ -415,6 +434,15 @@ final class Newspack_Newsletters_Editor {
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.js' ),
 				true
 			);
+			if ( class_exists( 'Newspack_Newsletters_Mailchimp_Default_Footer' ) ) {
+				\wp_localize_script(
+					'newspack-newsletters-newsletter-editor',
+					'newspack_newsletters_editor_data',
+					[
+						'mailchimp_default_footer' => wp_kses_post( Newspack_Newsletters_Mailchimp_Default_Footer::get_footer_content() ),
+					]
+				);
+			}
 			\wp_enqueue_script(
 				'newspack-newsletters-ads-editor',
 				plugins_url( '../dist/newsletterAdsEditor.js', __FILE__ ),

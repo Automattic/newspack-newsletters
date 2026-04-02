@@ -98,6 +98,27 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Test the Mailchimp API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public function test_connection() {
+		if ( ! $this->has_api_credentials() ) {
+			return new \WP_Error( 'newspack_newsletters_missing_credentials', __( 'Missing Mailchimp API credentials.', 'newspack-newsletters' ) );
+		}
+		try {
+			$mc = new Mailchimp( $this->api_key() );
+			$mc->get( 'ping' );
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'newspack_newsletters_connection_error', $e->getMessage() );
+		}
+		if ( ! $mc->success() ) {
+			return new \WP_Error( 'newspack_newsletters_connection_error', $mc->getLastError() );
+		}
+		return true;
+	}
+
+	/**
 	 * Check if provider has all necessary credentials set.
 	 *
 	 * @return Boolean Result.
@@ -2241,5 +2262,47 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public function get_usage_report() {
 		return Newspack_Newsletters_Mailchimp_Usage_Reports::get_usage_report();
+	}
+
+	/**
+	 * Get contact fields for a list.
+	 *
+	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
+	 *
+	 * This is used by Newspack integrations to sync contact data.
+	 *
+	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
+	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
+	 */
+	public function get_contact_fields( $list_id = null ) {
+		// Validate list_id up front.
+		if ( empty( $list_id ) ) {
+			return new WP_Error(
+				'newspack_mailchimp_get_contact_fields_failed',
+				__( 'List ID is required.', 'newspack-newsletters' )
+			);
+		}
+
+		try {
+			$all_fields = Newspack_Newsletters_Mailchimp_Cached_Data::get_merge_fields( $list_id );
+		} catch ( Exception $e ) {
+			return new WP_Error(
+				'newspack_mailchimp_get_contact_fields_failed',
+				$e->getMessage()
+			);
+		}
+
+		// Normalize to array to prevent PHP warnings when iterating.
+		if ( ! is_array( $all_fields ) ) {
+			$all_fields = [];
+		}
+
+		$fields = [];
+		foreach ( $all_fields as $field ) {
+			$fields[] = [
+				'key' => $field['name'],
+			];
+		}
+		return $fields;
 	}
 }

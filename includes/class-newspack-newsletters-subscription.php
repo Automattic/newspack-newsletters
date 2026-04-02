@@ -1015,7 +1015,7 @@ class Newspack_Newsletters_Subscription {
 							<?php endforeach; ?>
 						</ul>
 					</div>
-					<button type="submit"><?php _e( 'Update subscriptions', 'newspack-newsletters' ); ?></button>
+					<button class="newspack-ui__button newspack-ui__button--primary" type="submit"><?php _e( 'Update subscriptions', 'newspack-newsletters' ); ?></button>
 				</form>
 			<?php endif; ?>
 		</div>
@@ -1049,7 +1049,18 @@ class Newspack_Newsletters_Subscription {
 				$result        = Newspack_Newsletters_Contacts::update_lists( $email, $lists, 'User updated their subscriptions on My Account page' );
 			}
 			if ( is_wp_error( $result ) ) {
-				wc_add_notice( $result->get_error_message(), 'error' );
+				// Get a reader-friendly error message to show to the user.
+				$provider = Newspack_Newsletters::get_service_provider();
+				$message  = $provider
+					? $provider->get_reader_error_message(
+						[
+							'email' => $email,
+							'lists' => $lists,
+						],
+						$result
+					)
+					: $result->get_error_message();
+				wc_add_notice( $message, 'error' );
 			} elseif ( false === $result ) {
 				wc_add_notice( __( 'You must select newsletters to update.', 'newspack-newsletters' ), 'error' );
 			} else {

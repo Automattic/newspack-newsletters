@@ -442,6 +442,18 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		if ( \is_wp_error( $result ) ) {
 			$this->add_send_error( $post_id, $result );
 
+			/**
+			 * Disables the email notification sent to site administrators when
+			 * a newsletter campaign fails to send. Useful for sites that use
+			 * alternative monitoring systems.
+			 *
+			 * @constant NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL
+			 * @type     bool
+			 * @default  Failure emails enabled
+			 * @status   draft
+			 *
+			 * @example define( 'NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL', true );
+			 */
 			$email_sending_disabled = defined( 'NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL' ) && NEWSPACK_NEWSLETTERS_DISABLE_SEND_FAILURE_EMAIL;
 
 			$is_scheduled  = get_post_meta( $post->ID, 'sending_scheduled', true );
@@ -909,6 +921,15 @@ Error message(s) received:
 	}
 
 	/**
+	 * Test the provider's API connection.
+	 *
+	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
+	 */
+	public function test_connection() {
+		return true;
+	}
+
+	/**
 	 * Get transient name for async error messages.
 	 *
 	 * @param int $post_id The post ID.
@@ -917,5 +938,19 @@ Error message(s) received:
 	 */
 	public function get_transient_name( $post_id ) {
 		return sprintf( 'newspack_newsletters_error_%s_%s', $post_id, get_current_user_id() );
+	}
+
+	/**
+	 * Get contact fields for a list.
+	 *
+	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
+	 *
+	 * This is used by Newspack integrations to sync contact data.
+	 *
+	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
+	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
+	 */
+	public function get_contact_fields( $list_id = null ) {
+		return [];
 	}
 }
