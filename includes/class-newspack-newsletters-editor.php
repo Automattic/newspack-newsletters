@@ -747,7 +747,7 @@ final class Newspack_Newsletters_Editor {
 	 * Append sponsor data to the REST /posts response.
 	 *
 	 * @param object $post Post object for the post being returned.
-	 * @return object Formatted data for all sponsors associated with the post.
+	 * @return array Formatted data for all sponsors associated with the post.
 	 */
 	public static function newspack_get_sponsors_info( $post ) {
 		return \Newspack_Sponsors\get_all_sponsors( $post['id'], null, 'post' );
