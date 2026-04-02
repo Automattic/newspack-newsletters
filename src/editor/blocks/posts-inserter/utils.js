@@ -9,10 +9,7 @@ import { omit } from 'lodash';
  * WordPress dependencies
  */
 import { _x } from '@wordpress/i18n';
-import { store as blockEditorStore } from '@wordpress/block-editor';
 import { createBlock, getBlockContent } from '@wordpress/blocks';
-// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
-import { useSelect } from '@wordpress/data';
 import { dateI18n, getSettings } from '@wordpress/date';
 
 /**
@@ -320,19 +317,3 @@ export const setPreventDeduplicationForPostsInserter = blocks =>
 		}
 		return block;
 	} );
-
-/**
- * Get the theme's palette color presets.
- *
- * @return {Array} Theme palette colors
- */
-export const useThemePalette = () => {
-	return useSelect( select => {
-		const settings = select( blockEditorStore ).getSettings();
-
-		const directColors = settings.colors || settings.palette?.colors;
-		const themeJsonColors = settings.__experimentalFeatures?.color?.palette?.theme;
-
-		return themeJsonColors || directColors || [];
-	}, [] );
-};
