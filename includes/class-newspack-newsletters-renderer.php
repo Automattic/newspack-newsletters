@@ -1704,7 +1704,7 @@ final class Newspack_Newsletters_Renderer {
 	 * @param array $block The core/block block array.
 	 * @return array|null The resolved group block, or null if unresolvable.
 	 */
-	private static function resolve_reusable_block( $block ) {
+	private static function resolve_reusable_block( array $block ): ?array {
 		if ( 'core/block' !== $block['blockName'] || ! isset( $block['attrs']['ref'] ) ) {
 			return null;
 		}
@@ -1744,7 +1744,7 @@ final class Newspack_Newsletters_Renderer {
 	 *
 	 * Must be called after rendering a block resolved by resolve_reusable_block().
 	 */
-	private static function release_reusable_block_ref() {
+	private static function release_reusable_block_ref(): void {
 		array_pop( self::$rendering_refs );
 	}
 
