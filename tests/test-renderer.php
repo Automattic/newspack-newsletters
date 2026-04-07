@@ -522,6 +522,8 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			get_post( $newsletter_post )
 		);
 		$this->assertIsString( $result, 'Circular reusable block references do not cause fatal errors' );
+		// The cycle is broken: output contains only empty wrapper shells, not unbounded content.
+		$this->assertLessThan( 200, strlen( $result ), 'Circular reusable block output is bounded' );
 	}
 
 	/**
