@@ -1456,7 +1456,7 @@ final class Newspack_Newsletters_Renderer {
 				if ( null === $resolved ) {
 					return '';
 				}
-				$block_mjml_markup = self::render_mjml_component( $resolved, $is_in_column, $is_in_group, $default_attrs );
+				$block_mjml_markup = self::render_mjml_component( $resolved, $is_in_column, $is_in_group, $default_attrs, $is_in_list_or_quote );
 				self::release_reusable_block_ref();
 				return $block_mjml_markup;
 
