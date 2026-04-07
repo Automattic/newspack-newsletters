@@ -349,7 +349,9 @@ function is_button_background_default( $attrs = [] ) {
 function get_block_button_classes( $attrs = [] ) {
 	$classes   = [];
 	$classes[] = 'submit-button';
-	$classes[] = 'wp-element-button';
+	if ( wp_is_block_theme() ) {
+		$classes[] = 'wp-element-button';
+	}
 
 	if ( ! is_button_text_default( $attrs ) ) {
 		$classes[] = 'has-text-color';
