@@ -1792,6 +1792,11 @@ final class Newspack_Newsletters_Renderer {
 			if ( null !== $resolved ) {
 				$block           = $resolved;
 				$is_resolved_ref = true;
+			} elseif ( 'core/block' === $block['blockName'] ) {
+				// Unresolvable reusable block (stale or circular ref). Skip rather
+				// than falling through to render_mjml_component, which would attempt
+				// the same resolution again.
+				continue;
 			}
 
 			if ( 'core/group' === $block['blockName'] ) {
