@@ -1837,7 +1837,8 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string MJML markup.
 	 */
 	public static function render_post_to_mjml( $post ) {
-		self::$newsletter_id = $post->ID;
+		self::$rendering_refs = [];
+		self::$newsletter_id  = $post->ID;
 		self::$color_palette = json_decode( get_option( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_PALETTE_META, false ), true );
 		self::$font_header   = get_post_meta( $post->ID, 'font_header', true );
 		self::$font_body     = get_post_meta( $post->ID, 'font_body', true );
