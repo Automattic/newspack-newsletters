@@ -347,6 +347,7 @@ function is_button_background_default( $attrs = [] ) {
  * @return string Class list separated by spaces.
  */
 function get_block_button_classes( $attrs = [] ) {
+	$classes   = [];
 	$classes[] = 'submit-button';
 	$classes[] = 'wp-element-button';
 
