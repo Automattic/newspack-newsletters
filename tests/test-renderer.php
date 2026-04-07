@@ -436,6 +436,34 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Rendering a reusable block nested inside a group block.
+	 */
+	public function test_reusable_block_in_group() {
+		$reusable_block_post_id = self::factory()->post->create(
+			[
+				'post_type'    => 'wp_block',
+				'post_title'   => 'Reusable block in group.',
+				'post_content' => "<!-- wp:paragraph -->\n<p>Nested Hello</p>\n<!-- /wp:paragraph -->",
+			]
+		);
+		$newsletter_post        = self::factory()->post->create(
+			[
+				'post_type'    => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_title'   => 'A newsletter with a reusable block inside a group.',
+				'post_content' => '<!-- wp:group --><div class="wp-block-group"><!-- wp:block {"ref":' . $reusable_block_post_id . '} /--></div><!-- /wp:group -->',
+			]
+		);
+		$result = Newspack_Newsletters_Renderer::post_to_mjml_components(
+			get_post( $newsletter_post )
+		);
+		$this->assertStringContainsString(
+			'Nested Hello',
+			$result,
+			'Reusable block content inside a group block is rendered'
+		);
+	}
+
+	/**
 	 * Rendering with custom CSS.
 	 */
 	public function test_custom_css() {

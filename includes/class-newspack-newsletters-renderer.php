@@ -466,6 +466,7 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	public static function is_empty_block( $block ) {
 		$blocks_without_inner_html = [
+			'core/block',
 			'core/site-logo',
 			'core/site-title',
 			'core/site-tagline',
@@ -1436,6 +1437,28 @@ final class Newspack_Newsletters_Renderer {
 					$block_mjml_markup .= '</mj-text>';
 				}
 
+				break;
+
+			/**
+			 * Reusable block (synced pattern).
+			 * Resolve the referenced wp_block post and render as a group block.
+			 */
+			case 'core/block':
+				if ( isset( $attrs['ref'] ) ) {
+					$reusable_block_post = get_post( $attrs['ref'] );
+					if ( ! empty( $reusable_block_post ) ) {
+						$block['blockName']    = 'core/group';
+						$block['innerBlocks']  = array_filter(
+							parse_blocks( $reusable_block_post->post_content ),
+							function ( $b ) {
+								return null !== $b['blockName'];
+							}
+						);
+						$block['innerHTML']    = $reusable_block_post->post_content;
+						$block['innerContent'] = [ $reusable_block_post->post_content ];
+						return self::render_mjml_component( $block, $is_in_column, $is_in_group, $default_attrs );
+					}
+				}
 				break;
 
 			/**
