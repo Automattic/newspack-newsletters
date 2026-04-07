@@ -3,6 +3,21 @@
 @import "style-variations";
 
 .newspack-newsletters-subscribe {
+	&.alignleft,
+	&.alignright {
+		max-width: 420px;
+	}
+
+	&.alignleft {
+		float: left;
+		margin-right: 2em;
+	}
+
+	&.alignright {
+		float: right;
+		margin-left: 2em;
+	}
+
 	form {
 		width: 100%;
 		align-items: center;
@@ -70,10 +85,14 @@
 			}
 		}
 	}
+	.newspack-newsletters-name-input + .newspack-newsletters-email-input {
+		margin-top: 0.25rem;
+	}
 	label {
 		font-size: 0.9rem;
 		font-weight: 700;
 		flex: 1 1 100%;
+		margin-bottom: -0.15rem;
 	}
 	input[type="text"],
 	input[type="email"] {
@@ -92,6 +111,7 @@
 	button[type="submit"] {
 		background-color: #d33;
 		color: white;
+		cursor: pointer;
 		flex: 1 1 100%;
 
 		@media ( min-width: 782px ) {
@@ -117,13 +137,14 @@
 			padding: 0;
 			display: flex;
 			flex-wrap: wrap;
+			gap: 0.5em;
 			min-width: 100%;
 			li {
 				flex: 1 1 33.3333%;
 				display: flex;
 				min-width: 142px;
 				box-sizing: border-box;
-				margin: 0.5em;
+				margin: 0;
 				padding: 0;
 			}
 		}
