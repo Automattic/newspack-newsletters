@@ -54,6 +54,14 @@ final class Newspack_Newsletters_Renderer {
 	protected static $post_permalink = null;
 
 	/**
+	 * Stack of reusable block ref IDs currently being rendered,
+	 * used to detect and prevent circular references.
+	 *
+	 * @var int[]
+	 */
+	private static $rendering_refs = [];
+
+	/**
 	 * Inline tags that are allowed to be rendered in a text block.
 	 *
 	 * @var bool[]|array[] Associative array of tag names to allowed attributes.
@@ -1444,22 +1452,13 @@ final class Newspack_Newsletters_Renderer {
 			 * Resolve the referenced wp_block post and render as a group block.
 			 */
 			case 'core/block':
-				if ( isset( $attrs['ref'] ) ) {
-					$reusable_block_post = get_post( $attrs['ref'] );
-					if ( ! empty( $reusable_block_post ) ) {
-						$block['blockName']    = 'core/group';
-						$block['innerBlocks']  = array_filter(
-							parse_blocks( $reusable_block_post->post_content ),
-							function ( $b ) {
-								return null !== $b['blockName'];
-							}
-						);
-						$block['innerHTML']    = $reusable_block_post->post_content;
-						$block['innerContent'] = [ $reusable_block_post->post_content ];
-						return self::render_mjml_component( $block, $is_in_column, $is_in_group, $default_attrs );
-					}
+				$resolved = self::resolve_reusable_block( $block );
+				if ( null === $resolved ) {
+					return '';
 				}
-				break;
+				$block_mjml_markup = self::render_mjml_component( $resolved, $is_in_column, $is_in_group, $default_attrs );
+				self::release_reusable_block_ref();
+				return $block_mjml_markup;
 
 			/**
 			 * Group block.
@@ -1695,6 +1694,60 @@ final class Newspack_Newsletters_Renderer {
 		return $block_mjml_markup;
 	}
 
+	/**
+	 * Resolve a core/block (synced pattern / reusable block) into a core/group block.
+	 *
+	 * Fetches the referenced wp_block post, validates it, guards against circular
+	 * references, and returns a block array with blockName changed to core/group
+	 * and innerBlocks populated from the reusable block's content.
+	 *
+	 * @param array $block The core/block block array.
+	 * @return array|null The resolved group block, or null if unresolvable.
+	 */
+	private static function resolve_reusable_block( $block ) {
+		if ( 'core/block' !== $block['blockName'] || ! isset( $block['attrs']['ref'] ) ) {
+			return null;
+		}
+
+		$ref = (int) $block['attrs']['ref'];
+
+		// Guard against circular references.
+		if ( in_array( $ref, self::$rendering_refs, true ) ) {
+			return null;
+		}
+
+		$reusable_block_post = get_post( $ref );
+
+		// Validate post type and status.
+		if (
+			empty( $reusable_block_post )
+			|| 'wp_block' !== $reusable_block_post->post_type
+			|| 'publish' !== $reusable_block_post->post_status
+		) {
+			return null;
+		}
+
+		// Push ref onto the stack. Callers must call release_reusable_block_ref()
+		// after they are done rendering the resolved block.
+		self::$rendering_refs[] = $ref;
+
+		$block['blockName']    = 'core/group';
+		$block['innerBlocks']  = self::get_valid_post_blocks( $reusable_block_post );
+		$block['innerHTML']    = $reusable_block_post->post_content;
+		$block['innerContent'] = [ $reusable_block_post->post_content ];
+
+		return $block;
+	}
+
+	/**
+	 * Release a reusable block ref from the rendering stack.
+	 *
+	 * Must be called after rendering a block resolved by resolve_reusable_block().
+	 */
+	private static function release_reusable_block_ref() {
+		array_pop( self::$rendering_refs );
+	}
+
 	/** Convert a WP post to an array of non-empty blocks.
 	 *
 	 * @param WP_Post $post The post.
@@ -1734,15 +1787,11 @@ final class Newspack_Newsletters_Renderer {
 			$block_content = '';
 
 			// Convert reusable block to group block.
-			// Reusable blocks are CPTs, where the block's ref attribute is the post ID.
-			if ( 'core/block' === $block['blockName'] && isset( $block['attrs']['ref'] ) ) {
-				$reusable_block_post = get_post( $block['attrs']['ref'] );
-				if ( ! empty( $reusable_block_post ) ) {
-					$block['blockName']    = 'core/group';
-					$block['innerBlocks']  = self::get_valid_post_blocks( $reusable_block_post );
-					$block['innerHTML']    = $reusable_block_post->post_content;
-					$block['innerContent'] = $reusable_block_post->post_content;
-				}
+			$is_resolved_ref = false;
+			$resolved        = self::resolve_reusable_block( $block );
+			if ( null !== $resolved ) {
+				$block           = $resolved;
+				$is_resolved_ref = true;
 			}
 
 			if ( 'core/group' === $block['blockName'] ) {
@@ -1769,6 +1818,10 @@ final class Newspack_Newsletters_Renderer {
 				}
 			} else {
 				$block_content = self::render_mjml_component( $block );
+			}
+
+			if ( $is_resolved_ref ) {
+				self::release_reusable_block_ref();
 			}
 
 			$body .= $block_content;
