@@ -949,8 +949,14 @@ final class Newspack_Newsletters_Renderer {
 		// Default attributes for the section which will envelop the mj-column.
 		// Use the block's margin (if any) as the section's padding, since MJML
 		// doesn't support margins — section padding is the equivalent of outer spacing.
-		$section_attrs = array_merge(
+		// Exclude visual properties (border, borderRadius) from the section — they
+		// belong on the inner content, not on the outer spacing wrapper.
+		$section_only_attrs = array_diff_key(
 			$attrs,
+			array_flip( [ 'border', 'borderRadius', 'border-color' ] )
+		);
+		$section_attrs = array_merge(
+			$section_only_attrs,
 			array(
 				'padding' => $block_margin ? $block_margin : '0',
 			)
@@ -967,9 +973,16 @@ final class Newspack_Newsletters_Renderer {
 			// Replace <mark /> with <span />.
 			$inner_html = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $inner_html );
 
-			// Remove border and padding styles from inner html to avoid duplicate styles, as these styles are applied to the container.
+			// Remove styles from inner html that are handled by MJML attributes on the container.
+			$styles_to_strip = [];
 			if ( isset( $attrs['border'] ) || isset( $attrs['padding'] ) ) {
-				$inner_html = self::remove_unwanted_style_properties( [ 'border', 'padding' ], $inner_html );
+				$styles_to_strip = array_merge( $styles_to_strip, [ 'border', 'padding' ] );
+			}
+			if ( $block_margin ) {
+				$styles_to_strip[] = 'margin';
+			}
+			if ( ! empty( $styles_to_strip ) ) {
+				$inner_html = self::remove_unwanted_style_properties( $styles_to_strip, $inner_html );
 			}
 		}
 
