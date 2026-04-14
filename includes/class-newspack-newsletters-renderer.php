@@ -334,13 +334,13 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function get_spacing_value( $value ) {
 		$presets = [
-			'20' => '0.44rem',
-			'30' => '0.67rem',
-			'40' => '1rem',
-			'50' => 'clamp( 1.25rem, 1rem + 0.8333vw, 1.5rem )',
-			'60' => 'clamp( 1.5rem, 0.75rem + 2.5vw, 2.25rem )',
-			'70' => 'clamp( 1.75rem, 0.12rem + 5.4333vw, 3.38rem )',
-			'80' => 'clamp( 2rem, -1.06rem + 10.2vw, 5.06rem )',
+			'20' => '8px',
+			'30' => '16px',
+			'40' => '24px',
+			'50' => '32px',
+			'60' => '32px',
+			'70' => '48px',
+			'80' => '64px',
 		];
 		if ( 0 === strpos( $value, 'var' ) ) {
 			$preset_key = explode( '|', $value );
@@ -387,6 +387,22 @@ final class Newspack_Newsletters_Renderer {
 			if ( ! empty( $attrs['padding'] ) ) {
 				$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
 			}
+		}
+
+		if ( isset( $attrs['style']['spacing']['margin'] ) ) {
+			$margin = array_merge(
+				[
+					'top'    => '0',
+					'right'  => '0',
+					'bottom' => '0',
+					'left'   => '0',
+				],
+				$attrs['style']['spacing']['margin']
+			);
+			foreach ( $margin as $key => $value ) {
+				$margin[ $key ] = self::get_spacing_value( $value );
+			}
+			$attrs['margin'] = sprintf( '%s %s %s %s', $margin['top'], $margin['right'], $margin['bottom'], $margin['left'] );
 		}
 
 		if ( ! empty( $attrs['borderRadius'] ) ) {
@@ -907,6 +923,9 @@ final class Newspack_Newsletters_Renderer {
 			];
 		}
 
+		// Save margin before stripping unsupported attrs — it will be used as section padding.
+		$block_margin = isset( $attrs['margin'] ) ? $attrs['margin'] : null;
+
 		// Remove block-only attributes and attributes that are not supported by MJML.
 		$unsupported_attrs = [
 			'newsletterVisibility',
@@ -918,6 +937,7 @@ final class Newspack_Newsletters_Renderer {
 			'fontSize',
 			'backgroundColor',
 			'borderColor',
+			'margin',
 			'style',
 		];
 		foreach ( $unsupported_attrs as $attr ) {
@@ -927,10 +947,12 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		// Default attributes for the section which will envelop the mj-column.
+		// Use the block's margin (if any) as the section's padding, since MJML
+		// doesn't support margins — section padding is the equivalent of outer spacing.
 		$section_attrs = array_merge(
 			$attrs,
 			array(
-				'padding' => '0',
+				'padding' => $block_margin ? $block_margin : '0',
 			)
 		);
 
