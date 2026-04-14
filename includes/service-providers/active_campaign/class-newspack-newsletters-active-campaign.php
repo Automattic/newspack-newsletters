@@ -667,8 +667,8 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				return $segments;
 			}
 			foreach ( $segments as $segment ) {
-				$segment_name = ! empty( $segment['name'] ) ?
-					$segment['name'] . ' (ID ' . $segment['id'] . ')' :
+				$segment_name = ! empty( $segment['attributes']['name'] ) ?
+					$segment['attributes']['name'] :
 					sprintf(
 						// Translators: %s is the segment ID.
 						__( 'Untitled %s', 'newspack-newsletters' ),
@@ -682,7 +682,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 						'parent_id'   => $args['parent_id'] ?? null,
 						'name'        => $segment_name,
 						'entity_type' => 'segment',
-						'count'       => $segment['subscriber_count'] ?? null,
+						'count'       => $segment['attributes']['counts']['last_active_total']['count'] ?? null,
 					]
 				);
 			}
@@ -725,7 +725,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					array_filter(
 						$this->segments,
 						function ( $segment ) use ( $args ) {
-							return Send_Lists::matches_search( $args['search'], [ $segment['name'] ] );
+							return Send_Lists::matches_search( $args['search'], [ $segment['attributes']['name'] ] );
 						}
 					)
 				);
@@ -734,11 +734,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return $this->segments;
 		}
 
-		$query_args           = $args;
-		$query_args['limit']  = $args['limit'] ?? 100;
-		$query_args['offset'] = 0;
+		$query_args               = $args;
+		$query_args['page_size']  = $args['limit'] ?? 500;
+		$query_args['page']       = 1;
 		$result = $this->api_v3_request(
-			'segments',
+			'audiences',
 			'GET',
 			[
 				'query' => $query_args,
@@ -747,17 +747,17 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		$segments = $result['segments'];
+		$segments = $result['data'];
 		if ( isset( $args['limit'] ) ) {
 			return $segments;
 		}
 
 		// If not passed a limit, get all the segments.
-		$total = $result['meta']['total'];
-		while ( $total > $query_args['offset'] + $query_args['limit'] ) {
-			$query_args['offset'] = $query_args['offset'] + $query_args['limit'];
+		$total = $result['meta']['page']['total'];
+		while ( $total > $query_args['page_size'] * $query_args['page'] ) {
+			$query_args['page'] = $query_args['page'] + 1;
 			$result = $this->api_v3_request(
-				'segments',
+				'audiences',
 				'GET',
 				[
 					'query' => $query_args,
@@ -766,7 +766,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
-			$segments = array_merge( $segments, $result['segments'] );
+			$segments = array_merge( $segments, $result['data'] );
 		}
 
 		$this->segments = $segments;
