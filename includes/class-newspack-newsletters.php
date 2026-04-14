@@ -88,6 +88,7 @@ final class Newspack_Newsletters {
 		add_filter( 'render_block', [ __CLASS__, 'remove_email_only_block' ], 10, 2 );
 		add_action( 'pre_get_posts', [ __CLASS__, 'display_newsletters_in_archives' ] );
 		add_action( 'the_post', [ __CLASS__, 'fix_public_status' ] );
+		add_filter( 'block_editor_settings_all', [ __CLASS__, 'filter_block_editor_settings' ], 10, 2 );
 	}
 
 	/**
@@ -243,6 +244,33 @@ final class Newspack_Newsletters {
 			return new \WP_Error( 'newspack_newsletters_no_provider', __( 'No newsletter service provider configured.', 'newspack-newsletters' ) );
 		}
 		return $provider->test_connection();
+	}
+
+	/**
+	 * Constrain the editor content width for newsletters to match the email max-width.
+	 *
+	 * @param array                   $settings Block editor settings.
+	 * @param WP_Block_Editor_Context $context  Block editor context.
+	 *
+	 * @return array Filtered settings.
+	 */
+	public static function filter_block_editor_settings( $settings, $context ) {
+		if ( empty( $context->post ) || self::NEWSPACK_NEWSLETTERS_CPT !== $context->post->post_type ) {
+			return $settings;
+		}
+
+		if ( ! isset( $settings['__experimentalFeatures'] ) || ! is_array( $settings['__experimentalFeatures'] ) ) {
+			$settings['__experimentalFeatures'] = [];
+		}
+
+		if ( ! isset( $settings['__experimentalFeatures']['layout'] ) || ! is_array( $settings['__experimentalFeatures']['layout'] ) ) {
+			$settings['__experimentalFeatures']['layout'] = [];
+		}
+
+		$settings['__experimentalFeatures']['layout']['contentSize'] = '600px';
+		$settings['__experimentalFeatures']['layout']['wideSize']    = '600px';
+
+		return $settings;
 	}
 
 	/**
