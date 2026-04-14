@@ -161,7 +161,7 @@ final class Newspack_Newsletters_Renderer {
 				'xxxxx-large'  => '64px',
 				'xxxxxx-large' => '72px',
 			);
-			return $sizes[ $block_attrs['fontSize'] ];
+			return $sizes[ $block_attrs['fontSize'] ] ?? null;
 		}
 	}
 
