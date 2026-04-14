@@ -36,6 +36,14 @@
 		--wp--preset--font-size--xxxxx-large: 64px;
 		--wp--preset--font-size--xxxxxx-large: 72px;
 
+		--wp--preset--spacing--20: 8px;
+		--wp--preset--spacing--30: 16px;
+		--wp--preset--spacing--40: 24px;
+		--wp--preset--spacing--50: 32px;
+		--wp--preset--spacing--60: 32px;
+		--wp--preset--spacing--70: 48px;
+		--wp--preset--spacing--80: 64px;
+
 		&.is-root-container {
 			// Root padding is zeroed, so zero the CSS variables core uses
 			// for the alignfull break-out negative margin — otherwise full-
@@ -168,6 +176,9 @@
 			}
 
 			.wp-block-button__link {
+				background-color: #36f;
+				border-radius: 5px;
+				color: #fff;
 				font-size: 1em;
 				padding: 0.75em 1.5em;
 			}

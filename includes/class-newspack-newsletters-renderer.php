@@ -83,6 +83,11 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string HTML attributes as a string.
 	 */
 	private static function array_to_attributes( $attributes ) {
+		// Default: normalize image captions for consistent rendering across themes.
+		if ( isset( $attributes['css-class'] ) && 'image-caption' === $attributes['css-class'] ) {
+			$attributes['align']   = 'left';
+			$attributes['padding'] = '0';
+		}
 		$attributes = apply_filters( 'newspack_newsletters_mjml_component_attributes', $attributes );
 		return join(
 			' ',

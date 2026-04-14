@@ -48,6 +48,7 @@ final class Newspack_Newsletters_Editor {
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
+		add_filter( 'wp_theme_json_data_theme', [ __CLASS__, 'override_theme_json_for_email_editor' ] );
 		add_action( 'enqueue_block_assets', [ __CLASS__, 'enqueue_block_assets' ] );
 		add_filter( 'block_categories_all', [ __CLASS__, 'add_custom_block_category' ] );
 		add_filter( 'allowed_block_types_all', [ __CLASS__, 'newsletters_allowed_block_types' ], 10, 2 );
@@ -271,6 +272,124 @@ final class Newspack_Newsletters_Editor {
 				],
 			]
 		);
+	}
+
+	/**
+	 * Override theme.json data for the email editor.
+	 *
+	 * Block themes inject styles through theme.json global styles, which
+	 * are not removed by remove_editor_styles(). This filter replaces
+	 * theme values (clamp, rem, CSS custom properties) with email-safe
+	 * pixel values in the newsletter editor context.
+	 *
+	 * @param WP_Theme_JSON_Data $theme_json The theme.json data.
+	 * @return WP_Theme_JSON_Data
+	 */
+	public static function override_theme_json_for_email_editor( $theme_json ) {
+		if ( ! self::is_email_editor_request() ) {
+			return $theme_json;
+		}
+
+		$email_overrides = [
+			'version'  => 3,
+			'settings' => [
+				'typography' => [
+					'fluid'     => false,
+					'fontSizes' => [
+						[
+							'name'  => _x( 'Small', 'font size name', 'newspack-newsletters' ),
+							'size'  => '12px',
+							'slug'  => 'small',
+							'fluid' => false,
+						],
+						[
+							'name'  => _x( 'Medium', 'font size name', 'newspack-newsletters' ),
+							'size'  => '16px',
+							'slug'  => 'medium',
+							'fluid' => false,
+						],
+						[
+							'name'  => _x( 'Large', 'font size name', 'newspack-newsletters' ),
+							'size'  => '24px',
+							'slug'  => 'large',
+							'fluid' => false,
+						],
+						[
+							'name'  => _x( 'Extra Large', 'font size name', 'newspack-newsletters' ),
+							'size'  => '36px',
+							'slug'  => 'x-large',
+							'fluid' => false,
+						],
+					],
+				],
+				'spacing'    => [
+					'spacingSizes' => [
+						[
+							'name' => '1',
+							'size' => '8px',
+							'slug' => '20',
+						],
+						[
+							'name' => '2',
+							'size' => '16px',
+							'slug' => '30',
+						],
+						[
+							'name' => '3',
+							'size' => '24px',
+							'slug' => '40',
+						],
+						[
+							'name' => '4',
+							'size' => '32px',
+							'slug' => '50',
+						],
+						[
+							'name' => '5',
+							'size' => '32px',
+							'slug' => '60',
+						],
+						[
+							'name' => '6',
+							'size' => '48px',
+							'slug' => '70',
+						],
+						[
+							'name' => '7',
+							'size' => '64px',
+							'slug' => '80',
+						],
+					],
+				],
+				'layout'     => [
+					'contentSize' => '600px',
+					'wideSize'    => '600px',
+				],
+			],
+			'styles'   => [
+				'elements' => [
+					'button' => [
+						'color'   => [
+							'background' => '#36f',
+							'text'       => '#fff',
+						],
+						'border'  => [
+							'radius' => '5px',
+						],
+						'spacing' => [
+							'padding' => [
+								'top'    => '12px',
+								'bottom' => '12px',
+								'left'   => '24px',
+								'right'  => '24px',
+							],
+						],
+					],
+				],
+			],
+		];
+
+		return $theme_json->update_with( $email_overrides );
 	}
 
 	/**
