@@ -13,22 +13,6 @@
 	border: 1px solid wp-colors.$gray-900;
 	border-radius: wp-vars.$radius-small;
 
-	&__header {
-		align-items: center;
-		background: wp-colors.$white;
-		border-bottom: 1px solid wp-colors.$gray-900;
-		display: flex;
-		padding: wp-vars.$grid-unit-20;
-		position: relative;
-		z-index: 1;
-
-		span {
-			font-size: wp-vars.$font-size-medium;
-			font-weight: 600;
-			margin-left: wp-vars.$grid-unit-05;
-		}
-	}
-
 	&__font-size-picker {
 		> .components-base-control__field > .components-base-control__label {
 			margin-bottom: -16px !important;
@@ -36,12 +20,6 @@
 		.components-font-size-picker__header .components-base-control__label {
 			opacity: 0;
 		}
-	}
-
-	&__footer {
-		background: wp-colors.$white;
-		border-top: 1px solid wp-colors.$gray-900;
-		padding: wp-vars.$grid-unit-20;
 	}
 
 	&--loading {
