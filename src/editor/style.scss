@@ -1,6 +1,6 @@
 :root {
-	--newspack-header-font: arial, sans-serif;
-	--newspack-body-font: georgia, serif;
+	--newspack-newsletters-header-font: arial, sans-serif;
+	--newspack-newsletters-body-font: georgia, serif;
 	--newspack-newsletters-max-width: 600px;
 }
 
@@ -17,7 +17,7 @@
 	}
 
 	.editor-post-title {
-		font-family: var(--newspack-header-font);
+		font-family: var(--newspack-newsletters-header-font);
 		line-height: 1.5;
 	}
 
@@ -49,7 +49,7 @@
 			line-height: 1.5;
 
 			&:not(code) {
-				font-family: var(--newspack-body-font);
+				font-family: var(--newspack-newsletters-body-font);
 			}
 		}
 
@@ -66,7 +66,7 @@
 		h4,
 		h5,
 		h6 {
-			font-family: var(--newspack-header-font);
+			font-family: var(--newspack-newsletters-header-font);
 			line-height: 1.5;
 		}
 
