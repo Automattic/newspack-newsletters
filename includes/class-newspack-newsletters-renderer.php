@@ -963,9 +963,17 @@ final class Newspack_Newsletters_Renderer {
 		);
 
 		// Default attributes for the column which will envelop the component.
+		// Border goes on the column (not section or mj-text) since mj-column
+		// supports border while mj-text does not.
 		$column_attrs = array(
 			'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
 		);
+		if ( isset( $attrs['border'] ) ) {
+			$column_attrs['border'] = $attrs['border'];
+		}
+		if ( isset( $attrs['borderRadius'] ) ) {
+			$column_attrs['border-radius'] = $attrs['borderRadius'];
+		}
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
 
