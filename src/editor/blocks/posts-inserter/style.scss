@@ -5,10 +5,13 @@
 	--newspack-post-inserter-width: 574px;
 }
 
+.editor-styles-wrapper .block-editor-block-list__layout .wp-block.newspack-posts-inserter {
+	padding: 0;
+}
+
 .newspack-posts-inserter {
 	border: 1px solid wp-colors.$gray-900;
 	border-radius: wp-vars.$radius-small;
-	padding: 0;
 
 	&__header {
 		align-items: center;
