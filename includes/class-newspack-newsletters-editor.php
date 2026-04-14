@@ -46,6 +46,7 @@ final class Newspack_Newsletters_Editor {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
+		add_filter( 'block_editor_settings_all', [ __CLASS__, 'override_editor_layout' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
 		add_filter( 'wp_theme_json_data_theme', [ __CLASS__, 'override_theme_json_for_email_editor' ] );
@@ -166,6 +167,34 @@ final class Newspack_Newsletters_Editor {
 		if ( isset( $block_editor_context->post->post_type ) && Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT === $block_editor_context->post->post_type ) {
 			$editor_settings['autosaveInterval'] = 999999;
 		}
+		return $editor_settings;
+	}
+
+	/**
+	 * Override the editor layout settings for the newsletter editor.
+	 *
+	 * Block themes provide layout settings (contentSize, wideSize) via
+	 * block_editor_settings_all that control block widths in the editor.
+	 * For the newsletter editor, all blocks should use the email max-width.
+	 *
+	 * @param array                   $editor_settings      Default editor settings.
+	 * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
+	 *
+	 * @return array
+	 */
+	public static function override_editor_layout( $editor_settings, $block_editor_context ) {
+		if ( ! isset( $block_editor_context->post->post_type ) || Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $block_editor_context->post->post_type ) {
+			return $editor_settings;
+		}
+
+		$email_width = '600px';
+
+		// Override the layout settings used by the editor JS.
+		if ( isset( $editor_settings['__experimentalFeatures']['layout'] ) ) {
+			$editor_settings['__experimentalFeatures']['layout']['contentSize'] = $email_width;
+			$editor_settings['__experimentalFeatures']['layout']['wideSize']    = $email_width;
+		}
+
 		return $editor_settings;
 	}
 
