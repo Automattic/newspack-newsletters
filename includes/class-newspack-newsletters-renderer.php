@@ -1140,6 +1140,14 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
 				}
+				// Apply border to the image itself (matching WordPress core which
+				// puts image borders on <img>, not <figure>).
+				if ( isset( $attrs['border'] ) ) {
+					$img_attrs['border'] = $attrs['border'];
+				}
+				if ( isset( $attrs['borderRadius'] ) ) {
+					$img_attrs['border-radius'] = $attrs['borderRadius'];
+				}
 				$markup = '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
 
 				if ( $figcaption ) {
@@ -1198,6 +1206,20 @@ final class Newspack_Newsletters_Renderer {
 					'padding'    => '0',
 					'text-align' => $alignment,
 				];
+				// Apply the buttons container's border and padding to the wrapper.
+				if ( isset( $attrs['border'] ) ) {
+					$wrapper_attrs['border'] = $attrs['border'];
+				}
+				if ( isset( $attrs['borderRadius'] ) ) {
+					$wrapper_attrs['border-radius'] = $attrs['borderRadius'];
+				}
+				if ( isset( $attrs['padding'] ) ) {
+					$wrapper_attrs['padding'] = $attrs['padding'];
+				}
+				// Strip border and padding from column_attrs so individual button
+				// columns don't inherit the container's border or padding.
+				unset( $column_attrs['border'], $column_attrs['border-radius'] );
+				$column_attrs['padding'] = '0';
 
 				// If the total width of the buttons is greater than 100%, reduce the default width.
 				if ( ( $default_width * $no_widths ) + $total_defined_width > 100 ) {
@@ -1279,7 +1301,12 @@ final class Newspack_Newsletters_Renderer {
 					];
 				}
 
-				$markup = '<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>';
+				// Inner section only needs alignment — border and padding go on the wrapper.
+				$inner_section_attrs = [
+					'padding'    => '0',
+					'text-align' => $alignment,
+				];
+				$markup = '<mj-section ' . self::array_to_attributes( $inner_section_attrs ) . '>';
 				foreach ( $block_mjml_array as $block_mjml ) {
 					$markup .= implode( $block_mjml );
 				}
@@ -1432,6 +1459,18 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
+
+				// Apply the columns block's border and padding to the section.
+				if ( isset( $attrs['border'] ) ) {
+					$section_attrs['border'] = $attrs['border'];
+				}
+				if ( isset( $attrs['borderRadius'] ) ) {
+					$section_attrs['border-radius'] = $attrs['borderRadius'];
+				}
+				if ( isset( $attrs['padding'] ) ) {
+					$section_attrs['padding'] = $attrs['padding'];
+				}
+
 				$stack_on_mobile = ! isset( $attrs['isStackedOnMobile'] ) || true === $attrs['isStackedOnMobile'];
 				if ( ! $stack_on_mobile ) {
 					$markup = '<mj-group>';
@@ -1490,6 +1529,21 @@ final class Newspack_Newsletters_Renderer {
 
 				if ( ! $is_in_list_or_quote ) {
 					$block_mjml_markup .= '</mj-text>';
+
+					// List and quote blocks skip generic column wrapping (they are
+					// "grouped blocks"). Add an explicit column wrapper so borders
+					// and padding from the block are applied — mj-text does not
+					// support border, but mj-column does.
+					$list_quote_col_attrs = [
+						'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
+					];
+					if ( isset( $attrs['border'] ) ) {
+						$list_quote_col_attrs['border'] = $attrs['border'];
+					}
+					if ( isset( $attrs['borderRadius'] ) ) {
+						$list_quote_col_attrs['border-radius'] = $attrs['borderRadius'];
+					}
+					$block_mjml_markup = '<mj-column ' . self::array_to_attributes( $list_quote_col_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 				}
 
 				break;
@@ -1713,6 +1767,11 @@ final class Newspack_Newsletters_Renderer {
 			'core/separator' != $block_name &&
 			! $is_posts_inserter_block
 		) {
+			// For image blocks, the border is on the mj-image element (matching
+			// WordPress core), so remove it from the column wrapper.
+			if ( 'core/image' === $block_name ) {
+				unset( $column_attrs['border'], $column_attrs['border-radius'] );
+			}
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}

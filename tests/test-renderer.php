@@ -271,7 +271,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => '<div></div>',
 				]
 			),
-			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="100%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="0" css-class="mj-column-has-width" width="100%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
 			'Renders left aligned button'
 		);
 
@@ -302,7 +302,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => '<div></div>',
 				]
 			),
-			'<mj-section  padding="0"><mj-wrapper padding="0" text-align="center"><mj-section padding="0" text-align="center"><mj-column padding="12px" css-class="mj-column-has-width" width="100%"><mj-button align="center" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'<mj-section  padding="0"><mj-wrapper padding="0" text-align="center"><mj-section padding="0" text-align="center"><mj-column padding="0" css-class="mj-column-has-width" width="100%"><mj-button align="center" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
 			'Renders center aligned button'
 		);
 
@@ -333,7 +333,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => '<div></div>',
 				]
 			),
-			'<mj-section  padding="0"><mj-wrapper padding="0" text-align="right"><mj-section padding="0" text-align="right"><mj-column padding="12px" css-class="mj-column-has-width" width="100%"><mj-button align="right" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'<mj-section  padding="0"><mj-wrapper padding="0" text-align="right"><mj-section padding="0" text-align="right"><mj-column padding="0" css-class="mj-column-has-width" width="100%"><mj-button align="right" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
 			'Renders right aligned button'
 		);
 
@@ -367,7 +367,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => '<div></div>',
 				]
 			),
-			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column><mj-column padding="12px" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="0" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column><mj-column padding="0" css-class="mj-column-has-width" width="50%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
 			'Renders multiple buttons'
 		);
 
@@ -401,7 +401,7 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 					'innerHTML'    => '<div></div>',
 				]
 			),
-			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="12px" css-class="mj-column-has-width" width="25%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f" width="100%">Test Button</mj-button></mj-column><mj-column padding="12px" css-class="mj-column-has-width" width="75%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
+			'<mj-section padding="0"><mj-wrapper padding="0" text-align="left"><mj-section padding="0" text-align="left"><mj-column padding="0" css-class="mj-column-has-width" width="25%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f" width="100%">Test Button</mj-button></mj-column><mj-column padding="0" css-class="mj-column-has-width" width="75%"><mj-button align="left" padding="0" inner-padding="12px 24px" line-height="1.5" href="" border-radius="5px" font-size="16px"  font-weight="bold" color="#fff !important" background-color="#36f">Test Button</mj-button></mj-column></mj-section></mj-wrapper></mj-section>',
 			'Renders multiple buttons'
 		);
 	}
