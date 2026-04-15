@@ -264,7 +264,7 @@
 			margin: 0 auto;
 
 			&::before {
-				left: 0 !important;
+				left: 12px;
 			}
 
 			p {
@@ -345,6 +345,7 @@
 
 			// More specific styles for the list block.
 			&[data-type="core/list"] {
+				list-style-position: inside;
 				padding: 6px 15px;
 				li:first-child {
 					padding: 12px 7px 0;
