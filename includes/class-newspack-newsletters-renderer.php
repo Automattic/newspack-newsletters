@@ -1225,7 +1225,7 @@ final class Newspack_Newsletters_Renderer {
 
 					$attrs         = self::process_attributes( $button_block['attrs'] );
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '999px';
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '5px';
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
@@ -1239,12 +1239,12 @@ final class Newspack_Newsletters_Renderer {
 						'font-family'   => $font_family,
 						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
-						'color'         => $is_outlined ? '#32373c' : '#fff !important',
+						'color'         => $is_outlined ? '#36f' : '#fff !important',
 					);
 					if ( $is_outlined ) {
 						$default_button_attrs['background-color'] = 'transparent';
 					} else {
-						$default_button_attrs['background-color'] = '#32373c';
+						$default_button_attrs['background-color'] = '#36f';
 					}
 					if ( ! empty( $attrs['background-color'] ) ) {
 						$default_button_attrs['background-color'] = $attrs['background-color'];
