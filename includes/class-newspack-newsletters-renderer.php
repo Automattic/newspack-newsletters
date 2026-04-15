@@ -1514,6 +1514,12 @@ final class Newspack_Newsletters_Renderer {
 					$attrs
 				);
 
+				// When wrapping in a column (top-level list/quote), padding goes
+				// on the column, not the mj-text — avoid doubling up.
+				if ( ! $is_in_list_or_quote ) {
+					$text_attrs['padding'] = '0';
+				}
+
 				// If a wrapper block, wrap in mj-text.
 				if ( ! $is_in_list_or_quote ) {
 					$block_mjml_markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>';

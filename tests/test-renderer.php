@@ -458,6 +458,79 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test margin conversion to section padding.
+	 */
+	public function test_render_margin_as_section_padding() {
+		// Preset margin values should be converted to px.
+		$output = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/paragraph',
+				'attrs'        => [
+					'style' => [
+						'spacing' => [
+							'margin' => [
+								'top'    => 'var:preset|spacing|40',
+								'bottom' => 'var:preset|spacing|40',
+							],
+						],
+					],
+				],
+				'innerBlocks'  => [],
+				'innerContent' => [ '<p>Test</p>' ],
+				'innerHTML'    => '<p>Test</p>',
+			]
+		);
+		$this->assertStringContainsString(
+			'mj-section padding="24px 0 24px 0"',
+			$output,
+			'Preset margins are converted to px section padding'
+		);
+
+		// Pixel margin values should pass through.
+		$output = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/paragraph',
+				'attrs'        => [
+					'style' => [
+						'spacing' => [
+							'margin' => [
+								'top'    => '10px',
+								'bottom' => '20px',
+								'left'   => '5px',
+								'right'  => '5px',
+							],
+						],
+					],
+				],
+				'innerBlocks'  => [],
+				'innerContent' => [ '<p>Test</p>' ],
+				'innerHTML'    => '<p>Test</p>',
+			]
+		);
+		$this->assertStringContainsString(
+			'mj-section padding="10px 5px 20px 5px"',
+			$output,
+			'Pixel margins map directly to section padding'
+		);
+
+		// Block without margin should have section padding 0.
+		$output = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/paragraph',
+				'attrs'        => [],
+				'innerBlocks'  => [],
+				'innerContent' => [ '<p>Test</p>' ],
+				'innerHTML'    => '<p>Test</p>',
+			]
+		);
+		$this->assertStringContainsString(
+			'mj-section padding="0"',
+			$output,
+			'Block without margin gets section padding 0'
+		);
+	}
+
+	/**
 	 * Rendering a reusable block component.
 	 */
 	public function test_reusable_block() {
