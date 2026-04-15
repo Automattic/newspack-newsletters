@@ -183,7 +183,10 @@ final class Newspack_Newsletters_Editor {
 	 * @return array
 	 */
 	public static function override_editor_layout( $editor_settings, $block_editor_context ) {
-		if ( ! isset( $block_editor_context->post->post_type ) || Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $block_editor_context->post->post_type ) {
+		if (
+			! isset( $block_editor_context->post->post_type ) ||
+			! in_array( $block_editor_context->post->post_type, self::get_email_editor_cpts(), true )
+		) {
 			return $editor_settings;
 		}
 
