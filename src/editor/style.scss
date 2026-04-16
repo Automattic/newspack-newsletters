@@ -40,8 +40,17 @@
 			padding-left: 0;
 			padding-right: 0;
 
-			> :where(:not(.alignleft):not(.alignright):not(.alignfull)) {
+			> :where(:not([data-align="left"]):not([data-align="right"]):not([data-align="full"])) {
 				max-width: var(--newspack-newsletters-max-width);
+			}
+
+			// Classic themes use `is-layout-flow` on the root container, so
+			// core's constrained-layout CSS that resets alignfull to full width
+			// doesn't apply. Force it here.
+			> [data-align="full"] {
+				margin-left: 0;
+				margin-right: 0;
+				max-width: none;
 			}
 		}
 
