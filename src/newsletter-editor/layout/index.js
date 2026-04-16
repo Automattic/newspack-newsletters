@@ -11,7 +11,14 @@ import { parse, serialize } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useState, useEffect, useMemo } from '@wordpress/element';
-import { BaseControl, Button, Modal, TextControl, Spinner } from '@wordpress/components';
+import {
+	BaseControl,
+	Button,
+	Modal,
+	TextControl,
+	Spinner,
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -155,59 +162,62 @@ export default compose( [
 		<BaseControl
 			id="newspack-newsletters-layouts"
 			help={ postStatus === 'future' && __( 'Unschedule this newsletter to edit layout.', 'newspack-newsletters' ) }
+			__nextHasNoMarginBottom
 		>
-			{ Boolean( layoutId && isFetchingLayouts ) && (
-				<div className="newspack-newsletters-layouts__spinner">
-					<Spinner />
-				</div>
-			) }
-			{ blockPreview !== null && (
-				<div className="newspack-newsletters-layouts">
-					<div className="newspack-newsletters-layouts__item">
-						<div className="newspack-newsletters-layouts__item-preview">
-							<NewsletterPreview
-								layoutId={ layoutId }
-								meta={ usedLayout.meta }
-								blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
-								viewportWidth={ 848 }
-							/>
-						</div>
-						<div className="newspack-newsletters-layouts__item-label">{ usedLayout.post_title }</div>
+			<VStack spacing={ 2 }>
+				{ Boolean( layoutId && isFetchingLayouts ) && (
+					<div className="newspack-newsletters-layouts__spinner">
+						<Spinner />
 					</div>
-				</div>
-			) }
-			<div className="newspack-newsletters-buttons-group">
-				<Button
-					variant="secondary"
-					disabled={ isEditedPostEmpty || isSavingLayout }
-					onClick={ () => setIsManageModalVisible( true ) }
-					__next40pxDefaultSize
-				>
-					{ __( 'Save new layout', 'newspack-newsletters' ) }
-				</Button>
-
-				{ isUsingCustomLayout && (
+				) }
+				{ blockPreview !== null && (
+					<div className="newspack-newsletters-layouts">
+						<div className="newspack-newsletters-layouts__item">
+							<div className="newspack-newsletters-layouts__item-preview">
+								<NewsletterPreview
+									layoutId={ layoutId }
+									meta={ usedLayout.meta }
+									blocks={ setPreventDeduplicationForPostsInserter( blockPreview ) }
+									viewportWidth={ 848 }
+								/>
+							</div>
+							<div className="newspack-newsletters-layouts__item-label">{ usedLayout.post_title }</div>
+						</div>
+					</div>
+				) }
+				<div className="newspack-newsletters-buttons-group">
 					<Button
 						variant="secondary"
-						disabled={ isPostContentSameAsLayout || ( isSavingLayout && isManageModalVisible ) }
-						isBusy={ isSavingLayout && ! isManageModalVisible }
-						onClick={ handeLayoutUpdate }
+						disabled={ isEditedPostEmpty || isSavingLayout }
+						onClick={ () => setIsManageModalVisible( true ) }
 						__next40pxDefaultSize
 					>
-						{ __( 'Update layout', 'newspack-newsletters' ) }
+						{ __( 'Save new layout', 'newspack-newsletters' ) }
 					</Button>
-				) }
 
-				<Button
-					variant="secondary"
-					isDestructive
-					disabled={ isEditedPostEmpty || isSavingLayout || postStatus === 'future' }
-					onClick={ () => setWarningModalVisible( true ) }
-					__next40pxDefaultSize
-				>
-					{ __( 'Reset layout', 'newspack-newsletters' ) }
-				</Button>
-			</div>
+					{ isUsingCustomLayout && (
+						<Button
+							variant="secondary"
+							disabled={ isPostContentSameAsLayout || ( isSavingLayout && isManageModalVisible ) }
+							isBusy={ isSavingLayout && ! isManageModalVisible }
+							onClick={ handeLayoutUpdate }
+							__next40pxDefaultSize
+						>
+							{ __( 'Update layout', 'newspack-newsletters' ) }
+						</Button>
+					) }
+
+					<Button
+						variant="secondary"
+						isDestructive
+						disabled={ isEditedPostEmpty || isSavingLayout || postStatus === 'future' }
+						onClick={ () => setWarningModalVisible( true ) }
+						__next40pxDefaultSize
+					>
+						{ __( 'Reset layout', 'newspack-newsletters' ) }
+					</Button>
+				</div>
+			</VStack>
 
 			{ isManageModalVisible && (
 				<Modal
