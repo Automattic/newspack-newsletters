@@ -37,6 +37,12 @@
 		--wp--preset--font-size--xxxxxx-large: 72px;
 
 		&.is-root-container {
+			// Root padding is zeroed, so zero the CSS variables core uses
+			// for the alignfull break-out negative margin — otherwise full-
+			// width blocks push 8px past the canvas and cause horizontal
+			// scroll.
+			--wp--style--root--padding-left: 0;
+			--wp--style--root--padding-right: 0;
 			padding-left: 0;
 			padding-right: 0;
 
@@ -48,8 +54,6 @@
 			// core's constrained-layout CSS that resets alignfull to full width
 			// doesn't apply. Force it here.
 			> [data-align="full"] {
-				margin-left: 0;
-				margin-right: 0;
 				max-width: none;
 			}
 		}
