@@ -23,6 +23,14 @@
 	max-width: var(--newspack-max-width) !important;
 }
 
+// Override block theme global-padding layout rule that sets negative
+// margins on full-width blocks to break them out of the container.
+// In the newsletter editor, full-width blocks should stay centered at 600px.
+.has-global-padding > .alignfull {
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
 .editor-styles-wrapper {
 	&.block-editor-writing-flow {
 		font-size: 16px;
