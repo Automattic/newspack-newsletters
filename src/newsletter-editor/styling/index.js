@@ -5,7 +5,14 @@
  */
 import { PlainText, __experimentalPanelColorGradientSettings as PanelColorGradientSettings } from '@wordpress/block-editor'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { compose, useInstanceId } from '@wordpress/compose';
-import { BaseControl, Panel, PanelBody, PanelRow, SelectControl } from '@wordpress/components';
+import {
+	BaseControl,
+	Panel,
+	PanelBody,
+	PanelRow,
+	SelectControl,
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useSelect, withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useRef } from '@wordpress/element';
@@ -224,7 +231,7 @@ export const Styling = compose( [
 				] }
 			/>
 			<PanelBody name="newsletters-typography-panel" title={ __( 'Typography', 'newspack-newsletters' ) }>
-				<PanelRow>
+				<VStack spacing={ 4 }>
 					<SelectControl
 						label={ __( 'Headings font', 'newspack-newsletters' ) }
 						value={ fontHeader }
@@ -234,8 +241,6 @@ export const Styling = compose( [
 					>
 						{ renderFontOptions() }
 					</SelectControl>
-				</PanelRow>
-				<PanelRow>
 					<SelectControl
 						label={ __( 'Body font', 'newspack-newsletters' ) }
 						value={ fontBody }
@@ -245,7 +250,7 @@ export const Styling = compose( [
 					>
 						{ renderFontOptions() }
 					</SelectControl>
-				</PanelRow>
+				</VStack>
 			</PanelBody>
 			<PanelBody name="newsletters-css-panel" title={ __( 'Custom CSS', 'newspack-newsletters' ) } initialOpen={ false }>
 				<PanelRow className="newspack-newsletters__css-panel">
