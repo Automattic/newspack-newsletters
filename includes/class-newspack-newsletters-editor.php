@@ -398,7 +398,12 @@ final class Newspack_Newsletters_Editor {
 					'wideSize'    => '600px',
 				],
 			],
-			'styles'   => [
+		];
+
+		// Only override button element styles for block themes — classic themes
+		// use their own neutral defaults and don't need the opinionated blue.
+		if ( wp_is_block_theme() ) {
+			$email_overrides['styles'] = [
 				'elements' => [
 					'button' => [
 						'color'   => [
@@ -418,8 +423,8 @@ final class Newspack_Newsletters_Editor {
 						],
 					],
 				],
-			],
-		];
+			];
+		}
 
 		return $theme_json->update_with( $email_overrides );
 	}

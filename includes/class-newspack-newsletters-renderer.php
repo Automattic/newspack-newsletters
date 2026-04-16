@@ -1219,7 +1219,7 @@ final class Newspack_Newsletters_Renderer {
 				// Strip border and padding from column_attrs so individual button
 				// columns don't inherit the container's border or padding.
 				unset( $column_attrs['border'], $column_attrs['border-radius'] );
-				$column_attrs['padding'] = '0';
+				$column_attrs['padding'] = '12px';
 
 				// If the total width of the buttons is greater than 100%, reduce the default width.
 				if ( ( $default_width * $no_widths ) + $total_defined_width > 100 ) {
@@ -1247,7 +1247,10 @@ final class Newspack_Newsletters_Renderer {
 
 					$attrs         = self::process_attributes( $button_block['attrs'] );
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '5px';
+					$is_block_theme       = wp_is_block_theme();
+					$default_bg           = $is_block_theme ? '#36f' : '#32373c';
+					$default_border_radius = $is_block_theme ? '5px' : '999px';
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : $default_border_radius;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
@@ -1261,12 +1264,12 @@ final class Newspack_Newsletters_Renderer {
 						'font-family'   => $font_family,
 						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
-						'color'         => $is_outlined ? '#36f' : '#fff !important',
+						'color'         => $is_outlined ? $default_bg : '#fff !important',
 					);
 					if ( $is_outlined ) {
 						$default_button_attrs['background-color'] = 'transparent';
 					} else {
-						$default_button_attrs['background-color'] = '#36f';
+						$default_button_attrs['background-color'] = $default_bg;
 					}
 					if ( ! empty( $attrs['background-color'] ) ) {
 						$default_button_attrs['background-color'] = $attrs['background-color'];
