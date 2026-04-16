@@ -224,24 +224,28 @@ export const Styling = compose( [
 				] }
 			/>
 			<PanelBody name="newsletters-typography-panel" title={ __( 'Typography', 'newspack-newsletters' ) }>
-				<SelectControl
-					label={ __( 'Headings font', 'newspack-newsletters' ) }
-					value={ fontHeader }
-					onChange={ value => updateStyleValue( 'font_header', value ) }
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
-				>
-					{ renderFontOptions() }
-				</SelectControl>
-				<SelectControl
-					label={ __( 'Body font', 'newspack-newsletters' ) }
-					value={ fontBody }
-					onChange={ value => updateStyleValue( 'font_body', value ) }
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
-				>
-					{ renderFontOptions() }
-				</SelectControl>
+				<PanelRow>
+					<SelectControl
+						label={ __( 'Headings font', 'newspack-newsletters' ) }
+						value={ fontHeader }
+						onChange={ value => updateStyleValue( 'font_header', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+					>
+						{ renderFontOptions() }
+					</SelectControl>
+				</PanelRow>
+				<PanelRow>
+					<SelectControl
+						label={ __( 'Body font', 'newspack-newsletters' ) }
+						value={ fontBody }
+						onChange={ value => updateStyleValue( 'font_body', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+					>
+						{ renderFontOptions() }
+					</SelectControl>
+				</PanelRow>
 			</PanelBody>
 			<PanelBody name="newsletters-css-panel" title={ __( 'Custom CSS', 'newspack-newsletters' ) } initialOpen={ false }>
 				<PanelRow className="newspack-newsletters__css-panel">
