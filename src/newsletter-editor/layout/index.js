@@ -141,7 +141,7 @@ export default compose( [
 		} );
 	};
 
-	const handeLayoutUpdate = () => {
+	const handleLayoutOverwrite = () => {
 		if (
 			// eslint-disable-next-line no-alert
 			confirm( __( 'Are you sure you want to overwrite this layout?', 'newspack-newsletters' ) )
@@ -200,7 +200,7 @@ export default compose( [
 							variant="secondary"
 							disabled={ isPostContentSameAsLayout || ( isSavingLayout && isManageModalVisible ) }
 							isBusy={ isSavingLayout && ! isManageModalVisible }
-							onClick={ handeLayoutUpdate }
+							onClick={ handleLayoutOverwrite }
 							__next40pxDefaultSize
 						>
 							{ __( 'Update layout', 'newspack-newsletters' ) }
