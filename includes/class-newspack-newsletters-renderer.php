@@ -1227,8 +1227,10 @@ final class Newspack_Newsletters_Renderer {
 					$is_multi_row  = true;
 				}
 
-				$block_mjml_array = [];
-
+				$block_mjml_array      = [];
+				$is_block_theme        = wp_is_block_theme();
+				$default_bg            = $is_block_theme ? '#36f' : '#32373c';
+				$default_border_radius = $is_block_theme ? '5px' : '999px';
 				foreach ( $inner_blocks as $button_block ) {
 					if ( empty( $button_block['innerHTML'] ) ) {
 						break;
@@ -1247,9 +1249,6 @@ final class Newspack_Newsletters_Renderer {
 
 					$attrs         = self::process_attributes( $button_block['attrs'] );
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$is_block_theme       = wp_is_block_theme();
-					$default_bg           = $is_block_theme ? '#36f' : '#32373c';
-					$default_border_radius = $is_block_theme ? '5px' : '999px';
 					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : $default_border_radius;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 

@@ -403,11 +403,15 @@ final class Newspack_Newsletters_Editor {
 		// Only override button element styles for block themes — classic themes
 		// use their own neutral defaults and don't need the opinionated blue.
 		if ( wp_is_block_theme() ) {
+			$primary_color = '#36f';
+			if ( method_exists( '\Newspack\Lite_Site', 'get_primary_color' ) ) {
+				$primary_color = Newspack\Lite_Site::get_primary_color();
+			}
 			$email_overrides['styles'] = [
 				'elements' => [
 					'button' => [
 						'color'   => [
-							'background' => '#36f',
+							'background' => $primary_color,
 							'text'       => '#fff',
 						],
 						'border'  => [
