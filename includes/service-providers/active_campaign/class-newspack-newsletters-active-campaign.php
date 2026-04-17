@@ -1780,17 +1780,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
-	 * Get contact fields for a list.
+	 * Get contact fields for Newspack integrations.
 	 *
-	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
-	 *
-	 * This is used by Newspack integrations to sync contact data.
-	 *
-	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
-	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
+	 * @param string|null $list_id The List ID (unused — ActiveCampaign contact fields are global).
+	 * @return array|WP_Error
 	 */
-	public function get_contact_fields( $list_id = null ) {
-		$cache_key = 'active_campaign_contact_fields';
+	public function get_contact_fields_for_integrations( $list_id = null ) {
+		$cache_key     = 'active_campaign_contact_fields_for_integrations';
 		$cached_fields = wp_cache_get( $cache_key );
 		if ( false !== $cached_fields ) {
 			return $cached_fields;
@@ -1801,11 +1797,69 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		$fields = [];
 		foreach ( $all_fields as $field ) {
-			$fields[] = [
-				'key' => $field['title'],
-			];
+			$fields[] = $this->map_contact_field_to_integration_schema( $field );
 		}
 		wp_cache_set( $cache_key, $fields, '', 5 * MINUTE_IN_SECONDS );
 		return $fields;
+	}
+
+	/**
+	 * Map an ActiveCampaign contact field to the Newspack integrations schema.
+	 *
+	 * AC types eligible for access-rule / segmentation defaults: text, textarea, date, datetime,
+	 * dropdown, radio, listbox, checkbox. Hidden and NULL-typed fields are exposed but not
+	 * promoted by default. All fields use the 'default' matching function — AC stores dropdown
+	 * selections as a single string value, so exact-equality matching against a chosen option works.
+	 *
+	 * @param array $field Raw field from the ActiveCampaign v3 /fields endpoint.
+	 * @return array
+	 */
+	private function map_contact_field_to_integration_schema( $field ) {
+		$type                   = isset( $field['type'] ) ? $field['type'] : 'text';
+		$enumerated_types       = [ 'dropdown', 'radio', 'listbox', 'checkbox' ];
+		$eligible_types         = array_merge( [ 'text', 'textarea', 'date', 'datetime' ], $enumerated_types );
+		$is_promoted_by_default = in_array( $type, $eligible_types, true );
+
+		$options = [];
+		if ( in_array( $type, $enumerated_types, true ) && ! empty( $field['id'] ) ) {
+			$options = $this->fetch_field_options( $field['id'] );
+		}
+
+		$name = ! empty( $field['title'] ) ? $field['title'] : ( $field['perstag'] ?? '' );
+
+		return [
+			'key'                 => $field['title'],
+			'name'                => $name,
+			'value_type'          => 'string',
+			'matching_function'   => 'default',
+			'options'             => $options,
+			'description'         => ! empty( $field['descript'] ) ? $field['descript'] : '',
+			'is_access_rule'      => $is_promoted_by_default,
+			'is_segment_criteria' => $is_promoted_by_default,
+		];
+	}
+
+	/**
+	 * Fetch the option list for an enumerated ActiveCampaign field.
+	 *
+	 * @param int|string $field_id The AC field ID.
+	 * @return array Array of [ 'value' => ..., 'label' => ... ] pairs (empty on failure).
+	 */
+	private function fetch_field_options( $field_id ) {
+		$response = $this->api_v3_request( 'fields/' . rawurlencode( (string) $field_id ) . '/options', 'GET' );
+		if ( is_wp_error( $response ) || empty( $response['fieldOptions'] ) ) {
+			return [];
+		}
+		$options = [];
+		foreach ( $response['fieldOptions'] as $option ) {
+			if ( ! isset( $option['value'] ) ) {
+				continue;
+			}
+			$options[] = [
+				'value' => $option['value'],
+				'label' => isset( $option['label'] ) ? $option['label'] : $option['value'],
+			];
+		}
+		return $options;
 	}
 }
