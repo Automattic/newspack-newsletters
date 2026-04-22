@@ -319,7 +319,7 @@ const PostsInserterBlock = ( {
 				<PostsPreview
 					isReady={ isReady }
 					blocks={ templateBlocks }
-					viewportWidth={ 'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage ? 574 : 1148 }
+					viewportWidth={ 'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage ? 600 : 1148 }
 					className={ attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null }
 				/>
 			</div>
