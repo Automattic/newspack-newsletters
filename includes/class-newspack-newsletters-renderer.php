@@ -139,7 +139,7 @@ final class Newspack_Newsletters_Renderer {
 	 * Get font size based on block attributes.
 	 *
 	 * @param array $block_attrs Block attributes.
-	 * @return string font size.
+	 * @return string|null Font size, or null when no size attribute is set or the preset is unknown.
 	 */
 	private static function get_font_size( $block_attrs ) {
 		if ( isset( $block_attrs['customFontSize'] ) ) {
@@ -147,15 +147,23 @@ final class Newspack_Newsletters_Renderer {
 		}
 		if ( isset( $block_attrs['fontSize'] ) ) {
 			$sizes = array(
-				'small'   => '12px',
-				'normal'  => '16px',
-				'medium'  => '16px',
-				'large'   => '24px',
-				'huge'    => '36px',
-				'x-large' => '36px',
+				'xx-small'     => '8px',
+				'x-small'      => '10px',
+				'small'        => '12px',
+				'normal'       => '16px',
+				'medium'       => '16px',
+				'large'        => '24px',
+				'huge'         => '36px',
+				'x-large'      => '36px',
+				'xx-large'     => '40px',
+				'xxx-large'    => '48px',
+				'xxxx-large'   => '56px',
+				'xxxxx-large'  => '64px',
+				'xxxxxx-large' => '72px',
 			);
-			return $sizes[ $block_attrs['fontSize'] ];
+			return $sizes[ $block_attrs['fontSize'] ] ?? null;
 		}
+		return null;
 	}
 
 	/**

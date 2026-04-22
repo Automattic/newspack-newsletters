@@ -8,20 +8,19 @@ import classnames from 'classnames';
  * WordPress dependencies
  */
 import { registerBlockType } from '@wordpress/blocks';
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
 import {
 	BaseControl,
-	Button,
 	FontSizePicker,
-	MenuItem,
-	MenuGroup,
 	PanelBody,
 	RangeControl,
 	ToggleControl,
 	Toolbar,
-	ToolbarDropdownMenu,
+	ToolbarButton,
+	__experimentalToggleGroupControl as ToggleGroupControl, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+	__experimentalToggleGroupControlOption as ToggleGroupControlOption, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
 import {
 	BlockControls,
@@ -31,7 +30,7 @@ import {
 	__experimentalPanelColorGradientSettings as PanelColorGradientSettings, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/block-editor';
 import { Fragment, useEffect, useMemo, useState } from '@wordpress/element';
-import { Icon, check, verse } from '@wordpress/icons';
+import { pages } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -161,15 +160,18 @@ const PostsInserterBlock = ( {
 	const imageSizeOptions = [
 		{
 			value: 'small',
-			name: __( 'Small', 'newspack-newsletters' ),
+			label: _x( 'S', 'image size abbreviation', 'newspack-newsletters' ),
+			ariaLabel: __( 'Small', 'newspack-newsletters' ),
 		},
 		{
 			value: 'medium',
-			name: __( 'Medium', 'newspack-newsletters' ),
+			label: _x( 'M', 'image size abbreviation', 'newspack-newsletters' ),
+			ariaLabel: __( 'Medium', 'newspack-newsletters' ),
 		},
 		{
 			value: 'large',
-			name: __( 'Large', 'newspack-newsletters' ),
+			label: _x( 'L', 'image size abbreviation', 'newspack-newsletters' ),
+			ariaLabel: __( 'Large', 'newspack-newsletters' ),
 		},
 	];
 
@@ -216,6 +218,27 @@ const PostsInserterBlock = ( {
 						checked={ attributes.displayContinueReading }
 						onChange={ value => setAttributes( { displayContinueReading: value } ) }
 					/>
+					{ attributes.displayFeaturedImage &&
+						( attributes.featuredImageAlignment === 'left' || attributes.featuredImageAlignment === 'right' ) && (
+							<ToggleGroupControl
+								label={ __( 'Image size', 'newspack-newsletters' ) }
+								value={ attributes.featuredImageSize || 'large' }
+								onChange={ value => setAttributes( { featuredImageSize: value } ) }
+								isBlock
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+							>
+								{ imageSizeOptions.map( option => (
+									<ToggleGroupControlOption
+										key={ option.value }
+										value={ option.value }
+										label={ option.label }
+										aria-label={ option.ariaLabel }
+										showTooltip
+									/>
+								) ) }
+							</ToggleGroupControl>
+						) }
 				</PanelBody>
 				<PanelBody title={ __( 'Sorting & Filtering', 'newspack-newsletters' ) }>
 					<QueryControlsSettings attributes={ attributes } setAttributes={ setAttributes } />
@@ -284,61 +307,21 @@ const PostsInserterBlock = ( {
 			</InspectorControls>
 
 			<BlockControls>
-				{ attributes.displayFeaturedImage && (
-					<>
-						<Toolbar controls={ blockControlsImages } />
-						{ ( attributes.featuredImageAlignment === 'left' || attributes.featuredImageAlignment === 'right' ) && (
-							<Toolbar>
-								<ToolbarDropdownMenu text={ __( 'Image Size', 'newspack-newsletters' ) } icon={ null }>
-									{ ( { onClose } ) => (
-										<MenuGroup>
-											{ imageSizeOptions.map( entry => {
-												return (
-													<MenuItem
-														icon={
-															( attributes.featuredImageSize === entry.value ||
-																( ! attributes.featuredImageSize && entry.value === 'large' ) ) &&
-															check
-														}
-														isSelected={ attributes.featuredImageSize === entry.value }
-														key={ entry.value }
-														onClick={ () => {
-															setAttributes( {
-																featuredImageSize: entry.value,
-															} );
-														} }
-														onClose={ onClose }
-														role="menuitemradio"
-													>
-														{ entry.name }
-													</MenuItem>
-												);
-											} ) }
-										</MenuGroup>
-									) }
-								</ToolbarDropdownMenu>
-							</Toolbar>
-						) }
-					</>
-				) }
+				{ attributes.displayFeaturedImage && <Toolbar controls={ blockControlsImages } /> }
+				<Toolbar>
+					<ToolbarButton onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
+						{ __( 'Insert posts', 'newspack-newsletters' ) }
+					</ToolbarButton>
+				</Toolbar>
 			</BlockControls>
 
 			<div { ...blockProps }>
-				<div className="newspack-posts-inserter__header">
-					<Icon icon={ verse } />
-					<span>{ __( 'Posts Inserter', 'newspack-newsletters' ) }</span>
-				</div>
 				<PostsPreview
 					isReady={ isReady }
 					blocks={ templateBlocks }
-					viewportWidth={ 'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage ? 574 : 1148 }
+					viewportWidth={ 'top' === attributes.featuredImageAlignment || ! attributes.displayFeaturedImage ? 600 : 1148 }
 					className={ attributes.displayFeaturedImage ? 'image-' + attributes.featuredImageAlignment : null }
 				/>
-				<div className="newspack-posts-inserter__footer">
-					<Button variant="primary" onClick={ () => setAttributes( { areBlocksInserted: true } ) }>
-						{ __( 'Insert posts', 'newspack-newsletters' ) }
-					</Button>
-				</div>
 			</div>
 		</Fragment>
 	);
@@ -427,7 +410,7 @@ export default () => {
 		title: __( 'Posts Inserter', 'newspack-newsletters' ),
 		description: __( 'Lets you insert posts into your newsletter.', 'newspack-newsletters' ),
 		icon: {
-			src: verse,
+			src: pages,
 			foreground: '#406ebc',
 		},
 		edit: PostsInserterBlockWithSelect,

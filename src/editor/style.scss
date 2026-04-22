@@ -1,13 +1,13 @@
 :root {
-	--newspack-header-font: arial, sans-serif;
-	--newspack-body-font: georgia, serif;
-	--newspack-max-width: 600px;
+	--newspack-newsletters-header-font: arial, sans-serif;
+	--newspack-newsletters-body-font: georgia, serif;
+	--newspack-newsletters-max-width: 600px;
 }
 
 .wp-block {
 	margin-left: auto;
 	margin-right: auto;
-	max-width: var(--newspack-max-width);
+	max-width: var(--newspack-newsletters-max-width);
 	padding: 12px;
 }
 
@@ -17,33 +17,58 @@
 	}
 
 	.editor-post-title {
-		font-family: var(--newspack-header-font);
+		font-family: var(--newspack-newsletters-header-font);
 		line-height: 1.5;
 	}
 
 	.block-editor-block-list__layout {
+		--wp--preset--font-size--xx-small: 8px;
+		--wp--preset--font-size--x-small: 10px;
 		--wp--preset--font-size--small: 12px;
 		--wp--preset--font-size--normal: 16px;
 		--wp--preset--font-size--medium: 16px;
 		--wp--preset--font-size--large: 24px;
 		--wp--preset--font-size--x-large: 36px;
 		--wp--preset--font-size--huge: 36px;
+		--wp--preset--font-size--xx-large: 40px;
+		--wp--preset--font-size--xxx-large: 48px;
+		--wp--preset--font-size--xxxx-large: 56px;
+		--wp--preset--font-size--xxxxx-large: 64px;
+		--wp--preset--font-size--xxxxxx-large: 72px;
 
 		&.is-root-container {
+			// Root padding is zeroed, so zero the CSS variables core uses
+			// for the alignfull break-out negative margin — otherwise full-
+			// width blocks push 8px past the canvas and cause horizontal
+			// scroll.
+			--wp--style--root--padding-left: 0;
+			--wp--style--root--padding-right: 0;
 			padding-left: 0;
 			padding-right: 0;
+
+			> :where(:not([data-align="left"]):not([data-align="right"]):not([data-align="full"])) {
+				max-width: var(--newspack-newsletters-max-width);
+			}
+
+			// Classic themes use `is-layout-flow` on the root container, so
+			// core's constrained-layout CSS that resets alignfull to full width
+			// doesn't apply. Force it here, and zero the -8px margin core's
+			// classic.css applies to alignfull children of the root container.
+			> .wp-block[data-align="full"] {
+				margin-left: 0;
+				margin-right: 0;
+				max-width: none;
+			}
 		}
 
 		* {
 			line-height: 1.5;
 
 			&:not(code) {
-				font-family: var(--newspack-body-font);
+				font-family: var(--newspack-newsletters-body-font);
 			}
 		}
 
-		.newspack-posts-inserter__header span,
-		.components-button,
 		.block-editor-block-list__block .components-placeholder,
 		.block-editor-block-list__block .components-placeholder div {
 			font-family: "Noto Serif", helvetica, arial, sans-serif;
@@ -55,7 +80,7 @@
 		h4,
 		h5,
 		h6 {
-			font-family: var(--newspack-header-font);
+			font-family: var(--newspack-newsletters-header-font);
 			line-height: 1.5;
 		}
 
@@ -310,7 +335,7 @@
 			.wp-block-separator {
 				background: none !important;
 				border-bottom: 1px solid;
-				max-width: calc(var(--newspack-max-width) - 24px);
+				max-width: calc(var(--newspack-newsletters-max-width) - 24px);
 				margin-bottom: 12px;
 				opacity: 1;
 				padding-top: 12px;
@@ -372,6 +397,12 @@
 				}
 			}
 		}
+		.has-xx-small-font-size {
+			font-size: var(--wp--preset--font-size--xx-small);
+		}
+		.has-x-small-font-size {
+			font-size: var(--wp--preset--font-size--x-small);
+		}
 		.has-small-font-size {
 			font-size: var(--wp--preset--font-size--small);
 		}
@@ -389,6 +420,21 @@
 		}
 		.has-huge-font-size {
 			font-size: var(--wp--preset--font-size--huge);
+		}
+		.has-xx-large-font-size {
+			font-size: var(--wp--preset--font-size--xx-large);
+		}
+		.has-xxx-large-font-size {
+			font-size: var(--wp--preset--font-size--xxx-large);
+		}
+		.has-xxxx-large-font-size {
+			font-size: var(--wp--preset--font-size--xxxx-large);
+		}
+		.has-xxxxx-large-font-size {
+			font-size: var(--wp--preset--font-size--xxxxx-large);
+		}
+		.has-xxxxxx-large-font-size {
+			font-size: var(--wp--preset--font-size--xxxxxx-large);
 		}
 	}
 }

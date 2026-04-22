@@ -112,6 +112,8 @@ const Autocomplete = ( { availableItems, label = '', onChange, onFocus, onInputC
 					value={ [] }
 					__experimentalExpandOnFocus={ true }
 					__experimentalShowHowTo={ false }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
 				/>
 				{ error && (
 					<p className="newspack-newsletters__error">{ error?.message || __( 'Error fetching send lists.', 'newspack-newsletters' ) }</p>

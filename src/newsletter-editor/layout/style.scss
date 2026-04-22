@@ -7,7 +7,6 @@
 	}
 
 	&__item {
-		margin: 0 0 16px;
 		width: 100%;
 	}
 
@@ -69,6 +68,11 @@
 	&__item-label {
 		padding: 4px 2px;
 		text-align: center;
+
+		&:empty {
+			display: none;
+		}
+
 		input {
 			text-align: center;
 			border-color: transparent !important;
