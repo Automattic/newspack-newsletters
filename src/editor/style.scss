@@ -52,8 +52,11 @@
 
 			// Classic themes use `is-layout-flow` on the root container, so
 			// core's constrained-layout CSS that resets alignfull to full width
-			// doesn't apply. Force it here.
-			> [data-align="full"] {
+			// doesn't apply. Force it here, and zero the -8px margin core's
+			// classic.css applies to alignfull children of the root container.
+			> .wp-block[data-align="full"] {
+				margin-left: 0;
+				margin-right: 0;
 				max-width: none;
 			}
 		}

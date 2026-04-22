@@ -68,6 +68,12 @@
 				}
 			}
 		}
+
+		&.image-top {
+			.block-editor-block-preview__content {
+				padding: 14px 0;
+			}
+		}
 	}
 }
 
