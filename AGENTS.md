@@ -73,3 +73,9 @@ When merging `epic/newsletters-modernisation` back to trunk, do the following be
 2. **Restore `.github/CODEOWNERS`** to its trunk content (a single line: `* @Automattic/newspack-product`). The file on this branch is currently a comment-only stub that disables auto-review requests during epic iteration.
 
 See `docs/newsletter-modernisation/CONTEXT.md` "Decisions log" for the rationale behind both items.
+
+<!--
+=====================================================================
+END epic branch addendum — anything below this marker is shared with trunk.
+=====================================================================
+-->
