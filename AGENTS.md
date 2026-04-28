@@ -48,3 +48,28 @@ Requires PHP, JS, and registration. See Constant Contact or ActiveCampaign for s
 4. Add provider-specific UI in `src/service-providers/<name>/`. Export an object matching the shape in `src/service-providers/index.js` (`ProviderSidebar`, `renderPreSendInfo`, `isCampaignSent`), and add it to the `SERVICE_PROVIDERS` map.
 5. Run `composer dump-autoload`.
 6. Rebuild: `n build`.
+
+<!--
+=====================================================================
+Epic branch addendum — REMOVE this entire section (and apply the
+pre-merge checklist below) before merging epic/newsletters-modernisation
+back into trunk. See docs/newsletter-modernisation/CONTEXT.md
+"Decisions log" for context.
+=====================================================================
+-->
+
+## Working on `epic/newsletters-modernisation`
+
+If you are on `epic/newsletters-modernisation` (or any feature branch off it):
+
+1. **Read `docs/newsletter-modernisation/CONTEXT.md` in full at the start of the session.** It is the authoritative record of decisions, rationale, constraints, and open questions for this work.
+2. **Treat the contract in that file's "How to use this doc" section as binding** — including the rule that PRs into the epic update the Decisions log when they introduce a decision, gotcha, learning, or shift in scope (or explicitly state "No context change." in the PR description if not).
+
+### Pre-merge checklist (epic → trunk)
+
+When merging `epic/newsletters-modernisation` back to trunk, do the following before completing the merge:
+
+1. **Remove this entire "Working on `epic/newsletters-modernisation`" section** from `AGENTS.md` (including the HTML comment marker above and this checklist). It is epic-only scaffolding.
+2. **Restore `.github/CODEOWNERS`** to its trunk content (a single line: `* @Automattic/newspack-product`). The file on this branch is currently a comment-only stub that disables auto-review requests during epic iteration.
+
+See `docs/newsletter-modernisation/CONTEXT.md` "Decisions log" for the rationale behind both items.
