@@ -4,9 +4,11 @@ This document captures the *why* behind decisions for the newsletter modernisati
 
 ## How to use this doc
 
-- Read at the start of any session on this project.
-- Every PR into `epic/newsletters-modernisation` should consider whether it introduces a decision, gotcha, learning, or shift in scope worth capturing here. If yes, update the relevant section in the same PR. If purely additive (a new gotcha, a closed open question), append to the **Decisions log** with a date prefix.
-- Tone: terse but explanatory. Future readers won't have the conversation that produced each decision — they need the reasoning, not just the conclusion.
+This is the contract for anyone — human or AI agent — working on `epic/newsletters-modernisation`:
+
+1. **Before starting a session** on this branch (or any feature branch off it): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
+2. **Before opening a PR** into `epic/newsletters-modernisation`: decide whether your work introduces a decision, gotcha, learning, or shift in scope. If yes, update the relevant section and append a dated entry to the **Decisions log** in the same PR. If no context change applies, say so explicitly in the PR description (e.g. "No context change.").
+3. **Tone:** terse but explanatory. Future readers won't have the conversation that produced each decision — they need the reasoning, not just the conclusion.
 
 ## Strategy
 
@@ -32,7 +34,12 @@ class Column extends WC_Column {
 }
 ```
 
-**Hard constraint:** existing in-flight newsletters must keep rendering through MJML during migration. Drafts cannot be broken. Migration runs behind a feature flag with a dual-pipeline period.
+**Rollout: dual pipelines behind a feature flag, not a big-bang switch.** Newsletters are brittle and critical — a phased rollout is the safe path. Both pipelines coexist for a soak period:
+
+- New newsletters created post-flag opt into the WC pipeline.
+- Existing in-flight newsletters and drafts continue rendering through MJML and must not break.
+- A documented migration path lets publishers switch deliberately when ready.
+- The flag stays in place until block-by-block QA and email-client testing pass; only then is MJML removed.
 
 **Parallel decision (not solved by replacing the PHP path):** the JS-side `mjml-browser` editor preview in `src/editor/mjml/index.js` also needs to be replaced — either with `@woocommerce/email-editor` JS, a server round-trip, or a hybrid.
 
@@ -48,6 +55,8 @@ Three workstreams running in parallel:
 
 A running list of decisions made as the project progresses. Newest entries at the top.
 
+- **2026-04-28** — Confirmed phased rollout via dual pipelines + feature flag, not a big-bang cutover. New newsletters created post-flag opt into the WC pipeline; existing drafts continue rendering through MJML; the flag stays until block-by-block QA and email-client testing pass. The rollout work is captured as a dedicated work item in the Editor refactor backlog.
+- **2026-04-28** — Added an epic-only addendum to `AGENTS.md` pointing agents at this doc as the authoritative contract for sessions on `epic/newsletters-modernisation`. **When merging epic → trunk, remove the addendum** — see the inline marker in `AGENTS.md` ("Epic branch addendum").
 - **2026-04-27** — Project kick-off. WC email-editor confirmed as the replacement for MJML, with the downstream override pattern for impedance mismatches.
 - **2026-04-27** — Overrode `.github/CODEOWNERS` on this branch (emptied to a comment-only file) to skip auto-review requests from `@Automattic/newspack-product` during long-running iteration on the epic. **When merging epic → trunk, restore the original rule (`* @Automattic/newspack-product`)** — the `.github/CODEOWNERS` file on this branch carries an inline reminder for whoever performs the merge.
 

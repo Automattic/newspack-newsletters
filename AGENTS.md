@@ -48,3 +48,17 @@ Requires PHP, JS, and registration. See Constant Contact or ActiveCampaign for s
 4. Add provider-specific UI in `src/service-providers/<name>/`. Export an object matching the shape in `src/service-providers/index.js` (`ProviderSidebar`, `renderPreSendInfo`, `isCampaignSent`), and add it to the `SERVICE_PROVIDERS` map.
 5. Run `composer dump-autoload`.
 6. Rebuild: `n build`.
+
+<!--
+=====================================================================
+Epic branch addendum — REMOVE before merging epic/newsletters-modernisation back into trunk.
+See docs/newsletter-modernisation/CONTEXT.md "Decisions log" for context.
+=====================================================================
+-->
+
+## Working on `epic/newsletters-modernisation`
+
+If you are on `epic/newsletters-modernisation` (or any feature branch off it):
+
+1. **Read `docs/newsletter-modernisation/CONTEXT.md` in full at the start of the session.** It is the authoritative record of decisions, rationale, constraints, and open questions for this work.
+2. **Treat the contract in that file's "How to use this doc" section as binding** — including the rule that PRs into the epic update the Decisions log when they introduce a decision, gotcha, learning, or shift in scope (or explicitly state "No context change." in the PR description if not).
