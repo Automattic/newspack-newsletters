@@ -2293,7 +2293,10 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 		$fields = [];
 		foreach ( $all_fields as $field ) {
-			$fields[] = self::map_merge_field_to_integration_schema( $field );
+			$mapped = self::map_merge_field_to_integration_schema( $field );
+			if ( null !== $mapped ) {
+				$fields[] = $mapped;
+			}
 		}
 		return $fields;
 	}
@@ -2305,9 +2308,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Other types (phone, url, imageurl, birthday, zip, address) are exposed but not promoted by default.
 	 *
 	 * @param array $field Raw merge field from the Mailchimp API.
-	 * @return array
+	 * @return array|null Mapped field, or null if no usable identifier is available.
 	 */
 	private static function map_merge_field_to_integration_schema( $field ) {
+		$tag = isset( $field['tag'] ) ? (string) $field['tag'] : '';
+		if ( '' === $tag ) {
+			return null;
+		}
+
 		$type                 = isset( $field['type'] ) ? $field['type'] : 'text';
 		$eligible_types       = [ 'text', 'number', 'date', 'radio', 'dropdown' ];
 		$is_promoted_by_default = in_array( $type, $eligible_types, true );
@@ -2323,8 +2331,8 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		}
 
 		return [
-			'key'                 => $field['name'],
-			'name'                => ! empty( $field['name'] ) ? $field['name'] : $field['tag'],
+			'key'                 => $tag,
+			'name'                => ! empty( $field['name'] ) ? $field['name'] : $tag,
 			'value_type'          => 'string',
 			'matching_function'   => 'default',
 			'options'             => $options,

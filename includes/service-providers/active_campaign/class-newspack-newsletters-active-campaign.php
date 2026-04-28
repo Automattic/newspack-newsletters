@@ -1797,7 +1797,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		$fields = [];
 		foreach ( $all_fields as $field ) {
-			$fields[] = $this->map_contact_field_to_integration_schema( $field );
+			$mapped = $this->map_contact_field_to_integration_schema( $field );
+			if ( null !== $mapped ) {
+				$fields[] = $mapped;
+			}
 		}
 		wp_cache_set( $cache_key, $fields, '', 5 * MINUTE_IN_SECONDS );
 		return $fields;
@@ -1812,9 +1815,14 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 * selections as a single string value, so exact-equality matching against a chosen option works.
 	 *
 	 * @param array $field Raw field from the ActiveCampaign v3 /fields endpoint.
-	 * @return array
+	 * @return array|null Mapped field, or null if no usable identifier is available.
 	 */
 	private function map_contact_field_to_integration_schema( $field ) {
+		$perstag = isset( $field['perstag'] ) ? (string) $field['perstag'] : '';
+		if ( '' === $perstag ) {
+			return null;
+		}
+
 		$type                   = isset( $field['type'] ) ? $field['type'] : 'text';
 		$enumerated_types       = [ 'dropdown', 'radio', 'listbox', 'checkbox' ];
 		$eligible_types         = array_merge( [ 'text', 'textarea', 'date', 'datetime' ], $enumerated_types );
@@ -1825,11 +1833,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			$options = $this->fetch_field_options( $field['id'] );
 		}
 
-		$name = ! empty( $field['title'] ) ? $field['title'] : ( $field['perstag'] ?? '' );
-
 		return [
-			'key'                 => $field['title'],
-			'name'                => $name,
+			'key'                 => $perstag,
+			'name'                => ! empty( $field['title'] ) ? $field['title'] : $perstag,
 			'value_type'          => 'string',
 			'matching_function'   => 'default',
 			'options'             => $options,
