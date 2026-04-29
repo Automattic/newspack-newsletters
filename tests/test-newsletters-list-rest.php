@@ -158,4 +158,87 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'newspack_newsletters_status', $fields );
 		$this->assertIsCallable( $fields['newspack_newsletters_status']['get_callback'] );
 	}
+
+	/**
+	 * Helper: build a REST request with the given query params.
+	 *
+	 * @param array $params Query params keyed by name.
+	 * @return WP_REST_Request
+	 */
+	private function rest_request( $params ) {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		foreach ( $params as $key => $value ) {
+			$request->set_param( $key, $value );
+		}
+		return $request;
+	}
+
+	/**
+	 * The `newspack_newsletters_is_public=1` query arg adds a meta_query
+	 * clause matching only newsletters with `is_public` set to truthy.
+	 */
+	public function test_filter_rest_query_adds_is_public_clause_when_truthy() {
+		$args = Newsletters_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::IS_PUBLIC_QUERY_PARAM => '1' ] )
+		);
+
+		$this->assertNotEmpty( $args['meta_query'] );
+		$clause = $args['meta_query'][0];
+		$this->assertSame( 'is_public', $clause['key'] );
+		$this->assertSame( '1', $clause['value'] );
+		$this->assertSame( '=', $clause['compare'] );
+	}
+
+	/**
+	 * The `newspack_newsletters_is_public=0` arg matches newsletters where
+	 * the meta is missing OR set to anything other than truthy — the same
+	 * "not public" semantics as the column renderer.
+	 */
+	public function test_filter_rest_query_matches_missing_meta_when_falsy() {
+		$args = Newsletters_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::IS_PUBLIC_QUERY_PARAM => '0' ] )
+		);
+
+		$this->assertNotEmpty( $args['meta_query'] );
+		$clause = $args['meta_query'][0];
+		$this->assertSame( 'OR', $clause['relation'] );
+		$this->assertSame( 'is_public', $clause[0]['key'] );
+		$this->assertSame( 'NOT EXISTS', $clause[0]['compare'] );
+	}
+
+	/**
+	 * Without the query param the filter returns args untouched, so the
+	 * REST request behaves like a normal CPT query.
+	 */
+	public function test_filter_rest_query_passes_through_when_param_absent() {
+		$original = [ 'post_status' => 'publish' ];
+		$args     = Newsletters_List_REST::filter_rest_query(
+			$original,
+			$this->rest_request( [] )
+		);
+		$this->assertSame( $original, $args );
+	}
+
+	/**
+	 * Existing `meta_query` entries are preserved — the filter appends
+	 * its clause rather than replacing.
+	 */
+	public function test_filter_rest_query_appends_to_existing_meta_query() {
+		$existing = [
+			[
+				'key'   => 'something_else',
+				'value' => 'foo',
+			],
+		];
+		$args     = Newsletters_List_REST::filter_rest_query(
+			[ 'meta_query' => $existing ], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			$this->rest_request( [ Newsletters_List_REST::IS_PUBLIC_QUERY_PARAM => '1' ] )
+		);
+
+		$this->assertCount( 2, $args['meta_query'] );
+		$this->assertSame( $existing[0], $args['meta_query'][0] );
+		$this->assertSame( 'is_public', $args['meta_query'][1]['key'] );
+	}
 }

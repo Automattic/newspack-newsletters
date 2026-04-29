@@ -21,11 +21,65 @@ use WP_Post;
  * Register the REST field powering the list view's Status column.
  */
 class Newsletters_List_REST {
+	const IS_PUBLIC_QUERY_PARAM = 'newspack_newsletters_is_public';
+
 	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
+		add_filter(
+			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
+			[ __CLASS__, 'filter_rest_query' ],
+			10,
+			2
+		);
+	}
+
+	/**
+	 * Translate the React list's `newspack_newsletters_is_public` query arg
+	 * into a `meta_query` clause so the Public-page filter actually narrows
+	 * the result set. Accepts `'1'` / `'0'` (the value the DataView emits
+	 * from its filter elements) — anything else is ignored so the rest of
+	 * the request behaves like a normal CPT query.
+	 *
+	 * @param array            $args    Query args being assembled.
+	 * @param \WP_REST_Request $request Incoming REST request.
+	 * @return array
+	 */
+	public static function filter_rest_query( $args, $request ) {
+		$value = $request->get_param( self::IS_PUBLIC_QUERY_PARAM );
+		if ( null === $value || '' === $value ) {
+			return $args;
+		}
+
+		$is_public = '1' === (string) $value || true === $value;
+
+		$clause = $is_public
+			? [
+				'key'     => 'is_public',
+				'value'   => '1',
+				'compare' => '=',
+			]
+			: [
+				'relation' => 'OR',
+				[
+					'key'     => 'is_public',
+					'compare' => 'NOT EXISTS',
+				],
+				[
+					'key'     => 'is_public',
+					'value'   => '1',
+					'compare' => '!=',
+				],
+			];
+
+		if ( empty( $args['meta_query'] ) ) {
+			$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		}
+		$args['meta_query'][] = $clause; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+
+		return $args;
 	}
 
 	/**

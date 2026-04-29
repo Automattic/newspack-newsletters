@@ -94,8 +94,22 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * isolated from `wp_safe_redirect`'s exit behaviour.
 	 */
 	public function test_legacy_list_url_redirects_to_react_page() {
-		$expected = admin_url( 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-list' );
-		$this->assertSame( $expected, Admin_Shell::get_legacy_redirect_target() );
+		$target = Admin_Shell::get_legacy_redirect_target();
+		$this->assertStringContainsString( 'edit.php?', $target );
+		$this->assertStringContainsString( 'post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, $target );
+		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
+		$this->assertStringNotContainsString( 'post_status', $target );
+	}
+
+	/**
+	 * Deep links like `?post_type=newspack_nl_cpt&post_status=trash` forward
+	 * the `post_status` value onto the React page so the JS side can
+	 * pre-fill its filter (see `getInitialFilters`).
+	 */
+	public function test_legacy_redirect_forwards_post_status() {
+		$target = Admin_Shell::get_legacy_redirect_target( 'trash' );
+		$this->assertStringContainsString( 'post_status=trash', $target );
+		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
 	}
 
 	/**
