@@ -9,7 +9,7 @@
  */
 
 import { __, sprintf } from '@wordpress/i18n';
-import { dateI18n, getSettings as getDateSettings } from '@wordpress/date';
+import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
@@ -103,12 +103,14 @@ const renderDate = ( { item } ) => {
 		return '';
 	}
 	// `item.date` is the WP REST representation in the **site** timezone
-	// (no trailing `Z`). Pass it straight to `dateI18n` — the legacy
-	// `new Date( ... ).getTime()` round-trip parsed it as the **browser's**
-	// local timezone and shifted the displayed time for off-site admins.
+	// with no trailing `Z`. Passing the string directly to `dateI18n` lets
+	// moment parse it in the **browser's** local timezone first, which
+	// shifts the displayed value for admins outside the site timezone.
+	// `getDate` parses with the site's `wp.date.settings.timezone`, so the
+	// resulting Date object reflects the actual site-local moment.
 	const settings = getDateSettings();
 	const format = settings.formats?.datetime || 'M j, Y g:ia';
-	return dateI18n( format, item.date );
+	return dateI18n( format, getDate( item.date ) );
 };
 
 export function getFields() {
