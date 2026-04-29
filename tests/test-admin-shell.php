@@ -142,6 +142,68 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper: route requests through the redirect handler under fake screen
+	 * conditions so we can probe the action-detection logic without
+	 * actually redirecting.
+	 *
+	 * @param array $get GET superglobal contents.
+	 * @return bool True when the redirect would have run (i.e. exited).
+	 */
+	private function would_redirect_with_get( $get ) {
+		$_GET                       = $get;
+		$_SERVER['REQUEST_METHOD']  = 'GET';
+
+		$screen = WP_Screen::get( 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+
+		$reflection = new ReflectionMethod( Admin_Shell::class, 'has_real_get_action' );
+		$reflection->setAccessible( true );
+
+		// `has_real_get_action` is the gate the live redirect uses; if it
+		// returns false, the redirect would proceed.
+		$would_run = ! $reflection->invoke( null );
+
+		$_GET = [];
+		unset( $_SERVER['REQUEST_METHOD'] );
+		unset( $screen );
+
+		return $would_run;
+	}
+
+	/**
+	 * `action=-1` is WP's "no bulk action selected" sentinel — submitting
+	 * the bulk-actions form without picking one leaves it in the URL.
+	 * The redirect should still run for those stale URLs.
+	 */
+	public function test_legacy_redirect_runs_when_action_is_minus_one() {
+		$this->assertTrue( $this->would_redirect_with_get( [ 'action' => '-1' ] ) );
+	}
+
+	/**
+	 * Same sentinel can appear on the bottom-of-table dropdown as `action2`.
+	 */
+	public function test_legacy_redirect_runs_when_action2_is_minus_one() {
+		$this->assertTrue( $this->would_redirect_with_get( [ 'action2' => '-1' ] ) );
+		$this->assertTrue(
+			$this->would_redirect_with_get(
+				[
+					'action'  => '-1',
+					'action2' => '-1',
+				]
+			)
+		);
+	}
+
+	/**
+	 * Real bulk-action values (anything other than the `-1` sentinel)
+	 * still bypass the redirect so any classic form-submission flow has
+	 * a chance to run.
+	 */
+	public function test_legacy_redirect_skips_for_real_actions() {
+		$this->assertFalse( $this->would_redirect_with_get( [ 'action' => 'trash' ] ) );
+		$this->assertFalse( $this->would_redirect_with_get( [ 'action2' => 'edit' ] ) );
+	}
+
+	/**
 	 * Settings is registered with the CPT as parent so it appears as a
 	 * visible submenu in standalone mode. Regression: the previous shape
 	 * passed `null` for every page, which silently hid Settings.

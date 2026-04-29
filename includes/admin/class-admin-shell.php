@@ -124,6 +124,29 @@ class Admin_Shell {
 	const FORWARDED_LEGACY_ARGS = [ 'post_status', 's', 'orderby', 'order' ];
 
 	/**
+	 * Are any of the bulk-action selectors set to a real value (i.e. not
+	 * the `-1` "no action selected" sentinel WP submits when the user
+	 * leaves the dropdown alone)? Both `action` (top-of-table dropdown)
+	 * and `action2` (bottom-of-table dropdown) are checked.
+	 *
+	 * @return bool
+	 */
+	private static function has_real_get_action() {
+		foreach ( [ 'action', 'action2' ] as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+			if ( ! isset( $_GET[ $key ] ) ) {
+				continue;
+			}
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+			$value = sanitize_text_field( wp_unslash( $_GET[ $key ] ) );
+			if ( '' !== $value && '-1' !== $value ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Redirect legacy `edit.php?post_type=newspack_nl_cpt` GET requests
 	 * (deep links, browser history, third-party menu links) to the React
 	 * page. Form-submission GETs that carry `?action=` are left alone so
@@ -143,9 +166,13 @@ class Admin_Shell {
 		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
 			return;
 		}
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
-		if ( ! empty( $_GET['action'] ) ) {
-			// Defensive: leave any GET-with-action flow alone.
+
+		// `action=-1` (and the bottom dropdown's `action2=-1`) is WP's
+		// "no bulk action selected" sentinel — typically left in the URL
+		// after the user submits the bulk-actions form without picking
+		// one. Treat it as a no-op so those stale URLs still redirect to
+		// the React page; only bypass for real action values.
+		if ( self::has_real_get_action() ) {
 			return;
 		}
 
