@@ -11,7 +11,11 @@
 
 const POST_STATUS_TO_FILTER_VALUE = {
 	trash: 'trash',
-	draft: 'draft',
+	// Pending and draft both render as "Draft" in the column (see
+	// `compute_sent_at`), so deep links from either land on the
+	// combined Draft filter — same value the dropdown emits.
+	draft: 'draft,pending',
+	pending: 'draft,pending',
 	future: 'future',
 	publish: 'publish,private',
 	private: 'publish,private',

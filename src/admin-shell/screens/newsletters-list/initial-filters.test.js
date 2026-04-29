@@ -10,8 +10,16 @@ describe( 'getInitialFilters', () => {
 		expect( getInitialFilters( '?post_status=trash' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'trash' ] } ] );
 	} );
 
-	it( 'maps post_status=draft and post_status=future to their dedicated filter values', () => {
-		expect( getInitialFilters( '?post_status=draft' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'draft' ] } ] );
+	it( 'maps post_status=draft and post_status=pending to the combined draft filter', () => {
+		// Pending posts render as Draft in the column (compute_sent_at falls
+		// through to the draft kind), so deep links from either land on the
+		// same combined filter value.
+		const expected = [ { field: 'status', operator: 'isAny', value: [ 'draft,pending' ] } ];
+		expect( getInitialFilters( '?post_status=draft' ) ).toEqual( expected );
+		expect( getInitialFilters( '?post_status=pending' ) ).toEqual( expected );
+	} );
+
+	it( 'maps post_status=future to the scheduled filter', () => {
 		expect( getInitialFilters( '?post_status=future' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'future' ] } ] );
 	} );
 
@@ -23,8 +31,8 @@ describe( 'getInitialFilters', () => {
 	} );
 
 	it( 'returns no filters for an unknown post_status value', () => {
-		expect( getInitialFilters( '?post_status=pending' ) ).toEqual( [] );
 		expect( getInitialFilters( '?post_status=garbage' ) ).toEqual( [] );
+		expect( getInitialFilters( '?post_status=auto-draft' ) ).toEqual( [] );
 	} );
 
 	it( 'preserves other query params and only reads post_status', () => {
