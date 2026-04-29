@@ -24,8 +24,15 @@ const formatDate = timestamp => {
 
 const editUrl = item => `${ window.newspackNewslettersAdmin.adminUrl }post.php?post=${ item.id }&action=edit`;
 
+// `title.rendered` is HTML-encoded by WP REST, so entities like `&amp;`
+// or `&#8217;` would display literally in the DataView. Prefer
+// `title.raw` (always present with `context=edit`, which we request) and
+// fall back to the rendered value for safety. Reused by `getValue` so
+// search / sort / display stay consistent.
+const getTitle = item => item?.title?.raw ?? item?.title?.rendered ?? '';
+
 const renderTitle = ( { item } ) => {
-	const title = item?.title?.rendered || __( '(no title)', 'newspack-newsletters' );
+	const title = getTitle( item ) || __( '(no title)', 'newspack-newsletters' );
 	return (
 		<a className="newspack-newsletters-list__title" href={ editUrl( item ) }>
 			<strong>{ title }</strong>
@@ -111,7 +118,7 @@ export function getFields() {
 			id: 'title',
 			label: __( 'Title', 'newspack-newsletters' ),
 			enableGlobalSearch: true,
-			getValue: ( { item } ) => item?.title?.rendered || '',
+			getValue: ( { item } ) => getTitle( item ),
 			render: renderTitle,
 		},
 		{
