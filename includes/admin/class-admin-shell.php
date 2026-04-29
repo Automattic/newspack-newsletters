@@ -112,12 +112,22 @@ class Admin_Shell {
 	}
 
 	/**
+	 * Query args we forward from the legacy URL onto the React page so the
+	 * JS side can seed initial view state. `paged` is deliberately
+	 * omitted — the legacy WP list table uses 20 items per page while the
+	 * DataView defaults to 25, so a `paged=N` carry-over would point at
+	 * the wrong slice anyway. Stick to filter / search / sort args that
+	 * map cleanly onto DataViews state.
+	 */
+	const FORWARDED_LEGACY_ARGS = [ 'post_status', 's', 'orderby', 'order' ];
+
+	/**
 	 * Redirect legacy `edit.php?post_type=newspack_nl_cpt` GET requests
 	 * (deep links, browser history, third-party menu links) to the React
 	 * page. Form-submission GETs that carry `?action=` are left alone so
-	 * any classic admin flows continue to work. The `post_status` query
-	 * arg, if present, is forwarded so the React page can pre-fill its
-	 * status filter from URL state (see the JS-side initial filters).
+	 * any classic admin flows continue to work. Filter/search/sort args
+	 * are forwarded so the React page can pre-fill view state — see
+	 * `getInitialView` on the JS side.
 	 *
 	 * @param \WP_Screen $screen Current screen.
 	 */
@@ -137,28 +147,49 @@ class Admin_Shell {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
-		$post_status = isset( $_GET['post_status'] ) ? sanitize_key( wp_unslash( $_GET['post_status'] ) ) : '';
-		wp_safe_redirect( self::get_legacy_redirect_target( $post_status ) );
+		$forwarded = [];
+		foreach ( self::FORWARDED_LEGACY_ARGS as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+			if ( ! isset( $_GET[ $key ] ) ) {
+				continue;
+			}
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitised below.
+			$value = wp_unslash( $_GET[ $key ] );
+			if ( '' === $value ) {
+				continue;
+			}
+			$forwarded[ $key ] = is_array( $value ) ? array_map( 'sanitize_text_field', $value ) : sanitize_text_field( $value );
+		}
+
+		wp_safe_redirect( self::get_legacy_redirect_target( $forwarded ) );
 		exit;
 	}
 
 	/**
 	 * Target URL for the legacy redirect. Exposed so tests can assert against
-	 * it without invoking `wp_safe_redirect`. When `$post_status` is
-	 * provided, it's forwarded so the React page can pre-fill its filter.
+	 * it without invoking `wp_safe_redirect`. The `$forwarded` array (or
+	 * back-compat string treated as `post_status`) is appended to the
+	 * redirect URL so the React page can seed its view state.
 	 *
-	 * @param string $post_status Optional `post_status` value to forward.
+	 * @param array|string $forwarded Forwarded query args, or a `post_status` string.
 	 * @return string
 	 */
-	public static function get_legacy_redirect_target( $post_status = '' ) {
+	public static function get_legacy_redirect_target( $forwarded = [] ) {
 		$args = [
 			'post_type' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			'page'      => 'newspack-newsletters-list',
 		];
-		if ( $post_status ) {
-			$args['post_status'] = $post_status;
+
+		if ( is_string( $forwarded ) ) {
+			$forwarded = '' === $forwarded ? [] : [ 'post_status' => $forwarded ];
 		}
+
+		foreach ( self::FORWARDED_LEGACY_ARGS as $key ) {
+			if ( ! empty( $forwarded[ $key ] ) ) {
+				$args[ $key ] = $forwarded[ $key ];
+			}
+		}
+
 		return add_query_arg( $args, admin_url( 'edit.php' ) );
 	}
 

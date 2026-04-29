@@ -39,9 +39,9 @@ class Newsletters_List_REST {
 	/**
 	 * Translate the React list's `newspack_newsletters_is_public` query arg
 	 * into a `meta_query` clause so the Public-page filter actually narrows
-	 * the result set. Accepts `'1'` / `'0'` (the value the DataView emits
-	 * from its filter elements) — anything else is ignored so the rest of
-	 * the request behaves like a normal CPT query.
+	 * the result set. Strict whitelist: accepts only `'1'` / `'0'` (or
+	 * boolean `true` / `false`) — anything else is ignored so unexpected
+	 * values can't silently flip the filter.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -49,11 +49,15 @@ class Newsletters_List_REST {
 	 */
 	public static function filter_rest_query( $args, $request ) {
 		$value = $request->get_param( self::IS_PUBLIC_QUERY_PARAM );
-		if ( null === $value || '' === $value ) {
+
+		if ( true === $value || '1' === $value || 1 === $value ) {
+			$is_public = true;
+		} elseif ( false === $value || '0' === $value || 0 === $value ) {
+			$is_public = false;
+		} else {
+			// Null, empty string, or anything outside the whitelist — pass through.
 			return $args;
 		}
-
-		$is_public = '1' === (string) $value || true === $value;
 
 		$clause = $is_public
 			? [

@@ -104,12 +104,41 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	/**
 	 * Deep links like `?post_type=newspack_nl_cpt&post_status=trash` forward
 	 * the `post_status` value onto the React page so the JS side can
-	 * pre-fill its filter (see `getInitialFilters`).
+	 * pre-fill its filter (see `getInitialView`). String form retained for
+	 * back-compat with the original signature.
 	 */
 	public function test_legacy_redirect_forwards_post_status() {
 		$target = Admin_Shell::get_legacy_redirect_target( 'trash' );
 		$this->assertStringContainsString( 'post_status=trash', $target );
 		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
+	}
+
+	/**
+	 * Search and sort are forwarded too so deep links to filtered/sorted
+	 * legacy URLs (`?s=…&orderby=title&order=asc`) land on the React page
+	 * with equivalent view state — Copilot review #2095.
+	 */
+	public function test_legacy_redirect_forwards_search_and_sort() {
+		$target = Admin_Shell::get_legacy_redirect_target(
+			[
+				's'       => 'weeklydigest',
+				'orderby' => 'title',
+				'order'   => 'asc',
+			]
+		);
+		$this->assertStringContainsString( 's=weeklydigest', $target );
+		$this->assertStringContainsString( 'orderby=title', $target );
+		$this->assertStringContainsString( 'order=asc', $target );
+	}
+
+	/**
+	 * `paged` is deliberately NOT forwarded — legacy WP_List_Table uses
+	 * 20 items per page while the DataView uses 25, so the page number
+	 * doesn't translate cleanly. The redirect drops it on the floor.
+	 */
+	public function test_legacy_redirect_drops_paged() {
+		$target = Admin_Shell::get_legacy_redirect_target( [ 'paged' => '3' ] );
+		$this->assertStringNotContainsString( 'paged=3', $target );
 	}
 
 	/**

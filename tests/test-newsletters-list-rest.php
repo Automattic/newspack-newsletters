@@ -222,6 +222,44 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Out-of-whitelist values (anything other than `'1'`/`'0'`/booleans)
+	 * are ignored rather than coerced — guards against unexpected values
+	 * silently flipping the filter to the "not public" branch.
+	 */
+	public function test_filter_rest_query_ignores_values_outside_whitelist() {
+		$original = [ 'post_status' => 'publish' ];
+
+		foreach ( [ '2', 'yes', 'no', 'true', 'foo', '' ] as $junk ) {
+			$args = Newsletters_List_REST::filter_rest_query(
+				$original,
+				$this->rest_request( [ Newsletters_List_REST::IS_PUBLIC_QUERY_PARAM => $junk ] )
+			);
+			$this->assertSame(
+				$original,
+				$args,
+				sprintf( 'Value %s should pass through unchanged.', wp_json_encode( $junk ) )
+			);
+		}
+	}
+
+	/**
+	 * Boolean true/false are accepted as equivalents to `'1'`/`'0'`.
+	 */
+	public function test_filter_rest_query_accepts_boolean_values() {
+		$true_args = Newsletters_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::IS_PUBLIC_QUERY_PARAM => true ] )
+		);
+		$this->assertSame( '=', $true_args['meta_query'][0]['compare'] );
+
+		$false_args = Newsletters_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::IS_PUBLIC_QUERY_PARAM => false ] )
+		);
+		$this->assertSame( 'OR', $false_args['meta_query'][0]['relation'] );
+	}
+
+	/**
 	 * Existing `meta_query` entries are preserved — the filter appends
 	 * its clause rather than replacing.
 	 */
