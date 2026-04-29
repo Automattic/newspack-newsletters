@@ -58,6 +58,16 @@ body.newspack-newsletters-admin-screen {
 		max-width: none;
 	}
 
+	// `@wordpress/dataviews/wp` 10.2.0 wraps its search input in a
+	// `BaseControl` without `__nextHasNoMarginBottom`, which carries a
+	// 16px legacy margin-bottom. That stretches the `.dataviews__search`
+	// flex row to 48px and pushes the centred "Add filter" button down
+	// 8px relative to the search input. Drop the legacy margin so the
+	// row aligns at 32px.
+	.dataviews__view-actions .components-base-control {
+		margin-bottom: 0;
+	}
+
 	&__placeholder {
 		background: wp-colors.$white;
 		border: 1px solid wp-colors.$gray-300;
