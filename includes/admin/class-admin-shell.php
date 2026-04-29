@@ -31,15 +31,79 @@ class Admin_Shell {
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
+		add_action( 'current_screen', [ __CLASS__, 'maybe_redirect_legacy_list' ] );
+		add_filter( 'admin_body_class', [ __CLASS__, 'add_body_class' ] );
+		add_filter( 'parent_file', [ __CLASS__, 'highlight_parent_menu' ] );
+		add_filter( 'submenu_file', [ __CLASS__, 'highlight_submenu' ] );
 	}
 
 	/**
-	 * Register React-shell submenu pages under the Newsletters CPT menu.
+	 * Force the Newsletters CPT to be the active top-level menu when on a
+	 * chassis-managed page. Without this, our hidden (parent=null) submenus
+	 * leave WP unable to resolve the active parent.
+	 *
+	 * @param string $parent_file The current parent file value.
+	 * @return string
+	 */
+	public static function highlight_parent_menu( $parent_file ) {
+		if ( self::get_current_page() ) {
+			return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		}
+		return $parent_file;
+	}
+
+	/**
+	 * Highlight the auto-generated "All Newsletters" submenu for the list
+	 * page. NEWS-1929/30/31 will add their own cases as their pages land.
+	 *
+	 * @param string $submenu_file The current submenu file value.
+	 * @return string
+	 */
+	public static function highlight_submenu( $submenu_file ) {
+		$page = self::get_current_page();
+		if ( ! $page ) {
+			return $submenu_file;
+		}
+		if ( 'newspack-newsletters-list' === $page->get_slug() ) {
+			return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		}
+		return $submenu_file;
+	}
+
+	/**
+	 * Add a body class on chassis-managed admin pages so our SCSS can scope
+	 * the white-canvas styling without bleeding into other admin screens.
+	 *
+	 * @param string $classes Existing body classes (space-separated).
+	 * @return string
+	 */
+	public static function add_body_class( $classes ) {
+		if ( self::get_current_page() ) {
+			$classes .= ' newspack-newsletters-admin-screen';
+		}
+		return $classes;
+	}
+
+	/**
+	 * Register React-shell pages.
+	 *
+	 * Each page declares its own `get_parent_slug()` — default `null`
+	 * means hidden (URL works but the entry isn't in the menu), used
+	 * by the list page so the auto-generated `edit.php?post_type=
+	 * newspack_nl_cpt` "All Newsletters" submenu stays as the visible
+	 * click target. `maybe_redirect_legacy_list` then 302s that URL to
+	 * our React page; because the redirect preserves `?post_type=
+	 * newspack_nl_cpt`, `newspack-plugin`'s `Newsletters_Wizard` (when
+	 * present) recognises the screen and renders the dark Newspack
+	 * admin-header chrome on top.
+	 *
+	 * Other pages (e.g. Settings in standalone mode) override
+	 * `get_parent_slug()` to surface as visible submenus under the CPT.
 	 */
 	public static function register_menu() {
 		foreach ( self::get_pages() as $page ) {
 			add_submenu_page(
-				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				$page->get_parent_slug(),
 				$page->get_label(),
 				$page->get_label(),
 				$page->get_capability(),
@@ -47,6 +111,115 @@ class Admin_Shell {
 				[ $page, 'render' ]
 			);
 		}
+	}
+
+	/**
+	 * Query args we forward from the legacy URL onto the React page so the
+	 * JS side can seed initial view state. `paged` is deliberately
+	 * omitted — the legacy WP list table uses 20 items per page while the
+	 * DataView defaults to 25, so a `paged=N` carry-over would point at
+	 * the wrong slice anyway. Stick to filter / search / sort args that
+	 * map cleanly onto DataViews state.
+	 */
+	const FORWARDED_LEGACY_ARGS = [ 'post_status', 's', 'orderby', 'order' ];
+
+	/**
+	 * Are any of the bulk-action selectors set to a real value (i.e. not
+	 * the `-1` "no action selected" sentinel WP submits when the user
+	 * leaves the dropdown alone)? Both `action` (top-of-table dropdown)
+	 * and `action2` (bottom-of-table dropdown) are checked.
+	 *
+	 * @return bool
+	 */
+	private static function has_real_get_action() {
+		foreach ( [ 'action', 'action2' ] as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+			if ( ! isset( $_GET[ $key ] ) ) {
+				continue;
+			}
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+			$value = sanitize_text_field( wp_unslash( $_GET[ $key ] ) );
+			if ( '' !== $value && '-1' !== $value ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Redirect legacy `edit.php?post_type=newspack_nl_cpt` GET requests
+	 * (deep links, browser history, third-party menu links) to the React
+	 * page. Form-submission GETs that carry `?action=` are left alone so
+	 * any classic admin flows continue to work. Filter/search/sort args
+	 * are forwarded so the React page can pre-fill view state — see
+	 * `getInitialView` on the JS side.
+	 *
+	 * @param \WP_Screen $screen Current screen.
+	 */
+	public static function maybe_redirect_legacy_list( $screen ) {
+		if ( ! is_admin() || ! $screen instanceof \WP_Screen ) {
+			return;
+		}
+		if ( 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $screen->id ) {
+			return;
+		}
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+			return;
+		}
+
+		// `action=-1` (and the bottom dropdown's `action2=-1`) is WP's
+		// "no bulk action selected" sentinel — typically left in the URL
+		// after the user submits the bulk-actions form without picking
+		// one. Treat it as a no-op so those stale URLs still redirect to
+		// the React page; only bypass for real action values.
+		if ( self::has_real_get_action() ) {
+			return;
+		}
+
+		$forwarded = [];
+		foreach ( self::FORWARDED_LEGACY_ARGS as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+			if ( ! isset( $_GET[ $key ] ) ) {
+				continue;
+			}
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitised below.
+			$value = wp_unslash( $_GET[ $key ] );
+			if ( '' === $value ) {
+				continue;
+			}
+			$forwarded[ $key ] = is_array( $value ) ? array_map( 'sanitize_text_field', $value ) : sanitize_text_field( $value );
+		}
+
+		wp_safe_redirect( self::get_legacy_redirect_target( $forwarded ) );
+		exit;
+	}
+
+	/**
+	 * Target URL for the legacy redirect. Exposed so tests can assert against
+	 * it without invoking `wp_safe_redirect`. The `$forwarded` array (or
+	 * back-compat string treated as `post_status`) is appended to the
+	 * redirect URL so the React page can seed its view state.
+	 *
+	 * @param array|string $forwarded Forwarded query args, or a `post_status` string.
+	 * @return string
+	 */
+	public static function get_legacy_redirect_target( $forwarded = [] ) {
+		$args = [
+			'post_type' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			'page'      => 'newspack-newsletters-list',
+		];
+
+		if ( is_string( $forwarded ) ) {
+			$forwarded = '' === $forwarded ? [] : [ 'post_status' => $forwarded ];
+		}
+
+		foreach ( self::FORWARDED_LEGACY_ARGS as $key ) {
+			if ( ! empty( $forwarded[ $key ] ) ) {
+				$args[ $key ] = $forwarded[ $key ];
+			}
+		}
+
+		return add_query_arg( $args, admin_url( 'edit.php' ) );
 	}
 
 	/**
@@ -95,6 +268,11 @@ class Admin_Shell {
 				'classicSettings' => \Newspack_Newsletters_Settings::get_settings_url(),
 				'restNonce'       => wp_create_nonce( 'wp_rest' ),
 				'restUrl'         => esc_url_raw( rest_url() ),
+				// Pass `admin_url()` so JS doesn't have to assume `/wp-admin/`
+				// lives at the document origin — subdirectory installs and
+				// some multisite setups put it under a path.
+				'adminUrl'        => esc_url_raw( admin_url() ),
+				'cptSlug'         => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			]
 		);
 	}
@@ -140,11 +318,14 @@ class Admin_Shell {
 	 * @return Admin_Page[]
 	 */
 	public static function get_pages() {
-		if ( self::is_bundled_mode() ) {
-			return [];
-		}
-		return [
-			new Pages\Settings_Page(),
+		$pages = [
+			new Pages\Newsletters_List_Page(),
 		];
+
+		if ( ! self::is_bundled_mode() ) {
+			$pages[] = new Pages\Settings_Page();
+		}
+
+		return $pages;
 	}
 }
