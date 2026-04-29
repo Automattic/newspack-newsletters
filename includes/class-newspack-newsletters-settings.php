@@ -210,17 +210,26 @@ class Newspack_Newsletters_Settings {
 	}
 
 	/**
-	 * Add options page
+	 * Register the classic Settings page.
+	 *
+	 * Registers under the original CPT parent so the page's URL and
+	 * `$screen->base` (`newspack_nl_cpt_page_newspack-newsletters-settings-admin`)
+	 * stay stable for callers that detect the settings screen or build the
+	 * settings URL via {@see self::get_settings_url()}. The visible menu
+	 * link is then removed so the React admin shell owns the visible
+	 * Settings entry — see NEWS-1931 for the eventual swap.
 	 */
 	public static function add_plugin_page() {
+		$parent_slug = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		add_submenu_page(
-			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			$parent_slug,
 			esc_html__( 'Newsletters Settings', 'newspack-newsletters' ),
 			esc_html__( 'Settings', 'newspack-newsletters' ),
 			'manage_options',
 			'newspack-newsletters-settings-admin',
 			[ __CLASS__, 'create_admin_page' ]
 		);
+		remove_submenu_page( $parent_slug, 'newspack-newsletters-settings-admin' );
 	}
 
 	/**

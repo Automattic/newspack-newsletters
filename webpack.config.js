@@ -17,6 +17,7 @@ const path = require( 'path' );
 const entry = {
 	editor: path.join( __dirname, 'src', 'editor' ),
 	admin: path.join( __dirname, 'src', 'admin' ),
+	'admin-shell': path.join( __dirname, 'src', 'admin-shell' ),
 	adsEditor: path.join( __dirname, 'src', 'ads', 'editor' ),
 	newsletterAdsEditor: path.join( __dirname, 'src', 'ads', 'newsletter-editor' ),
 	branding: path.join( __dirname, 'src', 'branding' ),

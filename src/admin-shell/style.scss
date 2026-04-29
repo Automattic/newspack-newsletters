@@ -1,0 +1,24 @@
+.newspack-newsletters-admin-mount {
+	margin-top: 16px;
+}
+
+.newspack-newsletters-admin {
+	&__header {
+		margin-bottom: 24px;
+
+		h1 {
+			margin: 0;
+		}
+	}
+
+	&__main {
+		max-width: 960px;
+	}
+
+	&__placeholder {
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-radius: 4px;
+		padding: 24px;
+	}
+}
