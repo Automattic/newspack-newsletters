@@ -374,17 +374,17 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `expand_scheduled_filter` is a no-op for any request that doesn't
-	 * ask for `future` exclusively — multi-status selections, no filter,
-	 * or different statuses keep the default behaviour.
+	 * `expand_scheduled_filter` is a no-op for any request whose status
+	 * selection doesn't contain `future` — no filter, or other statuses
+	 * keep the default behaviour.
 	 */
-	public function test_expand_scheduled_filter_passes_through_when_status_is_not_future_only() {
+	public function test_expand_scheduled_filter_passes_through_when_future_not_selected() {
 		$cases = [
 			[],
 			[ 'status' => '' ],
 			[ 'status' => 'publish' ],
-			[ 'status' => 'publish,future' ],
-			[ 'status' => [ 'publish', 'future' ] ],
+			[ 'status' => 'publish,private' ],
+			[ 'status' => [ 'publish', 'private' ] ],
 		];
 
 		foreach ( $cases as $params ) {
@@ -398,12 +398,19 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When the request asks for `status=future` exclusively, widen
+	 * When the request includes `future` (alone or mixed), widen
 	 * `post_status` to the writable set so the `posts_where` callback
 	 * has rows to filter through. Trash is deliberately excluded.
 	 */
-	public function test_expand_scheduled_filter_widens_post_status_for_future_only() {
-		foreach ( [ 'future', [ 'future' ] ] as $value ) {
+	public function test_expand_scheduled_filter_widens_post_status_when_future_is_selected() {
+		$cases = [
+			'future',
+			[ 'future' ],
+			'future,publish,private',
+			[ 'future', 'publish', 'private' ],
+		];
+
+		foreach ( $cases as $value ) {
 			$args = Newsletters_List_REST::expand_scheduled_filter(
 				[],
 				$this->rest_request( [ 'status' => $value ] )
@@ -468,6 +475,59 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		$this->assertContains( $pending_send, $query->posts );
 		$this->assertNotContains( $plain_draft, $query->posts );
 		$this->assertNotContains( $trashed, $query->posts );
+	}
+
+	/**
+	 * Mixed selection regression: when the user combines `future` with
+	 * `publish` / `private`, the published rows must still come through
+	 * AND the in-flight scheduled rows must surface alongside.
+	 */
+	public function test_scheduled_filter_in_mixed_selection_keeps_other_statuses_too() {
+		$future_post  = $this->make_newsletter(
+			[
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			]
+		);
+		$pending_send = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+		$published    = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
+		// Should NOT match: not future, no sending_scheduled meta, and
+		// the user didn't request `draft` — so a plain draft is filtered
+		// out by the OR clause.
+		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
+
+		$args = Newsletters_List_REST::expand_scheduled_filter(
+			[],
+			$this->rest_request( [ 'status' => [ 'future', 'publish', 'private' ] ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				]
+			)
+		);
+
+		$this->assertContains( $future_post, $query->posts, 'future post still matches' );
+		$this->assertContains( $published, $query->posts, 'published post is preserved' );
+		$this->assertContains( $pending_send, $query->posts, 'in-flight scheduled row surfaces' );
+		$this->assertNotContains( $plain_draft, $query->posts, 'plain draft is excluded' );
 	}
 
 	/**

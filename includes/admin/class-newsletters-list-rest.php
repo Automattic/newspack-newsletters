@@ -109,28 +109,39 @@ class Newsletters_List_REST {
 	public static function expand_scheduled_filter( $args, $request ) {
 		$status = $request->get_param( 'status' );
 		if ( is_array( $status ) ) {
-			$values = array_filter( array_map( 'strval', $status ) );
+			$values = array_map( 'strval', $status );
 		} else {
 			$values = '' === $status || null === $status ? [] : explode( ',', (string) $status );
 		}
-		$values = array_map( 'trim', $values );
+		$values = array_values(
+			array_filter(
+				array_map( 'trim', $values ),
+				static function ( $v ) {
+					return '' !== $v;
+				}
+			)
+		);
 
-		// Only fire when the request is asking for `future` exclusively.
-		// Anything else (mixed selection, no filter) keeps the default
-		// behaviour so we don't widen unexpectedly.
-		if ( [ 'future' ] !== array_values( array_filter( $values ) ) ) {
+		// Trigger as soon as the user's selection contains `future`. For
+		// a sole-`future` request we narrow back to scheduled-only via
+		// the OR clause; for mixed selections (e.g. `future,publish`)
+		// we still surface in-flight scheduled rows alongside the rest.
+		if ( ! in_array( 'future', $values, true ) ) {
 			return $args;
 		}
 
+		$selected_statuses   = $values;
 		$args['post_status'] = [ 'future', 'draft', 'pending', 'publish', 'private', 'auto-draft' ];
 
-		$callback = static function ( $where ) use ( &$callback ) {
+		$callback = static function ( $where ) use ( &$callback, $selected_statuses ) {
 			global $wpdb;
-			$where .= $wpdb->prepare(
-				" AND ( {$wpdb->posts}.post_status = %s OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) )",
-				'future',
-				'sending_scheduled'
+			$placeholders = implode( ',', array_fill( 0, count( $selected_statuses ), '%s' ) );
+			$prepare_args = array_merge( $selected_statuses, [ 'sending_scheduled' ] );
+			$sql          = sprintf(
+				" AND ( {$wpdb->posts}.post_status IN (%s) OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %%s AND meta_value <> '' ) )",
+				$placeholders
 			);
+			$where       .= $wpdb->prepare( $sql, $prepare_args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is built from a fixed list of `%s` placeholders.
 			remove_filter( 'posts_where', $callback, 10 );
 			return $where;
 		};
