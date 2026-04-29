@@ -19,6 +19,9 @@ const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending' ];
 const FIELD_TO_QUERY_PARAM = {
 	status: 'status',
 	author: 'author',
+	// `public_page` filter values are `'1'` / `'0'` (see `getFields`).
+	// `Newsletters_List_REST::filter_rest_query` consumes the same param.
+	public_page: 'newspack_newsletters_is_public',
 };
 
 const SORT_FIELD_TO_ORDERBY = {

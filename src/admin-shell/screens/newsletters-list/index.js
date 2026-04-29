@@ -14,6 +14,7 @@ import { useHeaderActions } from '../../header-actions-context';
 import useNewslettersData from './use-newsletters-data';
 import { getFields } from './fields';
 import { getActions } from './actions';
+import { getInitialFilters } from './initial-filters';
 
 const DEFAULT_VIEW = {
 	type: 'table',
@@ -21,7 +22,9 @@ const DEFAULT_VIEW = {
 	perPage: 25,
 	sort: { field: 'date', direction: 'desc' },
 	search: '',
-	filters: [],
+	// Pre-fill from `?post_status=` if the page was reached via the legacy
+	// CPT URL — see `Admin_Shell::maybe_redirect_legacy_list`.
+	filters: getInitialFilters(),
 	titleField: 'title',
 	fields: [ 'status', 'send_date', 'send_list', 'author', 'public_page' ],
 };

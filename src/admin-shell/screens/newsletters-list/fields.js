@@ -160,6 +160,7 @@ export function getFields() {
 				{ value: '1', label: __( 'Yes', 'newspack-newsletters' ) },
 				{ value: '0', label: __( 'No', 'newspack-newsletters' ) },
 			],
+			filterBy: { operators: [ 'is' ] },
 			getValue: ( { item } ) => ( item?.meta?.is_public ? '1' : '0' ),
 			render: renderPublicPage,
 		},
