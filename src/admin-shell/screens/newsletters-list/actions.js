@@ -44,9 +44,14 @@ const restoreOne = id =>
 
 const deleteOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
-// Toggling `is_public` is meta-only — it never triggers a status
-// transition, so the ESP-send guard that blocks bulk publish/private
-// does not apply here.
+// Toggling `is_public` on a `publish`/`private` newsletter goes
+// through `Newspack_Newsletters_Service_Provider::updated_post_meta`,
+// which calls `wp_update_post` and **does** fire
+// `transition_post_status` (between `publish` and `private`). Toggling
+// it on a draft leaves the status alone entirely. Either way the
+// provider's send guard sees `is_newsletter_sent()` truthy on
+// already-published rows and skips dispatch — so this action is safe
+// from re-sending campaigns, but it is *not* purely meta-only.
 const setIsPublic = ( id, isPublic ) =>
 	apiFetch( {
 		path: `${ POSTS_PATH }/${ id }`,

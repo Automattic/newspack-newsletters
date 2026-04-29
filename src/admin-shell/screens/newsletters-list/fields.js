@@ -94,7 +94,13 @@ const renderDate = ( { item } ) => {
 	if ( ! item?.date ) {
 		return '';
 	}
-	return formatDate( Math.floor( new Date( item.date ).getTime() / 1000 ) );
+	// `item.date` is the WP REST representation in the **site** timezone
+	// (no trailing `Z`). Pass it straight to `dateI18n` — the legacy
+	// `new Date( ... ).getTime()` round-trip parsed it as the **browser's**
+	// local timezone and shifted the displayed time for off-site admins.
+	const settings = getDateSettings();
+	const format = settings.formats?.datetime || 'M j, Y g:ia';
+	return dateI18n( format, item.date );
 };
 
 export function getFields() {

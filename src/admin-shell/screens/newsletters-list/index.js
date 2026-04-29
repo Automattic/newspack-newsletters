@@ -14,19 +14,22 @@ import { useHeaderActions } from '../../header-actions-context';
 import useNewslettersData from './use-newsletters-data';
 import { getFields } from './fields';
 import { getActions } from './actions';
-import { getInitialFilters } from './initial-filters';
+import { getInitialView } from './initial-filters';
 
+// Spread the URL-seeded patch last so anything forwarded from the
+// legacy CPT URL (status filter, search term, sort) overrides the
+// defaults — see `Admin_Shell::maybe_redirect_legacy_list` and
+// `getInitialView`.
 const DEFAULT_VIEW = {
 	type: 'table',
 	page: 1,
 	perPage: 25,
 	sort: { field: 'date', direction: 'desc' },
 	search: '',
-	// Pre-fill from `?post_status=` if the page was reached via the legacy
-	// CPT URL — see `Admin_Shell::maybe_redirect_legacy_list`.
-	filters: getInitialFilters(),
+	filters: [],
 	titleField: 'title',
 	fields: [ 'status', 'send_date', 'send_list', 'author', 'public_page' ],
+	...getInitialView(),
 };
 
 const DEFAULT_LAYOUTS = { table: {} };
