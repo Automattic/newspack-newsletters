@@ -22,6 +22,12 @@ body.newspack-newsletters-admin-screen {
 	#wpcontent {
 		padding-left: 0;
 	}
+	// Match both selectors. Upstream renders the strip with both an `id`
+	// and a class of `newspack-wizards-admin-header`; the JS portal logic
+	// targets the `id` while upstream's `margin-left: -20px` targets the
+	// class. Reset both so a future markup change on either side can't
+	// quietly resurrect the offset.
+	#newspack-wizards-admin-header,
 	.newspack-wizards-admin-header {
 		margin-left: 0;
 	}
@@ -67,7 +73,6 @@ body.newspack-newsletters-admin-screen {
 
 .newspack-newsletters-admin {
 	background: wp-colors.$white;
-	min-height: 60vh;
 	padding-bottom: wp-vars.$grid-unit-40;
 	position: relative;
 

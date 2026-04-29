@@ -79,6 +79,39 @@ describe( 'PageHeader', () => {
 		expect( screen.queryByRole( 'button', { name: 'Add new' } ) ).not.toBeInTheDocument();
 	} );
 
+	it( 'restores a still-mounted earlier registration when an overlapping later one unmounts', () => {
+		// Regression for the previous "single action slot" implementation: a
+		// nested/transitioning second screen used to wipe the active actions
+		// on unmount because cleanup unconditionally cleared the context.
+		// The owner-keyed registry should now restore ScreenA's actions when
+		// ScreenB unmounts.
+		const ScreenA = () => {
+			const actions = useMemo( () => [ { type: 'primary', label: 'Action A' } ], [] );
+			useHeaderActions( actions );
+			return null;
+		};
+		const ScreenB = () => {
+			const actions = useMemo( () => [ { type: 'primary', label: 'Action B' } ], [] );
+			useHeaderActions( actions );
+			return null;
+		};
+
+		const Switcher = ( { showB } ) => (
+			<>
+				<ScreenA />
+				{ showB && <ScreenB /> }
+			</>
+		);
+
+		const { rerender } = render( withProvider( <Switcher showB /> ) );
+		expect( screen.getByRole( 'button', { name: 'Action B' } ) ).toBeInTheDocument();
+
+		// B unmounts; A is still mounted and should be visible again.
+		rerender( withProvider( <Switcher showB={ false } /> ) );
+		expect( screen.getByRole( 'button', { name: 'Action A' } ) ).toBeInTheDocument();
+		expect( screen.queryByRole( 'button', { name: 'Action B' } ) ).not.toBeInTheDocument();
+	} );
+
 	it( 'lets the latest registering component own the action set', () => {
 		const ScreenA = () => {
 			const actions = useMemo( () => [ { type: 'primary', label: 'Action A' } ], [] );
