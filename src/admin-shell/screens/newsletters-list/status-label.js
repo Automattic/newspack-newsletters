@@ -7,12 +7,24 @@
 
 import { __ } from '@wordpress/i18n';
 
-export const STATUS_KIND_LABELS = () => ( {
-	sent: __( 'Sent', 'newspack-newsletters' ),
-	scheduled: __( 'Scheduled', 'newspack-newsletters' ),
-	draft: __( 'Draft', 'newspack-newsletters' ),
-	trash: __( 'Trash', 'newspack-newsletters' ),
-} );
+// Lazy-memoised module-level cache. Building the map runs `__()` once
+// per key, and the function is called per row during DataView rendering
+// — without caching, every row re-allocates the object and re-runs the
+// translation lookups. We populate on first call (rather than at module
+// load) so i18n data has time to register.
+let cachedLabels = null;
+
+export function STATUS_KIND_LABELS() {
+	if ( null === cachedLabels ) {
+		cachedLabels = {
+			sent: __( 'Sent', 'newspack-newsletters' ),
+			scheduled: __( 'Scheduled', 'newspack-newsletters' ),
+			draft: __( 'Draft', 'newspack-newsletters' ),
+			trash: __( 'Trash', 'newspack-newsletters' ),
+		};
+	}
+	return cachedLabels;
+}
 
 export function statusKindLabel( kind ) {
 	const labels = STATUS_KIND_LABELS();
