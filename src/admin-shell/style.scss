@@ -1,31 +1,34 @@
+@use "~@wordpress/base-styles/colors" as wp-colors;
+@use "~@wordpress/base-styles/variables" as wp-vars;
+
 // Match newspack-plugin admin pages: white surface instead of WP's default grey.
 // The Newspack admin-header chrome (rendered by newspack-plugin's wizard when
 // in bundled mode) sits above this; the wrapper plus the React DataView fill
 // the rest of the screen on a white canvas.
 body.newspack-newsletters-admin-screen {
-	background: #fff;
+	background: wp-colors.$white;
 
 	#wpcontent,
 	#wpbody-content {
-		background: #fff;
+		background: wp-colors.$white;
 	}
 }
 
 .newspack-newsletters-admin-mount {
-	margin-top: 16px;
+	margin-top: wp-vars.$grid-unit-20;
 }
 
 .newspack-newsletters-admin {
-	background: #fff;
+	background: wp-colors.$white;
 	min-height: 60vh;
-	padding-bottom: 32px;
+	padding-bottom: wp-vars.$grid-unit-40;
 	position: relative;
 
 	&__header-actions {
 		display: flex;
-		gap: 8px;
+		gap: wp-vars.$grid-unit-10;
 		justify-content: flex-end;
-		margin-bottom: 16px;
+		margin-bottom: wp-vars.$grid-unit-20;
 	}
 
 	&__main {
@@ -34,9 +37,20 @@ body.newspack-newsletters-admin-screen {
 	}
 
 	&__placeholder {
-		background: #fff;
-		border: 1px solid #dcdcde;
-		border-radius: 4px;
-		padding: 24px;
+		background: wp-colors.$white;
+		border: 1px solid wp-colors.$gray-300;
+		border-radius: wp-vars.$grid-unit-05;
+		padding: wp-vars.$grid-unit-30;
+	}
+}
+
+// When `newspack-plugin`'s admin-header is present, the action row is
+// portaled into its flex container so the button sits alongside the
+// breadcrumb. Override the wrapper margin and align to the right edge.
+.newspack-wizard__header__inner {
+	.newspack-newsletters-admin__header-actions--in-newspack-header {
+		align-items: center;
+		margin-bottom: 0;
+		margin-left: auto;
 	}
 }

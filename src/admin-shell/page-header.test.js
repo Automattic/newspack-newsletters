@@ -25,6 +25,14 @@ const withProvider = ui => (
 );
 
 describe( 'PageHeader', () => {
+	beforeEach( () => {
+		// Each test starts without a Newspack admin-header in the DOM, so the
+		// portal-fallback path renders inline. Tests that need the portal
+		// target inject it explicitly (see "portals into newspack-plugin's
+		// admin-header strip when present").
+		document.getElementById( 'newspack-wizards-admin-header' )?.remove();
+	} );
+
 	it( 'renders nothing when no actions are registered', () => {
 		const { container } = render( withProvider( null ) );
 		expect( container.querySelector( '.newspack-newsletters-admin__header-actions' ) ).toBeNull();
@@ -93,5 +101,20 @@ describe( 'PageHeader', () => {
 		expect( () => {
 			render( <Harness actions={ [ { type: 'primary', label: 'Add new' } ] } /> );
 		} ).not.toThrow();
+	} );
+
+	it( "portals into newspack-plugin's admin-header strip when present", () => {
+		// Stand up the same DOM newspack-plugin renders so the portal slot exists.
+		const wrapper = document.createElement( 'div' );
+		wrapper.id = 'newspack-wizards-admin-header';
+		wrapper.innerHTML =
+			'<div class="newspack-wizard__header"><div class="newspack-wizard__header__inner"><div class="newspack-wizard__title"><h2>Test</h2></div></div></div>';
+		document.body.appendChild( wrapper );
+
+		render( withProvider( <Harness actions={ [ { type: 'primary', label: 'Add new newsletter' } ] } /> ) );
+
+		const portalled = wrapper.querySelector( '.newspack-newsletters-admin__header-actions--in-newspack-header' );
+		expect( portalled ).not.toBeNull();
+		expect( portalled.querySelector( 'button' ) ).toHaveTextContent( 'Add new newsletter' );
 	} );
 } );
