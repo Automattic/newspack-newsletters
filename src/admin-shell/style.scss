@@ -34,6 +34,31 @@ body.newspack-newsletters-admin-screen {
 	--wp-admin-theme-color-darker-20--rgb: #{np-colors.$primary-800--rgb};
 	--wp-admin-theme-color-lighter-10: #{np-colors.$primary-000};
 	--wp-admin-theme-color-lighter-10--rgb: #{np-colors.$primary-000--rgb};
+
+	// When `newspack-plugin`'s admin-header is present, the action row is
+	// portaled in as a sibling of `__inner` inside `.newspack-wizard__header`.
+	// Replicate the wizard's existing flex/alignment rules for that slot —
+	// see `packages/components/src/with-wizard-screen/style.scss` upstream —
+	// so our buttons sit on the same row as the breadcrumb. Nested under
+	// the body-class scope so other newspack-plugin admin screens that
+	// share the `#newspack-wizards-admin-header` element aren't affected.
+	#newspack-wizards-admin-header .newspack-wizard__header {
+		align-items: center;
+		display: flex;
+
+		.newspack-wizard__header__inner {
+			flex: 1 1 100%;
+		}
+
+		.newspack-wizard__header__actions {
+			align-items: center;
+			display: flex;
+			flex: 1 1 auto;
+			gap: wp-vars.$grid-unit-10;
+			justify-content: flex-end;
+			padding: 0 wp-vars.$grid-unit-30 0 0;
+		}
+	}
 }
 
 .newspack-newsletters-admin-mount {
@@ -88,25 +113,3 @@ body.newspack-newsletters-admin-screen {
 	}
 }
 
-// When `newspack-plugin`'s admin-header is present, the action row is
-// portaled in as a sibling of `__inner` inside `.newspack-wizard__header`.
-// Replicate the wizard's existing flex/alignment rules for that slot —
-// see `packages/components/src/with-wizard-screen/style.scss` upstream —
-// so our buttons sit on the same row as the breadcrumb.
-#newspack-wizards-admin-header .newspack-wizard__header {
-	align-items: center;
-	display: flex;
-
-	.newspack-wizard__header__inner {
-		flex: 1 1 100%;
-	}
-
-	.newspack-wizard__header__actions {
-		align-items: center;
-		display: flex;
-		flex: 1 1 auto;
-		gap: wp-vars.$grid-unit-10;
-		justify-content: flex-end;
-		padding: 0 wp-vars.$grid-unit-30 0 0;
-	}
-}
