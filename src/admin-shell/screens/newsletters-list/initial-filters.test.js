@@ -1,4 +1,4 @@
-import { getInitialFilters } from './initial-filters';
+import { getInitialFilters, getInitialView } from './initial-filters';
 
 describe( 'getInitialFilters', () => {
 	it( 'returns no filters when the URL has no post_status', () => {
@@ -30,5 +30,44 @@ describe( 'getInitialFilters', () => {
 	it( 'preserves other query params and only reads post_status', () => {
 		const filters = getInitialFilters( '?post_type=newspack_nl_cpt&post_status=trash&page=newspack-newsletters-list' );
 		expect( filters ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'trash' ] } ] );
+	} );
+} );
+
+describe( 'getInitialView', () => {
+	it( 'returns an empty object when the URL has nothing to forward', () => {
+		expect( getInitialView( '' ) ).toEqual( {} );
+		expect( getInitialView( '?something=else' ) ).toEqual( {} );
+	} );
+
+	it( 'forwards the search term from `s`', () => {
+		expect( getInitialView( '?s=weekly%20digest' ) ).toEqual( { search: 'weekly digest' } );
+	} );
+
+	it( 'maps `orderby=title&order=asc` to a sort patch', () => {
+		expect( getInitialView( '?orderby=title&order=asc' ) ).toEqual( {
+			sort: { field: 'title', direction: 'asc' },
+		} );
+	} );
+
+	it( 'defaults sort direction to `desc` when `order` is missing or invalid', () => {
+		expect( getInitialView( '?orderby=date' ) ).toEqual( {
+			sort: { field: 'date', direction: 'desc' },
+		} );
+		expect( getInitialView( '?orderby=date&order=junk' ) ).toEqual( {
+			sort: { field: 'date', direction: 'desc' },
+		} );
+	} );
+
+	it( 'ignores unknown orderby fields rather than emitting a broken sort', () => {
+		expect( getInitialView( '?orderby=wat&order=asc' ) ).toEqual( {} );
+	} );
+
+	it( 'combines filters, search, and sort when all are present', () => {
+		const view = getInitialView( '?post_status=trash&s=draft%20test&orderby=author&order=asc' );
+		expect( view ).toEqual( {
+			filters: [ { field: 'status', operator: 'isAny', value: [ 'trash' ] } ],
+			search: 'draft test',
+			sort: { field: 'author', direction: 'asc' },
+		} );
 	} );
 } );
