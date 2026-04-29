@@ -17,12 +17,18 @@ import { buildQueryParams, toQueryString } from './build-query';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
 
+// Parse a numeric header value, falling back to `0` for missing or
+// malformed headers — `Number( header )` returns `NaN` for non-numeric
+// strings, which would propagate into DataViews and break pagination.
+function parseHeaderInt( value ) {
+	const parsed = parseInt( value, 10 );
+	return Number.isNaN( parsed ) ? 0 : parsed;
+}
+
 function readPaginationInfo( response ) {
-	const totalHeader = response.headers.get( 'X-WP-Total' );
-	const pagesHeader = response.headers.get( 'X-WP-TotalPages' );
 	return {
-		totalItems: totalHeader ? Number( totalHeader ) : 0,
-		totalPages: pagesHeader ? Number( pagesHeader ) : 0,
+		totalItems: parseHeaderInt( response.headers.get( 'X-WP-Total' ) ),
+		totalPages: parseHeaderInt( response.headers.get( 'X-WP-TotalPages' ) ),
 	};
 }
 
