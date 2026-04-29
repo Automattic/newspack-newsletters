@@ -143,6 +143,89 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Stale `newsletter_sent` meta on a draft must not flip the row to
+	 * "sent" — `is_newsletter_sent` only accepts the meta when it equals
+	 * the publish timestamp, and a draft has no publish timestamp.
+	 */
+	public function test_draft_with_stale_newsletter_sent_meta_still_reports_draft() {
+		$post_id = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'newsletter_sent' => 1700000000 ],
+			]
+		);
+
+		$status = Newsletters_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'draft', $status['kind'] );
+		$this->assertNull( $status['sent_at'] );
+	}
+
+	/**
+	 * Same guard applies to a future-scheduled row carrying stale meta —
+	 * the row should still report as scheduled, not sent.
+	 */
+	public function test_scheduled_with_stale_newsletter_sent_meta_still_reports_scheduled() {
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		$post_id     = $this->make_newsletter(
+			[
+				'post_status' => 'future',
+				'post_date'   => $future_date,
+				'meta_input'  => [ 'newsletter_sent' => 1700000000 ],
+			]
+		);
+
+		$status = Newsletters_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'scheduled', $status['kind'] );
+		$this->assertNull( $status['sent_at'] );
+	}
+
+	/**
+	 * When a publish row carries `newsletter_sent` meta that doesn't match
+	 * the publish timestamp (drift between meta and post_date), prefer the
+	 * publish timestamp over the stale meta value — `is_newsletter_sent`
+	 * would have rewritten the meta in this case; we just ignore it.
+	 */
+	public function test_publish_with_mismatched_newsletter_sent_meta_uses_publish_date() {
+		$post_id = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'newsletter_sent' => 1700000000 ],
+			]
+		);
+
+		$status = Newsletters_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$publish_timestamp = get_post_datetime( $post_id, 'date', 'gmt' )->getTimestamp();
+
+		$this->assertSame( 'sent', $status['kind'] );
+		$this->assertSame( $publish_timestamp, $status['sent_at'] );
+		$this->assertNotSame( 1700000000, $status['sent_at'] );
+	}
+
+	/**
+	 * When the meta exactly matches the publish timestamp, return that
+	 * value (it's what the upstream cache would return after back-fill).
+	 */
+	public function test_publish_with_matching_newsletter_sent_meta_returns_meta_value() {
+		$post_id           = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
+		$publish_timestamp = get_post_datetime( $post_id, 'date', 'gmt' )->getTimestamp();
+		update_post_meta( $post_id, 'newsletter_sent', $publish_timestamp );
+
+		$status = Newsletters_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'sent', $status['kind'] );
+		$this->assertSame( $publish_timestamp, $status['sent_at'] );
+	}
+
+	/**
 	 * `get_status_for_post` must not write to post_meta when computing the
 	 * sent state. The vanilla `Newspack_Newsletters::is_newsletter_sent`
 	 * back-fills `newsletter_sent` for any published post missing it; on

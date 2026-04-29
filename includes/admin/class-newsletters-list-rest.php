@@ -191,19 +191,32 @@ class Newsletters_List_REST {
 
 	/**
 	 * Read-only equivalent of `Newspack_Newsletters::is_newsletter_sent` —
-	 * mirrors its resolution logic but never writes to `post_meta`.
+	 * mirrors its resolution logic exactly but never writes to `post_meta`.
 	 *
 	 * `is_newsletter_sent` calls `set_newsletter_sent` to back-fill the
-	 * `newsletter_sent` meta whenever a published post is missing it, so
-	 * calling it from the REST GET would issue one write per published
-	 * row in the response. This list endpoint is read-only by contract
-	 * — derive the timestamp without mutating.
+	 * `newsletter_sent` meta whenever a published post is missing it (or
+	 * has mismatched meta), so calling it from the REST GET would issue
+	 * one write per row in the response. This list endpoint is read-only
+	 * by contract — derive the timestamp without mutating.
+	 *
+	 * Resolution order matches `is_newsletter_sent`:
+	 *
+	 * 1. `sending_scheduled` / `scheduling_error` meta suppress sent state.
+	 * 2. Compute the publish timestamp first (`0` when the post isn't
+	 *    `publish` / `private`).
+	 * 3. Accept `newsletter_sent` meta only when it is positive AND equals
+	 *    the publish timestamp. Stale meta on a draft / scheduled row
+	 *    therefore reports as "not sent", and a published row with
+	 *    mismatched meta reports the publish timestamp instead of the
+	 *    drifted meta value.
+	 * 4. Otherwise, for `publish` / `private` rows, return the publish
+	 *    timestamp.
+	 * 5. Otherwise return `null`.
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return int|null Sent timestamp, or null when not (yet) sent.
 	 */
 	private static function compute_sent_at( $post ) {
-		// Scheduled / failed-schedule meta flags suppress "sent" state.
 		if ( get_post_meta( $post->ID, 'sending_scheduled', true ) ) {
 			return null;
 		}
@@ -211,19 +224,21 @@ class Newsletters_List_REST {
 			return null;
 		}
 
-		$sent = (int) get_post_meta( $post->ID, 'newsletter_sent', true );
-		if ( 0 < $sent ) {
+		$sent          = (int) get_post_meta( $post->ID, 'newsletter_sent', true );
+		$is_published  = in_array( $post->post_status, [ 'publish', 'private' ], true );
+		$post_datetime = $is_published ? get_post_datetime( $post, 'date', 'gmt' ) : false;
+		$publish_date  = $post_datetime ? $post_datetime->getTimestamp() : 0;
+
+		// Only accept `newsletter_sent` when it actually matches the
+		// publish timestamp. Anything else is stale / mismatched meta
+		// that `is_newsletter_sent` would otherwise overwrite — we just
+		// ignore it instead.
+		if ( 0 < $sent && $sent === $publish_date ) {
 			return $sent;
 		}
 
-		// Already-published rows that haven't been flagged: fall back to
-		// the post's publish datetime — same fallback `is_newsletter_sent`
-		// uses, minus the meta back-fill.
-		if ( in_array( $post->post_status, [ 'publish', 'private' ], true ) ) {
-			$datetime = get_post_datetime( $post, 'date', 'gmt' );
-			if ( $datetime ) {
-				return $datetime->getTimestamp();
-			}
+		if ( $publish_date ) {
+			return $publish_date;
 		}
 
 		return null;
