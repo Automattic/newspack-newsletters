@@ -92,6 +92,14 @@ A running list of decisions made as the project progresses. Newest entries at th
 - **2026-04-27** — Project kick-off. WC email-editor confirmed as the replacement for MJML, with the downstream override pattern for impedance mismatches.
 - **2026-04-27** — Overrode `.github/CODEOWNERS` on this branch (emptied to a comment-only file) to skip auto-review requests from `@Automattic/newspack-product` during long-running iteration on the epic. **When merging epic → trunk, restore the original rule (`* @Automattic/newspack-product`)** — the `.github/CODEOWNERS` file on this branch carries an inline reminder for whoever performs the merge.
 
+## Known gaps / follow-ups
+
+Capabilities the React surfaces don't yet match against WP's classic admin views, captured here so future iterations can decide whether to close them. Not blockers for the current epic, but worth weighing if publisher feedback flags any.
+
+- **Quick Edit / Bulk Edit parity (NEWS-1932).** The classic CPT list lets users update categories, tags, author, status, and other fields inline (per-row Quick Edit, multi-row Bulk Edit). The React DataView ships with bulk *Trash / Restore as draft / Delete permanently / Make public / Make non-public* but no taxonomy/author bulk editing. Real-world usage is unclear — worth measuring before investing in a Bulk Edit modal. If we add it, the obvious shape is a DataView bulk action that opens a modal with a small subset of editable fields, then PATCHes each selected post via REST. Status changes stay off the table for the same reason they're not a per-row action: `transition_post_status` to `publish`/`private` dispatches the ESP campaign.
+- **NEWS-1928 list — Send-list column shows raw IDs.** Friendly-name resolution needs a per-provider lookup that hits the ESP API; deferred pending a batched / cached approach (covered in the Decisions log entry for v1).
+- **NEWS-1928 list — Public-page filter has no inline counts.** Classic WP shows "Trash (3)" segmented links; the DataView dropdown elides counts. Polish if/when publishers ask.
+
 ## Open questions
 
 - API stability and roadmap for the WC email-editor package; channels for upstream contribution.
