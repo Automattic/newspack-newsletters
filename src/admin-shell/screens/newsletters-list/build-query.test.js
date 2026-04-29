@@ -44,6 +44,18 @@ describe( 'buildQueryParams', () => {
 		expect( params.author ).toBe( '42' );
 	} );
 
+	it( 'maps public_page filter to the custom is_public REST query param', () => {
+		const yesParams = buildQueryParams( {
+			filters: [ { field: 'public_page', value: '1' } ],
+		} );
+		expect( yesParams.newspack_newsletters_is_public ).toBe( '1' );
+
+		const noParams = buildQueryParams( {
+			filters: [ { field: 'public_page', value: '0' } ],
+		} );
+		expect( noParams.newspack_newsletters_is_public ).toBe( '0' );
+	} );
+
 	it( 'ignores unknown filter fields silently rather than passing them through', () => {
 		const params = buildQueryParams( {
 			filters: [ { field: 'wat', value: 'nope' } ],
