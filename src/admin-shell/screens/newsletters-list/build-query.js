@@ -8,8 +8,8 @@
  * Notes on filtering:
  * - We map filters to native WP REST params (`status`, `author`) rather
  *   than to our derived `kind` so server-side queries stay simple. The
- *   Status column still renders the derived kind (sent/scheduled/draft/
- *   trash) for visual clarity — see use-status-renderer.
+ *   Status column still renders the derived `kind` (sent/scheduled/draft/
+ *   trash) for visual clarity — see `renderStatus` in `fields.js`.
  * - `status=any` excludes trash by default, so we explicitly include the
  *   common writable statuses when no status filter is set.
  */

@@ -197,6 +197,11 @@ class Admin_Shell {
 				'classicSettings' => \Newspack_Newsletters_Settings::get_settings_url(),
 				'restNonce'       => wp_create_nonce( 'wp_rest' ),
 				'restUrl'         => esc_url_raw( rest_url() ),
+				// Pass `admin_url()` so JS doesn't have to assume `/wp-admin/`
+				// lives at the document origin — subdirectory installs and
+				// some multisite setups put it under a path.
+				'adminUrl'        => esc_url_raw( admin_url() ),
+				'cptSlug'         => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			]
 		);
 	}

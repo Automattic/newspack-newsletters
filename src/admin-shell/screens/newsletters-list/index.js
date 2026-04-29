@@ -41,7 +41,7 @@ export default function NewslettersListScreen() {
 				{
 					type: 'primary',
 					label: __( 'Add new newsletter', 'newspack-newsletters' ),
-					href: `${ window.location.origin }/wp-admin/post-new.php?post_type=newspack_nl_cpt`,
+					href: `${ window.newspackNewslettersAdmin.adminUrl }post-new.php?post_type=${ window.newspackNewslettersAdmin.cptSlug }`,
 				},
 			],
 			[]

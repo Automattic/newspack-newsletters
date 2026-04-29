@@ -22,7 +22,7 @@ const formatDate = timestamp => {
 	return dateI18n( format, timestamp * 1000 );
 };
 
-const editUrl = item => `${ window.location.origin }/wp-admin/post.php?post=${ item.id }&action=edit`;
+const editUrl = item => `${ window.newspackNewslettersAdmin.adminUrl }post.php?post=${ item.id }&action=edit`;
 
 const renderTitle = ( { item } ) => {
 	const title = item?.title?.rendered || __( '(no title)', 'newspack-newsletters' );
