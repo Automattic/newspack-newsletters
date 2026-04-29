@@ -19,19 +19,15 @@ const Harness = ( { actions } ) => {
 
 const withProvider = ui => (
 	<HeaderActionsProvider>
-		<PageHeader title="Newsletters" />
+		<PageHeader />
 		{ ui }
 	</HeaderActionsProvider>
 );
 
 describe( 'PageHeader', () => {
-	it( 'renders the title as a heading', () => {
-		render( withProvider( null ) );
-		expect( screen.getByRole( 'heading', { name: 'Newsletters' } ) ).toBeInTheDocument();
-	} );
-
-	it( 'renders no action buttons when none are registered', () => {
-		render( withProvider( null ) );
+	it( 'renders nothing when no actions are registered', () => {
+		const { container } = render( withProvider( null ) );
+		expect( container.querySelector( '.newspack-newsletters-admin__header-actions' ) ).toBeNull();
 		expect( screen.queryAllByRole( 'button' ) ).toHaveLength( 0 );
 		expect( screen.queryAllByRole( 'link' ) ).toHaveLength( 0 );
 	} );

@@ -1,28 +1,36 @@
+// Match newspack-plugin admin pages: white surface instead of WP's default grey.
+// The Newspack admin-header chrome (rendered by newspack-plugin's wizard when
+// in bundled mode) sits above this; the wrapper plus the React DataView fill
+// the rest of the screen on a white canvas.
+body.newspack-newsletters-admin-screen {
+	background: #fff;
+
+	#wpcontent,
+	#wpbody-content {
+		background: #fff;
+	}
+}
+
 .newspack-newsletters-admin-mount {
 	margin-top: 16px;
 }
 
 .newspack-newsletters-admin {
-	&__header {
-		align-items: center;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 16px;
-		justify-content: space-between;
-		margin-bottom: 24px;
-
-		h1 {
-			margin: 0;
-		}
-	}
+	background: #fff;
+	min-height: 60vh;
+	padding-bottom: 32px;
+	position: relative;
 
 	&__header-actions {
 		display: flex;
 		gap: 8px;
+		justify-content: flex-end;
+		margin-bottom: 16px;
 	}
 
 	&__main {
-		max-width: 960px;
+		// DataViews/wp surfaces its own width container; let it fill.
+		max-width: none;
 	}
 
 	&__placeholder {

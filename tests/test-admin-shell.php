@@ -89,37 +89,6 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `replace_default_newsletters_submenu` removes the auto-generated
-	 * `edit.php?post_type=newspack_nl_cpt` "All Newsletters" entry that WP
-	 * adds when a CPT has `show_ui=true`. Re-adding our own with the same
-	 * label keeps the visual menu structure intact.
-	 */
-	public function test_replace_default_newsletters_submenu_removes_auto_generated_entry() {
-		global $submenu;
-
-		$parent           = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
-		$submenu[ $parent ] = [
-			5  => [ 'All Newsletters', 'edit_posts', $parent ],
-			10 => [ 'Add New', 'edit_posts', 'post-new.php?post_type=newspack_nl_cpt' ],
-		];
-
-		Admin_Shell::replace_default_newsletters_submenu();
-
-		$slugs = array_map(
-			function ( $entry ) {
-				return $entry[2];
-			},
-			$submenu[ $parent ]
-		);
-
-		$this->assertNotContains(
-			$parent,
-			$slugs,
-			'The default `edit.php?post_type=newspack_nl_cpt` submenu should have been removed.'
-		);
-	}
-
-	/**
 	 * The redirect target points at our React page slug under the CPT's parent.
 	 * Returning the URL (rather than performing the redirect) keeps the test
 	 * isolated from `wp_safe_redirect`'s exit behaviour.

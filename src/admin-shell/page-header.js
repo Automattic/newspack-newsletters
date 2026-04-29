@@ -12,27 +12,26 @@ import { useHeaderActionsValue } from './header-actions-context';
 
 const variantFor = type => ( 'primary' === type ? 'primary' : 'secondary' );
 
-export default function PageHeader( { title } ) {
+export default function PageHeader() {
 	const actions = useHeaderActionsValue();
 
+	if ( actions.length === 0 ) {
+		return null;
+	}
+
 	return (
-		<header className="newspack-newsletters-admin__header">
-			<h1>{ title }</h1>
-			{ actions.length > 0 && (
-				<div className="newspack-newsletters-admin__header-actions">
-					{ actions.map( ( action, index ) => (
-						<Button
-							key={ action.id || `${ action.label }-${ index }` }
-							variant={ variantFor( action.type ) }
-							icon={ action.icon }
-							href={ action.href }
-							onClick={ action.onClick }
-						>
-							{ action.label }
-						</Button>
-					) ) }
-				</div>
-			) }
-		</header>
+		<div className="newspack-newsletters-admin__header-actions">
+			{ actions.map( ( action, index ) => (
+				<Button
+					key={ action.id || `${ action.label }-${ index }` }
+					variant={ variantFor( action.type ) }
+					icon={ action.icon }
+					href={ action.href }
+					onClick={ action.onClick }
+				>
+					{ action.label }
+				</Button>
+			) ) }
+		</div>
 	);
 }

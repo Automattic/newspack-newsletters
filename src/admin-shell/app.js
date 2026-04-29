@@ -13,7 +13,7 @@ export default function App( { label, Screen } ) {
 	return (
 		<HeaderActionsProvider>
 			<div className="newspack-newsletters-admin">
-				<PageHeader title={ label } />
+				<PageHeader />
 				<main className="newspack-newsletters-admin__main">
 					<Screen label={ label } />
 				</main>

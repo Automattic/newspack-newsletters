@@ -29,58 +29,50 @@ class Admin_Shell {
 	 * Boot hooks.
 	 */
 	public static function init() {
-		// Run after the CPT auto-generates its submenu (priority 0) so we can
-		// surgically replace the "All Newsletters" entry.
-		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ], 11 );
+		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
 		add_action( 'current_screen', [ __CLASS__, 'maybe_redirect_legacy_list' ] );
+		add_filter( 'admin_body_class', [ __CLASS__, 'add_body_class' ] );
 	}
 
 	/**
-	 * Register React-shell submenu pages under the Newsletters CPT menu and
-	 * suppress the WP-generated "All Newsletters" submenu.
+	 * Add a body class on chassis-managed admin pages so our SCSS can scope
+	 * the white-canvas styling without bleeding into other admin screens.
+	 *
+	 * @param string $classes Existing body classes (space-separated).
+	 * @return string
+	 */
+	public static function add_body_class( $classes ) {
+		if ( self::get_current_page() ) {
+			$classes .= ' newspack-newsletters-admin-screen';
+		}
+		return $classes;
+	}
+
+	/**
+	 * Register React-shell pages as hidden submenus.
+	 *
+	 * Hidden (parent=null) is deliberate: we want the auto-generated
+	 * `edit.php?post_type=newspack_nl_cpt` "All Newsletters" submenu to stay
+	 * as the visible link target. `maybe_redirect_legacy_list` then 302's
+	 * that URL to our React page (`?page=newspack-newsletters-list`) — and
+	 * because the redirect preserves `?post_type=newspack_nl_cpt`,
+	 * `newspack-plugin`'s `Newsletters_Wizard` (when present) recognises the
+	 * screen and renders the dark Newspack admin-header chrome on top of
+	 * our React surface. Removing the auto submenu broke that recognition
+	 * and routed the top-level menu link to `admin.php?page=...`, which is
+	 * not in the wizard's `admin_screens` map.
 	 */
 	public static function register_menu() {
-		self::replace_default_newsletters_submenu();
-
-		// Position 0 lands the React list page at the top of the CPT submenu —
-		// this also drives WP's "top-level menu link follows first submenu" so
-		// clicking the Newsletters parent goes to the list, not Add New.
-		$position = 0;
-
 		foreach ( self::get_pages() as $page ) {
 			add_submenu_page(
-				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				null,
 				$page->get_label(),
 				$page->get_label(),
 				$page->get_capability(),
 				$page->get_slug(),
-				[ $page, 'render' ],
-				$position
+				[ $page, 'render' ]
 			);
-			$position++;
-		}
-	}
-
-	/**
-	 * Drop the auto-generated `edit.php?post_type=newspack_nl_cpt` "All
-	 * Newsletters" submenu so our React page (added as the first submenu)
-	 * takes its visual slot. Uses direct `$submenu` manipulation rather than
-	 * `remove_submenu_page` because the latter requires `is_admin()` and the
-	 * exact same slug, which is fine here but harder to assert in tests.
-	 */
-	public static function replace_default_newsletters_submenu() {
-		global $submenu;
-
-		$parent = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
-		if ( empty( $submenu[ $parent ] ) ) {
-			return;
-		}
-
-		foreach ( $submenu[ $parent ] as $position => $entry ) {
-			if ( isset( $entry[2] ) && $parent === $entry[2] ) {
-				unset( $submenu[ $parent ][ $position ] );
-			}
 		}
 	}
 
