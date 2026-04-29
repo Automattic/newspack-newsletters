@@ -124,14 +124,29 @@ class Newsletters_List_REST {
 
 		// Trigger as soon as the user's selection contains `future`. For
 		// a sole-`future` request we narrow back to scheduled-only via
-		// the OR clause; for mixed selections (e.g. `future,publish`)
-		// we still surface in-flight scheduled rows alongside the rest.
+		// the OR clause; for mixed selections (e.g. `future,publish` or
+		// `future,trash`) we still surface in-flight scheduled rows
+		// alongside the user's other picks.
 		if ( ! in_array( 'future', $values, true ) ) {
 			return $args;
 		}
 
-		$selected_statuses   = $values;
-		$args['post_status'] = [ 'future', 'draft', 'pending', 'publish', 'private', 'auto-draft' ];
+		$selected_statuses = $values;
+
+		// Widened set = the user's selection ∪ the statuses where a
+		// `sending_scheduled` row might live. Starting from the user's
+		// selection (rather than a fixed list) is what lets `trash`
+		// survive a mixed Scheduled+Trash filter — WP_Query has already
+		// applied `post_status IN (...)` by the time `posts_where`
+		// runs, so anything outside the widened set is unreachable.
+		$args['post_status'] = array_values(
+			array_unique(
+				array_merge(
+					$selected_statuses,
+					[ 'future', 'draft', 'pending', 'publish', 'private', 'auto-draft' ]
+				)
+			)
+		);
 
 		$callback = static function ( $where ) use ( &$callback, $selected_statuses ) {
 			global $wpdb;
