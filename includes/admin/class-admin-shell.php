@@ -33,6 +33,41 @@ class Admin_Shell {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
 		add_action( 'current_screen', [ __CLASS__, 'maybe_redirect_legacy_list' ] );
 		add_filter( 'admin_body_class', [ __CLASS__, 'add_body_class' ] );
+		add_filter( 'parent_file', [ __CLASS__, 'highlight_parent_menu' ] );
+		add_filter( 'submenu_file', [ __CLASS__, 'highlight_submenu' ] );
+	}
+
+	/**
+	 * Force the Newsletters CPT to be the active top-level menu when on a
+	 * chassis-managed page. Without this, our hidden (parent=null) submenus
+	 * leave WP unable to resolve the active parent.
+	 *
+	 * @param string $parent_file The current parent file value.
+	 * @return string
+	 */
+	public static function highlight_parent_menu( $parent_file ) {
+		if ( self::get_current_page() ) {
+			return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		}
+		return $parent_file;
+	}
+
+	/**
+	 * Highlight the auto-generated "All Newsletters" submenu for the list
+	 * page. NEWS-1929/30/31 will add their own cases as their pages land.
+	 *
+	 * @param string $submenu_file The current submenu file value.
+	 * @return string
+	 */
+	public static function highlight_submenu( $submenu_file ) {
+		$page = self::get_current_page();
+		if ( ! $page ) {
+			return $submenu_file;
+		}
+		if ( 'newspack-newsletters-list' === $page->get_slug() ) {
+			return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		}
+		return $submenu_file;
 	}
 
 	/**

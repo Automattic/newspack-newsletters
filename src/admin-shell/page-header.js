@@ -18,12 +18,16 @@ import { createPortal } from 'react-dom';
 
 import { useHeaderActionsValue } from './header-actions-context';
 
-const NEWSPACK_HEADER_INNER_SELECTOR = '#newspack-wizards-admin-header .newspack-wizard__header__inner';
+// Portal target is `.newspack-wizard__header`, the flex parent of `__inner`.
+// Newspack-plugin's wizard mounts its primary actions as a SIBLING of `__inner`
+// inside `__header` (see `packages/components/src/wizard/index.js`); matching
+// that structure lets the existing flex layout do the alignment for us.
+const NEWSPACK_HEADER_SELECTOR = '#newspack-wizards-admin-header .newspack-wizard__header';
 
 const variantFor = type => ( 'primary' === type ? 'primary' : 'secondary' );
 
-function useNewspackHeaderInner() {
-	const [ target, setTarget ] = useState( () => document.querySelector( NEWSPACK_HEADER_INNER_SELECTOR ) );
+function useNewspackHeader() {
+	const [ target, setTarget ] = useState( () => document.querySelector( NEWSPACK_HEADER_SELECTOR ) );
 
 	useEffect( () => {
 		if ( target ) {
@@ -36,9 +40,9 @@ function useNewspackHeaderInner() {
 		}
 
 		// Newspack admin-header's React app rewrites this subtree on mount.
-		// Watch for the inner slot to appear and capture it once.
+		// Watch for the slot to appear and capture it once.
 		const observer = new MutationObserver( () => {
-			const found = wrapper.querySelector( '.newspack-wizard__header__inner' );
+			const found = wrapper.querySelector( '.newspack-wizard__header' );
 			if ( found ) {
 				setTarget( found );
 				observer.disconnect();
@@ -72,18 +76,20 @@ function ActionButtons( { actions } ) {
 
 export default function PageHeader() {
 	const actions = useHeaderActionsValue();
-	const newspackHeaderInner = useNewspackHeaderInner();
+	const newspackHeader = useNewspackHeader();
 
 	if ( actions.length === 0 ) {
 		return null;
 	}
 
-	if ( newspackHeaderInner ) {
+	if ( newspackHeader ) {
+		// Reuse the wizard's `__header__actions` class so the host's existing
+		// flex/spacing rules align our buttons next to the breadcrumb.
 		return createPortal(
-			<div className="newspack-newsletters-admin__header-actions newspack-newsletters-admin__header-actions--in-newspack-header">
+			<div className="newspack-wizard__header__actions newspack-newsletters-admin__header-actions--in-newspack-header">
 				<ActionButtons actions={ actions } />
 			</div>,
-			newspackHeaderInner
+			newspackHeader
 		);
 	}
 

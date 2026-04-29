@@ -7,7 +7,6 @@
  */
 
 import { DataViews } from '@wordpress/dataviews/wp';
-import { plus } from '@wordpress/icons';
 import { useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -42,7 +41,6 @@ export default function NewslettersListScreen() {
 				{
 					type: 'primary',
 					label: __( 'Add new newsletter', 'newspack-newsletters' ),
-					icon: plus,
 					href: `${ window.location.origin }/wp-admin/post-new.php?post_type=newspack_nl_cpt`,
 				},
 			],

@@ -97,4 +97,40 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		$expected = admin_url( 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-list' );
 		$this->assertSame( $expected, Admin_Shell::get_legacy_redirect_target() );
 	}
+
+	/**
+	 * On a chassis-managed page, the parent_file filter forces the Newsletters
+	 * CPT to be the active top-level menu so the sidebar highlights correctly.
+	 */
+	public function test_highlight_parent_menu_returns_cpt_url_when_on_a_managed_page() {
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-list';
+
+		$expected = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$this->assertSame( $expected, Admin_Shell::highlight_parent_menu( 'unrelated.php' ) );
+
+		unset( $_GET['page'] );
+	}
+
+	/**
+	 * Off-page calls pass through unchanged.
+	 */
+	public function test_highlight_parent_menu_passes_through_off_page() {
+		unset( $_GET['page'] );
+		$this->assertSame( 'unrelated.php', Admin_Shell::highlight_parent_menu( 'unrelated.php' ) );
+	}
+
+	/**
+	 * The list page maps onto the auto-generated "All Newsletters" submenu so
+	 * WP's sidebar highlights it instead of leaving every entry inactive.
+	 */
+	public function test_highlight_submenu_targets_all_newsletters_for_list_page() {
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-list';
+
+		$expected = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$this->assertSame( $expected, Admin_Shell::highlight_submenu( 'unrelated' ) );
+
+		unset( $_GET['page'] );
+	}
 }

@@ -1,10 +1,11 @@
 @use "~@wordpress/base-styles/colors" as wp-colors;
 @use "~@wordpress/base-styles/variables" as wp-vars;
+@use "~newspack-components/colors/colors.module" as np-colors;
 
-// Match newspack-plugin admin pages: white surface instead of WP's default grey.
-// The Newspack admin-header chrome (rendered by newspack-plugin's wizard when
-// in bundled mode) sits above this; the wrapper plus the React DataView fill
-// the rest of the screen on a white canvas.
+// Match newspack-plugin admin pages: white surface and the same Newspack
+// theme palette. The `--wp-admin-theme-color` overrides keep WP component
+// primaries (Buttons, focus rings, links) on Newspack navy instead of WP
+// blue. Mirrors `with-wizard-screen/style.scss` in newspack-plugin.
 body.newspack-newsletters-admin-screen {
 	background: wp-colors.$white;
 
@@ -12,6 +13,15 @@ body.newspack-newsletters-admin-screen {
 	#wpbody-content {
 		background: wp-colors.$white;
 	}
+
+	--wp-admin-theme-color: #{np-colors.$primary-600};
+	--wp-admin-theme-color--rgb: #{np-colors.$primary-600--rgb};
+	--wp-admin-theme-color-darker-10: #{np-colors.$primary-700};
+	--wp-admin-theme-color-darker-10--rgb: #{np-colors.$primary-700--rgb};
+	--wp-admin-theme-color-darker-20: #{np-colors.$primary-800};
+	--wp-admin-theme-color-darker-20--rgb: #{np-colors.$primary-800--rgb};
+	--wp-admin-theme-color-lighter-10: #{np-colors.$primary-000};
+	--wp-admin-theme-color-lighter-10--rgb: #{np-colors.$primary-000--rgb};
 }
 
 .newspack-newsletters-admin-mount {
@@ -45,12 +55,24 @@ body.newspack-newsletters-admin-screen {
 }
 
 // When `newspack-plugin`'s admin-header is present, the action row is
-// portaled into its flex container so the button sits alongside the
-// breadcrumb. Override the wrapper margin and align to the right edge.
-.newspack-wizard__header__inner {
-	.newspack-newsletters-admin__header-actions--in-newspack-header {
+// portaled in as a sibling of `__inner` inside `.newspack-wizard__header`.
+// Replicate the wizard's existing flex/alignment rules for that slot —
+// see `packages/components/src/with-wizard-screen/style.scss` upstream —
+// so our buttons sit on the same row as the breadcrumb.
+#newspack-wizards-admin-header .newspack-wizard__header {
+	align-items: center;
+	display: flex;
+
+	.newspack-wizard__header__inner {
+		flex: 1 1 100%;
+	}
+
+	.newspack-wizard__header__actions {
 		align-items: center;
-		margin-bottom: 0;
-		margin-left: auto;
+		display: flex;
+		flex: 1 1 auto;
+		gap: wp-vars.$grid-unit-10;
+		justify-content: flex-end;
+		padding: 0 wp-vars.$grid-unit-30 0 0;
 	}
 }
