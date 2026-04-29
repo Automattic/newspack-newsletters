@@ -4,11 +4,32 @@ This document captures the *why* behind decisions for the newsletter modernisati
 
 ## How to use this doc
 
-This is the contract for anyone — human or AI agent — working on `epic/newsletters-modernisation`:
+This is the contract for anyone — human or AI agent — working on this project:
 
-1. **Before starting a session** on this branch (or any feature branch off it): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
-2. **Before opening a PR** into `epic/newsletters-modernisation`: decide whether your work introduces a decision, gotcha, learning, or shift in scope. If yes, update the relevant section and append a dated entry to the **Decisions log** in the same PR. If no context change applies, say so explicitly in the PR description (e.g. "No context change.").
+1. **Before starting a session** on any branch in this project (the project epic, a milestone integration branch, or a per-ticket branch off either): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
+2. **Before opening a PR**: identify the right base branch (see *Branch structure* below — per-ticket PRs target their milestone branch, not the project epic). Decide whether your work introduces a decision, gotcha, learning, or shift in scope. If yes, update the relevant section and append a dated entry to the **Decisions log** in the same PR. If no context change applies, say so explicitly in the PR description (e.g. "No context change.").
 3. **Tone:** terse but explanatory. Future readers won't have the conversation that produced each decision — they need the reasoning, not just the conclusion.
+
+## Branch structure
+
+Three tiers:
+
+- **`epic/newsletters-modernisation`** — the project epic. Receives only milestone-integration merges. Ultimately merges to `trunk`.
+- **`epic/<milestone>`** — one integration branch per Linear milestone (e.g. `epic/admin-ux-modernisation`, `epic/editor-refactor`, `epic/beehiiv`, `epic/de-risk`, `epic/validate`). Receives per-ticket PRs and is QA'd as a coherent unit before promoting to the project epic. Naming: kebab-case version of the Linear milestone name.
+- **`news-<id>-<slug>`** — per-ticket branch cut from its milestone integration branch. PRs target the milestone branch.
+
+**Why three tiers.** Newsletters are critical and the modernisation is wide-ranging. We want each milestone to land on the project epic only after it's been tested as a unit (cross-ticket integration, regression sweep, manual UAT). Per-ticket review still happens via individual PRs into the milestone branch — Copilot review, lint, tests — so nothing skips the per-ticket gate.
+
+**Promoting a milestone:** once a milestone branch is fully QA'd, open a single PR `epic/<milestone>` → `epic/newsletters-modernisation`. Treat that PR as the integration-test gate.
+
+**Promoting the project:** once the project epic is ready, open a final PR `epic/newsletters-modernisation` → `trunk`. The pre-merge checklist for that step lives in `AGENTS.md`.
+
+**Creating a new milestone integration branch.** When you cut a fresh `epic/<milestone>` from the project epic, also configure repo settings so PRs into it follow the same convention as the project epic:
+
+- **Branch protection:** waive the review-required rule for `epic/<milestone>` (or use a glob pattern like `epic/*` so all integration branches inherit the waiver). Without this, PRs into the new milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes — the per-ticket gate is the Copilot pass at PR time, not a CODEOWNERS approval.
+- **CODEOWNERS:** the empty stub on the project epic is inherited automatically when you branch, so no separate action is needed.
+
+Reasoning: long-running integration branches (the project epic and milestone branches alike) intentionally accumulate per-ticket PRs without per-PR human approval. The integration-test gate is the *promotion* PR (milestone → epic, then epic → trunk), not the individual tickets. See the `2026-04-27` Decisions log entry for the original rationale on the project epic.
 
 ## Strategy
 
@@ -55,6 +76,8 @@ Three workstreams running in parallel:
 
 A running list of decisions made as the project progresses. Newest entries at the top.
 
+- **2026-04-29** — **Milestone integration branches need their own branch-protection waiver.** Discovered when trying to merge PR #2091 into the freshly-created `epic/admin-ux-modernisation`: the merge was `BLOCKED` by the org-default review-required rule because the project epic's review waiver doesn't propagate to new branches. CODEOWNERS does inherit (the empty stub is a file on the branch) but branch-protection rules are repo-config, set per branch or via a glob pattern. Documented the configuration step in *Branch structure* and mirrored the reminder in `AGENTS.md` so future milestone branches are set up at creation time. Recommendation: configure the rule once with a glob like `epic/*` so all integration branches inherit the waiver automatically.
+- **2026-04-29** — **Adopted three-tier branching as a project-wide convention.** Each Linear milestone gets its own `epic/<milestone>` integration branch (kebab-case) cut from `epic/newsletters-modernisation`; per-ticket branches target the milestone branch; a single promotion PR moves a fully-QA'd milestone up to the project epic. First instance: `epic/admin-ux-modernisation`. Reasoning: per-ticket gates (Copilot review, lint, tests) still happen at PR time, but the project epic only sees integration-tested units, which is what we need given how brittle the newsletter pipeline is. See *Branch structure* above for the full mechanics.
 - **2026-04-29** — **NEWS-1927 chassis: do not displace the existing menu structure.** Initial pass replaced the Newsletters CPT-as-menu with its own top-level menu plus four placeholder submenus, which dropped the auto-generated *All Newsletters* and *Add Newsletter* entries and changed the menu's vertical position. Corrected to keep the CPT's default top-level menu intact (so *All Newsletters*, *Add New*, taxonomies, and the existing Ads submenu all return) and have the chassis register its own pages as **submenus of the CPT menu** (`parent_slug = 'edit.php?post_type=newspack_nl_cpt'`). Only the Settings placeholder ships in NEWS-1927 (last in the submenu list, standalone-only); NEWS-1928 to NEWS-1931 each register their own page when they have a real surface to ship. Classic Settings page stays parented to `null` so its URL keeps working while the React placeholder sits in the menu — the placeholder links through to the classic URL so ESP credential editing remains reachable until NEWS-1931.
 - **2026-04-29** — **NEWS-1927: admin shell shipped as a thin chassis**, not a port of `newspack-plugin`'s `Wizard` scaffold. Closer to `newspack-popups`' settings pattern: a single React mount per `?page=` slug with no `HashRouter` at the chassis level — each screen introduces its own internal routing if it needs to. Chassis owns: page base class, shared bundle enqueue, single localised global, and standalone-vs-bundled detection. Bundled-mode detection is filterable: `newspack_newsletters_admin_bundled_mode` (default: `class_exists( '\Newspack\Newspack' )`), so sites can override either way for testing.
 - **2026-04-29** — Expanded the UX workstream from "Layouts UX rework" to **Admin UX modernisation**. Scope is now the entire Newsletters admin in React (DataViews + React shells), aligned with `newspack-plugin`'s pattern. Layouts becomes a first-class section nested inside the broader migration with its own admin menu and DataView. Standalone-vs-bundled parity is called out explicitly so design accounts for both deployment modes from the start.
