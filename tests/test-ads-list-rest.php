@@ -1,0 +1,573 @@
+<?php
+/**
+ * Class Test Ads List REST
+ *
+ * @package Newspack_Newsletters
+ */
+
+use Newspack\Newsletters\Admin\Ads_List_REST;
+use Newspack_Newsletters\Ads;
+
+/**
+ * Tests the REST surface that the Newsletter Ads list DataView consumes.
+ *
+ * `get_status_for_post` consolidates `post_status` and the date-driven
+ * lifecycle (`start_date` / `expiry_date` meta) into a single
+ * `{ kind, starts_at, expires_at }` payload — the React side never
+ * re-derives state from raw meta.
+ */
+class Ads_List_REST_Test extends WP_UnitTestCase {
+	/**
+	 * Helper: make a newsletter ad with optional overrides and meta.
+	 *
+	 * @param array $args Post args; meta supplied via `meta_input`.
+	 * @return int Post ID.
+	 */
+	private function make_ad( $args = [] ) {
+		return self::factory()->post->create(
+			array_merge(
+				[
+					'post_type'   => Ads::CPT,
+					'post_status' => 'draft',
+					'post_title'  => 'Test ad',
+				],
+				$args
+			)
+		);
+	}
+
+	/**
+	 * A draft ad has kind=draft and no timestamps.
+	 */
+	public function test_draft_ad_reports_draft_kind() {
+		$post_id = $this->make_ad( [ 'post_status' => 'draft' ] );
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'draft', $status['kind'] );
+		$this->assertNull( $status['starts_at'] );
+		$this->assertNull( $status['expires_at'] );
+	}
+
+	/**
+	 * Trash beats every other resolution branch — a previously-published
+	 * ad with dates that fall in the active window still reports as
+	 * trashed once it's been moved to the trash.
+	 */
+	public function test_trashed_ad_reports_trash_kind() {
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date'  => gmdate( 'Y-m-d', strtotime( '-1 day' ) ),
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '+30 days' ) ),
+				],
+			]
+		);
+		wp_trash_post( $post_id );
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'trash', $status['kind'] );
+	}
+
+	/**
+	 * A published ad with no dates configured is treated as active —
+	 * mirroring `Ads::is_ad_active`, which returns true when neither
+	 * date is set.
+	 */
+	public function test_published_ad_with_no_dates_reports_active_kind() {
+		$post_id = $this->make_ad( [ 'post_status' => 'publish' ] );
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'active', $status['kind'] );
+		$this->assertNull( $status['starts_at'] );
+		$this->assertNull( $status['expires_at'] );
+	}
+
+	/**
+	 * A published ad whose `start_date` is in the future reports
+	 * kind=scheduled, with `starts_at` populated. Date comparisons use
+	 * the site-local `Y-m-d` granularity, matching `Ads::is_ad_active`.
+	 */
+	public function test_published_ad_with_future_start_date_reports_scheduled_kind() {
+		$start = gmdate( 'Y-m-d', strtotime( '+5 days' ) );
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'start_date' => $start ],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'scheduled', $status['kind'] );
+		$this->assertIsInt( $status['starts_at'] );
+		$this->assertGreaterThan( time(), $status['starts_at'] );
+	}
+
+	/**
+	 * A published ad whose `expiry_date` is in the past reports
+	 * kind=expired, with `expires_at` populated.
+	 */
+	public function test_published_ad_with_past_expiry_date_reports_expired_kind() {
+		$expiry  = gmdate( 'Y-m-d', strtotime( '-2 days' ) );
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'expiry_date' => $expiry ],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'expired', $status['kind'] );
+		$this->assertIsInt( $status['expires_at'] );
+		$this->assertLessThan( time(), $status['expires_at'] );
+	}
+
+	/**
+	 * A published ad whose dates bracket today reports kind=active and
+	 * exposes both `starts_at` and `expires_at` so the React side can
+	 * render them in dedicated columns.
+	 */
+	public function test_published_ad_within_window_reports_active_with_both_timestamps() {
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date'  => gmdate( 'Y-m-d', strtotime( '-3 days' ) ),
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '+30 days' ) ),
+				],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'active', $status['kind'] );
+		$this->assertIsInt( $status['starts_at'] );
+		$this->assertIsInt( $status['expires_at'] );
+		$this->assertLessThan( time(), $status['starts_at'] );
+		$this->assertGreaterThan( time(), $status['expires_at'] );
+	}
+
+	/**
+	 * Boundary check mirroring `Ads::is_ad_active`: the comparison is
+	 * `start <= today` and `expiry >= today`. An ad whose start_date is
+	 * today must report as active (not scheduled), and one whose
+	 * expiry_date is today must report as active (not expired).
+	 */
+	public function test_today_boundary_resolves_as_active() {
+		$today   = gmdate( 'Y-m-d' );
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date'  => $today,
+					'expiry_date' => $today,
+				],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'active', $status['kind'] );
+	}
+
+	/**
+	 * Stale `start_date` / `expiry_date` meta on a draft must not
+	 * promote the row out of draft — the lifecycle resolution only
+	 * applies to published rows.
+	 */
+	public function test_draft_with_dates_still_reports_draft() {
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [
+					'start_date'  => gmdate( 'Y-m-d', strtotime( '-3 days' ) ),
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '+30 days' ) ),
+				],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'draft', $status['kind'] );
+		$this->assertNull( $status['starts_at'] );
+		$this->assertNull( $status['expires_at'] );
+	}
+
+	/**
+	 * `pending` status falls under the draft bucket — same as the
+	 * newsletters list, and matches what publishers see in the
+	 * filter dropdown.
+	 */
+	public function test_pending_ad_reports_draft_kind() {
+		$post_id = $this->make_ad( [ 'post_status' => 'pending' ] );
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'draft', $status['kind'] );
+	}
+
+	/**
+	 * The `newspack_newsletters_ad_status` REST field is registered on
+	 * the ads CPT so it surfaces on `/wp/v2/newspack_nl_ads_cpt` responses.
+	 */
+	public function test_rest_field_is_registered_on_ads_cpt() {
+		do_action( 'rest_api_init' );
+
+		global $wp_rest_additional_fields;
+
+		$cpt    = Ads::CPT;
+		$fields = isset( $wp_rest_additional_fields[ $cpt ] ) ? $wp_rest_additional_fields[ $cpt ] : [];
+
+		$this->assertArrayHasKey( 'newspack_newsletters_ad_status', $fields );
+		$this->assertIsCallable( $fields['newspack_newsletters_ad_status']['get_callback'] );
+	}
+
+	/**
+	 * Helper: build a REST request with the given query params.
+	 *
+	 * @param array $params Query params keyed by name.
+	 * @return WP_REST_Request
+	 */
+	private function rest_request( $params ) {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/' . Ads::CPT );
+		foreach ( $params as $key => $value ) {
+			$request->set_param( $key, $value );
+		}
+		return $request;
+	}
+
+	/**
+	 * `kind=trash` translates the kind filter to the native
+	 * `post_status=trash` so trashed rows surface.
+	 */
+	public function test_filter_rest_query_translates_trash_kind_to_post_status() {
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'trash' ] )
+		);
+
+		$this->assertContains( 'trash', (array) $args['post_status'] );
+	}
+
+	/**
+	 * `kind=draft` covers `draft`, `pending`, and `auto-draft` — the
+	 * trio we resolve to the `draft` kind in the column. The filter
+	 * and the column have to agree on which rows belong in the bucket.
+	 */
+	public function test_filter_rest_query_translates_draft_kind_to_full_draft_set() {
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'draft' ] )
+		);
+
+		$post_status = (array) $args['post_status'];
+		$this->assertContains( 'draft', $post_status );
+		$this->assertContains( 'pending', $post_status );
+		$this->assertContains( 'auto-draft', $post_status );
+	}
+
+	/**
+	 * No status filter param means the request behaves like a normal
+	 * CPT query — pass through args untouched.
+	 */
+	public function test_filter_rest_query_passes_through_when_param_absent() {
+		$original = [ 'post_status' => 'publish' ];
+
+		$args = Ads_List_REST::filter_rest_query( $original, $this->rest_request( [] ) );
+
+		$this->assertSame( $original, $args );
+	}
+
+	/**
+	 * Out-of-whitelist kind values (typos, junk) are ignored — only
+	 * the valid kinds in the request take effect. Sending only junk
+	 * leaves args untouched.
+	 */
+	public function test_filter_rest_query_ignores_unknown_kinds() {
+		$original = [ 'post_status' => 'publish' ];
+
+		$args = Ads_List_REST::filter_rest_query(
+			$original,
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'foo,bar,baz' ] )
+		);
+
+		$this->assertSame( $original, $args );
+	}
+
+	/**
+	 * `tracking_impressions` and `tracking_clicks` are stored as meta
+	 * by the tracking layer but were never `register_meta`'d, so they
+	 * didn't surface in REST responses. The list registers them on
+	 * the ads CPT subtype so the React columns can read them and the
+	 * REST `orderby=meta_value_num` path works for sorting.
+	 */
+	public function test_tracking_metas_are_registered_on_ads_cpt() {
+		// `WP_UnitTestCase::reset_post_types()` runs before every test
+		// and strips registered meta along with the post type. Re-invoke
+		// the registration for this test so we're asserting against
+		// our function's effect, not the framework's reset.
+		Ads_List_REST::register_meta();
+
+		$this->assertTrue( registered_meta_key_exists( 'post', 'tracking_impressions', Ads::CPT ) );
+		$this->assertTrue( registered_meta_key_exists( 'post', 'tracking_clicks', Ads::CPT ) );
+
+		$registered = get_registered_meta_keys( 'post', Ads::CPT );
+		$this->assertTrue( $registered['tracking_impressions']['show_in_rest'] );
+		$this->assertTrue( $registered['tracking_clicks']['show_in_rest'] );
+	}
+
+	/**
+	 * Mixing a non-publish kind with a publish-driven kind: draft rows
+	 * (no meta) and expired published rows must both surface. The OR'd
+	 * meta clauses can't simply be AND'd with the wider post_status
+	 * union — the draft rows would be filtered out for not having
+	 * `expiry_date < today`. Each kind needs its own bucket.
+	 */
+	public function test_kind_filter_draft_and_expired_returns_both_buckets() {
+		$expired = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
+				],
+			]
+		);
+		$draft   = $this->make_ad( [ 'post_status' => 'draft' ] );
+		$pending = $this->make_ad( [ 'post_status' => 'pending' ] );
+		$active  = $this->make_ad( [ 'post_status' => 'publish' ] );
+
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'draft,expired' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $expired, $query->posts );
+		$this->assertContains( $draft, $query->posts );
+		$this->assertContains( $pending, $query->posts );
+		$this->assertNotContains( $active, $query->posts );
+	}
+
+	/**
+	 * Multi-kind selection where all selected kinds map to `publish`
+	 * status — the meta clauses must be combined with OR so each
+	 * bucket's rows surface (not AND, which would never match).
+	 */
+	public function test_kind_filter_expired_and_scheduled_returns_both_buckets() {
+		$expired   = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
+				],
+			]
+		);
+		$scheduled = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date' => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+				],
+			]
+		);
+		$active    = $this->make_ad( [ 'post_status' => 'publish' ] );
+		$draft     = $this->make_ad( [ 'post_status' => 'draft' ] );
+
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'expired,scheduled' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $expired, $query->posts );
+		$this->assertContains( $scheduled, $query->posts );
+		$this->assertNotContains( $active, $query->posts );
+		$this->assertNotContains( $draft, $query->posts );
+	}
+
+	/**
+	 * `kind=active` covers published ads that are within their start /
+	 * expiry window — including ads with no dates at all (the
+	 * `is_ad_active` default). Scheduled, expired, and draft rows must
+	 * not leak through.
+	 */
+	public function test_kind_filter_active_returns_published_ads_within_window() {
+		$active_no_dates    = $this->make_ad( [ 'post_status' => 'publish' ] );
+		$active_within      = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date'  => gmdate( 'Y-m-d', strtotime( '-3 days' ) ),
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '+30 days' ) ),
+				],
+			]
+		);
+		$active_today_start = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'start_date' => gmdate( 'Y-m-d' ) ],
+			]
+		);
+		$scheduled          = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date' => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+				],
+			]
+		);
+		$expired            = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
+				],
+			]
+		);
+		$draft              = $this->make_ad( [ 'post_status' => 'draft' ] );
+
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'active' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $active_no_dates, $query->posts );
+		$this->assertContains( $active_within, $query->posts );
+		$this->assertContains( $active_today_start, $query->posts );
+		$this->assertNotContains( $scheduled, $query->posts );
+		$this->assertNotContains( $expired, $query->posts );
+		$this->assertNotContains( $draft, $query->posts );
+	}
+
+	/**
+	 * `kind=scheduled` surfaces only published ads whose `start_date`
+	 * is in the future — not active, not expired, not draft.
+	 */
+	public function test_kind_filter_scheduled_returns_only_scheduled_ads() {
+		$scheduled = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date' => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+				],
+			]
+		);
+		$active    = $this->make_ad( [ 'post_status' => 'publish' ] );
+		$expired   = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
+				],
+			]
+		);
+		$draft     = $this->make_ad( [ 'post_status' => 'draft' ] );
+
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'scheduled' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $scheduled, $query->posts );
+		$this->assertNotContains( $active, $query->posts );
+		$this->assertNotContains( $expired, $query->posts );
+		$this->assertNotContains( $draft, $query->posts );
+	}
+
+	/**
+	 * `kind=expired` surfaces only published ads whose `expiry_date`
+	 * is in the past — verified end-to-end by running WP_Query with
+	 * the filtered args. Active, scheduled, and draft rows must not
+	 * leak into the result set.
+	 */
+	public function test_kind_filter_expired_returns_only_expired_ads() {
+		$expired   = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
+				],
+			]
+		);
+		$active    = $this->make_ad( [ 'post_status' => 'publish' ] );
+		$scheduled = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date' => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+				],
+			]
+		);
+		$draft     = $this->make_ad( [ 'post_status' => 'draft' ] );
+
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'expired' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				]
+			)
+		);
+
+		$this->assertContains( $expired, $query->posts );
+		$this->assertNotContains( $active, $query->posts );
+		$this->assertNotContains( $scheduled, $query->posts );
+		$this->assertNotContains( $draft, $query->posts );
+	}
+}

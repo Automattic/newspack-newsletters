@@ -12,6 +12,7 @@
 namespace Newspack\Newsletters\Admin\Pages;
 
 use Newspack\Newsletters\Admin\Admin_Page;
+use Newspack_Newsletters;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,5 +37,73 @@ class Newsletters_List_Page extends Admin_Page {
 	 */
 	public function get_label() {
 		return __( 'All Newsletters', 'newspack-newsletters' );
+	}
+
+	/**
+	 * Register under the newsletters CPT parent. `Admin_Shell::register_menu`
+	 * removes the visible submenu after registration because
+	 * `is_hidden_from_menu()` returns true here.
+	 *
+	 * @return string
+	 */
+	public function get_parent_slug() {
+		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+	}
+
+	/**
+	 * The visible click target is the auto-generated "All Newsletters"
+	 * submenu — our React page lives behind a redirect, not a separate
+	 * sidebar entry.
+	 *
+	 * @return bool
+	 */
+	public function is_hidden_from_menu() {
+		return true;
+	}
+
+	/**
+	 * Force the Newsletters CPT to be the active top-level menu when
+	 * the React list page is rendered — without this the sidebar
+	 * collapses to an inactive state because the page is registered
+	 * with `parent=null`.
+	 *
+	 * @return string
+	 */
+	public function get_parent_file() {
+		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+	}
+
+	/**
+	 * The list page's visible click target is the auto-generated
+	 * "All Newsletters" submenu — point `submenu_file` there so it
+	 * appears highlighted while the React page is on screen.
+	 *
+	 * @return string
+	 */
+	public function get_submenu_file() {
+		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+	}
+
+	/**
+	 * Classic CPT list screen the React page shadows.
+	 *
+	 * @return string
+	 */
+	public function get_legacy_screen_id() {
+		return 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+	}
+
+	/**
+	 * Build the redirect URL for the legacy newsletters CPT list.
+	 *
+	 * @param array $forwarded Forwarded query args.
+	 * @return string
+	 */
+	public function get_legacy_redirect_target( $forwarded = [] ) {
+		return \Newspack\Newsletters\Admin\Admin_Shell::build_legacy_redirect_target(
+			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			$this->slug,
+			$forwarded
+		);
 	}
 }

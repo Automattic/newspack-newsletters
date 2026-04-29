@@ -15,11 +15,16 @@
 import { __ } from '@wordpress/i18n';
 import Placeholder from './placeholder';
 import NewslettersListScreen from './newsletters-list';
+import AdsListScreen from './ads-list';
 
 export const screens = {
 	'newspack-newsletters-list': {
 		component: NewslettersListScreen,
 		label: __( 'All Newsletters', 'newspack-newsletters' ),
+	},
+	'newspack-newsletters-ads-list': {
+		component: AdsListScreen,
+		label: __( 'Newsletter Ads', 'newspack-newsletters' ),
 	},
 	'newspack-newsletters-settings': {
 		component: Placeholder,

@@ -59,17 +59,90 @@ abstract class Admin_Page {
 	/**
 	 * Parent menu slug for `add_submenu_page`.
 	 *
-	 * Default is `null` — the page registers as a hidden submenu (its
-	 * URL resolves but it doesn't appear in the menu). Used by the list
-	 * page, whose visible click target is the auto-generated CPT
-	 * submenu and whose URL is reached via `Admin_Shell::maybe_redirect_legacy_list`.
-	 *
-	 * Pages that should appear in the menu override this to return the
-	 * CPT parent (e.g. Settings in standalone mode).
+	 * Override in subclasses to return the URL of the parent menu the
+	 * page is registered under. WP's `get_plugin_page_hookname` mixes
+	 * `$admin_page_hooks[ $parent_slug ]` into the hookname, so the
+	 * value here has to match what the lookup at request time sees —
+	 * passing `null` is unsafe because registration- and lookup-time
+	 * resolution can drift. Hidden pages (`is_hidden_from_menu()`)
+	 * register under the same parent then get unhooked from the
+	 * sidebar after registration via `remove_submenu_page`, keeping
+	 * the URL routable while staying invisible.
 	 *
 	 * @return string|null
 	 */
-	public function get_parent_slug() {
+	abstract public function get_parent_slug();
+
+	/**
+	 * Whether the page should be removed from the visible submenu list
+	 * after registration. Default: visible. Hidden pages still register
+	 * (URL routable) but `remove_submenu_page` strips the menu entry
+	 * so it doesn't appear in the sidebar.
+	 *
+	 * @return bool
+	 */
+	public function is_hidden_from_menu() {
+		return false;
+	}
+
+	/**
+	 * `parent_file` override for menu-highlighting.
+	 *
+	 * `Admin_Shell::highlight_parent_menu` filters the global
+	 * `parent_file` and delegates to this method when the current
+	 * request resolves to this page. Return the URL of the top-level
+	 * menu that should appear active (e.g.
+	 * `'edit.php?post_type=newspack_nl_cpt'`), or `null` to let WP's
+	 * native resolution stand. Hidden React pages (`get_parent_slug() === null`)
+	 * will typically need a non-null override so the sidebar doesn't
+	 * collapse to an inactive state.
+	 *
+	 * @return string|null
+	 */
+	public function get_parent_file() {
+		return null;
+	}
+
+	/**
+	 * `submenu_file` override for menu-highlighting.
+	 *
+	 * Companion to `get_parent_file()`. Returns the URL of the
+	 * specific submenu entry that should appear active when this page
+	 * is rendered, or `null` to defer to WP's default resolution.
+	 * Visible submenus (where `get_parent_slug()` returns a real
+	 * value) usually return `null` because WP's auto-detection is
+	 * correct; hidden React pages return the URL of the click-target
+	 * submenu they shadow.
+	 *
+	 * @return string|null
+	 */
+	public function get_submenu_file() {
+		return null;
+	}
+
+	/**
+	 * `WP_Screen::id` of the classic CPT list this page shadows, or
+	 * `null` when the page doesn't replace a legacy URL. Hidden React
+	 * pages typically declare an id like `'edit-newspack_nl_cpt'` so
+	 * `Admin_Shell::maybe_redirect_legacy_list` can 302 the legacy
+	 * URL across to the React surface.
+	 *
+	 * @return string|null
+	 */
+	public function get_legacy_screen_id() {
+		return null;
+	}
+
+	/**
+	 * Build the URL the legacy CPT list redirects to for this page.
+	 * Returns `null` when the page doesn't shadow a legacy URL — the
+	 * redirect handler skips it. Forwarded args (filter / search /
+	 * sort) are appended so the React side can seed its initial view.
+	 *
+	 * @param array $forwarded Forwarded query args.
+	 * @return string|null
+	 */
+	public function get_legacy_redirect_target( $forwarded = [] ) {
 		return null;
 	}
 
