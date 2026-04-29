@@ -24,7 +24,12 @@ body.newspack-newsletters-admin-screen {
 	--wp-admin-theme-color-lighter-10--rgb: #{np-colors.$primary-000--rgb};
 }
 
+// `#wpcontent` carries a 20px left padding from WP admin. The Newspack
+// admin-header strip already counters it via `margin-left: -20px` so it
+// sits flush with the sidebar; do the same for the React mount so the
+// content edge aligns with the strip above it.
 .newspack-newsletters-admin-mount {
+	margin-left: -20px;
 	margin-top: wp-vars.$grid-unit-20;
 }
 
