@@ -20,14 +20,29 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Without newspack-plugin loaded, the shell defaults to standalone mode.
+	 * Default detection: when the Newspack core class exists, bundled mode is true;
+	 * the filter can still override either way.
+	 *
+	 * Uses class_alias to make `\Newspack\Newspack` resolve in the test environment.
+	 * The alias is global and persists for the rest of the process — kept in this
+	 * test only because the other tests in this class set explicit filter values
+	 * and do not rely on the default detection.
 	 */
-	public function test_is_bundled_mode_defaults_to_false() {
+	public function test_is_bundled_mode_default_detection() {
+		if ( ! class_exists( '\Newspack\Newspack' ) ) {
+			class_alias( '\stdClass', '\Newspack\Newspack' );
+		}
+
+		// With the class present and no filter, default detection is true.
+		$this->assertTrue( Admin_Shell::is_bundled_mode() );
+
+		// Filter overrides the true default.
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
 		$this->assertFalse( Admin_Shell::is_bundled_mode() );
 	}
 
 	/**
-	 * The detection is filterable so sites can override it explicitly.
+	 * The filter contract: forcing true returns true regardless of class state.
 	 */
 	public function test_is_bundled_mode_filter_can_force_true() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
@@ -35,7 +50,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Filter overrides class-existence detection.
+	 * The filter contract: forcing false returns false regardless of class state.
 	 */
 	public function test_is_bundled_mode_filter_can_force_false() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
