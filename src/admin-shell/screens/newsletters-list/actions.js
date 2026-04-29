@@ -15,6 +15,7 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 import { dispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
+import { getAdminUrl } from '../../admin-globals';
 import { isTrashed } from './status-label';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
@@ -109,7 +110,7 @@ export function getActions( { refresh } ) {
 			if ( ! item ) {
 				return;
 			}
-			window.location.href = `${ window.newspackNewslettersAdmin.adminUrl }post.php?post=${ item.id }&action=edit`;
+			window.location.href = `${ getAdminUrl() }post.php?post=${ item.id }&action=edit`;
 		},
 	};
 

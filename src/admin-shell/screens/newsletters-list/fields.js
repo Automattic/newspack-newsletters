@@ -11,6 +11,7 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { dateI18n, getSettings as getDateSettings } from '@wordpress/date';
 
+import { getAdminUrl } from '../../admin-globals';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
 
 const formatDate = timestamp => {
@@ -22,7 +23,7 @@ const formatDate = timestamp => {
 	return dateI18n( format, timestamp * 1000 );
 };
 
-const editUrl = item => `${ window.newspackNewslettersAdmin.adminUrl }post.php?post=${ item.id }&action=edit`;
+const editUrl = item => `${ getAdminUrl() }post.php?post=${ item.id }&action=edit`;
 
 // `title.rendered` is HTML-encoded by WP REST, so entities like `&amp;`
 // or `&#8217;` would display literally in the DataView. Prefer

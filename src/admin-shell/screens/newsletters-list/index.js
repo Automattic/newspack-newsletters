@@ -10,6 +10,7 @@ import { DataViews } from '@wordpress/dataviews/wp';
 import { useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
+import { getAdminUrl, getCptSlug } from '../../admin-globals';
 import { useHeaderActions } from '../../header-actions-context';
 import useNewslettersData from './use-newsletters-data';
 import { getFields } from './fields';
@@ -47,7 +48,7 @@ export default function NewslettersListScreen() {
 				{
 					type: 'primary',
 					label: __( 'Add new newsletter', 'newspack-newsletters' ),
-					href: `${ window.newspackNewslettersAdmin.adminUrl }post-new.php?post_type=${ window.newspackNewslettersAdmin.cptSlug }`,
+					href: `${ getAdminUrl() }post-new.php?post_type=${ getCptSlug() }`,
 				},
 			],
 			[]
