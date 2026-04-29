@@ -13,8 +13,7 @@
  */
 
 import { Button } from '@wordpress/components';
-import { useEffect, useState } from '@wordpress/element';
-import { createPortal } from 'react-dom';
+import { createPortal, useEffect, useState } from '@wordpress/element';
 
 import { useHeaderActionsValue } from './header-actions-context';
 
