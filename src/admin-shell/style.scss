@@ -14,6 +14,18 @@ body.newspack-newsletters-admin-screen {
 		background: wp-colors.$white;
 	}
 
+	// Drop the WP-default 20px gutter on our admin pages so the React surface
+	// starts flush with the sidebar. Newspack-plugin's admin-header strip
+	// already counters that gutter via `.newspack-wizards-admin-header
+	// { margin-left: -20px }`, which would otherwise pull it 20px past the
+	// sidebar edge here — neutralise that offset so everything aligns.
+	#wpcontent {
+		padding-left: 0;
+	}
+	.newspack-wizards-admin-header {
+		margin-left: 0;
+	}
+
 	--wp-admin-theme-color: #{np-colors.$primary-600};
 	--wp-admin-theme-color--rgb: #{np-colors.$primary-600--rgb};
 	--wp-admin-theme-color-darker-10: #{np-colors.$primary-700};
@@ -24,12 +36,7 @@ body.newspack-newsletters-admin-screen {
 	--wp-admin-theme-color-lighter-10--rgb: #{np-colors.$primary-000--rgb};
 }
 
-// `#wpcontent` carries a 20px left padding from WP admin. The Newspack
-// admin-header strip already counters it via `margin-left: -20px` so it
-// sits flush with the sidebar; do the same for the React mount so the
-// content edge aligns with the strip above it.
 .newspack-newsletters-admin-mount {
-	margin-left: -20px;
 	margin-top: wp-vars.$grid-unit-20;
 }
 
