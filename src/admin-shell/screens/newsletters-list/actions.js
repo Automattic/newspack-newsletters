@@ -44,6 +44,16 @@ const restoreOne = id =>
 
 const deleteOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
+// Toggling `is_public` is meta-only — it never triggers a status
+// transition, so the ESP-send guard that blocks bulk publish/private
+// does not apply here.
+const setIsPublic = ( id, isPublic ) =>
+	apiFetch( {
+		path: `${ POSTS_PATH }/${ id }`,
+		method: 'POST',
+		data: { meta: { is_public: !! isPublic } },
+	} );
+
 function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, question, isDestructive, onConfirm } ) {
 	const [ isBusy, setIsBusy ] = useState( false );
 	return (
@@ -97,6 +107,68 @@ export function getActions( { refresh } ) {
 			const item = items[ 0 ];
 			if ( item?.link ) {
 				window.open( item.link, '_blank', 'noopener' );
+			}
+		},
+	};
+
+	const makePublicAction = {
+		id: 'make-public',
+		label: __( 'Make newsletter pages public', 'newspack-newsletters' ),
+		supportsBulk: true,
+		// Hide on already-public rows and on trashed rows; nothing to do
+		// in the first case, dangerous-feeling in the second.
+		isEligible: item => ! isTrashed( item ) && ! item?.meta?.is_public,
+		callback: async items => {
+			const failed = [];
+			await Promise.all(
+				items.map( item =>
+					setIsPublic( item.id, true ).catch( () => {
+						failed.push( item );
+					} )
+				)
+			);
+			refresh();
+			if ( failed.length === 0 ) {
+				notify( _n( 'Newsletter page made public.', 'Newsletter pages made public.', items.length, 'newspack-newsletters' ) );
+			} else {
+				notify(
+					sprintf(
+						/* translators: %d: number that failed */
+						__( 'Failed to make %d newsletter page(s) public.', 'newspack-newsletters' ),
+						failed.length
+					),
+					'error'
+				);
+			}
+		},
+	};
+
+	const makeNonPublicAction = {
+		id: 'make-non-public',
+		label: __( 'Make newsletter pages non-public', 'newspack-newsletters' ),
+		supportsBulk: true,
+		isEligible: item => ! isTrashed( item ) && !! item?.meta?.is_public,
+		callback: async items => {
+			const failed = [];
+			await Promise.all(
+				items.map( item =>
+					setIsPublic( item.id, false ).catch( () => {
+						failed.push( item );
+					} )
+				)
+			);
+			refresh();
+			if ( failed.length === 0 ) {
+				notify( _n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', items.length, 'newspack-newsletters' ) );
+			} else {
+				notify(
+					sprintf(
+						/* translators: %d: number that failed */
+						__( 'Failed to make %d newsletter page(s) non-public.', 'newspack-newsletters' ),
+						failed.length
+					),
+					'error'
+				);
 			}
 		},
 	};
@@ -231,5 +303,5 @@ export function getActions( { refresh } ) {
 		),
 	};
 
-	return [ editAction, viewAction, trashAction, restoreAction, deleteAction ];
+	return [ editAction, viewAction, makePublicAction, makeNonPublicAction, trashAction, restoreAction, deleteAction ];
 }

@@ -16,7 +16,7 @@ describe( 'newsletters list actions', () => {
 
 	it( 'exposes the expected action ids in order', () => {
 		const ids = getActions( { refresh } ).map( action => action.id );
-		expect( ids ).toEqual( [ 'edit', 'view-public-page', 'trash', 'restore', 'delete-permanently' ] );
+		expect( ids ).toEqual( [ 'edit', 'view-public-page', 'make-public', 'make-non-public', 'trash', 'restore', 'delete-permanently' ] );
 	} );
 
 	it( 'marks Edit as the primary action', () => {
@@ -62,8 +62,27 @@ describe( 'newsletters list actions', () => {
 		expect( action.supportsBulk ).toBe( true );
 	} );
 
+	it( 'Make public supports bulk and is eligible only on non-trashed, currently-non-public rows', () => {
+		const action = byId( 'make-public' );
+		expect( action.supportsBulk ).toBe( true );
+		expect( action.isEligible( draftRow ) ).toBe( true );
+		expect( action.isEligible( sentPublicRow ) ).toBe( false );
+		expect( action.isEligible( trashedRow ) ).toBe( false );
+	} );
+
+	it( 'Make non-public supports bulk and is eligible only on non-trashed, currently-public rows', () => {
+		const action = byId( 'make-non-public' );
+		expect( action.supportsBulk ).toBe( true );
+		expect( action.isEligible( sentPublicRow ) ).toBe( true );
+		expect( action.isEligible( draftRow ) ).toBe( false );
+		expect( action.isEligible( { ...sentPublicRow, status: 'trash' } ) ).toBe( false );
+	} );
+
 	it( 'never exposes a publish or status-changing bulk action — campaign-send safety guard', () => {
 		const ids = getActions( { refresh } ).map( action => action.id );
+		// `make-public` / `make-non-public` are meta-only and don't fire
+		// `transition_post_status`, so they're safe; the guard is against
+		// post-status changes that would dispatch ESP campaigns.
 		expect( ids ).not.toEqual( expect.arrayContaining( [ 'publish', 'private', 'transition-status' ] ) );
 	} );
 } );
