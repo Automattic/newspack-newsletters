@@ -100,6 +100,15 @@ function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, quest
 	);
 }
 
+// Eligibility predicates extracted to constants so each non-modal bulk
+// callback can re-apply them to the selection. DataViews only filters
+// by `isEligible` automatically for **modal** bulk actions; plain
+// callback bulk actions get the full selected set, so without this
+// guard a user who selected a trashed + scheduled row would unschedule
+// the latter when they hit "Restore".
+const isMakePublicEligible = item => ! isTrashed( item ) && ! item?.meta?.is_public;
+const isMakeNonPublicEligible = item => ! isTrashed( item ) && !! item?.meta?.is_public;
+
 export function getActions( { refresh } ) {
 	const editAction = {
 		id: 'edit',
@@ -136,11 +145,15 @@ export function getActions( { refresh } ) {
 		supportsBulk: true,
 		// Hide on already-public rows and on trashed rows; nothing to do
 		// in the first case, dangerous-feeling in the second.
-		isEligible: item => ! isTrashed( item ) && ! item?.meta?.is_public,
+		isEligible: isMakePublicEligible,
 		callback: async items => {
+			const eligible = items.filter( isMakePublicEligible );
+			if ( eligible.length === 0 ) {
+				return;
+			}
 			const failed = [];
 			await Promise.all(
-				items.map( item =>
+				eligible.map( item =>
 					setIsPublic( item.id, true ).catch( () => {
 						failed.push( item );
 					} )
@@ -148,7 +161,7 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter page made public.', 'Newsletter pages made public.', items.length, 'newspack-newsletters' ) );
+				notify( _n( 'Newsletter page made public.', 'Newsletter pages made public.', eligible.length, 'newspack-newsletters' ) );
 			} else {
 				notify(
 					sprintf(
@@ -166,11 +179,15 @@ export function getActions( { refresh } ) {
 		id: 'make-non-public',
 		label: __( 'Make newsletter pages non-public', 'newspack-newsletters' ),
 		supportsBulk: true,
-		isEligible: item => ! isTrashed( item ) && !! item?.meta?.is_public,
+		isEligible: isMakeNonPublicEligible,
 		callback: async items => {
+			const eligible = items.filter( isMakeNonPublicEligible );
+			if ( eligible.length === 0 ) {
+				return;
+			}
 			const failed = [];
 			await Promise.all(
-				items.map( item =>
+				eligible.map( item =>
 					setIsPublic( item.id, false ).catch( () => {
 						failed.push( item );
 					} )
@@ -178,7 +195,7 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', items.length, 'newspack-newsletters' ) );
+				notify( _n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', eligible.length, 'newspack-newsletters' ) );
 			} else {
 				notify(
 					sprintf(
@@ -248,9 +265,13 @@ export function getActions( { refresh } ) {
 		supportsBulk: true,
 		isEligible: isTrashed,
 		callback: async items => {
+			const eligible = items.filter( isTrashed );
+			if ( eligible.length === 0 ) {
+				return;
+			}
 			const failed = [];
 			await Promise.all(
-				items.map( item =>
+				eligible.map( item =>
 					restoreOne( item.id ).catch( () => {
 						failed.push( item );
 					} )
@@ -258,7 +279,7 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter restored.', 'Newsletters restored.', items.length, 'newspack-newsletters' ) );
+				notify( _n( 'Newsletter restored.', 'Newsletters restored.', eligible.length, 'newspack-newsletters' ) );
 			} else {
 				notify(
 					sprintf(
