@@ -28,7 +28,7 @@ const DEFAULT_VIEW = {
 	search: '',
 	filters: [],
 	titleField: 'title',
-	fields: [ 'status', 'send_date', 'send_list', 'author', 'public_page' ],
+	fields: [ 'status', 'send_date', 'send_list', 'author', 'categories', 'public_page', 'date' ],
 	...getInitialView(),
 };
 
