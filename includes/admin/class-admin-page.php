@@ -23,9 +23,13 @@ abstract class Admin_Page {
 	/**
 	 * Capability required to view the page.
 	 *
+	 * Defaults to `edit_posts` so users who could previously edit newsletters via
+	 * the (now hidden) CPT menu retain access. Pages requiring elevated access —
+	 * Settings being the canonical example — override this.
+	 *
 	 * @var string
 	 */
-	protected $capability = 'manage_options';
+	protected $capability = 'edit_posts';
 
 	/**
 	 * Get the page slug.

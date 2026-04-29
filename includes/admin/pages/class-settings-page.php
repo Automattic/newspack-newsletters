@@ -23,6 +23,13 @@ class Settings_Page extends Admin_Page {
 	protected $slug = 'newspack-newsletters-settings';
 
 	/**
+	 * ESP credentials and global settings stay admin-only.
+	 *
+	 * @var string
+	 */
+	protected $capability = 'manage_options';
+
+	/**
 	 * Get the page label.
 	 *
 	 * @return string
