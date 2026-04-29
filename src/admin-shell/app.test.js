@@ -15,7 +15,7 @@ describe( 'admin-shell App chrome', () => {
 		expect( screen.getByTestId( 'noop-screen' ) ).toBeInTheDocument();
 	} );
 
-	it( 'renders the chrome inside a labelled landmark region', () => {
+	it( 'renders the chrome inside a main landmark region', () => {
 		render( <App label="Settings" Screen={ NoopScreen } /> );
 		expect( screen.getByRole( 'main' ) ).toBeInTheDocument();
 	} );

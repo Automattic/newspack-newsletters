@@ -92,7 +92,7 @@ class Admin_Shell {
 				'mountId'         => $current_page->get_mount_id(),
 				'label'           => $current_page->get_label(),
 				'bundledMode'     => self::is_bundled_mode(),
-				'classicSettings' => admin_url( 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-settings-admin' ),
+				'classicSettings' => \Newspack_Newsletters_Settings::get_settings_url(),
 				'restNonce'       => wp_create_nonce( 'wp_rest' ),
 				'restUrl'         => esc_url_raw( rest_url() ),
 			]

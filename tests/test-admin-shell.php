@@ -23,10 +23,11 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * Default detection: when the Newspack core class exists, bundled mode is true;
 	 * the filter can still override either way.
 	 *
-	 * Uses class_alias to make `\Newspack\Newspack` resolve in the test environment.
-	 * The alias is global and persists for the rest of the process — kept in this
-	 * test only because the other tests in this class set explicit filter values
-	 * and do not rely on the default detection.
+	 * Runs in a separate PHPUnit process so the `class_alias` to `\Newspack\Newspack`
+	 * does not leak into other tests' default detection.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_is_bundled_mode_default_detection() {
 		if ( ! class_exists( '\Newspack\Newspack' ) ) {
