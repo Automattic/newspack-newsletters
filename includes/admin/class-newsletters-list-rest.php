@@ -96,11 +96,18 @@ class Newsletters_List_REST {
 	 * The "Scheduled" filter element value (`status=future`) only matches
 	 * native WP-scheduled posts, but the Status column also renders rows
 	 * with the in-flight `sending_scheduled` meta as "Scheduled" — those
-	 * would otherwise disappear when the user applies the filter. When
-	 * the request is asking for `future` and only `future`, widen
-	 * `post_status` to the writable set (no trash) and OR in a
-	 * `sending_scheduled` meta-EXISTS subquery via `posts_where`. The
-	 * callback removes itself after running so it's a true one-shot.
+	 * would otherwise disappear when the user applies the filter. The
+	 * Status filter uses `isAny`, so users can also combine Scheduled
+	 * with other statuses (e.g. `future,publish,private` or
+	 * `future,trash`); the expansion fires whenever the selection
+	 * **contains** `future`, while preserving the user's other picks.
+	 *
+	 * Strategy: widen `post_status` to the union of the user's selection
+	 * and the statuses where a `sending_scheduled` row might live, then
+	 * install a one-shot `posts_where` that re-narrows to
+	 * `(post_status IN <user selection> OR EXISTS sending_scheduled)`.
+	 * The callback removes itself after firing so it stays scoped to
+	 * the single query.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
