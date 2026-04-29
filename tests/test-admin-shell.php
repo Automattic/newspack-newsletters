@@ -142,6 +142,27 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Settings is registered with the CPT as parent so it appears as a
+	 * visible submenu in standalone mode. Regression: the previous shape
+	 * passed `null` for every page, which silently hid Settings.
+	 */
+	public function test_settings_page_parent_is_the_cpt_so_it_is_visible_in_the_menu() {
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
+		$pages = Admin_Shell::get_pages();
+		$settings = null;
+		foreach ( $pages as $page ) {
+			if ( 'newspack-newsletters-settings' === $page->get_slug() ) {
+				$settings = $page;
+			}
+		}
+		$this->assertNotNull( $settings );
+		$this->assertSame(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			$settings->get_parent_slug()
+		);
+	}
+
+	/**
 	 * On a chassis-managed page, the parent_file filter forces the Newsletters
 	 * CPT to be the active top-level menu so the sidebar highlights correctly.
 	 */

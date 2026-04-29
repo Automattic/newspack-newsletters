@@ -57,6 +57,23 @@ abstract class Admin_Page {
 	}
 
 	/**
+	 * Parent menu slug for `add_submenu_page`.
+	 *
+	 * Default is `null` — the page registers as a hidden submenu (its
+	 * URL resolves but it doesn't appear in the menu). Used by the list
+	 * page, whose visible click target is the auto-generated CPT
+	 * submenu and whose URL is reached via `Admin_Shell::maybe_redirect_legacy_list`.
+	 *
+	 * Pages that should appear in the menu override this to return the
+	 * CPT parent (e.g. Settings in standalone mode).
+	 *
+	 * @return string|null
+	 */
+	public function get_parent_slug() {
+		return null;
+	}
+
+	/**
 	 * Whether the current request is for this admin page.
 	 *
 	 * @return bool

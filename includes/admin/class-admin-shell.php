@@ -85,23 +85,25 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Register React-shell pages as hidden submenus.
+	 * Register React-shell pages.
 	 *
-	 * Hidden (parent=null) is deliberate: we want the auto-generated
-	 * `edit.php?post_type=newspack_nl_cpt` "All Newsletters" submenu to stay
-	 * as the visible link target. `maybe_redirect_legacy_list` then 302's
-	 * that URL to our React page (`?page=newspack-newsletters-list`) — and
-	 * because the redirect preserves `?post_type=newspack_nl_cpt`,
-	 * `newspack-plugin`'s `Newsletters_Wizard` (when present) recognises the
-	 * screen and renders the dark Newspack admin-header chrome on top of
-	 * our React surface. Removing the auto submenu broke that recognition
-	 * and routed the top-level menu link to `admin.php?page=...`, which is
-	 * not in the wizard's `admin_screens` map.
+	 * Each page declares its own `get_parent_slug()` — default `null`
+	 * means hidden (URL works but the entry isn't in the menu), used
+	 * by the list page so the auto-generated `edit.php?post_type=
+	 * newspack_nl_cpt` "All Newsletters" submenu stays as the visible
+	 * click target. `maybe_redirect_legacy_list` then 302s that URL to
+	 * our React page; because the redirect preserves `?post_type=
+	 * newspack_nl_cpt`, `newspack-plugin`'s `Newsletters_Wizard` (when
+	 * present) recognises the screen and renders the dark Newspack
+	 * admin-header chrome on top.
+	 *
+	 * Other pages (e.g. Settings in standalone mode) override
+	 * `get_parent_slug()` to surface as visible submenus under the CPT.
 	 */
 	public static function register_menu() {
 		foreach ( self::get_pages() as $page ) {
 			add_submenu_page(
-				null,
+				$page->get_parent_slug(),
 				$page->get_label(),
 				$page->get_label(),
 				$page->get_capability(),

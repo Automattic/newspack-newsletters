@@ -46,4 +46,15 @@ class Newsletters_List_Page_Test extends WP_UnitTestCase {
 		$page = new Newsletters_List_Page();
 		$this->assertSame( 'newspack-newsletters-list-root', $page->get_mount_id() );
 	}
+
+	/**
+	 * The list page is hidden — its visible click target is the
+	 * auto-generated CPT submenu, redirected by `Admin_Shell::
+	 * maybe_redirect_legacy_list`. Settings must remain visible (see
+	 * `Settings_Page` for the sibling test).
+	 */
+	public function test_parent_slug_is_null_so_the_page_is_hidden_from_the_menu() {
+		$page = new Newsletters_List_Page();
+		$this->assertNull( $page->get_parent_slug() );
+	}
 }
