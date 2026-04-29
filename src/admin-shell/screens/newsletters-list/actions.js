@@ -30,11 +30,20 @@ function notify( message, type = 'success' ) {
 
 const trashOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }`, method: 'DELETE' } );
 
-// Always restore to `draft`, not the pre-trash status. WP's default
-// untrash flow restores the previous status (e.g. `publish`/`private`),
-// which would re-fire `transition_post_status` and dispatch the ESP
-// campaign for previously-sent newsletters. The button label makes the
-// "as draft" semantics explicit so users aren't surprised.
+// PATCH `status: 'draft'` for every restore — the actual landing
+// status depends on whether the newsletter has already been sent:
+//
+//   - Never-sent: `Newspack_Newsletters_Service_Provider::insert_post_data`
+//     leaves `draft` alone, so the row restores as a draft.
+//   - Already-sent: the same filter forces the row back to its
+//     controlled status (`publish` if `is_public`, otherwise `private`)
+//     so a sent newsletter cannot accidentally land in draft.
+//
+// Both branches are safe vs the ESP-send guard: the provider's send
+// only fires when transitioning INTO publish/private from a non-sent
+// state, and `is_newsletter_sent()` short-circuits the second case.
+// We expose this as plain "Restore" — naming it "Restore as draft"
+// would mislead users because that's only true for never-sent rows.
 const restoreOne = id =>
 	apiFetch( {
 		path: `${ POSTS_PATH }/${ id }`,
@@ -107,7 +116,11 @@ export function getActions( { refresh } ) {
 	const viewAction = {
 		id: 'view-public-page',
 		label: __( 'View public page', 'newspack-newsletters' ),
-		isEligible: item => !! item?.meta?.is_public && !! item?.link && ! isTrashed( item ),
+		// `is_public` and a REST `link` are not enough — drafts/scheduled/
+		// private rows can carry both but have no live public-facing page.
+		// Only `publish` posts are publicly viewable; private rows are
+		// admin-only even with `is_public` momentarily out of sync.
+		isEligible: item => 'publish' === item?.status && !! item?.link,
 		callback: items => {
 			const item = items[ 0 ];
 			if ( item?.link ) {
@@ -230,7 +243,7 @@ export function getActions( { refresh } ) {
 
 	const restoreAction = {
 		id: 'restore',
-		label: __( 'Restore as draft', 'newspack-newsletters' ),
+		label: __( 'Restore', 'newspack-newsletters' ),
 		supportsBulk: true,
 		isEligible: isTrashed,
 		callback: async items => {
@@ -244,7 +257,7 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter restored as draft.', 'Newsletters restored as draft.', items.length, 'newspack-newsletters' ) );
+				notify( _n( 'Newsletter restored.', 'Newsletters restored.', items.length, 'newspack-newsletters' ) );
 			} else {
 				notify(
 					sprintf(

@@ -23,10 +23,20 @@ describe( 'newsletters list actions', () => {
 		expect( byId( 'edit' ).isPrimary ).toBe( true );
 	} );
 
-	it( 'View public page is eligible only when is_public and a link exists and the row is not trashed', () => {
+	it( "View public page is eligible only when status === 'publish' and a link exists", () => {
 		const action = byId( 'view-public-page' );
 		expect( action.isEligible( sentPublicRow ) ).toBe( true );
-		expect( action.isEligible( draftRow ) ).toBe( false );
+
+		// Drafts can carry `is_public=true` and a REST link but have no live page.
+		expect( action.isEligible( { ...draftRow, meta: { is_public: true }, link: 'https://example.test/n/1' } ) ).toBe( false );
+
+		// Private rows are admin-only even when is_public is momentarily true.
+		expect( action.isEligible( { ...sentPublicRow, status: 'private' } ) ).toBe( false );
+
+		// Scheduled rows haven't published yet.
+		expect( action.isEligible( { ...sentPublicRow, status: 'future' } ) ).toBe( false );
+
+		// Trash hides everything.
 		expect( action.isEligible( { ...sentPublicRow, status: 'trash' } ) ).toBe( false );
 	} );
 
@@ -80,9 +90,14 @@ describe( 'newsletters list actions', () => {
 
 	it( 'never exposes a publish or status-changing bulk action — campaign-send safety guard', () => {
 		const ids = getActions( { refresh } ).map( action => action.id );
-		// `make-public` / `make-non-public` are meta-only and don't fire
-		// `transition_post_status`, so they're safe; the guard is against
-		// post-status changes that would dispatch ESP campaigns.
+		// `make-public` / `make-non-public` DO fire `transition_post_status`
+		// on already-sent rows (via `Newspack_Newsletters_Service_Provider::
+		// updated_post_meta`, which calls `wp_update_post` to flip between
+		// `publish` and `private`). They're still safe because the
+		// provider's send only fires when transitioning INTO publish/private
+		// from a non-sent state, and `is_newsletter_sent()` short-circuits
+		// every already-published row. The guard is against actions that
+		// would re-send: explicit publish/private status changes.
 		expect( ids ).not.toEqual( expect.arrayContaining( [ 'publish', 'private', 'transition-status' ] ) );
 	} );
 } );
