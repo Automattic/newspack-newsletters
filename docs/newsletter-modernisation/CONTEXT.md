@@ -4,11 +4,25 @@ This document captures the *why* behind decisions for the newsletter modernisati
 
 ## How to use this doc
 
-This is the contract for anyone — human or AI agent — working on `epic/newsletters-modernisation`:
+This is the contract for anyone — human or AI agent — working on this project:
 
-1. **Before starting a session** on this branch (or any feature branch off it): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
-2. **Before opening a PR** into `epic/newsletters-modernisation`: decide whether your work introduces a decision, gotcha, learning, or shift in scope. If yes, update the relevant section and append a dated entry to the **Decisions log** in the same PR. If no context change applies, say so explicitly in the PR description (e.g. "No context change.").
+1. **Before starting a session** on any branch in this project (the project epic, a milestone integration branch, or a per-ticket branch off either): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
+2. **Before opening a PR**: identify the right base branch (see *Branch structure* below — per-ticket PRs target their milestone branch, not the project epic). Decide whether your work introduces a decision, gotcha, learning, or shift in scope. If yes, update the relevant section and append a dated entry to the **Decisions log** in the same PR. If no context change applies, say so explicitly in the PR description (e.g. "No context change.").
 3. **Tone:** terse but explanatory. Future readers won't have the conversation that produced each decision — they need the reasoning, not just the conclusion.
+
+## Branch structure
+
+Three tiers:
+
+- **`epic/newsletters-modernisation`** — the project epic. Receives only milestone-integration merges. Ultimately merges to `trunk`.
+- **`epic/<milestone>`** — one integration branch per Linear milestone (e.g. `epic/admin-ux-modernisation`, `epic/editor-refactor`, `epic/beehiiv`, `epic/de-risk`, `epic/validate`). Receives per-ticket PRs and is QA'd as a coherent unit before promoting to the project epic. Naming: kebab-case version of the Linear milestone name.
+- **`news-<id>-<slug>`** — per-ticket branch cut from its milestone integration branch. PRs target the milestone branch.
+
+**Why three tiers.** Newsletters are critical and the modernisation is wide-ranging. We want each milestone to land on the project epic only after it's been tested as a unit (cross-ticket integration, regression sweep, manual UAT). Per-ticket review still happens via individual PRs into the milestone branch — Copilot review, lint, tests — so nothing skips the per-ticket gate.
+
+**Promoting a milestone:** once a milestone branch is fully QA'd, open a single PR `epic/<milestone>` → `epic/newsletters-modernisation`. Treat that PR as the integration-test gate.
+
+**Promoting the project:** once the project epic is ready, open a final PR `epic/newsletters-modernisation` → `trunk`. The pre-merge checklist for that step lives in `AGENTS.md`.
 
 ## Strategy
 
@@ -55,6 +69,7 @@ Three workstreams running in parallel:
 
 A running list of decisions made as the project progresses. Newest entries at the top.
 
+- **2026-04-29** — **Adopted three-tier branching as a project-wide convention.** Each Linear milestone gets its own `epic/<milestone>` integration branch (kebab-case) cut from `epic/newsletters-modernisation`; per-ticket branches target the milestone branch; a single promotion PR moves a fully-QA'd milestone up to the project epic. First instance: `epic/admin-ux-modernisation`. Reasoning: per-ticket gates (Copilot review, lint, tests) still happen at PR time, but the project epic only sees integration-tested units, which is what we need given how brittle the newsletter pipeline is. See *Branch structure* above for the full mechanics.
 - **2026-04-29** — Expanded the UX workstream from "Layouts UX rework" to **Admin UX modernisation**. Scope is now the entire Newsletters admin in React (DataViews + React shells), aligned with `newspack-plugin`'s pattern. Layouts becomes a first-class section nested inside the broader migration with its own admin menu and DataView. Standalone-vs-bundled parity is called out explicitly so design accounts for both deployment modes from the start.
 - **2026-04-28** — Confirmed phased rollout via dual pipelines + feature flag, not a big-bang cutover. New newsletters created with the flag enabled opt into the WC pipeline; existing drafts continue rendering through MJML; the flag stays until block-by-block QA and email-client testing pass. The rollout work is captured as a dedicated work item in the Editor refactor backlog.
 - **2026-04-28** — Added an epic-only addendum to `AGENTS.md` pointing agents at this doc as the authoritative contract for sessions on `epic/newsletters-modernisation`. **When merging epic → trunk, remove the addendum** — see the inline marker in `AGENTS.md` ("Epic branch addendum").
