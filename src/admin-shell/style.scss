@@ -58,19 +58,26 @@ body.newspack-newsletters-admin-screen {
 		max-width: none;
 	}
 
-	// `@wordpress/dataviews/wp` 10.2.0 wraps several controls in
-	// `BaseControl` without `__nextHasNoMarginBottom`, which carries a
-	// 16px legacy margin-bottom. That stretches each containing flex row
-	// vertically and pushes neighbouring (centre-aligned) elements
-	// off-baseline — observed on:
-	//
-	//   - `.dataviews__view-actions` — search input vs Add-filter button
-	//   - `.dataviews-footer`         — Select-all checkbox vs item-count text
-	//
-	// Zero the margin across the whole DataView wrapper to cover both
-	// (and any future container DataViews adds).
-	.dataviews-wrapper .components-base-control {
-		margin-bottom: 0;
+	.dataviews-wrapper {
+		// Pull the DataView up tight under the chassis-mount margin —
+		// `__view-actions` carries its own internal padding so the visual
+		// gap stays comfortable.
+		margin-top: -#{wp-vars.$grid-unit-20};
+
+		// `@wordpress/dataviews/wp` 10.2.0 wraps several controls in
+		// `BaseControl` without `__nextHasNoMarginBottom`, which carries a
+		// 16px legacy margin-bottom. That stretches each containing flex
+		// row vertically and pushes neighbouring (centre-aligned) elements
+		// off-baseline — observed on:
+		//
+		//   - `.dataviews__view-actions` — search input vs Add-filter button
+		//   - `.dataviews-footer`         — Select-all checkbox vs item-count text
+		//
+		// Zero the margin across the whole DataView wrapper to cover both
+		// (and any future container DataViews adds).
+		.components-base-control {
+			margin-bottom: 0;
+		}
 	}
 
 	&__placeholder {
