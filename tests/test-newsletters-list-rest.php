@@ -143,6 +143,37 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * `get_status_for_post` must not write to post_meta when computing the
+	 * sent state. The vanilla `Newspack_Newsletters::is_newsletter_sent`
+	 * back-fills `newsletter_sent` for any published post missing it; on
+	 * a list REST GET that turns into N writes per page. The non-mutating
+	 * `compute_sent_at` path mirrors the logic without the back-fill.
+	 */
+	public function test_get_status_does_not_back_fill_newsletter_sent_meta() {
+		$post_id = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
+
+		// Sanity: created post has no `newsletter_sent` meta yet.
+		$this->assertSame( '', get_post_meta( $post_id, 'newsletter_sent', true ) );
+
+		$status = Newsletters_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'sent', $status['kind'] );
+		$this->assertIsInt( $status['sent_at'] );
+
+		// Crucially: no meta back-fill happened during the read.
+		$this->assertSame(
+			'',
+			get_post_meta( $post_id, 'newsletter_sent', true ),
+			'get_status_for_post must be read-only — meta should not be back-filled.'
+		);
+	}
+
+	/**
 	 * The `newspack_newsletters_status` REST field is registered on the
 	 * newsletters CPT so it surfaces on `/wp/v2/newspack_nl_cpt` responses.
 	 */

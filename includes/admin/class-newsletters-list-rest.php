@@ -141,9 +141,10 @@ class Newsletters_List_REST {
 	 *
 	 * Resolution order matters: trash takes precedence (we don't want to
 	 * mask trashed-but-previously-sent items as sent), then sent (covers
-	 * publish/private back-filled by `is_newsletter_sent`), then scheduled
-	 * (`post_status=future` or the `sending_scheduled` meta flag set during
-	 * an in-flight ESP dispatch), finally draft as the catch-all.
+	 * publish/private with the post's publish-date fallback), then
+	 * scheduled (`post_status=future` or the `sending_scheduled` meta
+	 * flag set during an in-flight ESP dispatch), finally draft as the
+	 * catch-all.
 	 *
 	 * @param WP_Post|null $post Post object.
 	 * @return array { kind, sent_at, scheduled_at }
@@ -164,10 +165,10 @@ class Newsletters_List_REST {
 			return $payload;
 		}
 
-		$sent = Newspack_Newsletters::is_newsletter_sent( $post->ID );
-		if ( $sent ) {
+		$sent_at = self::compute_sent_at( $post );
+		if ( null !== $sent_at ) {
 			$payload['kind']    = 'sent';
-			$payload['sent_at'] = (int) $sent;
+			$payload['sent_at'] = $sent_at;
 			return $payload;
 		}
 
@@ -186,6 +187,46 @@ class Newsletters_List_REST {
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Read-only equivalent of `Newspack_Newsletters::is_newsletter_sent` —
+	 * mirrors its resolution logic but never writes to `post_meta`.
+	 *
+	 * `is_newsletter_sent` calls `set_newsletter_sent` to back-fill the
+	 * `newsletter_sent` meta whenever a published post is missing it, so
+	 * calling it from the REST GET would issue one write per published
+	 * row in the response. This list endpoint is read-only by contract
+	 * — derive the timestamp without mutating.
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return int|null Sent timestamp, or null when not (yet) sent.
+	 */
+	private static function compute_sent_at( $post ) {
+		// Scheduled / failed-schedule meta flags suppress "sent" state.
+		if ( get_post_meta( $post->ID, 'sending_scheduled', true ) ) {
+			return null;
+		}
+		if ( get_post_meta( $post->ID, 'scheduling_error', true ) ) {
+			return null;
+		}
+
+		$sent = (int) get_post_meta( $post->ID, 'newsletter_sent', true );
+		if ( 0 < $sent ) {
+			return $sent;
+		}
+
+		// Already-published rows that haven't been flagged: fall back to
+		// the post's publish datetime — same fallback `is_newsletter_sent`
+		// uses, minus the meta back-fill.
+		if ( in_array( $post->post_status, [ 'publish', 'private' ], true ) ) {
+			$datetime = get_post_datetime( $post, 'date', 'gmt' );
+			if ( $datetime ) {
+				return $datetime->getTimestamp();
+			}
+		}
+
+		return null;
 	}
 }
 Newsletters_List_REST::init();
