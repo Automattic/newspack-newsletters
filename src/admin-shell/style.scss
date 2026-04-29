@@ -4,11 +4,21 @@
 
 .newspack-newsletters-admin {
 	&__header {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+		justify-content: space-between;
 		margin-bottom: 24px;
 
 		h1 {
 			margin: 0;
 		}
+	}
+
+	&__header-actions {
+		display: flex;
+		gap: 8px;
 	}
 
 	&__main {

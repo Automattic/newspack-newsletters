@@ -5,15 +5,22 @@
  * to a React component plus its menu label. Slugs that aren't
  * registered here resolve to null.
  *
- * NEWS-1928 to NEWS-1931 each register their own screen as they
- * land. NEWS-1927 ships with Settings only — the only React surface
- * the chassis introduces today.
+ * Currently registered:
+ *  - newspack-newsletters-list (NEWS-1928): the React DataView replacing
+ *    the classic CPT list.
+ *  - newspack-newsletters-settings (NEWS-1927 placeholder, becomes the
+ *    real React surface in NEWS-1931). Standalone-only at the PHP layer.
  */
 
 import { __ } from '@wordpress/i18n';
 import Placeholder from './placeholder';
+import NewslettersListScreen from './newsletters-list';
 
 export const screens = {
+	'newspack-newsletters-list': {
+		component: NewslettersListScreen,
+		label: __( 'All Newsletters', 'newspack-newsletters' ),
+	},
 	'newspack-newsletters-settings': {
 		component: Placeholder,
 		label: __( 'Settings', 'newspack-newsletters' ),

@@ -59,10 +59,10 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Standalone mode exposes the Settings page only — other surfaces are
-	 * added by NEWS-1928 to NEWS-1930 alongside their own features.
+	 * Standalone mode exposes the list view alongside Settings; other React
+	 * surfaces are added by NEWS-1929 / NEWS-1930 alongside their own features.
 	 */
-	public function test_get_pages_returns_settings_in_standalone_mode() {
+	public function test_get_pages_in_standalone_mode_includes_list_and_settings() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
 		$slugs = array_map(
 			function ( $page ) {
@@ -70,15 +70,62 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 			},
 			Admin_Shell::get_pages()
 		);
-		$this->assertSame( [ 'newspack-newsletters-settings' ], $slugs );
+		$this->assertSame( [ 'newspack-newsletters-list', 'newspack-newsletters-settings' ], $slugs );
 	}
 
 	/**
-	 * Bundled mode defers entirely to newspack-plugin's Engagement > Newsletters
-	 * surface, so the chassis registers no pages.
+	 * Bundled mode defers Settings to newspack-plugin's Engagement > Newsletters
+	 * surface — but the React list view replaces the CPT list in both modes.
 	 */
-	public function test_get_pages_is_empty_in_bundled_mode() {
+	public function test_get_pages_in_bundled_mode_includes_list_only() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
-		$this->assertSame( [], Admin_Shell::get_pages() );
+		$slugs = array_map(
+			function ( $page ) {
+				return $page->get_slug();
+			},
+			Admin_Shell::get_pages()
+		);
+		$this->assertSame( [ 'newspack-newsletters-list' ], $slugs );
+	}
+
+	/**
+	 * `replace_default_newsletters_submenu` removes the auto-generated
+	 * `edit.php?post_type=newspack_nl_cpt` "All Newsletters" entry that WP
+	 * adds when a CPT has `show_ui=true`. Re-adding our own with the same
+	 * label keeps the visual menu structure intact.
+	 */
+	public function test_replace_default_newsletters_submenu_removes_auto_generated_entry() {
+		global $submenu;
+
+		$parent           = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$submenu[ $parent ] = [
+			5  => [ 'All Newsletters', 'edit_posts', $parent ],
+			10 => [ 'Add New', 'edit_posts', 'post-new.php?post_type=newspack_nl_cpt' ],
+		];
+
+		Admin_Shell::replace_default_newsletters_submenu();
+
+		$slugs = array_map(
+			function ( $entry ) {
+				return $entry[2];
+			},
+			$submenu[ $parent ]
+		);
+
+		$this->assertNotContains(
+			$parent,
+			$slugs,
+			'The default `edit.php?post_type=newspack_nl_cpt` submenu should have been removed.'
+		);
+	}
+
+	/**
+	 * The redirect target points at our React page slug under the CPT's parent.
+	 * Returning the URL (rather than performing the redirect) keeps the test
+	 * isolated from `wp_safe_redirect`'s exit behaviour.
+	 */
+	public function test_legacy_list_url_redirects_to_react_page() {
+		$expected = admin_url( 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-list' );
+		$this->assertSame( $expected, Admin_Shell::get_legacy_redirect_target() );
 	}
 }

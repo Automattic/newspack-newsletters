@@ -29,14 +29,25 @@ class Admin_Shell {
 	 * Boot hooks.
 	 */
 	public static function init() {
-		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
+		// Run after the CPT auto-generates its submenu (priority 0) so we can
+		// surgically replace the "All Newsletters" entry.
+		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ], 11 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
+		add_action( 'current_screen', [ __CLASS__, 'maybe_redirect_legacy_list' ] );
 	}
 
 	/**
-	 * Register React-shell submenu pages under the Newsletters CPT menu.
+	 * Register React-shell submenu pages under the Newsletters CPT menu and
+	 * suppress the WP-generated "All Newsletters" submenu.
 	 */
 	public static function register_menu() {
+		self::replace_default_newsletters_submenu();
+
+		// Position 0 lands the React list page at the top of the CPT submenu —
+		// this also drives WP's "top-level menu link follows first submenu" so
+		// clicking the Newsletters parent goes to the list, not Add New.
+		$position = 0;
+
 		foreach ( self::get_pages() as $page ) {
 			add_submenu_page(
 				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
@@ -44,9 +55,73 @@ class Admin_Shell {
 				$page->get_label(),
 				$page->get_capability(),
 				$page->get_slug(),
-				[ $page, 'render' ]
+				[ $page, 'render' ],
+				$position
 			);
+			$position++;
 		}
+	}
+
+	/**
+	 * Drop the auto-generated `edit.php?post_type=newspack_nl_cpt` "All
+	 * Newsletters" submenu so our React page (added as the first submenu)
+	 * takes its visual slot. Uses direct `$submenu` manipulation rather than
+	 * `remove_submenu_page` because the latter requires `is_admin()` and the
+	 * exact same slug, which is fine here but harder to assert in tests.
+	 */
+	public static function replace_default_newsletters_submenu() {
+		global $submenu;
+
+		$parent = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		if ( empty( $submenu[ $parent ] ) ) {
+			return;
+		}
+
+		foreach ( $submenu[ $parent ] as $position => $entry ) {
+			if ( isset( $entry[2] ) && $parent === $entry[2] ) {
+				unset( $submenu[ $parent ][ $position ] );
+			}
+		}
+	}
+
+	/**
+	 * Redirect legacy `edit.php?post_type=newspack_nl_cpt` GET requests
+	 * (deep links, browser history, third-party menu links) to the React
+	 * page. Only redirects clean GETs so bulk-action POSTs and trash-view
+	 * links keep working should anyone hit them directly.
+	 *
+	 * @param \WP_Screen $screen Current screen.
+	 */
+	public static function maybe_redirect_legacy_list( $screen ) {
+		if ( ! is_admin() || ! $screen instanceof \WP_Screen ) {
+			return;
+		}
+		if ( 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $screen->id ) {
+			return;
+		}
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+			return;
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only nav check.
+		if ( ! empty( $_GET['action'] ) || ! empty( $_GET['post_status'] ) ) {
+			// Preserve trash filters and bulk-edit actions if they ever surface.
+			return;
+		}
+
+		wp_safe_redirect( self::get_legacy_redirect_target() );
+		exit;
+	}
+
+	/**
+	 * Target URL for the legacy redirect. Exposed so tests can assert against
+	 * it without invoking `wp_safe_redirect`.
+	 *
+	 * @return string
+	 */
+	public static function get_legacy_redirect_target() {
+		return admin_url(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-list'
+		);
 	}
 
 	/**
@@ -140,11 +215,14 @@ class Admin_Shell {
 	 * @return Admin_Page[]
 	 */
 	public static function get_pages() {
-		if ( self::is_bundled_mode() ) {
-			return [];
-		}
-		return [
-			new Pages\Settings_Page(),
+		$pages = [
+			new Pages\Newsletters_List_Page(),
 		];
+
+		if ( ! self::is_bundled_mode() ) {
+			$pages[] = new Pages\Settings_Page();
+		}
+
+		return $pages;
 	}
 }

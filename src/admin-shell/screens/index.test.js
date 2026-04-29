@@ -1,8 +1,8 @@
 import { resolveScreen, screens } from './index';
 
 describe( 'admin-shell screen registry', () => {
-	it( 'registers the Settings placeholder slug', () => {
-		expect( Object.keys( screens ) ).toEqual( [ 'newspack-newsletters-settings' ] );
+	it( 'registers the list and settings slugs', () => {
+		expect( Object.keys( screens ) ).toEqual( [ 'newspack-newsletters-list', 'newspack-newsletters-settings' ] );
 	} );
 
 	it( 'each screen entry exposes a component and a label', () => {
@@ -14,6 +14,7 @@ describe( 'admin-shell screen registry', () => {
 	} );
 
 	it( 'resolves a known slug to its registry entry', () => {
+		expect( resolveScreen( 'newspack-newsletters-list' ) ).toBe( screens[ 'newspack-newsletters-list' ] );
 		expect( resolveScreen( 'newspack-newsletters-settings' ) ).toBe( screens[ 'newspack-newsletters-settings' ] );
 	} );
 
