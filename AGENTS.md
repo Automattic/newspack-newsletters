@@ -60,10 +60,12 @@ back into trunk. See docs/newsletter-modernisation/CONTEXT.md
 
 ## Working on `epic/newsletters-modernisation`
 
-If you are on `epic/newsletters-modernisation` (or any feature branch off it):
+If you are on `epic/newsletters-modernisation`, on a milestone integration branch (`epic/<milestone>`, e.g. `epic/admin-ux-modernisation`), or on a per-ticket branch off either:
 
-1. **Read `docs/newsletter-modernisation/CONTEXT.md` in full at the start of the session.** It is the authoritative record of decisions, rationale, constraints, and open questions for this work.
-2. **Treat the contract in that file's "How to use this doc" section as binding** — including the rule that PRs into the epic update the Decisions log when they introduce a decision, gotcha, learning, or shift in scope (or explicitly state "No context change." in the PR description if not).
+1. **Read `docs/newsletter-modernisation/CONTEXT.md` in full at the start of the session.** It is the authoritative record of decisions, rationale, constraints, and open questions for this work — including the *Branch structure* section that defines which base branch your PR should target.
+2. **Treat the contract in that file's "How to use this doc" section as binding.** Per-ticket PRs target their milestone integration branch (`epic/<milestone>`), not the project epic directly. PRs into either branch update the Decisions log when they introduce a decision, gotcha, learning, or shift in scope (or explicitly state "No context change." in the PR description if not).
+3. **When in doubt about which milestone branch is yours**, look up the Linear ticket's milestone and kebab-case the milestone name (e.g. "Admin UX modernisation" → `epic/admin-ux-modernisation`). Cut the per-ticket branch from there and target the same branch with your PR.
+4. **When creating a fresh milestone integration branch**, after pushing it to origin ask the project owner to extend the project epic's branch-protection waiver to the new branch (or use a glob like `epic/*` so it inherits automatically). Without it, PRs targeting the new milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes. CODEOWNERS inherits via branching; branch-protection does not. See *Branch structure* in CONTEXT.md.
 
 ### Pre-merge checklist (epic → trunk)
 
