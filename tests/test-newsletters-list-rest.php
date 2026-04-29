@@ -374,6 +374,103 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * `expand_scheduled_filter` is a no-op for any request that doesn't
+	 * ask for `future` exclusively — multi-status selections, no filter,
+	 * or different statuses keep the default behaviour.
+	 */
+	public function test_expand_scheduled_filter_passes_through_when_status_is_not_future_only() {
+		$cases = [
+			[],
+			[ 'status' => '' ],
+			[ 'status' => 'publish' ],
+			[ 'status' => 'publish,future' ],
+			[ 'status' => [ 'publish', 'future' ] ],
+		];
+
+		foreach ( $cases as $params ) {
+			$original = [ 'post_status' => 'something_specific' ];
+			$args     = Newsletters_List_REST::expand_scheduled_filter(
+				$original,
+				$this->rest_request( $params )
+			);
+			$this->assertSame( $original, $args, 'Should pass through for params: ' . wp_json_encode( $params ) );
+		}
+	}
+
+	/**
+	 * When the request asks for `status=future` exclusively, widen
+	 * `post_status` to the writable set so the `posts_where` callback
+	 * has rows to filter through. Trash is deliberately excluded.
+	 */
+	public function test_expand_scheduled_filter_widens_post_status_for_future_only() {
+		foreach ( [ 'future', [ 'future' ] ] as $value ) {
+			$args = Newsletters_List_REST::expand_scheduled_filter(
+				[],
+				$this->rest_request( [ 'status' => $value ] )
+			);
+			$this->assertContains( 'future', $args['post_status'] );
+			$this->assertContains( 'draft', $args['post_status'] );
+			$this->assertNotContains( 'trash', $args['post_status'] );
+		}
+	}
+
+	/**
+	 * End-to-end regression: a draft post with `sending_scheduled` meta
+	 * renders as "Scheduled" in the column; the Scheduled filter should
+	 * surface it alongside actual `future` posts. We assert this by
+	 * running an actual `WP_Query` through the filtered args + the
+	 * `posts_where` callback that `expand_scheduled_filter` installs.
+	 */
+	public function test_scheduled_filter_includes_sending_scheduled_meta_drafts() {
+		$future_post = $this->make_newsletter(
+			[
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			]
+		);
+		$pending_send = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+		// Should NOT match: plain draft, no sending_scheduled meta.
+		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
+		// Should NOT match: trashed row, even if it had sending_scheduled meta.
+		$trashed = $this->make_newsletter(
+			[
+				'post_status' => 'trash',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+
+		$args = Newsletters_List_REST::expand_scheduled_filter(
+			[],
+			$this->rest_request( [ 'status' => 'future' ] )
+		);
+
+		// `expand_scheduled_filter` registered a one-shot `posts_where`.
+		// Run a real WP_Query so the callback fires.
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				]
+			)
+		);
+
+		$this->assertContains( $future_post, $query->posts );
+		$this->assertContains( $pending_send, $query->posts );
+		$this->assertNotContains( $plain_draft, $query->posts );
+		$this->assertNotContains( $trashed, $query->posts );
+	}
+
+	/**
 	 * Existing `meta_query` entries are preserved — the filter appends
 	 * its clause rather than replacing.
 	 */
