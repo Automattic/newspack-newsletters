@@ -4,24 +4,16 @@
  * Each entry maps an admin page slug (matching the PHP-side slug)
  * to a React component plus its menu label. Slugs that aren't
  * registered here resolve to null.
+ *
+ * NEWS-1928 to NEWS-1931 each register their own screen as they
+ * land. NEWS-1927 ships with Settings only — the only React surface
+ * the chassis introduces today.
  */
 
 import { __ } from '@wordpress/i18n';
 import Placeholder from './placeholder';
 
 export const screens = {
-	'newspack-newsletters': {
-		component: Placeholder,
-		label: __( 'Newsletters', 'newspack-newsletters' ),
-	},
-	'newspack-newsletters-layouts': {
-		component: Placeholder,
-		label: __( 'Layouts', 'newspack-newsletters' ),
-	},
-	'newspack-newsletters-ads': {
-		component: Placeholder,
-		label: __( 'Ads', 'newspack-newsletters' ),
-	},
 	'newspack-newsletters-settings': {
 		component: Placeholder,
 		label: __( 'Settings', 'newspack-newsletters' ),

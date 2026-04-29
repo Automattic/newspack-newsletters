@@ -41,7 +41,7 @@ final class Ads {
 		add_action( 'init', [ __CLASS__, 'register_newsletter_meta' ] );
 		add_action( 'save_post_' . self::CPT, [ __CLASS__, 'ad_default_fields' ], 10, 3 );
 		add_action( 'rest_api_init', [ __CLASS__, 'rest_api_init' ] );
-		// Newsletter Ads admin entry is owned by the React admin shell — see NEWS-1930.
+		add_action( 'admin_menu', [ __CLASS__, 'add_ads_page' ] );
 		add_action( 'current_screen', [ __CLASS__, 'prevent_direct_taxonomy_access' ] );
 		add_filter( 'get_post_metadata', [ __CLASS__, 'migrate_diable_ads' ], 10, 4 );
 		add_action( 'newspack_newsletters_tracking_pixel_seen', [ __CLASS__, 'track_ad_impression' ], 10, 2 );

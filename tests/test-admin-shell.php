@@ -43,9 +43,10 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Standalone mode exposes all four admin pages.
+	 * Standalone mode exposes the Settings page only — other surfaces are
+	 * added by NEWS-1928 to NEWS-1930 alongside their own features.
 	 */
-	public function test_get_pages_includes_settings_in_standalone_mode() {
+	public function test_get_pages_returns_settings_in_standalone_mode() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
 		$slugs = array_map(
 			function ( $page ) {
@@ -53,27 +54,15 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 			},
 			Admin_Shell::get_pages()
 		);
-		$this->assertEqualsCanonicalizing(
-			[ 'newspack-newsletters', 'newspack-newsletters-layouts', 'newspack-newsletters-ads', 'newspack-newsletters-settings' ],
-			$slugs
-		);
+		$this->assertSame( [ 'newspack-newsletters-settings' ], $slugs );
 	}
 
 	/**
-	 * Bundled mode hides the Settings page (deferring to newspack-plugin).
+	 * Bundled mode defers entirely to newspack-plugin's Engagement > Newsletters
+	 * surface, so the chassis registers no pages.
 	 */
-	public function test_get_pages_excludes_settings_in_bundled_mode() {
+	public function test_get_pages_is_empty_in_bundled_mode() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
-		$slugs = array_map(
-			function ( $page ) {
-				return $page->get_slug();
-			},
-			Admin_Shell::get_pages()
-		);
-		$this->assertNotContains( 'newspack-newsletters-settings', $slugs );
-		$this->assertEqualsCanonicalizing(
-			[ 'newspack-newsletters', 'newspack-newsletters-layouts', 'newspack-newsletters-ads' ],
-			$slugs
-		);
+		$this->assertSame( [], Admin_Shell::get_pages() );
 	}
 }

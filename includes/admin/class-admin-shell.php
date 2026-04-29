@@ -2,8 +2,13 @@
 /**
  * Admin shell bootstrap.
  *
- * Owns the top-level "Newsletters" admin menu and the React-based
- * submenu pages mounted within it.
+ * Provides the React mount infrastructure (asset enqueue, page registry,
+ * mode detection) that surfaces in NEWS-1928 to NEWS-1931 plug into.
+ *
+ * The chassis itself does not introduce its own top-level menu — pages
+ * register as submenus under the Newsletters CPT menu (or, in NEWS-1929's
+ * case, as a separate top-level menu) so the existing menu structure is
+ * preserved.
  *
  * @package Newspack_Newsletters
  */
@@ -12,13 +17,13 @@ namespace Newspack\Newsletters\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack_Newsletters;
+
 /**
  * Registers the React-based Newsletters admin shell.
  */
 class Admin_Shell {
 	const SCRIPT_HANDLE = 'newspack-newsletters-admin-shell';
-	const MENU_SLUG     = 'newspack-newsletters';
-	const MENU_POSITION = 26;
 
 	/**
 	 * Boot hooks.
@@ -29,30 +34,12 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Register the top-level menu and React-shell submenu pages.
+	 * Register React-shell submenu pages under the Newsletters CPT menu.
 	 */
 	public static function register_menu() {
-		$pages = self::get_pages();
-		if ( empty( $pages ) ) {
-			return;
-		}
-
-		$first    = $pages[0];
-		$icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 7c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Zm2-.5h14c.3 0 .5.2.5.5v1L12 13.5 4.5 7.9V7c0-.3.2-.5.5-.5Zm-.5 3.3V17c0 .3.2.5.5.5h14c.3 0 .5-.2.5-.5V9.8L12 15.4 4.5 9.8Z"></path></svg>';
-
-		add_menu_page(
-			$first->get_label(),
-			__( 'Newsletters', 'newspack-newsletters' ),
-			$first->get_capability(),
-			self::MENU_SLUG,
-			[ $first, 'render' ],
-			'data:image/svg+xml;base64,' . base64_encode( $icon_svg ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			self::MENU_POSITION
-		);
-
-		foreach ( $pages as $page ) {
+		foreach ( self::get_pages() as $page ) {
 			add_submenu_page(
-				self::MENU_SLUG,
+				'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 				$page->get_label(),
 				$page->get_label(),
 				$page->get_capability(),
@@ -101,12 +88,13 @@ class Admin_Shell {
 			self::SCRIPT_HANDLE,
 			'newspackNewslettersAdmin',
 			[
-				'currentPage' => $current_page->get_slug(),
-				'mountId'     => $current_page->get_mount_id(),
-				'label'       => $current_page->get_label(),
-				'bundledMode' => self::is_bundled_mode(),
-				'restNonce'   => wp_create_nonce( 'wp_rest' ),
-				'restUrl'     => esc_url_raw( rest_url() ),
+				'currentPage'     => $current_page->get_slug(),
+				'mountId'         => $current_page->get_mount_id(),
+				'label'           => $current_page->get_label(),
+				'bundledMode'     => self::is_bundled_mode(),
+				'classicSettings' => admin_url( 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-settings-admin' ),
+				'restNonce'       => wp_create_nonce( 'wp_rest' ),
+				'restUrl'         => esc_url_raw( rest_url() ),
 			]
 		);
 	}
@@ -152,14 +140,11 @@ class Admin_Shell {
 	 * @return Admin_Page[]
 	 */
 	public static function get_pages() {
-		$pages = [
-			new Pages\Newsletters_Page(),
-			new Pages\Layouts_Page(),
-			new Pages\Ads_Page(),
-		];
-		if ( ! self::is_bundled_mode() ) {
-			$pages[] = new Pages\Settings_Page();
+		if ( self::is_bundled_mode() ) {
+			return [];
 		}
-		return $pages;
+		return [
+			new Pages\Settings_Page(),
+		];
 	}
 }
