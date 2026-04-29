@@ -12,7 +12,7 @@ import { createRoot } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 
 import App from './app';
-import { resolveScreen } from './screens';
+import { resolveLabel, resolveScreen } from './screens';
 import './style.scss';
 
 domReady( () => {
@@ -31,5 +31,8 @@ domReady( () => {
 		return;
 	}
 
-	createRoot( target ).render( <App label={ entry.label } Screen={ entry.component } /> );
+	// Prefer the PHP-localised label so the rendered heading/title stays
+	// aligned with the admin menu label registered in PHP (see
+	// `Admin_Shell::enqueue_assets`). Registry label is the fallback.
+	createRoot( target ).render( <App label={ resolveLabel( currentPage ) } Screen={ entry.component } /> );
 } );

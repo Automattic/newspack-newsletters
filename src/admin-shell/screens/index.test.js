@@ -1,4 +1,4 @@
-import { resolveScreen, screens } from './index';
+import { resolveLabel, resolveScreen, screens } from './index';
 
 describe( 'admin-shell screen registry', () => {
 	it( 'registers the list and settings slugs', () => {
@@ -24,5 +24,35 @@ describe( 'admin-shell screen registry', () => {
 
 	it( 'returns null for an empty slug', () => {
 		expect( resolveScreen( '' ) ).toBeNull();
+	} );
+} );
+
+describe( 'resolveLabel', () => {
+	const REGISTRY_LIST_LABEL = screens[ 'newspack-newsletters-list' ].label;
+	const REGISTRY_SETTINGS_LABEL = screens[ 'newspack-newsletters-settings' ].label;
+
+	it( 'prefers the PHP-localised label when present so the rendered heading matches the admin menu', () => {
+		const phpScope = { newspackNewslettersAdmin: { label: 'Custom PHP Label' } };
+		expect( resolveLabel( 'newspack-newsletters-list', phpScope ) ).toBe( 'Custom PHP Label' );
+	} );
+
+	it( 'falls back to the JS registry label when the PHP global is missing', () => {
+		expect( resolveLabel( 'newspack-newsletters-list', {} ) ).toBe( REGISTRY_LIST_LABEL );
+		expect( resolveLabel( 'newspack-newsletters-settings', {} ) ).toBe( REGISTRY_SETTINGS_LABEL );
+	} );
+
+	it( 'falls back to the registry when the PHP global has no label key', () => {
+		const phpScope = { newspackNewslettersAdmin: {} };
+		expect( resolveLabel( 'newspack-newsletters-list', phpScope ) ).toBe( REGISTRY_LIST_LABEL );
+	} );
+
+	it( 'treats an empty PHP label as missing and falls back to the registry', () => {
+		const phpScope = { newspackNewslettersAdmin: { label: '' } };
+		expect( resolveLabel( 'newspack-newsletters-list', phpScope ) ).toBe( REGISTRY_LIST_LABEL );
+	} );
+
+	it( 'returns an empty string when neither source has anything to offer', () => {
+		expect( resolveLabel( 'not-a-real-page', {} ) ).toBe( '' );
+		expect( resolveLabel( '', {} ) ).toBe( '' );
 	} );
 } );

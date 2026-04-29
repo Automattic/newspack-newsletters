@@ -33,3 +33,22 @@ export function resolveScreen( slug ) {
 	}
 	return screens[ slug ] || null;
 }
+
+/**
+ * Resolve the visible page label, preferring the PHP-localised value
+ * (`window.newspackNewslettersAdmin.label`) so the heading/title stays
+ * aligned with the admin menu label PHP renders. Falls back to the JS
+ * registry entry's label when the global is missing — e.g. in unit
+ * tests, Storybook, or a misconfigured enqueue.
+ *
+ * @param {string} slug          Page slug (PHP-localised `currentPage`).
+ * @param {Object} [globalScope] Override for tests; defaults to `window`.
+ * @return {string} Resolved label, or an empty string if neither source has one.
+ */
+export function resolveLabel( slug, globalScope = typeof window === 'undefined' ? {} : window ) {
+	const phpLabel = globalScope?.newspackNewslettersAdmin?.label;
+	if ( phpLabel ) {
+		return phpLabel;
+	}
+	return resolveScreen( slug )?.label || '';
+}
