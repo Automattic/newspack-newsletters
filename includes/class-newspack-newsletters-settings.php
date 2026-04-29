@@ -210,11 +210,16 @@ class Newspack_Newsletters_Settings {
 	}
 
 	/**
-	 * Add options page
+	 * Register the classic Settings page.
+	 *
+	 * The React admin shell owns the visible Settings entry (see NEWS-1931).
+	 * Until that ships we keep this page reachable via direct URL by passing
+	 * a null parent — the callback still fires so ESP credentials remain
+	 * editable, but no menu link is rendered.
 	 */
 	public static function add_plugin_page() {
 		add_submenu_page(
-			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			null,
 			esc_html__( 'Newsletters Settings', 'newspack-newsletters' ),
 			esc_html__( 'Settings', 'newspack-newsletters' ),
 			'manage_options',
