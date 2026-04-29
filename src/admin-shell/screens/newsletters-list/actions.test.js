@@ -23,7 +23,7 @@ describe( 'newsletters list actions', () => {
 		expect( byId( 'edit' ).isPrimary ).toBe( true );
 	} );
 
-	it( 'View public page is eligible only when is_public and a link exist and the row is not trashed', () => {
+	it( 'View public page is eligible only when is_public and a link exists and the row is not trashed', () => {
 		const action = byId( 'view-public-page' );
 		expect( action.isEligible( sentPublicRow ) ).toBe( true );
 		expect( action.isEligible( draftRow ) ).toBe( false );
