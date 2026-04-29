@@ -15,8 +15,14 @@ describe( 'admin-shell App chrome', () => {
 		expect( screen.getByRole( 'main' ) ).toBeInTheDocument();
 	} );
 
-	it( 'does not render its own page heading — newspack-plugin admin chrome supplies the breadcrumb', () => {
-		render( <App label="Newsletters" Screen={ NoopScreen } /> );
-		expect( screen.queryByRole( 'heading', { name: 'Newsletters' } ) ).not.toBeInTheDocument();
+	it( 'renders a screen-reader-only h1 with the page label for accessibility', () => {
+		// The visible breadcrumb comes from newspack-plugin's admin chrome
+		// (or is absent in standalone mode); the chassis still owns the
+		// programmatic heading via `.screen-reader-text`.
+		const { container } = render( <App label="Newsletters" Screen={ NoopScreen } /> );
+		const heading = screen.getByRole( 'heading', { level: 1, name: 'Newsletters' } );
+		expect( heading ).toBeInTheDocument();
+		expect( heading ).toHaveClass( 'screen-reader-text' );
+		expect( container.querySelector( 'h1.screen-reader-text' ) ).not.toBeNull();
 	} );
 } );

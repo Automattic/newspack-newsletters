@@ -9,29 +9,7 @@
  * Shape per action: `{ type: 'primary' | 'secondary', label, icon?, href?, onClick? }`
  */
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from '@wordpress/element';
-
-/**
- * Stable serialisation of an actions array for use as a useEffect dep.
- * Functions are skipped (they change identity every render), but
- * everything else that affects rendering — type, label, icon, href — is
- * included. Callers that care about stable handlers should memoise.
- */
-function serialiseActions( actions ) {
-	if ( ! Array.isArray( actions ) ) {
-		return '[]';
-	}
-	return JSON.stringify(
-		actions.map( action => ( {
-			id: action?.id,
-			type: action?.type,
-			label: action?.label,
-			href: action?.href,
-			hasIcon: !! action?.icon,
-			hasOnClick: typeof action?.onClick === 'function',
-		} ) )
-	);
-}
+import { createContext, useContext, useEffect, useMemo, useState } from '@wordpress/element';
 
 const HeaderActionsContext = createContext( null );
 
@@ -62,26 +40,25 @@ export function useHeaderActionsValue() {
  * semantics. Outside a provider this is a no-op so screens can be
  * rendered in isolation (Jest, Storybook) without crashing.
  *
- * @param {Array} actions Array of action descriptors.
+ * **Caller contract:** the `actions` array MUST be a stable reference
+ * (wrap it in `useMemo`, with all closure-captured values listed in deps)
+ * — same constraint newspack-plugin's `setHeaderData` already enforces.
+ * Passing a fresh array literal every render would loop. In exchange,
+ * any update to the array (including handler closures) propagates to
+ * the rendered buttons immediately, so users always invoke the latest
+ * `onClick` closure rather than a stale snapshot.
+ *
+ * @param {Array} actions Memoised array of action descriptors.
  */
 export function useHeaderActions( actions ) {
 	const ctx = useContext( HeaderActionsContext );
 	const setActions = ctx ? ctx.setActions : null;
 
-	// Hold the latest actions in a ref so the effect can read them
-	// without making the (often-fresh) array literal a dep.
-	const latestRef = useRef( actions );
-	latestRef.current = actions;
-
-	const dep = serialiseActions( actions );
-
 	useEffect( () => {
 		if ( ! setActions ) {
 			return undefined;
 		}
-		const next = Array.isArray( latestRef.current ) ? latestRef.current : [];
-		setActions( next );
+		setActions( Array.isArray( actions ) ? actions : [] );
 		return () => setActions( [] );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ setActions, dep ] );
+	}, [ setActions, actions ] );
 }

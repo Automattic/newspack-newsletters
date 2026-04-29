@@ -61,10 +61,19 @@ class Newsletters_List_REST {
 	/**
 	 * REST `get_callback` adapter — receives the prepared post array.
 	 *
-	 * @param array $post_array Prepared post response.
+	 * Matches WP's documented field-callback signature so future strict-mode
+	 * runtimes and IDE tooling don't flag a mismatch:
+	 * `( $object, $field_name, $request, $object_type )`. Only `$object` is
+	 * used; the rest are accepted defensively.
+	 *
+	 * @param array            $post_array  Prepared post response.
+	 * @param string           $field_name  Field name (unused).
+	 * @param \WP_REST_Request $request     Request object (unused).
+	 * @param string           $object_type Object type (unused).
 	 * @return array Status payload.
 	 */
-	public static function rest_get_status( $post_array ) {
+	public static function rest_get_status( $post_array, $field_name = '', $request = null, $object_type = '' ) {
+		unset( $field_name, $request, $object_type );
 		$post = isset( $post_array['id'] ) ? get_post( $post_array['id'] ) : null;
 		return self::get_status_for_post( $post );
 	}
