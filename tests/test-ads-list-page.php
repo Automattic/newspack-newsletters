@@ -22,13 +22,16 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Label matches the CPT's `all_items` label so the React page
-	 * title reads identically to the classic CPT list. Matches the
-	 * Newsletters list page's convention (`'All Newsletters'`).
+	 * Label matches the CPT's `menu_name` label (the short form),
+	 * intentionally diverging from `Newsletters_List_Page`'s
+	 * `all_items` convention. Keeps the React page title short
+	 * ("Newsletter Ads", not "All Newsletter Ads") since the visible
+	 * click target is the auto-generated CPT submenu and this label
+	 * only surfaces as the React page's heading.
 	 */
-	public function test_label_matches_cpt_all_items() {
+	public function test_label_matches_cpt_menu_name() {
 		$page = new Ads_List_Page();
-		$this->assertSame( 'All Newsletter Ads', $page->get_label() );
+		$this->assertSame( 'Newsletter Ads', $page->get_label() );
 	}
 
 	/**

@@ -37,14 +37,17 @@ class Ads_List_Page extends Admin_Page {
 	/**
 	 * Get the page label.
 	 *
-	 * Matches the ads CPT's `all_items` label so the React page title
-	 * reads identically to the classic CPT list (and matches the
-	 * Newsletters list page's convention — see `Newsletters_List_Page`).
+	 * Matches the ads CPT's `menu_name` label rather than `all_items`
+	 * — keeps the React page title short ("Newsletter Ads" instead of
+	 * "All Newsletter Ads"). Intentionally diverges from
+	 * `Newsletters_List_Page`'s `all_items` convention; the visible
+	 * click target is the auto-generated CPT submenu, so this label
+	 * only surfaces as the React page's `<h1>` and the browser tab.
 	 *
 	 * @return string
 	 */
 	public function get_label() {
-		return __( 'All Newsletter Ads', 'newspack-newsletters' );
+		return __( 'Newsletter Ads', 'newspack-newsletters' );
 	}
 
 	/**
