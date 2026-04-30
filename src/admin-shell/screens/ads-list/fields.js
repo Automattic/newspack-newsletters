@@ -18,12 +18,12 @@ import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/da
 import { getAdminUrl } from '../../admin-globals';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
 
-const formatDateTime = timestamp => {
+const formatTimestampAsDate = timestamp => {
 	if ( ! timestamp ) {
 		return '';
 	}
 	const settings = getDateSettings();
-	const format = settings.formats?.datetime || 'M j, Y g:ia';
+	const format = settings.formats?.date || 'M j, Y';
 	return dateI18n( format, timestamp * 1000 );
 };
 
@@ -72,7 +72,7 @@ const renderStatus = ( { item } ) => {
 		return sprintf(
 			/* translators: %s: formatted expiry date */
 			__( 'Expired %s', 'newspack-newsletters' ),
-			formatDateTime( status.expires_at )
+			formatTimestampAsDate( status.expires_at )
 		);
 	}
 
@@ -80,7 +80,7 @@ const renderStatus = ( { item } ) => {
 		return sprintf(
 			/* translators: %s: formatted start date */
 			__( 'Starts %s', 'newspack-newsletters' ),
-			formatDateTime( status.starts_at )
+			formatTimestampAsDate( status.starts_at )
 		);
 	}
 

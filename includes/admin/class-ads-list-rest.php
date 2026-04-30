@@ -123,6 +123,14 @@ class Ads_List_REST {
 		$post_status_set = [];
 		$bucket_clauses  = [];
 
+		// `private` is treated as publish-equivalent for the lifecycle
+		// kinds: a private ad with valid dates is functionally a published
+		// ad with restricted visibility, so it should surface in the same
+		// active/scheduled/expired buckets as a public publish row. The
+		// React list also requests `private` by default (see
+		// `DEFAULT_STATUSES` in build-query.js), so excluding it here
+		// would make private rows disappear the moment any kind filter
+		// is applied.
 		foreach ( $kinds as $kind ) {
 			switch ( $kind ) {
 				case 'trash':
@@ -134,23 +142,23 @@ class Ads_List_REST {
 					$bucket_clauses[]   = "{$wpdb->posts}.post_status IN ( 'draft', 'pending', 'auto-draft' )";
 					break;
 				case 'expired':
-					$post_status_set[] = 'publish';
-					$bucket_clauses[]  = $wpdb->prepare(
-						"( {$wpdb->posts}.post_status = 'publish' AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'expiry_date' AND meta_value <> '' AND meta_value < %s ) )",
+					$post_status_set    = array_merge( $post_status_set, [ 'publish', 'private' ] );
+					$bucket_clauses[]   = $wpdb->prepare(
+						"( {$wpdb->posts}.post_status IN ( 'publish', 'private' ) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'expiry_date' AND meta_value <> '' AND meta_value < %s ) )",
 						$today
 					);
 					break;
 				case 'scheduled':
-					$post_status_set[] = 'publish';
-					$bucket_clauses[]  = $wpdb->prepare(
-						"( {$wpdb->posts}.post_status = 'publish' AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'start_date' AND meta_value <> '' AND meta_value > %s ) )",
+					$post_status_set    = array_merge( $post_status_set, [ 'publish', 'private' ] );
+					$bucket_clauses[]   = $wpdb->prepare(
+						"( {$wpdb->posts}.post_status IN ( 'publish', 'private' ) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'start_date' AND meta_value <> '' AND meta_value > %s ) )",
 						$today
 					);
 					break;
 				case 'active':
-					$post_status_set[] = 'publish';
-					$bucket_clauses[]  = $wpdb->prepare(
-						"( {$wpdb->posts}.post_status = 'publish'"
+					$post_status_set    = array_merge( $post_status_set, [ 'publish', 'private' ] );
+					$bucket_clauses[]   = $wpdb->prepare(
+						"( {$wpdb->posts}.post_status IN ( 'publish', 'private' )"
 						. " AND ( NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} sm1 WHERE sm1.post_id = {$wpdb->posts}.ID AND sm1.meta_key = 'start_date' AND sm1.meta_value <> '' )"
 						. " OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} sm2 WHERE sm2.post_id = {$wpdb->posts}.ID AND sm2.meta_key = 'start_date' AND sm2.meta_value <> '' AND sm2.meta_value <= %s ) )"
 						. " AND ( NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} em1 WHERE em1.post_id = {$wpdb->posts}.ID AND em1.meta_key = 'expiry_date' AND em1.meta_value <> '' )"
@@ -240,16 +248,27 @@ class Ads_List_REST {
 			return $payload;
 		}
 
-		if ( 'publish' === $post->post_status ) {
+		// `private` is treated as publish-equivalent for kind resolution:
+		// a private ad with valid dates is functionally a published ad
+		// with restricted visibility, so it should surface as
+		// active/scheduled/expired the same way. Falling through to the
+		// `draft` default would mislabel the row in the list and hide it
+		// from the lifecycle filters.
+		if ( in_array( $post->post_status, [ 'publish', 'private' ], true ) ) {
 			$today       = gmdate( 'Y-m-d' );
 			$start_date  = (string) get_post_meta( $post->ID, 'start_date', true );
 			$expiry_date = (string) get_post_meta( $post->ID, 'expiry_date', true );
 
+			// Use noon UTC so the resulting timestamp lands on the
+			// intended calendar day in any reasonable site timezone —
+			// midnight UTC would render as the previous day for users
+			// behind UTC. The underlying meta is date-only, so the
+			// time-of-day component is just a presentation safeguard.
 			if ( '' !== $start_date ) {
-				$payload['starts_at'] = strtotime( $start_date . ' 00:00:00 UTC' );
+				$payload['starts_at'] = strtotime( $start_date . ' 12:00:00 UTC' );
 			}
 			if ( '' !== $expiry_date ) {
-				$payload['expires_at'] = strtotime( $expiry_date . ' 00:00:00 UTC' );
+				$payload['expires_at'] = strtotime( $expiry_date . ' 12:00:00 UTC' );
 			}
 
 			if ( '' !== $expiry_date && $expiry_date < $today ) {

@@ -3,11 +3,13 @@
  * Newsletter Ads list admin page (React DataView).
  *
  * Replaces the classic WP_List_Table for the ads CPT in both standalone
- * and bundled modes. The page registers as a hidden React submenu
- * (`parent=null`); the visible click target is the auto-generated
- * `edit.php?post_type=newspack_nl_ads_cpt` entry, which `Ads::add_ads_page`
- * already places either as a top-level menu or as a submenu under the
- * Newsletters CPT depending on the user's caps. `Admin_Shell::maybe_redirect_legacy_list`
+ * and bundled modes. The page registers under the concrete parent slug
+ * returned by `get_parent_slug()` — either the ads CPT entry as a
+ * top-level menu or the Newsletters CPT entry when the ads screen is
+ * grouped underneath it. The React page is kept out of the visible menu
+ * via `is_hidden_from_menu()` / submenu removal; the visible click target
+ * remains the auto-generated `edit.php?post_type=newspack_nl_ads_cpt`
+ * entry that `Ads::add_ads_page` creates. `Admin_Shell::maybe_redirect_legacy_list`
  * 302s the legacy URL to the React page.
  *
  * @package Newspack_Newsletters

@@ -212,6 +212,86 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * `private` status is treated as publish-equivalent for kind
+	 * resolution: a private ad with valid dates is functionally a
+	 * published ad with restricted visibility, so it must surface
+	 * as active/scheduled/expired the same way. Falling through to
+	 * the `draft` default would mislabel the row in the list and
+	 * hide it from the lifecycle filters.
+	 */
+	public function test_private_ad_with_no_dates_reports_active_kind() {
+		$post_id = $this->make_ad( [ 'post_status' => 'private' ] );
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'active', $status['kind'] );
+	}
+
+	/**
+	 * `private` status with a future `start_date` resolves to
+	 * `scheduled`, exposing the same `starts_at` timestamp the
+	 * publish branch produces.
+	 */
+	public function test_private_ad_with_future_start_date_reports_scheduled_kind() {
+		$start   = gmdate( 'Y-m-d', strtotime( '+5 days' ) );
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'private',
+				'meta_input'  => [ 'start_date' => $start ],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'scheduled', $status['kind'] );
+		$this->assertIsInt( $status['starts_at'] );
+	}
+
+	/**
+	 * `private` status with a past `expiry_date` resolves to
+	 * `expired` — same lifecycle treatment as the publish branch.
+	 */
+	public function test_private_ad_with_past_expiry_date_reports_expired_kind() {
+		$expiry  = gmdate( 'Y-m-d', strtotime( '-2 days' ) );
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'private',
+				'meta_input'  => [ 'expiry_date' => $expiry ],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'expired', $status['kind'] );
+		$this->assertIsInt( $status['expires_at'] );
+	}
+
+	/**
+	 * Date-only meta is exposed as a noon-UTC timestamp so the
+	 * rendered date stays on the intended calendar day in any
+	 * reasonable site timezone — midnight UTC would render as the
+	 * previous day for users behind UTC.
+	 */
+	public function test_published_ad_timestamps_use_noon_utc_for_timezone_safety() {
+		$start   = gmdate( 'Y-m-d', strtotime( '+5 days' ) );
+		$expiry  = gmdate( 'Y-m-d', strtotime( '+30 days' ) );
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date'  => $start,
+					'expiry_date' => $expiry,
+				],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( strtotime( $start . ' 12:00:00 UTC' ), $status['starts_at'] );
+		$this->assertSame( strtotime( $expiry . ' 12:00:00 UTC' ), $status['expires_at'] );
+	}
+
+	/**
 	 * The `newspack_newsletters_ad_status` REST field is registered on
 	 * the ads CPT so it surfaces on `/wp/v2/newspack_nl_ads_cpt` responses.
 	 */
@@ -519,6 +599,83 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 		$this->assertNotContains( $active, $query->posts );
 		$this->assertNotContains( $expired, $query->posts );
 		$this->assertNotContains( $draft, $query->posts );
+	}
+
+	/**
+	 * `private` rows are treated as publish-equivalent for the
+	 * lifecycle kinds. The React list requests `private` by default
+	 * (see `DEFAULT_STATUSES` in build-query.js), so excluding it
+	 * here would make private rows disappear the moment any kind
+	 * filter is applied — verified end-to-end against active /
+	 * scheduled / expired buckets.
+	 */
+	public function test_kind_filter_active_includes_private_ads_within_window() {
+		$private_active    = $this->make_ad( [ 'post_status' => 'private' ] );
+		$private_scheduled = $this->make_ad(
+			[
+				'post_status' => 'private',
+				'meta_input'  => [
+					'start_date' => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+				],
+			]
+		);
+		$private_expired   = $this->make_ad(
+			[
+				'post_status' => 'private',
+				'meta_input'  => [
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
+				],
+			]
+		);
+
+		$active_query = new WP_Query(
+			array_merge(
+				Ads_List_REST::filter_rest_query(
+					[],
+					$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'active' ] )
+				),
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+		$this->assertContains( $private_active, $active_query->posts );
+		$this->assertNotContains( $private_scheduled, $active_query->posts );
+		$this->assertNotContains( $private_expired, $active_query->posts );
+
+		$scheduled_query = new WP_Query(
+			array_merge(
+				Ads_List_REST::filter_rest_query(
+					[],
+					$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'scheduled' ] )
+				),
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+		$this->assertContains( $private_scheduled, $scheduled_query->posts );
+		$this->assertNotContains( $private_active, $scheduled_query->posts );
+
+		$expired_query = new WP_Query(
+			array_merge(
+				Ads_List_REST::filter_rest_query(
+					[],
+					$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'expired' ] )
+				),
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+		$this->assertContains( $private_expired, $expired_query->posts );
+		$this->assertNotContains( $private_active, $expired_query->posts );
 	}
 
 	/**
