@@ -44,30 +44,32 @@ class Ads_List_REST {
 	 * tracking layer (`Newspack_Newsletters\Tracking\Click` and
 	 * `Ads::track_ad_impression`) but was never previously registered,
 	 * so it didn't surface in REST.
+	 *
+	 * `auth_callback` returns `false` so the meta is read-only via
+	 * REST — these are server-managed telemetry counters and the
+	 * posts endpoint must not accept client writes (stats tampering
+	 * vector). Direct `update_post_meta()` calls from the tracking
+	 * layer aren't gated by `auth_callback` and continue to work; the
+	 * gate only fires on the REST update path's `current_user_can(
+	 * 'edit_post_meta', … )` check. The schema also declares
+	 * `readonly: true` so REST clients see the field as documentation-
+	 * level read-only.
 	 */
 	public static function register_meta() {
-		register_post_meta(
-			Ads::CPT,
-			'tracking_impressions',
-			[
-				'show_in_rest'  => true,
-				'type'          => 'integer',
-				'single'        => true,
-				'auth_callback' => '__return_true',
-				'default'       => 0,
-			]
-		);
-		register_post_meta(
-			Ads::CPT,
-			'tracking_clicks',
-			[
-				'show_in_rest'  => true,
-				'type'          => 'integer',
-				'single'        => true,
-				'auth_callback' => '__return_true',
-				'default'       => 0,
-			]
-		);
+		$readonly_counter_args = [
+			'show_in_rest'  => [
+				'schema' => [
+					'type'     => 'integer',
+					'readonly' => true,
+				],
+			],
+			'type'          => 'integer',
+			'single'        => true,
+			'auth_callback' => '__return_false',
+			'default'       => 0,
+		];
+		register_post_meta( Ads::CPT, 'tracking_impressions', $readonly_counter_args );
+		register_post_meta( Ads::CPT, 'tracking_clicks', $readonly_counter_args );
 	}
 
 	/**

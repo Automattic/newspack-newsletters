@@ -469,8 +469,51 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 		$this->assertTrue( registered_meta_key_exists( 'post', 'tracking_clicks', Ads::CPT ) );
 
 		$registered = get_registered_meta_keys( 'post', Ads::CPT );
-		$this->assertTrue( $registered['tracking_impressions']['show_in_rest'] );
-		$this->assertTrue( $registered['tracking_clicks']['show_in_rest'] );
+		$this->assertNotFalse( $registered['tracking_impressions']['show_in_rest'] );
+		$this->assertNotFalse( $registered['tracking_clicks']['show_in_rest'] );
+	}
+
+	/**
+	 * Tracking counters are server-managed telemetry — REST clients
+	 * must not be able to update them through the posts endpoint.
+	 * `auth_callback => '__return_false'` flips the meta-edit cap to
+	 * deny, even for an administrator with full caps; direct
+	 * `update_post_meta` calls from the tracking layer are unaffected.
+	 */
+	public function test_tracking_metas_deny_rest_writes_even_for_admins() {
+		Ads_List_REST::register_meta();
+
+		$admin_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		wp_set_current_user( $admin_id );
+
+		$post_id = $this->make_ad( [ 'post_status' => 'publish' ] );
+
+		$this->assertFalse( current_user_can( 'edit_post_meta', $post_id, 'tracking_impressions' ) );
+		$this->assertFalse( current_user_can( 'edit_post_meta', $post_id, 'tracking_clicks' ) );
+
+		// Sanity: direct `update_post_meta` from the tracking layer
+		// still works — `auth_callback` only gates the cap-check path
+		// (REST writes go through there; server-side writes don't).
+		$this->assertNotFalse( update_post_meta( $post_id, 'tracking_impressions', 42 ) );
+		$this->assertSame( '42', get_post_meta( $post_id, 'tracking_impressions', true ) );
+	}
+
+	/**
+	 * REST-side schema declares the counters as `readonly: true` so
+	 * generated REST clients (and OpenAPI consumers) treat them as
+	 * read-only fields, complementing the auth-callback enforcement.
+	 */
+	public function test_tracking_metas_declare_readonly_rest_schema() {
+		Ads_List_REST::register_meta();
+
+		$registered = get_registered_meta_keys( 'post', Ads::CPT );
+
+		foreach ( [ 'tracking_impressions', 'tracking_clicks' ] as $key ) {
+			$show_in_rest = $registered[ $key ]['show_in_rest'];
+			$this->assertIsArray( $show_in_rest, sprintf( '%s should declare a schema array', $key ) );
+			$this->assertArrayHasKey( 'schema', $show_in_rest );
+			$this->assertTrue( $show_in_rest['schema']['readonly'] ?? false, sprintf( '%s schema should be readonly', $key ) );
+		}
 	}
 
 	/**
