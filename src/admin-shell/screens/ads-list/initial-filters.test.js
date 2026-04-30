@@ -15,6 +15,10 @@ describe( 'ads getInitialFilters', () => {
 		expect( getInitialFilters( '?post_status=pending' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'draft' ] } ] );
 	} );
 
+	it( 'maps post_status=future to a scheduled kind filter so WP-scheduled ads stay visible on deep links', () => {
+		expect( getInitialFilters( '?post_status=future' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'scheduled' ] } ] );
+	} );
+
 	it( 'ignores unknown post_status values (publish/private split across kinds)', () => {
 		expect( getInitialFilters( '?post_status=publish' ) ).toEqual( [] );
 		expect( getInitialFilters( '?post_status=anything' ) ).toEqual( [] );

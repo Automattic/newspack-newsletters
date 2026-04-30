@@ -19,10 +19,18 @@ describe( 'ads buildQueryParams', () => {
 
 	it( 'defaults to writable statuses (no trash) when no kind filter is set', () => {
 		const { status, newspack_newsletters_ad_status: kindParam } = buildQueryParams( {} );
-		expect( status.split( ',' ) ).toEqual( expect.arrayContaining( [ 'publish', 'private', 'draft', 'pending' ] ) );
+		expect( status.split( ',' ) ).toEqual( expect.arrayContaining( [ 'publish', 'private', 'future', 'draft', 'pending' ] ) );
 		expect( status.split( ',' ) ).not.toContain( 'trash' );
 		// Server doesn't get the kind param when no filter is selected.
 		expect( kindParam ).toBeUndefined();
+	} );
+
+	it( 'includes future in the default status set so WP-scheduled ads stay visible', () => {
+		// `future` covers ads scheduled through WordPress's Publish UI;
+		// they don't have a `start_date` meta and would otherwise drop
+		// off the React list (the classic CPT list showed them).
+		const { status } = buildQueryParams( {} );
+		expect( status.split( ',' ) ).toContain( 'future' );
 	} );
 
 	it( 'maps a single kind filter to the kind-specific REST query param', () => {

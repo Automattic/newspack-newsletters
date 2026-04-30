@@ -131,6 +131,11 @@ class Ads_List_REST {
 		// `DEFAULT_STATUSES` in build-query.js), so excluding it here
 		// would make private rows disappear the moment any kind filter
 		// is applied.
+		//
+		// `future` (WP-scheduled via the standard Publish-Schedule UI)
+		// is folded into the `scheduled` bucket only — those rows haven't
+		// published yet, so `active` and `expired` lifecycle resolution
+		// doesn't apply.
 		foreach ( $kinds as $kind ) {
 			switch ( $kind ) {
 				case 'trash':
@@ -149,9 +154,9 @@ class Ads_List_REST {
 					);
 					break;
 				case 'scheduled':
-					$post_status_set    = array_merge( $post_status_set, [ 'publish', 'private' ] );
+					$post_status_set    = array_merge( $post_status_set, [ 'publish', 'private', 'future' ] );
 					$bucket_clauses[]   = $wpdb->prepare(
-						"( {$wpdb->posts}.post_status IN ( 'publish', 'private' ) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'start_date' AND meta_value <> '' AND meta_value > %s ) )",
+						"( ( {$wpdb->posts}.post_status IN ( 'publish', 'private' ) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'start_date' AND meta_value <> '' AND meta_value > %s ) ) OR {$wpdb->posts}.post_status = 'future' )",
 						$today
 					);
 					break;
@@ -245,6 +250,20 @@ class Ads_List_REST {
 
 		if ( 'trash' === $post->post_status ) {
 			$payload['kind'] = 'trash';
+			return $payload;
+		}
+
+		// WP-scheduled ads (the standard Publish-Schedule UI sets
+		// `post_status=future`) resolve to `scheduled`. The React
+		// renderer reads `starts_at` to show "Starts <date>", so we
+		// expose `post_date_gmt` as the timestamp — that's the moment
+		// WordPress will auto-publish the row. `start_date` /
+		// `expiry_date` meta are ignored on `future` rows; WP's own
+		// scheduling owns the lifecycle until the row publishes.
+		if ( 'future' === $post->post_status ) {
+			$payload['kind']      = 'scheduled';
+			$starts_at            = strtotime( $post->post_date_gmt . ' UTC' );
+			$payload['starts_at'] = false === $starts_at ? null : $starts_at;
 			return $payload;
 		}
 

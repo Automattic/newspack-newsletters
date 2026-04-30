@@ -212,6 +212,55 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * WP-scheduled ads (the standard Publish-Schedule UI sets
+	 * `post_status=future`) resolve to `scheduled` regardless of any
+	 * `start_date` / `expiry_date` meta — those are date-driven
+	 * activation knobs that only matter once the row publishes. The
+	 * timestamp comes from `post_date_gmt` (the moment WP will
+	 * auto-publish) so the React renderer can show "Starts <date>".
+	 */
+	public function test_future_ad_reports_scheduled_kind_with_post_date_starts_at() {
+		$publish_at = gmdate( 'Y-m-d H:i:s', strtotime( '+5 days' ) );
+		$post_id    = $this->make_ad(
+			[
+				'post_status'   => 'future',
+				'post_date'     => $publish_at,
+				'post_date_gmt' => $publish_at,
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'scheduled', $status['kind'] );
+		$this->assertSame( strtotime( $publish_at . ' UTC' ), $status['starts_at'] );
+		$this->assertNull( $status['expires_at'] );
+	}
+
+	/**
+	 * Stale `start_date` / `expiry_date` meta on a `future` row must
+	 * not change the kind — WP's own scheduling owns the lifecycle
+	 * until the row publishes, and the meta only matters once it does.
+	 */
+	public function test_future_ad_with_stale_meta_still_reports_scheduled() {
+		$publish_at = gmdate( 'Y-m-d H:i:s', strtotime( '+5 days' ) );
+		$post_id    = $this->make_ad(
+			[
+				'post_status'   => 'future',
+				'post_date'     => $publish_at,
+				'post_date_gmt' => $publish_at,
+				'meta_input'    => [
+					'start_date'  => gmdate( 'Y-m-d', strtotime( '-3 days' ) ),
+					'expiry_date' => gmdate( 'Y-m-d', strtotime( '-1 day' ) ),
+				],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertSame( 'scheduled', $status['kind'] );
+	}
+
+	/**
 	 * `private` status is treated as publish-equivalent for kind
 	 * resolution: a private ad with valid dates is functionally a
 	 * published ad with restricted visibility, so it must surface
@@ -552,6 +601,55 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 		$this->assertContains( $active_today_start, $query->posts );
 		$this->assertNotContains( $scheduled, $query->posts );
 		$this->assertNotContains( $expired, $query->posts );
+		$this->assertNotContains( $draft, $query->posts );
+	}
+
+	/**
+	 * `kind=scheduled` includes WP-scheduled ads (`post_status=future`)
+	 * alongside publish/private rows whose `start_date` meta is in the
+	 * future. Without this, the legacy `?post_status=future` deep link
+	 * (and the default list) would drop these rows. Active / expired /
+	 * draft must not leak through.
+	 */
+	public function test_kind_filter_scheduled_includes_future_post_status() {
+		$publish_at         = gmdate( 'Y-m-d H:i:s', strtotime( '+5 days' ) );
+		$wp_scheduled       = $this->make_ad(
+			[
+				'post_status'   => 'future',
+				'post_date'     => $publish_at,
+				'post_date_gmt' => $publish_at,
+			]
+		);
+		$meta_scheduled     = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date' => gmdate( 'Y-m-d', strtotime( '+5 days' ) ),
+				],
+			]
+		);
+		$active             = $this->make_ad( [ 'post_status' => 'publish' ] );
+		$draft              = $this->make_ad( [ 'post_status' => 'draft' ] );
+
+		$args = Ads_List_REST::filter_rest_query(
+			[],
+			$this->rest_request( [ Ads_List_REST::STATUS_QUERY_PARAM => 'scheduled' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $wp_scheduled, $query->posts );
+		$this->assertContains( $meta_scheduled, $query->posts );
+		$this->assertNotContains( $active, $query->posts );
 		$this->assertNotContains( $draft, $query->posts );
 	}
 
