@@ -83,4 +83,21 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 		$page = new Ads_List_Page();
 		$this->assertSame( 'edit-' . Ads::CPT, $page->get_legacy_screen_id() );
 	}
+
+	/**
+	 * The wizard-tab override returns the ads CPT URL — the canonical
+	 * "Ads" tab href in `Newsletters_Wizard::get_tabs()`. Without this,
+	 * the wizard header's strict URL equality check fails for our
+	 * hidden React subpage (live URL has an extra `&page=…` query)
+	 * and the tab renders without `.selected`. The default base
+	 * implementation returns `null`; the override here is what makes
+	 * `Admin_Shell::patch_wizard_header_active_tab` flip the tab.
+	 */
+	public function test_wizard_tab_url_targets_ads_cpt() {
+		$page = new Ads_List_Page();
+		$this->assertSame(
+			admin_url( 'edit.php?post_type=' . Ads::CPT ),
+			$page->get_wizard_tab_url()
+		);
+	}
 }

@@ -358,4 +358,59 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 
 		unset( $_GET['page'] );
 	}
+
+	/**
+	 * `patch_wizard_header_active_tab` attaches an inline script to
+	 * the wizard header bundle that flips the matching `<a>` to
+	 * `.selected` once the React component mounts. Verifies the
+	 * inline script is registered against the correct handle and
+	 * carries the page's `get_wizard_tab_url()` as the target URL.
+	 *
+	 * The wizard header script lives in newspack-plugin and isn't
+	 * registered in the test bootstrap, so we register a stub under
+	 * the same handle to give `wp_add_inline_script` a target.
+	 */
+	public function test_patch_wizard_header_attaches_inline_selected_script_for_ads_page() {
+		wp_register_script( 'newspack-wizards-admin-header', 'http://example.com/admin-header.js', [], '1.0.0', true );
+
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-ads-list';
+
+		Admin_Shell::patch_wizard_header_active_tab();
+
+		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
+		$this->assertIsArray( $inline );
+		$joined = implode( "\n", array_filter( $inline ) );
+
+		$this->assertStringContainsString( '.newspack-tabbed-navigation a', $joined );
+		$this->assertStringContainsString( 'classList.add', $joined );
+		$this->assertStringContainsString(
+			wp_json_encode( admin_url( 'edit.php?post_type=' . Newspack_Newsletters\Ads::CPT ) ),
+			$joined
+		);
+
+		unset( $_GET['page'] );
+		wp_deregister_script( 'newspack-wizards-admin-header' );
+	}
+
+	/**
+	 * Pages with no `get_wizard_tab_url()` override (the default base
+	 * implementation returns `null`) get no inline script — the
+	 * wizard header doesn't render tabs on those screens, so there's
+	 * nothing to patch.
+	 */
+	public function test_patch_wizard_header_skips_pages_without_a_tab_override() {
+		wp_register_script( 'newspack-wizards-admin-header', 'http://example.com/admin-header.js', [], '1.0.0', true );
+
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-list';
+
+		Admin_Shell::patch_wizard_header_active_tab();
+
+		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
+		$this->assertEmpty( $inline, 'No inline script should be attached when the current page has no wizard-tab override.' );
+
+		unset( $_GET['page'] );
+		wp_deregister_script( 'newspack-wizards-admin-header' );
+	}
 }

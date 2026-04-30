@@ -147,6 +147,26 @@ abstract class Admin_Page {
 	}
 
 	/**
+	 * URL of the newspack-plugin admin-header tab whose `selected`
+	 * state should reflect this page, or `null` when no patching is
+	 * required. The wizard header (`WizardsAdminHeader`) decides which
+	 * tab is active via strict `window.location.href === tab.href`
+	 * equality, which breaks for hidden React subpages — the live URL
+	 * has an extra `&page=…` query the tab href doesn't carry. Pages
+	 * that are conceptually a subpage of an existing wizard tab
+	 * override this; the chassis flips the matching `<a>` to selected
+	 * via inline script after the React header mounts. Returning
+	 * `null` is the right default — most pages either have no wizard
+	 * tabs (the wizard's `get_tabs()` only renders them on the ads /
+	 * advertisers screens) or are themselves the canonical tab URL.
+	 *
+	 * @return string|null
+	 */
+	public function get_wizard_tab_url() {
+		return null;
+	}
+
+	/**
 	 * Whether the current request is for this admin page.
 	 *
 	 * @return bool

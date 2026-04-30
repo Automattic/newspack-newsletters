@@ -31,6 +31,10 @@ class Admin_Shell {
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
+		// Priority 99 so we run after newspack-plugin's wizard header
+		// has registered its script — `wp_add_inline_script` needs the
+		// handle in place to attach.
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'patch_wizard_header_active_tab' ], 99 );
 		add_action( 'current_screen', [ __CLASS__, 'maybe_redirect_legacy_list' ] );
 		add_filter( 'admin_body_class', [ __CLASS__, 'add_body_class' ] );
 		add_filter( 'parent_file', [ __CLASS__, 'highlight_parent_menu' ] );
@@ -351,6 +355,51 @@ class Admin_Shell {
 				'adminUrl'        => esc_url_raw( admin_url() ),
 				'cptSlug'         => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			]
+		);
+	}
+
+	/**
+	 * Patch the newspack-plugin wizard header's "selected" tab state
+	 * for hidden React subpages. The wizard's `WizardsAdminHeader`
+	 * (`src/wizards/admin-header/index.tsx`) decides the active tab
+	 * via strict `window.location.href === tab.href` equality, which
+	 * breaks for our hidden React subpages — the live URL has an
+	 * extra `&page=…` query the tab href doesn't carry. Each page
+	 * declares the canonical tab URL via `get_wizard_tab_url()`; we
+	 * inject a tiny inline script after the wizard header script to
+	 * flip the matching `<a>` to `.selected` once the React component
+	 * has mounted. Runs only when the wizard header script is
+	 * registered (i.e. bundled mode + the wizard recognises the
+	 * screen — for ads, that's via `Newsletters_Wizard::get_tabs()`).
+	 *
+	 * Upstream fix tracked separately; the wizard's URL-equality
+	 * check should accept subpages so this workaround can be removed.
+	 */
+	public static function patch_wizard_header_active_tab() {
+		$current_page = self::get_current_page();
+		if ( ! $current_page ) {
+			return;
+		}
+		$tab_url = $current_page->get_wizard_tab_url();
+		if ( null === $tab_url ) {
+			return;
+		}
+		if ( ! wp_script_is( 'newspack-wizards-admin-header', 'registered' ) ) {
+			return;
+		}
+		wp_add_inline_script(
+			'newspack-wizards-admin-header',
+			sprintf(
+				'( function () {
+					var target = %s;
+					document.querySelectorAll( ".newspack-tabbed-navigation a" ).forEach( function ( link ) {
+						if ( link.href === target ) {
+							link.classList.add( "selected" );
+						}
+					} );
+				} )();',
+				wp_json_encode( $tab_url )
+			)
 		);
 	}
 

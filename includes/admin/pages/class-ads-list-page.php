@@ -134,4 +134,19 @@ class Ads_List_Page extends Admin_Page {
 			$forwarded
 		);
 	}
+
+	/**
+	 * The newspack-plugin admin header (`WizardsAdminHeader`) renders
+	 * an "Ads" tab pointing at `edit.php?post_type=newspack_nl_ads_cpt`
+	 * for the wizard's ads / advertisers screens. Our React page lives
+	 * at the same URL plus `&page=newspack-newsletters-ads-list`, so
+	 * the wizard's strict URL equality match never fires here. Return
+	 * the canonical Ads tab URL so `Admin_Shell` can flip the matching
+	 * `<a>` to `.selected` after the header mounts.
+	 *
+	 * @return string
+	 */
+	public function get_wizard_tab_url() {
+		return admin_url( 'edit.php?post_type=' . Ads::CPT );
+	}
 }
