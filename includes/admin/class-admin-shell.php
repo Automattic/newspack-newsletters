@@ -31,6 +31,10 @@ class Admin_Shell {
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
+		// Priority 99 so we run after newspack-plugin's wizard header
+		// has registered its script — `wp_add_inline_script` needs the
+		// handle in place to attach.
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'patch_wizard_header_active_tab' ], 99 );
 		add_action( 'current_screen', [ __CLASS__, 'maybe_redirect_legacy_list' ] );
 		add_filter( 'admin_body_class', [ __CLASS__, 'add_body_class' ] );
 		add_filter( 'parent_file', [ __CLASS__, 'highlight_parent_menu' ] );
@@ -38,34 +42,43 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Force the Newsletters CPT to be the active top-level menu when on a
-	 * chassis-managed page. Without this, our hidden (parent=null) submenus
-	 * leave WP unable to resolve the active parent.
+	 * Filter the global `parent_file` so the sidebar's top-level menu
+	 * highlights correctly while a chassis-managed page is rendered.
+	 * Each page declares its own override via `Admin_Page::get_parent_file()`
+	 * — that's where the dynamic logic lives (e.g. ads switching
+	 * between top-level and submenu mode based on user caps).
 	 *
 	 * @param string $parent_file The current parent file value.
 	 * @return string
 	 */
 	public static function highlight_parent_menu( $parent_file ) {
-		if ( self::get_current_page() ) {
-			return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$page = self::get_current_page();
+		if ( $page ) {
+			$override = $page->get_parent_file();
+			if ( null !== $override ) {
+				return $override;
+			}
 		}
 		return $parent_file;
 	}
 
 	/**
-	 * Highlight the auto-generated "All Newsletters" submenu for the list
-	 * page. NEWS-1929/30/31 will add their own cases as their pages land.
+	 * Filter the global `submenu_file` so the active submenu entry
+	 * matches the page on screen. Each page declares its own override
+	 * via `Admin_Page::get_submenu_file()`; visible submenus typically
+	 * return `null` (WP's auto-detection is correct), while hidden
+	 * React pages name the auto-generated CPT submenu they shadow.
 	 *
 	 * @param string $submenu_file The current submenu file value.
 	 * @return string
 	 */
 	public static function highlight_submenu( $submenu_file ) {
 		$page = self::get_current_page();
-		if ( ! $page ) {
-			return $submenu_file;
-		}
-		if ( 'newspack-newsletters-list' === $page->get_slug() ) {
-			return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		if ( $page ) {
+			$override = $page->get_submenu_file();
+			if ( null !== $override ) {
+				return $override;
+			}
 		}
 		return $submenu_file;
 	}
@@ -87,29 +100,64 @@ class Admin_Shell {
 	/**
 	 * Register React-shell pages.
 	 *
-	 * Each page declares its own `get_parent_slug()` — default `null`
-	 * means hidden (URL works but the entry isn't in the menu), used
-	 * by the list page so the auto-generated `edit.php?post_type=
-	 * newspack_nl_cpt` "All Newsletters" submenu stays as the visible
-	 * click target. `maybe_redirect_legacy_list` then 302s that URL to
-	 * our React page; because the redirect preserves `?post_type=
-	 * newspack_nl_cpt`, `newspack-plugin`'s `Newsletters_Wizard` (when
-	 * present) recognises the screen and renders the dark Newspack
-	 * admin-header chrome on top.
+	 * Every page registers under a concrete parent slug returned by
+	 * `get_parent_slug()` — passing `null` is unsafe because WP's
+	 * `get_plugin_page_hookname` mixes the parent into the registered
+	 * hookname, and `add_submenu_page`'s registration- and `admin.php`'s
+	 * URL-derived lookup-time resolution can drift when the parent
+	 * isn't itself a top-level menu. Pages that should be invisible
+	 * still register, then opt in to `is_hidden_from_menu()` so
+	 * `remove_submenu_page` strips the menu entry after registration —
+	 * keeping the URL routable while leaving no sidebar entry. The
+	 * list views use this to shadow the auto-generated `edit.php?
+	 * post_type=…` submenus, which `maybe_redirect_legacy_list` then
+	 * 302s to the React page; because the redirect preserves the
+	 * `post_type` query, `newspack-plugin`'s `Newsletters_Wizard`
+	 * (when present) recognises the screen and renders the dark
+	 * Newspack admin-header chrome on top.
 	 *
-	 * Other pages (e.g. Settings in standalone mode) override
-	 * `get_parent_slug()` to surface as visible submenus under the CPT.
+	 * Pages that should remain visible (e.g. Settings in standalone
+	 * mode) leave `is_hidden_from_menu()` at its default and surface
+	 * as normal submenus under their declared parent.
 	 */
 	public static function register_menu() {
+		global $_registered_pages;
 		foreach ( self::get_pages() as $page ) {
+			$parent_slug = $page->get_parent_slug();
 			add_submenu_page(
-				$page->get_parent_slug(),
+				$parent_slug,
 				$page->get_label(),
 				$page->get_label(),
 				$page->get_capability(),
 				$page->get_slug(),
 				[ $page, 'render' ]
 			);
+			if ( $page->is_hidden_from_menu() ) {
+				// Hidden React pages (the list views) shadow a classic
+				// CPT URL via `Admin_Shell::maybe_redirect_legacy_list`.
+				// `add_submenu_page` registers the callback under the
+				// hookname WP computes from the page's parent — that
+				// matches `user_can_access_admin_page`'s access check
+				// (which resolves the parent the same way), but
+				// **doesn't** match `admin.php`'s page-render lookup
+				// at line ~182, which uses the URL-derived parent
+				// (`edit.php?post_type=$typenow`). When the typenow
+				// CPT isn't itself a top-level menu (true for the ads
+				// CPT in submenu mode), `$admin_page_hooks` doesn't
+				// carry it and the URL-derived hookname falls back to
+				// the `admin_page_*` prefix. Mirror the action under
+				// that prefix so `admin.php` finds and dispatches it.
+				$shadow_hookname = 'admin_page_' . $page->get_slug();
+				if ( ! has_action( $shadow_hookname ) ) {
+					add_action( $shadow_hookname, [ $page, 'render' ] );
+					// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Mirroring an admin-page registration that WP itself populates this global with on `add_submenu_page`. The standard WordPress.WP.GlobalVariablesOverride rule guards against accidental clobbers; we add (not replace) one entry whose hookname is unique to this plugin.
+					$_registered_pages[ $shadow_hookname ] = true;
+				}
+				// Strip the visible submenu the registration produced —
+				// the user-facing entry is the auto-generated CPT
+				// submenu we redirect from, not a separate React link.
+				remove_submenu_page( $parent_slug, $page->get_slug() );
+			}
 		}
 	}
 
@@ -147,12 +195,15 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Redirect legacy `edit.php?post_type=newspack_nl_cpt` GET requests
-	 * (deep links, browser history, third-party menu links) to the React
-	 * page. Form-submission GETs that carry `?action=` are left alone so
-	 * any classic admin flows continue to work. Filter/search/sort args
-	 * are forwarded so the React page can pre-fill view state — see
-	 * `getInitialView` on the JS side.
+	 * Redirect legacy CPT list GET requests (deep links, browser
+	 * history, third-party menu links) to the matching React page.
+	 * Each chassis page declares its legacy screen id and redirect
+	 * target — this handler iterates pages and lets the matching one
+	 * supply the destination. Form-submission GETs that carry
+	 * `?action=` are left alone so classic admin flows continue to
+	 * work. Filter / search / sort args are forwarded so the React
+	 * page can pre-fill view state — see `getInitialView` on the JS
+	 * side.
 	 *
 	 * @param \WP_Screen $screen Current screen.
 	 */
@@ -160,10 +211,18 @@ class Admin_Shell {
 		if ( ! is_admin() || ! $screen instanceof \WP_Screen ) {
 			return;
 		}
-		if ( 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT !== $screen->id ) {
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
 			return;
 		}
-		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+
+		$matching_page = null;
+		foreach ( self::get_pages() as $page ) {
+			if ( $screen->id === $page->get_legacy_screen_id() ) {
+				$matching_page = $page;
+				break;
+			}
+		}
+		if ( ! $matching_page ) {
 			return;
 		}
 
@@ -190,23 +249,29 @@ class Admin_Shell {
 			$forwarded[ $key ] = is_array( $value ) ? array_map( 'sanitize_text_field', $value ) : sanitize_text_field( $value );
 		}
 
-		wp_safe_redirect( self::get_legacy_redirect_target( $forwarded ) );
+		$target = $matching_page->get_legacy_redirect_target( $forwarded );
+		if ( ! $target ) {
+			return;
+		}
+
+		wp_safe_redirect( $target );
 		exit;
 	}
 
 	/**
-	 * Target URL for the legacy redirect. Exposed so tests can assert against
-	 * it without invoking `wp_safe_redirect`. The `$forwarded` array (or
-	 * back-compat string treated as `post_status`) is appended to the
-	 * redirect URL so the React page can seed its view state.
+	 * Build a redirect target URL for a chassis-managed page.
+	 * Centralises the `?post_type=…&page=…&<forwarded>` shape so each
+	 * page only has to hand over its CPT slug + page slug.
 	 *
+	 * @param string       $post_type CPT slug the page shadows.
+	 * @param string       $page_slug The React page's `?page=` slug.
 	 * @param array|string $forwarded Forwarded query args, or a `post_status` string.
 	 * @return string
 	 */
-	public static function get_legacy_redirect_target( $forwarded = [] ) {
+	public static function build_legacy_redirect_target( $post_type, $page_slug, $forwarded = [] ) {
 		$args = [
-			'post_type' => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			'page'      => 'newspack-newsletters-list',
+			'post_type' => $post_type,
+			'page'      => $page_slug,
 		];
 
 		if ( is_string( $forwarded ) ) {
@@ -220,6 +285,22 @@ class Admin_Shell {
 		}
 
 		return add_query_arg( $args, admin_url( 'edit.php' ) );
+	}
+
+	/**
+	 * Newsletters-list redirect target — kept for back-compat with
+	 * existing tests. Equivalent to calling
+	 * `Newsletters_List_Page::get_legacy_redirect_target()`.
+	 *
+	 * @param array|string $forwarded Forwarded query args, or a `post_status` string.
+	 * @return string
+	 */
+	public static function get_legacy_redirect_target( $forwarded = [] ) {
+		return self::build_legacy_redirect_target(
+			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			'newspack-newsletters-list',
+			$forwarded
+		);
 	}
 
 	/**
@@ -278,6 +359,51 @@ class Admin_Shell {
 	}
 
 	/**
+	 * Patch the newspack-plugin wizard header's "selected" tab state
+	 * for hidden React subpages. The wizard's `WizardsAdminHeader`
+	 * (`src/wizards/admin-header/index.tsx`) decides the active tab
+	 * via strict `window.location.href === tab.href` equality, which
+	 * breaks for our hidden React subpages — the live URL has an
+	 * extra `&page=…` query the tab href doesn't carry. Each page
+	 * declares the canonical tab URL via `get_wizard_tab_url()`; we
+	 * inject a tiny inline script after the wizard header script to
+	 * flip the matching `<a>` to `.selected` once the React component
+	 * has mounted. Runs only when the wizard header script is
+	 * registered (i.e. bundled mode + the wizard recognises the
+	 * screen — for ads, that's via `Newsletters_Wizard::get_tabs()`).
+	 *
+	 * Upstream fix tracked separately; the wizard's URL-equality
+	 * check should accept subpages so this workaround can be removed.
+	 */
+	public static function patch_wizard_header_active_tab() {
+		$current_page = self::get_current_page();
+		if ( ! $current_page ) {
+			return;
+		}
+		$tab_url = $current_page->get_wizard_tab_url();
+		if ( null === $tab_url ) {
+			return;
+		}
+		if ( ! wp_script_is( 'newspack-wizards-admin-header', 'registered' ) ) {
+			return;
+		}
+		wp_add_inline_script(
+			'newspack-wizards-admin-header',
+			sprintf(
+				'( function () {
+					var target = %s;
+					document.querySelectorAll( ".newspack-tabbed-navigation a" ).forEach( function ( link ) {
+						if ( link.href === target ) {
+							link.classList.add( "selected" );
+						}
+					} );
+				} )();',
+				wp_json_encode( $tab_url )
+			)
+		);
+	}
+
+	/**
 	 * Resolve the Admin_Page matching the current admin request, if any.
 	 *
 	 * @return Admin_Page|null
@@ -320,6 +446,7 @@ class Admin_Shell {
 	public static function get_pages() {
 		$pages = [
 			new Pages\Newsletters_List_Page(),
+			new Pages\Ads_List_Page(),
 		];
 
 		if ( ! self::is_bundled_mode() ) {

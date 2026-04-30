@@ -59,12 +59,24 @@ final class Ads {
 	}
 
 	/**
+	 * REST namespace for ads endpoints.
+	 *
+	 * Originally this was `'wp/v2/' . self::CPT`, but that creates a
+	 * REST namespace whose path collides with the CPT's standard
+	 * collection route at `/wp-json/wp/v2/newspack_nl_ads_cpt`: the
+	 * GET handler is shadowed by the namespace metadata response,
+	 * breaking REST consumers (including the React Ads list). Use a
+	 * distinct, plugin-scoped namespace instead.
+	 */
+	const REST_NAMESPACE = 'newspack-newsletters/v1';
+
+	/**
 	 * API endpoints.
 	 */
 	public static function rest_api_init() {
 		\register_rest_route(
-			'wp/v2/' . self::CPT,
-			'config',
+			self::REST_NAMESPACE,
+			'ads/config',
 			[
 				'callback'            => [ __CLASS__, 'get_ads_config' ],
 				'methods'             => 'GET',

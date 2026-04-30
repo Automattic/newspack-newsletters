@@ -59,10 +59,11 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Standalone mode exposes the list view alongside Settings; other React
-	 * surfaces are added by NEWS-1929 / NEWS-1930 alongside their own features.
+	 * Standalone mode exposes the list views alongside Settings; the
+	 * ads list page is added by NEWS-1930 and registers in both modes
+	 * (Settings remains the only mode-gated entry).
 	 */
-	public function test_get_pages_in_standalone_mode_includes_list_and_settings() {
+	public function test_get_pages_in_standalone_mode_includes_list_ads_and_settings() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
 		$slugs = array_map(
 			function ( $page ) {
@@ -70,14 +71,18 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 			},
 			Admin_Shell::get_pages()
 		);
-		$this->assertSame( [ 'newspack-newsletters-list', 'newspack-newsletters-settings' ], $slugs );
+		$this->assertSame(
+			[ 'newspack-newsletters-list', 'newspack-newsletters-ads-list', 'newspack-newsletters-settings' ],
+			$slugs
+		);
 	}
 
 	/**
-	 * Bundled mode defers Settings to newspack-plugin's Engagement > Newsletters
-	 * surface — but the React list view replaces the CPT list in both modes.
+	 * Bundled mode defers Settings to newspack-plugin's Engagement >
+	 * Newsletters surface — both the newsletters list and ads list
+	 * still register in this mode.
 	 */
-	public function test_get_pages_in_bundled_mode_includes_list_only() {
+	public function test_get_pages_in_bundled_mode_includes_list_and_ads_only() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$slugs = array_map(
 			function ( $page ) {
@@ -85,7 +90,10 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 			},
 			Admin_Shell::get_pages()
 		);
-		$this->assertSame( [ 'newspack-newsletters-list' ], $slugs );
+		$this->assertSame(
+			[ 'newspack-newsletters-list', 'newspack-newsletters-ads-list' ],
+			$slugs
+		);
 	}
 
 	/**
@@ -258,5 +266,151 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		$this->assertSame( $expected, Admin_Shell::highlight_submenu( 'unrelated' ) );
 
 		unset( $_GET['page'] );
+	}
+
+	/**
+	 * The ads list page registers in both modes and highlights the
+	 * Newsletter Ads CPT submenu — its visible click target is the
+	 * auto-generated `edit.php?post_type=newspack_nl_ads_cpt` entry,
+	 * the same way the newsletters list page maps onto its CPT submenu.
+	 */
+	public function test_highlight_submenu_targets_ads_cpt_for_ads_list_page() {
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-ads-list';
+
+		$expected = 'edit.php?post_type=' . \Newspack_Newsletters\Ads::CPT;
+		$this->assertSame( $expected, Admin_Shell::highlight_submenu( 'unrelated' ) );
+
+		unset( $_GET['page'] );
+	}
+
+	/**
+	 * The legacy ads CPT URL (`edit.php?post_type=newspack_nl_ads_cpt`)
+	 * redirects to the React ads page slug under the ads CPT parent.
+	 * Forwarded args (`post_status` etc.) ride through.
+	 */
+	public function test_ads_legacy_redirect_target_points_to_react_ads_page() {
+		$page   = new \Newspack\Newsletters\Admin\Pages\Ads_List_Page();
+		$target = $page->get_legacy_redirect_target();
+		$this->assertStringContainsString( 'edit.php?', $target );
+		$this->assertStringContainsString( 'post_type=' . \Newspack_Newsletters\Ads::CPT, $target );
+		$this->assertStringContainsString( 'page=newspack-newsletters-ads-list', $target );
+	}
+
+	/**
+	 * Forwarded query args (`post_status`, etc.) are appended to the
+	 * ads redirect target so the React page can seed initial filter
+	 * state from a deep-linked legacy URL.
+	 */
+	public function test_ads_legacy_redirect_forwards_post_status() {
+		$page   = new \Newspack\Newsletters\Admin\Pages\Ads_List_Page();
+		$target = $page->get_legacy_redirect_target( [ 'post_status' => 'trash' ] );
+		$this->assertStringContainsString( 'post_status=trash', $target );
+		$this->assertStringContainsString( 'page=newspack-newsletters-ads-list', $target );
+	}
+
+	/**
+	 * `Admin_Shell::register_menu` registers each hidden page's
+	 * callback under both the parent-derived hookname (what
+	 * `add_submenu_page` returns) and the URL-derived `admin_page_*`
+	 * hookname `admin.php` line ~182 looks up at request time. Without
+	 * the mirror, hidden React pages 500 with "Cannot load X" when
+	 * the URL's typenow CPT isn't itself a top-level menu (the ads
+	 * case in submenu mode).
+	 */
+	public function test_register_menu_mirrors_hidden_pages_under_the_admin_page_hookname() {
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+
+		// Run the same hook the admin chrome would fire.
+		Admin_Shell::register_menu();
+
+		global $_registered_pages;
+
+		foreach ( Admin_Shell::get_pages() as $page ) {
+			if ( ! $page->is_hidden_from_menu() ) {
+				continue;
+			}
+			$shadow_hookname = 'admin_page_' . $page->get_slug();
+			$this->assertTrue(
+				isset( $_registered_pages[ $shadow_hookname ] ),
+				sprintf( 'Expected %s to be registered for %s', $shadow_hookname, $page->get_slug() )
+			);
+			$this->assertNotFalse(
+				has_action( $shadow_hookname ),
+				sprintf( 'Expected an action under %s', $shadow_hookname )
+			);
+		}
+	}
+
+	/**
+	 * In submenu mode (the common case where the user can edit
+	 * newsletters), the ads page lives under the Newsletters CPT — so
+	 * `parent_file` should resolve to the newsletters CPT URL. The
+	 * default test user is an admin with all caps, which exercises
+	 * this branch of `Ads::display_ads_menu_item_separately()`.
+	 */
+	public function test_highlight_parent_menu_for_ads_page_in_submenu_mode() {
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-ads-list';
+
+		$expected = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$this->assertSame( $expected, Admin_Shell::highlight_parent_menu( 'unrelated.php' ) );
+
+		unset( $_GET['page'] );
+	}
+
+	/**
+	 * `patch_wizard_header_active_tab` attaches an inline script to
+	 * the wizard header bundle that flips the matching `<a>` to
+	 * `.selected` once the React component mounts. Verifies the
+	 * inline script is registered against the correct handle and
+	 * carries the page's `get_wizard_tab_url()` as the target URL.
+	 *
+	 * The wizard header script lives in newspack-plugin and isn't
+	 * registered in the test bootstrap, so we register a stub under
+	 * the same handle to give `wp_add_inline_script` a target.
+	 */
+	public function test_patch_wizard_header_attaches_inline_selected_script_for_ads_page() {
+		wp_register_script( 'newspack-wizards-admin-header', 'http://example.com/admin-header.js', [], '1.0.0', true );
+
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-ads-list';
+
+		Admin_Shell::patch_wizard_header_active_tab();
+
+		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
+		$this->assertIsArray( $inline );
+		$joined = implode( "\n", array_filter( $inline ) );
+
+		$this->assertStringContainsString( '.newspack-tabbed-navigation a', $joined );
+		$this->assertStringContainsString( 'classList.add', $joined );
+		$this->assertStringContainsString(
+			wp_json_encode( admin_url( 'edit.php?post_type=' . Newspack_Newsletters\Ads::CPT ) ),
+			$joined
+		);
+
+		unset( $_GET['page'] );
+		wp_deregister_script( 'newspack-wizards-admin-header' );
+	}
+
+	/**
+	 * Pages with no `get_wizard_tab_url()` override (the default base
+	 * implementation returns `null`) get no inline script — the
+	 * wizard header doesn't render tabs on those screens, so there's
+	 * nothing to patch.
+	 */
+	public function test_patch_wizard_header_skips_pages_without_a_tab_override() {
+		wp_register_script( 'newspack-wizards-admin-header', 'http://example.com/admin-header.js', [], '1.0.0', true );
+
+		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
+		$_GET['page'] = 'newspack-newsletters-list';
+
+		Admin_Shell::patch_wizard_header_active_tab();
+
+		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
+		$this->assertEmpty( $inline, 'No inline script should be attached when the current page has no wizard-tab override.' );
+
+		unset( $_GET['page'] );
+		wp_deregister_script( 'newspack-wizards-admin-header' );
 	}
 }

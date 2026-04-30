@@ -48,13 +48,18 @@ class Newsletters_List_Page_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The list page is hidden — its visible click target is the
-	 * auto-generated CPT submenu, redirected by `Admin_Shell::
-	 * maybe_redirect_legacy_list`. Settings must remain visible (see
-	 * `Settings_Page` for the sibling test).
+	 * The list page registers under the newsletters CPT URL so its
+	 * hookname matches what `admin.php` computes at request time, then
+	 * is marked hidden so the visible submenu entry is stripped — its
+	 * actual click target is the auto-generated CPT submenu, redirected
+	 * by `Admin_Shell::maybe_redirect_legacy_list`.
 	 */
-	public function test_parent_slug_is_null_so_the_page_is_hidden_from_the_menu() {
+	public function test_registers_hidden_under_the_newsletters_cpt() {
 		$page = new Newsletters_List_Page();
-		$this->assertNull( $page->get_parent_slug() );
+		$this->assertSame(
+			'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+			$page->get_parent_slug()
+		);
+		$this->assertTrue( $page->is_hidden_from_menu() );
 	}
 }
