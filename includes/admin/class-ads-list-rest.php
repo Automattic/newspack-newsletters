@@ -283,11 +283,16 @@ class Ads_List_REST {
 			// midnight UTC would render as the previous day for users
 			// behind UTC. The underlying meta is date-only, so the
 			// time-of-day component is just a presentation safeguard.
+			// Normalise `strtotime` failures to `null` so the REST
+			// schema's `integer|null` declaration holds even if the
+			// meta is malformed.
 			if ( '' !== $start_date ) {
-				$payload['starts_at'] = strtotime( $start_date . ' 12:00:00 UTC' );
+				$starts_at            = strtotime( $start_date . ' 12:00:00 UTC' );
+				$payload['starts_at'] = false === $starts_at ? null : $starts_at;
 			}
 			if ( '' !== $expiry_date ) {
-				$payload['expires_at'] = strtotime( $expiry_date . ' 12:00:00 UTC' );
+				$expires_at            = strtotime( $expiry_date . ' 12:00:00 UTC' );
+				$payload['expires_at'] = false === $expires_at ? null : $expires_at;
 			}
 
 			if ( '' !== $expiry_date && $expiry_date < $today ) {

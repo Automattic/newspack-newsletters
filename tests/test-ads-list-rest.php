@@ -316,6 +316,29 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Malformed lifecycle meta must not violate the REST schema's
+	 * `integer|null` declaration on `starts_at` / `expires_at` —
+	 * `strtotime` returns `false` on garbage input, and the field
+	 * normalises that to `null` so the response stays well-typed.
+	 */
+	public function test_published_ad_with_malformed_dates_normalises_timestamps_to_null() {
+		$post_id = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [
+					'start_date'  => 'not-a-date',
+					'expiry_date' => 'also-not-a-date',
+				],
+			]
+		);
+
+		$status = Ads_List_REST::get_status_for_post( get_post( $post_id ) );
+
+		$this->assertNull( $status['starts_at'] );
+		$this->assertNull( $status['expires_at'] );
+	}
+
+	/**
 	 * Date-only meta is exposed as a noon-UTC timestamp so the
 	 * rendered date stays on the intended calendar day in any
 	 * reasonable site timezone — midnight UTC would render as the
