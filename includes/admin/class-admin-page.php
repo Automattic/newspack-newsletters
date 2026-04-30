@@ -93,9 +93,9 @@ abstract class Admin_Page {
 	 * request resolves to this page. Return the URL of the top-level
 	 * menu that should appear active (e.g.
 	 * `'edit.php?post_type=newspack_nl_cpt'`), or `null` to let WP's
-	 * native resolution stand. Hidden React pages (`get_parent_slug() === null`)
-	 * will typically need a non-null override so the sidebar doesn't
-	 * collapse to an inactive state.
+	 * native resolution stand. Pages hidden from the menu via
+	 * `is_hidden_from_menu()` will typically need a non-null override
+	 * so the sidebar doesn't collapse to an inactive state.
 	 *
 	 * @return string|null
 	 */

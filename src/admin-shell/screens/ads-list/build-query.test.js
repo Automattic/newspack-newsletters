@@ -48,11 +48,15 @@ describe( 'ads buildQueryParams', () => {
 		expect( params.newspack_nl_advertiser ).toBe( '7,12' );
 	} );
 
-	it( 'maps ad_placement filter to the REST taxonomy param', () => {
+	it( 'maps ad_placement filter to the taxonomy REST base, not the taxonomy slug', () => {
+		// Ad placement is registered with `rest_base => 'ad_placement'`,
+		// so the WP REST posts filter exposes it under that short form.
+		// Using the taxonomy slug here would silently drop the filter.
 		const params = buildQueryParams( {
 			filters: [ { field: 'ad_placement', value: [ 3 ] } ],
 		} );
-		expect( params.newspack_nl_ad_placement ).toBe( '3' );
+		expect( params.ad_placement ).toBe( '3' );
+		expect( params ).not.toHaveProperty( 'newspack_nl_ad_placement' );
 	} );
 
 	it( 'ignores unknown filter fields silently', () => {

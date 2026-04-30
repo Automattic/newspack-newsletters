@@ -16,9 +16,15 @@
 
 const DEFAULT_STATUSES = [ 'publish', 'private', 'draft', 'pending' ];
 
+// Each value is the WP REST taxonomy filter param — i.e. the
+// taxonomy's `rest_base`, which defaults to the taxonomy slug when
+// not explicitly set. Advertiser has no override (param matches the
+// slug); Ad placement is registered with `rest_base => 'ad_placement'`
+// (see `class-ads-placements.php`), so the filter param is the short
+// form, not the taxonomy slug.
 const FIELD_TO_QUERY_PARAM = {
 	advertiser: 'newspack_nl_advertiser',
-	ad_placement: 'newspack_nl_ad_placement',
+	ad_placement: 'ad_placement',
 };
 
 const SORT_FIELD_TO_ORDERBY = {
