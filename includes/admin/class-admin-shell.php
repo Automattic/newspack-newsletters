@@ -96,18 +96,25 @@ class Admin_Shell {
 	/**
 	 * Register React-shell pages.
 	 *
-	 * Each page declares its own `get_parent_slug()` — default `null`
-	 * means hidden (URL works but the entry isn't in the menu), used
-	 * by the list page so the auto-generated `edit.php?post_type=
-	 * newspack_nl_cpt` "All Newsletters" submenu stays as the visible
-	 * click target. `maybe_redirect_legacy_list` then 302s that URL to
-	 * our React page; because the redirect preserves `?post_type=
-	 * newspack_nl_cpt`, `newspack-plugin`'s `Newsletters_Wizard` (when
-	 * present) recognises the screen and renders the dark Newspack
-	 * admin-header chrome on top.
+	 * Every page registers under a concrete parent slug returned by
+	 * `get_parent_slug()` — passing `null` is unsafe because WP's
+	 * `get_plugin_page_hookname` mixes the parent into the registered
+	 * hookname, and `add_submenu_page`'s registration- and `admin.php`'s
+	 * URL-derived lookup-time resolution can drift when the parent
+	 * isn't itself a top-level menu. Pages that should be invisible
+	 * still register, then opt in to `is_hidden_from_menu()` so
+	 * `remove_submenu_page` strips the menu entry after registration —
+	 * keeping the URL routable while leaving no sidebar entry. The
+	 * list views use this to shadow the auto-generated `edit.php?
+	 * post_type=…` submenus, which `maybe_redirect_legacy_list` then
+	 * 302s to the React page; because the redirect preserves the
+	 * `post_type` query, `newspack-plugin`'s `Newsletters_Wizard`
+	 * (when present) recognises the screen and renders the dark
+	 * Newspack admin-header chrome on top.
 	 *
-	 * Other pages (e.g. Settings in standalone mode) override
-	 * `get_parent_slug()` to surface as visible submenus under the CPT.
+	 * Pages that should remain visible (e.g. Settings in standalone
+	 * mode) leave `is_hidden_from_menu()` at its default and surface
+	 * as normal submenus under their declared parent.
 	 */
 	public static function register_menu() {
 		global $_registered_pages;

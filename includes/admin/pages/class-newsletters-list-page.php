@@ -62,10 +62,12 @@ class Newsletters_List_Page extends Admin_Page {
 	}
 
 	/**
-	 * Force the Newsletters CPT to be the active top-level menu when
-	 * the React list page is rendered — without this the sidebar
-	 * collapses to an inactive state because the page is registered
-	 * with `parent=null`.
+	 * Force the Newsletters CPT to be the active top-level menu while
+	 * the React list page is rendered. The page registers under the
+	 * CPT parent and is then hidden via `is_hidden_from_menu()` /
+	 * `remove_submenu_page`, so we still need to keep the parent menu
+	 * highlighted explicitly — otherwise the sidebar would collapse
+	 * to an inactive state once the matching submenu entry is gone.
 	 *
 	 * @return string
 	 */
