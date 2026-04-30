@@ -37,13 +37,14 @@ class Ads_List_Page extends Admin_Page {
 	/**
 	 * Get the page label.
 	 *
-	 * Matches the auto-generated CPT label so the menu reads
-	 * identically before and after the swap.
+	 * Matches the ads CPT's `all_items` label so the React page title
+	 * reads identically to the classic CPT list (and matches the
+	 * Newsletters list page's convention — see `Newsletters_List_Page`).
 	 *
 	 * @return string
 	 */
 	public function get_label() {
-		return __( 'Newsletter Ads', 'newspack-newsletters' );
+		return __( 'All Newsletter Ads', 'newspack-newsletters' );
 	}
 
 	/**

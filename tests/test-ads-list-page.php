@@ -22,12 +22,13 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Label matches the CPT's `all_items` label so the submenu reads
-	 * the same as it did before the replacement.
+	 * Label matches the CPT's `all_items` label so the React page
+	 * title reads identically to the classic CPT list. Matches the
+	 * Newsletters list page's convention (`'All Newsletters'`).
 	 */
-	public function test_label_is_newsletter_ads() {
+	public function test_label_matches_cpt_all_items() {
 		$page = new Ads_List_Page();
-		$this->assertSame( 'Newsletter Ads', $page->get_label() );
+		$this->assertSame( 'All Newsletter Ads', $page->get_label() );
 	}
 
 	/**
