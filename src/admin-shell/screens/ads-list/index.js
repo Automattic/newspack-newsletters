@@ -34,27 +34,62 @@ const DEFAULT_LAYOUTS = { table: {} };
 
 const ADS_CPT = 'newspack_nl_ads_cpt';
 
-// Lightweight one-shot fetch for the taxonomy term sets that drive the
-// Advertiser / Ad placement filter dropdowns. The list itself is small
-// (typically a few dozen entries) and rarely changes during a session,
-// so a single fetch when the screen mounts is enough.
+// Walk every page of a REST collection and return the flat list. Used
+// for the filter-term fetches below — `per_page` caps at 100 server-side,
+// so a single request silently truncates on sites with many advertisers
+// / placements and the filter dropdown ends up incomplete. Reads
+// `X-WP-TotalPages` from the first response (parse: false to expose the
+// Response object) and keeps requesting until exhausted. Network or
+// shape errors fall back to whatever has been collected so the dropdown
+// degrades to "best effort" rather than empty.
+const TERMS_PER_PAGE = 100;
+
+async function fetchAllTerms( basePath ) {
+	const all = [];
+	let page = 1;
+	let totalPages = 1;
+	while ( page <= totalPages ) {
+		try {
+			const response = await apiFetch( {
+				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=id,name&page=${ page }`,
+				parse: false,
+			} );
+			const data = await response.json();
+			if ( ! Array.isArray( data ) ) {
+				break;
+			}
+			all.push( ...data );
+			if ( page === 1 ) {
+				const headerPages = parseInt( response.headers?.get?.( 'X-WP-TotalPages' ) || '1', 10 );
+				totalPages = Number.isFinite( headerPages ) && headerPages > 0 ? headerPages : 1;
+			}
+		} catch ( error ) {
+			break;
+		}
+		page += 1;
+	}
+	return all;
+}
+
+// One-shot fetch for the taxonomy term sets that drive the Advertiser
+// and Ad placement filter dropdowns. Paginates through every page so
+// sites with many terms still get a complete dropdown.
 function useFilterTerms() {
 	const [ terms, setTerms ] = useState( { advertisers: [], placements: [] } );
 
 	useEffect( () => {
 		let cancelled = false;
-		Promise.all( [
-			apiFetch( { path: '/wp/v2/newspack_nl_advertiser?per_page=100&_fields=id,name' } ).catch( () => [] ),
-			apiFetch( { path: '/wp/v2/ad_placement?per_page=100&_fields=id,name' } ).catch( () => [] ),
-		] ).then( ( [ advertisers, placements ] ) => {
-			if ( cancelled ) {
-				return;
+		Promise.all( [ fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ), fetchAllTerms( '/wp/v2/ad_placement' ) ] ).then(
+			( [ advertisers, placements ] ) => {
+				if ( cancelled ) {
+					return;
+				}
+				setTerms( {
+					advertisers: Array.isArray( advertisers ) ? advertisers : [],
+					placements: Array.isArray( placements ) ? placements : [],
+				} );
 			}
-			setTerms( {
-				advertisers: Array.isArray( advertisers ) ? advertisers : [],
-				placements: Array.isArray( placements ) ? placements : [],
-			} );
-		} );
+		);
 		return () => {
 			cancelled = true;
 		};

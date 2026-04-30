@@ -31,10 +31,11 @@ function notify( message, type = 'success' ) {
 
 const trashOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }`, method: 'DELETE' } );
 
-// Restoring an ad PATCHes back to draft. Unlike newsletters, ads have
-// no controlled-status logic in `insert_post_data`, so the row stays
-// as draft until the publisher edits and publishes it again. That's
-// the intended behaviour for the ads lifecycle (date-driven activation).
+// Restoring an ad updates the post status back to `draft` via POST
+// (the WP REST posts update verb). Unlike newsletters, ads have no
+// controlled-status logic in `insert_post_data`, so the row stays as
+// draft until the publisher edits and publishes it again. That's the
+// intended behaviour for the ads lifecycle (date-driven activation).
 const restoreOne = id =>
 	apiFetch( {
 		path: `${ POSTS_PATH }/${ id }`,
