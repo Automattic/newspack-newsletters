@@ -79,6 +79,15 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 				}
 				setData( Array.isArray( items ) ? items : [] );
 				setPaginationInfo( readPaginationInfo( response ) );
+				// Only flip `hasLoadedOnce` after a successful response.
+				// On error the catch path resets `paginationInfo` to
+				// `{ totalItems: 0, totalPages: 0 }`; if the flag also
+				// flipped here, the screen's `isStrictEmpty` check would
+				// render the onboarding EmptyState for a failed load —
+				// misleading (the list may be non-empty, it just
+				// couldn't be fetched). Keeping the flag tied to a
+				// confirmed totalItems read keeps the empty state honest.
+				setHasLoadedOnce( true );
 			} )
 			.catch( () => {
 				if ( cancelled ) {
@@ -93,7 +102,6 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
-					setHasLoadedOnce( true );
 				}
 			} );
 

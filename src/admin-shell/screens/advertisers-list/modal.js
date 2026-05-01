@@ -21,7 +21,7 @@
 
 import apiFetch from '@wordpress/api-fetch';
 import { Button, Modal, Notice, TextControl, TextareaControl, TreeSelect } from '@wordpress/components';
-import { useState } from '@wordpress/element';
+import { useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
@@ -43,26 +43,43 @@ const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
 export function buildAdvertiserTree( advertisers, excludeId = null ) {
 	const safe = Array.isArray( advertisers ) ? advertisers : [];
 
+	// Pre-index by parent so the recursive walk is O(n) overall — a
+	// `safe.filter(...)` per `buildChildren` call would scan the full
+	// list for every node and turn the build into O(n²), which is
+	// noticeable on sites with many advertisers (and especially since
+	// the tree rebuilds on every modal re-render).
+	const byParent = new Map();
+	for ( const term of safe ) {
+		const siblings = byParent.get( term.parent );
+		if ( siblings ) {
+			siblings.push( term );
+		} else {
+			byParent.set( term.parent, [ term ] );
+		}
+	}
+
 	const excluded = new Set();
 	if ( excludeId ) {
+		// DFS through the parent index to mark `excludeId` and every
+		// descendant — ensures the modal can't pick a sub-tree as its
+		// own parent at any depth.
 		excluded.add( excludeId );
-		// Walk descendants iteratively until the set stops growing — handles
-		// arbitrary depth without a recursive parent->children index.
-		let grew = true;
-		while ( grew ) {
-			grew = false;
-			for ( const term of safe ) {
-				if ( excluded.has( term.parent ) && ! excluded.has( term.id ) ) {
-					excluded.add( term.id );
-					grew = true;
+		const stack = [ excludeId ];
+		while ( stack.length > 0 ) {
+			const current = stack.pop();
+			const children = byParent.get( current ) || [];
+			for ( const child of children ) {
+				if ( ! excluded.has( child.id ) ) {
+					excluded.add( child.id );
+					stack.push( child.id );
 				}
 			}
 		}
 	}
 
 	const buildChildren = parentId =>
-		safe
-			.filter( term => term.parent === parentId && ! excluded.has( term.id ) )
+		( byParent.get( parentId ) || [] )
+			.filter( term => ! excluded.has( term.id ) )
 			.map( term => ( {
 				name: term.name,
 				id: String( term.id ),
@@ -89,7 +106,11 @@ export default function AdvertiserModal( { advertiser = null, advertisers = [], 
 	const [ isBusy, setIsBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
 
-	const tree = buildAdvertiserTree( advertisers, isEdit ? advertiser.id : null );
+	// Memoised so form-state changes (typing in Name / Description /
+	// Slug) don't trigger an O(n) rebuild of the tree on every keystroke.
+	// Recomputes only when the underlying advertiser collection or the
+	// edit-mode exclusion target changes.
+	const tree = useMemo( () => buildAdvertiserTree( advertisers, isEdit ? advertiser.id : null ), [ advertisers, isEdit, advertiser?.id ] );
 
 	const submit = async event => {
 		event.preventDefault();
