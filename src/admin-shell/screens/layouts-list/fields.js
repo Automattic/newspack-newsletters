@@ -21,7 +21,7 @@
 import { parse } from '@wordpress/blocks';
 import { TextControl } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { dateI18n, getSettings } from '@wordpress/date';
+import { dateI18n, getDate, getSettings } from '@wordpress/date';
 import { __ } from '@wordpress/i18n';
 import { ENTER, ESCAPE } from '@wordpress/keycodes';
 
@@ -82,6 +82,11 @@ function RenamingTitle( { item, onCommit, onCancel } ) {
 		setIsBusy( true );
 		try {
 			await onCommit( trimmed );
+		} catch {
+			// The screen-level handler raises an error notice and
+			// leaves `renamingId` set so the inline UI stays available
+			// for retry. Swallow here so `onBlur` / `onKeyDown` don't
+			// emit an unhandled rejection.
 		} finally {
 			setIsBusy( false );
 		}
@@ -192,8 +197,12 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel }
 				if ( ! value ) {
 					return null;
 				}
+				// REST `modified` is a site-local string with no offset.
+				// `getDate` re-anchors it to `wp.date.settings.timezone` so
+				// admins outside the site timezone don't see the wrong
+				// calendar date — same pattern the newsletters list uses.
 				const settings = getSettings();
-				return <span>{ dateI18n( settings.formats.date, value ) }</span>;
+				return <span>{ dateI18n( settings.formats.date, getDate( value ) ) }</span>;
 			},
 		},
 	];
@@ -220,11 +229,18 @@ function PreviewCard( { item } ) {
 	}, [ content ] );
 
 	if ( ! content || ! blocks.length ) {
+		// `role="img"` plus a visually-hidden label so screen readers
+		// announce the empty state — generic divs with only `aria-label`
+		// aren't reliably announced.
+		const emptyLabel = __( 'Empty layout', 'newspack-newsletters' );
 		return (
 			<div
-				aria-label={ __( 'Empty layout', 'newspack-newsletters' ) }
+				role="img"
+				aria-label={ emptyLabel }
 				className="newspack-newsletters-layouts-list__preview newspack-newsletters-layouts-list__preview--empty"
-			/>
+			>
+				<span className="screen-reader-text">{ emptyLabel }</span>
+			</div>
 		);
 	}
 

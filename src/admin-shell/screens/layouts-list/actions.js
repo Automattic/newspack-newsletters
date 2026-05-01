@@ -1,19 +1,16 @@
 /**
  * Per-row + bulk actions for the Layouts list.
  *
- * - **Edit** — navigates to the classic post editor for the layout
- *   post. The newsletter editor itself is being reworked separately
- *   (NEWS-1909 / 1910 / 1911); for the management surface we simply
- *   open the existing editor URL.
- * - **Duplicate** — GETs the source post in `context=edit` to capture
+ * - Edit — navigates to the classic post editor for the layout post.
+ * - Duplicate — GETs the source post in `context=edit` to capture
  *   `content.raw` and meta, then POSTs a new layout with title
- *   prefixed `Copy of …`. The registered meta keys round-trip as long
+ *   prefixed `Copy of …`. Registered meta keys round-trip as long
  *   as the request includes them in the create payload.
- * - **Rename** — opt-in inline rename. The action sets `renamingId`
- *   on the screen; the title field swaps to a `<TextControl>` (see
- *   `fields.js`). The PATCH itself happens in the field component on
- *   blur / Enter.
- * - **Delete** — confirm + DELETE force=true (CPT collection accepts
+ * - Rename — opt-in inline rename. The action sets `renamingId` on
+ *   the screen; the title field swaps to a `<TextControl>` (see
+ *   `fields.js`). The PATCH itself happens in the field component
+ *   on blur / Enter.
+ * - Delete — confirm + DELETE force=true (CPT collection accepts
  *   `force=true` for permanent removal because trash isn't surfaced
  *   for this CPT). Bulk Delete batches the same single-item DELETE
  *   in parallel.

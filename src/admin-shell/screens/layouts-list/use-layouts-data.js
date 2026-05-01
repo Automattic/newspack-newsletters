@@ -38,7 +38,14 @@ function readPaginationInfo( response ) {
 
 function buildPath( view ) {
 	const params = new URLSearchParams();
-	params.set( 'page', String( view.page || 1 ) );
+	// `offset` overrides `page` when set — needed for the screen's
+	// mixed prebuilt+saved layout, where page 1 reserves slots for
+	// prebuilts and subsequent pages need to start mid-collection.
+	if ( typeof view.offset === 'number' ) {
+		params.set( 'offset', String( view.offset ) );
+	} else {
+		params.set( 'page', String( view.page || 1 ) );
+	}
 	params.set( 'per_page', String( view.perPage || 12 ) );
 	// `context=edit` so the response includes `content.raw` (the
 	// preview parses it back into blocks) and the registered meta
@@ -77,6 +84,13 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	useEffect( () => {
+		if ( ! view ) {
+			setData( [] );
+			setPaginationInfo( { totalItems: 0, totalPages: 0 } );
+			setIsLoading( false );
+			setHasLoadedOnce( true );
+			return undefined;
+		}
 		let cancelled = false;
 		setIsLoading( true );
 
@@ -111,7 +125,7 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 		return () => {
 			cancelled = true;
 		};
-	}, [ view.page, view.perPage, view.search, view.sort?.field, view.sort?.direction, mutationKey ] );
+	}, [ view?.page, view?.perPage, view?.offset, view?.search, view?.sort?.field, view?.sort?.direction, mutationKey ] );
 
 	return { data, paginationInfo, isLoading, hasLoadedOnce };
 }

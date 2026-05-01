@@ -2,13 +2,11 @@
 /**
  * Admin shell bootstrap.
  *
- * Provides the React mount infrastructure (asset enqueue, page registry,
- * mode detection) that surfaces in NEWS-1928 to NEWS-1931 plug into.
- *
- * The chassis itself does not introduce its own top-level menu — pages
- * register as submenus under the Newsletters CPT menu (or, in NEWS-1929's
- * case, as a separate top-level menu) so the existing menu structure is
- * preserved.
+ * Provides the React mount infrastructure (asset enqueue, page
+ * registry, mode detection) the list-screen pages plug into. The
+ * chassis itself does not introduce its own top-level menu — pages
+ * register as submenus under the Newsletters CPT menu so the
+ * existing menu structure is preserved.
  *
  * @package Newspack_Newsletters
  */
@@ -454,30 +452,52 @@ class Admin_Shell {
 		$tab_url_json    = null === $tab_url ? 'null' : wp_json_encode( $tab_url );
 		$breadcrumb_json = null === $breadcrumb_label ? 'null' : wp_json_encode( $breadcrumb_label );
 
+		// The wizard renders its DOM after this script is parsed and may
+		// re-render its header on route changes, so the observer waits
+		// for the targets, patches once both are present, and then
+		// disconnects. A short re-arm window catches the wizard's
+		// post-mount rerender without leaving the observer attached for
+		// the lifetime of the page.
 		wp_add_inline_script(
 			'newspack-wizards-admin-header',
 			sprintf(
 				'( function () {
 					var tabUrl = %1$s;
 					var breadcrumb = %2$s;
+					var observer = null;
 					function apply() {
+						var tabDone = ! tabUrl;
+						var breadcrumbDone = ! breadcrumb;
 						if ( tabUrl ) {
-							document.querySelectorAll( ".newspack-tabbed-navigation a" ).forEach( function ( link ) {
+							var links = document.querySelectorAll( ".newspack-tabbed-navigation a" );
+							links.forEach( function ( link ) {
 								if ( link.href === tabUrl ) {
 									link.classList.add( "selected" );
 								}
 							} );
+							tabDone = links.length > 0;
 						}
 						if ( breadcrumb ) {
 							var heading = document.querySelector( ".newspack-wizard__title h2" );
-							if ( heading && heading.textContent !== breadcrumb ) {
-								heading.textContent = breadcrumb;
+							if ( heading ) {
+								if ( heading.textContent !== breadcrumb ) {
+									heading.textContent = breadcrumb;
+								}
+								breadcrumbDone = true;
 							}
+						}
+						if ( tabDone && breadcrumbDone && observer ) {
+							observer.disconnect();
+							observer = null;
+							setTimeout( function () {
+								apply();
+							}, 0 );
 						}
 					}
 					apply();
-					var observer = new MutationObserver( apply );
-					observer.observe( document.body, { childList: true, subtree: true } );
+					var root = document.querySelector( ".newspack-wizard" ) || document.body;
+					observer = new MutationObserver( apply );
+					observer.observe( root, { childList: true, subtree: true } );
 				} )();',
 				$tab_url_json,
 				$breadcrumb_json
@@ -530,17 +550,8 @@ class Admin_Shell {
 			new Pages\Newsletters_List_Page(),
 			new Pages\Ads_List_Page(),
 			new Pages\Advertisers_List_Page(),
+			new Pages\Layouts_List_Page(),
 		];
-
-		// Conditional menu (NEWS-1929): the Layouts surface is registered
-		// only when the site has at least one saved layout. Saved layouts
-		// are born exclusively from the editor's "Save as layout" action,
-		// so until then the page deliberately doesn't exist — no menu
-		// entry, no routable URL. The first save reveals the menu on the
-		// next admin pageload.
-		if ( Pages\Layouts_List_Page::has_saved_layouts() ) {
-			$pages[] = new Pages\Layouts_List_Page();
-		}
 
 		if ( ! self::is_bundled_mode() ) {
 			$pages[] = new Pages\Settings_Page();

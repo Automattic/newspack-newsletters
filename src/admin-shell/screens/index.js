@@ -3,22 +3,9 @@
  *
  * Each entry maps an admin page slug (matching the PHP-side slug)
  * to a React component plus its menu label. Slugs that aren't
- * registered here resolve to null.
- *
- * Currently registered:
- *  - newspack-newsletters-list (NEWS-1928): the React DataView replacing
- *    the classic CPT list.
- *  - newspack-newsletters-ads-list (NEWS-1930): the React DataView
- *    replacing the classic ads CPT list.
- *  - newspack-newsletters-advertisers-list (NEWS-1951): the React
- *    DataView replacing the classic taxonomy term-management screen for
- *    `newspack_nl_advertiser`.
- *  - newspack-newsletters-layouts-list (NEWS-1929): React DataView for
- *    managing saved newsletter layouts. Conditionally registered (only
- *    when ≥1 saved layout exists), so a missing entry here would
- *    short-circuit a page that PHP already gated.
- *  - newspack-newsletters-settings (NEWS-1927 placeholder, becomes the
- *    real React surface in NEWS-1931). Standalone-only at the PHP layer.
+ * registered here resolve to null. Settings is a temporary
+ * placeholder until its React surface lands; standalone-only at
+ * the PHP layer.
  */
 
 import { __ } from '@wordpress/i18n';

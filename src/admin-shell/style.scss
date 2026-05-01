@@ -118,9 +118,9 @@ body.newspack-newsletters-admin-screen {
 	}
 }
 
-// Layouts grid (NEWS-1929). Each card hosts a `<NewsletterPreview>` —
-// keep the preview from sprawling past the card's media area and give
-// the empty-content placeholder a recognisable surface so it doesn't
+// Layouts grid: each card hosts a `<NewsletterPreview>` — keep the
+// preview from sprawling past the card's media area and give the
+// empty-content placeholder a recognisable surface so it doesn't
 // collapse to zero height.
 .newspack-newsletters-layouts-list {
 	&__preview {

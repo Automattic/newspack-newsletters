@@ -59,11 +59,11 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Standalone mode exposes the list views alongside Settings. The ads
-	 * list (NEWS-1930) and advertisers list (NEWS-1951) both register in
+	 * Standalone mode exposes the list views alongside Settings. The
+	 * ads list, advertisers list, and layouts list all register in
 	 * both modes — Settings remains the only mode-gated entry.
 	 */
-	public function test_get_pages_in_standalone_mode_includes_list_ads_advertisers_and_settings() {
+	public function test_get_pages_in_standalone_mode_includes_list_ads_advertisers_layouts_and_settings() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_false' );
 		$slugs = array_map(
 			function ( $page ) {
@@ -76,6 +76,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 				'newspack-newsletters-list',
 				'newspack-newsletters-ads-list',
 				'newspack-newsletters-advertisers-list',
+				'newspack-newsletters-layouts-list',
 				'newspack-newsletters-settings',
 			],
 			$slugs
@@ -84,10 +85,10 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 
 	/**
 	 * Bundled mode defers Settings to newspack-plugin's Engagement >
-	 * Newsletters surface — the newsletters list, ads list, and
-	 * advertisers list still register in this mode.
+	 * Newsletters surface — the newsletters list, ads list, advertisers
+	 * list, and layouts list still register in this mode.
 	 */
-	public function test_get_pages_in_bundled_mode_includes_list_ads_and_advertisers_only() {
+	public function test_get_pages_in_bundled_mode_includes_list_ads_advertisers_and_layouts_only() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$slugs = array_map(
 			function ( $page ) {
@@ -100,6 +101,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 				'newspack-newsletters-list',
 				'newspack-newsletters-ads-list',
 				'newspack-newsletters-advertisers-list',
+				'newspack-newsletters-layouts-list',
 			],
 			$slugs
 		);

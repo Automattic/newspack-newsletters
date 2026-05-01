@@ -25,7 +25,10 @@ export default function usePrebuiltLayouts() {
 
 	useEffect( () => {
 		let cancelled = false;
-		apiFetch( { path: '/newspack-newsletters/v1/layouts' } )
+		// `defaults_only=1` so the endpoint skips the saved-layouts
+		// WP_Query — without it the response carries every saved post
+		// just for us to filter them out client-side.
+		apiFetch( { path: '/newspack-newsletters/v1/layouts?defaults_only=1' } )
 			.then( items => {
 				if ( cancelled || ! Array.isArray( items ) ) {
 					return;
@@ -33,7 +36,10 @@ export default function usePrebuiltLayouts() {
 				// `post_author` is the canonical "is this a real post"
 				// signal — `Newspack_Newsletters_Layouts::get_layouts`
 				// merges WP_Post objects (which carry post_author) with
-				// plain arrays from the JSON files (which don't).
+				// plain arrays from the JSON files (which don't). The
+				// filter is still applied client-side as a safety net
+				// in case the server param is unsupported on older
+				// builds.
 				const prebuilts = items
 					.filter( item => item && item.post_author === undefined )
 					.map( ( item, idx ) => {

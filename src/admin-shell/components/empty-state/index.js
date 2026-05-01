@@ -1,5 +1,5 @@
 /**
- * Reusable empty-state for admin-shell list screens (NEWS-1952 fold-in).
+ * Reusable empty-state for admin-shell list screens.
  *
  * Mirrors newspack-plugin's content-gates onboarding
  * (`src/wizards/audience/views/content-gates/content-gates-onboarding.tsx`):

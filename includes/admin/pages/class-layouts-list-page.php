@@ -2,18 +2,11 @@
 /**
  * Newsletter Layouts list admin page (React DataView).
  *
- * First-class management surface for saved newsletter layouts
- * (`newspack_nl_layo_cpt`). Distinct from the layout-picker /
- * authoring UX (NEWS-1909 / 1910 / 1911) — this is the *list* of
- * user-created layouts: edit / duplicate / rename / delete.
- *
- * Conditional registration: the menu is registered only when the
- * site has at least one saved layout. Saved layouts are born
- * exclusively from the editor's "Save as layout" action, so until
- * then the surface deliberately doesn't exist for the user. Gating
- * lives in `Admin_Shell::get_pages()` (mirrors the bundled-mode
- * gate used by `Settings_Page`); zero existing chassis virtuals
- * had to grow for this.
+ * First-class management surface for newsletter layouts. Lists the
+ * bundled prebuilts (`Newspack_Newsletters_Layouts::get_default_layouts`)
+ * alongside user-saved layouts (`newspack_nl_layo_cpt`); prebuilts
+ * are read-only with Duplicate as the only available action, saved
+ * rows expose edit / duplicate / rename / delete.
  *
  * @package Newspack_Newsletters
  */
@@ -26,7 +19,7 @@ use Newspack_Newsletters;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * "Layouts" list page — shown only when ≥1 saved layout exists.
+ * "Layouts" list page — always registered (prebuilts ship with the plugin).
  */
 class Layouts_List_Page extends Admin_Page {
 	/**
@@ -98,32 +91,5 @@ class Layouts_List_Page extends Admin_Page {
 	 */
 	public function get_wizard_header_label() {
 		return __( 'Newsletters / Layouts', 'newspack-newsletters' );
-	}
-
-	/**
-	 * Whether the site has at least one saved layout.
-	 *
-	 * Saved layouts are stored exclusively as `status=publish` posts of
-	 * the layouts CPT (see `SingleLayoutPreview` and the editor's
-	 * `saveLayout` dispatch). `private` is included defensively so a
-	 * future status drift doesn't silently hide the menu. Result is
-	 * memoised per-request because `Admin_Shell::get_pages()` is called
-	 * from multiple hook callbacks and there's no need to re-query.
-	 *
-	 * @return bool
-	 */
-	public static function has_saved_layouts() {
-		static $cached = null;
-		if ( null !== $cached ) {
-			return $cached;
-		}
-
-		// `wp_count_posts` is a single SQL aggregate keyed by post_status —
-		// cheap enough to run on every admin request without caching the
-		// result beyond the static memo above.
-		$counts = \wp_count_posts( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
-		$total  = (int) ( $counts->publish ?? 0 ) + (int) ( $counts->private ?? 0 );
-		$cached = $total > 0;
-		return $cached;
 	}
 }

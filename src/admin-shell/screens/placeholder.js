@@ -1,13 +1,9 @@
 /**
  * Placeholder screen used by the admin shell while the real
- * surfaces are built out in NEWS-1928 to NEWS-1931.
- *
- * The page label is already rendered as the chrome's `h1` in `App`;
- * the placeholder only adds body copy.
- *
- * For Settings specifically, link through to the classic settings
- * page so ESP credentials stay reachable until NEWS-1931 swaps in
- * the React form.
+ * surfaces are built out. The page label is already rendered as
+ * the chrome's `h1` in `App`; the placeholder only adds body copy.
+ * For Settings, link through to the classic settings page so ESP
+ * credentials stay reachable until the React form lands.
  */
 
 import { __ } from '@wordpress/i18n';

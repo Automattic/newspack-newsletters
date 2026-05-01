@@ -17,7 +17,7 @@ use Newspack_Newsletters;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * "All Newsletters" page — registered in both modes (NEWS-1928).
+ * "All Newsletters" page — registered in both modes.
  */
 class Newsletters_List_Page extends Admin_Page {
 	/**

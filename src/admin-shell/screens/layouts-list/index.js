@@ -1,17 +1,11 @@
 /**
- * Layouts list screen — React DataView for managing user-created
- * newsletter layouts (NEWS-1929).
- *
- * Mounts at `?page=newspack-newsletters-layouts-list` (registered
- * conditionally by `Layouts_List_Page` — only when ≥1 saved layout
- * exists). Server-side paginated; default layout is **Grid** with a
- * live `<NewsletterPreview>` per card. Table layout (Title /
- * Modified) is available via the toggle.
- *
- * Per-row actions: Edit (opens classic editor), Duplicate, Rename
- * (inline), Delete. Bulk: Delete only. Saved layouts are born from
- * the editor's "Save as layout" dispatch — there is no Add CTA on
- * this surface and no empty state, by design.
+ * Layouts list screen — React DataView for managing newsletter
+ * layouts. Lists bundled prebuilts alongside user-saved layouts;
+ * prebuilts are read-only with Duplicate as the only available
+ * action. Mounts at `?page=newspack-newsletters-layouts-list`.
+ * Server-side paginated; default layout is Grid with a live
+ * `<NewsletterPreview>` per card. Saved layouts are born from the
+ * editor's "Save as layout" dispatch — there is no Add CTA here.
  */
 
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
@@ -98,7 +92,6 @@ export default function LayoutsListScreen() {
 	// Duplicate, Delete, bulk Delete). Bumping it forces a refetch.
 	const [ mutationKey, setMutationKey ] = useState( 0 );
 
-	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( view, mutationKey );
 	const prebuiltData = usePrebuiltLayouts();
 
 	// Resolve the type filter from `view.filters`. Returns `'prebuilt'`,
@@ -138,32 +131,59 @@ export default function LayoutsListScreen() {
 		return null;
 	}, [ view.filters ] );
 
-	// Prebuilts only show on page 1 of the unfiltered or "include
-	// prebuilts" view. Saved layouts paginate normally; prebuilts
-	// ride along on page 1 in their JSON-file order. Search currently
-	// hides prebuilts entirely (the `<NewsletterPreview>` parses block
-	// markup, so client-side title-text search would be misleading
-	// without indexing the rendered preview content too).
+	// Prebuilts only show on page 1 of the unfiltered "include
+	// prebuilts" view. Search hides them entirely (titles aren't
+	// indexed against the parsed block content). Pinning them on top
+	// reserves N slots out of `view.perPage` on page 1, so the saved
+	// query is offset-paginated to fill the remaining slots and pick
+	// up where page 1 left off on subsequent pages.
 	const showPrebuilts = view.page === 1 && ! view.search && typeFilter !== 'user';
 	const showSaved = typeFilter !== 'prebuilt';
+	const prebuiltCount = prebuiltData.length;
+	const ridingAlong = ! view.search && typeFilter !== 'user' && prebuiltCount > 0;
+	const firstPageSavedSlots = ridingAlong ? Math.max( 1, view.perPage - prebuiltCount ) : view.perPage;
+
+	const savedView = useMemo( () => {
+		if ( ! showSaved ) {
+			return null;
+		}
+		if ( ridingAlong ) {
+			if ( view.page === 1 ) {
+				return { ...view, perPage: firstPageSavedSlots, offset: 0 };
+			}
+			return { ...view, offset: firstPageSavedSlots + ( view.page - 2 ) * view.perPage };
+		}
+		return view;
+	}, [ view, showSaved, ridingAlong, firstPageSavedSlots ] );
+
+	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( savedView, mutationKey );
+
 	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
 	const filteredSaved = showSaved ? savedData : [];
 
 	const data = useMemo( () => [ ...filteredPrebuilts, ...filteredSaved ], [ filteredPrebuilts, filteredSaved ] );
 
 	const paginationInfo = useMemo( () => {
-		// When filtering to prebuilts only, pagination collapses — all
-		// prebuilts are returned in a single batch. When showing both
-		// or saved-only, total tracks saved + (any prebuilts shown).
+		// Prebuilt-only filter: the entire prebuilt set fits in one batch.
 		if ( ! showSaved ) {
-			return { totalItems: prebuiltData.length, totalPages: 1 };
+			return { totalItems: prebuiltCount, totalPages: 1 };
 		}
-		const prebuiltContribution = showPrebuilts ? prebuiltData.length : 0;
+		// Saved-only (search or user filter): standard saved pagination.
+		if ( ! ridingAlong ) {
+			return {
+				totalItems: savedPagination.totalItems,
+				totalPages: Math.max( 1, savedPagination.totalPages ),
+			};
+		}
+		// Mixed: page 1 holds `firstPageSavedSlots` saved + all prebuilts;
+		// the remaining saved spread across subsequent pages of `perPage`.
+		const remainingSaved = Math.max( 0, savedPagination.totalItems - firstPageSavedSlots );
+		const totalPages = 1 + Math.ceil( remainingSaved / view.perPage );
 		return {
-			totalItems: savedPagination.totalItems + prebuiltContribution,
-			totalPages: Math.max( 1, savedPagination.totalPages ),
+			totalItems: savedPagination.totalItems + prebuiltCount,
+			totalPages: Math.max( 1, totalPages ),
 		};
-	}, [ savedPagination, prebuiltData.length, showPrebuilts, showSaved ] );
+	}, [ savedPagination, prebuiltCount, showSaved, ridingAlong, firstPageSavedSlots, view.perPage ] );
 
 	// `mediaField` is grid-only by intent — the preview mounts an iframe
 	// per row, which is fine in a card layout but blows out row heights
