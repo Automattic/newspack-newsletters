@@ -108,13 +108,23 @@ export default function AdvertiserModal( { advertiser = null, advertisers = [], 
 			description,
 			parent: parent ? parseInt( parent, 10 ) : 0,
 		};
-		// Only forward `slug` when the user supplied one — passing an
-		// empty string forces `wp_insert_term` / `wp_update_term` to
-		// regenerate from the name, but doing it explicitly via "always
-		// pass slug" would also overwrite a deliberately-edited slug
-		// after a name change.
-		if ( slug.trim() !== '' ) {
-			data.slug = slug.trim();
+		// Slug forwarding rules:
+		// - Create: omit `slug` when blank so `wp_insert_term` generates one.
+		// - Edit:   only send `slug` when it changed from the existing value.
+		//           Sending the original would be a no-op; clearing the field
+		//           sends `''`, which `wp_update_term` regenerates from the
+		//           name (matching the field's "Leave blank to auto-generate"
+		//           help text). Not comparing would either always regenerate
+		//           on edit (overwriting a deliberately-edited slug) or never
+		//           regenerate (lying to the help text).
+		const trimmedSlug = slug.trim();
+		const originalSlug = advertiser?.slug || '';
+		if ( ! isEdit ) {
+			if ( trimmedSlug !== '' ) {
+				data.slug = trimmedSlug;
+			}
+		} else if ( trimmedSlug !== originalSlug ) {
+			data.slug = trimmedSlug;
 		}
 
 		try {

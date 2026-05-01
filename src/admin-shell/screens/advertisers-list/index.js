@@ -12,7 +12,7 @@
  */
 
 import { DataViews } from '@wordpress/dataviews/wp';
-import { useMemo, useState } from '@wordpress/element';
+import { useCallback, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { group, plus } from '@wordpress/icons';
 
@@ -42,12 +42,17 @@ export default function AdvertisersListScreen() {
 
 	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useAdvertisersData( view );
 
-	const openAdd = () => setModalState( { mode: 'add' } );
-	const openEdit = advertiser => setModalState( { mode: 'edit', advertiser } );
-	const closeModal = () => setModalState( null );
+	// `setModalState` (a `useState` setter) is itself stable, but wrapping
+	// the modal handlers in `useCallback` keeps their identities stable
+	// across renders so the `useMemo`s below — which capture them — don't
+	// have to choose between (a) re-running every render or (b) lying to
+	// the hooks-deps lint rule with an empty deps array.
+	const openAdd = useCallback( () => setModalState( { mode: 'add' } ), [] );
+	const openEdit = useCallback( advertiser => setModalState( { mode: 'edit', advertiser } ), [] );
+	const closeModal = useCallback( () => setModalState( null ), [] );
 
-	const fields = useMemo( () => getFields( { onEdit: openEdit } ), [] );
-	const actions = useMemo( () => getActions( { onEdit: openEdit, refresh } ), [ refresh ] );
+	const fields = useMemo( () => getFields( { onEdit: openEdit } ), [ openEdit ] );
+	const actions = useMemo( () => getActions( { onEdit: openEdit, refresh } ), [ openEdit, refresh ] );
 
 	useHeaderActions(
 		useMemo(
@@ -58,7 +63,7 @@ export default function AdvertisersListScreen() {
 					onClick: openAdd,
 				},
 			],
-			[]
+			[ openAdd ]
 		)
 	);
 

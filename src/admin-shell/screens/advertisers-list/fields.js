@@ -3,12 +3,11 @@
  *
  * Default columns: Name, Description, Slug, Count.
  *
- * `name` and `slug` map to native WP REST `orderby` values; description
- * and count are not native sortable orderbys (the terms controller's
- * schema only exposes `orderby` ∈ { id, include, name, slug, term_group,
- * description, count }, and `description` / `count` are stable enough
- * column-side that JS-level sort would be a regression vs server-side).
- * Limit `enableSorting` to fields that produce a meaningful sort.
+ * The WP REST terms controller accepts `orderby` ∈ { id, include, name,
+ * slug, term_group, description, count }. `enableSorting` is opt-in here
+ * — `name`, `slug`, and `count` are useful list sorts; `description`
+ * remains non-sortable by design because ordering by free-form text
+ * isn't useful in this UI.
  */
 
 import { __ } from '@wordpress/i18n';
