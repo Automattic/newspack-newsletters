@@ -450,6 +450,16 @@ class Admin_Shell {
 			new Pages\Advertisers_List_Page(),
 		];
 
+		// Conditional menu (NEWS-1929): the Layouts surface is registered
+		// only when the site has at least one saved layout. Saved layouts
+		// are born exclusively from the editor's "Save as layout" action,
+		// so until then the page deliberately doesn't exist — no menu
+		// entry, no routable URL. The first save reveals the menu on the
+		// next admin pageload.
+		if ( Pages\Layouts_List_Page::has_saved_layouts() ) {
+			$pages[] = new Pages\Layouts_List_Page();
+		}
+
 		if ( ! self::is_bundled_mode() ) {
 			$pages[] = new Pages\Settings_Page();
 		}

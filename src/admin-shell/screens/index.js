@@ -13,6 +13,10 @@
  *  - newspack-newsletters-advertisers-list (NEWS-1951): the React
  *    DataView replacing the classic taxonomy term-management screen for
  *    `newspack_nl_advertiser`.
+ *  - newspack-newsletters-layouts-list (NEWS-1929): React DataView for
+ *    managing saved newsletter layouts. Conditionally registered (only
+ *    when ≥1 saved layout exists), so a missing entry here would
+ *    short-circuit a page that PHP already gated.
  *  - newspack-newsletters-settings (NEWS-1927 placeholder, becomes the
  *    real React surface in NEWS-1931). Standalone-only at the PHP layer.
  */
@@ -22,6 +26,7 @@ import Placeholder from './placeholder';
 import NewslettersListScreen from './newsletters-list';
 import AdsListScreen from './ads-list';
 import AdvertisersListScreen from './advertisers-list';
+import LayoutsListScreen from './layouts-list';
 
 export const screens = {
 	'newspack-newsletters-list': {
@@ -35,6 +40,10 @@ export const screens = {
 	'newspack-newsletters-advertisers-list': {
 		component: AdvertisersListScreen,
 		label: __( 'Advertisers', 'newspack-newsletters' ),
+	},
+	'newspack-newsletters-layouts-list': {
+		component: LayoutsListScreen,
+		label: __( 'Layouts', 'newspack-newsletters' ),
 	},
 	'newspack-newsletters-settings': {
 		component: Placeholder,

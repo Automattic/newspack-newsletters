@@ -118,3 +118,28 @@ body.newspack-newsletters-admin-screen {
 	}
 }
 
+// Layouts grid (NEWS-1929). Each card hosts a `<NewsletterPreview>` —
+// keep the preview from sprawling past the card's media area and give
+// the empty-content placeholder a recognisable surface so it doesn't
+// collapse to zero height.
+.newspack-newsletters-layouts-list {
+	&__preview {
+		background: wp-colors.$white;
+		border: 1px solid wp-colors.$gray-200;
+		border-radius: wp-vars.$grid-unit-05;
+		min-height: 320px;
+		overflow: hidden;
+		// `<NewsletterPreview>` mounts an iframe with its own internal
+		// padding; the wrapper just confines it.
+		position: relative;
+
+		&--empty {
+			align-items: center;
+			background: wp-colors.$gray-100;
+			color: wp-colors.$gray-700;
+			display: flex;
+			justify-content: center;
+		}
+	}
+}
+
