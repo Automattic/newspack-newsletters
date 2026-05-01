@@ -198,6 +198,12 @@ final class Newspack_Newsletters_Editor {
 			$editor_settings['__experimentalFeatures']['layout']['wideSize']    = $email_width;
 		}
 
+		// Hide the font-family picker — registered fonts (including those added
+		// via Appearance > Fonts) cannot be relied on to render in email clients.
+		if ( isset( $editor_settings['__experimentalFeatures']['typography'] ) ) {
+			$editor_settings['__experimentalFeatures']['typography']['fontFamilies'] = [];
+		}
+
 		return $editor_settings;
 	}
 
