@@ -23,6 +23,7 @@ import { dispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
 import useLayoutsData from './use-layouts-data';
+import usePrebuiltLayouts from './use-prebuilt-layouts';
 import { getFields } from './fields';
 import { getActions, renameLayout } from './actions';
 import { getInitialView } from './initial-filters';
@@ -97,7 +98,72 @@ export default function LayoutsListScreen() {
 	// Duplicate, Delete, bulk Delete). Bumping it forces a refetch.
 	const [ mutationKey, setMutationKey ] = useState( 0 );
 
-	const { data, paginationInfo, isLoading } = useLayoutsData( view, mutationKey );
+	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( view, mutationKey );
+	const prebuiltData = usePrebuiltLayouts();
+
+	// Resolve the type filter from `view.filters`. Returns `'prebuilt'`,
+	// `'user'`, or `null` when neither is exclusively selected (both /
+	// none / unrelated filters all reduce to `null`, meaning "show
+	// both"). DataView's filter shape allows multiple operators
+	// (`is`, `isAny`, `isNone`); collapse them to the on-screen
+	// behaviour we care about.
+	const typeFilter = useMemo( () => {
+		const filter = ( view.filters || [] ).find( f => f.field === 'type' );
+		if ( ! filter ) {
+			return null;
+		}
+		const value = filter.value;
+		const values = Array.isArray( value ) ? value : [ value ];
+		if ( filter.operator === 'isNone' ) {
+			// `isNone` excludes the listed values — invert to include the others.
+			if ( values.includes( 'prebuilt' ) && ! values.includes( 'user' ) ) {
+				return 'user';
+			}
+			if ( values.includes( 'user' ) && ! values.includes( 'prebuilt' ) ) {
+				return 'prebuilt';
+			}
+			return null;
+		}
+		// `is` / `isAny` — include the listed values. A selection of
+		// both reduces to "show both" (null) since that's the default.
+		if ( values.includes( 'prebuilt' ) && values.includes( 'user' ) ) {
+			return null;
+		}
+		if ( values.includes( 'prebuilt' ) ) {
+			return 'prebuilt';
+		}
+		if ( values.includes( 'user' ) ) {
+			return 'user';
+		}
+		return null;
+	}, [ view.filters ] );
+
+	// Prebuilts only show on page 1 of the unfiltered or "include
+	// prebuilts" view. Saved layouts paginate normally; prebuilts
+	// ride along on page 1 in their JSON-file order. Search currently
+	// hides prebuilts entirely (the `<NewsletterPreview>` parses block
+	// markup, so client-side title-text search would be misleading
+	// without indexing the rendered preview content too).
+	const showPrebuilts = view.page === 1 && ! view.search && typeFilter !== 'user';
+	const showSaved = typeFilter !== 'prebuilt';
+	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
+	const filteredSaved = showSaved ? savedData : [];
+
+	const data = useMemo( () => [ ...filteredPrebuilts, ...filteredSaved ], [ filteredPrebuilts, filteredSaved ] );
+
+	const paginationInfo = useMemo( () => {
+		// When filtering to prebuilts only, pagination collapses — all
+		// prebuilts are returned in a single batch. When showing both
+		// or saved-only, total tracks saved + (any prebuilts shown).
+		if ( ! showSaved ) {
+			return { totalItems: prebuiltData.length, totalPages: 1 };
+		}
+		const prebuiltContribution = showPrebuilts ? prebuiltData.length : 0;
+		return {
+			totalItems: savedPagination.totalItems + prebuiltContribution,
+			totalPages: Math.max( 1, savedPagination.totalPages ),
+		};
+	}, [ savedPagination, prebuiltData.length, showPrebuilts, showSaved ] );
 
 	// `mediaField` is grid-only by intent — the preview mounts an iframe
 	// per row, which is fine in a card layout but blows out row heights

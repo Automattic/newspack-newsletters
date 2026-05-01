@@ -141,5 +141,13 @@ body.newspack-newsletters-admin-screen {
 			justify-content: center;
 		}
 	}
+
+	// Inline tag next to the title for prebuilt rows. Communicates
+	// the locked state without adding a column.
+	&__prebuilt-badge {
+		color: wp-colors.$gray-700;
+		font-style: italic;
+		font-weight: normal;
+	}
 }
 

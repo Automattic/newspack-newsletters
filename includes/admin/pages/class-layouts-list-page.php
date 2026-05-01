@@ -72,6 +72,35 @@ class Layouts_List_Page extends Admin_Page {
 	}
 
 	/**
+	 * Slot the Layouts entry as the third submenu (0-based index 2) —
+	 * directly after the auto-generated "All Newsletters" (0) and
+	 * "Add New Newsletter" (1) entries, ahead of "Advertising",
+	 * "Premium", and "Settings". Reordering happens at a late
+	 * `admin_menu` priority so every other contributor has already
+	 * registered.
+	 *
+	 * @return int
+	 */
+	public function get_submenu_index() {
+		return 2;
+	}
+
+	/**
+	 * Override the wizard breadcrumb so the dark Newspack header shows
+	 * "Newsletters / Layouts" rather than the parent CPT's
+	 * "Newsletters / All Newsletters". The wizard's `admin_screens`
+	 * map keys on the CPT slug for `edit.php` URLs and resolves the
+	 * breadcrumb from there; an upstream fix would prefer the page
+	 * slug when both match. Until then this label is patched into
+	 * the rendered DOM via the chassis-injected inline script.
+	 *
+	 * @return string
+	 */
+	public function get_wizard_header_label() {
+		return __( 'Newsletters / Layouts', 'newspack-newsletters' );
+	}
+
+	/**
 	 * Whether the site has at least one saved layout.
 	 *
 	 * Saved layouts are stored exclusively as `status=publish` posts of

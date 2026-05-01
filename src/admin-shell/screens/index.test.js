@@ -1,14 +1,21 @@
-// `@wordpress/block-editor` and `@wordpress/blocks` are pulled in
-// transitively by the layouts-list screen via `<NewsletterPreview>`.
-// Both packages ship as ESM and aren't covered by the default jest
-// transform ignore list, which would otherwise fail this test on
-// import. The registry shape we assert here doesn't need either
-// module to do anything — empty mocks are enough.
+// `@wordpress/block-editor`, `@wordpress/blocks`, and
+// `@wordpress/block-library` are pulled in transitively by the
+// layouts-list screen — `<NewsletterPreview>` uses the first two and
+// the screen calls `registerCoreBlocks` on mount. All three ship as
+// ESM and aren't covered by the default jest transform ignore list,
+// which would otherwise fail this test on import. The registry
+// shape we assert here doesn't need any of them to do anything —
+// empty mocks are enough.
 jest.mock( '@wordpress/block-editor', () => ( {
 	BlockPreview: () => null,
 } ) );
 jest.mock( '@wordpress/blocks', () => ( {
 	parse: () => [],
+	registerBlockType: () => {},
+	getBlockType: () => null,
+} ) );
+jest.mock( '@wordpress/block-library', () => ( {
+	registerCoreBlocks: () => {},
 } ) );
 
 import { resolveLabel, resolveScreen, screens } from './index';

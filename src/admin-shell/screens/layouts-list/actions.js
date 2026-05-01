@@ -47,12 +47,20 @@ function buildEditUrl( item ) {
 const deleteOne = id => apiFetch( { path: `${ COLLECTION_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
 async function duplicateOne( item ) {
-	// Re-fetch the source in `context=edit` to be sure we have the
-	// raw content and full meta — the list payload already does this,
-	// but Duplicate is a low-frequency action so the round-trip is
-	// cheap and keeps the action robust against future callers that
-	// pass a leaner item shape.
-	const source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
+	// Prebuilt rows aren't real posts — there's no `id` to GET from the
+	// REST collection. We have the title and content already attached
+	// to the item (normalised in `usePrebuiltLayouts`), so the duplicate
+	// payload comes straight from the in-memory shape. Saved rows
+	// re-fetch in `context=edit` to be sure of the raw content + full
+	// meta — the list payload already carries these, but Duplicate is
+	// a low-frequency action and the round-trip keeps the action robust
+	// against future callers that pass a leaner item shape.
+	let source;
+	if ( item?.is_prebuilt ) {
+		source = item;
+	} else {
+		source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
+	}
 	const sourceTitle = source?.title?.raw ?? source?.title?.rendered ?? __( 'Untitled', 'newspack-newsletters' );
 	const payload = {
 		status: 'publish',
@@ -117,11 +125,18 @@ function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 	);
 }
 
+// Prebuilt rows are seeded from JSON files and shared across every
+// site — Edit / Rename / Delete are locked so a publisher can't break
+// the bundled set. Duplicate is the one path that turns a prebuilt
+// into editable content (a copy is a regular post the user owns).
+const isUserOwned = item => ! item?.is_prebuilt;
+
 export function getActions( { onRenameStart, onMutated } ) {
 	const editAction = {
 		id: 'edit',
 		label: __( 'Edit', 'newspack-newsletters' ),
 		isPrimary: true,
+		isEligible: isUserOwned,
 		callback: items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -152,6 +167,7 @@ export function getActions( { onRenameStart, onMutated } ) {
 	const renameAction = {
 		id: 'rename',
 		label: __( 'Rename', 'newspack-newsletters' ),
+		isEligible: isUserOwned,
 		callback: items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -166,6 +182,7 @@ export function getActions( { onRenameStart, onMutated } ) {
 		label: __( 'Delete', 'newspack-newsletters' ),
 		isDestructive: true,
 		supportsBulk: true,
+		isEligible: isUserOwned,
 		RenderModal: ( { items, closeModal } ) => (
 			<ConfirmDeleteModal
 				items={ items }

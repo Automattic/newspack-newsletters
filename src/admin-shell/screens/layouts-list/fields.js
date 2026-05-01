@@ -132,6 +132,17 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel }
 			return <RenamingTitle item={ item } onCommit={ next => onRenameCommit?.( item, next ) } onCancel={ () => onRenameCancel?.() } />;
 		}
 		const label = getRawTitle( item ) || __( '(no title)', 'newspack-newsletters' );
+		// A "Prebuilt" badge inline with the title makes the locked
+		// state legible without forcing a separate column. Mirrors how
+		// classic CPT lists tag taxonomy-restricted rows.
+		if ( item?.is_prebuilt ) {
+			return (
+				<span>
+					<strong>{ label }</strong>{ ' ' }
+					<em className="newspack-newsletters-layouts-list__prebuilt-badge">{ __( '(Prebuilt)', 'newspack-newsletters' ) }</em>
+				</span>
+			);
+		}
 		return <strong>{ label }</strong>;
 	};
 
@@ -143,6 +154,25 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel }
 			enableSorting: true,
 			getValue: ( { item } ) => getRawTitle( item ),
 			render: renderTitle,
+		},
+		{
+			id: 'type',
+			label: __( 'Type', 'newspack-newsletters' ),
+			// `enableSorting: false` because order across the two
+			// types is meaningful (prebuilts pinned on top); sorting
+			// by type would shuffle that. `enableHiding` defaults to
+			// true so the user can show/hide the column in table
+			// mode if they want it visible.
+			enableSorting: false,
+			elements: [
+				{ value: 'prebuilt', label: __( 'Prebuilt', 'newspack-newsletters' ) },
+				{ value: 'user', label: __( 'User created', 'newspack-newsletters' ) },
+			],
+			filterBy: {
+				operators: [ 'is', 'isAny', 'isNone' ],
+				isPrimary: true,
+			},
+			getValue: ( { item } ) => ( item?.is_prebuilt ? 'prebuilt' : 'user' ),
 		},
 		{
 			id: 'preview',
