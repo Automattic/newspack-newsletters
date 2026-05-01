@@ -93,8 +93,15 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 				if ( cancelled ) {
 					return;
 				}
-				setData( [] );
-				setPaginationInfo( { totalItems: 0, totalPages: 0 } );
+				// Don't clobber `data` or `paginationInfo` on failure.
+				// Two reasons: (1) on first-load failure they're still
+				// at their initial empty values, so resetting is a
+				// no-op; (2) on a later-refresh failure (page change,
+				// filter change, post-mutation refetch), preserving
+				// the last good data keeps the DataView populated and
+				// prevents `isStrictEmpty` from spuriously rendering
+				// the onboarding EmptyState — the failure surfaces via
+				// the error notice instead.
 				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load advertisers. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-advertisers-list-fetch-error',
 				} );
