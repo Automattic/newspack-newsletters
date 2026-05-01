@@ -22,11 +22,17 @@ export function getFields( { onEdit } = {} ) {
 		// Render as a button-style link so keyboard users can activate
 		// the Edit modal from the column directly. The DataView's
 		// per-row Edit action remains the primary path for mouse users.
+		// `stopPropagation` on the click event prevents the DataView's
+		// row-click handler from also flipping the row's selection
+		// checkbox — without it, opening the modal toggles the row.
 		return (
 			<button
 				type="button"
 				className="newspack-newsletters-list__title"
-				onClick={ () => onEdit( item ) }
+				onClick={ event => {
+					event.stopPropagation();
+					onEdit( item );
+				} }
 				style={ {
 					background: 'none',
 					border: 'none',
