@@ -8,6 +8,11 @@
  * Currently registered:
  *  - newspack-newsletters-list (NEWS-1928): the React DataView replacing
  *    the classic CPT list.
+ *  - newspack-newsletters-ads-list (NEWS-1930): the React DataView
+ *    replacing the classic ads CPT list.
+ *  - newspack-newsletters-advertisers-list (NEWS-1951): the React
+ *    DataView replacing the classic taxonomy term-management screen for
+ *    `newspack_nl_advertiser`.
  *  - newspack-newsletters-settings (NEWS-1927 placeholder, becomes the
  *    real React surface in NEWS-1931). Standalone-only at the PHP layer.
  */
@@ -16,6 +21,7 @@ import { __ } from '@wordpress/i18n';
 import Placeholder from './placeholder';
 import NewslettersListScreen from './newsletters-list';
 import AdsListScreen from './ads-list';
+import AdvertisersListScreen from './advertisers-list';
 
 export const screens = {
 	'newspack-newsletters-list': {
@@ -25,6 +31,10 @@ export const screens = {
 	'newspack-newsletters-ads-list': {
 		component: AdsListScreen,
 		label: __( 'Newsletter Ads', 'newspack-newsletters' ),
+	},
+	'newspack-newsletters-advertisers-list': {
+		component: AdvertisersListScreen,
+		label: __( 'Advertisers', 'newspack-newsletters' ),
 	},
 	'newspack-newsletters-settings': {
 		component: Placeholder,

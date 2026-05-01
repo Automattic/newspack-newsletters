@@ -447,6 +447,7 @@ class Admin_Shell {
 		$pages = [
 			new Pages\Newsletters_List_Page(),
 			new Pages\Ads_List_Page(),
+			new Pages\Advertisers_List_Page(),
 		];
 
 		if ( ! self::is_bundled_mode() ) {
