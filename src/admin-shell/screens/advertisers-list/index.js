@@ -55,7 +55,6 @@ export default function AdvertisersListScreen() {
 				{
 					type: 'primary',
 					label: __( 'Add new advertiser', 'newspack-newsletters' ),
-					icon: plus,
 					onClick: openAdd,
 				},
 			],

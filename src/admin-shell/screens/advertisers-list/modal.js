@@ -134,6 +134,7 @@ export default function AdvertiserModal( { advertiser = null, advertisers = [], 
 		<Modal
 			title={ isEdit ? __( 'Edit advertiser', 'newspack-newsletters' ) : __( 'Add new advertiser', 'newspack-newsletters' ) }
 			onRequestClose={ onClose }
+			size="medium"
 			className="newspack-newsletters-advertiser-modal"
 		>
 			<form onSubmit={ submit }>
