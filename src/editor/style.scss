@@ -2,13 +2,33 @@
 	--newspack-newsletters-header-font: arial, sans-serif;
 	--newspack-newsletters-body-font: georgia, serif;
 	--newspack-newsletters-max-width: 600px;
+	--newspack-header-font: arial, sans-serif;
+	--newspack-body-font: georgia, serif;
+	--newspack-max-width: 600px;
+	--wp--style--global--content-size: 600px;
+	--wp--style--global--wide-size: 600px;
 }
 
 .wp-block {
+	box-sizing: border-box;
 	margin-left: auto;
 	margin-right: auto;
 	max-width: var(--newspack-newsletters-max-width);
 	padding: 12px;
+}
+
+// Override block theme layout constraints — all newsletter blocks
+// should use the same max-width (600px) regardless of theme settings.
+.is-layout-constrained > * {
+	max-width: var(--newspack-max-width) !important;
+}
+
+// Override block theme global-padding layout rule that sets negative
+// margins on full-width blocks to break them out of the container.
+// In the newsletter editor, full-width blocks should stay centered at 600px.
+.has-global-padding > .alignfull {
+	margin-left: auto !important;
+	margin-right: auto !important;
 }
 
 .editor-styles-wrapper {
@@ -35,6 +55,14 @@
 		--wp--preset--font-size--xxxx-large: 56px;
 		--wp--preset--font-size--xxxxx-large: 64px;
 		--wp--preset--font-size--xxxxxx-large: 72px;
+
+		--wp--preset--spacing--20: 8px;
+		--wp--preset--spacing--30: 16px;
+		--wp--preset--spacing--40: 24px;
+		--wp--preset--spacing--50: 32px;
+		--wp--preset--spacing--60: 32px;
+		--wp--preset--spacing--70: 48px;
+		--wp--preset--spacing--80: 64px;
 
 		&.is-root-container {
 			// Root padding is zeroed, so zero the CSS variables core uses
@@ -241,7 +269,7 @@
 			margin: 0 auto;
 
 			&::before {
-				left: 0 !important;
+				left: 12px;
 			}
 
 			p {
@@ -320,9 +348,13 @@
 		.wp-block {
 			padding: 6px 12px;
 
+			&[data-type="core/button"] {
+				padding: 0;
+			}
+
 			// More specific styles for the list block.
 			&[data-type="core/list"] {
-				padding: 6px 15px;
+				padding: 6px 12px 6px 30px;
 				li:first-child {
 					padding: 12px 7px 0;
 				}
