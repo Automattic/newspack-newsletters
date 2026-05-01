@@ -70,7 +70,7 @@ function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 	);
 }
 
-export function getActions( { onEdit, refresh } ) {
+export function getActions( { onEdit, onMutated } ) {
 	const editAction = {
 		id: 'edit',
 		label: __( 'Edit', 'newspack-newsletters' ),
@@ -102,7 +102,12 @@ export function getActions( { onEdit, refresh } ) {
 							} )
 						)
 					);
-					refresh();
+					// `onMutated` refetches both the paginated list and
+					// the all-advertisers cache that powers the parent
+					// picker — without the second refetch, a deleted
+					// term would linger in the modal's TreeSelect and
+					// fail server-side if picked as a parent.
+					onMutated();
 					if ( failed.length === 0 ) {
 						notify( _n( 'Advertiser deleted.', 'Advertisers deleted.', list.length, 'newspack-newsletters' ) );
 					} else {

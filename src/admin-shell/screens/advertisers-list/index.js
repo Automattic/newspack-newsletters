@@ -45,13 +45,16 @@ const DEFAULT_LAYOUTS = { table: {} };
 export default function AdvertisersListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
 	const [ modalState, setModalState ] = useState( null ); // null | { mode: 'add' | 'edit', advertiser?: Object }
-	// Bumped after every successful Modal save so both the paginated
-	// DataView fetch and the parent-picker tree refetch in lockstep —
-	// keeps newly-created or renamed advertisers visible immediately.
-	const [ saveCounter, setSaveCounter ] = useState( 0 );
+	// Single mutation trigger shared by every write path (Modal save,
+	// per-row Delete, bulk Delete). Bumping it refetches both the
+	// paginated DataView and the all-advertisers cache that powers the
+	// parent picker — keeps the two datasets in lockstep so a deleted
+	// term doesn't linger in the modal's TreeSelect and a freshly-
+	// created one appears immediately on the next modal open.
+	const [ mutationKey, setMutationKey ] = useState( 0 );
 
-	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useAdvertisersData( view, saveCounter );
-	const allAdvertisers = useAllAdvertisers( saveCounter );
+	const { data, paginationInfo, isLoading, hasLoadedOnce } = useAdvertisersData( view, mutationKey );
+	const allAdvertisers = useAllAdvertisers( mutationKey );
 
 	// `setModalState` (a `useState` setter) is itself stable, but wrapping
 	// the modal handlers in `useCallback` keeps their identities stable
@@ -61,10 +64,10 @@ export default function AdvertisersListScreen() {
 	const openAdd = useCallback( () => setModalState( { mode: 'add' } ), [] );
 	const openEdit = useCallback( advertiser => setModalState( { mode: 'edit', advertiser } ), [] );
 	const closeModal = useCallback( () => setModalState( null ), [] );
-	const onModalSaved = useCallback( () => setSaveCounter( count => count + 1 ), [] );
+	const onMutated = useCallback( () => setMutationKey( key => key + 1 ), [] );
 
 	const fields = useMemo( () => getFields( { onEdit: openEdit } ), [ openEdit ] );
-	const actions = useMemo( () => getActions( { onEdit: openEdit, refresh } ), [ openEdit, refresh ] );
+	const actions = useMemo( () => getActions( { onEdit: openEdit, onMutated } ), [ openEdit, onMutated ] );
 
 	useHeaderActions(
 		useMemo(
@@ -123,7 +126,7 @@ export default function AdvertisersListScreen() {
 					advertiser={ modalState.mode === 'edit' ? modalState.advertiser : null }
 					advertisers={ allAdvertisers }
 					onClose={ closeModal }
-					onSaved={ onModalSaved }
+					onSaved={ onMutated }
 				/>
 			) }
 		</>

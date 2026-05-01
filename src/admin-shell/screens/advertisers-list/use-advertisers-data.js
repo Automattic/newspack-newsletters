@@ -1,10 +1,11 @@
 /**
  * Server-side paginated data hook for the Advertisers list DataView.
  *
- * Wraps `apiFetch` against `/wp/v2/newspack_nl_advertiser`, reads
- * `X-WP-Total` / `X-WP-TotalPages` from the response headers, and
- * exposes a `refresh()` for the modal/action handlers to re-pull
- * after a mutation.
+ * Wraps `apiFetch` against `/wp/v2/newspack_nl_advertiser` and reads
+ * `X-WP-Total` / `X-WP-TotalPages` from the response headers. Mutations
+ * are driven from the screen via the `mutationKey` argument — bumping
+ * it from the parent triggers a refetch so the action handlers don't
+ * have to thread a refresh callback through props.
  *
  * Mirrors the ads list `use-ads-data` shape — kept screen-local rather
  * than promoted to a shared hook because the search-arg shapes diverge
@@ -12,7 +13,7 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { useCallback, useEffect, useState } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { dispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
@@ -47,14 +48,15 @@ function buildPath( view ) {
 }
 
 /**
- * @param {Object} view              DataViews view state.
- * @param {number} [externalRefresh] External counter — increment from the
- *                                   parent to force a refetch (e.g. after
- *                                   a Modal save) without going through
- *                                   the returned `refresh` handle.
- * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasLoadedOnce: boolean, refresh: Function }} The current data, pagination info, loading flags, and a refresh handle.
+ * @param {Object} view          DataViews view state.
+ * @param {number} [mutationKey] Increment from the parent to force a
+ *                               refetch after a mutation (Modal save,
+ *                               per-row / bulk Delete). Shared with
+ *                               `useAllAdvertisers` so both datasets
+ *                               refetch in lockstep.
+ * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasLoadedOnce: boolean }} The current data, pagination info, and loading flags.
  */
-export default function useAdvertisersData( view, externalRefresh = 0 ) {
+export default function useAdvertisersData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
@@ -64,12 +66,6 @@ export default function useAdvertisersData( view, externalRefresh = 0 ) {
 	// first response lands, which would render the empty state during
 	// the initial fetch.
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
-	// Internal trigger driven by the returned `refresh` handle — used
-	// by the per-row / bulk Delete actions. Decoupled from
-	// `externalRefresh` so the screen can compose both signals.
-	const [ refreshKey, setRefreshKey ] = useState( 0 );
-
-	const refresh = useCallback( () => setRefreshKey( key => key + 1 ), [] );
 
 	useEffect( () => {
 		let cancelled = false;
@@ -104,7 +100,7 @@ export default function useAdvertisersData( view, externalRefresh = 0 ) {
 		return () => {
 			cancelled = true;
 		};
-	}, [ view.page, view.perPage, view.search, view.sort?.field, view.sort?.direction, refreshKey, externalRefresh ] );
+	}, [ view.page, view.perPage, view.search, view.sort?.field, view.sort?.direction, mutationKey ] );
 
-	return { data, paginationInfo, isLoading, hasLoadedOnce, refresh };
+	return { data, paginationInfo, isLoading, hasLoadedOnce };
 }
