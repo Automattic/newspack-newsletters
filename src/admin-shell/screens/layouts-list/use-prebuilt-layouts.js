@@ -14,6 +14,11 @@
  * (`isEligible: item => ! item.is_prebuilt`) can disable Edit / Rename
  * / Delete on locked rows. Synthetic IDs are prefixed `prebuilt-` to
  * avoid colliding with real post IDs.
+ *
+ * Returns `{ layouts, isLoading }` — the screen gates the saved-layouts
+ * fetch on `isLoading` when prebuilts could ride along on page 1, so
+ * the saved query can target the correct slot count from the first
+ * request instead of refetching once prebuilts arrive.
  */
 
 import apiFetch from '@wordpress/api-fetch';
@@ -22,6 +27,7 @@ import { __, sprintf } from '@wordpress/i18n';
 
 export default function usePrebuiltLayouts() {
 	const [ layouts, setLayouts ] = useState( [] );
+	const [ isLoading, setIsLoading ] = useState( true );
 
 	useEffect( () => {
 		let cancelled = false;
@@ -71,11 +77,16 @@ export default function usePrebuiltLayouts() {
 				// Swallow — prebuilts are auxiliary content. A failure
 				// here just means the locked Prebuilt cards don't appear;
 				// the saved layouts list remains unaffected.
+			} )
+			.finally( () => {
+				if ( ! cancelled ) {
+					setIsLoading( false );
+				}
 			} );
 		return () => {
 			cancelled = true;
 		};
 	}, [] );
 
-	return layouts;
+	return { layouts, isLoading };
 }

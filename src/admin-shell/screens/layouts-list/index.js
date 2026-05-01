@@ -55,7 +55,10 @@ function ensureCoreBlocksRegistered() {
 		// Defensive fallback for environments without the block-library
 		// package: register a minimal paragraph block so the screen at
 		// least renders text content.
-		registerBlockType( 'core/paragraph', { title: 'Paragraph', save: () => null } );
+		registerBlockType( 'core/paragraph', {
+			title: __( 'Paragraph', 'newspack-newsletters' ),
+			save: () => null,
+		} );
 	}
 }
 
@@ -92,7 +95,7 @@ export default function LayoutsListScreen() {
 	// Duplicate, Delete, bulk Delete). Bumping it forces a refetch.
 	const [ mutationKey, setMutationKey ] = useState( 0 );
 
-	const prebuiltData = usePrebuiltLayouts();
+	const { layouts: prebuiltData, isLoading: isPrebuiltLoading } = usePrebuiltLayouts();
 
 	// Resolve the type filter from `view.filters`. Returns `'prebuilt'`,
 	// `'user'`, or `null` when neither is exclusively selected (both /
@@ -140,11 +143,23 @@ export default function LayoutsListScreen() {
 	const showPrebuilts = view.page === 1 && ! view.search && typeFilter !== 'user';
 	const showSaved = typeFilter !== 'prebuilt';
 	const prebuiltCount = prebuiltData.length;
-	const ridingAlong = ! view.search && typeFilter !== 'user' && prebuiltCount > 0;
+	// "Could ride along" — independent of whether prebuilts have loaded.
+	// Used to defer the saved fetch until the prebuilt count is known,
+	// so the saved query targets the correct slot count from the first
+	// request instead of refetching once prebuilts arrive.
+	const couldRideAlong = ! view.search && typeFilter !== 'user';
+	const ridingAlong = couldRideAlong && prebuiltCount > 0;
 	const firstPageSavedSlots = ridingAlong ? Math.max( 1, view.perPage - prebuiltCount ) : view.perPage;
 
 	const savedView = useMemo( () => {
 		if ( ! showSaved ) {
+			return null;
+		}
+		// While prebuilts are still loading on a view where they would
+		// ride along, hold the saved fetch — otherwise the first request
+		// uses `view.perPage` rows, then refetches with a smaller slot
+		// count once prebuilts arrive (visible flicker + extra request).
+		if ( couldRideAlong && isPrebuiltLoading ) {
 			return null;
 		}
 		if ( ridingAlong ) {
@@ -154,7 +169,7 @@ export default function LayoutsListScreen() {
 			return { ...view, offset: firstPageSavedSlots + ( view.page - 2 ) * view.perPage };
 		}
 		return view;
-	}, [ view, showSaved, ridingAlong, firstPageSavedSlots ] );
+	}, [ view, showSaved, couldRideAlong, isPrebuiltLoading, ridingAlong, firstPageSavedSlots ] );
 
 	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( savedView, mutationKey );
 
@@ -237,7 +252,7 @@ export default function LayoutsListScreen() {
 			actions={ actions }
 			paginationInfo={ paginationInfo }
 			defaultLayouts={ DEFAULT_LAYOUTS }
-			isLoading={ isLoading }
+			isLoading={ isLoading || isPrebuiltLoading }
 			getItemId={ item => String( item.id ) }
 			search
 		/>
