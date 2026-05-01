@@ -1,0 +1,115 @@
+/**
+ * Advertisers list screen — React DataView replacing the classic
+ * taxonomy term-management screen for `newspack_nl_advertiser` (NEWS-1951).
+ *
+ * Mounts at `?page=newspack-newsletters-advertisers-list` (registered
+ * in `Advertisers_List_Page`). Server-side paginated; columns are
+ * Name / Description / Slug / Count.
+ *
+ * The Add/Edit Modal lives on the screen so it can share the cached
+ * advertiser list with the parent picker — no extra REST round-trip
+ * for the TreeSelect tree on every modal open.
+ */
+
+import { DataViews } from '@wordpress/dataviews/wp';
+import { useMemo, useState } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import { group, plus } from '@wordpress/icons';
+
+import EmptyState from '../../components/empty-state';
+import { useHeaderActions } from '../../header-actions-context';
+import AdvertiserModal from './modal';
+import useAdvertisersData from './use-advertisers-data';
+import { getFields } from './fields';
+import { getActions } from './actions';
+
+const DEFAULT_VIEW = {
+	type: 'table',
+	page: 1,
+	perPage: 25,
+	sort: { field: 'name', direction: 'asc' },
+	search: '',
+	filters: [],
+	titleField: 'name',
+	fields: [ 'description', 'slug', 'count' ],
+};
+
+const DEFAULT_LAYOUTS = { table: {} };
+
+export default function AdvertisersListScreen() {
+	const [ view, setView ] = useState( DEFAULT_VIEW );
+	const [ modalState, setModalState ] = useState( null ); // null | { mode: 'add' | 'edit', advertiser?: Object }
+
+	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useAdvertisersData( view );
+
+	const openAdd = () => setModalState( { mode: 'add' } );
+	const openEdit = advertiser => setModalState( { mode: 'edit', advertiser } );
+	const closeModal = () => setModalState( null );
+
+	const fields = useMemo( () => getFields( { onEdit: openEdit } ), [] );
+	const actions = useMemo( () => getActions( { onEdit: openEdit, refresh } ), [ refresh ] );
+
+	useHeaderActions(
+		useMemo(
+			() => [
+				{
+					type: 'primary',
+					label: __( 'Add new advertiser', 'newspack-newsletters' ),
+					icon: plus,
+					onClick: openAdd,
+				},
+			],
+			[]
+		)
+	);
+
+	// Strict-empty: the list has loaded at least once and the unfiltered
+	// total is zero. Filter / search empty-results keep the DataView's
+	// built-in "no results" treatment — different surface, different
+	// intent. Loading state suppresses the empty banner so it doesn't
+	// flash before the first fetch resolves.
+	const isStrictEmpty =
+		hasLoadedOnce && ! isLoading && paginationInfo.totalItems === 0 && ! view.search && ( ! view.filters || view.filters.length === 0 );
+
+	return (
+		<>
+			{ isStrictEmpty ? (
+				<EmptyState
+					icon={ group }
+					title={ __( 'Get started with advertisers', 'newspack-newsletters' ) }
+					description={ __(
+						'Group ads by the advertiser they belong to so you can track and report on each one separately.',
+						'newspack-newsletters'
+					) }
+					ctaIcon={ plus }
+					ctaTitle={ __( 'Add new advertiser', 'newspack-newsletters' ) }
+					ctaDescription={ __( 'Create your first advertiser to assign to newsletter ads.', 'newspack-newsletters' ) }
+					ctaOnClick={ openAdd }
+				/>
+			) : (
+				<DataViews
+					className="newspack-newsletters-list newspack-newsletters-advertisers-list"
+					data={ data }
+					fields={ fields }
+					view={ view }
+					onChangeView={ setView }
+					actions={ actions }
+					paginationInfo={ paginationInfo }
+					defaultLayouts={ DEFAULT_LAYOUTS }
+					isLoading={ isLoading }
+					getItemId={ item => String( item.id ) }
+					search
+				/>
+			) }
+
+			{ modalState && (
+				<AdvertiserModal
+					advertiser={ modalState.mode === 'edit' ? modalState.advertiser : null }
+					advertisers={ data }
+					onClose={ closeModal }
+					onSaved={ refresh }
+				/>
+			) }
+		</>
+	);
+}
