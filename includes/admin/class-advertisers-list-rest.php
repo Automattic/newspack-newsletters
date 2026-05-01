@@ -65,13 +65,30 @@ class Advertisers_List_REST {
 	public static function guard_parent_self( $response, $handler, $request ) {
 		unset( $handler );
 
+		// An earlier callback on this filter may have already short-
+		// circuited the dispatch (permission check, another guard, etc.).
+		// Bail before any further work so a non-null `$response` is
+		// passed through unchanged — overwriting it with a WP_Error
+		// from this guard would mask the earlier signal.
+		if ( null !== $response ) {
+			return $response;
+		}
+
 		if ( ! $request instanceof WP_REST_Request ) {
 			return $response;
 		}
 
-		$route = $request->get_route();
-		$pattern = '#^/wp/v2/' . preg_quote( Ads::ADVERTISER_TAX, '#' ) . '/(\d+)$#';
-		if ( ! preg_match( $pattern, $route, $matches ) ) {
+		// Scope to single-term update endpoints on the advertiser
+		// taxonomy: `/wp/v2/<taxonomy>/<id>`. The route path drives the
+		// gate; the `id` and `parent` values are read from the request
+		// params directly via ArrayAccess (`$request['id']` /
+		// `$request->get_param( 'parent' )`) so the guard doesn't depend
+		// on whatever `get_route()` happens to return — that's currently
+		// the URL, but using params keeps the implementation robust if
+		// WP ever swaps in the matched route pattern.
+		$route   = $request->get_route();
+		$pattern = '#^/wp/v2/' . preg_quote( Ads::ADVERTISER_TAX, '#' ) . '/\d+$#';
+		if ( ! preg_match( $pattern, $route ) ) {
 			return $response;
 		}
 
@@ -80,7 +97,7 @@ class Advertisers_List_REST {
 			return $response;
 		}
 
-		$term_id = (int) $matches[1];
+		$term_id = isset( $request['id'] ) ? (int) $request['id'] : 0;
 		$parent  = $request->get_param( 'parent' );
 
 		if ( null === $parent ) {
