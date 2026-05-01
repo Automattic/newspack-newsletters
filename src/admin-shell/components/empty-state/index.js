@@ -34,12 +34,25 @@ import { Card, Grid, SectionHeader } from 'newspack-components';
  * @return {JSX.Element} The rendered empty state.
  */
 export default function EmptyState( { icon, title, description, ctaIcon, ctaTitle, ctaDescription, ctaHref, ctaOnClick } ) {
+	// Enforce the mutually-exclusive prop contract documented above.
+	// Throwing in dev surfaces misuse loudly; production falls through
+	// to a disabled card so a misconfigured prod build degrades to
+	// "no action" rather than a broken anchor.
+	const hasCtaHref = typeof ctaHref === 'string' && ctaHref.length > 0;
+	const hasCtaOnClick = typeof ctaOnClick === 'function';
+	const hasExactlyOneCtaAction = hasCtaHref !== hasCtaOnClick;
+
+	if ( ! hasExactlyOneCtaAction && process.env.NODE_ENV !== 'production' ) {
+		throw new Error( 'EmptyState requires exactly one of `ctaHref` or `ctaOnClick`.' );
+	}
+
 	// `as: 'a'` enables the core card's link styling (chevron-on-hover,
 	// large hit area). When the create flow is in-page (no href), we
 	// still render an anchor for consistent styling but wire `onClick`
-	// + `role`/`tabIndex` so the card behaves like a button. Returning
-	// `false` from the handler doesn't matter — the card has no default
-	// navigation when `href` is omitted.
+	// + `role`/`tabIndex` so the card behaves like a button. Enter
+	// triggers on `keydown`, Space on `keyup` — that mirrors native
+	// `<button>` behaviour, where Space activates only when the key is
+	// released (so holding it doesn't fire repeatedly).
 	const coreProps = {
 		as: 'a',
 		header: (
@@ -52,9 +65,11 @@ export default function EmptyState( { icon, title, description, ctaIcon, ctaTitl
 		iconBackgroundColor: true,
 	};
 
-	if ( ctaHref ) {
+	if ( ! hasExactlyOneCtaAction ) {
+		coreProps[ 'aria-disabled' ] = true;
+	} else if ( hasCtaHref ) {
 		coreProps.href = ctaHref;
-	} else if ( ctaOnClick ) {
+	} else {
 		coreProps.role = 'button';
 		coreProps.tabIndex = 0;
 		coreProps.onClick = event => {
@@ -62,7 +77,17 @@ export default function EmptyState( { icon, title, description, ctaIcon, ctaTitl
 			ctaOnClick( event );
 		};
 		coreProps.onKeyDown = event => {
-			if ( event.key === 'Enter' || event.key === ' ' ) {
+			if ( event.key === 'Enter' ) {
+				event.preventDefault();
+				ctaOnClick( event );
+			} else if ( event.key === ' ' ) {
+				// Prevent the default scroll-on-Space; activation
+				// happens in onKeyUp below.
+				event.preventDefault();
+			}
+		};
+		coreProps.onKeyUp = event => {
+			if ( event.key === ' ' ) {
 				event.preventDefault();
 				ctaOnClick( event );
 			}
