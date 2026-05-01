@@ -1,18 +1,20 @@
 /**
  * Reusable empty-state for admin-shell list screens (NEWS-1952 fold-in).
  *
- * Mirrors the visual shape of newspack-plugin's content-gates onboarding
+ * Mirrors newspack-plugin's content-gates onboarding
  * (`src/wizards/audience/views/content-gates/content-gates-onboarding.tsx`):
- * a centred column with a `SectionHeader` (`pageHeader`) followed by a
- * single chevron `Card` linking to the create flow.
+ * `Grid` + `VStack` centred column, a `SectionHeader pageHeader`, then a
+ * single `Card` (core variant) with `actionType="chevron"`, an icon, a
+ * heading, and a short description. Same shape, different copy per
+ * surface.
  *
  * Strict-empty only — render this when the unfiltered list has zero
  * items. The filter-empty / search-empty case keeps the DataView's
  * built-in "no results" treatment.
  */
 
+import { __experimentalVStack as VStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { Card, Grid, SectionHeader } from 'newspack-components';
-import { Icon, chevronRight } from '@wordpress/icons';
 
 /**
  * @typedef {Object} EmptyStateProps
@@ -32,41 +34,47 @@ import { Icon, chevronRight } from '@wordpress/icons';
  * @return {JSX.Element} The rendered empty state.
  */
 export default function EmptyState( { icon, title, description, ctaIcon, ctaTitle, ctaDescription, ctaHref, ctaOnClick } ) {
-	const cardProps = ctaOnClick
-		? {
-				onClick: ctaOnClick,
-				role: 'button',
-				tabIndex: 0,
-				onKeyDown: event => {
-					if ( event.key === 'Enter' || event.key === ' ' ) {
-						event.preventDefault();
-						ctaOnClick( event );
-					}
-				},
-		  }
-		: { href: ctaHref };
+	// `as: 'a'` enables the core card's link styling (chevron-on-hover,
+	// large hit area). When the create flow is in-page (no href), we
+	// still render an anchor for consistent styling but wire `onClick`
+	// + `role`/`tabIndex` so the card behaves like a button. Returning
+	// `false` from the handler doesn't matter — the card has no default
+	// navigation when `href` is omitted.
+	const coreProps = {
+		as: 'a',
+		header: (
+			<>
+				<h3>{ ctaTitle }</h3>
+				{ ctaDescription && <p>{ ctaDescription }</p> }
+			</>
+		),
+		icon: ctaIcon,
+		iconBackgroundColor: true,
+	};
+
+	if ( ctaHref ) {
+		coreProps.href = ctaHref;
+	} else if ( ctaOnClick ) {
+		coreProps.role = 'button';
+		coreProps.tabIndex = 0;
+		coreProps.onClick = event => {
+			event.preventDefault();
+			ctaOnClick( event );
+		};
+		coreProps.onKeyDown = event => {
+			if ( event.key === 'Enter' || event.key === ' ' ) {
+				event.preventDefault();
+				ctaOnClick( event );
+			}
+		};
+	}
 
 	return (
-		<Grid columns={ 4 } gutter={ 16 } className="newspack-newsletters-empty-state">
-			<div style={ { gridColumn: '2 / span 2' } }>
-				<SectionHeader pageHeader centered icon={ icon } title={ title } description={ description } noMargin />
-				<Card { ...cardProps } className="newspack-newsletters-empty-state__cta">
-					<div className="newspack-newsletters-empty-state__cta-body">
-						{ ctaIcon && (
-							<div className="newspack-newsletters-empty-state__cta-icon">
-								<Icon icon={ ctaIcon } size={ 32 } />
-							</div>
-						) }
-						<div className="newspack-newsletters-empty-state__cta-text">
-							<h3 className="newspack-newsletters-empty-state__cta-title">{ ctaTitle }</h3>
-							{ ctaDescription && <p>{ ctaDescription }</p> }
-						</div>
-						<div className="newspack-newsletters-empty-state__cta-chevron">
-							<Icon icon={ chevronRight } size={ 24 } />
-						</div>
-					</div>
-				</Card>
-			</div>
+		<Grid columns={ 4 } noMargin>
+			<VStack start={ 2 } end={ 4 } spacing={ 8 }>
+				<SectionHeader icon={ icon } title={ title } description={ description } pageHeader noMargin />
+				<Card actionType="chevron" isSmall __experimentalCoreCard __experimentalCoreProps={ coreProps } />
+			</VStack>
 		</Grid>
 	);
 }

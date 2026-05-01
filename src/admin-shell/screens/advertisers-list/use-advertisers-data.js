@@ -47,10 +47,14 @@ function buildPath( view ) {
 }
 
 /**
- * @param {Object} view DataViews view state.
+ * @param {Object} view              DataViews view state.
+ * @param {number} [externalRefresh] External counter — increment from the
+ *                                   parent to force a refetch (e.g. after
+ *                                   a Modal save) without going through
+ *                                   the returned `refresh` handle.
  * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasLoadedOnce: boolean, refresh: Function }} The current data, pagination info, loading flags, and a refresh handle.
  */
-export default function useAdvertisersData( view ) {
+export default function useAdvertisersData( view, externalRefresh = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
@@ -60,6 +64,9 @@ export default function useAdvertisersData( view ) {
 	// first response lands, which would render the empty state during
 	// the initial fetch.
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
+	// Internal trigger driven by the returned `refresh` handle — used
+	// by the per-row / bulk Delete actions. Decoupled from
+	// `externalRefresh` so the screen can compose both signals.
 	const [ refreshKey, setRefreshKey ] = useState( 0 );
 
 	const refresh = useCallback( () => setRefreshKey( key => key + 1 ), [] );
@@ -97,7 +104,7 @@ export default function useAdvertisersData( view ) {
 		return () => {
 			cancelled = true;
 		};
-	}, [ view.page, view.perPage, view.search, view.sort?.field, view.sort?.direction, refreshKey ] );
+	}, [ view.page, view.perPage, view.search, view.sort?.field, view.sort?.direction, refreshKey, externalRefresh ] );
 
 	return { data, paginationInfo, isLoading, hasLoadedOnce, refresh };
 }

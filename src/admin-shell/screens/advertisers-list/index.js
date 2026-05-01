@@ -6,9 +6,12 @@
  * in `Advertisers_List_Page`). Server-side paginated; columns are
  * Name / Description / Slug / Count.
  *
- * The Add/Edit Modal lives on the screen so it can share the cached
- * advertiser list with the parent picker — no extra REST round-trip
- * for the TreeSelect tree on every modal open.
+ * Two REST fetches drive the screen: `useAdvertisersData` is the
+ * paginated DataView fetch; `useAllAdvertisers` is a separate
+ * lightweight fetch (`id`, `name`, `parent` only) that powers the
+ * Modal's parent picker. Without the second fetch the picker would
+ * silently truncate to the current DataView page on sites with more
+ * than one page of advertisers.
  */
 
 import { DataViews } from '@wordpress/dataviews/wp';
@@ -20,6 +23,8 @@ import EmptyState from '../../components/empty-state';
 import { useHeaderActions } from '../../header-actions-context';
 import AdvertiserModal from './modal';
 import useAdvertisersData from './use-advertisers-data';
+import useAllAdvertisers from './use-all-advertisers';
+import { getInitialView } from './initial-filters';
 import { getFields } from './fields';
 import { getActions } from './actions';
 
@@ -32,6 +37,7 @@ const DEFAULT_VIEW = {
 	filters: [],
 	titleField: 'name',
 	fields: [ 'description', 'slug', 'count' ],
+	...getInitialView(),
 };
 
 const DEFAULT_LAYOUTS = { table: {} };
@@ -39,8 +45,13 @@ const DEFAULT_LAYOUTS = { table: {} };
 export default function AdvertisersListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
 	const [ modalState, setModalState ] = useState( null ); // null | { mode: 'add' | 'edit', advertiser?: Object }
+	// Bumped after every successful Modal save so both the paginated
+	// DataView fetch and the parent-picker tree refetch in lockstep —
+	// keeps newly-created or renamed advertisers visible immediately.
+	const [ saveCounter, setSaveCounter ] = useState( 0 );
 
-	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useAdvertisersData( view );
+	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useAdvertisersData( view, saveCounter );
+	const allAdvertisers = useAllAdvertisers( saveCounter );
 
 	// `setModalState` (a `useState` setter) is itself stable, but wrapping
 	// the modal handlers in `useCallback` keeps their identities stable
@@ -50,6 +61,7 @@ export default function AdvertisersListScreen() {
 	const openAdd = useCallback( () => setModalState( { mode: 'add' } ), [] );
 	const openEdit = useCallback( advertiser => setModalState( { mode: 'edit', advertiser } ), [] );
 	const closeModal = useCallback( () => setModalState( null ), [] );
+	const onModalSaved = useCallback( () => setSaveCounter( count => count + 1 ), [] );
 
 	const fields = useMemo( () => getFields( { onEdit: openEdit } ), [ openEdit ] );
 	const actions = useMemo( () => getActions( { onEdit: openEdit, refresh } ), [ openEdit, refresh ] );
@@ -109,9 +121,9 @@ export default function AdvertisersListScreen() {
 			{ modalState && (
 				<AdvertiserModal
 					advertiser={ modalState.mode === 'edit' ? modalState.advertiser : null }
-					advertisers={ data }
+					advertisers={ allAdvertisers }
 					onClose={ closeModal }
-					onSaved={ refresh }
+					onSaved={ onModalSaved }
 				/>
 			) }
 		</>

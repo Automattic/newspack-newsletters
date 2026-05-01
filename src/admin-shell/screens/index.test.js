@@ -1,8 +1,13 @@
 import { resolveLabel, resolveScreen, screens } from './index';
 
 describe( 'admin-shell screen registry', () => {
-	it( 'registers the list, ads list, and settings slugs', () => {
-		expect( Object.keys( screens ) ).toEqual( [ 'newspack-newsletters-list', 'newspack-newsletters-ads-list', 'newspack-newsletters-settings' ] );
+	it( 'registers the list, ads list, advertisers list, and settings slugs', () => {
+		expect( Object.keys( screens ) ).toEqual( [
+			'newspack-newsletters-list',
+			'newspack-newsletters-ads-list',
+			'newspack-newsletters-advertisers-list',
+			'newspack-newsletters-settings',
+		] );
 	} );
 
 	it( 'each screen entry exposes a component and a label', () => {
