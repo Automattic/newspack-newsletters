@@ -455,9 +455,9 @@ class Admin_Shell {
 		// The wizard renders its DOM after this script is parsed and may
 		// re-render its header on route changes, so the observer waits
 		// for the targets, patches once both are present, and then
-		// disconnects. A short re-arm window catches the wizard's
-		// post-mount rerender without leaving the observer attached for
-		// the lifetime of the page.
+		// disconnects. A deferred follow-up apply() run catches an
+		// immediate post-mount rerender without leaving the observer
+		// attached for the lifetime of the page.
 		wp_add_inline_script(
 			'newspack-wizards-admin-header',
 			sprintf(

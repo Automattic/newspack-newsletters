@@ -8,8 +8,8 @@
  *   as the request includes them in the create payload.
  * - Rename — opt-in inline rename. The action sets `renamingId` on
  *   the screen; the title field swaps to a `<TextControl>` (see
- *   `fields.js`). The PATCH itself happens in the field component
- *   on blur / Enter.
+ *   `fields.js`). The title update itself happens in the field
+ *   component on blur / Enter.
  * - Delete — confirm + DELETE force=true (CPT collection accepts
  *   `force=true` for permanent removal because trash isn't surfaced
  *   for this CPT). Bulk Delete batches the same single-item DELETE
@@ -215,8 +215,10 @@ export function getActions( { onRenameStart, onMutated } ) {
 }
 
 /**
- * PATCH a layout's title. Returned promise rejects on failure so the
- * caller can leave the inline-rename UI in place for retry.
+ * Update a layout's title via POST to the post resource (the WP REST
+ * convention for updates on `/wp/v2/<cpt>/<id>`). Returned promise
+ * rejects on failure so the caller can leave the inline-rename UI in
+ * place for retry.
  *
  * @param {number} id    Post id.
  * @param {string} title New title (already trimmed).
