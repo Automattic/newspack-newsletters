@@ -1,5 +1,5 @@
 /**
- * Add/Edit Advertiser Modal — single component, two modes (NEWS-1951).
+ * Add/Edit Advertiser Modal — single component, two modes.
  *
  * Mounted by the Advertisers DataView screen's header action ("Add new
  * advertiser") and the per-row Edit action. Shape:

@@ -2,11 +2,12 @@
 /**
  * Newsletter Advertisers list admin page (React DataView).
  *
- * Replaces the classic taxonomy term-management screen for the Advertiser
- * taxonomy (`newspack_nl_advertiser`) with a React DataView, in both
- * standalone and bundled modes. Mirrors the NEWS-1930 ads list page —
- * registers as a hidden submenu under the ads CPT parent and 302s the
- * legacy `edit-tags.php?taxonomy=newspack_nl_advertiser` URL across.
+ * Replaces the classic taxonomy term-management screen for the
+ * Advertiser taxonomy (`newspack_nl_advertiser`) with a React
+ * DataView, in both standalone and bundled modes. Mirrors the ads
+ * list page — registers as a hidden submenu under the ads CPT
+ * parent and 302s the legacy
+ * `edit-tags.php?taxonomy=newspack_nl_advertiser` URL across.
  *
  * @package Newspack_Newsletters
  */
@@ -20,7 +21,7 @@ use Newspack_Newsletters\Ads;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * "Advertisers" list page — registered in both modes (NEWS-1951).
+ * "Advertisers" list page — registered in both modes.
  */
 class Advertisers_List_Page extends Admin_Page {
 	/**

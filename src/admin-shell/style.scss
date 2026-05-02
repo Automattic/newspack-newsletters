@@ -118,3 +118,36 @@ body.newspack-newsletters-admin-screen {
 	}
 }
 
+// Layouts grid: each card hosts a `<NewsletterPreview>` — keep the
+// preview from sprawling past the card's media area and give the
+// empty-content placeholder a recognisable surface so it doesn't
+// collapse to zero height.
+.newspack-newsletters-layouts-list {
+	&__preview {
+		background: wp-colors.$white;
+		border: 1px solid wp-colors.$gray-200;
+		border-radius: wp-vars.$grid-unit-05;
+		min-height: 320px;
+		overflow: hidden;
+		// `<NewsletterPreview>` mounts an iframe with its own internal
+		// padding; the wrapper just confines it.
+		position: relative;
+
+		&--empty {
+			align-items: center;
+			background: wp-colors.$gray-100;
+			color: wp-colors.$gray-700;
+			display: flex;
+			justify-content: center;
+		}
+	}
+
+	// Inline tag next to the title for prebuilt rows. Communicates
+	// the locked state without adding a column.
+	&__prebuilt-badge {
+		color: wp-colors.$gray-700;
+		font-style: italic;
+		font-weight: normal;
+	}
+}
+

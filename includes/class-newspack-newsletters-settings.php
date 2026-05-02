@@ -217,7 +217,7 @@ class Newspack_Newsletters_Settings {
 	 * stay stable for callers that detect the settings screen or build the
 	 * settings URL via {@see self::get_settings_url()}. The visible menu
 	 * link is then removed so the React admin shell owns the visible
-	 * Settings entry — see NEWS-1931 for the eventual swap.
+	 * Settings entry until the React surface lands.
 	 */
 	public static function add_plugin_page() {
 		$parent_slug = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;

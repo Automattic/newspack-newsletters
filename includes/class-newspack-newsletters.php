@@ -831,6 +831,13 @@ final class Newspack_Newsletters {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ __CLASS__, 'api_get_layouts' ],
 				'permission_callback' => [ __CLASS__, 'api_authoring_permissions_check' ],
+				'args'                => [
+					'defaults_only' => [
+						'type'        => 'boolean',
+						'default'     => false,
+						'description' => __( 'When true, return only the bundled prebuilt layouts and skip the saved-posts query.', 'newspack-newsletters' ),
+					],
+				],
 			]
 		);
 		\register_rest_route(
@@ -948,8 +955,18 @@ final class Newspack_Newsletters {
 
 	/**
 	 * Retrieve Layouts.
+	 *
+	 * @param \WP_REST_Request $request Request object.
 	 */
-	public static function api_get_layouts() {
+	public static function api_get_layouts( $request ) {
+		if ( $request && $request->get_param( 'defaults_only' ) ) {
+			return \rest_ensure_response(
+				array_merge(
+					Newspack_Newsletters_Layouts::get_default_layouts(),
+					\apply_filters( 'newspack_newsletters_templates', [] )
+				)
+			);
+		}
 		return \rest_ensure_response( Newspack_Newsletters_Layouts::get_layouts() );
 	}
 

@@ -1,6 +1,6 @@
 /**
  * Advertisers list screen — React DataView replacing the classic
- * taxonomy term-management screen for `newspack_nl_advertiser` (NEWS-1951).
+ * taxonomy term-management screen for `newspack_nl_advertiser`.
  *
  * Mounts at `?page=newspack-newsletters-advertisers-list` (registered
  * in `Advertisers_List_Page`). Server-side paginated; columns are

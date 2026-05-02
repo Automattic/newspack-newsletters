@@ -80,6 +80,7 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-admin-pag
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-newsletters-list-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-ads-list-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-advertisers-list-page.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-layouts-list-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-settings-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-newsletters-list-rest.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-ads-list-rest.php';

@@ -24,7 +24,7 @@ use Newspack_Newsletters\Ads;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * "Newsletter Ads" list page — registered in both modes (NEWS-1930).
+ * "Newsletter Ads" list page — registered in both modes.
  */
 class Ads_List_Page extends Admin_Page {
 	/**

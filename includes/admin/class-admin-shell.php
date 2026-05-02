@@ -2,13 +2,11 @@
 /**
  * Admin shell bootstrap.
  *
- * Provides the React mount infrastructure (asset enqueue, page registry,
- * mode detection) that surfaces in NEWS-1928 to NEWS-1931 plug into.
- *
- * The chassis itself does not introduce its own top-level menu — pages
- * register as submenus under the Newsletters CPT menu (or, in NEWS-1929's
- * case, as a separate top-level menu) so the existing menu structure is
- * preserved.
+ * Provides the React mount infrastructure (asset enqueue, page
+ * registry, mode detection) the list-screen pages plug into. The
+ * chassis itself does not introduce its own top-level menu — pages
+ * register as submenus under the Newsletters CPT menu so the
+ * existing menu structure is preserved.
  *
  * @package Newspack_Newsletters
  */
@@ -30,6 +28,11 @@ class Admin_Shell {
 	 */
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
+		// Priority 999 so we run after every contributor has registered
+		// (auto-generated CPT submenus, ads, third-party plugins).
+		// Reordering earlier wouldn't be stable — a later registration
+		// would just append past us.
+		add_action( 'admin_menu', [ __CLASS__, 'reorder_submenus' ], 999 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
 		// Priority 99 so we run after newspack-plugin's wizard header
 		// has registered its script — `wp_add_inline_script` needs the
@@ -39,6 +42,56 @@ class Admin_Shell {
 		add_filter( 'admin_body_class', [ __CLASS__, 'add_body_class' ] );
 		add_filter( 'parent_file', [ __CLASS__, 'highlight_parent_menu' ] );
 		add_filter( 'submenu_file', [ __CLASS__, 'highlight_submenu' ] );
+	}
+
+	/**
+	 * Reposition chassis submenu entries that declare a fixed index.
+	 *
+	 * Fires on `admin_menu` at priority 999 — after every other
+	 * `add_submenu_page` call, including auto-generated CPT submenus
+	 * (`_add_post_type_submenus`) and third-party additions. For each
+	 * page that returns a non-null `get_submenu_index()`, the entry is
+	 * unset from its current numeric key in `$submenu[ $parent_slug ]`
+	 * and re-inserted at the desired array index. Re-keying with
+	 * `array_values()` guarantees a clean 0-based sequence so WP's
+	 * downstream sorting doesn't reshuffle us back.
+	 */
+	public static function reorder_submenus() {
+		global $submenu;
+		foreach ( self::get_pages() as $page ) {
+			$desired_index = $page->get_submenu_index();
+			if ( null === $desired_index ) {
+				continue;
+			}
+			$parent_slug = $page->get_parent_slug();
+			if ( empty( $submenu[ $parent_slug ] ) ) {
+				continue;
+			}
+
+			// Snapshot to a 0-based list so index arithmetic is
+			// predictable. WP keeps numeric keys (5, 10, …) on auto
+			// submenus; the slug index lookup below is key-agnostic.
+			$entries = array_values( $submenu[ $parent_slug ] );
+
+			$found_at = null;
+			foreach ( $entries as $idx => $entry ) {
+				if ( ( $entry[2] ?? '' ) === $page->get_slug() ) {
+					$found_at = $idx;
+					break;
+				}
+			}
+			if ( null === $found_at ) {
+				continue;
+			}
+
+			$entry = $entries[ $found_at ];
+			array_splice( $entries, $found_at, 1 );
+			$insert = max( 0, min( $desired_index, count( $entries ) ) );
+			array_splice( $entries, $insert, 0, [ $entry ] );
+
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Reordering an admin-menu structure that WP itself populates this global with.
+			$submenu[ $parent_slug ] = $entries;
+		}
 	}
 
 	/**
@@ -380,25 +433,74 @@ class Admin_Shell {
 		if ( ! $current_page ) {
 			return;
 		}
-		$tab_url = $current_page->get_wizard_tab_url();
-		if ( null === $tab_url ) {
-			return;
-		}
 		if ( ! wp_script_is( 'newspack-wizards-admin-header', 'registered' ) ) {
 			return;
 		}
+
+		$tab_url           = $current_page->get_wizard_tab_url();
+		$breadcrumb_label  = $current_page->get_wizard_header_label();
+
+		if ( null === $tab_url && null === $breadcrumb_label ) {
+			return;
+		}
+
+		// Single inline-script payload covers both patches. Each runs
+		// independently — the wizard renders its DOM after this script is
+		// parsed, so we observe document.body and re-apply on every
+		// mutation until the targets exist (and once after, to defend
+		// against React rerenders that swap the nodes).
+		$tab_url_json    = null === $tab_url ? 'null' : wp_json_encode( $tab_url );
+		$breadcrumb_json = null === $breadcrumb_label ? 'null' : wp_json_encode( $breadcrumb_label );
+
+		// The wizard renders its DOM after this script is parsed and may
+		// re-render its header on route changes, so the observer waits
+		// for the targets, patches once both are present, and then
+		// disconnects. A deferred follow-up apply() run catches an
+		// immediate post-mount rerender without leaving the observer
+		// attached for the lifetime of the page.
 		wp_add_inline_script(
 			'newspack-wizards-admin-header',
 			sprintf(
 				'( function () {
-					var target = %s;
-					document.querySelectorAll( ".newspack-tabbed-navigation a" ).forEach( function ( link ) {
-						if ( link.href === target ) {
-							link.classList.add( "selected" );
+					var tabUrl = %1$s;
+					var breadcrumb = %2$s;
+					var observer = null;
+					function apply() {
+						var tabDone = ! tabUrl;
+						var breadcrumbDone = ! breadcrumb;
+						if ( tabUrl ) {
+							var links = document.querySelectorAll( ".newspack-tabbed-navigation a" );
+							links.forEach( function ( link ) {
+								if ( link.href === tabUrl ) {
+									link.classList.add( "selected" );
+								}
+							} );
+							tabDone = links.length > 0;
 						}
-					} );
+						if ( breadcrumb ) {
+							var heading = document.querySelector( ".newspack-wizard__title h2" );
+							if ( heading ) {
+								if ( heading.textContent !== breadcrumb ) {
+									heading.textContent = breadcrumb;
+								}
+								breadcrumbDone = true;
+							}
+						}
+						if ( tabDone && breadcrumbDone && observer ) {
+							observer.disconnect();
+							observer = null;
+							setTimeout( function () {
+								apply();
+							}, 0 );
+						}
+					}
+					apply();
+					var root = document.querySelector( ".newspack-wizard" ) || document.body;
+					observer = new MutationObserver( apply );
+					observer.observe( root, { childList: true, subtree: true } );
 				} )();',
-				wp_json_encode( $tab_url )
+				$tab_url_json,
+				$breadcrumb_json
 			)
 		);
 	}
@@ -448,6 +550,7 @@ class Admin_Shell {
 			new Pages\Newsletters_List_Page(),
 			new Pages\Ads_List_Page(),
 			new Pages\Advertisers_List_Page(),
+			new Pages\Layouts_List_Page(),
 		];
 
 		if ( ! self::is_bundled_mode() ) {

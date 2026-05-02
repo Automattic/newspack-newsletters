@@ -12,7 +12,7 @@ use Newspack\Newsletters\Admin\Admin_Page;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Settings page — only registered in standalone mode (see NEWS-1931).
+ * Settings page — only registered in standalone mode.
  */
 class Settings_Page extends Admin_Page {
 	/**

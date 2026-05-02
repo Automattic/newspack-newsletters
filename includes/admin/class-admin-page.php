@@ -167,6 +167,42 @@ abstract class Admin_Page {
 	}
 
 	/**
+	 * Desired 0-based array index within the parent submenu list.
+	 *
+	 * Returning a non-null value triggers a late-priority pass over
+	 * the global `$submenu` that physically reorders this page's
+	 * entry. We can't lean on `add_submenu_page`'s `$position`
+	 * argument because it keys on numeric positions that collide
+	 * unpredictably with auto-registered CPT entries (`edit.php`
+	 * adds "All Newsletters" and "Add New …" at runtime-derived
+	 * keys, so passing position 3 doesn't reliably slot between
+	 * them).
+	 *
+	 * @return int|null
+	 */
+	public function get_submenu_index() {
+		return null;
+	}
+
+	/**
+	 * Override the wizard header breadcrumb text for this page.
+	 *
+	 * Newspack-plugin's `Newsletters_Wizard` resolves the breadcrumb
+	 * from its `admin_screens` map keyed on CPT / page / taxonomy
+	 * slugs. For `edit.php?post_type=…&page=…` URLs the resolution
+	 * prefers the post_type, so a hidden React subpage (or a visible
+	 * submenu the wizard doesn't recognise) ends up showing the
+	 * parent CPT's label. Pages can override here to inject the
+	 * correct text via inline script after the wizard header mounts.
+	 * Returning `null` defers to the wizard's own resolution.
+	 *
+	 * @return string|null
+	 */
+	public function get_wizard_header_label() {
+		return null;
+	}
+
+	/**
 	 * Whether the current request is for this admin page.
 	 *
 	 * @return bool
