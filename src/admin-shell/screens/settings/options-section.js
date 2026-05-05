@@ -41,7 +41,7 @@ export default function OptionsSection( { options, schema, activeProvider, onSav
 					<TextControl
 						key={ field.key }
 						label={ field.label }
-						value={ value || '' }
+						value={ value ?? '' }
 						placeholder={ field.placeholder || '' }
 						help={
 							field.help && field.help_url ? (

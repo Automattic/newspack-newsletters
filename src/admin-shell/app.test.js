@@ -6,13 +6,19 @@ const NoopScreen = () => <div data-testid="noop-screen">noop</div>;
 
 describe( 'admin-shell App chrome', () => {
 	let originalGlobal;
+	let originalWasDefined;
 
 	beforeEach( () => {
+		originalWasDefined = Object.prototype.hasOwnProperty.call( window, 'newspackNewslettersAdmin' );
 		originalGlobal = window.newspackNewslettersAdmin;
 	} );
 
 	afterEach( () => {
-		window.newspackNewslettersAdmin = originalGlobal;
+		if ( originalWasDefined ) {
+			window.newspackNewslettersAdmin = originalGlobal;
+		} else {
+			delete window.newspackNewslettersAdmin;
+		}
 	} );
 
 	it( 'mounts the provided screen component', () => {
