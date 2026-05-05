@@ -43,6 +43,7 @@ final class Newspack_Newsletters_Layouts {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_layout_cpt' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
+		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 	}
 
 	/**
@@ -53,7 +54,29 @@ final class Newspack_Newsletters_Layouts {
 			return;
 		}
 
+		$labels = [
+			'name'               => __( 'Layouts', 'newspack-newsletters' ),
+			'singular_name'      => __( 'Layout', 'newspack-newsletters' ),
+			'add_new'            => __( 'Add new layout', 'newspack-newsletters' ),
+			'add_new_item'       => __( 'Add new layout', 'newspack-newsletters' ),
+			'edit_item'          => __( 'Edit layout', 'newspack-newsletters' ),
+			'new_item'           => __( 'New layout', 'newspack-newsletters' ),
+			'view_item'          => __( 'View layout', 'newspack-newsletters' ),
+			'view_items'         => __( 'View layouts', 'newspack-newsletters' ),
+			'search_items'       => __( 'Search layouts', 'newspack-newsletters' ),
+			'not_found'          => __( 'No layouts found.', 'newspack-newsletters' ),
+			'not_found_in_trash' => __( 'No layouts found in trash.', 'newspack-newsletters' ),
+			'all_items'          => __( 'All layouts', 'newspack-newsletters' ),
+			'item_published'     => __( 'Layout published.', 'newspack-newsletters' ),
+			'item_updated'       => __( 'Layout updated.', 'newspack-newsletters' ),
+			// Drives the document bar's "· Layout" suffix in the post editor
+			// (the label rendered next to the title via Gutenberg's
+			// `editor-document-bar__post-type-label`).
+			'item_singular_name' => __( 'Layout', 'newspack-newsletters' ),
+		];
+
 		$cpt_args = [
+			'labels'       => $labels,
 			'public'       => false,
 			'show_ui'      => true,
 			'show_in_menu' => false,
@@ -65,6 +88,107 @@ final class Newspack_Newsletters_Layouts {
 			'taxonomies'   => [],
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT, $cpt_args );
+	}
+
+	/**
+	 * Register the layout-specific REST routes.
+	 *
+	 * The standard newsletter test-send path (per provider) requires a
+	 * campaign object at the ESP and is gated by `validate_newsletter_id`,
+	 * so it can't carry preview-to-email for layouts. This route is the
+	 * layout-specific replacement: it `wp_mail`s the rendered email HTML
+	 * straight from post meta, bypassing the ESP entirely.
+	 */
+	public static function register_rest_routes() {
+		register_rest_route(
+			'newspack-newsletters/v1',
+			'/layouts/(?P<id>\d+)/test',
+			[
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'rest_send_layout_test_email' ],
+				'permission_callback' => function () {
+					return current_user_can( 'edit_others_posts' );
+				},
+				'args'                => [
+					'id'         => [
+						'sanitize_callback' => 'absint',
+						'validate_callback' => function ( $id ) {
+							$post = get_post( absint( $id ) );
+							return $post && self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === $post->post_type;
+						},
+					],
+					'test_email' => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * REST callback: send a preview of the layout to the supplied email
+	 * address(es). Reads the rendered HTML from post meta (populated by
+	 * the MJML refresh on save), wraps it for email, and sends via
+	 * `wp_mail`. No ESP campaign is created or touched.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function rest_send_layout_test_email( $request ) {
+		$post_id = absint( $request['id'] );
+		$raw     = (string) $request->get_param( 'test_email' );
+		$emails  = array_filter( array_map( 'trim', explode( ',', $raw ) ) );
+		$valid   = array_values( array_filter( $emails, 'is_email' ) );
+
+		if ( empty( $valid ) ) {
+			return new WP_Error(
+				'newspack_newsletters_invalid_email',
+				__( 'Please provide at least one valid email address.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$html = (string) get_post_meta( $post_id, Newspack_Newsletters::EMAIL_HTML_META, true );
+		if ( '' === $html ) {
+			return new WP_Error(
+				'newspack_newsletters_no_html',
+				__( 'This layout has no rendered preview yet — save the layout first, then send a test.', 'newspack-newsletters' ),
+				[ 'status' => 409 ]
+			);
+		}
+
+		$post    = get_post( $post_id );
+		$subject = sprintf(
+			/* translators: %s: layout title. */
+			__( '[Layout preview] %s', 'newspack-newsletters' ),
+			$post && $post->post_title ? $post->post_title : __( 'Untitled layout', 'newspack-newsletters' )
+		);
+		$headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+
+		$sent = wp_mail( $valid, $subject, $html, $headers ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+
+		if ( ! $sent ) {
+			return new WP_Error(
+				'newspack_newsletters_mail_failed',
+				__( 'Failed to send the test email. Please try again.', 'newspack-newsletters' ),
+				[ 'status' => 500 ]
+			);
+		}
+
+		return rest_ensure_response(
+			[
+				'message' => sprintf(
+					/* translators: %s: comma-separated list of email addresses. */
+					_n(
+						'Test email sent to %s.',
+						'Test email sent to %s.',
+						count( $valid ),
+						'newspack-newsletters'
+					),
+					implode( ', ', $valid )
+				),
+			]
+		);
 	}
 
 	/**

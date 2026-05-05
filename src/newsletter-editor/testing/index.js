@@ -11,7 +11,7 @@ import {
 	TextControl,
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
-import { hasValidEmail, usePrevious } from '../utils';
+import { hasValidEmail, isLayoutEditor, usePrevious } from '../utils';
 
 /**
  * Internal dependencies
@@ -49,8 +49,16 @@ export default compose( [
 	}, [ isRefreshingHtml ] );
 
 	const sendTestEmail = async () => {
+		// Layouts route through a layout-specific REST endpoint that
+		// `wp_mail`s the rendered HTML directly — the per-provider
+		// `/test` route is gated by the newsletter-CPT validator and
+		// internally calls `sync()` to create an ESP campaign object,
+		// neither of which applies to layouts.
+		const path = isLayoutEditor()
+			? `/newspack-newsletters/v1/layouts/${ postId }/test`
+			: `/newspack-newsletters/v1/${ serviceProvider }/${ postId }/test`;
 		const params = {
-			path: `/newspack-newsletters/v1/${ serviceProvider }/${ postId }/test`,
+			path,
 			data: {
 				test_email: testEmail,
 			},

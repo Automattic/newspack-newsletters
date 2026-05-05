@@ -130,9 +130,13 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				</PluginDocumentSettingPanel>
 			) }
 
-			{ ! isLayout && isSupportedESP() && ! isManualESP() && (
+			{ /* Testing panel: newsletters require a configured + connected ESP
+			 * (the per-provider `/test` route lives at the campaign object).
+			 * Layouts route through a layout-specific endpoint that wp_mails
+			 * the rendered HTML directly, so they don't need any ESP gate. */ }
+			{ ( isLayout || ( isSupportedESP() && ! isManualESP() ) ) && (
 				<PluginDocumentSettingPanel name="newsletters-testing-panel" title={ __( 'Testing', 'newspack-newsletters' ) }>
-					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } disabled={ ! isConnected } />
+					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } disabled={ ! isLayout && ! isConnected } />
 				</PluginDocumentSettingPanel>
 			) }
 
