@@ -110,7 +110,11 @@ final class Newspack_Newsletters_Layouts {
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',
-						'validate_callback' => function ( $id ) {
+						// WP REST passes ($value, $request, $param) to
+						// `validate_callback` — accept all three even
+						// though we only need the value.
+						'validate_callback' => function ( $id, $request = null, $param = null ) {
+							unset( $request, $param );
 							$post = get_post( absint( $id ) );
 							return $post && self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === $post->post_type;
 						},
