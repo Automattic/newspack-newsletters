@@ -23,12 +23,16 @@ import { PublicSettings } from './public';
 import registerEditorPlugin from './editor/';
 import withApiHandler from '../components/with-api-handler';
 import { registerStore, fetchNewsletterData, useNewsletterDataError } from './store';
-import { isManualESP, isSupportedESP } from './utils';
+import { isLayoutEditor, isManualESP, isSupportedESP } from './utils';
 import CampaignLink from './campaign-link';
 import './debug-send';
 
 registerStore();
-registerEditorPlugin();
+// Layouts share the editor but must never render the send button — skip the
+// plugin that mounts it next to the publish action.
+if ( ! isLayoutEditor() ) {
+	registerEditorPlugin();
+}
 
 function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFlight } ) {
 	const { layoutId, postId } = useSelect( select => {
@@ -66,8 +70,9 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	};
 
 	useEffect( () => {
-		// Fetch provider and campaign data.
-		if ( isSupportedESP() ) {
+		// Fetch provider and campaign data. Layouts have no associated ESP
+		// campaign — skip the fetch to avoid noisy 404s.
+		if ( isSupportedESP() && ! isLayoutEditor() ) {
 			fetchNewsletterData( postId );
 		}
 	}, [] );
@@ -96,9 +101,12 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		return null;
 	}
 
-	const isDisplayingInitModal = shouldDisplaySettings || -1 === layoutId;
+	const isLayout = isLayoutEditor();
+	// Layouts have no template to pick — they ARE templates. The init modal
+	// is for ESP setup only in layout mode.
+	const isDisplayingInitModal = shouldDisplaySettings || ( ! isLayout && -1 === layoutId );
 	const stylingId = 'newspack-newsletters-styling';
-	const stylingTitle = __( 'Newsletter Global Styles', 'newspack-newsletters' );
+	const stylingTitle = isLayout ? __( 'Layout Global Styles', 'newspack-newsletters' ) : __( 'Newsletter Global Styles', 'newspack-newsletters' );
 
 	return isDisplayingInitModal ? (
 		<InitModal shouldDisplaySettings={ shouldDisplaySettings } onSetupStatus={ setShouldDisplaySettings } />
@@ -111,9 +119,9 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				{ stylingTitle }
 			</PluginSidebarMoreMenuItem>
 
-			<PluginPostStatusInfo>{ isConnected && <PublicSettings /> }</PluginPostStatusInfo>
+			{ ! isLayout && <PluginPostStatusInfo>{ isConnected && <PublicSettings /> }</PluginPostStatusInfo> }
 
-			{ isSupportedESP() && ! isManualESP() && (
+			{ ! isLayout && isSupportedESP() && ! isManualESP() && (
 				<PluginDocumentSettingPanel name="newsletters-settings-panel" title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }>
 					<VStack spacing={ 4 }>
 						<CampaignLink />
@@ -127,11 +135,14 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } disabled={ ! isConnected } />
 				</PluginDocumentSettingPanel>
 			) }
-			<PluginDocumentSettingPanel name="newsletters-layout-panel" title={ __( 'Layout', 'newspack-newsletters' ) }>
-				<Layout />
-			</PluginDocumentSettingPanel>
 
-			<ApplyStyling />
+			{ ! isLayout && (
+				<PluginDocumentSettingPanel name="newsletters-layout-panel" title={ __( 'Layout', 'newspack-newsletters' ) }>
+					<Layout />
+				</PluginDocumentSettingPanel>
+			) }
+
+			{ ! isLayout && <ApplyStyling /> }
 		</Fragment>
 	);
 }

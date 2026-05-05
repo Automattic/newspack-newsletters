@@ -4,8 +4,10 @@
  * prebuilts are read-only with Duplicate as the only available
  * action. Mounts at `?page=newspack-newsletters-layouts-list`.
  * Server-side paginated; default layout is Grid with a live
- * `<NewsletterPreview>` per card. Saved layouts are born from the
- * editor's "Save as layout" dispatch — there is no Add CTA here.
+ * `<NewsletterPreview>` per card. The header CTA opens the
+ * dedicated layout editor at `post-new.php?post_type=…layo_cpt`;
+ * the editor's "Save as layout" dispatch remains a parallel
+ * entry point on the newsletter side.
  */
 
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
@@ -16,6 +18,9 @@ import { __ } from '@wordpress/i18n';
 import { dispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
+import { getAdminUrl } from '../../admin-globals';
+import { useHeaderActions } from '../../header-actions-context';
+import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
 import useLayoutsData from './use-layouts-data';
 import usePrebuiltLayouts from './use-prebuilt-layouts';
 import { getFields } from './fields';
@@ -241,6 +246,19 @@ export default function LayoutsListScreen() {
 		[ renamingId, commitRename, cancelRenaming ]
 	);
 	const actions = useMemo( () => getActions( { onRenameStart: startRenaming, onMutated } ), [ startRenaming, onMutated ] );
+
+	useHeaderActions(
+		useMemo(
+			() => [
+				{
+					type: 'primary',
+					label: __( 'Add new layout', 'newspack-newsletters' ),
+					href: `${ getAdminUrl() }post-new.php?post_type=${ LAYOUT_CPT_SLUG }`,
+				},
+			],
+			[]
+		)
+	);
 
 	return (
 		<DataViews

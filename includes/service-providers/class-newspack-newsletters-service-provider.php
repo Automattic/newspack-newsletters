@@ -425,6 +425,11 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	public function send_newsletter( $post ) {
 		$post_id = $post->ID;
 
+		// Defence in depth: layouts must never dispatch a campaign, regardless of upstream guards.
+		if ( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === get_post_type( $post ) ) {
+			return;
+		}
+
 		if ( Newspack_Newsletters::is_newsletter_sent( $post_id ) ) {
 			return;
 		}

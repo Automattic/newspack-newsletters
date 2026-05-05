@@ -10,6 +10,17 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { getServiceProvider } from '../service-providers';
+import { LAYOUT_CPT_SLUG } from '../utils/consts';
+
+/**
+ * Is the current editor session editing a layout post?
+ *
+ * Layouts share the newsletter editor but suppress all send-related UI —
+ * the post type is the single source of truth for that branch.
+ *
+ * @return {boolean} True if editing a layout.
+ */
+export const isLayoutEditor = () => LAYOUT_CPT_SLUG === newspack_email_editor_data?.current_post_type;
 
 /**
  * Is the current ESP a supported ESP?

@@ -55,6 +55,8 @@ final class Newspack_Newsletters_Layouts {
 
 		$cpt_args = [
 			'public'       => false,
+			'show_ui'      => true,
+			'show_in_menu' => false,
 			'show_in_rest' => true,
 			'supports'     => [ 'editor', 'title', 'custom-fields' ],
 			'taxonomies'   => [],
