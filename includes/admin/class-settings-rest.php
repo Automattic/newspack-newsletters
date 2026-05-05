@@ -233,6 +233,20 @@ class Settings_REST {
 			}
 		}
 
+		// Strip the raw `sanitize` callable before shipping the schema —
+		// the client doesn't use it, and a filterable settings list can
+		// return a non-JSON-encodable callable (e.g. a Closure) that
+		// would break the REST response.
+		$client_schema = array_values(
+			array_map(
+				function ( $field ) {
+					unset( $field['sanitize'] );
+					return $field;
+				},
+				$schema
+			)
+		);
+
 		return [
 			'provider'  => [
 				'selected'        => $provider_slug ? $provider_slug : '',
@@ -242,7 +256,7 @@ class Settings_REST {
 			],
 			'providers' => self::get_provider_choices(),
 			'options'   => $options,
-			'schema'    => array_values( $schema ),
+			'schema'    => $client_schema,
 		];
 	}
 
@@ -379,7 +393,14 @@ class Settings_REST {
 		$existing = is_array( $existing ) ? $existing : [];
 		$merged   = [];
 		foreach ( $allowlist as $field ) {
-			$incoming = is_array( $submitted ) && isset( $submitted[ $field ] ) ? (string) $submitted[ $field ] : '';
+			// Match the classic settings flow: `register_setting` runs each
+			// value through `sanitize_text_field`. Apply the same here so
+			// providers that `update_option()` directly (Constant Contact /
+			// ActiveCampaign) don't store whitespace-only or otherwise
+			// unsanitised input via the REST path.
+			$incoming = is_array( $submitted ) && isset( $submitted[ $field ] )
+				? sanitize_text_field( (string) $submitted[ $field ] )
+				: '';
 			if ( '' !== $incoming ) {
 				$merged[ $field ] = $incoming;
 				continue;
