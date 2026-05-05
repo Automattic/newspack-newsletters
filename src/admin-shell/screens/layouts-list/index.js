@@ -1,13 +1,14 @@
 /**
  * Layouts list screen — React DataView for managing newsletter
  * layouts. Lists bundled prebuilts alongside user-saved layouts;
- * prebuilts are read-only with Duplicate as the only available
- * action. Mounts at `?page=newspack-newsletters-layouts-list`.
- * Server-side paginated; default layout is Grid with a live
- * `<NewsletterPreview>` per card. The header CTA opens the
- * dedicated layout editor at `post-new.php?post_type=…layo_cpt`;
- * the editor's "Save as layout" dispatch remains a parallel
- * entry point on the newsletter side.
+ * prebuilts are fully locked/passive in this view (no Edit, Rename,
+ * Delete, or Duplicate — actions menu and selection checkbox are
+ * suppressed entirely; the title row carries a lock icon instead).
+ * Mounts at `?page=newspack-newsletters-layouts-list`. Server-side
+ * paginated; default layout is Grid with a live `<NewsletterPreview>`
+ * per card. The header CTA opens the dedicated layout editor at
+ * `post-new.php?post_type=…layo_cpt`; the editor's "Save as layout"
+ * dispatch remains a parallel entry point on the newsletter side.
  */
 
 import { getBlockType, registerBlockType } from '@wordpress/blocks';

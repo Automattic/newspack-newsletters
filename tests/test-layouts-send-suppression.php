@@ -35,21 +35,22 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	private $previous_provider_slug = false;
 
 	/**
-	 * Pre-test snapshot of the Mailchimp API key option. WP_UnitTestCase
-	 * doesn't roll options back between tests, so set_up snapshots the
-	 * pre-existing value (or the absence sentinel) and tear_down
-	 * restores it.
-	 *
-	 * @var string|false The option's current value, or `false` if unset.
-	 */
-	private $previous_mailchimp_api_key = false;
-
-	/**
 	 * Sentinel returned by `get_option` when the option does not exist
 	 * (we pass it as the default so we can distinguish "absent" from
 	 * "stored as empty string").
 	 */
 	private const ABSENT = '__absent__';
+
+	/**
+	 * Pre-test snapshot of the Mailchimp API key option. WP_UnitTestCase
+	 * doesn't roll options back between tests, so set_up snapshots the
+	 * pre-existing value and tear_down restores it. When the option is
+	 * unset, this holds the `self::ABSENT` sentinel string (not `false`)
+	 * so tear_down can distinguish "absent" from "stored as empty".
+	 *
+	 * @var string The option's current value, or `self::ABSENT` if unset.
+	 */
+	private $previous_mailchimp_api_key = self::ABSENT;
 
 	/**
 	 * Pre-test snapshot of the current user ID. WP_UnitTestCase doesn't
