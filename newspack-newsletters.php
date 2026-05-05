@@ -85,6 +85,7 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-set
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-newsletters-list-rest.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-ads-list-rest.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-advertisers-list-rest.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-settings-rest.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-admin-shell.php';
 
 // This MUST be initialized after Newspack_Newsletter class.
@@ -93,3 +94,4 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-admin-she
 \Newspack\Newsletters\Admin\Admin_Shell::init();
 \Newspack\Newsletters\Admin\Ads_List_REST::init();
 \Newspack\Newsletters\Admin\Advertisers_List_REST::init();
+\Newspack\Newsletters\Admin\Settings_REST::init();

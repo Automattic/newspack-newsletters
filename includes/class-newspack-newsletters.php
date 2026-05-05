@@ -1211,6 +1211,11 @@ final class Newspack_Newsletters {
 			return;
 		}
 
+		// Banner belongs to the bundled experience.
+		if ( ! class_exists( '\Newspack\Newspack' ) ) {
+			return;
+		}
+
 		$script = 'newspack-newsletters-branding_scripts';
 		wp_enqueue_script(
 			$script,

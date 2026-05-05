@@ -15,14 +15,24 @@ describe( 'admin-shell App chrome', () => {
 		expect( screen.getByRole( 'main' ) ).toBeInTheDocument();
 	} );
 
-	it( 'renders a screen-reader-only h1 with the page label for accessibility', () => {
-		// The visible breadcrumb comes from newspack-plugin's admin chrome
-		// (or is absent in standalone mode); the chassis still owns the
-		// programmatic heading via `.screen-reader-text`.
+	it( 'renders an h1 with the page label', () => {
+		render( <App label="Newsletters" Screen={ NoopScreen } /> );
+		expect( screen.getByRole( 'heading', { level: 1, name: 'Newsletters' } ) ).toBeInTheDocument();
+	} );
+
+	it( 'hides the h1 visually in bundled mode (newspack-plugin owns the breadcrumb)', () => {
+		const original = window.newspackNewslettersAdmin;
+		window.newspackNewslettersAdmin = { bundledMode: true };
 		const { container } = render( <App label="Newsletters" Screen={ NoopScreen } /> );
-		const heading = screen.getByRole( 'heading', { level: 1, name: 'Newsletters' } );
-		expect( heading ).toBeInTheDocument();
-		expect( heading ).toHaveClass( 'screen-reader-text' );
 		expect( container.querySelector( 'h1.screen-reader-text' ) ).not.toBeNull();
+		window.newspackNewslettersAdmin = original;
+	} );
+
+	it( 'shows the h1 as a visible page title in standalone mode', () => {
+		const original = window.newspackNewslettersAdmin;
+		window.newspackNewslettersAdmin = { bundledMode: false };
+		const { container } = render( <App label="Settings" Screen={ NoopScreen } /> );
+		expect( container.querySelector( 'h1.newspack-newsletters-admin__title' ) ).not.toBeNull();
+		window.newspackNewslettersAdmin = original;
 	} );
 } );
