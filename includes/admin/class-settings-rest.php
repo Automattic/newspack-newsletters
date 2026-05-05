@@ -315,7 +315,11 @@ class Settings_REST {
 	 * @return array
 	 */
 	private static function get_options_schema() {
-		$schema = [];
+		// Render order: cross-cutting options first, then provider-scoped
+		// extras (e.g. Mailchimp footer toggle), then tracking — keeps the
+		// always-relevant settings together at the top of the section.
+		$cross_cutting = [];
+		$provider_scoped = [];
 
 		foreach ( Newspack_Newsletters_Settings::get_settings_list() as $entry ) {
 			$key = isset( $entry['key'] ) ? $entry['key'] : null;
@@ -329,7 +333,8 @@ class Settings_REST {
 			if ( in_array( $type, [ 'boolean', 'bool' ], true ) ) {
 				$type = 'checkbox';
 			}
-			$schema[ $key ] = [
+			$entry_provider = isset( $entry['provider'] ) ? $entry['provider'] : '';
+			$schema_entry   = [
 				'key'         => $key,
 				'label'       => isset( $entry['description'] ) ? $entry['description'] : $key,
 				'type'        => $type,
@@ -337,12 +342,19 @@ class Settings_REST {
 				'help'        => isset( $entry['help'] ) ? $entry['help'] : '',
 				'help_url'    => isset( $entry['helpURL'] ) ? $entry['helpURL'] : '',
 				'placeholder' => isset( $entry['placeholder'] ) ? $entry['placeholder'] : '',
-				'provider'    => isset( $entry['provider'] ) ? $entry['provider'] : '',
+				'provider'    => $entry_provider,
 				'sanitize'    => isset( $entry['sanitize_callback'] ) && is_callable( $entry['sanitize_callback'] )
 					? $entry['sanitize_callback']
 					: null,
 			];
+			if ( '' === $entry_provider ) {
+				$cross_cutting[ $key ] = $schema_entry;
+			} else {
+				$provider_scoped[ $key ] = $schema_entry;
+			}
 		}
+
+		$schema = $cross_cutting + $provider_scoped;
 
 		$schema['newspack_newsletters_use_tracking_pixel'] = [
 			'key'         => 'newspack_newsletters_use_tracking_pixel',
