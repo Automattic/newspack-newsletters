@@ -136,20 +136,23 @@ class Settings_REST {
 					$credentials = isset( $provider_payload['credentials'] ) && is_array( $provider_payload['credentials'] )
 						? $provider_payload['credentials']
 						: [];
-					if ( empty( $credentials ) ) {
+					$provider    = Newspack_Newsletters::get_service_provider();
+					$merged      = $provider ? self::merge_credentials( $slug, $credentials, $provider ) : $credentials;
+					// Validate the merged result, not the raw payload — an
+					// already-configured provider can save with an empty
+					// edit (no fields touched), and the merge fills in the
+					// stored values so the no-op save still succeeds.
+					if ( empty( $merged ) ) {
 						$errors->add(
 							'newspack_newsletters_invalid_keys',
 							__( 'Please input credentials.', 'newspack-newsletters' ),
 							[ 'status' => 400 ]
 						);
-					} else {
-						$provider = Newspack_Newsletters::get_service_provider();
-						if ( $provider && method_exists( $provider, 'set_api_credentials' ) ) {
-							$result = $provider->set_api_credentials( self::merge_credentials( $slug, $credentials, $provider ) );
-							if ( is_wp_error( $result ) ) {
-								foreach ( $result->errors as $code => $messages ) {
-									$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
-								}
+					} elseif ( $provider && method_exists( $provider, 'set_api_credentials' ) ) {
+						$result = $provider->set_api_credentials( $merged );
+						if ( is_wp_error( $result ) ) {
+							foreach ( $result->errors as $code => $messages ) {
+								$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
 							}
 						}
 					}
@@ -213,9 +216,10 @@ class Settings_REST {
 		if ( $provider && method_exists( $provider, 'verify_token' ) ) {
 			$token = $provider->verify_token( true );
 			if ( is_array( $token ) ) {
-				$oauth = [
+				$auth_url = isset( $token['auth_url'] ) ? (string) $token['auth_url'] : '';
+				$oauth    = [
 					'valid'    => ! empty( $token['valid'] ),
-					'auth_url' => isset( $token['auth_url'] ) ? (string) $token['auth_url'] : '',
+					'auth_url' => $auth_url ? esc_url_raw( $auth_url ) : '',
 				];
 			}
 		}

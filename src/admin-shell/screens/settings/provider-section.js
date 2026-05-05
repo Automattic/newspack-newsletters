@@ -19,7 +19,12 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 
 	const fields = getProviderCredentialFields( slug );
 	const isManual = slug === 'manual';
-	const credentialsSet = provider?.credentials_set || {};
+	// Only trust the saved `credentials_set` flags when the local selector
+	// still matches the saved provider — otherwise the field keys can
+	// overlap (e.g. both Mailchimp and Constant Contact use `api_key`) and
+	// the placeholder would lie about whether the new provider has stored
+	// credentials.
+	const credentialsSet = slug === ( provider?.selected || '' ) ? provider?.credentials_set || {} : {};
 
 	const updateCredential = ( key, value ) => {
 		setCredentialEdits( current => ( { ...current, [ key ]: value } ) );

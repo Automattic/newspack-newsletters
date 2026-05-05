@@ -1179,7 +1179,7 @@ final class Newspack_Newsletters {
 		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) {
 			return;
 		}
-		$url = admin_url( 'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-settings-admin' );
+		$url = Newspack_Newsletters_Settings::get_settings_url();
 		?>
 		<div class="notice notice-info is-dismissible newspack-newsletters-notification-nag">
 			<p>
@@ -1211,8 +1211,14 @@ final class Newspack_Newsletters {
 			return;
 		}
 
-		// Banner belongs to the bundled experience.
-		if ( ! class_exists( '\Newspack\Newspack' ) ) {
+		// Banner belongs to the bundled experience. Mirror the filterable
+		// `Admin_Shell::is_bundled_mode()` contract that decides whether
+		// the React Settings page is registered, so a `newspack_newsletters_admin_bundled_mode`
+		// override can't leave the banner enqueued on a standalone shell.
+		$is_bundled = class_exists( '\Newspack\Newsletters\Admin\Admin_Shell' )
+			? \Newspack\Newsletters\Admin\Admin_Shell::is_bundled_mode()
+			: class_exists( '\Newspack\Newspack' );
+		if ( ! $is_bundled ) {
 			return;
 		}
 

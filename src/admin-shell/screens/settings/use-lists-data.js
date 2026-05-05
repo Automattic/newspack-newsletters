@@ -30,7 +30,11 @@ export default function useListsData() {
 			lists: nextLists.map( list => ( {
 				id: list.id,
 				active: !! list.active,
-				title: list.title || '',
+				// Server-side `sanitize_lists()` rejects rows with an empty
+				// title, so fall back to the remote/local list name when the
+				// user clears the field — preserves the "reset to default"
+				// affordance without breaking the save.
+				title: ( list.title && list.title.trim() ) || list.remote_name || list.name || '',
 				description: list.description || '',
 			} ) ),
 		};
