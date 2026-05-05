@@ -109,13 +109,12 @@ Reasoning:
 For the same PR:
 
 1. **Replace the screen registry placeholder.** New screen at `src/admin-shell/screens/settings/index.js`, swapped in at `src/admin-shell/screens/index.js:36`.
-2. **REST surface.** Reuse the existing `GET/POST /newspack-newsletters/v1/settings` for the global block (service provider + credentials), `GET/POST /newspack-newsletters/v1/lists` for subscription lists. Tracking options aren't yet exposed via this plugin's REST namespace — they're read/written through newspack-plugin's `/wizard/newspack-newsletters/settings/tracking` proxy. Standalone needs its own routes, not the wizard proxy. Adding `GET/POST /newspack-newsletters/v1/tracking` (or extending `/settings`) is the cleaner path; favour extension if `update_settings` already accepts arbitrary keys.
-3. **Sections.** One screen, four collapsible sections in this order:
-   1. *Service Provider* — provider select; credentials block conditional on the chosen provider; OAuth round-trip for Constant Contact.
-   2. *Public newsletters* — slug, comments toggle, related-posts toggle (only when Jetpack active).
-   3. *Subscription lists* — table of lists with active toggle + inline title/description; reuses the existing `/lists` endpoint contract.
-   4. *Tracking* — click tracking + tracking pixel toggles.
-   5. *Letterhead* — single API key field. Optional last section to keep adjacent fields colocated.
+2. **REST surface.** New aggregated `GET/POST /newspack-newsletters/v1/admin-shell/settings` handles the provider + cross-cutting options + tracking in one round-trip (returns provider state + supported providers + OAuth state + options whitelist + JSON-safe schema; accepts partial provider/credentials/options writes with sanitisation, slug validation, and rollback on failure). Subscription lists keep the existing `GET/POST /newspack-newsletters/v1/lists` endpoint.
+3. **Sections.** Four cards in this order:
+   1. *Service provider* — provider select; per-ESP credential fields; OAuth banner with popup-flow when the provider exposes one.
+   2. *Newsletter options* — slug, comments toggle, related-posts toggle (Jetpack-gated), provider-scoped extras (e.g. Mailchimp footer toggle), tracking pixel + click-tracking toggles. Render order: cross-cutting → provider-scoped → tracking.
+   3. *Letterhead* — Letterhead API key in its own card.
+   4. *Subscription lists* — list rows with active toggle + inline title/description (remote lists) or read-only meta (local lists). `Add new local list` CTA when the active ESP supports them.
 4. **Letterhead key dependency.** The legacy classic settings page renders `Letterhead API Key` only when the Letterhead service-provider class is loaded. Replicate the gate.
 5. **Capability check.** Page-level gate is already `manage_options`; REST routes use the existing `manage_options` permission callback. No new capability work.
 6. **Visual baseline.** Match the layout idiom of the other admin-shell screens (NEWS-1928, 1930, 1951) — `<App label={…}>` wrapper, sectioned cards, save button per section or one global save bar. Pick whichever the Layouts and Newsletters lists set as the precedent. The choice does not constrain the boundary above; it's a stylistic call within (a).
