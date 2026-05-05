@@ -90,7 +90,14 @@ export default function SettingsScreen() {
 				onSave={ handleSettingsSave }
 				isSaving={ isSaving }
 			/>
-			<ListsSection lists={ lists } isLoading={ isListsLoading } error={ listsError } onSave={ handleListsSave } isSaving={ isSaving } />
+			<ListsSection
+				lists={ lists }
+				isLoading={ isListsLoading }
+				error={ listsError }
+				addNewUrl={ data?.lists_add_new_url }
+				onSave={ handleListsSave }
+				isSaving={ isSaving }
+			/>
 		</div>
 	);
 }

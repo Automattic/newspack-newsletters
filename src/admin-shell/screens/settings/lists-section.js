@@ -2,7 +2,7 @@ import { Button, CheckboxControl, Notice, TextControl, TextareaControl } from '@
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-export default function ListsSection( { lists, isLoading, error, onSave, isSaving } ) {
+export default function ListsSection( { lists, isLoading, error, addNewUrl, onSave, isSaving } ) {
 	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
 
 	useEffect( () => {
@@ -55,6 +55,14 @@ export default function ListsSection( { lists, isLoading, error, onSave, isSavin
 		<div className="newspack-newsletters-settings__section">
 			<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
 			<p>{ __( 'Manage which lists are available for subscription.', 'newspack-newsletters' ) }</p>
+
+			{ addNewUrl && (
+				<p>
+					<Button variant="secondary" href={ addNewUrl }>
+						{ __( 'Add new local list', 'newspack-newsletters' ) }
+					</Button>
+				</p>
+			) }
 
 			<div className="newspack-newsletters-settings__lists">
 				{ workingCopy.map( list => {

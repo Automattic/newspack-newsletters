@@ -255,16 +255,25 @@ class Settings_REST {
 			)
 		);
 
+		$lists_add_new_url = '';
+		if ( class_exists( '\Newspack\Newsletters\Subscription_Lists' ) ) {
+			$candidate = \Newspack\Newsletters\Subscription_Lists::get_add_new_url();
+			if ( is_string( $candidate ) && '' !== $candidate ) {
+				$lists_add_new_url = esc_url_raw( $candidate );
+			}
+		}
+
 		return [
-			'provider'  => [
+			'provider'          => [
 				'selected'        => $provider_slug ? $provider_slug : '',
 				'credentials_set' => $credentials_set,
 				'status'          => (bool) $status,
 				'oauth'           => $oauth,
 			],
-			'providers' => self::get_provider_choices(),
-			'options'   => $options,
-			'schema'    => $client_schema,
+			'providers'         => self::get_provider_choices(),
+			'options'           => $options,
+			'schema'            => $client_schema,
+			'lists_add_new_url' => $lists_add_new_url,
 		];
 	}
 
