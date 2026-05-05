@@ -214,7 +214,14 @@ class Settings_REST_Test extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( '1', (string) get_option( 'newspack_newsletters_support_comments' ) );
-		$this->assertSame( '', (string) get_option( 'newspack_newsletters_use_click_tracking' ) );
+		// Default-true tracking option must persist `0` so the next
+		// `get_option( …, default=true )` read returns the user's `false`
+		// choice rather than falling back to the default.
+		$this->assertSame( '0', (string) get_option( 'newspack_newsletters_use_click_tracking' ) );
+
+		$response = Settings_REST::get_settings( $this->rest_request( 'GET' ) );
+		$options  = $response->get_data()['options'];
+		$this->assertFalse( $options['newspack_newsletters_use_click_tracking'] );
 	}
 
 	/**

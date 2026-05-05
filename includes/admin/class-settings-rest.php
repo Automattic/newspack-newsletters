@@ -461,11 +461,17 @@ class Settings_REST {
 	 * @return mixed
 	 */
 	private static function sanitize_option_value( $value, $field ) {
+		// Coerce checkboxes to int 0/1 regardless of any custom sanitize
+		// callable. `update_option( …, false )` short-circuits on a fresh
+		// site (no row, default also `false`), which would leave a
+		// default-true checkbox unable to be switched off — `get_option`
+		// would read the default back as `true`. Storing `0` writes a
+		// real row that survives subsequent reads.
+		if ( 'checkbox' === $field['type'] ) {
+			return (int) boolval( $value );
+		}
 		if ( ! empty( $field['sanitize'] ) && is_callable( $field['sanitize'] ) ) {
 			return call_user_func( $field['sanitize'], $value );
-		}
-		if ( 'checkbox' === $field['type'] ) {
-			return (bool) $value;
 		}
 		return is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
 	}
