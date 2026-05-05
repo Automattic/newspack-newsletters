@@ -39,12 +39,30 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		\Newspack_Newsletters_Layouts::register_layout_cpt();
 
-		add_filter(
-			'wp_die_handler',
-			function() {
-				return 'handle_wpdie_in_tests';
-			}
-		);
+		add_filter( 'wp_die_handler', [ $this, 'route_wp_die_to_test_handler' ] );
+	}
+
+	/**
+	 * Test tear down.
+	 *
+	 * Explicitly remove the `wp_die_handler` filter we registered in set_up
+	 * so the suite can't carry it into unrelated tests if WP_UnitTestCase's
+	 * automatic hook-restore is ever bypassed.
+	 */
+	public function tear_down() {
+		remove_filter( 'wp_die_handler', [ $this, 'route_wp_die_to_test_handler' ] );
+		parent::tear_down();
+	}
+
+	/**
+	 * Routes wp_die through the bootstrap-installed test handler so the
+	 * call surfaces as a catchable WPDieException instead of exiting the
+	 * test process.
+	 *
+	 * @return string The bootstrap-installed handler function name.
+	 */
+	public function route_wp_die_to_test_handler() {
+		return 'handle_wpdie_in_tests';
 	}
 
 	/**
