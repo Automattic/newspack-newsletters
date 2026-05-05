@@ -28,20 +28,22 @@ class Newspack_Newsletters_Settings {
 	/**
 	 * Get newsletters settings url.
 	 *
-	 * In standalone mode, point at the React shell page so callers (the
-	 * activation nag, subscribe-block link, local-list back link) land on
-	 * the visible Settings surface rather than the hidden classic page.
-	 * In bundled mode, keep the legacy URL so newspack-plugin's wizard
-	 * filter (`newspack_newsletters_settings_url`) can route to its own
-	 * Engagement > Newsletters page as it does today.
+	 * Mirrors `Admin_Shell::is_bundled_mode()` — the same filterable
+	 * contract decides whether the React Settings page is registered, so
+	 * the URL needs to honour any `newspack_newsletters_admin_bundled_mode`
+	 * override. Falls back to a direct `class_exists` check if Admin_Shell
+	 * isn't loaded yet at call time.
 	 *
 	 * @return string URL to settings page.
 	 */
 	public static function get_settings_url() {
-		$page_slug = class_exists( '\Newspack\Newspack' )
+		$is_bundled = class_exists( '\Newspack\Newsletters\Admin\Admin_Shell' )
+			? \Newspack\Newsletters\Admin\Admin_Shell::is_bundled_mode()
+			: class_exists( '\Newspack\Newspack' );
+		$page_slug  = $is_bundled
 			? 'newspack-newsletters-settings-admin'
 			: 'newspack-newsletters-settings';
-		$url       = admin_url( 'edit.php?post_type=newspack_nl_cpt&page=' . $page_slug );
+		$url        = admin_url( 'edit.php?post_type=newspack_nl_cpt&page=' . $page_slug );
 
 		/**
 		 * Filters the URL to the Newspack Newsletters settings page.
