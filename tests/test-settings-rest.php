@@ -39,14 +39,26 @@ class Settings_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Reset between tests so option mutations don't leak.
+	 * Reset between tests so option mutations don't leak — including the
+	 * per-provider credential keys, otherwise test order can flip the
+	 * `credentials_set` flag map for later tests.
 	 */
 	public function tear_down() {
-		delete_option( 'newspack_newsletters_service_provider' );
-		delete_option( 'newspack_newsletters_public_posts_slug' );
-		delete_option( 'newspack_newsletters_support_comments' );
-		delete_option( 'newspack_newsletters_use_click_tracking' );
-		delete_option( 'newspack_newsletters_use_tracking_pixel' );
+		$keys = [
+			'newspack_newsletters_service_provider',
+			'newspack_newsletters_public_posts_slug',
+			'newspack_newsletters_support_comments',
+			'newspack_newsletters_use_click_tracking',
+			'newspack_newsletters_use_tracking_pixel',
+			'newspack_mailchimp_api_key',
+			'newspack_newsletters_constant_contact_api_key',
+			'newspack_newsletters_constant_contact_api_secret',
+			'newspack_newsletters_active_campaign_url',
+			'newspack_newsletters_active_campaign_key',
+		];
+		foreach ( $keys as $key ) {
+			delete_option( $key );
+		}
 		parent::tear_down();
 	}
 
