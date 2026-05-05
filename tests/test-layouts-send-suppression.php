@@ -24,10 +24,29 @@
  */
 class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	/**
+	 * Pre-test snapshot of the active service-provider slug, restored in
+	 * tear_down so the static class state doesn't leak across tests.
+	 *
+	 * @var string|null
+	 */
+	private $previous_provider_slug = null;
+
+	/**
+	 * Pre-test snapshot of the current user ID. WP_UnitTestCase doesn't
+	 * reset the current user between tests, so we restore it explicitly.
+	 *
+	 * @var int
+	 */
+	private $previous_user_id = 0;
+
+	/**
 	 * Test set up.
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		$this->previous_provider_slug = \Newspack_Newsletters::service_provider();
+		$this->previous_user_id       = get_current_user_id();
 
 		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		delete_option( 'newspack_mailchimp_api_key' );
@@ -45,12 +64,20 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	/**
 	 * Test tear down.
 	 *
-	 * Explicitly remove the `wp_die_handler` filter we registered in set_up
-	 * so the suite can't carry it into unrelated tests if WP_UnitTestCase's
-	 * automatic hook-restore is ever bypassed.
+	 * Restores the global state mutated in set_up so the suite can't carry
+	 * residue (filter, current user, provider slug) into later tests. The
+	 * `newspack_mailchimp_api_key` option is rolled back automatically by
+	 * WP_UnitTestCase's per-test DB transaction.
 	 */
 	public function tear_down() {
 		remove_filter( 'wp_die_handler', [ $this, 'route_wp_die_to_test_handler' ] );
+
+		wp_set_current_user( $this->previous_user_id );
+
+		if ( $this->previous_provider_slug ) {
+			\Newspack_Newsletters::set_service_provider( $this->previous_provider_slug );
+		}
+
 		parent::tear_down();
 	}
 
