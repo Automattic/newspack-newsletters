@@ -26,10 +26,30 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	/**
 	 * Pre-test snapshot of the active service-provider slug, restored in
 	 * tear_down so the static class state doesn't leak across tests.
+	 * `Newspack_Newsletters::service_provider()` returns `false` when the
+	 * underlying option is unset — that case is handled explicitly in
+	 * tear_down rather than collapsed into the truthy branch.
 	 *
-	 * @var string|null
+	 * @var string|false
 	 */
-	private $previous_provider_slug = null;
+	private $previous_provider_slug = false;
+
+	/**
+	 * Pre-test snapshot of the Mailchimp API key option. WP_UnitTestCase
+	 * doesn't roll options back between tests, so set_up snapshots the
+	 * pre-existing value (or the absence sentinel) and tear_down
+	 * restores it.
+	 *
+	 * @var string|false The option's current value, or `false` if unset.
+	 */
+	private $previous_mailchimp_api_key = false;
+
+	/**
+	 * Sentinel returned by `get_option` when the option does not exist
+	 * (we pass it as the default so we can distinguish "absent" from
+	 * "stored as empty string").
+	 */
+	private const ABSENT = '__absent__';
 
 	/**
 	 * Pre-test snapshot of the current user ID. WP_UnitTestCase doesn't
@@ -45,8 +65,9 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->previous_provider_slug = \Newspack_Newsletters::service_provider();
-		$this->previous_user_id       = get_current_user_id();
+		$this->previous_provider_slug     = \Newspack_Newsletters::service_provider();
+		$this->previous_mailchimp_api_key = get_option( 'newspack_mailchimp_api_key', self::ABSENT );
+		$this->previous_user_id           = get_current_user_id();
 
 		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		delete_option( 'newspack_mailchimp_api_key' );
@@ -65,17 +86,32 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	 * Test tear down.
 	 *
 	 * Restores the global state mutated in set_up so the suite can't carry
-	 * residue (filter, current user, provider slug) into later tests. The
-	 * `newspack_mailchimp_api_key` option is rolled back automatically by
-	 * WP_UnitTestCase's per-test DB transaction.
+	 * residue (filter, current user, provider slug, Mailchimp API key) into
+	 * later tests.
 	 */
 	public function tear_down() {
 		remove_filter( 'wp_die_handler', [ $this, 'route_wp_die_to_test_handler' ] );
 
 		wp_set_current_user( $this->previous_user_id );
 
-		if ( $this->previous_provider_slug ) {
+		// Restore the service provider. The option may have been unset
+		// before the test ran, in which case `service_provider()` returned
+		// `false`; restore that absence by deleting the option and
+		// re-memoising so the cached static is null again.
+		if ( false !== $this->previous_provider_slug ) {
 			\Newspack_Newsletters::set_service_provider( $this->previous_provider_slug );
+		} else {
+			delete_option( 'newspack_newsletters_service_provider' );
+			\Newspack_Newsletters::memoize_service_provider();
+		}
+
+		// Restore the Mailchimp API key option. Distinguish "was absent"
+		// from "was empty" so we don't accidentally store an empty string
+		// where there was nothing.
+		if ( self::ABSENT === $this->previous_mailchimp_api_key ) {
+			delete_option( 'newspack_mailchimp_api_key' );
+		} else {
+			update_option( 'newspack_mailchimp_api_key', $this->previous_mailchimp_api_key );
 		}
 
 		parent::tear_down();

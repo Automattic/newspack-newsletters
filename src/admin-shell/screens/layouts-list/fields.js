@@ -191,7 +191,12 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 
 	if ( authorElements.length > 0 ) {
 		authorField.elements = authorElements;
-		authorField.filterBy = { operators: [ 'is', 'isAny', 'isNone' ] };
+		// `is` / `isAny` only — exclusion (`isNone`) would have to be
+		// applied client-side after server pagination, which leaves
+		// blank slots on filtered pages and miscounts totals. Re-add
+		// once the saved-rows fetch can pass author exclusions to the
+		// REST collection.
+		authorField.filterBy = { operators: [ 'is', 'isAny' ] };
 	}
 
 	return [

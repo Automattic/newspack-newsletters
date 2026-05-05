@@ -105,19 +105,24 @@ export default function LayoutsListScreen() {
 
 	const { layouts: prebuiltData, isLoading: isPrebuiltLoading } = usePrebuiltLayouts();
 
-	// Resolve the author filter from `view.filters`. Three buckets:
+	// Resolve the author filter from `view.filters`. Two buckets:
 	//
-	//   - `showPrebuilts`            — prebuilt set eligible for the merged view.
-	//   - `restrictedAuthorIds`      — positive include-list to constrain the saved fetch by (REST `author=` param).
-	//   - `excludedAuthorIds`        — exclude-list applied client-side after the saved fetch (WP REST has no "exclude author" param).
-	//   - `savedFetchAllAuthors`     — fetch the saved collection without any author param.
+	//   - `showPrebuilts`         — prebuilt set eligible for the merged view.
+	//   - `restrictedAuthorIds`   — positive include-list to constrain the saved fetch by (REST `author=` param).
+	//   - `savedFetchAllAuthors`  — fetch the saved collection without any author param.
 	//
 	// `'newspack'` is the prebuilt sentinel (id=0 in the data shape);
-	// real WP user IDs (positive integers) address saved layouts.
+	// real WP user IDs (positive integers) address saved layouts. The
+	// field's `filterBy.operators` list excludes `isNone` because the
+	// REST collection has no "exclude author" parameter and applying
+	// the exclusion client-side would leave gaps on filtered pages
+	// (see fields.js). Any stray `isNone` filter (URL-seeded, etc.)
+	// is treated as no-op so the screen falls through to the
+	// unfiltered render.
 	const authorFilterResolution = useMemo( () => {
 		const filter = ( view.filters || [] ).find( f => f.field === 'author' );
-		const noFilter = { showPrebuilts: true, restrictedAuthorIds: [], excludedAuthorIds: [], savedFetchAllAuthors: true };
-		if ( ! filter ) {
+		const noFilter = { showPrebuilts: true, restrictedAuthorIds: [], savedFetchAllAuthors: true };
+		if ( ! filter || filter.operator === 'isNone' ) {
 			return noFilter;
 		}
 		const raw = filter.value;
@@ -131,26 +136,17 @@ export default function LayoutsListScreen() {
 			.map( v => Number( v ) )
 			.filter( n => Number.isFinite( n ) && n > 0 );
 
-		if ( filter.operator === 'isNone' ) {
-			return {
-				showPrebuilts: ! includesNewspack,
-				restrictedAuthorIds: [],
-				excludedAuthorIds: userIds,
-				savedFetchAllAuthors: true,
-			};
-		}
 		// `is` / `isAny` — include only the listed values. Saved data
 		// is fetched only when at least one user ID is included; a
 		// filter limited to `'newspack'` shows prebuilts alone.
 		return {
 			showPrebuilts: includesNewspack,
 			restrictedAuthorIds: userIds,
-			excludedAuthorIds: [],
 			savedFetchAllAuthors: false,
 		};
 	}, [ view.filters ] );
 
-	const { showPrebuilts: authorShowPrebuilts, restrictedAuthorIds, excludedAuthorIds, savedFetchAllAuthors } = authorFilterResolution;
+	const { showPrebuilts: authorShowPrebuilts, restrictedAuthorIds, savedFetchAllAuthors } = authorFilterResolution;
 	const showSaved = savedFetchAllAuthors || restrictedAuthorIds.length > 0;
 
 	// Prebuilts only show on page 1 of the unfiltered "include
@@ -193,19 +189,7 @@ export default function LayoutsListScreen() {
 	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( savedView, mutationKey );
 
 	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
-	const filteredSaved = useMemo( () => {
-		if ( ! showSaved ) {
-			return [];
-		}
-		if ( excludedAuthorIds.length === 0 ) {
-			return savedData;
-		}
-		// `isNone` exclusions on user IDs — WP REST has no "exclude
-		// author" param, so the fetch returns everything and we drop
-		// rows authored by the excluded IDs here.
-		const excluded = new Set( excludedAuthorIds );
-		return savedData.filter( item => ! excluded.has( Number( item?.author ) ) );
-	}, [ savedData, showSaved, excludedAuthorIds ] );
+	const filteredSaved = showSaved ? savedData : [];
 
 	const data = useMemo( () => [ ...filteredPrebuilts, ...filteredSaved ], [ filteredPrebuilts, filteredSaved ] );
 
@@ -243,14 +227,18 @@ export default function LayoutsListScreen() {
 		}
 		// Mixed: page 1 holds `firstPageSavedSlots` saved + all prebuilts;
 		// the remaining saved spread across subsequent pages of `perPage`.
+		// `prebuiltCount` belongs in the total whenever the filter
+		// includes prebuilts — keying on `authorShowPrebuilts` instead
+		// of the per-page `showPrebuilts` keeps the total stable as the
+		// user pages through (prebuilts only render on page 1, but
+		// they're still part of the result set on later pages).
 		const remainingSaved = Math.max( 0, savedPagination.totalItems - firstPageSavedSlots );
 		const totalPages = 1 + Math.ceil( remainingSaved / view.perPage );
-		const visiblePrebuilts = showPrebuilts ? prebuiltCount : 0;
 		return {
-			totalItems: savedPagination.totalItems + visiblePrebuilts,
+			totalItems: savedPagination.totalItems + ( authorShowPrebuilts ? prebuiltCount : 0 ),
 			totalPages: Math.max( 1, totalPages ),
 		};
-	}, [ savedPagination, prebuiltCount, showSaved, showPrebuilts, ridingAlong, firstPageSavedSlots, view.perPage ] );
+	}, [ savedPagination, prebuiltCount, showSaved, authorShowPrebuilts, ridingAlong, firstPageSavedSlots, view.perPage ] );
 
 	// `mediaField` is grid-only by intent — the preview mounts an iframe
 	// per row, which is fine in a card layout but blows out row heights

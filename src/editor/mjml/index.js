@@ -7,7 +7,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
-import { usePrevious } from '../../newsletter-editor/utils';
+import { isLayoutEditor, usePrevious } from '../../newsletter-editor/utils';
 
 /**
  * Internal dependencies
@@ -105,7 +105,7 @@ function MJML() {
 	const refreshHtml = async () => {
 		try {
 			lockPostSaving( 'newspack-newsletters-refresh-html' );
-			if ( isSupportedESP ) {
+			if ( isSupportedESP && ! isLayoutEditor() ) {
 				updateIsRefreshingHtml( true );
 			}
 			const refreshedHtml = await refreshEmailHtml( postId, postTitle, postContent );
@@ -123,8 +123,11 @@ function MJML() {
 				path: `/wp/v2/${ postType }/${ postId }`,
 			} );
 
-			// Rehydrate ESP newsletter data after completing sync.
-			if ( isSupportedESP ) {
+			// Rehydrate ESP newsletter data after completing sync. Layouts
+			// have no campaign at the ESP, so the retrieve / sync-errors
+			// routes 404 for them — skipping this branch keeps layout
+			// saves quiet (no spurious "service provider error" notice).
+			if ( isSupportedESP && ! isLayoutEditor() ) {
 				await fetchNewsletterData( postId );
 				await fetchSyncErrors( postId );
 				updateIsRefreshingHtml( false );
