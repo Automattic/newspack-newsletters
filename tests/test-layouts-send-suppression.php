@@ -61,6 +61,15 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	private $previous_user_id = 0;
 
 	/**
+	 * Whether the layouts CPT was already registered before set_up ran.
+	 * tear_down unregisters when this is false so we don't leak the
+	 * post-type registration into later tests in the same process.
+	 *
+	 * @var bool
+	 */
+	private $layouts_cpt_was_registered = false;
+
+	/**
 	 * Test set up.
 	 */
 	public function set_up() {
@@ -69,6 +78,7 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 		$this->previous_provider_slug     = \Newspack_Newsletters::service_provider();
 		$this->previous_mailchimp_api_key = get_option( 'newspack_mailchimp_api_key', self::ABSENT );
 		$this->previous_user_id           = get_current_user_id();
+		$this->layouts_cpt_was_registered = post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
 
 		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
 		delete_option( 'newspack_mailchimp_api_key' );
@@ -113,6 +123,12 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 			delete_option( 'newspack_mailchimp_api_key' );
 		} else {
 			update_option( 'newspack_mailchimp_api_key', $this->previous_mailchimp_api_key );
+		}
+
+		// Unregister the layouts CPT only if we registered it ourselves;
+		// the post-type registry is global and persists across tests.
+		if ( ! $this->layouts_cpt_was_registered && post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT ) ) {
+			unregister_post_type( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
 		}
 
 		parent::tear_down();

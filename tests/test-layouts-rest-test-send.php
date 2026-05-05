@@ -41,13 +41,23 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	private $previous_user_id = 0;
 
 	/**
+	 * Whether the layouts CPT was already registered before set_up ran.
+	 * tear_down unregisters when this is false so we don't leak the
+	 * post-type registration into later tests in the same process.
+	 *
+	 * @var bool
+	 */
+	private $layouts_cpt_was_registered = false;
+
+	/**
 	 * Test set up.
 	 */
 	public function set_up() {
 		parent::set_up();
 
-		$this->captured_mail    = [];
-		$this->previous_user_id = get_current_user_id();
+		$this->captured_mail              = [];
+		$this->previous_user_id           = get_current_user_id();
+		$this->layouts_cpt_was_registered = post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
 
 		// The layouts CPT registration is gated on `edit_others_posts`;
 		// re-register under an admin so the factory can create posts of
@@ -66,6 +76,12 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	public function tear_down() {
 		remove_filter( 'pre_wp_mail', [ $this, 'capture_wp_mail' ], 10 );
 		wp_set_current_user( $this->previous_user_id );
+
+		// Unregister the layouts CPT only if we registered it ourselves;
+		// the post-type registry is global and persists across tests.
+		if ( ! $this->layouts_cpt_was_registered && post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT ) ) {
+			unregister_post_type( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
+		}
 
 		parent::tear_down();
 	}
