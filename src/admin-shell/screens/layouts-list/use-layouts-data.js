@@ -64,6 +64,12 @@ function buildPath( view ) {
 	// other statuses for this CPT, but be explicit so any future drift
 	// (e.g. autosave revisions) doesn't silently leak rows.
 	params.set( 'status', 'publish,private' );
+	// `_embed=author` so the response carries `_embedded.author[0].name`
+	// for the author column without a per-row user lookup.
+	params.set( '_embed', 'author' );
+	if ( Array.isArray( view.author ) && view.author.length > 0 ) {
+		params.set( 'author', view.author.join( ',' ) );
+	}
 	return `${ COLLECTION_PATH }?${ params.toString() }`;
 }
 
@@ -125,7 +131,17 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 		return () => {
 			cancelled = true;
 		};
-	}, [ view?.page, view?.perPage, view?.offset, view?.search, view?.sort?.field, view?.sort?.direction, mutationKey ] );
+	}, [
+		view?.page,
+		view?.perPage,
+		view?.offset,
+		view?.search,
+		view?.sort?.field,
+		view?.sort?.direction,
+		// Stringify so reference-only changes to the array don't refetch.
+		Array.isArray( view?.author ) ? view.author.join( ',' ) : '',
+		mutationKey,
+	] );
 
 	return { data, paginationInfo, isLoading, hasLoadedOnce };
 }

@@ -108,6 +108,17 @@ body.newspack-newsletters-admin-screen {
 		.components-base-control {
 			margin-bottom: 0;
 		}
+
+		// `@wordpress/components` Select control sizes its input via
+		// `__next40pxDefaultSize`-style rules but DataViews shrinks the
+		// pagination row's containing flex track to ~24px. The styled
+		// `line-height` (~30px) then exceeds the container, so the
+		// dropdown text floats below the centre of its 24px box. Pin
+		// `line-height: 1` on the select input so the rendered text
+		// matches the container height and the row stays on baseline.
+		.dataviews-pagination__page-select .components-select-control__input {
+			line-height: 1;
+		}
 	}
 
 	&__placeholder {
@@ -122,15 +133,38 @@ body.newspack-newsletters-admin-screen {
 // preview from sprawling past the card's media area and give the
 // empty-content placeholder a recognisable surface so it doesn't
 // collapse to zero height.
+// DataViews lays a `::after` pseudo on `__media` with
+// `box-shadow: rgba(0,0,0,.1) 0 0 0 1px inset` to add a hairline frame
+// around media tiles. Our preview wrapper already draws its own border,
+// so the inset shadow overlays it and produces a double-line at the
+// bottom edge. Suppress the pseudo on media wrappers that contain our
+// layout preview — the wrapper border is the single source of truth.
+// Scoped via `:has()` rather than an ancestor class because the
+// `DataViews` className prop doesn't propagate to a parent we can
+// hook into.
+.dataviews-view-grid .dataviews-view-grid__media:has(.newspack-newsletters-layouts-list__preview)::after {
+	box-shadow: none;
+}
+
 .newspack-newsletters-layouts-list {
 	&__preview {
 		background: wp-colors.$white;
-		border: 1px solid wp-colors.$gray-200;
 		border-radius: wp-vars.$grid-unit-05;
-		min-height: 320px;
+		// Square cards. Without an explicit aspect-ratio the wrapper's
+		// height is driven by `min-height` and the iframe (which is
+		// `position: absolute` inside a transformed ancestor) gets
+		// visually centred by the scale, leaving dead space at the top
+		// and overflowing past the bottom edge. A square wrapper hugs
+		// the rendered preview, so there's no excess space and nothing
+		// to overflow. `clip-path` is a belt-and-braces guard for any
+		// edge-case overflow under modern browsers' transform-clipping
+		// quirks; `box-shadow: inset` draws the hairline frame inside
+		// the clip so it survives the iframe overlay (matches the
+		// pattern `@wordpress/dataviews` uses for other media tiles).
+		aspect-ratio: 1;
+		box-shadow: inset 0 0 0 1px wp-colors.$gray-200;
+		clip-path: inset(0 round wp-vars.$grid-unit-05);
 		overflow: hidden;
-		// `<NewsletterPreview>` mounts an iframe with its own internal
-		// padding; the wrapper just confines it.
 		position: relative;
 
 		&--empty {
@@ -139,15 +173,57 @@ body.newspack-newsletters-admin-screen {
 			color: wp-colors.$gray-700;
 			display: flex;
 			justify-content: center;
+			min-height: 320px;
 		}
 	}
 
-	// Inline tag next to the title for prebuilt rows. Communicates
-	// the locked state without adding a column.
-	&__prebuilt-badge {
-		color: wp-colors.$gray-700;
-		font-style: italic;
-		font-weight: normal;
+	// Lock affordance for prebuilt rows. The lock sits flush against
+	// the right edge of the title row, in the visual slot the actions
+	// "More" button would otherwise occupy. Same convention WordPress
+	// uses on the Patterns surface for bundled-and-locked items: the
+	// row has no actions, just the lock as a passive indicator.
+	&__title {
+		align-items: center;
+		display: flex;
+		gap: wp-vars.$grid-unit-10;
+		width: 100%;
+	}
+
+	&__lock-icon {
+		fill: currentcolor;
+		margin-left: auto;
+	}
+
+	// Prebuilt rows are entirely passive — no actions, no bulk
+	// selection. Hide the per-row actions button and the selection
+	// checkbox (which DataView still renders, disabled, in the
+	// hover overlay) and stretch the title field to fill the freed
+	// row space so the lock icon hugs the right edge. Uses CSS
+	// `:has()` to scope to cards that carry the lock icon, avoiding
+	// a per-row class hook.
+	.dataviews-view-grid__card:has(&__lock-icon) {
+		.dataviews-all-actions-button,
+		.dataviews-selection-checkbox {
+			display: none;
+		}
+
+		.dataviews-view-grid__title-field {
+			flex: 1;
+		}
+	}
+
+	// Author cell: small icon (plugin glyph for prebuilts, comment
+	// avatar for user-created) inline with the author name. Mirrors
+	// the Templates surface in the Site Editor.
+	&__author {
+		align-items: center;
+		display: inline-flex;
+		gap: wp-vars.$grid-unit-10;
+	}
+
+	&__author-icon {
+		fill: currentcolor;
+		flex-shrink: 0;
 	}
 }
 

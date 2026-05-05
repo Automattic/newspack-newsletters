@@ -58,7 +58,10 @@ final class Newspack_Newsletters_Layouts {
 			'show_ui'      => true,
 			'show_in_menu' => false,
 			'show_in_rest' => true,
-			'supports'     => [ 'editor', 'title', 'custom-fields' ],
+			// `author` makes WP expose `post_author` on the REST resource
+			// and lets `_embed=author` populate `_embedded.author[0]`,
+			// which the layouts list reads to render the Author column.
+			'supports'     => [ 'editor', 'title', 'custom-fields', 'author' ],
 			'taxonomies'   => [],
 		];
 		\register_post_type( self::NEWSPACK_NEWSLETTERS_LAYOUT_CPT, $cpt_args );

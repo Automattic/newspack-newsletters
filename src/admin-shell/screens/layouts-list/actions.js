@@ -44,20 +44,12 @@ function buildEditUrl( item ) {
 const deleteOne = id => apiFetch( { path: `${ COLLECTION_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
 async function duplicateOne( item ) {
-	// Prebuilt rows aren't real posts — there's no `id` to GET from the
-	// REST collection. We have the title and content already attached
-	// to the item (normalised in `usePrebuiltLayouts`), so the duplicate
-	// payload comes straight from the in-memory shape. Saved rows
-	// re-fetch in `context=edit` to be sure of the raw content + full
-	// meta — the list payload already carries these, but Duplicate is
-	// a low-frequency action and the round-trip keeps the action robust
-	// against future callers that pass a leaner item shape.
-	let source;
-	if ( item?.is_prebuilt ) {
-		source = item;
-	} else {
-		source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
-	}
+	// Saved rows re-fetch in `context=edit` to be sure of the raw
+	// content + full meta — the list payload already carries these,
+	// but Duplicate is a low-frequency action and the round-trip keeps
+	// the action robust against future callers that pass a leaner item
+	// shape. (Prebuilts are not duplicable from this view.)
+	const source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
 	const sourceTitle = source?.title?.raw ?? source?.title?.rendered ?? __( 'Untitled', 'newspack-newsletters' );
 	const payload = {
 		status: 'publish',
@@ -123,9 +115,10 @@ function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 }
 
 // Prebuilt rows are seeded from JSON files and shared across every
-// site — Edit / Rename / Delete are locked so a publisher can't break
-// the bundled set. Duplicate is the one path that turns a prebuilt
-// into editable content (a copy is a regular post the user owns).
+// site — every mutating action is locked so a publisher can't alter
+// or seed copies of the bundled set from this view. Users still
+// reach prebuilts from the newsletter editor's layout picker, where
+// "use this layout" composes a brand-new newsletter from it.
 const isUserOwned = item => ! item?.is_prebuilt;
 
 export function getActions( { onRenameStart, onMutated } ) {
@@ -146,6 +139,7 @@ export function getActions( { onRenameStart, onMutated } ) {
 	const duplicateAction = {
 		id: 'duplicate',
 		label: __( 'Duplicate', 'newspack-newsletters' ),
+		isEligible: isUserOwned,
 		callback: async items => {
 			const item = items[ 0 ];
 			if ( ! item ) {

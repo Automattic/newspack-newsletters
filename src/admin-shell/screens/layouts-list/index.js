@@ -23,7 +23,7 @@ import { useHeaderActions } from '../../header-actions-context';
 import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
 import useLayoutsData from './use-layouts-data';
 import usePrebuiltLayouts from './use-prebuilt-layouts';
-import { getFields } from './fields';
+import { getFields, PREBUILT_AUTHOR_VALUE } from './fields';
 import { getActions, renameLayout } from './actions';
 import { getInitialView } from './initial-filters';
 
@@ -80,7 +80,10 @@ const DEFAULT_VIEW = {
 	filters: [],
 	titleField: 'title',
 	mediaField: 'preview',
-	fields: [ 'modified' ],
+	// Author shows below the title in grid mode (Templates-style) and
+	// as a column in table mode. `modified` stays available via "Show
+	// fields" but isn't visible by default to keep the card compact.
+	fields: [ 'author' ],
 	...getInitialView(),
 };
 
@@ -102,42 +105,53 @@ export default function LayoutsListScreen() {
 
 	const { layouts: prebuiltData, isLoading: isPrebuiltLoading } = usePrebuiltLayouts();
 
-	// Resolve the type filter from `view.filters`. Returns `'prebuilt'`,
-	// `'user'`, or `null` when neither is exclusively selected (both /
-	// none / unrelated filters all reduce to `null`, meaning "show
-	// both"). DataView's filter shape allows multiple operators
-	// (`is`, `isAny`, `isNone`); collapse them to the on-screen
-	// behaviour we care about.
-	const typeFilter = useMemo( () => {
-		const filter = ( view.filters || [] ).find( f => f.field === 'type' );
+	// Resolve the author filter from `view.filters`. Three buckets:
+	//
+	//   - `showPrebuilts`            — prebuilt set eligible for the merged view.
+	//   - `restrictedAuthorIds`      — positive include-list to constrain the saved fetch by (REST `author=` param).
+	//   - `excludedAuthorIds`        — exclude-list applied client-side after the saved fetch (WP REST has no "exclude author" param).
+	//   - `savedFetchAllAuthors`     — fetch the saved collection without any author param.
+	//
+	// `'newspack'` is the prebuilt sentinel (id=0 in the data shape);
+	// real WP user IDs (positive integers) address saved layouts.
+	const authorFilterResolution = useMemo( () => {
+		const filter = ( view.filters || [] ).find( f => f.field === 'author' );
+		const noFilter = { showPrebuilts: true, restrictedAuthorIds: [], excludedAuthorIds: [], savedFetchAllAuthors: true };
 		if ( ! filter ) {
-			return null;
+			return noFilter;
 		}
-		const value = filter.value;
-		const values = Array.isArray( value ) ? value : [ value ];
+		const raw = filter.value;
+		const values = ( Array.isArray( raw ) ? raw : [ raw ] ).filter( v => v !== undefined && v !== null && v !== '' );
+		if ( values.length === 0 ) {
+			return noFilter;
+		}
+		const includesNewspack = values.includes( PREBUILT_AUTHOR_VALUE );
+		const userIds = values
+			.filter( v => v !== PREBUILT_AUTHOR_VALUE )
+			.map( v => Number( v ) )
+			.filter( n => Number.isFinite( n ) && n > 0 );
+
 		if ( filter.operator === 'isNone' ) {
-			// `isNone` excludes the listed values — invert to include the others.
-			if ( values.includes( 'prebuilt' ) && ! values.includes( 'user' ) ) {
-				return 'user';
-			}
-			if ( values.includes( 'user' ) && ! values.includes( 'prebuilt' ) ) {
-				return 'prebuilt';
-			}
-			return null;
+			return {
+				showPrebuilts: ! includesNewspack,
+				restrictedAuthorIds: [],
+				excludedAuthorIds: userIds,
+				savedFetchAllAuthors: true,
+			};
 		}
-		// `is` / `isAny` — include the listed values. A selection of
-		// both reduces to "show both" (null) since that's the default.
-		if ( values.includes( 'prebuilt' ) && values.includes( 'user' ) ) {
-			return null;
-		}
-		if ( values.includes( 'prebuilt' ) ) {
-			return 'prebuilt';
-		}
-		if ( values.includes( 'user' ) ) {
-			return 'user';
-		}
-		return null;
+		// `is` / `isAny` — include only the listed values. Saved data
+		// is fetched only when at least one user ID is included; a
+		// filter limited to `'newspack'` shows prebuilts alone.
+		return {
+			showPrebuilts: includesNewspack,
+			restrictedAuthorIds: userIds,
+			excludedAuthorIds: [],
+			savedFetchAllAuthors: false,
+		};
 	}, [ view.filters ] );
+
+	const { showPrebuilts: authorShowPrebuilts, restrictedAuthorIds, excludedAuthorIds, savedFetchAllAuthors } = authorFilterResolution;
+	const showSaved = savedFetchAllAuthors || restrictedAuthorIds.length > 0;
 
 	// Prebuilts only show on page 1 of the unfiltered "include
 	// prebuilts" view. Search hides them entirely (titles aren't
@@ -145,14 +159,13 @@ export default function LayoutsListScreen() {
 	// reserves N slots out of `view.perPage` on page 1, so the saved
 	// query is offset-paginated to fill the remaining slots and pick
 	// up where page 1 left off on subsequent pages.
-	const showPrebuilts = view.page === 1 && ! view.search && typeFilter !== 'user';
-	const showSaved = typeFilter !== 'prebuilt';
+	const showPrebuilts = authorShowPrebuilts && view.page === 1 && ! view.search;
 	const prebuiltCount = prebuiltData.length;
 	// "Could ride along" — independent of whether prebuilts have loaded.
 	// Used to defer the saved fetch until the prebuilt count is known,
 	// so the saved query targets the correct slot count from the first
 	// request instead of refetching once prebuilts arrive.
-	const couldRideAlong = ! view.search && typeFilter !== 'user';
+	const couldRideAlong = authorShowPrebuilts && ! view.search;
 	const ridingAlong = couldRideAlong && prebuiltCount > 0;
 	const firstPageSavedSlots = ridingAlong ? Math.max( 1, view.perPage - prebuiltCount ) : view.perPage;
 
@@ -167,21 +180,54 @@ export default function LayoutsListScreen() {
 		if ( couldRideAlong && isPrebuiltLoading ) {
 			return null;
 		}
+		const baseView = restrictedAuthorIds.length > 0 ? { ...view, author: restrictedAuthorIds } : view;
 		if ( ridingAlong ) {
 			if ( view.page === 1 ) {
-				return { ...view, perPage: firstPageSavedSlots, offset: 0 };
+				return { ...baseView, perPage: firstPageSavedSlots, offset: 0 };
 			}
-			return { ...view, offset: firstPageSavedSlots + ( view.page - 2 ) * view.perPage };
+			return { ...baseView, offset: firstPageSavedSlots + ( view.page - 2 ) * view.perPage };
 		}
-		return view;
-	}, [ view, showSaved, couldRideAlong, isPrebuiltLoading, ridingAlong, firstPageSavedSlots ] );
+		return baseView;
+	}, [ view, showSaved, couldRideAlong, isPrebuiltLoading, ridingAlong, firstPageSavedSlots, restrictedAuthorIds ] );
 
 	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( savedView, mutationKey );
 
 	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
-	const filteredSaved = showSaved ? savedData : [];
+	const filteredSaved = useMemo( () => {
+		if ( ! showSaved ) {
+			return [];
+		}
+		if ( excludedAuthorIds.length === 0 ) {
+			return savedData;
+		}
+		// `isNone` exclusions on user IDs — WP REST has no "exclude
+		// author" param, so the fetch returns everything and we drop
+		// rows authored by the excluded IDs here.
+		const excluded = new Set( excludedAuthorIds );
+		return savedData.filter( item => ! excluded.has( Number( item?.author ) ) );
+	}, [ savedData, showSaved, excludedAuthorIds ] );
 
 	const data = useMemo( () => [ ...filteredPrebuilts, ...filteredSaved ], [ filteredPrebuilts, filteredSaved ] );
+
+	// Author filter elements. Prebuilts are pinned as `'newspack'`; the
+	// rest is derived from the embedded author shape on the loaded saved
+	// rows. The set grows as the user pages through, but a static list
+	// would require a server-side enumeration of every author who owns
+	// a layout — unnecessary for v1.
+	const authorElements = useMemo( () => {
+		const elements = [ { value: PREBUILT_AUTHOR_VALUE, label: __( 'Newspack', 'newspack-newsletters' ) } ];
+		const seen = new Set();
+		savedData.forEach( item => {
+			const author = item?._embedded?.author?.[ 0 ];
+			const id = author?.id;
+			const name = author?.name;
+			if ( id && name && ! seen.has( id ) ) {
+				seen.add( id );
+				elements.push( { value: String( id ), label: name } );
+			}
+		} );
+		return elements;
+	}, [ savedData ] );
 
 	const paginationInfo = useMemo( () => {
 		// Prebuilt-only filter: the entire prebuilt set fits in one batch.
@@ -199,11 +245,12 @@ export default function LayoutsListScreen() {
 		// the remaining saved spread across subsequent pages of `perPage`.
 		const remainingSaved = Math.max( 0, savedPagination.totalItems - firstPageSavedSlots );
 		const totalPages = 1 + Math.ceil( remainingSaved / view.perPage );
+		const visiblePrebuilts = showPrebuilts ? prebuiltCount : 0;
 		return {
-			totalItems: savedPagination.totalItems + prebuiltCount,
+			totalItems: savedPagination.totalItems + visiblePrebuilts,
 			totalPages: Math.max( 1, totalPages ),
 		};
-	}, [ savedPagination, prebuiltCount, showSaved, ridingAlong, firstPageSavedSlots, view.perPage ] );
+	}, [ savedPagination, prebuiltCount, showSaved, showPrebuilts, ridingAlong, firstPageSavedSlots, view.perPage ] );
 
 	// `mediaField` is grid-only by intent — the preview mounts an iframe
 	// per row, which is fine in a card layout but blows out row heights
@@ -242,8 +289,8 @@ export default function LayoutsListScreen() {
 	);
 
 	const fields = useMemo(
-		() => getFields( { renamingId, onRenameCommit: commitRename, onRenameCancel: cancelRenaming } ),
-		[ renamingId, commitRename, cancelRenaming ]
+		() => getFields( { renamingId, onRenameCommit: commitRename, onRenameCancel: cancelRenaming, authorElements } ),
+		[ renamingId, commitRename, cancelRenaming, authorElements ]
 	);
 	const actions = useMemo( () => getActions( { onRenameStart: startRenaming, onMutated } ), [ startRenaming, onMutated ] );
 

@@ -19,15 +19,21 @@
  */
 
 import { parse } from '@wordpress/blocks';
-import { TextControl } from '@wordpress/components';
+import { Icon, TextControl } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { dateI18n, getDate, getSettings } from '@wordpress/date';
 import { __ } from '@wordpress/i18n';
+import { commentAuthorAvatar, lock, plugins } from '@wordpress/icons';
 import { ENTER, ESCAPE } from '@wordpress/keycodes';
 
 import NewsletterPreview from '../../../components/newsletter-preview';
 import { setPreventDeduplicationForPostsInserter } from '../../../editor/blocks/posts-inserter/utils';
 import LazyPreview from './lazy-preview';
+
+// Sentinel used in author-filter values + getValue for prebuilt rows.
+// Real WP user IDs are positive integers, so a string token can't
+// collide with them.
+export const PREBUILT_AUTHOR_VALUE = 'newspack';
 
 function getRawTitle( item ) {
 	// REST `context=edit` returns title as `{ raw, rendered }`.
@@ -128,28 +134,65 @@ function RenamingTitle( { item, onCommit, onCancel } ) {
  * @param {string|number|null} options.renamingId     Row id currently in inline-rename mode (or `null`).
  * @param {Function}           options.onRenameCommit `(item, newTitle) => Promise` — PATCH and refresh.
  * @param {Function}           options.onRenameCancel `() => void` — clear `renamingId` without saving.
+ * @param {Array}              options.authorElements Filter elements for the author field, derived from the loaded data.
  * @return {Array} Field definitions.
  */
-export function getFields( { renamingId = null, onRenameCommit, onRenameCancel } = {} ) {
+export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, authorElements = [] } = {} ) {
 	const renderTitle = ( { item } ) => {
 		const id = item?.id;
 		if ( renamingId !== null && String( renamingId ) === String( id ) ) {
 			return <RenamingTitle item={ item } onCommit={ next => onRenameCommit?.( item, next ) } onCancel={ () => onRenameCancel?.() } />;
 		}
 		const label = getRawTitle( item ) || __( '(no title)', 'newspack-newsletters' );
-		// A "Prebuilt" badge inline with the title makes the locked
-		// state legible without forcing a separate column. Mirrors how
-		// classic CPT lists tag taxonomy-restricted rows.
+		// Prebuilts get a lock affordance to the right of the title —
+		// matches the WordPress Patterns surface where bundled patterns
+		// signal their read-only state with the same icon.
 		if ( item?.is_prebuilt ) {
 			return (
-				<span>
-					<strong>{ label }</strong>{ ' ' }
-					<em className="newspack-newsletters-layouts-list__prebuilt-badge">{ __( '(Prebuilt)', 'newspack-newsletters' ) }</em>
+				<span className="newspack-newsletters-layouts-list__title">
+					<strong>{ label }</strong>
+					<Icon
+						className="newspack-newsletters-layouts-list__lock-icon"
+						icon={ lock }
+						size={ 16 }
+						aria-label={ __( 'Locked: bundled with the plugin', 'newspack-newsletters' ) }
+					/>
 				</span>
 			);
 		}
 		return <strong>{ label }</strong>;
 	};
+
+	const renderAuthor = ( { item } ) => {
+		const author = item?._embedded?.author?.[ 0 ];
+		if ( ! author ) {
+			return null;
+		}
+		const isPrebuilt = !! item?.is_prebuilt;
+		const icon = isPrebuilt ? plugins : commentAuthorAvatar;
+		return (
+			<span className="newspack-newsletters-layouts-list__author">
+				<Icon className="newspack-newsletters-layouts-list__author-icon" icon={ icon } size={ 24 } />
+				<span>{ author.name || '' }</span>
+			</span>
+		);
+	};
+
+	const authorField = {
+		id: 'author',
+		label: __( 'Author', 'newspack-newsletters' ),
+		enableSorting: false,
+		// No primary filter chip — matches the Templates surface, which
+		// renders no always-on filter. Users who want to filter by
+		// author open the Filters menu explicitly.
+		getValue: ( { item } ) => ( item?.is_prebuilt ? PREBUILT_AUTHOR_VALUE : String( item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '' ) ),
+		render: renderAuthor,
+	};
+
+	if ( authorElements.length > 0 ) {
+		authorField.elements = authorElements;
+		authorField.filterBy = { operators: [ 'is', 'isAny', 'isNone' ] };
+	}
 
 	return [
 		{
@@ -160,25 +203,7 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel }
 			getValue: ( { item } ) => getRawTitle( item ),
 			render: renderTitle,
 		},
-		{
-			id: 'type',
-			label: __( 'Type', 'newspack-newsletters' ),
-			// `enableSorting: false` because order across the two
-			// types is meaningful (prebuilts pinned on top); sorting
-			// by type would shuffle that. `enableHiding` defaults to
-			// true so the user can show/hide the column in table
-			// mode if they want it visible.
-			enableSorting: false,
-			elements: [
-				{ value: 'prebuilt', label: __( 'Prebuilt', 'newspack-newsletters' ) },
-				{ value: 'user', label: __( 'User created', 'newspack-newsletters' ) },
-			],
-			filterBy: {
-				operators: [ 'is', 'isAny', 'isNone' ],
-				isPrimary: true,
-			},
-			getValue: ( { item } ) => ( item?.is_prebuilt ? 'prebuilt' : 'user' ),
-		},
+		authorField,
 		{
 			id: 'preview',
 			label: __( 'Preview', 'newspack-newsletters' ),
@@ -245,7 +270,7 @@ function PreviewCard( { item } ) {
 	}
 
 	return (
-		<LazyPreview placeholderStyle={ { minHeight: '320px' } } rootMargin="200px">
+		<LazyPreview placeholderStyle={ { aspectRatio: '1' } } rootMargin="200px">
 			{ () => (
 				<div className="newspack-newsletters-layouts-list__preview">
 					<NewsletterPreview layoutId={ item?.id } meta={ meta } blocks={ blocks } viewportWidth={ 848 } />
