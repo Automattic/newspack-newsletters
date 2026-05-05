@@ -462,9 +462,6 @@ class Newspack_Newsletters_Subscription {
 		}
 
 		$provider = Newspack_Newsletters::get_service_provider();
-		if ( empty( $provider ) ) {
-			return;
-		}
 		foreach ( $intents as $intent ) {
 			if ( empty( $intent ) ) {
 				continue;
@@ -475,12 +472,17 @@ class Newspack_Newsletters_Subscription {
 			// An intent's `contact` meta can be missing or corrupted (e.g. cleared by
 			// a third party, or never written due to a wp_insert_post race). Without a
 			// valid contact array we have nothing to subscribe; remove the intent so
-			// it doesn't keep fataling on every cron tick.
+			// it doesn't keep throwing on every cron tick. Done regardless of provider
+			// availability so a missing provider can't strand bad intents in the queue.
 			if ( ! is_array( $intent ) || ! isset( $intent['id'] ) || ! is_array( $intent['contact'] ) || empty( $intent['contact']['email'] ) ) {
 				if ( is_array( $intent ) && ! empty( $intent['id'] ) ) {
 					Newspack_Newsletters_Logger::log( 'Removing malformed subscription intent ' . $intent['id'] . ' (missing or invalid contact data).' );
 					self::remove_subscription_intent( $intent['id'] );
 				}
+				continue;
+			}
+			// No provider configured: leave valid intents queued for a later cron run.
+			if ( empty( $provider ) ) {
 				continue;
 			}
 			if ( is_array( $intent['errors'] ) && count( $intent['errors'] ) > 3 ) {

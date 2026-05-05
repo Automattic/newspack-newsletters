@@ -18,11 +18,13 @@ class Subscription_Intents_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An intent post whose `contact` meta is missing or non-array previously
-	 * fataled with "Cannot access offset of type string on string" when the
-	 * cron tried to read `$intent['contact']['email']`. The processor must
-	 * tolerate that state and remove the malformed intent so the cron stops
-	 * looping on it.
+	 * A malformed intent (contact meta missing or non-array) is skipped and
+	 * removed by the cron. Without this, `$intent['contact']['email']` throws
+	 * "Cannot access offset of type string on string" and the bad intent stays
+	 * in the queue, re-firing the same fatal on every tick.
+	 *
+	 * Cleanup runs regardless of whether a service provider is configured, so a
+	 * missing provider can't strand bad intents.
 	 */
 	public function test_process_subscription_intents_removes_intent_with_missing_contact() {
 		$intent_id = wp_insert_post(
@@ -46,7 +48,7 @@ class Subscription_Intents_Test extends WP_UnitTestCase {
 
 		$this->assertNull(
 			get_post( $intent_id ),
-			'Malformed intent is removed so it does not keep fataling on every cron tick.'
+			'Malformed intent is removed so the cron does not loop on it.'
 		);
 	}
 
