@@ -138,22 +138,34 @@ class Settings_REST {
 						? $provider_payload['credentials']
 						: [];
 					$provider    = Newspack_Newsletters::get_service_provider();
-					$merged      = $provider ? self::merge_credentials( $slug, $credentials, $provider ) : $credentials;
-					// Validate the merged result, not the raw payload — an
-					// already-configured provider can save with an empty
-					// edit (no fields touched), and the merge fills in the
-					// stored values so the no-op save still succeeds.
-					if ( empty( $merged ) ) {
+					if ( ! $provider || ! method_exists( $provider, 'set_api_credentials' ) ) {
+						// Provider was registered via filter but the class
+						// failed to load — refuse to persist a credentials
+						// switch we can't actually apply.
 						$errors->add(
-							'newspack_newsletters_invalid_keys',
-							__( 'Please input credentials.', 'newspack-newsletters' ),
+							'newspack_newsletters_provider_unavailable',
+							__( 'The selected service provider is not available on this site.', 'newspack-newsletters' ),
 							[ 'status' => 400 ]
 						);
-					} elseif ( $provider && method_exists( $provider, 'set_api_credentials' ) ) {
-						$result = $provider->set_api_credentials( $merged );
-						if ( is_wp_error( $result ) ) {
-							foreach ( $result->errors as $code => $messages ) {
-								$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
+					} else {
+						$merged = self::merge_credentials( $slug, $credentials, $provider );
+						// Validate the merged result, not the raw payload —
+						// an already-configured provider can save with an
+						// empty edit (no fields touched), and the merge
+						// fills in the stored values so the no-op save
+						// still succeeds.
+						if ( empty( $merged ) ) {
+							$errors->add(
+								'newspack_newsletters_invalid_keys',
+								__( 'Please input credentials.', 'newspack-newsletters' ),
+								[ 'status' => 400 ]
+							);
+						} else {
+							$result = $provider->set_api_credentials( $merged );
+							if ( is_wp_error( $result ) ) {
+								foreach ( $result->errors as $code => $messages ) {
+									$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
+								}
 							}
 						}
 					}

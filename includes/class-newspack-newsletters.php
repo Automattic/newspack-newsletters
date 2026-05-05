@@ -1176,7 +1176,11 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag() {
 		$screen = get_current_screen();
-		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) {
+		// Match both the legacy classic settings screen and the new
+		// standalone React settings screen — neither should display the
+		// "head to settings" nag, since the user is already there.
+		$on_settings_screen = $screen && is_string( $screen->base ) && false !== strpos( $screen->base, 'newspack-newsletters-settings' );
+		if ( $on_settings_screen || ( $screen && self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) ) {
 			return;
 		}
 		$url = Newspack_Newsletters_Settings::get_settings_url();

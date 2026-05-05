@@ -1,6 +1,8 @@
 import { Button, Notice, SelectControl, TextControl } from '@wordpress/components';
+import { dispatch } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { store as noticesStore } from '@wordpress/notices';
 
 import { getProviderCredentialFields } from './provider-credentials-schema';
 
@@ -60,6 +62,10 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 		// window's full `window.opener` reference.
 		const authWindow = window.open( 'about:blank', 'newspack_newsletters_oauth', 'width=500,height=600' );
 		if ( ! authWindow ) {
+			dispatch( noticesStore ).createErrorNotice(
+				__( 'Could not open the authorisation window. Allow popups for this site and try again.', 'newspack-newsletters' ),
+				{ type: 'snackbar', explicitDismiss: true }
+			);
 			return;
 		}
 		let verified = false;
