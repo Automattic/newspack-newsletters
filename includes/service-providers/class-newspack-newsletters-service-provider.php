@@ -418,7 +418,9 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	/**
 	 * Send a newsletter.
 	 *
-	 * @param WP_Post $post The newsletter post.
+	 * @param WP_Post $post The post object — typically a newsletter, but
+	 *                      layout posts are also accepted and short-circuit
+	 *                      before reaching the provider.
 	 *
 	 * @return true|WP_Error|null True if successful, WP_Error on failure, null
 	 *                            when the send is short-circuited (layout post,
