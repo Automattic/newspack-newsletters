@@ -103,9 +103,13 @@ function MJML() {
 	}, [ isSaving, isAutosaving ] );
 
 	const refreshHtml = async () => {
+		// The Testing panel waits for `isRefreshingHtml` to flip true→false
+		// before sending the test, so the flag must toggle for layouts too.
+		// Only the ESP rehydrate calls below are layout-skipped.
+		const shouldTrackRefresh = isSupportedESP || isLayoutEditor();
 		try {
 			lockPostSaving( 'newspack-newsletters-refresh-html' );
-			if ( isSupportedESP && ! isLayoutEditor() ) {
+			if ( shouldTrackRefresh ) {
 				updateIsRefreshingHtml( true );
 			}
 			const refreshedHtml = await refreshEmailHtml( postId, postTitle, postContent );
@@ -130,6 +134,8 @@ function MJML() {
 			if ( isSupportedESP && ! isLayoutEditor() ) {
 				await fetchNewsletterData( postId );
 				await fetchSyncErrors( postId );
+			}
+			if ( shouldTrackRefresh ) {
 				updateIsRefreshingHtml( false );
 			}
 			unlockPostSaving( 'newspack-newsletters-refresh-html' );

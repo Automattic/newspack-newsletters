@@ -153,6 +153,17 @@ final class Newspack_Newsletters_Layouts {
 			);
 		}
 
+		// Persist the recipient list against the current user, mirroring the
+		// provider `/test` controllers' `update_user_test_emails`. Keeps the
+		// Testing panel's default value consistent across newsletter and
+		// layout test sends (both read `newspack_nl_test_emails`).
+		$user_id   = get_current_user_id();
+		$user_info = $user_id ? get_userdata( $user_id ) : null;
+		$is_self   = $user_info && 1 === count( $valid ) && $user_info->user_email === $valid[0];
+		if ( $user_id && ! $is_self ) {
+			update_user_meta( $user_id, 'newspack_nl_test_emails', $valid );
+		}
+
 		$html = (string) get_post_meta( $post_id, Newspack_Newsletters::EMAIL_HTML_META, true );
 		if ( '' === $html ) {
 			return new WP_Error(

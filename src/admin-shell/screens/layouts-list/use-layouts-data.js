@@ -58,12 +58,12 @@ function buildPath( view ) {
 		params.set( 'orderby', view.sort.field );
 		params.set( 'order', view.sort.direction === 'asc' ? 'asc' : 'desc' );
 	}
-	// Status default for the standard CPT collection in `context=edit`
-	// is `publish,future,draft,pending,private`. Saved layouts are
-	// always created as `publish` and the editor doesn't surface the
-	// other statuses for this CPT, but be explicit so any future drift
-	// (e.g. autosave revisions) doesn't silently leak rows.
-	params.set( 'status', 'publish,private' );
+	// Include drafts/pending alongside published so a layout authored
+	// via "Save draft" in the dedicated editor stays visible in the
+	// only management surface. `future` is excluded because layouts
+	// don't surface scheduling and we don't want auto-published rows
+	// flickering in/out as the cron runs.
+	params.set( 'status', 'publish,private,draft,pending' );
 	// `_embed=author` so the response carries `_embedded.author[0].name`
 	// for the author column without a per-row user lookup.
 	params.set( '_embed', 'author' );
