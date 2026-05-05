@@ -130,7 +130,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				</PluginDocumentSettingPanel>
 			) }
 
-			{ isSupportedESP() && ! isManualESP() && (
+			{ ! isLayout && isSupportedESP() && ! isManualESP() && (
 				<PluginDocumentSettingPanel name="newsletters-testing-panel" title={ __( 'Testing', 'newspack-newsletters' ) }>
 					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } disabled={ ! isConnected } />
 				</PluginDocumentSettingPanel>
