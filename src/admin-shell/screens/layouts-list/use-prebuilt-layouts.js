@@ -73,9 +73,10 @@ export default function usePrebuiltLayouts() {
 							// the saved-layouts fetch produces. Prebuilts are owned
 							// by "Newspack" — id=0 is unreachable for real users,
 							// so it doubles as the prebuilt sentinel for the
-							// author filter.
+							// author filter. The label is translated to match the
+							// author-filter element label used in the screen.
 							author: 0,
-							_embedded: { author: [ { id: 0, name: 'Newspack' } ] },
+							_embedded: { author: [ { id: 0, name: __( 'Newspack', 'newspack-newsletters' ) } ] },
 						};
 					} );
 				setLayouts( prebuilts );
