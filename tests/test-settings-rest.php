@@ -59,6 +59,10 @@ class Settings_REST_Test extends WP_UnitTestCase {
 		foreach ( $keys as $key ) {
 			delete_option( $key );
 		}
+		// Reset the memoized provider instance so later tests can't see
+		// a stale `Newspack_Newsletters::$provider` after the option was
+		// deleted out from under it.
+		Newspack_Newsletters::memoize_service_provider();
 		parent::tear_down();
 	}
 

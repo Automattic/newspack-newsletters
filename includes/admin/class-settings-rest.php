@@ -160,9 +160,16 @@ class Settings_REST {
 				}
 				// Restore the previous provider if anything in the provider
 				// switch failed, so a rejected request doesn't leave the
-				// site pointing at an unconfigured provider.
-				if ( $errors->has_errors() && $previous_slug && $previous_slug !== $slug ) {
-					Newspack_Newsletters::set_service_provider( $previous_slug );
+				// site pointing at an unconfigured provider. The
+				// `$previous_slug === false` branch covers a fresh site
+				// that had no provider configured before this request.
+				if ( $errors->has_errors() && $previous_slug !== $slug ) {
+					if ( $previous_slug ) {
+						Newspack_Newsletters::set_service_provider( $previous_slug );
+					} else {
+						delete_option( 'newspack_newsletters_service_provider' );
+						Newspack_Newsletters::memoize_service_provider();
+					}
 				}
 			}
 		}
