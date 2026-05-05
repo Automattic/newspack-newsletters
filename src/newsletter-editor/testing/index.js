@@ -17,7 +17,7 @@ import { hasValidEmail, isLayoutEditor, usePrevious } from '../utils';
  * Internal dependencies
  */
 import withApiHandler from '../../components/with-api-handler';
-import { useIsRefreshingHtml, useNewsletterData } from '../store';
+import { useIsRefreshingHtml, useLastRefreshHadError, useNewsletterData } from '../store';
 import './style.scss';
 
 const serviceProvider = window && window.newspack_newsletters_data && window.newspack_newsletters_data.service_provider;
@@ -37,6 +37,7 @@ export default compose( [
 ] )( ( { apiFetchWithErrorHandling, inFlight, postId, savePost, setInFlightForAsync, testEmail, onChangeEmail, disabled, inlineNotifications } ) => {
 	const isRefreshingHtml = useIsRefreshingHtml();
 	const wasRefreshingHtml = usePrevious( isRefreshingHtml );
+	const lastRefreshHadError = useLastRefreshHadError();
 	const [ shouldSendTest, setShouldSendTest ] = useState( false );
 	const [ localInFlight, setLocalInFlight ] = useState( false );
 	const [ localMessage, setLocalMessage ] = useState( '' );
@@ -44,6 +45,14 @@ export default compose( [
 
 	useEffect( () => {
 		if ( wasRefreshingHtml && ! isRefreshingHtml && shouldSendTest ) {
+			if ( lastRefreshHadError ) {
+				// Refresh failed — the user already saw the error notice
+				// from MJML; don't send a test against stale/missing HTML.
+				// Clear the pending state so the next click re-arms it.
+				setShouldSendTest( false );
+				setLocalInFlight( false );
+				return;
+			}
 			sendTestEmail();
 		}
 	}, [ isRefreshingHtml ] );

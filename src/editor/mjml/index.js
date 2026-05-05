@@ -13,7 +13,7 @@ import { isLayoutEditor, usePrevious } from '../../newsletter-editor/utils';
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
-import { fetchNewsletterData, fetchSyncErrors, updateIsRefreshingHtml } from '../../newsletter-editor/store';
+import { fetchNewsletterData, fetchSyncErrors, updateIsRefreshingHtml, updateLastRefreshHadError } from '../../newsletter-editor/store';
 
 /**
  * External dependencies
@@ -107,9 +107,13 @@ function MJML() {
 		// before sending the test, so the flag must toggle for layouts too.
 		// Only the ESP rehydrate calls below are layout-skipped.
 		const shouldTrackRefresh = isSupportedESP || isLayoutEditor();
+		let hadError = false;
 		try {
 			lockPostSaving( 'newspack-newsletters-refresh-html' );
 			if ( shouldTrackRefresh ) {
+				// Reset the error flag at the start of each refresh so a
+				// previous failure doesn't poison the next cycle.
+				updateLastRefreshHadError( false );
 				updateIsRefreshingHtml( true );
 			}
 			const refreshedHtml = await refreshEmailHtml( postId, postTitle, postContent );
@@ -136,6 +140,7 @@ function MJML() {
 				await fetchSyncErrors( postId );
 			}
 		} catch ( e ) {
+			hadError = true;
 			createNotice( 'error', e?.message || __( 'Error refreshing email HTML.', 'newspack-newsletters' ), {
 				id: 'newspack-newsletters-mjml-error',
 				isDismissible: true,
@@ -144,7 +149,11 @@ function MJML() {
 			// Always release the refresh flag and the save lock, otherwise a
 			// failed refresh leaves the Testing panel waiting on a transition
 			// that will never come and Gutenberg's save button stuck busy.
+			// Set the error flag *before* flipping the refreshing flag so
+			// the Testing effect (which fires on the boolean transition)
+			// reads an up-to-date value when it decides whether to send.
 			if ( shouldTrackRefresh ) {
+				updateLastRefreshHadError( hadError );
 				updateIsRefreshingHtml( false );
 			}
 			unlockPostSaving( 'newspack-newsletters-refresh-html' );

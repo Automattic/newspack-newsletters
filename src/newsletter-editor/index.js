@@ -43,7 +43,16 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			postId: getCurrentPostId(),
 		};
 	} );
-	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState( window?.newspack_newsletters_data?.is_service_provider_configured !== '1' );
+	// The InitModal is non-dismissible (no close button, no Esc, no
+	// click-outside), so auto-showing it on a fresh site dead-ends any
+	// surface that mounts this component. Layouts don't need an ESP at
+	// all — preview-to-email goes through `wp_mail` and the styling
+	// sidebar is provider-agnostic — so skip the auto-show in layout
+	// mode. The setter is still exposed via `onSetupStatus` if a future
+	// surface wants to open the modal explicitly.
+	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
+		! isLayoutEditor() && window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
+	);
 	const [ testEmail, setTestEmail ] = useState( window?.newspack_newsletters_data?.user_test_emails?.join( ',' ) || '' );
 	const [ isConnected, setIsConnected ] = useState( null );
 	const [ oauthUrl, setOauthUrl ] = useState( null );
@@ -149,7 +158,10 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				</PluginDocumentSettingPanel>
 			) }
 
-			{ ! isLayout && <ApplyStyling /> }
+			{ /* ApplyStyling renders nothing — it pushes font/colour/custom-CSS
+			   meta into the editor canvas via DOM side effects. Layouts use the
+			   same Styling sidebar, so they need the live preview too. */ }
+			<ApplyStyling />
 		</Fragment>
 	);
 }
