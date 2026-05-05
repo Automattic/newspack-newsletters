@@ -39,9 +39,9 @@ export default function ProviderSection( { provider, providers, onSave, isSaving
 				<Notice status="warning" isDismissible={ false }>
 					<p>{ __( 'Authorize this site to connect to the configured provider.', 'newspack-newsletters' ) }</p>
 					<p>
-						<a className="components-button is-primary" href={ oauth.auth_url }>
+						<Button variant="primary" href={ oauth.auth_url }>
 							{ __( 'Authorize', 'newspack-newsletters' ) }
-						</a>
+						</Button>
 					</p>
 				</Notice>
 			) }

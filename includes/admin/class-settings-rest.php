@@ -22,6 +22,18 @@ class Settings_REST {
 	const ROUTE         = 'admin-shell/settings';
 
 	/**
+	 * Allowlist of credential fields exposed to the React shell, keyed by
+	 * provider slug. Constant Contact's `api_credentials()` also returns
+	 * `access_token` / `refresh_token` — long-lived OAuth secrets that
+	 * never need to leave the server.
+	 */
+	const PROVIDER_CREDENTIAL_ALLOWLIST = [
+		'mailchimp'        => [ 'api_key' ],
+		'constant_contact' => [ 'api_key', 'api_secret' ],
+		'active_campaign'  => [ 'url', 'key' ],
+	];
+
+	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
@@ -61,10 +73,11 @@ class Settings_REST {
 	/**
 	 * Capability gate.
 	 *
-	 * @return bool
+	 * @param \WP_REST_Request $request Incoming request.
+	 * @return bool|\WP_Error
 	 */
-	public static function permission_check() {
-		return current_user_can( 'manage_options' );
+	public static function permission_check( $request ) {
+		return Newspack_Newsletters::api_administration_permissions_check( $request );
 	}
 
 	/**
@@ -87,11 +100,13 @@ class Settings_REST {
 
 		$provider_payload = $request->get_param( 'provider' );
 		if ( is_array( $provider_payload ) && array_key_exists( 'slug', $provider_payload ) ) {
-			$slug = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
+			$slug          = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
+			$previous_slug = Newspack_Newsletters::service_provider();
 			if ( '' === $slug ) {
 				$errors->add(
 					'newspack_newsletters_no_service_provider',
-					__( 'Please select a newsletter service provider.', 'newspack-newsletters' )
+					__( 'Please select a newsletter service provider.', 'newspack-newsletters' ),
+					[ 'status' => 400 ]
 				);
 			} else {
 				Newspack_Newsletters::set_service_provider( $slug );
@@ -102,7 +117,8 @@ class Settings_REST {
 					if ( empty( $credentials ) ) {
 						$errors->add(
 							'newspack_newsletters_invalid_keys',
-							__( 'Please input credentials.', 'newspack-newsletters' )
+							__( 'Please input credentials.', 'newspack-newsletters' ),
+							[ 'status' => 400 ]
 						);
 					} else {
 						$provider = Newspack_Newsletters::get_service_provider();
@@ -110,13 +126,26 @@ class Settings_REST {
 							$result = $provider->set_api_credentials( $credentials );
 							if ( is_wp_error( $result ) ) {
 								foreach ( $result->errors as $code => $messages ) {
-									$errors->add( $code, implode( ' ', $messages ) );
+									$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
 								}
 							}
 						}
 					}
 				}
+				// Restore the previous provider if anything in the provider
+				// switch failed, so a rejected request doesn't leave the
+				// site pointing at an unconfigured provider.
+				if ( $errors->has_errors() && $previous_slug && $previous_slug !== $slug ) {
+					Newspack_Newsletters::set_service_provider( $previous_slug );
+				}
 			}
+		}
+
+		// If the provider half of the payload errored, don't proceed to
+		// options — partial-write semantics (provider rejected, options
+		// committed) are confusing for the client.
+		if ( $errors->has_errors() ) {
+			return $errors;
 		}
 
 		$options_payload = $request->get_param( 'options' );
@@ -134,10 +163,6 @@ class Settings_REST {
 			}
 		}
 
-		if ( $errors->has_errors() ) {
-			return $errors;
-		}
-
 		return rest_ensure_response( self::build_payload() );
 	}
 
@@ -153,7 +178,7 @@ class Settings_REST {
 		$credentials = [];
 		$has_creds   = false;
 		if ( $provider && method_exists( $provider, 'api_credentials' ) ) {
-			$credentials = $provider->api_credentials();
+			$credentials = self::filter_credentials( $provider_slug, $provider->api_credentials() );
 			if ( method_exists( $provider, 'has_api_credentials' ) ) {
 				$has_creds = (bool) $provider->has_api_credentials();
 			}
@@ -279,6 +304,31 @@ class Settings_REST {
 		];
 
 		return $schema;
+	}
+
+	/**
+	 * Filter the provider's credentials against the allowlist so OAuth
+	 * tokens and other server-only secrets never leak to the React shell.
+	 *
+	 * @param string $slug        Provider slug.
+	 * @param mixed  $credentials Raw `api_credentials()` payload.
+	 * @return array
+	 */
+	private static function filter_credentials( $slug, $credentials ) {
+		if ( ! is_array( $credentials ) ) {
+			return [];
+		}
+		$allowlist = self::PROVIDER_CREDENTIAL_ALLOWLIST[ $slug ] ?? [];
+		if ( empty( $allowlist ) ) {
+			return [];
+		}
+		$filtered = [];
+		foreach ( $allowlist as $field ) {
+			if ( array_key_exists( $field, $credentials ) ) {
+				$filtered[ $field ] = $credentials[ $field ];
+			}
+		}
+		return $filtered;
 	}
 
 	/**
