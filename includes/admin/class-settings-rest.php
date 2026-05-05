@@ -267,12 +267,21 @@ class Settings_REST {
 			)
 		);
 
+		// `Subscription_Lists::get_add_new_url()` returns empty under REST
+		// because the helper short-circuits via `is_admin()` (which is
+		// false on `/wp-json` requests). Replicate the underlying support
+		// check here so the CTA URL still reaches the client.
 		$lists_add_new_url = '';
-		if ( class_exists( '\Newspack\Newsletters\Subscription_Lists' ) ) {
-			$candidate = \Newspack\Newsletters\Subscription_Lists::get_add_new_url();
-			if ( is_string( $candidate ) && '' !== $candidate ) {
-				$lists_add_new_url = esc_url_raw( $candidate );
-			}
+		if (
+			class_exists( '\Newspack\Newsletters\Subscription_Lists' )
+			&& 'manual' !== $provider_slug
+			&& Newspack_Newsletters::is_service_provider_configured()
+			&& $provider
+			&& ! empty( $provider::$support_local_lists )
+		) {
+			$lists_add_new_url = esc_url_raw(
+				admin_url( 'post-new.php?post_type=' . \Newspack\Newsletters\Subscription_Lists::CPT )
+			);
 		}
 
 		return [
