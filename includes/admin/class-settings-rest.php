@@ -118,7 +118,7 @@ class Settings_REST {
 		if ( is_array( $provider_payload ) && array_key_exists( 'slug', $provider_payload ) ) {
 			$slug          = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
 			$previous_slug = Newspack_Newsletters::service_provider();
-			$valid_slugs   = array_merge( [ 'manual' ], Newspack_Newsletters::get_supported_providers() );
+			$valid_slugs   = Newspack_Newsletters::get_supported_providers();
 			if ( '' === $slug ) {
 				$errors->add(
 					'newspack_newsletters_no_service_provider',
