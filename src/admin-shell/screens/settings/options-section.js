@@ -2,7 +2,7 @@ import { Button, CheckboxControl, TextControl } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-export default function OptionsSection( { options, schema, onSave, isSaving } ) {
+export default function OptionsSection( { options, schema, activeProvider, onSave, isSaving } ) {
 	const [ values, setValues ] = useState( options || {} );
 
 	useEffect( () => {
@@ -22,6 +22,9 @@ export default function OptionsSection( { options, schema, onSave, isSaving } ) 
 			<h2>{ __( 'Newsletter options', 'newspack-newsletters' ) }</h2>
 
 			{ ( schema || [] ).map( field => {
+				if ( field.provider && field.provider !== activeProvider ) {
+					return null;
+				}
 				const value = values?.[ field.key ];
 				if ( field.type === 'checkbox' ) {
 					return (

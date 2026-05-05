@@ -4,7 +4,7 @@ import { __ } from '@wordpress/i18n';
 
 import { getProviderCredentialFields } from './provider-credentials-schema';
 
-export default function ProviderSection( { provider, providers, onSave, isSaving } ) {
+export default function ProviderSection( { provider, providers, onSave, onAuthorized, isSaving } ) {
 	const [ slug, setSlug ] = useState( provider?.selected || '' );
 	const [ credentials, setCredentials ] = useState( provider?.credentials || {} );
 
@@ -31,6 +31,29 @@ export default function ProviderSection( { provider, providers, onSave, isSaving
 	const oauth = provider?.oauth;
 	const showOAuthNotice = !! oauth && ! oauth.valid && oauth.auth_url;
 
+	const handleAuthorize = () => {
+		const authWindow = window.open( oauth.auth_url, 'newspack_newsletters_oauth', 'width=500,height=600' );
+		if ( ! authWindow ) {
+			return;
+		}
+		// The OAuth callback page calls `window.opener.verify()` after the
+		// round-trip and `window.close()`; mirroring the classic settings
+		// popup flow lets the React shell refetch instead of the user
+		// being stranded on the callback page.
+		let verified = false;
+		authWindow.opener = {
+			verify: () => {
+				if ( verified ) {
+					return;
+				}
+				verified = true;
+				if ( typeof onAuthorized === 'function' ) {
+					onAuthorized();
+				}
+			},
+		};
+	};
+
 	return (
 		<div className="newspack-newsletters-settings__section">
 			<h2>{ __( 'Service provider', 'newspack-newsletters' ) }</h2>
@@ -39,7 +62,7 @@ export default function ProviderSection( { provider, providers, onSave, isSaving
 				<Notice status="warning" isDismissible={ false }>
 					<p>{ __( 'Authorize this site to connect to the configured provider.', 'newspack-newsletters' ) }</p>
 					<p>
-						<Button variant="primary" href={ oauth.auth_url }>
+						<Button variant="primary" onClick={ handleAuthorize }>
 							{ __( 'Authorize', 'newspack-newsletters' ) }
 						</Button>
 					</p>

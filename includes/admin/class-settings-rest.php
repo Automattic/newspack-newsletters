@@ -34,6 +34,21 @@ class Settings_REST {
 	];
 
 	/**
+	 * Settings-list option keys that are managed by the provider /
+	 * credentials section, not the cross-cutting options section. These
+	 * skip the options schema so `get_settings_list()`'s provider-scoped
+	 * *non-credential* entries (e.g. `newspack_mailchimp_auto_append_footer`)
+	 * still surface as options.
+	 */
+	const PROVIDER_CREDENTIAL_OPTION_KEYS = [
+		'newspack_mailchimp_api_key',
+		'newspack_newsletters_constant_contact_api_key',
+		'newspack_newsletters_constant_contact_api_secret',
+		'newspack_newsletters_active_campaign_url',
+		'newspack_newsletters_active_campaign_key',
+	];
+
+	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
@@ -102,10 +117,17 @@ class Settings_REST {
 		if ( is_array( $provider_payload ) && array_key_exists( 'slug', $provider_payload ) ) {
 			$slug          = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
 			$previous_slug = Newspack_Newsletters::service_provider();
+			$valid_slugs   = array_merge( [ 'manual' ], Newspack_Newsletters::get_supported_providers() );
 			if ( '' === $slug ) {
 				$errors->add(
 					'newspack_newsletters_no_service_provider',
 					__( 'Please select a newsletter service provider.', 'newspack-newsletters' ),
+					[ 'status' => 400 ]
+				);
+			} elseif ( ! in_array( $slug, $valid_slugs, true ) ) {
+				$errors->add(
+					'newspack_newsletters_invalid_provider',
+					__( 'Unknown service provider.', 'newspack-newsletters' ),
 					[ 'status' => 400 ]
 				);
 			} else {
@@ -261,11 +283,11 @@ class Settings_REST {
 		$schema = [];
 
 		foreach ( Newspack_Newsletters_Settings::get_settings_list() as $entry ) {
-			if ( ! empty( $entry['provider'] ) ) {
-				continue;
-			}
 			$key = isset( $entry['key'] ) ? $entry['key'] : null;
 			if ( ! $key || 'newspack_newsletters_service_provider' === $key ) {
+				continue;
+			}
+			if ( in_array( $key, self::PROVIDER_CREDENTIAL_OPTION_KEYS, true ) ) {
 				continue;
 			}
 			$schema[ $key ] = [
@@ -276,6 +298,7 @@ class Settings_REST {
 				'help'        => isset( $entry['help'] ) ? $entry['help'] : '',
 				'help_url'    => isset( $entry['helpURL'] ) ? $entry['helpURL'] : '',
 				'placeholder' => isset( $entry['placeholder'] ) ? $entry['placeholder'] : '',
+				'provider'    => isset( $entry['provider'] ) ? $entry['provider'] : '',
 				'sanitize'    => isset( $entry['sanitize_callback'] ) && is_callable( $entry['sanitize_callback'] )
 					? $entry['sanitize_callback']
 					: null,
@@ -290,6 +313,7 @@ class Settings_REST {
 			'help'        => '',
 			'help_url'    => '',
 			'placeholder' => '',
+			'provider'    => '',
 			'sanitize'    => 'boolval',
 		];
 		$schema['newspack_newsletters_use_click_tracking'] = [
@@ -300,6 +324,7 @@ class Settings_REST {
 			'help'        => '',
 			'help_url'    => '',
 			'placeholder' => '',
+			'provider'    => '',
 			'sanitize'    => 'boolval',
 		];
 

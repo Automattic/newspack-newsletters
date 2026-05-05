@@ -11,10 +11,15 @@ import useListsData from './use-lists-data';
 import useSettingsData from './use-settings-data';
 
 export default function SettingsScreen() {
-	const { data, isLoading, error, save: saveSettings } = useSettingsData();
+	const { data, isLoading, error, save: saveSettings, reload: reloadSettings } = useSettingsData();
 	const { lists, isLoading: isListsLoading, error: listsError, save: saveLists, reload: reloadLists } = useListsData();
 
 	const [ isSaving, setIsSaving ] = useState( false );
+
+	const handleAuthorized = useCallback( () => {
+		reloadSettings();
+		reloadLists();
+	}, [ reloadSettings, reloadLists ] );
 
 	const handleSettingsSave = useCallback(
 		async payload => {
@@ -71,8 +76,20 @@ export default function SettingsScreen() {
 
 	return (
 		<div className="newspack-newsletters-settings">
-			<ProviderSection provider={ data?.provider } providers={ data?.providers } onSave={ handleSettingsSave } isSaving={ isSaving } />
-			<OptionsSection options={ data?.options } schema={ data?.schema } onSave={ handleSettingsSave } isSaving={ isSaving } />
+			<ProviderSection
+				provider={ data?.provider }
+				providers={ data?.providers }
+				onSave={ handleSettingsSave }
+				onAuthorized={ handleAuthorized }
+				isSaving={ isSaving }
+			/>
+			<OptionsSection
+				options={ data?.options }
+				schema={ data?.schema }
+				activeProvider={ data?.provider?.selected }
+				onSave={ handleSettingsSave }
+				isSaving={ isSaving }
+			/>
 			<ListsSection lists={ lists } isLoading={ isListsLoading } error={ listsError } onSave={ handleListsSave } isSaving={ isSaving } />
 		</div>
 	);
