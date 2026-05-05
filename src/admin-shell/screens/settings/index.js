@@ -10,6 +10,8 @@ import ProviderSection from './provider-section';
 import useListsData from './use-lists-data';
 import useSettingsData from './use-settings-data';
 
+const LETTERHEAD_KEY = 'newspack_newsletters_letterhead_api_key';
+
 export default function SettingsScreen() {
 	const { data, isLoading, error, save: saveSettings, reload: reloadSettings } = useSettingsData();
 	const { lists, isLoading: isListsLoading, error: listsError, save: saveLists, reload: reloadLists } = useListsData();
@@ -84,8 +86,17 @@ export default function SettingsScreen() {
 				isSaving={ isSaving }
 			/>
 			<OptionsSection
+				title={ __( 'Newsletter options', 'newspack-newsletters' ) }
 				options={ data?.options }
-				schema={ data?.schema }
+				schema={ ( data?.schema || [] ).filter( field => field.key !== LETTERHEAD_KEY ) }
+				activeProvider={ data?.provider?.selected }
+				onSave={ handleSettingsSave }
+				isSaving={ isSaving }
+			/>
+			<OptionsSection
+				title={ __( 'Letterhead', 'newspack-newsletters' ) }
+				options={ data?.options }
+				schema={ ( data?.schema || [] ).filter( field => field.key === LETTERHEAD_KEY ) }
 				activeProvider={ data?.provider?.selected }
 				onSave={ handleSettingsSave }
 				isSaving={ isSaving }

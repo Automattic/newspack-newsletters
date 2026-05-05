@@ -2,7 +2,7 @@ import { Button, CheckboxControl, TextControl } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-export default function OptionsSection( { options, schema, activeProvider, onSave, isSaving } ) {
+export default function OptionsSection( { title, options, schema, activeProvider, onSave, isSaving } ) {
 	const [ values, setValues ] = useState( options || {} );
 
 	useEffect( () => {
@@ -14,12 +14,25 @@ export default function OptionsSection( { options, schema, activeProvider, onSav
 	};
 
 	const handleSave = async () => {
-		await onSave( { options: values } );
+		// Submit only the keys this section owns so a save in one card
+		// doesn't accidentally write the other card's working copy.
+		const subset = {};
+		( schema || [] ).forEach( field => {
+			if ( field.provider && field.provider !== activeProvider ) {
+				return;
+			}
+			if ( values && Object.prototype.hasOwnProperty.call( values, field.key ) ) {
+				subset[ field.key ] = values[ field.key ];
+			}
+		} );
+		await onSave( { options: subset } );
 	};
+
+	const heading = title || __( 'Newsletter options', 'newspack-newsletters' );
 
 	return (
 		<div className="newspack-newsletters-settings__section">
-			<h2>{ __( 'Newsletter options', 'newspack-newsletters' ) }</h2>
+			<h2>{ heading }</h2>
 
 			{ ( schema || [] ).map( field => {
 				if ( field.provider && field.provider !== activeProvider ) {
