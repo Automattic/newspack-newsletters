@@ -1,21 +1,5 @@
 /**
  * Field definitions for the Layouts list DataView.
- *
- * Three fields drive the surface:
- *
- * - **title** — primary; doubles as inline rename. When the screen's
- *   `renamingId` matches the row id the field renders a `<TextControl>`
- *   that PATCHes the post title on blur (or Enter), mirroring the
- *   ergonomic of `SingleLayoutPreview` in the existing layout picker.
- * - **preview** — `mediaField` for the grid layout; renders a live
- *   `<NewsletterPreview>` of the parsed blocks, deferred via
- *   `LazyPreview` so off-screen cards don't mount their iframes until
- *   the user scrolls them in.
- * - **modified** — last-edited date as a sortable column. Useful in
- *   table layout for spotting stale layouts.
- *
- * The CPT collection accepts `orderby` ∈ { date, modified, title }.
- * `enableSorting` is opt-in here — title and modified are useful sorts.
  */
 
 import { parse } from '@wordpress/blocks';
@@ -30,13 +14,10 @@ import NewsletterPreview from '../../../components/newsletter-preview';
 import { setPreventDeduplicationForPostsInserter } from '../../../editor/blocks/posts-inserter/utils';
 import LazyPreview from './lazy-preview';
 
-// Sentinel used in author-filter values + getValue for prebuilt rows.
-// Real WP user IDs are positive integers, so a string token can't
-// collide with them.
+// String token can't collide with real (positive integer) WP user IDs.
 export const PREBUILT_AUTHOR_VALUE = 'newspack';
 
 function getRawTitle( item ) {
-	// REST `context=edit` returns title as `{ raw, rendered }`.
 	return item?.title?.raw ?? item?.title?.rendered ?? '';
 }
 
@@ -56,22 +37,13 @@ function getMetaForPreview( item ) {
 }
 
 /**
- * Inline-renaming title cell.
- *
- * Swaps to a `<TextControl>` when the row is the renaming target. The
- * control auto-focuses, commits on blur or Enter, and reverts on
- * Escape — matching the picker's behaviour. `stopPropagation` on the
- * outer wrapper prevents the DataView's row-click handler from also
- * toggling the row's selection state while the user types.
+ * Inline-renaming title cell. Commits on blur or Enter, reverts on Escape.
  */
 function RenamingTitle( { item, onCommit, onCancel } ) {
 	const [ value, setValue ] = useState( getRawTitle( item ) );
 	const [ isBusy, setIsBusy ] = useState( false );
 	const inputRef = useRef( null );
 
-	// Auto-focus once on mount. The TextControl renders an internal
-	// `<input>`; querying through the wrapping div lets us focus it
-	// without depending on a forwarded-ref API.
 	useEffect( () => {
 		const input = inputRef.current?.querySelector?.( 'input' );
 		input?.focus();
@@ -89,10 +61,8 @@ function RenamingTitle( { item, onCommit, onCancel } ) {
 		try {
 			await onCommit( trimmed );
 		} catch {
-			// The screen-level handler raises an error notice and
-			// leaves `renamingId` set so the inline UI stays available
-			// for retry. Swallow here so `onBlur` / `onKeyDown` don't
-			// emit an unhandled rejection.
+			// Screen-level handler raises the notice and leaves `renamingId`
+			// set; swallow here so blur/keydown don't trip an unhandled rejection.
 		} finally {
 			setIsBusy( false );
 		}
@@ -144,9 +114,6 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 			return <RenamingTitle item={ item } onCommit={ next => onRenameCommit?.( item, next ) } onCancel={ () => onRenameCancel?.() } />;
 		}
 		const label = getRawTitle( item ) || __( '(no title)', 'newspack-newsletters' );
-		// Prebuilts get a lock affordance to the right of the title —
-		// matches the WordPress Patterns surface where bundled patterns
-		// signal their read-only state with the same icon.
 		if ( item?.is_prebuilt ) {
 			return (
 				<span className="newspack-newsletters-layouts-list__title">
@@ -182,20 +149,15 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 		id: 'author',
 		label: __( 'Author', 'newspack-newsletters' ),
 		enableSorting: false,
-		// No primary filter chip — matches the Templates surface, which
-		// renders no always-on filter. Users who want to filter by
-		// author open the Filters menu explicitly.
 		getValue: ( { item } ) => ( item?.is_prebuilt ? PREBUILT_AUTHOR_VALUE : String( item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '' ) ),
 		render: renderAuthor,
 	};
 
 	if ( authorElements.length > 0 ) {
 		authorField.elements = authorElements;
-		// `is` / `isAny` only — exclusion (`isNone`) would have to be
-		// applied client-side after server pagination, which leaves
-		// blank slots on filtered pages and miscounts totals. Re-add
-		// once the saved-rows fetch can pass author exclusions to the
-		// REST collection.
+		// `isNone` would need client-side post-filter after server pagination;
+		// that leaves blank slots and miscounts totals. Add once the REST
+		// collection accepts author exclusions.
 		authorField.filterBy = { operators: [ 'is', 'isAny' ] };
 	}
 

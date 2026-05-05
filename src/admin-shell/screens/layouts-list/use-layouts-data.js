@@ -1,17 +1,6 @@
 /**
  * Server-side paginated data hook for the Layouts list DataView.
- *
- * Wraps `apiFetch` against `/wp/v2/newspack_nl_layo_cpt` with
- * `context=edit` so the response carries `content.raw` (parseable
- * blocks for the preview) and the registered meta. Pagination
- * headers come from `X-WP-Total` / `X-WP-TotalPages`. Mutations are
- * driven from the screen via `mutationKey` — bumping it triggers a
- * refetch so action handlers don't have to thread a refresh callback.
- *
- * Mirrors `useAdvertisersData` / the ads list `use-ads-data` shape;
- * kept screen-local because the layouts query has no filter params
- * beyond search/sort/page and the savings of promoting to a shared
- * hook would be trivial.
+ * Mirrors the ads list / advertisers list shape.
  */
 
 import apiFetch from '@wordpress/api-fetch';
@@ -38,18 +27,14 @@ function readPaginationInfo( response ) {
 
 function buildPath( view ) {
 	const params = new URLSearchParams();
-	// `offset` overrides `page` when set — needed for the screen's
-	// mixed prebuilt+saved layout, where page 1 reserves slots for
-	// prebuilts and subsequent pages need to start mid-collection.
+	// `offset` overrides `page` so page 1 can reserve slots for prebuilts
+	// and subsequent pages start mid-collection.
 	if ( typeof view.offset === 'number' ) {
 		params.set( 'offset', String( view.offset ) );
 	} else {
 		params.set( 'page', String( view.page || 1 ) );
 	}
 	params.set( 'per_page', String( view.perPage || 12 ) );
-	// `context=edit` so the response includes `content.raw` (the
-	// preview parses it back into blocks) and the registered meta
-	// fields the duplicate flow copies.
 	params.set( 'context', 'edit' );
 	if ( view.search ) {
 		params.set( 'search', view.search );
@@ -58,17 +43,9 @@ function buildPath( view ) {
 		params.set( 'orderby', view.sort.field );
 		params.set( 'order', view.sort.direction === 'asc' ? 'asc' : 'desc' );
 	}
-	// Include drafts/pending alongside published so a layout authored
-	// via "Save draft" in the dedicated editor stays visible in the
-	// only management surface. `future` is excluded because layouts
-	// don't surface scheduling and we don't want auto-published rows
-	// flickering in/out as the cron runs.
+	// Include drafts/pending so layouts authored via "Save draft" stay
+	// visible. `future` is excluded — layouts don't surface scheduling.
 	params.set( 'status', 'publish,private,draft,pending' );
-	// `_embed` is a presence flag in WP REST (sanitized as boolean) and
-	// embeds every embeddable link, including `author`, so a single
-	// truthy value is enough — no per-relation selector is supported.
-	// We need `_embedded.author[0].name` for the author column without
-	// a per-row user lookup.
 	params.set( '_embed', '1' );
 	if ( Array.isArray( view.author ) && view.author.length > 0 ) {
 		params.set( 'author', view.author.join( ',' ) );
@@ -78,18 +55,15 @@ function buildPath( view ) {
 
 /**
  * @param {Object} view          DataViews view state.
- * @param {number} [mutationKey] Increment from the parent to force a
- *                               refetch after a mutation (Rename,
- *                               Duplicate, Delete, bulk Delete).
+ * @param {number} [mutationKey] Increment from the parent to force a refetch after a mutation.
  * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasLoadedOnce: boolean }} The current data, pagination info, and loading flags.
  */
 export default function useLayoutsData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
-	// Track whether at least one fetch has resolved. Without it the
-	// screen can't tell "still fetching" apart from "really empty" and
-	// would flash an empty grid on first paint.
+	// Distinguishes "still fetching" from "really empty" so the screen
+	// doesn't flash an empty grid on first paint.
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	useEffect( () => {
@@ -117,10 +91,8 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 				if ( cancelled ) {
 					return;
 				}
-				// Don't clobber `data` or `paginationInfo` on failure —
-				// preserve the last good page so a transient network
-				// error doesn't blank the screen. The error notice
-				// surfaces the failure; a manual refresh recovers.
+				// Preserve the last good page on failure — a transient
+				// network error shouldn't blank the screen.
 				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load layouts. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-layouts-list-fetch-error',
 				} );

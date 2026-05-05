@@ -28,8 +28,7 @@ import CampaignLink from './campaign-link';
 import './debug-send';
 
 registerStore();
-// Layouts share the editor but must never render the send button — skip the
-// plugin that mounts it next to the publish action.
+// Skip the editor subplugin (which mounts the send button) for layouts.
 if ( ! isLayoutEditor() ) {
 	registerEditorPlugin();
 }
@@ -43,13 +42,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			postId: getCurrentPostId(),
 		};
 	} );
-	// The InitModal is non-dismissible (no close button, no Esc, no
-	// click-outside), so auto-showing it on a fresh site dead-ends any
-	// surface that mounts this component. Layouts don't need an ESP at
-	// all — preview-to-email goes through `wp_mail` and the styling
-	// sidebar is provider-agnostic — so skip the auto-show in layout
-	// mode. The setter is still exposed via `onSetupStatus` if a future
-	// surface wants to open the modal explicitly.
+	// InitModal is non-dismissible; skip the auto-show for layouts since
+	// they don't need an ESP (preview-to-email goes through `wp_mail`).
 	const [ shouldDisplaySettings, setShouldDisplaySettings ] = useState(
 		! isLayoutEditor() && window?.newspack_newsletters_data?.is_service_provider_configured !== '1'
 	);
@@ -79,8 +73,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	};
 
 	useEffect( () => {
-		// Fetch provider and campaign data. Layouts have no associated ESP
-		// campaign — skip the fetch to avoid noisy 404s.
+		// Layouts have no ESP campaign — skip to avoid noisy 404s.
 		if ( isSupportedESP() && ! isLayoutEditor() ) {
 			fetchNewsletterData( postId );
 		}
@@ -107,15 +100,11 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 	}, newsletterDataError );
 
 	const isLayout = isLayoutEditor();
-	// Layouts intentionally don't depend on a connected ESP — the test-send
-	// path goes through `wp_mail`, the styling sidebar is provider-agnostic,
-	// and an unconfigured site should still be able to author layouts.
-	// Bail only for non-layout editors when no provider is supported.
+	// Layouts work without an ESP (wp_mail preview, provider-agnostic styling).
 	if ( ! isLayout && ! isSupportedESP() ) {
 		return null;
 	}
-	// Layouts have no template to pick — they ARE templates. The init modal
-	// is for ESP setup only in layout mode.
+	// Layouts ARE templates, so skip the layout-picker branch.
 	const isDisplayingInitModal = shouldDisplaySettings || ( ! isLayout && -1 === layoutId );
 	const stylingId = 'newspack-newsletters-styling';
 	const stylingTitle = isLayout ? __( 'Layout Global Styles', 'newspack-newsletters' ) : __( 'Newsletter Global Styles', 'newspack-newsletters' );
@@ -142,10 +131,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				</PluginDocumentSettingPanel>
 			) }
 
-			{ /* Testing panel: newsletters require a configured + connected ESP
-			 * (the per-provider `/test` route lives at the campaign object).
-			 * Layouts route through a layout-specific endpoint that wp_mails
-			 * the rendered HTML directly, so they don't need any ESP gate. */ }
+			{ /* Newsletters need ESP for the per-provider /test route.
+			   Layouts hit a wp_mail-based endpoint, no ESP gate needed. */ }
 			{ ( isLayout || ( isSupportedESP() && ! isManualESP() ) ) && (
 				<PluginDocumentSettingPanel name="newsletters-testing-panel" title={ __( 'Testing', 'newspack-newsletters' ) }>
 					<Testing testEmail={ testEmail } onChangeEmail={ setTestEmail } disabled={ ! isLayout && ! isConnected } />
@@ -158,9 +145,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 				</PluginDocumentSettingPanel>
 			) }
 
-			{ /* ApplyStyling renders nothing — it pushes font/colour/custom-CSS
-			   meta into the editor canvas via DOM side effects. Layouts use the
-			   same Styling sidebar, so they need the live preview too. */ }
+			{ /* Renders nothing; pushes styling meta into the canvas via DOM
+			   side effects. Kept for layouts so the canvas reflects edits. */ }
 			<ApplyStyling />
 		</Fragment>
 	);

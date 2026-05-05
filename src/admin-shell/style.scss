@@ -2,10 +2,8 @@
 @use "~@wordpress/base-styles/variables" as wp-vars;
 @use "~newspack-components/colors/colors.module" as np-colors;
 
-// Match newspack-plugin admin pages: white surface and the same Newspack
-// theme palette. The `--wp-admin-theme-color` overrides keep WP component
-// primaries (Buttons, focus rings, links) on Newspack navy instead of WP
-// blue. Mirrors `with-wizard-screen/style.scss` in newspack-plugin.
+// Mirrors newspack-plugin's `with-wizard-screen/style.scss`: white surface,
+// Newspack navy on WP component primaries via the theme-color overrides.
 body.newspack-newsletters-admin-screen {
 	background: wp-colors.$white;
 
@@ -14,19 +12,11 @@ body.newspack-newsletters-admin-screen {
 		background: wp-colors.$white;
 	}
 
-	// Drop the WP-default 20px gutter on our admin pages so the React surface
-	// starts flush with the sidebar. Newspack-plugin's admin-header strip
-	// already counters that gutter via `.newspack-wizards-admin-header
-	// { margin-left: -20px }`, which would otherwise pull it 20px past the
-	// sidebar edge here — neutralise that offset so everything aligns.
+	// Cancel WP's 20px gutter and the admin-header's matching -20px offset
+	// so the React surface starts flush with the sidebar.
 	#wpcontent {
 		padding-left: 0;
 	}
-	// Match both selectors. Upstream renders the strip with both an `id`
-	// and a class of `newspack-wizards-admin-header`; the JS portal logic
-	// targets the `id` while upstream's `margin-left: -20px` targets the
-	// class. Reset both so a future markup change on either side can't
-	// quietly resurrect the offset.
 	#newspack-wizards-admin-header,
 	.newspack-wizards-admin-header {
 		margin-left: 0;
@@ -41,13 +31,8 @@ body.newspack-newsletters-admin-screen {
 	--wp-admin-theme-color-lighter-10: #{np-colors.$primary-000};
 	--wp-admin-theme-color-lighter-10--rgb: #{np-colors.$primary-000--rgb};
 
-	// When `newspack-plugin`'s admin-header is present, the action row is
-	// portaled in as a sibling of `__inner` inside `.newspack-wizard__header`.
-	// Replicate the wizard's existing flex/alignment rules for that slot —
-	// see `packages/components/src/with-wizard-screen/style.scss` upstream —
-	// so our buttons sit on the same row as the breadcrumb. Nested under
-	// the body-class scope so other newspack-plugin admin screens that
-	// share the `#newspack-wizards-admin-header` element aren't affected.
+	// Action row is portaled in as a sibling of `__inner`; replicate the
+	// wizard's flex rules for that slot, scoped to this screen.
 	#newspack-wizards-admin-header .newspack-wizard__header {
 		align-items: center;
 		display: flex;
@@ -84,38 +69,21 @@ body.newspack-newsletters-admin-screen {
 	}
 
 	&__main {
-		// DataViews/wp surfaces its own width container; let it fill.
 		max-width: none;
 	}
 
 	.dataviews-wrapper {
-		// Pull the DataView up tight under the chassis-mount margin —
-		// `__view-actions` carries its own internal padding so the visual
-		// gap stays comfortable.
 		margin-top: -#{wp-vars.$grid-unit-20};
 
-		// `@wordpress/dataviews/wp` 10.2.0 wraps several controls in
-		// `BaseControl` without `__nextHasNoMarginBottom`, which carries a
-		// 16px legacy margin-bottom. That stretches each containing flex
-		// row vertically and pushes neighbouring (centre-aligned) elements
-		// off-baseline — observed on:
-		//
-		//   - `.dataviews__view-actions` — search input vs Add-filter button
-		//   - `.dataviews-footer`         — Select-all checkbox vs item-count text
-		//
-		// Zero the margin across the whole DataView wrapper to cover both
-		// (and any future container DataViews adds).
+		// DataViews wraps controls in `BaseControl` without
+		// `__nextHasNoMarginBottom`, leaving a 16px margin that pushes flex
+		// rows off-baseline (search vs Add-filter, Select-all vs count).
 		.components-base-control {
 			margin-bottom: 0;
 		}
 
-		// `@wordpress/components` Select control sizes its input via
-		// `__next40pxDefaultSize`-style rules but DataViews shrinks the
-		// pagination row's containing flex track to ~24px. The styled
-		// `line-height` (~30px) then exceeds the container, so the
-		// dropdown text floats below the centre of its 24px box. Pin
-		// `line-height: 1` on the select input so the rendered text
-		// matches the container height and the row stays on baseline.
+		// Pagination row's flex track is ~24px; the select's default
+		// line-height overflows it and the text floats below centre.
 		.dataviews-pagination__page-select .components-select-control__input {
 			line-height: 1;
 		}
@@ -129,19 +97,8 @@ body.newspack-newsletters-admin-screen {
 	}
 }
 
-// Layouts grid: each card hosts a `<NewsletterPreview>` — keep the
-// preview from sprawling past the card's media area and give the
-// empty-content placeholder a recognisable surface so it doesn't
-// collapse to zero height.
-// DataViews lays a `::after` pseudo on `__media` with
-// `box-shadow: rgba(0,0,0,.1) 0 0 0 1px inset` to add a hairline frame
-// around media tiles. Our preview wrapper already draws its own border,
-// so the inset shadow overlays it and produces a double-line at the
-// bottom edge. Suppress the pseudo on media wrappers that contain our
-// layout preview — the wrapper border is the single source of truth.
-// Scoped via `:has()` rather than an ancestor class because the
-// `DataViews` className prop doesn't propagate to a parent we can
-// hook into.
+// Suppress DataViews' `::after` hairline on layout media tiles — our
+// preview wrapper already draws its own border, the two would double up.
 .dataviews-view-grid .dataviews-view-grid__media:has(.newspack-newsletters-layouts-list__preview)::after {
 	box-shadow: none;
 }
@@ -150,17 +107,10 @@ body.newspack-newsletters-admin-screen {
 	&__preview {
 		background: wp-colors.$white;
 		border-radius: wp-vars.$grid-unit-05;
-		// Square cards. Without an explicit aspect-ratio the wrapper's
-		// height is driven by `min-height` and the iframe (which is
-		// `position: absolute` inside a transformed ancestor) gets
-		// visually centred by the scale, leaving dead space at the top
-		// and overflowing past the bottom edge. A square wrapper hugs
-		// the rendered preview, so there's no excess space and nothing
-		// to overflow. `clip-path` is a belt-and-braces guard for any
-		// edge-case overflow under modern browsers' transform-clipping
-		// quirks; `box-shadow: inset` draws the hairline frame inside
-		// the clip so it survives the iframe overlay (matches the
-		// pattern `@wordpress/dataviews` uses for other media tiles).
+		// `aspect-ratio: 1` + `clip-path` together hug the BlockPreview
+		// iframe (positioned absolutely inside a transformed ancestor)
+		// so it doesn't overflow the card; `box-shadow: inset` draws the
+		// hairline inside the clip path.
 		aspect-ratio: 1;
 		box-shadow: inset 0 0 0 1px wp-colors.$gray-200;
 		clip-path: inset(0 round wp-vars.$grid-unit-05);
@@ -177,11 +127,6 @@ body.newspack-newsletters-admin-screen {
 		}
 	}
 
-	// Lock affordance for prebuilt rows. The lock sits flush against
-	// the right edge of the title row, in the visual slot the actions
-	// "More" button would otherwise occupy. Same convention WordPress
-	// uses on the Patterns surface for bundled-and-locked items: the
-	// row has no actions, just the lock as a passive indicator.
 	&__title {
 		align-items: center;
 		display: flex;
@@ -194,13 +139,9 @@ body.newspack-newsletters-admin-screen {
 		margin-left: auto;
 	}
 
-	// Prebuilt rows are entirely passive — no actions, no bulk
-	// selection. Hide the per-row actions button and the selection
-	// checkbox (which DataView still renders, disabled, in the
-	// hover overlay) and stretch the title field to fill the freed
-	// row space so the lock icon hugs the right edge. Uses CSS
-	// `:has()` to scope to cards that carry the lock icon, avoiding
-	// a per-row class hook.
+	// Prebuilt rows are passive: hide actions + selection, let the lock
+	// icon sit flush right. `:has()` scopes to cards rendering the lock
+	// without a per-row class hook.
 	.dataviews-view-grid__card:has(&__lock-icon) {
 		.dataviews-all-actions-button,
 		.dataviews-selection-checkbox {
@@ -212,9 +153,6 @@ body.newspack-newsletters-admin-screen {
 		}
 	}
 
-	// Author cell: small icon (plugin glyph for prebuilts, comment
-	// avatar for user-created) inline with the author name. Mirrors
-	// the Templates surface in the Site Editor.
 	&__author {
 		align-items: center;
 		display: inline-flex;

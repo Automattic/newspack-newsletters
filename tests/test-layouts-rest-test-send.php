@@ -6,44 +6,26 @@
  */
 
 /**
- * Covers the bespoke `POST /newspack-newsletters/v1/layouts/{id}/test`
- * route registered by `Newspack_Newsletters_Layouts::register_rest_routes`.
- *
- * The route bypasses the ESP entirely — it `wp_mail`s the rendered HTML
- * stored in `EMAIL_HTML_META` directly. These tests pin:
- *
- *   - 400 when the request carries no valid emails.
- *   - 409 when the layout has no rendered HTML yet.
- *   - One `wp_mail` call per recipient with a single To:, so addresses
- *     aren't disclosed across recipients.
- *   - Successful sends persist the recipient list to the current user's
- *     `newspack_nl_test_emails` meta.
- *
- * Strategy: hook `pre_wp_mail` to capture the `$atts` payload and
- * short-circuit wp_mail with `true` so no real send is attempted.
+ * Covers the layout-specific test-send REST route. Hooks `pre_wp_mail`
+ * to capture invocations and short-circuit the real send.
  */
 class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	/**
-	 * Captured wp_mail() invocations, populated by `capture_wp_mail`.
-	 * Each entry mirrors the `$atts` array (`to`, `subject`, `message`,
-	 * `headers`, `attachments`).
+	 * Captured wp_mail() invocations.
 	 *
 	 * @var array<int, array>
 	 */
 	private $captured_mail = [];
 
 	/**
-	 * Pre-test snapshot of the current user ID so tear_down can restore
-	 * it — WP_UnitTestCase doesn't reset the current user between tests.
+	 * Pre-test snapshot of the current user id.
 	 *
 	 * @var int
 	 */
 	private $previous_user_id = 0;
 
 	/**
-	 * Whether the layouts CPT was already registered before set_up ran.
-	 * tear_down unregisters when this is false so we don't leak the
-	 * post-type registration into later tests in the same process.
+	 * Whether the layouts CPT was registered before set_up ran.
 	 *
 	 * @var bool
 	 */
@@ -59,11 +41,8 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 		$this->previous_user_id           = get_current_user_id();
 		$this->layouts_cpt_was_registered = post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
 
-		// The layouts CPT registration is gated on `edit_others_posts`;
-		// re-register under an admin so the factory can create posts of
-		// this type, and the test-send route's permission check passes.
-		// The REST route is registered by the class singleton's
-		// `rest_api_init` hook — `rest_do_request` fires that action.
+		// CPT is gated on `edit_others_posts`; re-register under an admin.
+		// REST routes register on `rest_api_init`, which `rest_do_request` fires.
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		\Newspack_Newsletters_Layouts::register_layout_cpt();
 
@@ -77,8 +56,6 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 		remove_filter( 'pre_wp_mail', [ $this, 'capture_wp_mail' ], 10 );
 		wp_set_current_user( $this->previous_user_id );
 
-		// Unregister the layouts CPT only if we registered it ourselves;
-		// the post-type registry is global and persists across tests.
 		if ( ! $this->layouts_cpt_was_registered && post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT ) ) {
 			unregister_post_type( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
 		}
@@ -87,14 +64,11 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `pre_wp_mail` filter: record the call, short-circuit wp_mail with
-	 * `true` so the real PHPMailer never runs.
+	 * `pre_wp_mail` filter: record the call, short-circuit wp_mail with `true`.
 	 *
-	 * @param null|bool $short_circuit Existing short-circuit value; replaced
-	 *                                 unconditionally.
-	 * @param array     $atts          wp_mail attributes (`to`, `subject`,
-	 *                                 `message`, `headers`, `attachments`).
-	 * @return true Always returns true so wp_mail reports success.
+	 * @param null|bool $short_circuit Unused.
+	 * @param array     $atts          wp_mail attributes.
+	 * @return true
 	 */
 	public function capture_wp_mail( $short_circuit, $atts ) {
 		unset( $short_circuit );
@@ -167,8 +141,7 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertCount( 3, $this->captured_mail );
 		foreach ( $this->captured_mail as $atts ) {
-			// Each call's To: must be a single address — either a string
-			// or a one-element array. wp_mail accepts both shapes.
+			// wp_mail accepts To: as a string or single-element array.
 			$to = $atts['to'];
 			if ( is_array( $to ) ) {
 				$this->assertCount( 1, $to );

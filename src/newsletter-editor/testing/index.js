@@ -41,25 +41,15 @@ export default compose( [
 	const [ shouldSendTest, setShouldSendTest ] = useState( false );
 	const [ localInFlight, setLocalInFlight ] = useState( false );
 	const [ localMessage, setLocalMessage ] = useState( '' );
-	// `supports_multiple_test_recipients` is a per-provider capability flag
-	// that lives on the campaign payload — it's nested under
-	// `newsletterData`, not a sibling on the hook's return shape.
 	const { newsletterData } = useNewsletterData();
 	const supportsMultipleTestEmailRecipients = !! newsletterData?.supports_multiple_test_recipients;
 
-	// Intentionally only on `isRefreshingHtml` — the effect's semantic is
-	// "react to a refresh transition", not to changes in any of the other
-	// values. Adding them would cause spurious re-runs (every keystroke in
-	// the email field changes `shouldSendTest`-adjacent state via siblings,
-	// `sendTestEmail` is a fresh closure each render). The closure is
-	// recreated each render anyway, so the values it reads are current.
+	// Deps intentionally narrow — fire on refresh transitions only.
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect( () => {
 		if ( wasRefreshingHtml && ! isRefreshingHtml && shouldSendTest ) {
 			if ( lastRefreshHadError ) {
-				// Refresh failed — the user already saw the error notice
-				// from MJML; don't send a test against stale/missing HTML.
-				// Clear the pending state so the next click re-arms it.
+				// MJML already raised the error notice; clear pending state.
 				setShouldSendTest( false );
 				setLocalInFlight( false );
 				return;
@@ -69,11 +59,8 @@ export default compose( [
 	}, [ isRefreshingHtml ] );
 
 	const sendTestEmail = async () => {
-		// Layouts route through a layout-specific REST endpoint that
-		// `wp_mail`s the rendered HTML directly — the per-provider
-		// `/test` route is gated by the newsletter-CPT validator and
-		// internally calls `sync()` to create an ESP campaign object,
-		// neither of which applies to layouts.
+		// Layouts hit a wp_mail-based endpoint; provider /test is gated
+		// by the newsletter-CPT validator and creates an ESP campaign.
 		const path = isLayoutEditor()
 			? `/newspack-newsletters/v1/layouts/${ postId }/test`
 			: `/newspack-newsletters/v1/${ serviceProvider }/${ postId }/test`;

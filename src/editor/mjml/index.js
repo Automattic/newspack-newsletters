@@ -103,16 +103,13 @@ function MJML() {
 	}, [ isSaving, isAutosaving ] );
 
 	const refreshHtml = async () => {
-		// The Testing panel waits for `isRefreshingHtml` to flip true→false
-		// before sending the test, so the flag must toggle for layouts too.
+		// Toggle the flag for layouts too — Testing waits on its transition.
 		// Only the ESP rehydrate calls below are layout-skipped.
 		const shouldTrackRefresh = isSupportedESP || isLayoutEditor();
 		let hadError = false;
 		try {
 			lockPostSaving( 'newspack-newsletters-refresh-html' );
 			if ( shouldTrackRefresh ) {
-				// Reset the error flag at the start of each refresh so a
-				// previous failure doesn't poison the next cycle.
 				updateLastRefreshHadError( false );
 				updateIsRefreshingHtml( true );
 			}
@@ -124,17 +121,13 @@ function MJML() {
 				throw new Error( `${ errorMessage }${ refreshedHtml.error?.message ? `: ${ refreshedHtml.error?.message }` : '.' }` );
 			}
 
-			// Save the refreshed HTML to post meta.
 			await apiFetch( {
 				data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml.html } },
 				method: 'POST',
 				path: `/wp/v2/${ postType }/${ postId }`,
 			} );
 
-			// Rehydrate ESP newsletter data after completing sync. Layouts
-			// have no campaign at the ESP, so the retrieve / sync-errors
-			// routes 404 for them — skipping this branch keeps layout
-			// saves quiet (no spurious "service provider error" notice).
+			// Layouts have no ESP campaign — these would 404 noisily.
 			if ( isSupportedESP && ! isLayoutEditor() ) {
 				await fetchNewsletterData( postId );
 				await fetchSyncErrors( postId );
@@ -146,12 +139,9 @@ function MJML() {
 				isDismissible: true,
 			} );
 		} finally {
-			// Always release the refresh flag and the save lock, otherwise a
-			// failed refresh leaves the Testing panel waiting on a transition
-			// that will never come and Gutenberg's save button stuck busy.
-			// Set the error flag *before* flipping the refreshing flag so
-			// the Testing effect (which fires on the boolean transition)
-			// reads an up-to-date value when it decides whether to send.
+			// Set the error flag before flipping the refresh flag — Testing's
+			// effect fires on the boolean transition and needs an up-to-date
+			// error read to decide whether to send.
 			if ( shouldTrackRefresh ) {
 				updateLastRefreshHadError( hadError );
 				updateIsRefreshingHtml( false );

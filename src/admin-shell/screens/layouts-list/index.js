@@ -1,14 +1,6 @@
 /**
- * Layouts list screen — React DataView for managing newsletter
- * layouts. Lists bundled prebuilts alongside user-saved layouts;
- * prebuilts are fully locked/passive in this view (no Edit, Rename,
- * Delete, or Duplicate — actions menu and selection checkbox are
- * suppressed entirely; the title row carries a lock icon instead).
- * Mounts at `?page=newspack-newsletters-layouts-list`. Server-side
- * paginated; default layout is Grid with a live `<NewsletterPreview>`
- * per card. The header CTA opens the dedicated layout editor at
- * `post-new.php?post_type=…layo_cpt`; the editor's "Save as layout"
- * dispatch remains a parallel entry point on the newsletter side.
+ * Layouts list screen — React DataView managing prebuilt + user-saved
+ * layouts. Prebuilts are passive (lock icon, no actions or selection).
  */
 
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
@@ -28,27 +20,12 @@ import { getFields, PREBUILT_AUTHOR_VALUE } from './fields';
 import { getActions, renameLayout } from './actions';
 import { getInitialView } from './initial-filters';
 
-/**
- * Register the core block library on first mount so `parse()` resolves
- * blocks instead of dropping unknown ones.
- *
- * The admin-shell page isn't a post editor, so the standard block
- * registration that happens on `post.php` doesn't run here. Without
- * this, `parse('<!-- wp:paragraph -->…<!-- /wp:paragraph -->')` returns
- * `[]` and every card renders the empty-layout placeholder.
- *
- * Newspack-specific blocks (`newspack-newsletters/posts-inserter`,
- * `…/share`, `…/ad`) intentionally aren't registered here — they live
- * in the much heavier newsletter-editor bundle and pulling that in for
- * the management surface isn't worth the cost. Core blocks dominate
- * layout structure in practice; Newspack blocks render as
- * "block-not-found" placeholders in the preview, which is acceptable
- * for a recognition-grade thumbnail (the user can click through to
- * Edit for full fidelity).
- *
- * Idempotent — guarded against re-registration so navigating away and
- * back doesn't trigger the "Block already registered" warning.
- */
+// Admin-shell pages don't auto-register blocks the way `post.php` does,
+// so without this `parse()` would drop unknown blocks and every preview
+// card would render the empty placeholder. Newspack blocks intentionally
+// stay unregistered here — they live in the heavy newsletter-editor
+// bundle and render as "block-not-found" in previews, acceptable for a
+// recognition-grade thumbnail.
 function ensureCoreBlocksRegistered() {
 	if ( typeof getBlockType === 'function' && getBlockType( 'core/paragraph' ) ) {
 		return;
@@ -58,9 +35,6 @@ function ensureCoreBlocksRegistered() {
 		return;
 	}
 	if ( typeof registerBlockType === 'function' ) {
-		// Defensive fallback for environments without the block-library
-		// package: register a minimal paragraph block so the screen at
-		// least renders text content.
 		registerBlockType( 'core/paragraph', {
 			title: __( 'Paragraph', 'newspack-newsletters' ),
 			save: () => null,
@@ -71,19 +45,14 @@ function ensureCoreBlocksRegistered() {
 const DEFAULT_VIEW = {
 	type: 'grid',
 	page: 1,
-	// Lower than the chassis default of 25 because each card mounts an
-	// iframe via `<BlockPreview>` — even with `LazyPreview` deferring
-	// off-screen mounts, 25 in-viewport iframes can stutter on first
-	// paint. 12 fits a typical 2-3 column grid without scroll.
+	// Lower than the chassis default — each card mounts a BlockPreview
+	// iframe; 25 stutters on first paint even with `LazyPreview`.
 	perPage: 12,
 	sort: { field: 'modified', direction: 'desc' },
 	search: '',
 	filters: [],
 	titleField: 'title',
 	mediaField: 'preview',
-	// Author shows below the title in grid mode (Templates-style) and
-	// as a column in table mode. `modified` stays available via "Show
-	// fields" but isn't visible by default to keep the card compact.
 	fields: [ 'author' ],
 	...getInitialView(),
 };
@@ -100,26 +69,15 @@ export default function LayoutsListScreen() {
 
 	const [ view, setView ] = useState( DEFAULT_VIEW );
 	const [ renamingId, setRenamingId ] = useState( null );
-	// Single mutation trigger shared by every write path (Rename,
-	// Duplicate, Delete, bulk Delete). Bumping it forces a refetch.
+	// Bumping this forces every write path to refetch the saved data.
 	const [ mutationKey, setMutationKey ] = useState( 0 );
 
 	const { layouts: prebuiltData, isLoading: isPrebuiltLoading } = usePrebuiltLayouts();
 
-	// Resolve the author filter from `view.filters`. Two buckets:
-	//
-	//   - `showPrebuilts`         — prebuilt set eligible for the merged view.
-	//   - `restrictedAuthorIds`   — positive include-list to constrain the saved fetch by (REST `author=` param).
-	//   - `savedFetchAllAuthors`  — fetch the saved collection without any author param.
-	//
-	// `'newspack'` is the prebuilt sentinel (id=0 in the data shape);
-	// real WP user IDs (positive integers) address saved layouts. The
-	// field's `filterBy.operators` list excludes `isNone` because the
-	// REST collection has no "exclude author" parameter and applying
-	// the exclusion client-side would leave gaps on filtered pages
-	// (see fields.js). Any stray `isNone` filter (URL-seeded, etc.)
-	// is treated as no-op so the screen falls through to the
-	// unfiltered render.
+	// Resolve the author filter into:
+	//   - showPrebuilts          — include the prebuilt set in the merged view
+	//   - restrictedAuthorIds    — REST `author=` include-list for saved rows
+	//   - savedFetchAllAuthors   — fetch saved collection without any author param
 	const authorFilterResolution = useMemo( () => {
 		const filter = ( view.filters || [] ).find( f => f.field === 'author' );
 		const noFilter = { showPrebuilts: true, restrictedAuthorIds: [], savedFetchAllAuthors: true };
@@ -137,9 +95,6 @@ export default function LayoutsListScreen() {
 			.map( v => Number( v ) )
 			.filter( n => Number.isFinite( n ) && n > 0 );
 
-		// `is` / `isAny` — include only the listed values. Saved data
-		// is fetched only when at least one user ID is included; a
-		// filter limited to `'newspack'` shows prebuilts alone.
 		return {
 			showPrebuilts: includesNewspack,
 			restrictedAuthorIds: userIds,
@@ -150,18 +105,14 @@ export default function LayoutsListScreen() {
 	const { showPrebuilts: authorShowPrebuilts, restrictedAuthorIds, savedFetchAllAuthors } = authorFilterResolution;
 	const showSaved = savedFetchAllAuthors || restrictedAuthorIds.length > 0;
 
-	// Prebuilts only show on page 1 of the unfiltered "include
-	// prebuilts" view. Search hides them entirely (titles aren't
-	// indexed against the parsed block content). Pinning them on top
-	// reserves N slots out of `view.perPage` on page 1, so the saved
-	// query is offset-paginated to fill the remaining slots and pick
-	// up where page 1 left off on subsequent pages.
+	// Prebuilts pin to page 1 only; search hides them (titles aren't
+	// indexed against parsed content). Saved rows offset-paginate around
+	// the slots prebuilts reserve.
 	const showPrebuilts = authorShowPrebuilts && view.page === 1 && ! view.search;
 	const prebuiltCount = prebuiltData.length;
-	// "Could ride along" — independent of whether prebuilts have loaded.
-	// Used to defer the saved fetch until the prebuilt count is known,
-	// so the saved query targets the correct slot count from the first
-	// request instead of refetching once prebuilts arrive.
+	// `couldRideAlong` lets us defer the saved fetch until we know the
+	// prebuilt count, avoiding a refetch with a smaller slot count once
+	// prebuilts arrive.
 	const couldRideAlong = authorShowPrebuilts && ! view.search;
 	const ridingAlong = couldRideAlong && prebuiltCount > 0;
 	const firstPageSavedSlots = ridingAlong ? Math.max( 1, view.perPage - prebuiltCount ) : view.perPage;
@@ -170,10 +121,8 @@ export default function LayoutsListScreen() {
 		if ( ! showSaved ) {
 			return null;
 		}
-		// While prebuilts are still loading on a view where they would
-		// ride along, hold the saved fetch — otherwise the first request
-		// uses `view.perPage` rows, then refetches with a smaller slot
-		// count once prebuilts arrive (visible flicker + extra request).
+		// Hold the saved fetch while prebuilts load — otherwise the first
+		// request uses too many slots and refetches once prebuilts arrive.
 		if ( couldRideAlong && isPrebuiltLoading ) {
 			return null;
 		}
@@ -194,11 +143,8 @@ export default function LayoutsListScreen() {
 
 	const data = useMemo( () => [ ...filteredPrebuilts, ...filteredSaved ], [ filteredPrebuilts, filteredSaved ] );
 
-	// Author filter elements. Prebuilts are pinned as `'newspack'`; the
-	// rest is derived from the embedded author shape on the loaded saved
-	// rows. The set grows as the user pages through, but a static list
-	// would require a server-side enumeration of every author who owns
-	// a layout — unnecessary for v1.
+	// Author elements grow as the user pages through; a static list would
+	// require a server-side enumeration of every layout author.
 	const authorElements = useMemo( () => {
 		const elements = [ { value: PREBUILT_AUTHOR_VALUE, label: __( 'Newspack', 'newspack-newsletters' ) } ];
 		const seen = new Set();
@@ -215,24 +161,19 @@ export default function LayoutsListScreen() {
 	}, [ savedData ] );
 
 	const paginationInfo = useMemo( () => {
-		// Prebuilt-only filter: the entire prebuilt set fits in one batch.
 		if ( ! showSaved ) {
 			return { totalItems: prebuiltCount, totalPages: 1 };
 		}
-		// Saved-only (search or user filter): standard saved pagination.
 		if ( ! ridingAlong ) {
 			return {
 				totalItems: savedPagination.totalItems,
 				totalPages: Math.max( 1, savedPagination.totalPages ),
 			};
 		}
-		// Mixed: page 1 holds `firstPageSavedSlots` saved + all prebuilts;
-		// the remaining saved spread across subsequent pages of `perPage`.
-		// `prebuiltCount` belongs in the total whenever the filter
-		// includes prebuilts — keying on `authorShowPrebuilts` instead
-		// of the per-page `showPrebuilts` keeps the total stable as the
-		// user pages through (prebuilts only render on page 1, but
-		// they're still part of the result set on later pages).
+		// Mixed view: page 1 holds prebuilts + `firstPageSavedSlots` saved,
+		// later pages hold `perPage` saved each. Key the prebuilt count on
+		// `authorShowPrebuilts` (filter decision) not `showPrebuilts`
+		// (page-1-only) so the total stays stable across pages.
 		const remainingSaved = Math.max( 0, savedPagination.totalItems - firstPageSavedSlots );
 		const totalPages = 1 + Math.ceil( remainingSaved / view.perPage );
 		return {
@@ -241,11 +182,8 @@ export default function LayoutsListScreen() {
 		};
 	}, [ savedPagination, prebuiltCount, showSaved, authorShowPrebuilts, ridingAlong, firstPageSavedSlots, view.perPage ] );
 
-	// `mediaField` is grid-only by intent — the preview mounts an iframe
-	// per row, which is fine in a card layout but blows out row heights
-	// in table mode (each row reserves ~320px). DataView's table layout
-	// renders the mediaField as a leftmost media cell when present, so
-	// strip it on layout switches and restore it when returning to grid.
+	// `mediaField` is grid-only — in table mode the per-row iframe blows
+	// out row heights, so strip it on layout switches.
 	const onChangeView = useCallback( next => {
 		if ( next.type === 'table' ) {
 			setView( { ...next, mediaField: undefined } );

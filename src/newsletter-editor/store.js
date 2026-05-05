@@ -35,9 +35,8 @@ const DEFAULT_STATE = {
 	isRetrievingLists: false,
 	isRetrievingSyncErrors: false,
 	isRefreshingHtml: false,
-	// Set when a refresh-HTML cycle ends in error so consumers waiting
-	// on the true→false transition (e.g. the Testing panel) can tell
-	// "completed successfully" apart from "completed with failure".
+	// Pairs with `isRefreshingHtml` so consumers waiting on the
+	// true→false transition can tell success from failure.
 	lastRefreshHadError: false,
 	newsletterData: {},
 	shouldSendTest: false,
@@ -118,9 +117,7 @@ export const useIsRetrieving = () =>
 // Hook to use the refresh HTML status from any editor component.
 export const useIsRefreshingHtml = () => useSelect( select => select( STORE_NAMESPACE ).getIsRefreshingHtml() );
 
-// Hook to read whether the most recent refresh-HTML cycle ended in error
-// — pairs with `useIsRefreshingHtml` so consumers can distinguish
-// "refresh completed successfully" from "refresh failed".
+// Hook to read whether the most recent refresh-HTML cycle ended in error.
 export const useLastRefreshHadError = () => useSelect( select => select( STORE_NAMESPACE ).getLastRefreshHadError() );
 
 // Hook to use the newsletter data from any editor component.

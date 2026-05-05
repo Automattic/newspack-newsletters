@@ -54,9 +54,6 @@ final class Newspack_Newsletters_Layouts {
 			return;
 		}
 
-		// `singular_name` drives the document bar's "· Layout" suffix
-		// (Gutenberg's `editor-document-bar__post-type-label` reads
-		// `getPostType().labels.singular_name`).
 		$labels = [
 			'name'               => __( 'Layouts', 'newspack-newsletters' ),
 			'singular_name'      => __( 'Layout', 'newspack-newsletters' ),
@@ -80,9 +77,7 @@ final class Newspack_Newsletters_Layouts {
 			'show_ui'      => true,
 			'show_in_menu' => false,
 			'show_in_rest' => true,
-			// `author` makes WP expose `post_author` on the REST resource
-			// and lets `_embed=author` populate `_embedded.author[0]`,
-			// which the layouts list reads to render the Author column.
+			// `author` so `_embed` populates `_embedded.author[0]` for the list.
 			'supports'     => [ 'editor', 'title', 'custom-fields', 'author' ],
 			'taxonomies'   => [],
 		];
@@ -90,13 +85,8 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * Register the layout-specific REST routes.
-	 *
-	 * The standard newsletter test-send path (per provider) requires a
-	 * campaign object at the ESP and is gated by `validate_newsletter_id`,
-	 * so it can't carry preview-to-email for layouts. This route is the
-	 * layout-specific replacement: it `wp_mail`s the rendered email HTML
-	 * straight from post meta, bypassing the ESP entirely.
+	 * Register the layout-specific test-send REST route — `wp_mail`s the
+	 * rendered HTML directly so layouts never touch an ESP campaign.
 	 */
 	public static function register_rest_routes() {
 		register_rest_route(
@@ -109,9 +99,6 @@ final class Newspack_Newsletters_Layouts {
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',
-						// WP REST passes ($value, $request, $param) to
-						// `validate_callback` — accept all three even
-						// though we only need the value.
 						'validate_callback' => function ( $id, $request = null, $param = null ) {
 							unset( $request, $param );
 							$post = get_post( absint( $id ) );
@@ -127,10 +114,8 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * REST callback: send a preview of the layout to the supplied email
-	 * address(es). Reads the rendered HTML from post meta (populated by
-	 * the MJML refresh on save), wraps it for email, and sends via
-	 * `wp_mail`. No ESP campaign is created or touched.
+	 * Send a preview of the layout to the supplied email address(es) via
+	 * `wp_mail` — bypasses the ESP entirely.
 	 *
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return WP_REST_Response|WP_Error
@@ -138,9 +123,7 @@ final class Newspack_Newsletters_Layouts {
 	public static function rest_send_layout_test_email( $request ) {
 		$post_id = absint( $request['id'] );
 		$raw     = (string) $request->get_param( 'test_email' );
-		// Sanitize per-address (matches the provider `/test` controllers'
-		// behaviour, e.g. `Newspack_Newsletters_Mailchimp_Controller::api_test`).
-		$emails = array_map(
+		$emails  = array_map(
 			static function ( $email ) {
 				return sanitize_email( trim( $email ) );
 			},
@@ -156,10 +139,8 @@ final class Newspack_Newsletters_Layouts {
 			);
 		}
 
-		// Persist the recipient list against the current user, mirroring the
-		// provider `/test` controllers' `update_user_test_emails`. Keeps the
-		// Testing panel's default value consistent across newsletter and
-		// layout test sends (both read `newspack_nl_test_emails`).
+		// Mirrors `update_user_test_emails` so the Testing panel default
+		// stays consistent across newsletter and layout sends.
 		$user_id   = get_current_user_id();
 		$user_info = $user_id ? get_userdata( $user_id ) : null;
 		$is_self   = $user_info && 1 === count( $valid ) && $user_info->user_email === $valid[0];
