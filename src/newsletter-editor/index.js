@@ -97,11 +97,14 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		}
 	}, newsletterDataError );
 
-	if ( ! isSupportedESP() ) {
+	const isLayout = isLayoutEditor();
+	// Layouts intentionally don't depend on a connected ESP — the test-send
+	// path goes through `wp_mail`, the styling sidebar is provider-agnostic,
+	// and an unconfigured site should still be able to author layouts.
+	// Bail only for non-layout editors when no provider is supported.
+	if ( ! isLayout && ! isSupportedESP() ) {
 		return null;
 	}
-
-	const isLayout = isLayoutEditor();
 	// Layouts have no template to pick — they ARE templates. The init modal
 	// is for ESP setup only in layout mode.
 	const isDisplayingInitModal = shouldDisplaySettings || ( ! isLayout && -1 === layoutId );

@@ -135,15 +135,19 @@ function MJML() {
 				await fetchNewsletterData( postId );
 				await fetchSyncErrors( postId );
 			}
-			if ( shouldTrackRefresh ) {
-				updateIsRefreshingHtml( false );
-			}
-			unlockPostSaving( 'newspack-newsletters-refresh-html' );
 		} catch ( e ) {
 			createNotice( 'error', e?.message || __( 'Error refreshing email HTML.', 'newspack-newsletters' ), {
 				id: 'newspack-newsletters-mjml-error',
 				isDismissible: true,
 			} );
+		} finally {
+			// Always release the refresh flag and the save lock, otherwise a
+			// failed refresh leaves the Testing panel waiting on a transition
+			// that will never come and Gutenberg's save button stuck busy.
+			if ( shouldTrackRefresh ) {
+				updateIsRefreshingHtml( false );
+			}
+			unlockPostSaving( 'newspack-newsletters-refresh-html' );
 		}
 	};
 }
