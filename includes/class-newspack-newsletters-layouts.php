@@ -54,6 +54,9 @@ final class Newspack_Newsletters_Layouts {
 			return;
 		}
 
+		// `singular_name` drives the document bar's "· Layout" suffix
+		// (Gutenberg's `editor-document-bar__post-type-label` reads
+		// `getPostType().labels.singular_name`).
 		$labels = [
 			'name'               => __( 'Layouts', 'newspack-newsletters' ),
 			'singular_name'      => __( 'Layout', 'newspack-newsletters' ),
@@ -69,10 +72,6 @@ final class Newspack_Newsletters_Layouts {
 			'all_items'          => __( 'All layouts', 'newspack-newsletters' ),
 			'item_published'     => __( 'Layout published.', 'newspack-newsletters' ),
 			'item_updated'       => __( 'Layout updated.', 'newspack-newsletters' ),
-			// Drives the document bar's "· Layout" suffix in the post editor
-			// (the label rendered next to the title via Gutenberg's
-			// `editor-document-bar__post-type-label`).
-			'item_singular_name' => __( 'Layout', 'newspack-newsletters' ),
 		];
 
 		$cpt_args = [
