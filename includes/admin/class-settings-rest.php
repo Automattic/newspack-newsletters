@@ -352,7 +352,7 @@ class Settings_REST {
 				'type'        => $type,
 				'default'     => array_key_exists( 'default', $entry ) ? $entry['default'] : '',
 				'help'        => isset( $entry['help'] ) ? $entry['help'] : '',
-				'help_url'    => isset( $entry['helpURL'] ) ? $entry['helpURL'] : '',
+				'help_url'    => isset( $entry['helpURL'] ) && is_string( $entry['helpURL'] ) ? esc_url_raw( $entry['helpURL'] ) : '',
 				'placeholder' => isset( $entry['placeholder'] ) ? $entry['placeholder'] : '',
 				'provider'    => $entry_provider,
 				'sanitize'    => isset( $entry['sanitize_callback'] ) && is_callable( $entry['sanitize_callback'] )
@@ -470,9 +470,13 @@ class Settings_REST {
 		if ( 'checkbox' === $field['type'] ) {
 			return (int) boolval( $value );
 		}
+		// Normalise to a scalar string before any callable runs — REST
+		// input can arrive as an array/object, and callables like
+		// `sanitize_title` warn or misbehave on non-scalar input.
+		$scalar = is_scalar( $value ) ? (string) $value : '';
 		if ( ! empty( $field['sanitize'] ) && is_callable( $field['sanitize'] ) ) {
-			return call_user_func( $field['sanitize'], $value );
+			return call_user_func( $field['sanitize'], $scalar );
 		}
-		return is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
+		return sanitize_text_field( $scalar );
 	}
 }
