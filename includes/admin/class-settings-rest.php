@@ -98,9 +98,10 @@ class Settings_REST {
 	/**
 	 * Return the aggregated payload for a fresh page mount.
 	 *
+	 * @param \WP_REST_Request $request Incoming request.
 	 * @return \WP_REST_Response
 	 */
-	public static function get_settings() {
+	public static function get_settings( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return rest_ensure_response( self::build_payload() );
 	}
 
