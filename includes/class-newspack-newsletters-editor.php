@@ -88,6 +88,7 @@ final class Newspack_Newsletters_Editor {
 		$email_cpts = [
 			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			Newspack_Newsletters\Ads::CPT,
+			Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT,
 		];
 		return apply_filters( 'newspack_newsletters_email_editor_cpts', $email_cpts );
 	}
@@ -354,7 +355,7 @@ final class Newspack_Newsletters_Editor {
 		$provider                 = Newspack_Newsletters::get_service_provider();
 		$conditional_tag_support  = false;
 
-		if ( $provider && ( self::is_editing_newsletter() || self::is_editing_newsletter_ad() ) ) {
+		if ( $provider && ( self::is_editing_newsletter() || self::is_editing_newsletter_ad() || self::is_editing_layout() ) ) {
 			$conditional_tag_support = $provider::get_conditional_tag_support();
 		}
 
@@ -408,7 +409,7 @@ final class Newspack_Newsletters_Editor {
 			);
 		}
 
-		if ( self::is_editing_newsletter() ) {
+		if ( self::is_editing_newsletter() || self::is_editing_layout() ) {
 			wp_localize_script(
 				'newspack-newsletters-editor',
 				'newspack_newsletters_data',
@@ -486,6 +487,13 @@ final class Newspack_Newsletters_Editor {
 	 */
 	private static function is_editing_newsletter_ad() {
 		return Newspack_Newsletters\Ads::CPT === get_post_type();
+	}
+
+	/**
+	 * Is editing a layout?
+	 */
+	private static function is_editing_layout() {
+		return Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === get_post_type();
 	}
 
 	/**

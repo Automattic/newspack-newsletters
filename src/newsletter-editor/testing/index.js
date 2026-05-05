@@ -11,13 +11,13 @@ import {
 	TextControl,
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
-import { hasValidEmail, usePrevious } from '../utils';
+import { hasValidEmail, isLayoutEditor, usePrevious } from '../utils';
 
 /**
  * Internal dependencies
  */
 import withApiHandler from '../../components/with-api-handler';
-import { useIsRefreshingHtml, useNewsletterData } from '../store';
+import { useIsRefreshingHtml, useLastRefreshHadError, useNewsletterData } from '../store';
 import './style.scss';
 
 const serviceProvider = window && window.newspack_newsletters_data && window.newspack_newsletters_data.service_provider;
@@ -37,20 +37,35 @@ export default compose( [
 ] )( ( { apiFetchWithErrorHandling, inFlight, postId, savePost, setInFlightForAsync, testEmail, onChangeEmail, disabled, inlineNotifications } ) => {
 	const isRefreshingHtml = useIsRefreshingHtml();
 	const wasRefreshingHtml = usePrevious( isRefreshingHtml );
+	const lastRefreshHadError = useLastRefreshHadError();
 	const [ shouldSendTest, setShouldSendTest ] = useState( false );
 	const [ localInFlight, setLocalInFlight ] = useState( false );
 	const [ localMessage, setLocalMessage ] = useState( '' );
-	const { supports_multiple_test_recipients: supportsMultipleTestEmailRecipients } = useNewsletterData();
+	const { newsletterData } = useNewsletterData();
+	const supportsMultipleTestEmailRecipients = !! newsletterData?.supports_multiple_test_recipients;
 
+	// Deps intentionally narrow — fire on refresh transitions only.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect( () => {
 		if ( wasRefreshingHtml && ! isRefreshingHtml && shouldSendTest ) {
+			if ( lastRefreshHadError ) {
+				// MJML already raised the error notice; clear pending state.
+				setShouldSendTest( false );
+				setLocalInFlight( false );
+				return;
+			}
 			sendTestEmail();
 		}
 	}, [ isRefreshingHtml ] );
 
 	const sendTestEmail = async () => {
+		// Layouts hit a wp_mail-based endpoint; provider /test is gated
+		// by the newsletter-CPT validator and creates an ESP campaign.
+		const path = isLayoutEditor()
+			? `/newspack-newsletters/v1/layouts/${ postId }/test`
+			: `/newspack-newsletters/v1/${ serviceProvider }/${ postId }/test`;
 		const params = {
-			path: `/newspack-newsletters/v1/${ serviceProvider }/${ postId }/test`,
+			path,
 			data: {
 				test_email: testEmail,
 			},

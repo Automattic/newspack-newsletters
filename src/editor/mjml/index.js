@@ -7,13 +7,13 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
-import { usePrevious } from '../../newsletter-editor/utils';
+import { isLayoutEditor, usePrevious } from '../../newsletter-editor/utils';
 
 /**
  * Internal dependencies
  */
 import { getServiceProvider } from '../../service-providers';
-import { fetchNewsletterData, fetchSyncErrors, updateIsRefreshingHtml } from '../../newsletter-editor/store';
+import { fetchNewsletterData, fetchSyncErrors, updateIsRefreshingHtml, updateLastRefreshHadError } from '../../newsletter-editor/store';
 
 /**
  * External dependencies
@@ -103,9 +103,14 @@ function MJML() {
 	}, [ isSaving, isAutosaving ] );
 
 	const refreshHtml = async () => {
+		// Toggle the flag for layouts too — Testing waits on its transition.
+		// Only the ESP rehydrate calls below are layout-skipped.
+		const shouldTrackRefresh = isSupportedESP || isLayoutEditor();
+		let hadError = false;
 		try {
 			lockPostSaving( 'newspack-newsletters-refresh-html' );
-			if ( isSupportedESP ) {
+			if ( shouldTrackRefresh ) {
+				updateLastRefreshHadError( false );
 				updateIsRefreshingHtml( true );
 			}
 			const refreshedHtml = await refreshEmailHtml( postId, postTitle, postContent );
@@ -116,25 +121,32 @@ function MJML() {
 				throw new Error( `${ errorMessage }${ refreshedHtml.error?.message ? `: ${ refreshedHtml.error?.message }` : '.' }` );
 			}
 
-			// Save the refreshed HTML to post meta.
 			await apiFetch( {
 				data: { meta: { [ newspack_email_editor_data.email_html_meta ]: refreshedHtml.html } },
 				method: 'POST',
 				path: `/wp/v2/${ postType }/${ postId }`,
 			} );
 
-			// Rehydrate ESP newsletter data after completing sync.
-			if ( isSupportedESP ) {
+			// Layouts have no ESP campaign — these would 404 noisily.
+			if ( isSupportedESP && ! isLayoutEditor() ) {
 				await fetchNewsletterData( postId );
 				await fetchSyncErrors( postId );
-				updateIsRefreshingHtml( false );
 			}
-			unlockPostSaving( 'newspack-newsletters-refresh-html' );
 		} catch ( e ) {
+			hadError = true;
 			createNotice( 'error', e?.message || __( 'Error refreshing email HTML.', 'newspack-newsletters' ), {
 				id: 'newspack-newsletters-mjml-error',
 				isDismissible: true,
 			} );
+		} finally {
+			// Set the error flag before flipping the refresh flag — Testing's
+			// effect fires on the boolean transition and needs an up-to-date
+			// error read to decide whether to send.
+			if ( shouldTrackRefresh ) {
+				updateLastRefreshHadError( hadError );
+				updateIsRefreshingHtml( false );
+			}
+			unlockPostSaving( 'newspack-newsletters-refresh-html' );
 		}
 	};
 }

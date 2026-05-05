@@ -1,19 +1,5 @@
 /**
  * Per-row + bulk actions for the Layouts list.
- *
- * - Edit — navigates to the classic post editor for the layout post.
- * - Duplicate — GETs the source post in `context=edit` to capture
- *   `content.raw` and meta, then POSTs a new layout with title
- *   prefixed `Copy of …`. Registered meta keys round-trip as long
- *   as the request includes them in the create payload.
- * - Rename — opt-in inline rename. The action sets `renamingId` on
- *   the screen; the title field swaps to a `<TextControl>` (see
- *   `fields.js`). The title update itself happens in the field
- *   component on blur / Enter.
- * - Delete — confirm + DELETE force=true (CPT collection accepts
- *   `force=true` for permanent removal because trash isn't surfaced
- *   for this CPT). Bulk Delete batches the same single-item DELETE
- *   in parallel.
  */
 
 import apiFetch from '@wordpress/api-fetch';
@@ -44,20 +30,9 @@ function buildEditUrl( item ) {
 const deleteOne = id => apiFetch( { path: `${ COLLECTION_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
 async function duplicateOne( item ) {
-	// Prebuilt rows aren't real posts — there's no `id` to GET from the
-	// REST collection. We have the title and content already attached
-	// to the item (normalised in `usePrebuiltLayouts`), so the duplicate
-	// payload comes straight from the in-memory shape. Saved rows
-	// re-fetch in `context=edit` to be sure of the raw content + full
-	// meta — the list payload already carries these, but Duplicate is
-	// a low-frequency action and the round-trip keeps the action robust
-	// against future callers that pass a leaner item shape.
-	let source;
-	if ( item?.is_prebuilt ) {
-		source = item;
-	} else {
-		source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
-	}
+	// Re-fetch in `context=edit` so the duplicate is robust against
+	// future callers passing a leaner item shape than the list payload.
+	const source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
 	const sourceTitle = source?.title?.raw ?? source?.title?.rendered ?? __( 'Untitled', 'newspack-newsletters' );
 	const payload = {
 		status: 'publish',
@@ -122,10 +97,8 @@ function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 	);
 }
 
-// Prebuilt rows are seeded from JSON files and shared across every
-// site — Edit / Rename / Delete are locked so a publisher can't break
-// the bundled set. Duplicate is the one path that turns a prebuilt
-// into editable content (a copy is a regular post the user owns).
+// Prebuilts are bundled JSON, shared across every site, and locked from
+// every mutating action in this view.
 const isUserOwned = item => ! item?.is_prebuilt;
 
 export function getActions( { onRenameStart, onMutated } ) {
@@ -146,6 +119,7 @@ export function getActions( { onRenameStart, onMutated } ) {
 	const duplicateAction = {
 		id: 'duplicate',
 		label: __( 'Duplicate', 'newspack-newsletters' ),
+		isEligible: isUserOwned,
 		callback: async items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -215,10 +189,8 @@ export function getActions( { onRenameStart, onMutated } ) {
 }
 
 /**
- * Update a layout's title via POST to the post resource (the WP REST
- * convention for updates on `/wp/v2/<cpt>/<id>`). Returned promise
- * rejects on failure so the caller can leave the inline-rename UI in
- * place for retry.
+ * Update a layout's title. Rejects on failure so the caller can leave
+ * the inline-rename UI in place for retry.
  *
  * @param {number} id    Post id.
  * @param {string} title New title (already trimmed).

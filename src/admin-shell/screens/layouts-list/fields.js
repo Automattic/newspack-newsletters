@@ -1,36 +1,23 @@
 /**
  * Field definitions for the Layouts list DataView.
- *
- * Three fields drive the surface:
- *
- * - **title** — primary; doubles as inline rename. When the screen's
- *   `renamingId` matches the row id the field renders a `<TextControl>`
- *   that PATCHes the post title on blur (or Enter), mirroring the
- *   ergonomic of `SingleLayoutPreview` in the existing layout picker.
- * - **preview** — `mediaField` for the grid layout; renders a live
- *   `<NewsletterPreview>` of the parsed blocks, deferred via
- *   `LazyPreview` so off-screen cards don't mount their iframes until
- *   the user scrolls them in.
- * - **modified** — last-edited date as a sortable column. Useful in
- *   table layout for spotting stale layouts.
- *
- * The CPT collection accepts `orderby` ∈ { date, modified, title }.
- * `enableSorting` is opt-in here — title and modified are useful sorts.
  */
 
 import { parse } from '@wordpress/blocks';
-import { TextControl } from '@wordpress/components';
+import { Icon, TextControl } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { dateI18n, getDate, getSettings } from '@wordpress/date';
 import { __ } from '@wordpress/i18n';
+import { commentAuthorAvatar, lock, plugins } from '@wordpress/icons';
 import { ENTER, ESCAPE } from '@wordpress/keycodes';
 
 import NewsletterPreview from '../../../components/newsletter-preview';
 import { setPreventDeduplicationForPostsInserter } from '../../../editor/blocks/posts-inserter/utils';
 import LazyPreview from './lazy-preview';
 
+// String token can't collide with real (positive integer) WP user IDs.
+export const PREBUILT_AUTHOR_VALUE = 'newspack';
+
 function getRawTitle( item ) {
-	// REST `context=edit` returns title as `{ raw, rendered }`.
 	return item?.title?.raw ?? item?.title?.rendered ?? '';
 }
 
@@ -50,22 +37,13 @@ function getMetaForPreview( item ) {
 }
 
 /**
- * Inline-renaming title cell.
- *
- * Swaps to a `<TextControl>` when the row is the renaming target. The
- * control auto-focuses, commits on blur or Enter, and reverts on
- * Escape — matching the picker's behaviour. `stopPropagation` on the
- * outer wrapper prevents the DataView's row-click handler from also
- * toggling the row's selection state while the user types.
+ * Inline-renaming title cell. Commits on blur or Enter, reverts on Escape.
  */
 function RenamingTitle( { item, onCommit, onCancel } ) {
 	const [ value, setValue ] = useState( getRawTitle( item ) );
 	const [ isBusy, setIsBusy ] = useState( false );
 	const inputRef = useRef( null );
 
-	// Auto-focus once on mount. The TextControl renders an internal
-	// `<input>`; querying through the wrapping div lets us focus it
-	// without depending on a forwarded-ref API.
 	useEffect( () => {
 		const input = inputRef.current?.querySelector?.( 'input' );
 		input?.focus();
@@ -83,10 +61,8 @@ function RenamingTitle( { item, onCommit, onCancel } ) {
 		try {
 			await onCommit( trimmed );
 		} catch {
-			// The screen-level handler raises an error notice and
-			// leaves `renamingId` set so the inline UI stays available
-			// for retry. Swallow here so `onBlur` / `onKeyDown` don't
-			// emit an unhandled rejection.
+			// Screen-level handler raises the notice and leaves `renamingId`
+			// set; swallow here so blur/keydown don't trip an unhandled rejection.
 		} finally {
 			setIsBusy( false );
 		}
@@ -128,28 +104,62 @@ function RenamingTitle( { item, onCommit, onCancel } ) {
  * @param {string|number|null} options.renamingId     Row id currently in inline-rename mode (or `null`).
  * @param {Function}           options.onRenameCommit `(item, newTitle) => Promise` — PATCH and refresh.
  * @param {Function}           options.onRenameCancel `() => void` — clear `renamingId` without saving.
+ * @param {Array}              options.authorElements Filter elements for the author field, derived from the loaded data.
  * @return {Array} Field definitions.
  */
-export function getFields( { renamingId = null, onRenameCommit, onRenameCancel } = {} ) {
+export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, authorElements = [] } = {} ) {
 	const renderTitle = ( { item } ) => {
 		const id = item?.id;
 		if ( renamingId !== null && String( renamingId ) === String( id ) ) {
 			return <RenamingTitle item={ item } onCommit={ next => onRenameCommit?.( item, next ) } onCancel={ () => onRenameCancel?.() } />;
 		}
 		const label = getRawTitle( item ) || __( '(no title)', 'newspack-newsletters' );
-		// A "Prebuilt" badge inline with the title makes the locked
-		// state legible without forcing a separate column. Mirrors how
-		// classic CPT lists tag taxonomy-restricted rows.
 		if ( item?.is_prebuilt ) {
 			return (
-				<span>
-					<strong>{ label }</strong>{ ' ' }
-					<em className="newspack-newsletters-layouts-list__prebuilt-badge">{ __( '(Prebuilt)', 'newspack-newsletters' ) }</em>
+				<span className="newspack-newsletters-layouts-list__title">
+					<strong>{ label }</strong>
+					<Icon
+						className="newspack-newsletters-layouts-list__lock-icon"
+						icon={ lock }
+						size={ 16 }
+						aria-label={ __( 'Locked: bundled with the plugin', 'newspack-newsletters' ) }
+					/>
 				</span>
 			);
 		}
 		return <strong>{ label }</strong>;
 	};
+
+	const renderAuthor = ( { item } ) => {
+		const author = item?._embedded?.author?.[ 0 ];
+		if ( ! author ) {
+			return null;
+		}
+		const isPrebuilt = !! item?.is_prebuilt;
+		const icon = isPrebuilt ? plugins : commentAuthorAvatar;
+		return (
+			<span className="newspack-newsletters-layouts-list__author">
+				<Icon className="newspack-newsletters-layouts-list__author-icon" icon={ icon } size={ 24 } />
+				<span>{ author.name || '' }</span>
+			</span>
+		);
+	};
+
+	const authorField = {
+		id: 'author',
+		label: __( 'Author', 'newspack-newsletters' ),
+		enableSorting: false,
+		getValue: ( { item } ) => ( item?.is_prebuilt ? PREBUILT_AUTHOR_VALUE : String( item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '' ) ),
+		render: renderAuthor,
+	};
+
+	if ( authorElements.length > 0 ) {
+		authorField.elements = authorElements;
+		// `isNone` would need client-side post-filter after server pagination;
+		// that leaves blank slots and miscounts totals. Add once the REST
+		// collection accepts author exclusions.
+		authorField.filterBy = { operators: [ 'is', 'isAny' ] };
+	}
 
 	return [
 		{
@@ -160,25 +170,7 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel }
 			getValue: ( { item } ) => getRawTitle( item ),
 			render: renderTitle,
 		},
-		{
-			id: 'type',
-			label: __( 'Type', 'newspack-newsletters' ),
-			// `enableSorting: false` because order across the two
-			// types is meaningful (prebuilts pinned on top); sorting
-			// by type would shuffle that. `enableHiding` defaults to
-			// true so the user can show/hide the column in table
-			// mode if they want it visible.
-			enableSorting: false,
-			elements: [
-				{ value: 'prebuilt', label: __( 'Prebuilt', 'newspack-newsletters' ) },
-				{ value: 'user', label: __( 'User created', 'newspack-newsletters' ) },
-			],
-			filterBy: {
-				operators: [ 'is', 'isAny', 'isNone' ],
-				isPrimary: true,
-			},
-			getValue: ( { item } ) => ( item?.is_prebuilt ? 'prebuilt' : 'user' ),
-		},
+		authorField,
 		{
 			id: 'preview',
 			label: __( 'Preview', 'newspack-newsletters' ),
@@ -245,7 +237,7 @@ function PreviewCard( { item } ) {
 	}
 
 	return (
-		<LazyPreview placeholderStyle={ { minHeight: '320px' } } rootMargin="200px">
+		<LazyPreview placeholderStyle={ { aspectRatio: '1' } } rootMargin="200px">
 			{ () => (
 				<div className="newspack-newsletters-layouts-list__preview">
 					<NewsletterPreview layoutId={ item?.id } meta={ meta } blocks={ blocks } viewportWidth={ 848 } />

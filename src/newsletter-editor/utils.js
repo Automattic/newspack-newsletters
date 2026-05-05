@@ -10,6 +10,22 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { getServiceProvider } from '../service-providers';
+import { LAYOUT_CPT_SLUG } from '../utils/consts';
+
+/**
+ * Is the current editor session editing a layout post?
+ *
+ * Layouts share the newsletter editor but suppress all send-related UI —
+ * the post type is the single source of truth for that branch. We read
+ * the `post-type-{cpt}` class WordPress adds to `<body>` on every post
+ * editor screen rather than the localised `newspack_email_editor_data`
+ * global, so the check is independent of script load order. The bundle
+ * is enqueued in the footer, so `document.body` is always parsed by
+ * the time this runs.
+ *
+ * @return {boolean} True if editing a layout.
+ */
+export const isLayoutEditor = () => typeof document !== 'undefined' && !! document.body?.classList?.contains( `post-type-${ LAYOUT_CPT_SLUG }` );
 
 /**
  * Is the current ESP a supported ESP?

@@ -1205,7 +1205,8 @@ final class Newspack_Newsletters {
 		if (
 			self::NEWSPACK_NEWSLETTERS_CPT !== $screen->post_type &&
 			Newspack_Newsletters\Ads::CPT !== $screen->post_type &&
-			Newspack\Newsletters\Subscription_Lists::CPT !== $screen->post_type
+			Newspack\Newsletters\Subscription_Lists::CPT !== $screen->post_type &&
+			Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT !== $screen->post_type
 		) {
 			return;
 		}
