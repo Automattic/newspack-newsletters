@@ -952,8 +952,11 @@ Error message(s) received:
 	 *
 	 *   - key (string, required): Machine key for the field. Used as the Incoming_Field key.
 	 *   - name (string): Human-readable label. Defaults to the key.
-	 *   - value_type (string): 'string' or 'boolean'. Defaults to 'string'.
-	 *   - matching_function (string): 'default' | 'list__in' | 'list__not_in' | 'range'. Defaults to 'default'.
+	 *   - value_type (string): Defaults to 'string'. The Incoming_Field setter accepts other values
+	 *       (e.g. 'boolean'); current providers only emit 'string'.
+	 *   - matching_function (string): Defaults to 'default' (strict equality). Use 'list__in' for
+	 *       multi-select fields whose stored value is a delimited list. The consumer also
+	 *       recognizes 'list__not_in' and 'range', though no current provider emits them.
 	 *   - options (array): List of [ 'value' => ..., 'label' => ... ] pairs for enumerated fields.
 	 *   - description (string): Optional help text surfaced in the admin UI.
 	 *   - is_access_rule (bool): Whether the field is eligible as a content-gate access rule by default.

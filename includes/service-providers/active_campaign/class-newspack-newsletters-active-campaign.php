@@ -1780,14 +1780,19 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * Object cache group for the integrations field schema and per-field option lists.
+	 */
+	const INTEGRATIONS_CACHE_GROUP = 'newspack_newsletters_active_campaign';
+
+	/**
 	 * Get contact fields for Newspack integrations.
 	 *
 	 * @param string|null $list_id The List ID (unused — ActiveCampaign contact fields are global).
 	 * @return array|WP_Error
 	 */
 	public function get_contact_fields_for_integrations( $list_id = null ) {
-		$cache_key     = 'active_campaign_contact_fields_for_integrations';
-		$cached_fields = wp_cache_get( $cache_key );
+		$cache_key     = $this->integrations_cache_key( 'fields' );
+		$cached_fields = wp_cache_get( $cache_key, self::INTEGRATIONS_CACHE_GROUP );
 		if ( false !== $cached_fields ) {
 			return $cached_fields;
 		}
@@ -1802,17 +1807,44 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				$fields[] = $mapped;
 			}
 		}
-		wp_cache_set( $cache_key, $fields, '', 5 * MINUTE_IN_SECONDS );
+		wp_cache_set( $cache_key, $fields, self::INTEGRATIONS_CACHE_GROUP, 5 * MINUTE_IN_SECONDS );
 		return $fields;
+	}
+
+	/**
+	 * Build a cache key for integrations data, namespaced by the configured AC account URL.
+	 *
+	 * Two sites sharing an object cache backend can be configured against different AC accounts;
+	 * a flat global key would let one site's cached schema leak into the other.
+	 *
+	 * @param string $suffix Per-call key suffix (e.g. 'fields', 'options:34').
+	 * @return string
+	 */
+	private function integrations_cache_key( $suffix ) {
+		$credentials = $this->api_credentials();
+		if ( ! empty( $credentials['url'] ) ) {
+			$account_hash = substr( md5( (string) $credentials['url'] ), 0, 12 );
+		} else {
+			// Defensive fallback for a code path that bypasses credential checks; salt with
+			// the blog id so two unconfigured sites sharing an object cache don't collide.
+			$account_hash = 'noaccount-' . get_current_blog_id();
+		}
+		return $account_hash . ':' . $suffix;
 	}
 
 	/**
 	 * Map an ActiveCampaign contact field to the Newspack integrations schema.
 	 *
 	 * AC types eligible for access-rule / segmentation defaults: text, textarea, date, datetime,
-	 * dropdown, radio, listbox, checkbox. Hidden and NULL-typed fields are exposed but not
-	 * promoted by default. All fields use the 'default' matching function — AC stores dropdown
-	 * selections as a single string value, so exact-equality matching against a chosen option works.
+	 * dropdown, radio, listbox, checkbox, multiselect. Hidden and NULL-typed fields are exposed
+	 * but not promoted by default.
+	 *
+	 * Matching function depends on selection cardinality. Per AC's Contact Custom Fields API
+	 * Guide, dropdown / radio / listbox are single-selection types (their stored value is the
+	 * raw chosen option), so 'default' (strict equality) matching is correct. Checkbox and
+	 * multiselect are multi-selection types: AC stores the chosen options with a `||` delimiter
+	 * (e.g. `||Option A||Option C||`), which `default` matching cannot resolve — those types
+	 * use 'list__in', and the consumer's parse_list_value() recognizes the delimiter.
 	 *
 	 * @param array $field Raw field from the ActiveCampaign v3 /fields endpoint.
 	 * @return array|null Mapped field, or null if no usable identifier is available.
@@ -1823,10 +1855,13 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			return null;
 		}
 
-		$type                   = isset( $field['type'] ) ? $field['type'] : 'text';
-		$enumerated_types       = [ 'dropdown', 'radio', 'listbox', 'checkbox' ];
-		$eligible_types         = array_merge( [ 'text', 'textarea', 'date', 'datetime' ], $enumerated_types );
-		$is_promoted_by_default = in_array( $type, $eligible_types, true );
+		$type                       = isset( $field['type'] ) ? $field['type'] : 'text';
+		$single_select_enum_types   = [ 'dropdown', 'radio', 'listbox' ];
+		$multi_select_enum_types    = [ 'checkbox', 'multiselect' ];
+		$enumerated_types           = array_merge( $single_select_enum_types, $multi_select_enum_types );
+		$eligible_types             = array_merge( [ 'text', 'textarea', 'date', 'datetime' ], $enumerated_types );
+		$is_promoted_by_default     = in_array( $type, $eligible_types, true );
+		$is_multi_select            = in_array( $type, $multi_select_enum_types, true );
 
 		$options = [];
 		if ( in_array( $type, $enumerated_types, true ) && ! empty( $field['id'] ) ) {
@@ -1837,7 +1872,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'key'                 => $perstag,
 			'name'                => ! empty( $field['title'] ) ? $field['title'] : $perstag,
 			'value_type'          => 'string',
-			'matching_function'   => 'default',
+			'matching_function'   => $is_multi_select ? 'list__in' : 'default',
 			'options'             => $options,
 			'description'         => ! empty( $field['descript'] ) ? $field['descript'] : '',
 			'is_access_rule'      => $is_promoted_by_default,
@@ -1848,12 +1883,33 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	/**
 	 * Fetch the option list for an enumerated ActiveCampaign field.
 	 *
+	 * Cached per field with a longer TTL than the parent schema (1h vs 5min). Option lists
+	 * change much less often than the field roster, and a misaligned TTL means the parent
+	 * cache miss only re-fetches options for fields whose own per-field cache has lapsed.
+	 * Tradeoff: an option-label edit in AC can take up to 1h to surface in the admin UI.
+	 *
 	 * @param int|string $field_id The AC field ID.
 	 * @return array Array of [ 'value' => ..., 'label' => ... ] pairs (empty on failure).
 	 */
 	private function fetch_field_options( $field_id ) {
+		$cache_key = $this->integrations_cache_key( 'options:' . $field_id );
+		$cached    = wp_cache_get( $cache_key, self::INTEGRATIONS_CACHE_GROUP );
+		if ( false !== $cached ) {
+			return $cached;
+		}
 		$response = $this->api_v3_request( 'fields/' . rawurlencode( (string) $field_id ) . '/options', 'GET' );
-		if ( is_wp_error( $response ) || empty( $response['fieldOptions'] ) ) {
+		if ( is_wp_error( $response ) ) {
+			Newspack_Newsletters_Logger::log(
+				sprintf(
+					'ActiveCampaign: failed to fetch options for field %s: %s',
+					$field_id,
+					$response->get_error_message()
+				)
+			);
+			return [];
+		}
+		if ( empty( $response['fieldOptions'] ) ) {
+			wp_cache_set( $cache_key, [], self::INTEGRATIONS_CACHE_GROUP, HOUR_IN_SECONDS );
 			return [];
 		}
 		$options = [];
@@ -1866,6 +1922,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 				'label' => isset( $option['label'] ) ? $option['label'] : $option['value'],
 			];
 		}
+		wp_cache_set( $cache_key, $options, self::INTEGRATIONS_CACHE_GROUP, HOUR_IN_SECONDS );
 		return $options;
 	}
 }
