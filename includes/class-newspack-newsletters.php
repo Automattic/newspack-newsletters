@@ -1176,10 +1176,14 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag() {
 		$screen = get_current_screen();
-		if ( 'settings_page_newspack-newsletters-settings-admin' === $screen->base || self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) {
+		// Match both the legacy classic settings screen and the new
+		// standalone React settings screen — neither should display the
+		// "head to settings" nag, since the user is already there.
+		$on_settings_screen = $screen && is_string( $screen->base ) && false !== strpos( $screen->base, 'newspack-newsletters-settings' );
+		if ( $on_settings_screen || ( $screen && self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) ) {
 			return;
 		}
-		$url = admin_url( 'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_CPT . '&page=newspack-newsletters-settings-admin' );
+		$url = Newspack_Newsletters_Settings::get_settings_url();
 		?>
 		<div class="notice notice-info is-dismissible newspack-newsletters-notification-nag">
 			<p>
@@ -1208,6 +1212,17 @@ final class Newspack_Newsletters {
 			Newspack\Newsletters\Subscription_Lists::CPT !== $screen->post_type &&
 			Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT !== $screen->post_type
 		) {
+			return;
+		}
+
+		// Banner belongs to the bundled experience. Mirror the filterable
+		// `Admin_Shell::is_bundled_mode()` contract that decides whether
+		// the React Settings page is registered, so a `newspack_newsletters_admin_bundled_mode`
+		// override can't leave the banner enqueued on a standalone shell.
+		$is_bundled = class_exists( '\Newspack\Newsletters\Admin\Admin_Shell' )
+			? \Newspack\Newsletters\Admin\Admin_Shell::is_bundled_mode()
+			: class_exists( '\Newspack\Newspack' );
+		if ( ! $is_bundled ) {
 			return;
 		}
 

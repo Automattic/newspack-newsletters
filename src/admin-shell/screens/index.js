@@ -3,17 +3,17 @@
  *
  * Each entry maps an admin page slug (matching the PHP-side slug)
  * to a React component plus its menu label. Slugs that aren't
- * registered here resolve to null. Settings is a temporary
- * placeholder until its React surface lands; standalone-only at
- * the PHP layer.
+ * registered here resolve to null. Settings is standalone-only at
+ * the PHP layer — `Admin_Shell::get_pages()` skips registering it
+ * in bundled mode.
  */
 
 import { __ } from '@wordpress/i18n';
-import Placeholder from './placeholder';
 import NewslettersListScreen from './newsletters-list';
 import AdsListScreen from './ads-list';
 import AdvertisersListScreen from './advertisers-list';
 import LayoutsListScreen from './layouts-list';
+import SettingsScreen from './settings';
 
 export const screens = {
 	'newspack-newsletters-list': {
@@ -33,7 +33,7 @@ export const screens = {
 		label: __( 'Layouts', 'newspack-newsletters' ),
 	},
 	'newspack-newsletters-settings': {
-		component: Placeholder,
+		component: SettingsScreen,
 		label: __( 'Settings', 'newspack-newsletters' ),
 	},
 };
