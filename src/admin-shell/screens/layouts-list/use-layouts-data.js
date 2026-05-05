@@ -64,9 +64,12 @@ function buildPath( view ) {
 	// don't surface scheduling and we don't want auto-published rows
 	// flickering in/out as the cron runs.
 	params.set( 'status', 'publish,private,draft,pending' );
-	// `_embed=author` so the response carries `_embedded.author[0].name`
-	// for the author column without a per-row user lookup.
-	params.set( '_embed', 'author' );
+	// `_embed` is a presence flag in WP REST (sanitized as boolean) and
+	// embeds every embeddable link, including `author`, so a single
+	// truthy value is enough — no per-relation selector is supported.
+	// We need `_embedded.author[0].name` for the author column without
+	// a per-row user lookup.
+	params.set( '_embed', '1' );
 	if ( Array.isArray( view.author ) && view.author.length > 0 ) {
 		params.set( 'author', view.author.join( ',' ) );
 	}

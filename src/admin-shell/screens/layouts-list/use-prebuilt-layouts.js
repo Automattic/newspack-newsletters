@@ -69,10 +69,10 @@ export default function usePrebuiltLayouts() {
 							},
 							modified: null,
 							meta: {},
-							// Synthetic author shape matching the `_embed=author`
-							// envelope the saved-layouts fetch produces. Prebuilts
-							// are owned by "Newspack" — id=0 is unreachable for real
-							// users, so it doubles as the prebuilt sentinel for the
+							// Synthetic author shape matching the `_embed` envelope
+							// the saved-layouts fetch produces. Prebuilts are owned
+							// by "Newspack" — id=0 is unreachable for real users,
+							// so it doubles as the prebuilt sentinel for the
 							// author filter.
 							author: 0,
 							_embedded: { author: [ { id: 0, name: 'Newspack' } ] },
