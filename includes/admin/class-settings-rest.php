@@ -145,7 +145,7 @@ class Settings_REST {
 					} else {
 						$provider = Newspack_Newsletters::get_service_provider();
 						if ( $provider && method_exists( $provider, 'set_api_credentials' ) ) {
-							$result = $provider->set_api_credentials( $credentials );
+							$result = $provider->set_api_credentials( self::merge_credentials( $slug, $credentials, $provider ) );
 							if ( is_wp_error( $result ) ) {
 								foreach ( $result->errors as $code => $messages ) {
 									$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
@@ -197,10 +197,10 @@ class Settings_REST {
 		$provider_slug = Newspack_Newsletters::service_provider();
 		$provider      = Newspack_Newsletters::get_service_provider();
 
-		$credentials = [];
-		$has_creds   = false;
+		$credentials_set = [];
+		$has_creds       = false;
 		if ( $provider && method_exists( $provider, 'api_credentials' ) ) {
-			$credentials = self::filter_credentials( $provider_slug, $provider->api_credentials() );
+			$credentials_set = self::credentials_set_flags( $provider_slug, $provider->api_credentials() );
 			if ( method_exists( $provider, 'has_api_credentials' ) ) {
 				$has_creds = (bool) $provider->has_api_credentials();
 			}
@@ -231,10 +231,10 @@ class Settings_REST {
 
 		return [
 			'provider'  => [
-				'selected'    => $provider_slug ? $provider_slug : '',
-				'credentials' => $credentials,
-				'status'      => (bool) $status,
-				'oauth'       => $oauth,
+				'selected'        => $provider_slug ? $provider_slug : '',
+				'credentials_set' => $credentials_set,
+				'status'          => (bool) $status,
+				'oauth'           => $oauth,
 			],
 			'providers' => self::get_provider_choices(),
 			'options'   => $options,
@@ -290,10 +290,14 @@ class Settings_REST {
 			if ( in_array( $key, self::PROVIDER_CREDENTIAL_OPTION_KEYS, true ) ) {
 				continue;
 			}
+			$type = isset( $entry['type'] ) ? $entry['type'] : 'text';
+			if ( in_array( $type, [ 'boolean', 'bool' ], true ) ) {
+				$type = 'checkbox';
+			}
 			$schema[ $key ] = [
 				'key'         => $key,
 				'label'       => isset( $entry['description'] ) ? $entry['description'] : $key,
-				'type'        => isset( $entry['type'] ) ? $entry['type'] : 'text',
+				'type'        => $type,
 				'default'     => array_key_exists( 'default', $entry ) ? $entry['default'] : '',
 				'help'        => isset( $entry['help'] ) ? $entry['help'] : '',
 				'help_url'    => isset( $entry['helpURL'] ) ? $entry['helpURL'] : '',
@@ -332,28 +336,55 @@ class Settings_REST {
 	}
 
 	/**
-	 * Filter the provider's credentials against the allowlist so OAuth
-	 * tokens and other server-only secrets never leak to the React shell.
+	 * Map of credential-field → bool indicating which fields have a stored
+	 * value. Credentials themselves never leave the server — the React
+	 * shell uses these flags to render a "(set; leave blank to keep)"
+	 * affordance and only POSTs new values when the user types them.
 	 *
 	 * @param string $slug        Provider slug.
 	 * @param mixed  $credentials Raw `api_credentials()` payload.
 	 * @return array
 	 */
-	private static function filter_credentials( $slug, $credentials ) {
-		if ( ! is_array( $credentials ) ) {
-			return [];
+	private static function credentials_set_flags( $slug, $credentials ) {
+		$allowlist = self::PROVIDER_CREDENTIAL_ALLOWLIST[ $slug ] ?? [];
+		$flags     = [];
+		foreach ( $allowlist as $field ) {
+			$value         = is_array( $credentials ) && isset( $credentials[ $field ] ) ? $credentials[ $field ] : '';
+			$flags[ $field ] = '' !== (string) $value;
 		}
+		return $flags;
+	}
+
+	/**
+	 * Merge submitted credential fields with the provider's stored values
+	 * so a partial update (only the field the user actually typed into)
+	 * doesn't blank out the rest. Empty / missing fields fall back to the
+	 * existing stored value.
+	 *
+	 * @param string $slug        Provider slug.
+	 * @param array  $submitted   Credential fields posted by the client.
+	 * @param object $provider    The active service-provider instance.
+	 * @return array
+	 */
+	private static function merge_credentials( $slug, $submitted, $provider ) {
 		$allowlist = self::PROVIDER_CREDENTIAL_ALLOWLIST[ $slug ] ?? [];
 		if ( empty( $allowlist ) ) {
-			return [];
+			return is_array( $submitted ) ? $submitted : [];
 		}
-		$filtered = [];
+		$existing = method_exists( $provider, 'api_credentials' ) ? $provider->api_credentials() : [];
+		$existing = is_array( $existing ) ? $existing : [];
+		$merged   = [];
 		foreach ( $allowlist as $field ) {
-			if ( array_key_exists( $field, $credentials ) ) {
-				$filtered[ $field ] = $credentials[ $field ];
+			$incoming = is_array( $submitted ) && isset( $submitted[ $field ] ) ? (string) $submitted[ $field ] : '';
+			if ( '' !== $incoming ) {
+				$merged[ $field ] = $incoming;
+				continue;
+			}
+			if ( isset( $existing[ $field ] ) ) {
+				$merged[ $field ] = $existing[ $field ];
 			}
 		}
-		return $filtered;
+		return $merged;
 	}
 
 	/**

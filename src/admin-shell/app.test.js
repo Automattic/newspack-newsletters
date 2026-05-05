@@ -5,6 +5,16 @@ import App from './app';
 const NoopScreen = () => <div data-testid="noop-screen">noop</div>;
 
 describe( 'admin-shell App chrome', () => {
+	let originalGlobal;
+
+	beforeEach( () => {
+		originalGlobal = window.newspackNewslettersAdmin;
+	} );
+
+	afterEach( () => {
+		window.newspackNewslettersAdmin = originalGlobal;
+	} );
+
 	it( 'mounts the provided screen component', () => {
 		render( <App label="Layouts" Screen={ NoopScreen } /> );
 		expect( screen.getByTestId( 'noop-screen' ) ).toBeInTheDocument();
@@ -21,18 +31,14 @@ describe( 'admin-shell App chrome', () => {
 	} );
 
 	it( 'hides the h1 visually in bundled mode (newspack-plugin owns the breadcrumb)', () => {
-		const original = window.newspackNewslettersAdmin;
 		window.newspackNewslettersAdmin = { bundledMode: true };
 		const { container } = render( <App label="Newsletters" Screen={ NoopScreen } /> );
 		expect( container.querySelector( 'h1.screen-reader-text' ) ).not.toBeNull();
-		window.newspackNewslettersAdmin = original;
 	} );
 
 	it( 'shows the h1 as a visible page title in standalone mode', () => {
-		const original = window.newspackNewslettersAdmin;
 		window.newspackNewslettersAdmin = { bundledMode: false };
 		const { container } = render( <App label="Settings" Screen={ NoopScreen } /> );
 		expect( container.querySelector( 'h1.newspack-newsletters-admin__title' ) ).not.toBeNull();
-		window.newspackNewslettersAdmin = original;
 	} );
 } );

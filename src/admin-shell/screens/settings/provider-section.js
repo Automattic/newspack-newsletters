@@ -6,24 +6,40 @@ import { getProviderCredentialFields } from './provider-credentials-schema';
 
 export default function ProviderSection( { provider, providers, onSave, onAuthorized, isSaving } ) {
 	const [ slug, setSlug ] = useState( provider?.selected || '' );
-	const [ credentials, setCredentials ] = useState( provider?.credentials || {} );
+	const [ credentialEdits, setCredentialEdits ] = useState( {} );
 
+	// Resync edits to the upstream provider state — clear the local
+	// working copy whenever a save returns a refreshed payload (so the
+	// "(set; leave blank to keep)" placeholder shows again instead of the
+	// just-typed value), or when a provider switch reshuffles the fields.
 	useEffect( () => {
 		setSlug( provider?.selected || '' );
-		setCredentials( provider?.credentials || {} );
+		setCredentialEdits( {} );
 	}, [ provider ] );
 
 	const fields = getProviderCredentialFields( slug );
 	const isManual = slug === 'manual';
+	const credentialsSet = provider?.credentials_set || {};
 
 	const updateCredential = ( key, value ) => {
-		setCredentials( current => ( { ...current, [ key ]: value } ) );
+		setCredentialEdits( current => ( { ...current, [ key ]: value } ) );
 	};
 
 	const handleSave = async () => {
 		const payload = { provider: { slug } };
 		if ( ! isManual ) {
-			payload.provider.credentials = credentials;
+			// Only post the fields the user actually typed into. The server
+			// merges these with the existing stored values so empty fields
+			// don't wipe out the parts of the credentials block the user
+			// didn't touch.
+			const submitted = {};
+			fields.forEach( field => {
+				const value = credentialEdits[ field.key ];
+				if ( typeof value === 'string' && value.length > 0 ) {
+					submitted[ field.key ] = value;
+				}
+			} );
+			payload.provider.credentials = submitted;
 		}
 		await onSave( payload );
 	};
@@ -32,14 +48,15 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 	const showOAuthNotice = !! oauth && ! oauth.valid && oauth.auth_url;
 
 	const handleAuthorize = () => {
-		const authWindow = window.open( oauth.auth_url, 'newspack_newsletters_oauth', 'width=500,height=600' );
+		// Open `about:blank` first so the popup stays same-origin while
+		// we install the minimal `{ verify }` opener; only then navigate
+		// to the OAuth provider. If `auth_url` ever resolved to a third-
+		// party origin, this prevents it from briefly seeing the parent
+		// window's full `window.opener` reference.
+		const authWindow = window.open( 'about:blank', 'newspack_newsletters_oauth', 'width=500,height=600' );
 		if ( ! authWindow ) {
 			return;
 		}
-		// The OAuth callback page calls `window.opener.verify()` after the
-		// round-trip and `window.close()`; mirroring the classic settings
-		// popup flow lets the React shell refetch instead of the user
-		// being stranded on the callback page.
 		let verified = false;
 		authWindow.opener = {
 			verify: () => {
@@ -52,6 +69,7 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 				}
 			},
 		};
+		authWindow.location = oauth.auth_url;
 	};
 
 	return (
@@ -78,7 +96,7 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 				} ) ) }
 				onChange={ next => {
 					setSlug( next );
-					setCredentials( {} );
+					setCredentialEdits( {} );
 				} }
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
@@ -86,26 +104,30 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 
 			{ ! isManual && fields.length > 0 && (
 				<div className="newspack-newsletters-settings__credentials">
-					{ fields.map( field => (
-						<TextControl
-							key={ field.key }
-							label={ field.label }
-							value={ credentials?.[ field.key ] || '' }
-							placeholder={ field.placeholder || '' }
-							help={
-								field.help && field.helpURL ? (
-									<a href={ field.helpURL } target="_blank" rel="noreferrer noopener">
-										{ field.help }
-									</a>
-								) : (
-									field.help || ''
-								)
-							}
-							onChange={ value => updateCredential( field.key, value ) }
-							__nextHasNoMarginBottom
-							__next40pxDefaultSize
-						/>
-					) ) }
+					{ fields.map( field => {
+						const isSet = !! credentialsSet[ field.key ];
+						const placeholder = isSet ? __( 'Set — enter a new value to replace.', 'newspack-newsletters' ) : field.placeholder || '';
+						const help =
+							field.help && field.helpURL ? (
+								<a href={ field.helpURL } target="_blank" rel="noreferrer noopener">
+									{ field.help }
+								</a>
+							) : (
+								field.help || ''
+							);
+						return (
+							<TextControl
+								key={ field.key }
+								label={ field.label }
+								value={ credentialEdits[ field.key ] || '' }
+								placeholder={ placeholder }
+								help={ help }
+								onChange={ value => updateCredential( field.key, value ) }
+								__nextHasNoMarginBottom
+								__next40pxDefaultSize
+							/>
+						);
+					} ) }
 				</div>
 			) }
 
