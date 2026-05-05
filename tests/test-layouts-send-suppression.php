@@ -59,9 +59,15 @@ class Layouts_Send_Suppression_Test extends WP_UnitTestCase {
 	 * call surfaces as a catchable WPDieException instead of exiting the
 	 * test process.
 	 *
+	 * @param callable|null $default_handler The default wp_die handler WP
+	 *                                       passes to the filter — accepted
+	 *                                       to satisfy the filter signature
+	 *                                       and silence static analyzers,
+	 *                                       intentionally unused.
 	 * @return string The bootstrap-installed handler function name.
 	 */
-	public function route_wp_die_to_test_handler() {
+	public function route_wp_die_to_test_handler( $default_handler = null ) {
+		unset( $default_handler );
 		return 'handle_wpdie_in_tests';
 	}
 
