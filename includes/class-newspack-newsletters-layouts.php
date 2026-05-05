@@ -101,14 +101,12 @@ final class Newspack_Newsletters_Layouts {
 	 */
 	public static function register_rest_routes() {
 		register_rest_route(
-			'newspack-newsletters/v1',
+			Newspack_Newsletters::API_NAMESPACE,
 			'/layouts/(?P<id>\d+)/test',
 			[
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => [ __CLASS__, 'rest_send_layout_test_email' ],
-				'permission_callback' => function () {
-					return current_user_can( 'edit_others_posts' );
-				},
+				'permission_callback' => [ Newspack_Newsletters::class, 'api_authoring_permissions_check' ],
 				'args'                => [
 					'id'         => [
 						'sanitize_callback' => 'absint',
@@ -137,8 +135,15 @@ final class Newspack_Newsletters_Layouts {
 	public static function rest_send_layout_test_email( $request ) {
 		$post_id = absint( $request['id'] );
 		$raw     = (string) $request->get_param( 'test_email' );
-		$emails  = array_filter( array_map( 'trim', explode( ',', $raw ) ) );
-		$valid   = array_values( array_filter( $emails, 'is_email' ) );
+		// Sanitize per-address (matches the provider `/test` controllers'
+		// behaviour, e.g. `Newspack_Newsletters_Mailchimp_Controller::api_test`).
+		$emails = array_map(
+			static function ( $email ) {
+				return sanitize_email( trim( $email ) );
+			},
+			explode( ',', $raw )
+		);
+		$valid = array_values( array_filter( $emails, 'is_email' ) );
 
 		if ( empty( $valid ) ) {
 			return new WP_Error(
@@ -165,13 +170,33 @@ final class Newspack_Newsletters_Layouts {
 		);
 		$headers = [ 'Content-Type: text/html; charset=UTF-8' ];
 
-		$sent = wp_mail( $valid, $subject, $html, $headers ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+		// One email per recipient so addresses aren't disclosed to other
+		// recipients via the To: header.
+		$failed = [];
+		foreach ( $valid as $recipient ) {
+			$sent = wp_mail( $recipient, $subject, $html, $headers ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+			if ( ! $sent ) {
+				$failed[] = $recipient;
+			}
+		}
 
-		if ( ! $sent ) {
+		if ( count( $failed ) === count( $valid ) ) {
 			return new WP_Error(
 				'newspack_newsletters_mail_failed',
 				__( 'Failed to send the test email. Please try again.', 'newspack-newsletters' ),
 				[ 'status' => 500 ]
+			);
+		}
+
+		if ( ! empty( $failed ) ) {
+			return rest_ensure_response(
+				[
+					'message' => sprintf(
+						/* translators: %s: comma-separated list of email addresses that failed. */
+						__( 'Test email sent, but delivery failed for: %s.', 'newspack-newsletters' ),
+						implode( ', ', $failed )
+					),
+				]
 			);
 		}
 

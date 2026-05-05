@@ -53,18 +53,12 @@ describe( 'layouts list actions', () => {
 		expect( byId( 'edit' ).isPrimary ).toBe( true );
 	} );
 
-	it( 'Edit, Rename and Delete are eligible only for user-owned rows', () => {
-		[ 'edit', 'rename', 'delete-permanently' ].forEach( id => {
+	it( 'every mutating action is eligible only for user-owned rows', () => {
+		[ 'edit', 'duplicate', 'rename', 'delete-permanently' ].forEach( id => {
 			const action = byId( id );
 			expect( action.isEligible( savedRow ) ).toBe( true );
 			expect( action.isEligible( prebuiltRow ) ).toBe( false );
 		} );
-	} );
-
-	it( 'Duplicate is eligible for prebuilt rows (the only path that turns one into editable content)', () => {
-		const action = byId( 'duplicate' );
-		// Duplicate has no `isEligible`, so DataView treats every row as eligible.
-		expect( action.isEligible ).toBeUndefined();
 	} );
 
 	it( 'Delete supports bulk and is destructive', () => {
@@ -98,24 +92,10 @@ describe( 'layouts list actions', () => {
 			expect( onMutated ).toHaveBeenCalled();
 		} );
 
-		it( 'skips the GET for prebuilt rows and POSTs straight from the in-memory shape', async () => {
-			apiFetch.mockResolvedValueOnce( { id: 100 } );
-
-			await byId( 'duplicate' ).callback( [ prebuiltRow ] );
-
-			// Only one call — no `?context=edit` GET.
-			expect( apiFetch ).toHaveBeenCalledTimes( 1 );
-			const postCall = apiFetch.mock.calls[ 0 ][ 0 ];
-			expect( postCall.path ).toBe( COLLECTION_PATH );
-			expect( postCall.method ).toBe( 'POST' );
-			expect( postCall.data.title ).toBe( 'Copy of Newsletter Plain' );
-			expect( postCall.data.content ).toBe( prebuiltRow.content.raw );
-		} );
-
 		it( 'does not bump mutationKey when the API rejects', async () => {
 			apiFetch.mockRejectedValueOnce( new Error( 'boom' ) );
 
-			await byId( 'duplicate' ).callback( [ prebuiltRow ] );
+			await byId( 'duplicate' ).callback( [ savedRow ] );
 
 			expect( onMutated ).not.toHaveBeenCalled();
 		} );
