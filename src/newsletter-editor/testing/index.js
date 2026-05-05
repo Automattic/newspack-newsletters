@@ -41,8 +41,19 @@ export default compose( [
 	const [ shouldSendTest, setShouldSendTest ] = useState( false );
 	const [ localInFlight, setLocalInFlight ] = useState( false );
 	const [ localMessage, setLocalMessage ] = useState( '' );
-	const { supports_multiple_test_recipients: supportsMultipleTestEmailRecipients } = useNewsletterData();
+	// `supports_multiple_test_recipients` is a per-provider capability flag
+	// that lives on the campaign payload — it's nested under
+	// `newsletterData`, not a sibling on the hook's return shape.
+	const { newsletterData } = useNewsletterData();
+	const supportsMultipleTestEmailRecipients = !! newsletterData?.supports_multiple_test_recipients;
 
+	// Intentionally only on `isRefreshingHtml` — the effect's semantic is
+	// "react to a refresh transition", not to changes in any of the other
+	// values. Adding them would cause spurious re-runs (every keystroke in
+	// the email field changes `shouldSendTest`-adjacent state via siblings,
+	// `sendTestEmail` is a fresh closure each render). The closure is
+	// recreated each render anyway, so the values it reads are current.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect( () => {
 		if ( wasRefreshingHtml && ! isRefreshingHtml && shouldSendTest ) {
 			if ( lastRefreshHadError ) {
