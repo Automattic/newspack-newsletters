@@ -130,7 +130,7 @@ export default function ProviderSection( { provider, providers, onSave, onAuthor
 							<TextControl
 								key={ field.key }
 								label={ field.label }
-								value={ credentialEdits[ field.key ] || '' }
+								value={ credentialEdits[ field.key ] ?? '' }
 								placeholder={ placeholder }
 								help={ help }
 								onChange={ value => updateCredential( field.key, value ) }

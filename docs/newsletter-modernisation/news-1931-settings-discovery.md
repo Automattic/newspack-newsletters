@@ -12,7 +12,7 @@ When `newspack-newsletters` runs alongside `newspack-plugin` (the typical Newspa
 
 The Admin UX milestone has progressed far enough that most of the chassis NEWS-1931 originally proposed already exists:
 
-- **PHP page registration** — `includes/admin/pages/class-settings-page.php` extends `Admin_Page` (the chassis from NEWS-1927) with `slug = 'newspack-newsletters-settings'` and `capability = 'manage_options'`. Registered only in standalone mode by `Admin_Shell::get_pages()`, which gates on `! Admin_Shell::is_bundled_mode()` (i.e. `! class_exists( '\\Newspack\\Newspack' )`).
+- **PHP page registration** — `includes/admin/pages/class-settings-page.php` extends `Admin_Page` (the chassis from NEWS-1927) with `slug = 'newspack-newsletters-settings'` and `capability = 'manage_options'`. Registered only in standalone mode by `Admin_Shell::get_pages()`, which gates on `! Admin_Shell::is_bundled_mode()`. The default bundled-mode signal is `class_exists( '\\Newspack\\Newspack' )`, but the result is filterable via `newspack_newsletters_admin_bundled_mode` so hosts can override the boundary in either direction.
 - **Asset enqueue + mount node** — handled by the shared `Admin_Page::render()` (prints `<div id="newspack-newsletters-settings-root">`) and the admin-shell webpack entry that boots screens by slug.
 - **React screen registry entry** — `src/admin-shell/screens/index.js` already maps the slug to a `Placeholder` component (line 35–38), with a comment flagging it as temporary "until its React surface lands".
 - **Bundled-mode opt-out** — when bundled, `Admin_Shell::get_pages()` doesn't register `Settings_Page` at all; the menu entry is absent and the URL non-routable. No deferral message, no fallback link — just gone.
