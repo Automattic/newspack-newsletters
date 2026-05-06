@@ -449,14 +449,10 @@ class Subscription_Lists {
 	}
 
 	/**
-	 * Local lists that are safe to surface in the current provider's
-	 * Settings UI: configured for the current provider, plus genuinely
-	 * unconfigured ones (no provider settings stored at all yet, e.g. a
-	 * "Configure later" create). Locals configured *only* under a
-	 * different provider are excluded — `to_array()` would still report
-	 * them active from global post_status, but signup forms won't see
-	 * them and toggling from this UI would drop them globally on the
-	 * other provider too.
+	 * Local lists in the current provider's UI scope: configured for the
+	 * current provider, or genuinely unconfigured. Locals configured only
+	 * under another provider are excluded so saving here can't draft
+	 * them globally.
 	 *
 	 * @return Subscription_List[]
 	 */
@@ -773,9 +769,17 @@ class Subscription_Lists {
 
 		}
 
-		// Clean up. Lists that are not in the new config deactivated.
-		$all_lists = self::get_all();
-		foreach ( $all_lists as $list ) {
+		// Cleanup is scoped to the current provider's UI — other-provider rows weren't in the payload to begin with.
+		$current_provider_slug = Newspack_Newsletters::service_provider();
+		$scoped_lists          = array_merge(
+			self::get_filtered(
+				function ( $list ) use ( $current_provider_slug ) {
+					return ! $list->is_local() && $list->get_provider() === $current_provider_slug;
+				}
+			),
+			self::get_locals_for_current_provider()
+		);
+		foreach ( $scoped_lists as $list ) {
 			if ( ! in_array( $list->get_id(), $existing_ids, true ) ) {
 				$list->update( [ 'active' => false ] );
 			}

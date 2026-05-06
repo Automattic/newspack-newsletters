@@ -101,6 +101,36 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test update_lists doesn't drop other-provider rows that were hidden
+	 * from the current-provider UI.
+	 */
+	public function test_update_lists_preserves_other_provider_locals() {
+		// Activate the AC-only local list (`mc_invalid` has AC settings,
+		// mailchimp errored — appears under AC, hidden under mailchimp).
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+		$ac_only_local = new Subscription_List( self::$posts['mc_invalid'] );
+		$ac_only_local->update( [ 'active' => true ] );
+		$this->assertTrue( $ac_only_local->is_active() );
+
+		// Save mailchimp lists with a minimal valid payload — `mc_invalid`
+		// must not get drafted by the cleanup loop.
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => 'xyz-' . self::$posts['remote_mailchimp'],
+					'active' => true,
+					'title'  => 'Remote MC',
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertTrue( $reloaded->is_active(), 'AC-only local list stayed active despite the mailchimp save' );
+	}
+
+	/**
 	 * Test get_locals_for_current_provider returns current-provider locals
 	 * plus genuinely unconfigured ones, excluding other-provider-only locals.
 	 */
@@ -387,8 +417,6 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		$new_count = count( Subscription_Lists::get_all() );
 
-		// 3 local lists should be marked as deactivated.
-		// 1 remote list should be deactivated and one should be added.
 		$this->assertSame( $count + 1, $new_count );
 
 		$list = new Subscription_List( self::$posts['without_settings'] );
@@ -398,7 +426,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( false, $list->is_active() );
 
 		$list = new Subscription_List( self::$posts['mc_invalid'] );
-		$this->assertSame( false, $list->is_active() );
+		$this->assertSame( true, $list->is_active(), 'AC-configured local with mailchimp error stays active when saving the mailchimp UI' );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
 		$this->assertSame( false, $list->is_active(), 'If active is not informed it should be set to false' );
