@@ -101,6 +101,42 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test get_locals_for_current_provider returns current-provider locals
+	 * plus genuinely unconfigured ones, excluding other-provider-only locals.
+	 */
+	public function test_get_locals_for_current_provider() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$mc_ids = wp_list_pluck(
+			array_map(
+				function ( $list ) {
+					return [ 'id' => $list->get_id() ];
+				},
+				Subscription_Lists::get_locals_for_current_provider()
+			),
+			'id'
+		);
+		$this->assertContains( self::$posts['only_mailchimp'], $mc_ids, 'mailchimp-only local appears under mailchimp' );
+		$this->assertContains( self::$posts['two_settings'], $mc_ids, 'multi-provider local appears under mailchimp' );
+		$this->assertContains( self::$posts['without_settings'], $mc_ids, 'genuinely unconfigured local always appears' );
+		$this->assertNotContains( self::$posts['mc_invalid'], $mc_ids, 'mailchimp-errored local with AC settings is hidden under mailchimp' );
+
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+		$ac_ids = wp_list_pluck(
+			array_map(
+				function ( $list ) {
+					return [ 'id' => $list->get_id() ];
+				},
+				Subscription_Lists::get_locals_for_current_provider()
+			),
+			'id'
+		);
+		$this->assertNotContains( self::$posts['only_mailchimp'], $ac_ids, 'mailchimp-only local is hidden under active_campaign' );
+		$this->assertContains( self::$posts['two_settings'], $ac_ids, 'multi-provider local appears under active_campaign' );
+		$this->assertContains( self::$posts['mc_invalid'], $ac_ids, 'AC-configured local appears under active_campaign even when mailchimp errored' );
+		$this->assertContains( self::$posts['without_settings'], $ac_ids, 'genuinely unconfigured local appears under active_campaign too' );
+	}
+
+	/**
 	 * Test create_local_list
 	 */
 	public function test_create_local_list() {

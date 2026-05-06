@@ -449,6 +449,32 @@ class Subscription_Lists {
 	}
 
 	/**
+	 * Local lists that are safe to surface in the current provider's
+	 * Settings UI: configured for the current provider, plus genuinely
+	 * unconfigured ones (no provider settings stored at all yet, e.g. a
+	 * "Configure later" create). Locals configured *only* under a
+	 * different provider are excluded — `to_array()` would still report
+	 * them active from global post_status, but signup forms won't see
+	 * them and toggling from this UI would drop them globally on the
+	 * other provider too.
+	 *
+	 * @return Subscription_List[]
+	 */
+	public static function get_locals_for_current_provider() {
+		return self::get_filtered(
+			function ( $list ) {
+				if ( ! $list->is_local() ) {
+					return false;
+				}
+				if ( $list->is_configured_for_current_provider() ) {
+					return true;
+				}
+				return empty( $list->get_configured_providers() );
+			}
+		);
+	}
+
+	/**
 	 * Get Lists that are configured for the current provider
 	 *
 	 * @return Subscription_List[]
