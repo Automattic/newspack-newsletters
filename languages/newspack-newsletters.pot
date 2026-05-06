@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-06T09:38:06+00:00\n"
+"POT-Creation-Date: 2026-05-06T23:06:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-newsletters\n"
@@ -343,39 +343,39 @@ msgstr[1] ""
 msgid "Not supported for this provider"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:286
-#: includes/class-newspack-newsletters-editor.php:332
+#: includes/class-newspack-newsletters-editor.php:294
+#: includes/class-newspack-newsletters-editor.php:340
 msgctxt "font size name"
 msgid "Small"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:291
-#: includes/class-newspack-newsletters-editor.php:338
+#: includes/class-newspack-newsletters-editor.php:299
+#: includes/class-newspack-newsletters-editor.php:346
 msgctxt "font size name"
 msgid "Medium"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:296
-#: includes/class-newspack-newsletters-editor.php:344
+#: includes/class-newspack-newsletters-editor.php:304
+#: includes/class-newspack-newsletters-editor.php:352
 msgctxt "font size name"
 msgid "Large"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:301
-#: includes/class-newspack-newsletters-editor.php:350
+#: includes/class-newspack-newsletters-editor.php:309
+#: includes/class-newspack-newsletters-editor.php:358
 msgctxt "font size name"
 msgid "Extra Large"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:530
+#: includes/class-newspack-newsletters-editor.php:538
 msgid "Continue reading…"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:531
+#: includes/class-newspack-newsletters-editor.php:539
 msgid "By "
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:532
+#: includes/class-newspack-newsletters-editor.php:540
 msgid "and "
 msgstr ""
 
