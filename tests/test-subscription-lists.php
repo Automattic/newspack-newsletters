@@ -183,6 +183,20 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test update_local_list persists clearing the description.
+	 */
+	public function test_update_local_list_clears_description() {
+		$list = Subscription_Lists::create_local_list( 'Title', 'Original description.' );
+		$this->assertSame( 'Original description.', $list->get_description() );
+
+		$updated = Subscription_Lists::update_local_list( $list->get_id(), 'Title', '' );
+		$this->assertInstanceOf( Subscription_List::class, $updated );
+
+		$reloaded = new Subscription_List( $updated->get_id() );
+		$this->assertSame( '', $reloaded->get_description() );
+	}
+
+	/**
 	 * Test delete_local_list happy path.
 	 */
 	public function test_delete_local_list() {

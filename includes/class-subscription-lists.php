@@ -611,7 +611,8 @@ class Subscription_Lists {
 		$tag_id     = $provider->get_esp_local_list_id( $tag_name, true, $audience_id );
 
 		if ( is_wp_error( $tag_id ) ) {
-			$list->update_current_provider_settings( $audience_id, '', $tag_name, $tag_id->get_error_message() );
+			// Roll back so a retry doesn't pile up duplicate hidden posts.
+			wp_delete_post( $list->get_id(), true );
 			return $tag_id;
 		}
 

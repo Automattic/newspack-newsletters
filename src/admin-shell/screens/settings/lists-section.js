@@ -10,7 +10,7 @@ import {
 	TextareaControl,
 } from '@wordpress/components';
 import { dispatch } from '@wordpress/data';
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { store as noticesStore } from '@wordpress/notices';
 
@@ -18,6 +18,8 @@ import LocalListModal from './local-list-modal';
 
 export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListCreated, isSaving } ) {
 	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
+	// Ref (not state) so the merge effect below isn't re-triggered by edits.
+	const dirtyIdsRef = useRef( new Set() );
 	// `null` = closed, `'add'` = create modal, `<list>` = edit modal pre-populated.
 	const [ modalState, setModalState ] = useState( null );
 	const [ deletingId, setDeletingId ] = useState( null );
@@ -52,15 +54,31 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 	};
 
 	useEffect( () => {
-		setWorkingCopy( lists || [] );
+		// Preserve unsaved row edits when the parent reloads after a
+		// local-list create / edit / delete.
+		const incoming = lists || [];
+		setWorkingCopy( current => {
+			if ( ! dirtyIdsRef.current.size ) {
+				return incoming;
+			}
+			return incoming.map( row => {
+				if ( ! dirtyIdsRef.current.has( row.id ) ) {
+					return row;
+				}
+				const dirty = current.find( c => c.id === row.id );
+				return dirty || row;
+			} );
+		} );
 	}, [ lists ] );
 
 	const updateRow = ( id, patch ) => {
 		setWorkingCopy( current => current.map( row => ( row.id === id ? { ...row, ...patch } : row ) ) );
+		dirtyIdsRef.current.add( id );
 	};
 
 	const handleSave = async () => {
 		await onSave( workingCopy );
+		dirtyIdsRef.current = new Set();
 	};
 
 	if ( error ) {

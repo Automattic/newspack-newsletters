@@ -520,8 +520,12 @@ class Subscription_List {
 		if ( ! empty( $fields['title'] ) && $this->get_title() !== $fields['title'] ) {
 			$post_data['post_title'] = $fields['title'];
 		}
-		if ( ! empty( $fields['description'] ) && $this->get_description() !== $fields['description'] ) {
-			$post_data['post_content'] = $fields['description'];
+		// `array_key_exists` (not `! empty`) so clearing to '' persists.
+		if ( array_key_exists( 'description', $fields ) ) {
+			$description = is_string( $fields['description'] ) ? $fields['description'] : '';
+			if ( $description !== $this->get_description() ) {
+				$post_data['post_content'] = $description;
+			}
 		}
 		if ( ! empty( $post_data ) ) {
 			$post_data['ID'] = $this->get_id();
