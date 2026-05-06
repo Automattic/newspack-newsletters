@@ -553,6 +553,46 @@ class Subscription_Lists {
 	}
 
 	/**
+	 * Creates a local list.
+	 *
+	 * Created inactive (`draft`) so the admin can wire ESP settings via
+	 * the legacy editor before flipping it on — same end state as the
+	 * pre-modal "Add new" flow.
+	 *
+	 * @param string $title       List title (required, trimmed non-empty).
+	 * @param string $description Optional list description, stored as post_content.
+	 * @return Subscription_List|WP_Error
+	 */
+	public static function create_local_list( $title, $description = '' ) {
+		$title = is_string( $title ) ? trim( $title ) : '';
+		if ( '' === $title ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_invalid_title',
+				__( 'List title is required.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$post_id = wp_insert_post(
+			[
+				'post_type'    => self::CPT,
+				'post_status'  => 'draft',
+				'post_title'   => $title,
+				'post_content' => is_string( $description ) ? $description : '',
+			],
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		$list = new Subscription_List( $post_id );
+		$list->set_type( 'local' );
+		return $list;
+	}
+
+	/**
 	 * Update the lists settings.
 	 *
 	 * This function retrieves the list of lists configured in the site and updates them all at once.

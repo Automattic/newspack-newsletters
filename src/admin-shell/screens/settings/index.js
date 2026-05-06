@@ -105,8 +105,9 @@ export default function SettingsScreen() {
 				lists={ lists }
 				isLoading={ isListsLoading }
 				error={ listsError }
-				addNewUrl={ data?.lists_add_new_url }
+				canAddLocal={ !! data?.lists_can_add_local }
 				onSave={ handleListsSave }
+				onLocalListCreated={ reloadLists }
 				isSaving={ isSaving }
 			/>
 		</div>

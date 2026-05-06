@@ -9,8 +9,11 @@ import {
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-export default function ListsSection( { lists, isLoading, error, addNewUrl, onSave, isSaving } ) {
+import LocalListModal from './local-list-modal';
+
+export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListCreated, isSaving } ) {
 	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
+	const [ isAddModalOpen, setIsAddModalOpen ] = useState( false );
 
 	useEffect( () => {
 		setWorkingCopy( lists || [] );
@@ -54,6 +57,16 @@ export default function ListsSection( { lists, isLoading, error, addNewUrl, onSa
 						'newspack-newsletters'
 					) }
 				</p>
+				{ canAddLocal && (
+					<>
+						<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
+							<Button variant="secondary" onClick={ () => setIsAddModalOpen( true ) }>
+								{ __( 'Add new local list', 'newspack-newsletters' ) }
+							</Button>
+						</HStack>
+						{ isAddModalOpen && <LocalListModal onClose={ () => setIsAddModalOpen( false ) } onSaved={ onLocalListCreated } /> }
+					</>
+				) }
 			</div>
 		);
 	}
@@ -112,12 +125,14 @@ export default function ListsSection( { lists, isLoading, error, addNewUrl, onSa
 				<Button variant="primary" onClick={ handleSave } isBusy={ isSaving } disabled={ isSaving }>
 					{ __( 'Save subscription lists', 'newspack-newsletters' ) }
 				</Button>
-				{ addNewUrl && (
-					<Button variant="secondary" href={ addNewUrl }>
+				{ canAddLocal && (
+					<Button variant="secondary" onClick={ () => setIsAddModalOpen( true ) }>
 						{ __( 'Add new local list', 'newspack-newsletters' ) }
 					</Button>
 				) }
 			</HStack>
+
+			{ isAddModalOpen && <LocalListModal onClose={ () => setIsAddModalOpen( false ) } onSaved={ onLocalListCreated } /> }
 		</div>
 	);
 }

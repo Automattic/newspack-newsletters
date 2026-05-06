@@ -101,6 +101,46 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test create_local_list
+	 */
+	public function test_create_local_list() {
+		$count = count( Subscription_Lists::get_all() );
+
+		$list = Subscription_Lists::create_local_list( 'Local List Title', 'A description.' );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( 'Local List Title', $list->get_title() );
+		$this->assertSame( 'A description.', $list->get_description() );
+		$this->assertSame( 'local', $list->get_type() );
+		$this->assertTrue( $list->is_local() );
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( $count + 1, count( Subscription_Lists::get_all() ) );
+	}
+
+	/**
+	 * Test create_local_list trims and rejects empty titles.
+	 */
+	public function test_create_local_list_rejects_empty_title() {
+		$count = count( Subscription_Lists::get_all() );
+
+		foreach ( [ '', '   ', "\t\n" ] as $bad_title ) {
+			$result = Subscription_Lists::create_local_list( $bad_title );
+			$this->assertInstanceOf( WP_Error::class, $result );
+			$this->assertSame( 'newspack_newsletters_local_list_invalid_title', $result->get_error_code() );
+		}
+
+		$this->assertSame( $count, count( Subscription_Lists::get_all() ) );
+	}
+
+	/**
+	 * Test create_local_list trims surrounding whitespace from the title.
+	 */
+	public function test_create_local_list_trims_title() {
+		$list = Subscription_Lists::create_local_list( '  Padded Title  ' );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( 'Padded Title', $list->get_title() );
+	}
+
+	/**
 	 * Test create_remote_list
 	 */
 	public function test_create_remote_list() {

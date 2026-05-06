@@ -115,6 +115,27 @@ class Newspack_Newsletters_Subscription {
 				],
 			]
 		);
+		register_rest_route(
+			Newspack_Newsletters::API_NAMESPACE,
+			'/lists/local',
+			[
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'api_create_local_list' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+				'args'                => [
+					'title'       => [
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'description' => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -151,6 +172,42 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * API method to create a single local subscription list.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_create_local_list( $request ) {
+		// Mirror the React shell's CTA gate so a stale page (provider
+		// switched in another tab) cannot create an unreachable list.
+		$provider = Newspack_Newsletters::get_service_provider();
+		if (
+			empty( $provider )
+			|| 'manual' === Newspack_Newsletters::service_provider()
+			|| ! Newspack_Newsletters::is_service_provider_configured()
+			|| empty( $provider::$support_local_lists )
+		) {
+			return \rest_ensure_response(
+				new WP_Error(
+					'newspack_newsletters_local_lists_unavailable',
+					__( 'Local lists are not available for the configured provider.', 'newspack-newsletters' ),
+					[ 'status' => 400 ]
+				)
+			);
+		}
+
+		$list = Subscription_Lists::create_local_list(
+			(string) $request->get_param( 'title' ),
+			(string) $request->get_param( 'description' )
+		);
+		if ( is_wp_error( $list ) ) {
+			return \rest_ensure_response( $list );
+		}
+		return \rest_ensure_response( self::get_lists() );
+	}
+
+	/**
 	 * Get the lists available for subscription.
 	 *
 	 * @return array|WP_Error Lists or error.
@@ -168,8 +225,6 @@ class Newspack_Newsletters_Subscription {
 			if ( is_wp_error( $lists ) ) {
 				return $lists;
 			}
-			$saved_lists = Subscription_Lists::get_configured_for_current_provider();
-
 			/**
 			 * We loop through the lists returned by the ESP.
 			 * Only remote lists that still exist in the ESP will be returned.
@@ -200,11 +255,16 @@ class Newspack_Newsletters_Subscription {
 			 */
 			Subscription_Lists::garbage_collector( wp_list_pluck( $return_lists, 'db_id' ) );
 
-			// Add local lists to the response.
-			foreach ( $saved_lists as $saved_list ) {
-				if ( $saved_list->is_local() ) {
-					$return_lists[] = $saved_list->to_array();
+			// Include unconfigured locals too — a freshly-created list has
+			// no `tag_id` / audience yet, and `is_configured_for_current_provider`
+			// would hide its inline Edit link before the admin can wire it.
+			$local_lists = Subscription_Lists::get_filtered(
+				function ( $list ) {
+					return $list->is_local();
 				}
+			);
+			foreach ( $local_lists as $local_list ) {
+				$return_lists[] = $local_list->to_array();
 			}
 			return $return_lists;
 		} catch ( \Exception $e ) {
