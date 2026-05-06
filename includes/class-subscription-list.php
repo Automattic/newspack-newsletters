@@ -538,6 +538,13 @@ class Subscription_List {
 	 * @return array
 	 */
 	public function to_array() {
+		$audience = '';
+		if ( $this->is_local() ) {
+			$settings = $this->get_current_provider_settings();
+			if ( is_array( $settings ) && isset( $settings['list'] ) ) {
+				$audience = (string) $settings['list'];
+			}
+		}
 		return [
 			'id'          => $this->get_public_id(),
 			'db_id'       => $this->get_id(),
@@ -549,6 +556,7 @@ class Subscription_List {
 			'edit_link'   => $this->get_edit_link(),
 			'active'      => $this->is_active(),
 			'remote_name' => $this->get_remote_name(),
+			'audience'    => $audience,
 		];
 	}
 }

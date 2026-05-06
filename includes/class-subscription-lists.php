@@ -555,15 +555,21 @@ class Subscription_Lists {
 	/**
 	 * Creates a local list.
 	 *
-	 * Created inactive (`draft`) so the admin can wire ESP settings via
-	 * the legacy editor before flipping it on — same end state as the
-	 * pre-modal "Add new" flow.
+	 * Created inactive (`draft`) so the admin can flip it on after
+	 * verifying. When `$audience_id` is provided, mirrors the legacy
+	 * `save_post` ESP wiring path so the list lands ready to receive
+	 * subscribers (auto-generated tag under the chosen audience). A
+	 * wiring failure persists the error against the list so it surfaces
+	 * in the legacy metabox; the post still exists, the row still
+	 * appears in Settings, and the WP_Error returned here lets the
+	 * modal show the failure inline.
 	 *
 	 * @param string $title       List title (required, trimmed non-empty).
 	 * @param string $description Optional list description, stored as post_content.
+	 * @param string $audience_id Optional ESP audience id to wire the list to.
 	 * @return Subscription_List|WP_Error
 	 */
-	public static function create_local_list( $title, $description = '' ) {
+	public static function create_local_list( $title, $description = '', $audience_id = '' ) {
 		$title = is_string( $title ) ? trim( $title ) : '';
 		if ( '' === $title ) {
 			return new WP_Error(
@@ -589,6 +595,105 @@ class Subscription_Lists {
 
 		$list = new Subscription_List( $post_id );
 		$list->set_type( 'local' );
+
+		$audience_id = is_string( $audience_id ) ? trim( $audience_id ) : '';
+		if ( '' === $audience_id ) {
+			return $list;
+		}
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) || ! method_exists( $provider, 'get_esp_local_list_id' ) ) {
+			return $list;
+		}
+
+		$tag_prefix = $provider::label( 'tag_prefix' );
+		$tag_name   = $list->generate_tag_name( $tag_prefix );
+		$tag_id     = $provider->get_esp_local_list_id( $tag_name, true, $audience_id );
+
+		if ( is_wp_error( $tag_id ) ) {
+			$list->update_current_provider_settings( $audience_id, '', $tag_name, $tag_id->get_error_message() );
+			return $tag_id;
+		}
+
+		$list->update_current_provider_settings( $audience_id, $tag_id, $tag_name );
+		return $list;
+	}
+
+	/**
+	 * Updates a local list (title, description, audience) for the current
+	 * provider. Mirrors the legacy `save_post` mechanic: if the audience
+	 * changes, the auto-generated tag is re-created under the new
+	 * audience; if only the title changes and the list already has a
+	 * tag, the tag name is synced on the ESP via `update_esp_local_list`.
+	 *
+	 * @param int    $id          Subscription_List post ID.
+	 * @param string $title       New title (required, trimmed non-empty).
+	 * @param string $description New description.
+	 * @param string $audience_id Optional ESP audience id. Empty string leaves the wiring untouched.
+	 * @return Subscription_List|WP_Error
+	 */
+	public static function update_local_list( $id, $title, $description = '', $audience_id = '' ) {
+		$post = get_post( $id );
+		if ( ! $post || self::CPT !== $post->post_type ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_not_found',
+				__( 'Subscription list not found.', 'newspack-newsletters' ),
+				[ 'status' => 404 ]
+			);
+		}
+
+		$list = new Subscription_List( $post );
+		if ( ! $list->is_local() ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_not_local',
+				__( 'This subscription list is not a local list.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$title = is_string( $title ) ? trim( $title ) : '';
+		if ( '' === $title ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_invalid_title',
+				__( 'List title is required.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$title_changed = $title !== $list->get_title();
+		$list->update(
+			[
+				'title'       => $title,
+				'description' => is_string( $description ) ? $description : '',
+			]
+		);
+
+		$audience_id = is_string( $audience_id ) ? trim( $audience_id ) : '';
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return $list;
+		}
+
+		$current_settings = $list->get_current_provider_settings();
+		$current_audience = is_array( $current_settings ) && isset( $current_settings['list'] ) ? (string) $current_settings['list'] : '';
+		$current_tag_id   = is_array( $current_settings ) && isset( $current_settings['tag_id'] ) ? $current_settings['tag_id'] : '';
+
+		$tag_prefix   = $provider::label( 'tag_prefix' );
+		$new_tag_name = $list->generate_tag_name( $tag_prefix );
+
+		if ( '' !== $audience_id && $audience_id !== $current_audience ) {
+			$tag_id = $provider->get_esp_local_list_id( $new_tag_name, true, $audience_id );
+			if ( is_wp_error( $tag_id ) ) {
+				$list->update_current_provider_settings( $audience_id, '', $new_tag_name, $tag_id->get_error_message() );
+				return $tag_id;
+			}
+			$list->update_current_provider_settings( $audience_id, $tag_id, $new_tag_name );
+		} elseif ( $title_changed && '' !== $current_audience && ! empty( $current_tag_id ) && method_exists( $provider, 'update_esp_local_list' ) ) {
+			$provider->update_esp_local_list( $current_tag_id, $new_tag_name, $current_audience );
+			$list->update_current_provider_settings( $current_audience, $current_tag_id, $new_tag_name );
+		}
+
 		return $list;
 	}
 

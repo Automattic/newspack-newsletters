@@ -13,7 +13,9 @@ import LocalListModal from './local-list-modal';
 
 export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListCreated, isSaving } ) {
 	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
-	const [ isAddModalOpen, setIsAddModalOpen ] = useState( false );
+	// `null` = closed, `'add'` = create modal, `<list>` = edit modal pre-populated.
+	const [ modalState, setModalState ] = useState( null );
+	const closeModal = () => setModalState( null );
 
 	useEffect( () => {
 		setWorkingCopy( lists || [] );
@@ -60,11 +62,13 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 				{ canAddLocal && (
 					<>
 						<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
-							<Button variant="secondary" onClick={ () => setIsAddModalOpen( true ) }>
+							<Button variant="secondary" onClick={ () => setModalState( 'add' ) }>
 								{ __( 'Add new local list', 'newspack-newsletters' ) }
 							</Button>
 						</HStack>
-						{ isAddModalOpen && <LocalListModal onClose={ () => setIsAddModalOpen( false ) } onSaved={ onLocalListCreated } /> }
+						{ modalState && (
+							<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListCreated } />
+						) }
 					</>
 				) }
 			</div>
@@ -108,12 +112,10 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 								<p className="newspack-newsletters-settings__list-local-meta">
 									<strong>{ list.title }</strong>
 									{ list.description && <span> — { list.description }</span> }
-									{ list.edit_link && (
-										<>
-											{ ' — ' }
-											<a href={ list.edit_link }>{ __( 'Edit', 'newspack-newsletters' ) }</a>
-										</>
-									) }
+									{ ' — ' }
+									<Button variant="link" onClick={ () => setModalState( list ) }>
+										{ __( 'Edit', 'newspack-newsletters' ) }
+									</Button>
 								</p>
 							) }
 						</div>
@@ -126,13 +128,15 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 					{ __( 'Save subscription lists', 'newspack-newsletters' ) }
 				</Button>
 				{ canAddLocal && (
-					<Button variant="secondary" onClick={ () => setIsAddModalOpen( true ) }>
+					<Button variant="secondary" onClick={ () => setModalState( 'add' ) }>
 						{ __( 'Add new local list', 'newspack-newsletters' ) }
 					</Button>
 				) }
 			</HStack>
 
-			{ isAddModalOpen && <LocalListModal onClose={ () => setIsAddModalOpen( false ) } onSaved={ onLocalListCreated } /> }
+			{ modalState && (
+				<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListCreated } />
+			) }
 		</div>
 	);
 }

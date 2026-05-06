@@ -141,6 +141,48 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test update_local_list happy path (no audience change).
+	 */
+	public function test_update_local_list() {
+		$list = Subscription_Lists::create_local_list( 'Original Title', 'Original description.' );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+
+		$updated = Subscription_Lists::update_local_list( $list->get_id(), 'New Title', 'New description.' );
+		$this->assertInstanceOf( Subscription_List::class, $updated );
+		$this->assertSame( 'New Title', $updated->get_title() );
+		$this->assertSame( 'New description.', $updated->get_description() );
+	}
+
+	/**
+	 * Test update_local_list rejects unknown post id.
+	 */
+	public function test_update_local_list_rejects_unknown_id() {
+		$result = Subscription_Lists::update_local_list( 999999, 'Whatever' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_found', $result->get_error_code() );
+	}
+
+	/**
+	 * Test update_local_list rejects non-local lists.
+	 */
+	public function test_update_local_list_rejects_non_local() {
+		$remote = Subscription_Lists::create_remote_list( 'remote-x', 'Remote List' );
+		$result = Subscription_Lists::update_local_list( $remote->get_id(), 'Renamed' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_local', $result->get_error_code() );
+	}
+
+	/**
+	 * Test update_local_list rejects empty title.
+	 */
+	public function test_update_local_list_rejects_empty_title() {
+		$list   = Subscription_Lists::create_local_list( 'Title' );
+		$result = Subscription_Lists::update_local_list( $list->get_id(), '   ' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_invalid_title', $result->get_error_code() );
+	}
+
+	/**
 	 * Test create_remote_list
 	 */
 	public function test_create_remote_list() {

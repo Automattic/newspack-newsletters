@@ -5,19 +5,61 @@ import {
 	Button,
 	Modal,
 	Notice,
+	SelectControl,
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
-import { useState } from '@wordpress/element';
+import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 const CREATE_PATH = '/newspack-newsletters/v1/lists/local';
+const AUDIENCES_PATH = '/newspack-newsletters/v1/lists/audiences';
 
-export default function LocalListModal( { onClose, onSaved } ) {
-	const [ title, setTitle ] = useState( '' );
-	const [ description, setDescription ] = useState( '' );
+export default function LocalListModal( { list = null, onClose, onSaved } ) {
+	const isEdit = Boolean( list?.db_id );
+
+	const [ title, setTitle ] = useState( list?.title || '' );
+	const [ description, setDescription ] = useState( list?.description || '' );
+	const [ audience, setAudience ] = useState( list?.audience || '' );
+	const [ audiences, setAudiences ] = useState( [] );
+	const [ audienceLabel, setAudienceLabel ] = useState( __( 'List', 'newspack-newsletters' ) );
+	const [ audienceHelp, setAudienceHelp ] = useState( '' );
+	const [ audiencesLoaded, setAudiencesLoaded ] = useState( false );
 	const [ isBusy, setIsBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
+
+	useEffect( () => {
+		let cancelled = false;
+		apiFetch( { path: AUDIENCES_PATH } )
+			.then( payload => {
+				if ( cancelled ) {
+					return;
+				}
+				setAudiences( Array.isArray( payload?.audiences ) ? payload.audiences : [] );
+				if ( payload?.audience_label ) {
+					setAudienceLabel( payload.audience_label );
+				}
+				if ( payload?.help_before_save ) {
+					setAudienceHelp( payload.help_before_save );
+				}
+			} )
+			.catch( () => {
+				/* leave audiences empty — modal still works without the picker */
+			} )
+			.finally( () => {
+				if ( ! cancelled ) {
+					setAudiencesLoaded( true );
+				}
+			} );
+		return () => {
+			cancelled = true;
+		};
+	}, [] );
+
+	const audienceOptions = useMemo(
+		() => [ { label: __( 'Configure later', 'newspack-newsletters' ), value: '' }, ...audiences.map( a => ( { label: a.name, value: a.id } ) ) ],
+		[ audiences ]
+	);
 
 	const submit = async event => {
 		event.preventDefault();
@@ -31,26 +73,29 @@ export default function LocalListModal( { onClose, onSaved } ) {
 		setIsBusy( true );
 		setError( '' );
 
+		const path = isEdit ? `${ CREATE_PATH }/${ list.db_id }` : CREATE_PATH;
+		const data = {
+			title: trimmedTitle,
+			description,
+			audience,
+		};
+
 		try {
-			await apiFetch( {
-				path: CREATE_PATH,
-				method: 'POST',
-				data: {
-					title: trimmedTitle,
-					description,
-				},
-			} );
+			await apiFetch( { path, method: 'POST', data } );
 			onSaved();
 			onClose();
 		} catch ( err ) {
-			setError( err?.message || __( 'Could not create local list. Please try again.', 'newspack-newsletters' ) );
+			const fallback = isEdit
+				? __( 'Could not update local list. Please try again.', 'newspack-newsletters' )
+				: __( 'Could not create local list. Please try again.', 'newspack-newsletters' );
+			setError( err?.message || fallback );
 			setIsBusy( false );
 		}
 	};
 
 	return (
 		<Modal
-			title={ __( 'Add new local list', 'newspack-newsletters' ) }
+			title={ isEdit ? __( 'Edit local list', 'newspack-newsletters' ) : __( 'Add new local list', 'newspack-newsletters' ) }
 			onRequestClose={ onClose }
 			size="medium"
 			className="newspack-newsletters-local-list-modal"
@@ -77,12 +122,23 @@ export default function LocalListModal( { onClose, onSaved } ) {
 						onChange={ setDescription }
 						__nextHasNoMarginBottom
 					/>
+					{ audiencesLoaded && audiences.length > 0 && (
+						<SelectControl
+							label={ audienceLabel }
+							value={ audience }
+							options={ audienceOptions }
+							onChange={ setAudience }
+							help={ audienceHelp }
+							__nextHasNoMarginBottom
+							__next40pxDefaultSize
+						/>
+					) }
 					<HStack justify="flex-end" spacing={ 2 }>
 						<Button variant="tertiary" onClick={ onClose } disabled={ isBusy }>
 							{ __( 'Cancel', 'newspack-newsletters' ) }
 						</Button>
 						<Button variant="primary" type="submit" isBusy={ isBusy } disabled={ isBusy }>
-							{ __( 'Add list', 'newspack-newsletters' ) }
+							{ isEdit ? __( 'Save changes', 'newspack-newsletters' ) : __( 'Add list', 'newspack-newsletters' ) }
 						</Button>
 					</HStack>
 				</VStack>
