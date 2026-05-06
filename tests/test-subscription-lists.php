@@ -101,6 +101,30 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test update_lists forces unconfigured locals to inactive even when
+	 * the payload tries to flip them on.
+	 */
+	public function test_update_lists_forces_unconfigured_local_inactive() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$unconfigured = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertEmpty( $unconfigured->get_configured_providers() );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => $unconfigured->get_public_id(),
+					'active' => true,
+					'title'  => 'Still No Audience',
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertFalse( $reloaded->is_active(), 'Locals without current-provider wiring stay inactive even when active=true is submitted' );
+	}
+
+	/**
 	 * Test update_lists doesn't drop other-provider rows that were hidden
 	 * from the current-provider UI.
 	 */

@@ -764,6 +764,11 @@ class Subscription_Lists {
 				continue;
 			}
 
+			// Reject `active=true` for locals that lack current-provider wiring — signup forms wouldn't see them anyway.
+			if ( $stored_list->is_local() && ! $stored_list->is_configured_for_current_provider() ) {
+				$list['active'] = false;
+			}
+
 			$existing_ids[] = $stored_list->get_id();
 			$stored_list->update( $list );
 

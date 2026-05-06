@@ -51,6 +51,7 @@ export default function SettingsScreen() {
 			} catch ( err ) {
 				const message = err?.message || __( 'Could not save subscription lists.', 'newspack-newsletters' );
 				dispatch( noticesStore ).createErrorNotice( message, { type: 'snackbar', explicitDismiss: true } );
+				throw err;
 			} finally {
 				setIsSaving( false );
 			}

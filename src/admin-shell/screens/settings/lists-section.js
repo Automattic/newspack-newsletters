@@ -77,8 +77,12 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 	};
 
 	const handleSave = async () => {
-		await onSave( workingCopy );
-		dirtyIdsRef.current = new Set();
+		try {
+			await onSave( workingCopy );
+			dirtyIdsRef.current = new Set();
+		} catch {
+			// Parent surfaced the error notice; keep dirty tracking so a reload doesn't drop edits.
+		}
 	};
 
 	if ( error ) {
@@ -135,13 +139,19 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 			<div className="newspack-newsletters-settings__lists">
 				{ workingCopy.map( list => {
 					const isLocal = list.type === 'local';
+					const needsAudience = isLocal && ! list.audience;
 					return (
 						<VStack key={ list.id } spacing={ 2 } className="newspack-newsletters-settings__list-row">
 							<CheckboxControl
 								label={ list.remote_name || list.name || list.title || __( '(unnamed list)', 'newspack-newsletters' ) }
-								checked={ !! list.active }
+								checked={ !! list.active && ! needsAudience }
 								onChange={ next => updateRow( list.id, { active: next } ) }
-								help={ list.type_label || '' }
+								help={
+									needsAudience
+										? __( 'Configure an audience to enable subscriptions.', 'newspack-newsletters' )
+										: list.type_label || ''
+								}
+								disabled={ needsAudience }
 								__nextHasNoMarginBottom
 							/>
 							{ ! isLocal ? (

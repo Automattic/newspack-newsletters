@@ -262,7 +262,7 @@ class Newspack_Newsletters_Subscription {
 		if ( is_wp_error( $list ) ) {
 			return \rest_ensure_response( $list );
 		}
-		return \rest_ensure_response( self::get_lists() );
+		return \rest_ensure_response( $list->to_array() );
 	}
 
 	/**
@@ -282,7 +282,7 @@ class Newspack_Newsletters_Subscription {
 		if ( is_wp_error( $list ) ) {
 			return \rest_ensure_response( $list );
 		}
-		return \rest_ensure_response( self::get_lists() );
+		return \rest_ensure_response( $list->to_array() );
 	}
 
 	/**
@@ -297,7 +297,7 @@ class Newspack_Newsletters_Subscription {
 		if ( is_wp_error( $result ) ) {
 			return \rest_ensure_response( $result );
 		}
-		return \rest_ensure_response( self::get_lists() );
+		return \rest_ensure_response( [ 'deleted' => true ] );
 	}
 
 	/**
