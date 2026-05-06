@@ -42,6 +42,10 @@ export default function EmptyState( { icon, title, description, ctaTitle, ctaHre
 		buttonProps.href = ctaHref;
 	} else if ( hasCtaOnClick ) {
 		buttonProps.onClick = ctaOnClick;
+	} else {
+		// Production fallback: dev-time throw above will surface misuse, but if a misconfigured prod build
+		// reaches here, render a disabled button rather than an active no-op CTA.
+		buttonProps.disabled = true;
 	}
 
 	return (

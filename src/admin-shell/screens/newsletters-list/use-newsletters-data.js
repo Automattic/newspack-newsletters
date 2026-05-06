@@ -99,6 +99,9 @@ export default function useNewslettersData( view ) {
 
 	useEffect( () => {
 		let cancelled = false;
+		// Reset to "unknown" while the new count is in flight so a freshly-trashed last item doesn't briefly
+		// flash the EmptyState before the new count lands.
+		setTrashCount( null );
 		apiFetch( { path: `${ POSTS_PATH }?status=trash&per_page=1`, parse: false } )
 			.then( response => {
 				if ( ! cancelled ) {
