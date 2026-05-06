@@ -101,6 +101,226 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test update_lists forces unconfigured locals to inactive even when
+	 * the payload tries to flip them on.
+	 */
+	public function test_update_lists_forces_unconfigured_local_inactive() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$unconfigured = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertEmpty( $unconfigured->get_configured_providers() );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => $unconfigured->get_public_id(),
+					'active' => true,
+					'title'  => 'Still No Audience',
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertFalse( $reloaded->is_active(), 'Locals without current-provider wiring stay inactive even when active=true is submitted' );
+	}
+
+	/**
+	 * Test update_lists doesn't drop other-provider rows that were hidden
+	 * from the current-provider UI.
+	 */
+	public function test_update_lists_preserves_other_provider_locals() {
+		// Activate the AC-only local list (`mc_invalid` has AC settings,
+		// mailchimp errored — appears under AC, hidden under mailchimp).
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+		$ac_only_local = new Subscription_List( self::$posts['mc_invalid'] );
+		$ac_only_local->update( [ 'active' => true ] );
+		$this->assertTrue( $ac_only_local->is_active() );
+
+		// Save mailchimp lists with a minimal valid payload — `mc_invalid`
+		// must not get drafted by the cleanup loop.
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => 'xyz-' . self::$posts['remote_mailchimp'],
+					'active' => true,
+					'title'  => 'Remote MC',
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['mc_invalid'] );
+		$this->assertTrue( $reloaded->is_active(), 'AC-only local list stayed active despite the mailchimp save' );
+	}
+
+	/**
+	 * Test get_locals_for_current_provider returns current-provider locals
+	 * plus genuinely unconfigured ones, excluding other-provider-only locals.
+	 */
+	public function test_get_locals_for_current_provider() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$mc_ids = wp_list_pluck(
+			array_map(
+				function ( $list ) {
+					return [ 'id' => $list->get_id() ];
+				},
+				Subscription_Lists::get_locals_for_current_provider()
+			),
+			'id'
+		);
+		$this->assertContains( self::$posts['only_mailchimp'], $mc_ids, 'mailchimp-only local appears under mailchimp' );
+		$this->assertContains( self::$posts['two_settings'], $mc_ids, 'multi-provider local appears under mailchimp' );
+		$this->assertContains( self::$posts['without_settings'], $mc_ids, 'genuinely unconfigured local always appears' );
+		$this->assertNotContains( self::$posts['mc_invalid'], $mc_ids, 'mailchimp-errored local with AC settings is hidden under mailchimp' );
+
+		Newspack_Newsletters::set_service_provider( 'active_campaign' );
+		$ac_ids = wp_list_pluck(
+			array_map(
+				function ( $list ) {
+					return [ 'id' => $list->get_id() ];
+				},
+				Subscription_Lists::get_locals_for_current_provider()
+			),
+			'id'
+		);
+		$this->assertNotContains( self::$posts['only_mailchimp'], $ac_ids, 'mailchimp-only local is hidden under active_campaign' );
+		$this->assertContains( self::$posts['two_settings'], $ac_ids, 'multi-provider local appears under active_campaign' );
+		$this->assertContains( self::$posts['mc_invalid'], $ac_ids, 'AC-configured local appears under active_campaign even when mailchimp errored' );
+		$this->assertContains( self::$posts['without_settings'], $ac_ids, 'genuinely unconfigured local appears under active_campaign too' );
+	}
+
+	/**
+	 * Test create_local_list
+	 */
+	public function test_create_local_list() {
+		$count = count( Subscription_Lists::get_all() );
+
+		$list = Subscription_Lists::create_local_list( 'Local List Title', 'A description.' );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( 'Local List Title', $list->get_title() );
+		$this->assertSame( 'A description.', $list->get_description() );
+		$this->assertSame( 'local', $list->get_type() );
+		$this->assertTrue( $list->is_local() );
+		$this->assertFalse( $list->is_active() );
+		$this->assertSame( $count + 1, count( Subscription_Lists::get_all() ) );
+	}
+
+	/**
+	 * Test create_local_list trims and rejects empty titles.
+	 */
+	public function test_create_local_list_rejects_empty_title() {
+		$count = count( Subscription_Lists::get_all() );
+
+		foreach ( [ '', '   ', "\t\n" ] as $bad_title ) {
+			$result = Subscription_Lists::create_local_list( $bad_title );
+			$this->assertInstanceOf( WP_Error::class, $result );
+			$this->assertSame( 'newspack_newsletters_local_list_invalid_title', $result->get_error_code() );
+		}
+
+		$this->assertSame( $count, count( Subscription_Lists::get_all() ) );
+	}
+
+	/**
+	 * Test create_local_list trims surrounding whitespace from the title.
+	 */
+	public function test_create_local_list_trims_title() {
+		$list = Subscription_Lists::create_local_list( '  Padded Title  ' );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+		$this->assertSame( 'Padded Title', $list->get_title() );
+	}
+
+	/**
+	 * Test update_local_list happy path (no audience change).
+	 */
+	public function test_update_local_list() {
+		$list = Subscription_Lists::create_local_list( 'Original Title', 'Original description.' );
+		$this->assertInstanceOf( Subscription_List::class, $list );
+
+		$updated = Subscription_Lists::update_local_list( $list->get_id(), 'New Title', 'New description.' );
+		$this->assertInstanceOf( Subscription_List::class, $updated );
+		$this->assertSame( 'New Title', $updated->get_title() );
+		$this->assertSame( 'New description.', $updated->get_description() );
+	}
+
+	/**
+	 * Test update_local_list rejects unknown post id.
+	 */
+	public function test_update_local_list_rejects_unknown_id() {
+		$result = Subscription_Lists::update_local_list( 999999, 'Whatever' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_found', $result->get_error_code() );
+	}
+
+	/**
+	 * Test update_local_list rejects non-local lists.
+	 */
+	public function test_update_local_list_rejects_non_local() {
+		$remote = Subscription_Lists::create_remote_list( 'remote-x', 'Remote List' );
+		$result = Subscription_Lists::update_local_list( $remote->get_id(), 'Renamed' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_local', $result->get_error_code() );
+	}
+
+	/**
+	 * Test update_local_list rejects empty title.
+	 */
+	public function test_update_local_list_rejects_empty_title() {
+		$list   = Subscription_Lists::create_local_list( 'Title' );
+		$result = Subscription_Lists::update_local_list( $list->get_id(), '   ' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_invalid_title', $result->get_error_code() );
+	}
+
+	/**
+	 * Test update_local_list persists clearing the description.
+	 */
+	public function test_update_local_list_clears_description() {
+		$list = Subscription_Lists::create_local_list( 'Title', 'Original description.' );
+		$this->assertSame( 'Original description.', $list->get_description() );
+
+		$updated = Subscription_Lists::update_local_list( $list->get_id(), 'Title', '' );
+		$this->assertInstanceOf( Subscription_List::class, $updated );
+
+		$reloaded = new Subscription_List( $updated->get_id() );
+		$this->assertSame( '', $reloaded->get_description() );
+	}
+
+	/**
+	 * Test delete_local_list happy path.
+	 */
+	public function test_delete_local_list() {
+		$list  = Subscription_Lists::create_local_list( 'To Be Deleted' );
+		$id    = $list->get_id();
+		$count = count( Subscription_Lists::get_all() );
+
+		$result = Subscription_Lists::delete_local_list( $id );
+		$this->assertTrue( $result );
+		$this->assertSame( $count - 1, count( Subscription_Lists::get_all() ) );
+		$this->assertNull( get_post( $id ) );
+	}
+
+	/**
+	 * Test delete_local_list rejects unknown post id.
+	 */
+	public function test_delete_local_list_rejects_unknown_id() {
+		$result = Subscription_Lists::delete_local_list( 999999 );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_found', $result->get_error_code() );
+	}
+
+	/**
+	 * Test delete_local_list refuses to delete non-local lists.
+	 */
+	public function test_delete_local_list_rejects_non_local() {
+		$remote = Subscription_Lists::create_remote_list( 'remote-delete-x', 'Remote List' );
+		$result = Subscription_Lists::delete_local_list( $remote->get_id() );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_local', $result->get_error_code() );
+		$this->assertNotNull( get_post( $remote->get_id() ) );
+	}
+
+	/**
 	 * Test create_remote_list
 	 */
 	public function test_create_remote_list() {
@@ -221,8 +441,6 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 
 		$new_count = count( Subscription_Lists::get_all() );
 
-		// 3 local lists should be marked as deactivated.
-		// 1 remote list should be deactivated and one should be added.
 		$this->assertSame( $count + 1, $new_count );
 
 		$list = new Subscription_List( self::$posts['without_settings'] );
@@ -232,7 +450,7 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertSame( false, $list->is_active() );
 
 		$list = new Subscription_List( self::$posts['mc_invalid'] );
-		$this->assertSame( false, $list->is_active() );
+		$this->assertSame( true, $list->is_active(), 'AC-configured local with mailchimp error stays active when saving the mailchimp UI' );
 
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );
 		$this->assertSame( false, $list->is_active(), 'If active is not informed it should be set to false' );

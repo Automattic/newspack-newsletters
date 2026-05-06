@@ -51,6 +51,7 @@ export default function SettingsScreen() {
 			} catch ( err ) {
 				const message = err?.message || __( 'Could not save subscription lists.', 'newspack-newsletters' );
 				dispatch( noticesStore ).createErrorNotice( message, { type: 'snackbar', explicitDismiss: true } );
+				throw err;
 			} finally {
 				setIsSaving( false );
 			}
@@ -105,8 +106,9 @@ export default function SettingsScreen() {
 				lists={ lists }
 				isLoading={ isListsLoading }
 				error={ listsError }
-				addNewUrl={ data?.lists_add_new_url }
+				canAddLocal={ !! data?.lists_can_add_local }
 				onSave={ handleListsSave }
+				onLocalListChanged={ reloadLists }
 				isSaving={ isSaving }
 			/>
 		</div>

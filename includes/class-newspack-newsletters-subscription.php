@@ -115,6 +115,84 @@ class Newspack_Newsletters_Subscription {
 				],
 			]
 		);
+		register_rest_route(
+			Newspack_Newsletters::API_NAMESPACE,
+			'/lists/local',
+			[
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'api_create_local_list' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+				'args'                => [
+					'title'       => [
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'description' => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					],
+					'audience'    => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			]
+		);
+		register_rest_route(
+			Newspack_Newsletters::API_NAMESPACE,
+			'/lists/local/(?P<id>\d+)',
+			[
+				[
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => [ __CLASS__, 'api_update_local_list' ],
+					'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+					'args'                => [
+						'id'          => [
+							'type'     => 'integer',
+							'required' => true,
+						],
+						'title'       => [
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						],
+						'description' => [
+							'type'              => 'string',
+							'required'          => false,
+							'sanitize_callback' => 'sanitize_textarea_field',
+						],
+						'audience'    => [
+							'type'              => 'string',
+							'required'          => false,
+							'sanitize_callback' => 'sanitize_text_field',
+						],
+					],
+				],
+				[
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => [ __CLASS__, 'api_delete_local_list' ],
+					'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+					'args'                => [
+						'id' => [
+							'type'     => 'integer',
+							'required' => true,
+						],
+					],
+				],
+			]
+		);
+		register_rest_route(
+			Newspack_Newsletters::API_NAMESPACE,
+			'/lists/audiences',
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ __CLASS__, 'api_get_audiences' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+			]
+		);
 	}
 
 	/**
@@ -151,6 +229,128 @@ class Newspack_Newsletters_Subscription {
 	}
 
 	/**
+	 * API method to create a single local subscription list.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_create_local_list( $request ) {
+		// Mirror the React shell's CTA gate so a stale page (provider
+		// switched in another tab) cannot create an unreachable list.
+		$provider = Newspack_Newsletters::get_service_provider();
+		if (
+			empty( $provider )
+			|| 'manual' === Newspack_Newsletters::service_provider()
+			|| ! Newspack_Newsletters::is_service_provider_configured()
+			|| empty( $provider::$support_local_lists )
+		) {
+			return \rest_ensure_response(
+				new WP_Error(
+					'newspack_newsletters_local_lists_unavailable',
+					__( 'Local lists are not available for the configured provider.', 'newspack-newsletters' ),
+					[ 'status' => 400 ]
+				)
+			);
+		}
+
+		$list = Subscription_Lists::create_local_list(
+			(string) $request->get_param( 'title' ),
+			(string) $request->get_param( 'description' ),
+			(string) $request->get_param( 'audience' )
+		);
+		if ( is_wp_error( $list ) ) {
+			return \rest_ensure_response( $list );
+		}
+		return \rest_ensure_response( $list->to_array() );
+	}
+
+	/**
+	 * API method to update a single local subscription list.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_update_local_list( $request ) {
+		$list = Subscription_Lists::update_local_list(
+			(int) $request->get_param( 'id' ),
+			(string) $request->get_param( 'title' ),
+			(string) $request->get_param( 'description' ),
+			(string) $request->get_param( 'audience' )
+		);
+		if ( is_wp_error( $list ) ) {
+			return \rest_ensure_response( $list );
+		}
+		return \rest_ensure_response( $list->to_array() );
+	}
+
+	/**
+	 * API method to delete a single local subscription list.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_delete_local_list( $request ) {
+		$result = Subscription_Lists::delete_local_list( (int) $request->get_param( 'id' ) );
+		if ( is_wp_error( $result ) ) {
+			return \rest_ensure_response( $result );
+		}
+		return \rest_ensure_response( [ 'deleted' => true ] );
+	}
+
+	/**
+	 * API method to fetch native audiences from the active provider, plus
+	 * the provider-aware labels the modal needs for its picker.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function api_get_audiences() {
+		$payload = [
+			'audiences'        => [],
+			'audience_label'   => __( 'List', 'newspack-newsletters' ),
+			'help_before_save' => '',
+		];
+
+		$provider = Newspack_Newsletters::get_service_provider();
+		if ( empty( $provider ) ) {
+			return \rest_ensure_response( $payload );
+		}
+
+		$payload['audience_label']   = $provider::label( 'List' );
+		$payload['help_before_save'] = $provider::label( 'tag_metabox_before_save' );
+
+		if ( ! method_exists( $provider, 'get_lists' ) ) {
+			return \rest_ensure_response( $payload );
+		}
+
+		$lists = $provider->get_lists();
+		if ( is_wp_error( $lists ) || ! is_array( $lists ) ) {
+			return \rest_ensure_response( $payload );
+		}
+
+		$audiences = [];
+		foreach ( $lists as $list ) {
+			// Native audiences only — providers (Mailchimp) tack groups
+			// and tags onto the same payload with a non-empty `type`,
+			// which would point our auto-generated tag at another tag.
+			if ( ! empty( $list['type'] ) ) {
+				continue;
+			}
+			if ( empty( $list['id'] ) || empty( $list['name'] ) ) {
+				continue;
+			}
+			$audiences[] = [
+				'id'   => (string) $list['id'],
+				'name' => (string) $list['name'],
+			];
+		}
+		$payload['audiences'] = $audiences;
+		return \rest_ensure_response( $payload );
+	}
+
+	/**
 	 * Get the lists available for subscription.
 	 *
 	 * @return array|WP_Error Lists or error.
@@ -168,8 +368,6 @@ class Newspack_Newsletters_Subscription {
 			if ( is_wp_error( $lists ) ) {
 				return $lists;
 			}
-			$saved_lists = Subscription_Lists::get_configured_for_current_provider();
-
 			/**
 			 * We loop through the lists returned by the ESP.
 			 * Only remote lists that still exist in the ESP will be returned.
@@ -200,11 +398,8 @@ class Newspack_Newsletters_Subscription {
 			 */
 			Subscription_Lists::garbage_collector( wp_list_pluck( $return_lists, 'db_id' ) );
 
-			// Add local lists to the response.
-			foreach ( $saved_lists as $saved_list ) {
-				if ( $saved_list->is_local() ) {
-					$return_lists[] = $saved_list->to_array();
-				}
+			foreach ( Subscription_Lists::get_locals_for_current_provider() as $local_list ) {
+				$return_lists[] = $local_list->to_array();
 			}
 			return $return_lists;
 		} catch ( \Exception $e ) {
@@ -281,15 +476,23 @@ class Newspack_Newsletters_Subscription {
 	public static function sanitize_lists( $lists ) {
 		$sanitized = [];
 		foreach ( $lists as $list ) {
-			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) || empty( $list['title'] ) ) {
+			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) ) {
 				continue;
 			}
-			$sanitized[] = [
-				'id'          => $list['id'],
-				'active'      => isset( $list['active'] ) ? (bool) $list['active'] : false,
-				'title'       => $list['title'],
-				'description' => isset( $list['description'] ) ? (string) $list['description'] : '',
+			$title = is_string( $list['title'] ) ? trim( $list['title'] ) : '';
+			if ( '' === $title ) {
+				continue;
+			}
+			$entry = [
+				'id'     => $list['id'],
+				'active' => isset( $list['active'] ) ? (bool) $list['active'] : false,
+				'title'  => $title,
 			];
+			// Carry `description` only when present — preserves "omit means leave alone".
+			if ( array_key_exists( 'description', $list ) ) {
+				$entry['description'] = (string) $list['description'];
+			}
+			$sanitized[] = $entry;
 		}
 		return $sanitized;
 	}
