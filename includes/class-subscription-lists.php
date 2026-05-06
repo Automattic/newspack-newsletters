@@ -681,7 +681,11 @@ class Subscription_Lists {
 			);
 		}
 
-		$title_changed = $title !== $list->get_title();
+		// Captured for ESP-failure rollback so a same-title retry still attempts the rename.
+		$original_title       = $list->get_title();
+		$original_description = $list->get_description();
+
+		$title_changed = $title !== $original_title;
 		$list->update(
 			[
 				'title'       => $title,
@@ -703,17 +707,26 @@ class Subscription_Lists {
 		$tag_prefix   = $provider::label( 'tag_prefix' );
 		$new_tag_name = $list->generate_tag_name( $tag_prefix );
 
+		$rollback_local = function () use ( $list, $original_title, $original_description ) {
+			$list->update(
+				[
+					'title'       => $original_title,
+					'description' => $original_description,
+				]
+			);
+		};
+
 		if ( '' !== $audience_id && $audience_id !== $current_audience ) {
 			$tag_id = $provider->get_esp_local_list_id( $new_tag_name, true, $audience_id );
 			if ( is_wp_error( $tag_id ) ) {
-				// Leave the existing wiring intact — overwriting now would drop a working tag/list pair.
+				$rollback_local();
 				return $tag_id;
 			}
 			$list->update_current_provider_settings( $audience_id, $tag_id, $new_tag_name );
 		} elseif ( $title_changed && '' !== $current_audience && ! empty( $current_tag_id ) && method_exists( $provider, 'update_esp_local_list' ) ) {
 			$rename = $provider->update_esp_local_list( $current_tag_id, $new_tag_name, $current_audience );
 			if ( is_wp_error( $rename ) ) {
-				// Don't desync local from ESP — leave the previous tag_name in provider settings.
+				$rollback_local();
 				return $rename;
 			}
 			$list->update_current_provider_settings( $current_audience, $current_tag_id, $new_tag_name );
