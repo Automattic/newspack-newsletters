@@ -61,6 +61,10 @@ body.newspack-newsletters-admin-screen--bundled {
 }
 
 .newspack-newsletters-admin-mount {
+	margin-top: wp-vars.$grid-unit-30;
+}
+
+body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-mount {
 	margin-top: wp-vars.$grid-unit-60;
 }
 
