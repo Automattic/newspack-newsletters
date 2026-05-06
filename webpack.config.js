@@ -33,4 +33,24 @@ const webpackConfig = getBaseWebpackConfig( {
 	entry,
 } );
 
+// `newspack-icons` ships raw JSX in `node_modules/newspack-icons/src/`. The
+// default babel-loader rule from `@wordpress/scripts` excludes node_modules,
+// so the package fails to parse. Carve out an exception. Detect the rule by
+// presence of `babel-loader` in `rule.use` rather than matching `rule.test`
+// verbatim — keeps working if upstream tweaks the test regex. Path separator
+// uses `[\\/]` so the exclude works on Windows too.
+webpackConfig.module.rules = webpackConfig.module.rules.map( rule => {
+	const usesBabel =
+		Array.isArray( rule.use ) &&
+		rule.use.some(
+			loader =>
+				( typeof loader === 'string' && loader.includes( 'babel-loader' ) ) ||
+				( loader && typeof loader === 'object' && typeof loader.loader === 'string' && loader.loader.includes( 'babel-loader' ) )
+		);
+	if ( usesBabel && rule.exclude ) {
+		return { ...rule, exclude: /node_modules[\\/](?!newspack-icons[\\/])/ };
+	}
+	return rule;
+} );
+
 module.exports = webpackConfig;

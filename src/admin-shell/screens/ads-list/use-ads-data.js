@@ -34,6 +34,17 @@ export default function useAdsData( view ) {
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ refreshKey, setRefreshKey ] = useState( 0 );
+	// `mainResolved` / `trashResolved` flip on either success or failure of their respective first fetches.
+	// The combined `hasResolved` drives the spinner gate so a first-load error doesn't leave the screen stuck
+	// on the placeholder. `hasLoadedOnce` only flips on a successful main-list response — drives the strict-empty
+	// check so a transient fetch failure doesn't trigger the onboarding banner.
+	const [ mainResolved, setMainResolved ] = useState( false );
+	const [ trashResolved, setTrashResolved ] = useState( false );
+	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
+	// `trashCount` starts as `null` (unknown). A failed trash fetch keeps it `null` so `trashCount === 0` stays
+	// false and the strict-empty banner stays hidden — safer than rendering the banner when we can't verify there
+	// are no trashed items.
+	const [ trashCount, setTrashCount ] = useState( null );
 
 	const refresh = useCallback( () => setRefreshKey( key => key + 1 ), [] );
 
@@ -51,13 +62,13 @@ export default function useAdsData( view ) {
 				}
 				setData( Array.isArray( items ) ? items : [] );
 				setPaginationInfo( readPaginationInfo( response ) );
+				setHasLoadedOnce( true );
 			} )
 			.catch( () => {
 				if ( cancelled ) {
 					return;
 				}
-				setData( [] );
-				setPaginationInfo( { totalItems: 0, totalPages: 0 } );
+				// Preserve last-good data on failure so a refetch error doesn't trigger the strict-empty banner.
 				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load ads. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-ads-list-fetch-error',
 				} );
@@ -65,6 +76,7 @@ export default function useAdsData( view ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
+					setMainResolved( true );
 				}
 			} );
 
@@ -82,5 +94,29 @@ export default function useAdsData( view ) {
 		refreshKey,
 	] );
 
-	return { data, paginationInfo, isLoading, refresh };
+	useEffect( () => {
+		let cancelled = false;
+		// Reset to "unknown" while the new count is in flight so a freshly-trashed last item doesn't briefly
+		// flash the EmptyState before the new count lands.
+		setTrashCount( null );
+		apiFetch( { path: `${ POSTS_PATH }?status=trash&per_page=1`, parse: false } )
+			.then( response => {
+				if ( ! cancelled ) {
+					setTrashCount( parseHeaderInt( response.headers.get( 'X-WP-Total' ) ) );
+				}
+			} )
+			.catch( () => {} )
+			.finally( () => {
+				if ( ! cancelled ) {
+					setTrashResolved( true );
+				}
+			} );
+		return () => {
+			cancelled = true;
+		};
+	}, [ refreshKey ] );
+
+	const hasResolved = mainResolved && trashResolved;
+
+	return { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh };
 }
