@@ -37,14 +37,17 @@ export default function useNewslettersData( view ) {
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ refreshKey, setRefreshKey ] = useState( 0 );
-	// `hasResolved` flips on either success or failure of the first fetch — drives the spinner gate so a first-load
-	// error doesn't leave the screen stuck on the placeholder. `hasLoadedOnce` only flips on a successful response —
-	// drives the strict-empty check so a transient fetch failure doesn't trigger the onboarding banner.
-	const [ hasResolved, setHasResolved ] = useState( false );
+	// `mainResolved` / `trashResolved` flip on either success or failure of their respective first fetches.
+	// The combined `hasResolved` drives the spinner gate so a first-load error doesn't leave the screen stuck
+	// on the placeholder. `hasLoadedOnce` only flips on a successful main-list response — drives the strict-empty
+	// check so a transient fetch failure doesn't trigger the onboarding banner.
+	const [ mainResolved, setMainResolved ] = useState( false );
+	const [ trashResolved, setTrashResolved ] = useState( false );
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
-	// Tracks count of trashed newsletters so the empty state doesn't render when the only items are in Trash —
-	// the user still needs the Status filter path to view / restore / delete them.
-	const [ trashCount, setTrashCount ] = useState( 0 );
+	// `trashCount` starts as `null` (unknown). A failed trash fetch keeps it `null` so `trashCount === 0` stays
+	// false and the strict-empty banner stays hidden — safer than rendering the banner when we can't verify there
+	// are no trashed items.
+	const [ trashCount, setTrashCount ] = useState( null );
 
 	const refresh = useCallback( () => setRefreshKey( key => key + 1 ), [] );
 
@@ -76,7 +79,7 @@ export default function useNewslettersData( view ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
-					setHasResolved( true );
+					setMainResolved( true );
 				}
 			} );
 
@@ -102,11 +105,18 @@ export default function useNewslettersData( view ) {
 					setTrashCount( parseHeaderInt( response.headers.get( 'X-WP-Total' ) ) );
 				}
 			} )
-			.catch( () => {} );
+			.catch( () => {} )
+			.finally( () => {
+				if ( ! cancelled ) {
+					setTrashResolved( true );
+				}
+			} );
 		return () => {
 			cancelled = true;
 		};
 	}, [ refreshKey ] );
+
+	const hasResolved = mainResolved && trashResolved;
 
 	return { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh };
 }
