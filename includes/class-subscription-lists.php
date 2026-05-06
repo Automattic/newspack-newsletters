@@ -578,13 +578,11 @@ class Subscription_Lists {
 	 * Creates a local list.
 	 *
 	 * Created inactive (`draft`) so the admin can flip it on after
-	 * verifying. When `$audience_id` is provided, mirrors the legacy
-	 * `save_post` ESP wiring path so the list lands ready to receive
-	 * subscribers (auto-generated tag under the chosen audience). A
-	 * wiring failure persists the error against the list so it surfaces
-	 * in the legacy metabox; the post still exists, the row still
-	 * appears in Settings, and the WP_Error returned here lets the
-	 * modal show the failure inline.
+	 * verifying. When `$audience_id` is given, the auto-generated tag is
+	 * created under that audience. ESP wiring failures roll the post
+	 * back (`wp_delete_post`) so a retry isn't blocked behind a hidden
+	 * half-created list, and the WP_Error is returned for the modal to
+	 * surface inline.
 	 *
 	 * @param string $title       List title (required, trimmed non-empty).
 	 * @param string $description Optional list description, stored as post_content.
