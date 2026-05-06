@@ -22,6 +22,10 @@ body.newspack-newsletters-admin-screen {
 	.newspack-wizards-admin-header {
 		margin-left: 0;
 	}
+
+	.notice-info {
+		box-shadow: 0 0 0 1px wp-colors.$gray-300;
+	}
 }
 
 // Bundled mode: tint WP component primaries to Newspack navy so the React
