@@ -398,12 +398,22 @@ class Newspack_Newsletters_Subscription {
 			 */
 			Subscription_Lists::garbage_collector( wp_list_pluck( $return_lists, 'db_id' ) );
 
-			// Include unconfigured locals too — a freshly-created list has
-			// no `tag_id` / audience yet, and `is_configured_for_current_provider`
-			// would hide its inline Edit link before the admin can wire it.
+			// Include current-provider-configured locals plus genuinely
+			// unconfigured ones (no provider settings at all). Locals
+			// configured only under a different provider are skipped:
+			// `to_array()` would still report them active from global
+			// post_status, but signup forms won't see them, and toggling
+			// from this UI would drop them globally on the other
+			// provider too.
 			$local_lists = Subscription_Lists::get_filtered(
 				function ( $list ) {
-					return $list->is_local();
+					if ( ! $list->is_local() ) {
+						return false;
+					}
+					if ( $list->is_configured_for_current_provider() ) {
+						return true;
+					}
+					return empty( $list->get_configured_providers() );
 				}
 			);
 			foreach ( $local_lists as $local_list ) {
