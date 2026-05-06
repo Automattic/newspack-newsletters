@@ -260,6 +260,7 @@ final class Ads {
 			'new_item'                 => __( 'New Newsletter Ad', 'newspack-newsletters' ),
 			'edit_item'                => __( 'Edit Newsletter Ad', 'newspack-newsletters' ),
 			'view_item'                => __( 'View Newsletter Ad', 'newspack-newsletters' ),
+			'view_items'               => __( 'View Newsletter Ads', 'newspack-newsletters' ),
 			'all_items'                => __( 'All Newsletter Ads', 'newspack-newsletters' ),
 			'search_items'             => __( 'Search Newsletter Ads', 'newspack-newsletters' ),
 			'parent_item_colon'        => __( 'Parent Newsletter Ads:', 'newspack-newsletters' ),

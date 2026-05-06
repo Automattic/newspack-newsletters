@@ -21,11 +21,17 @@ export default function App( { label, Screen } ) {
 	const isBundled = !! window.newspackNewslettersAdmin?.bundledMode;
 	const titleClass = isBundled ? 'screen-reader-text' : 'newspack-newsletters-admin__title';
 
+	const headerContent = (
+		<>
+			<h1 className={ titleClass }>{ label }</h1>
+			<PageHeader />
+		</>
+	);
+
 	return (
 		<HeaderActionsProvider>
 			<div className="newspack-newsletters-admin">
-				<h1 className={ titleClass }>{ label }</h1>
-				<PageHeader />
+				{ isBundled ? headerContent : <div className="newspack-newsletters-admin__header">{ headerContent }</div> }
 				<main className="newspack-newsletters-admin__main">
 					<Screen label={ label } />
 				</main>

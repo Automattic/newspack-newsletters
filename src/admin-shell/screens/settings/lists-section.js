@@ -1,4 +1,11 @@
-import { Button, CheckboxControl, Notice, TextControl, TextareaControl } from '@wordpress/components';
+import {
+	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+	Button,
+	CheckboxControl,
+	Notice,
+	TextControl,
+	TextareaControl,
+} from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -56,14 +63,6 @@ export default function ListsSection( { lists, isLoading, error, addNewUrl, onSa
 			<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
 			<p>{ __( 'Manage which lists are available for subscription.', 'newspack-newsletters' ) }</p>
 
-			{ addNewUrl && (
-				<p>
-					<Button variant="secondary" href={ addNewUrl }>
-						{ __( 'Add new local list', 'newspack-newsletters' ) }
-					</Button>
-				</p>
-			) }
-
 			<div className="newspack-newsletters-settings__lists">
 				{ workingCopy.map( list => {
 					const isLocal = list.type === 'local';
@@ -109,9 +108,16 @@ export default function ListsSection( { lists, isLoading, error, addNewUrl, onSa
 				} ) }
 			</div>
 
-			<Button variant="primary" onClick={ handleSave } isBusy={ isSaving } disabled={ isSaving }>
-				{ __( 'Save subscription lists', 'newspack-newsletters' ) }
-			</Button>
+			<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
+				<Button variant="primary" onClick={ handleSave } isBusy={ isSaving } disabled={ isSaving }>
+					{ __( 'Save subscription lists', 'newspack-newsletters' ) }
+				</Button>
+				{ addNewUrl && (
+					<Button variant="secondary" href={ addNewUrl }>
+						{ __( 'Add new local list', 'newspack-newsletters' ) }
+					</Button>
+				) }
+			</HStack>
 		</div>
 	);
 }

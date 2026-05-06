@@ -2,8 +2,9 @@
 @use "~@wordpress/base-styles/variables" as wp-vars;
 @use "~newspack-components/colors/colors.module" as np-colors;
 
-// Mirrors newspack-plugin's `with-wizard-screen/style.scss`: white surface,
-// Newspack navy on WP component primaries via the theme-color overrides.
+/* stylelint-disable-next-line no-invalid-position-at-import-rule */
+@import "@wordpress/dataviews/build-style/style.css";
+
 body.newspack-newsletters-admin-screen {
 	background: wp-colors.$white;
 
@@ -22,6 +23,15 @@ body.newspack-newsletters-admin-screen {
 		margin-left: 0;
 	}
 
+	.notice-info {
+		box-shadow: 0 0 0 1px wp-colors.$gray-300;
+	}
+}
+
+// Bundled mode: tint WP component primaries to Newspack navy so the React
+// surface matches newspack-plugin's wizard chrome. Standalone defers to the
+// user's WP admin colour scheme.
+body.newspack-newsletters-admin-screen--bundled {
 	--wp-admin-theme-color: #{np-colors.$primary-600};
 	--wp-admin-theme-color--rgb: #{np-colors.$primary-600--rgb};
 	--wp-admin-theme-color-darker-10: #{np-colors.$primary-700};
@@ -31,8 +41,6 @@ body.newspack-newsletters-admin-screen {
 	--wp-admin-theme-color-lighter-10: #{np-colors.$primary-000};
 	--wp-admin-theme-color-lighter-10--rgb: #{np-colors.$primary-000--rgb};
 
-	// Action row is portaled in as a sibling of `__inner`; replicate the
-	// wizard's flex rules for that slot, scoped to this screen.
 	#newspack-wizards-admin-header .newspack-wizard__header {
 		align-items: center;
 		display: flex;
@@ -53,6 +61,10 @@ body.newspack-newsletters-admin-screen {
 }
 
 .newspack-newsletters-admin-mount {
+	margin-top: wp-vars.$grid-unit-30;
+}
+
+body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-mount {
 	margin-top: wp-vars.$grid-unit-60;
 }
 
@@ -61,19 +73,33 @@ body.newspack-newsletters-admin-screen {
 	padding-bottom: wp-vars.$grid-unit-40;
 	position: relative;
 
+	.components-base-control__help a {
+		color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
+
+		&:hover {
+			color: var(--wp-admin-theme-color-darker-20);
+		}
+	}
+
+	&__header {
+		align-items: center;
+		display: flex;
+		gap: wp-vars.$grid-unit-30;
+		justify-content: space-between;
+		margin-bottom: wp-vars.$grid-unit-30;
+		padding: 0 wp-vars.$grid-unit-30;
+	}
+
 	&__title {
 		font-size: 23px;
 		font-weight: 400;
 		line-height: 1.3;
-		margin: 0 0 wp-vars.$grid-unit-30;
-		padding: 0 wp-vars.$grid-unit-30;
+		margin: 0;
 	}
 
 	&__header-actions {
 		display: flex;
 		gap: wp-vars.$grid-unit-10;
-		justify-content: flex-end;
-		margin-bottom: wp-vars.$grid-unit-20;
 	}
 
 	&__main {

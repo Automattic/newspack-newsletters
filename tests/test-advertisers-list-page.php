@@ -67,15 +67,17 @@ class Advertisers_List_Page_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Submenu highlighting points to the auto-generated taxonomy
-	 * submenu — the standalone-mode click target. In bundled mode the
-	 * wizard hides this submenu and the dark Newspack chrome takes over,
-	 * so the highlight is a no-op there.
+	 * Submenu highlighting points at the auto-generated taxonomy submenu
+	 * the standalone-mode sidebar exposes. The advertiser tax is shared
+	 * with the newsletters CPT (the only one with `show_in_menu`), so
+	 * submenu mode highlights the entry under the newsletters CPT URL.
+	 * WP core stores the auto-tax submenu slug with an `&amp;`-encoded
+	 * ampersand; the filter return must match verbatim.
 	 */
 	public function test_submenu_file_targets_advertiser_taxonomy() {
 		$page = new Advertisers_List_Page();
 		$this->assertSame(
-			'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&post_type=' . Ads::CPT,
+			'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&amp;post_type=' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			$page->get_submenu_file()
 		);
 	}
