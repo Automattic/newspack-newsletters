@@ -16,7 +16,7 @@ import { store as noticesStore } from '@wordpress/notices';
 
 import LocalListModal from './local-list-modal';
 
-export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListCreated, isSaving } ) {
+export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListChanged, isSaving } ) {
 	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
 	// Ref (not state) so the merge effect below isn't re-triggered by edits.
 	const dirtyIdsRef = useRef( new Set() );
@@ -38,8 +38,8 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 				path: `/newspack-newsletters/v1/lists/local/${ list.db_id }`,
 				method: 'DELETE',
 			} );
-			if ( onLocalListCreated ) {
-				onLocalListCreated();
+			if ( onLocalListChanged ) {
+				onLocalListChanged();
 			}
 			setPendingDelete( null );
 		} catch ( err ) {
@@ -130,7 +130,7 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 							</Button>
 						</HStack>
 						{ modalState && (
-							<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListCreated } />
+							<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListChanged } />
 						) }
 					</>
 				) }
@@ -210,7 +210,7 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 			</HStack>
 
 			{ modalState && (
-				<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListCreated } />
+				<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListChanged } />
 			) }
 
 			{ pendingDelete && (

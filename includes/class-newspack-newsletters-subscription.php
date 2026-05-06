@@ -479,12 +479,16 @@ class Newspack_Newsletters_Subscription {
 			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) || empty( $list['title'] ) ) {
 				continue;
 			}
-			$sanitized[] = [
-				'id'          => $list['id'],
-				'active'      => isset( $list['active'] ) ? (bool) $list['active'] : false,
-				'title'       => $list['title'],
-				'description' => isset( $list['description'] ) ? (string) $list['description'] : '',
+			$entry = [
+				'id'     => $list['id'],
+				'active' => isset( $list['active'] ) ? (bool) $list['active'] : false,
+				'title'  => $list['title'],
 			];
+			// Carry `description` only when present — preserves "omit means leave alone".
+			if ( array_key_exists( 'description', $list ) ) {
+				$entry['description'] = (string) $list['description'];
+			}
+			$sanitized[] = $entry;
 		}
 		return $sanitized;
 	}

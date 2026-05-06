@@ -108,7 +108,7 @@ export default function SettingsScreen() {
 				error={ listsError }
 				canAddLocal={ !! data?.lists_can_add_local }
 				onSave={ handleListsSave }
-				onLocalListCreated={ reloadLists }
+				onLocalListChanged={ reloadLists }
 				isSaving={ isSaving }
 			/>
 		</div>

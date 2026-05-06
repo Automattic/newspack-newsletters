@@ -74,6 +74,7 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		setError( '' );
 
 		const path = isEdit ? `${ CREATE_PATH }/${ list.db_id }` : CREATE_PATH;
+		const method = isEdit ? 'PATCH' : 'POST';
 		const data = {
 			title: trimmedTitle,
 			description,
@@ -81,7 +82,7 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		};
 
 		try {
-			await apiFetch( { path, method: 'POST', data } );
+			await apiFetch( { path, method, data } );
 			onSaved();
 			onClose();
 		} catch ( err ) {

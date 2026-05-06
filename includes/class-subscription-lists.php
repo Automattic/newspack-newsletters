@@ -706,12 +706,16 @@ class Subscription_Lists {
 		if ( '' !== $audience_id && $audience_id !== $current_audience ) {
 			$tag_id = $provider->get_esp_local_list_id( $new_tag_name, true, $audience_id );
 			if ( is_wp_error( $tag_id ) ) {
-				$list->update_current_provider_settings( $audience_id, '', $new_tag_name, $tag_id->get_error_message() );
+				// Leave the existing wiring intact — overwriting now would drop a working tag/list pair.
 				return $tag_id;
 			}
 			$list->update_current_provider_settings( $audience_id, $tag_id, $new_tag_name );
 		} elseif ( $title_changed && '' !== $current_audience && ! empty( $current_tag_id ) && method_exists( $provider, 'update_esp_local_list' ) ) {
-			$provider->update_esp_local_list( $current_tag_id, $new_tag_name, $current_audience );
+			$rename = $provider->update_esp_local_list( $current_tag_id, $new_tag_name, $current_audience );
+			if ( is_wp_error( $rename ) ) {
+				// Don't desync local from ESP — leave the previous tag_name in provider settings.
+				return $rename;
+			}
 			$list->update_current_provider_settings( $current_audience, $current_tag_id, $new_tag_name );
 		}
 
