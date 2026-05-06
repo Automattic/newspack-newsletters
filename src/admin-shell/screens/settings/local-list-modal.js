@@ -56,10 +56,14 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		};
 	}, [] );
 
-	const audienceOptions = useMemo(
-		() => [ { label: __( 'Configure later', 'newspack-newsletters' ), value: '' }, ...audiences.map( a => ( { label: a.name, value: a.id } ) ) ],
-		[ audiences ]
-	);
+	const audienceOptions = useMemo( () => {
+		const options = audiences.map( a => ( { label: a.name, value: a.id } ) );
+		// Empty audience means "leave wiring untouched" server-side, so only offer it when there's no wiring to leave.
+		if ( ! list?.audience ) {
+			return [ { label: __( 'Configure later', 'newspack-newsletters' ), value: '' }, ...options ];
+		}
+		return options;
+	}, [ audiences, list?.audience ] );
 
 	const submit = async event => {
 		event.preventDefault();
