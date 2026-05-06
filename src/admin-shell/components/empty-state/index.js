@@ -38,13 +38,15 @@ export default function EmptyState( { icon, title, description, ctaTitle, ctaHre
 	}
 
 	const buttonProps = { variant: 'primary' };
-	if ( hasCtaHref ) {
-		buttonProps.href = ctaHref;
-	} else if ( hasCtaOnClick ) {
-		buttonProps.onClick = ctaOnClick;
+	if ( hasExactlyOneCtaAction ) {
+		if ( hasCtaHref ) {
+			buttonProps.href = ctaHref;
+		} else {
+			buttonProps.onClick = ctaOnClick;
+		}
 	} else {
-		// Production fallback: dev-time throw above will surface misuse, but if a misconfigured prod build
-		// reaches here, render a disabled button rather than an active no-op CTA.
+		// Production fallback: the dev-time throw above surfaces misuse (neither or both CTAs set).
+		// In a misconfigured prod build, disable the button rather than render an active CTA.
 		buttonProps.disabled = true;
 	}
 
