@@ -48,7 +48,7 @@ webpackConfig.module.rules = webpackConfig.module.rules.map( rule => {
 				( loader && typeof loader === 'object' && typeof loader.loader === 'string' && loader.loader.includes( 'babel-loader' ) )
 		);
 	if ( usesBabel && rule.exclude ) {
-		return { ...rule, exclude: /node_modules[\\/](?!newspack-icons)/ };
+		return { ...rule, exclude: /node_modules[\\/](?!newspack-icons[\\/])/ };
 	}
 	return rule;
 } );
