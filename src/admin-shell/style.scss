@@ -187,7 +187,7 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 			padding-top: 0;
 		}
 
-		.components-button.is-link {
+		.components-button.is-link:first-child {
 			margin-inline-start: calc(var(--checkbox-input-size) + var(--checkbox-input-margin));
 		}
 	}

@@ -4,6 +4,7 @@ import {
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	Button,
 	CheckboxControl,
+	Modal,
 	Notice,
 	TextControl,
 	TextareaControl,
@@ -20,18 +21,15 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 	// `null` = closed, `'add'` = create modal, `<list>` = edit modal pre-populated.
 	const [ modalState, setModalState ] = useState( null );
 	const [ deletingId, setDeletingId ] = useState( null );
+	const [ pendingDelete, setPendingDelete ] = useState( null );
 	const closeModal = () => setModalState( null );
+	const cancelDelete = () => setPendingDelete( null );
 
-	const handleDelete = async list => {
-		const message = sprintf(
-			// translators: %s is the title of the local list being deleted.
-			__( 'Delete the local list "%s"? This cannot be undone.', 'newspack-newsletters' ),
-			list.title
-		);
-		// eslint-disable-next-line no-alert
-		if ( ! window.confirm( message ) ) {
+	const confirmDelete = async () => {
+		if ( ! pendingDelete ) {
 			return;
 		}
+		const list = pendingDelete;
 		setDeletingId( list.db_id );
 		try {
 			await apiFetch( {
@@ -41,11 +39,13 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 			if ( onLocalListCreated ) {
 				onLocalListCreated();
 			}
+			setPendingDelete( null );
 		} catch ( err ) {
 			dispatch( noticesStore ).createErrorNotice( err?.message || __( 'Could not delete the local list.', 'newspack-newsletters' ), {
 				type: 'snackbar',
 				explicitDismiss: true,
 			} );
+			setPendingDelete( null );
 		} finally {
 			setDeletingId( null );
 		}
@@ -150,7 +150,7 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 									<Button
 										variant="link"
 										isDestructive
-										onClick={ () => handleDelete( list ) }
+										onClick={ () => setPendingDelete( list ) }
 										isBusy={ deletingId === list.db_id }
 										disabled={ deletingId === list.db_id }
 									>
@@ -176,6 +176,39 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 
 			{ modalState && (
 				<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListCreated } />
+			) }
+
+			{ pendingDelete && (
+				<Modal
+					title={ __( 'Delete local list', 'newspack-newsletters' ) }
+					onRequestClose={ cancelDelete }
+					size="small"
+					className="newspack-newsletters-local-list-delete-modal"
+				>
+					<VStack spacing={ 4 }>
+						<p>
+							{ sprintf(
+								// translators: %s is the title of the local list being deleted.
+								__( 'Delete the local list "%s"? This cannot be undone.', 'newspack-newsletters' ),
+								pendingDelete.title
+							) }
+						</p>
+						<HStack justify="flex-end" spacing={ 2 }>
+							<Button variant="tertiary" onClick={ cancelDelete } disabled={ deletingId === pendingDelete.db_id }>
+								{ __( 'Cancel', 'newspack-newsletters' ) }
+							</Button>
+							<Button
+								variant="primary"
+								isDestructive
+								onClick={ confirmDelete }
+								isBusy={ deletingId === pendingDelete.db_id }
+								disabled={ deletingId === pendingDelete.db_id }
+							>
+								{ __( 'Delete list', 'newspack-newsletters' ) }
+							</Button>
+						</HStack>
+					</VStack>
+				</Modal>
 			) }
 		</div>
 	);
