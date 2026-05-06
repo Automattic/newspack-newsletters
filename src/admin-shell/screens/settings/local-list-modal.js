@@ -101,7 +101,9 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 	return (
 		<Modal
 			title={ isEdit ? __( 'Edit local list', 'newspack-newsletters' ) : __( 'Add new local list', 'newspack-newsletters' ) }
-			onRequestClose={ onClose }
+			onRequestClose={ isBusy ? () => {} : onClose }
+			shouldCloseOnEsc={ ! isBusy }
+			shouldCloseOnClickOutside={ ! isBusy }
 			size="medium"
 			className="newspack-newsletters-local-list-modal"
 		>

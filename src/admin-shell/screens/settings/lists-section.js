@@ -216,7 +216,9 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 			{ pendingDelete && (
 				<Modal
 					title={ __( 'Delete local list', 'newspack-newsletters' ) }
-					onRequestClose={ cancelDelete }
+					onRequestClose={ deletingId === pendingDelete.db_id ? () => {} : cancelDelete }
+					shouldCloseOnEsc={ deletingId !== pendingDelete.db_id }
+					shouldCloseOnClickOutside={ deletingId !== pendingDelete.db_id }
 					size="small"
 					className="newspack-newsletters-local-list-delete-modal"
 				>
