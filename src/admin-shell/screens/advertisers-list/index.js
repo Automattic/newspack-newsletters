@@ -14,10 +14,11 @@
  * than one page of advertisers.
  */
 
+import { __experimentalHStack as HStack, Spinner } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { DataViews } from '@wordpress/dataviews/wp';
 import { useCallback, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { group, plus } from '@wordpress/icons';
+import { store } from '@wordpress/icons';
 
 import EmptyState from '../../components/empty-state';
 import { useHeaderActions } from '../../header-actions-context';
@@ -69,40 +70,44 @@ export default function AdvertisersListScreen() {
 	const fields = useMemo( () => getFields( { onEdit: openEdit } ), [ openEdit ] );
 	const actions = useMemo( () => getActions( { onEdit: openEdit, onMutated } ), [ openEdit, onMutated ] );
 
+	const isStrictEmpty =
+		hasLoadedOnce && ! isLoading && paginationInfo.totalItems === 0 && ! view.search && ( ! view.filters || view.filters.length === 0 );
+
 	useHeaderActions(
 		useMemo(
-			() => [
-				{
-					type: 'primary',
-					label: __( 'Add new advertiser', 'newspack-newsletters' ),
-					onClick: openAdd,
-				},
-			],
-			[ openAdd ]
+			() =>
+				! hasLoadedOnce || isStrictEmpty
+					? []
+					: [
+							{
+								type: 'primary',
+								label: __( 'Add new advertiser', 'newspack-newsletters' ),
+								onClick: openAdd,
+							},
+					  ],
+			[ hasLoadedOnce, isStrictEmpty, openAdd ]
 		)
 	);
 
-	// Strict-empty: the list has loaded at least once and the unfiltered
-	// total is zero. Filter / search empty-results keep the DataView's
-	// built-in "no results" treatment — different surface, different
-	// intent. Loading state suppresses the empty banner so it doesn't
-	// flash before the first fetch resolves.
-	const isStrictEmpty =
-		hasLoadedOnce && ! isLoading && paginationInfo.totalItems === 0 && ! view.search && ( ! view.filters || view.filters.length === 0 );
+	if ( ! hasLoadedOnce ) {
+		return (
+			<HStack className="newspack-newsletters-admin__loading" justify="center">
+				<Spinner />
+			</HStack>
+		);
+	}
 
 	return (
 		<>
 			{ isStrictEmpty ? (
 				<EmptyState
-					icon={ group }
+					icon={ store }
 					title={ __( 'Get started with advertisers', 'newspack-newsletters' ) }
 					description={ __(
 						'Group ads by the advertiser they belong to so you can track and report on each one separately.',
 						'newspack-newsletters'
 					) }
-					ctaIcon={ plus }
 					ctaTitle={ __( 'Add new advertiser', 'newspack-newsletters' ) }
-					ctaDescription={ __( 'Create your first advertiser to assign to newsletter ads.', 'newspack-newsletters' ) }
 					ctaOnClick={ openAdd }
 				/>
 			) : (

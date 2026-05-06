@@ -6,11 +6,14 @@
  * uses the consolidated `newspack_newsletters_status` REST field.
  */
 
+import { __experimentalHStack as HStack, Spinner } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { DataViews } from '@wordpress/dataviews/wp';
 import { useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { envelope } from '@wordpress/icons';
 
 import { getAdminUrl, getCptSlug } from '../../admin-globals';
+import EmptyState from '../../components/empty-state';
 import { useHeaderActions } from '../../header-actions-context';
 import useNewslettersData from './use-newsletters-data';
 import { getFields } from './fields';
@@ -37,23 +40,51 @@ const DEFAULT_LAYOUTS = { table: {} };
 
 export default function NewslettersListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
-	const { data, paginationInfo, isLoading, refresh } = useNewslettersData( view );
+	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useNewslettersData( view );
+
+	const addNewHref = `${ getAdminUrl() }post-new.php?post_type=${ getCptSlug() }`;
 
 	const fields = useMemo( () => getFields(), [] );
 	const actions = useMemo( () => getActions( { refresh } ), [ refresh ] );
 
+	const isStrictEmpty =
+		hasLoadedOnce && ! isLoading && paginationInfo.totalItems === 0 && ! view.search && ( ! view.filters || view.filters.length === 0 );
+
 	useHeaderActions(
 		useMemo(
-			() => [
-				{
-					type: 'primary',
-					label: __( 'Add new newsletter', 'newspack-newsletters' ),
-					href: `${ getAdminUrl() }post-new.php?post_type=${ getCptSlug() }`,
-				},
-			],
-			[]
+			() =>
+				! hasLoadedOnce || isStrictEmpty
+					? []
+					: [
+							{
+								type: 'primary',
+								label: __( 'Add new newsletter', 'newspack-newsletters' ),
+								href: addNewHref,
+							},
+					  ],
+			[ hasLoadedOnce, isStrictEmpty, addNewHref ]
 		)
 	);
+
+	if ( ! hasLoadedOnce ) {
+		return (
+			<HStack className="newspack-newsletters-admin__loading" justify="center">
+				<Spinner />
+			</HStack>
+		);
+	}
+
+	if ( isStrictEmpty ) {
+		return (
+			<EmptyState
+				icon={ envelope }
+				title={ __( 'Get started with newsletters', 'newspack-newsletters' ) }
+				description={ __( 'Compose, schedule, and send newsletters to your subscribers via your connected ESP.', 'newspack-newsletters' ) }
+				ctaTitle={ __( 'Add new newsletter', 'newspack-newsletters' ) }
+				ctaHref={ addNewHref }
+			/>
+		);
+	}
 
 	return (
 		<DataViews

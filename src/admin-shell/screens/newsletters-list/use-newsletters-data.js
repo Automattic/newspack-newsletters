@@ -37,6 +37,8 @@ export default function useNewslettersData( view ) {
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ refreshKey, setRefreshKey ] = useState( 0 );
+	// Tracks whether the first fetch has resolved — without it, the empty state would flash before data arrives.
+	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	const refresh = useCallback( () => setRefreshKey( key => key + 1 ), [] );
 
@@ -54,13 +56,13 @@ export default function useNewslettersData( view ) {
 				}
 				setData( Array.isArray( items ) ? items : [] );
 				setPaginationInfo( readPaginationInfo( response ) );
+				setHasLoadedOnce( true );
 			} )
 			.catch( () => {
 				if ( cancelled ) {
 					return;
 				}
-				setData( [] );
-				setPaginationInfo( { totalItems: 0, totalPages: 0 } );
+				// Preserve last-good data on failure so a refetch error doesn't trigger the strict-empty banner.
 				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load newsletters. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-list-fetch-error',
 				} );
@@ -85,5 +87,5 @@ export default function useNewslettersData( view ) {
 		refreshKey,
 	] );
 
-	return { data, paginationInfo, isLoading, refresh };
+	return { data, paginationInfo, isLoading, hasLoadedOnce, refresh };
 }

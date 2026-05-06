@@ -26,6 +26,15 @@ body.newspack-newsletters-admin-screen {
 	.notice-info {
 		box-shadow: 0 0 0 1px wp-colors.$gray-300;
 	}
+
+	// Pin the SectionHeader pageHeader icon to Newspack navy regardless of admin colour scheme.
+	.newspack-section-header.newspack-section-header--page-header .newspack-section-header__icon {
+		background-color: np-colors.$primary-000;
+
+		svg {
+			fill: np-colors.$primary-600;
+		}
+	}
 }
 
 // Bundled mode: tint WP component primaries to Newspack navy so the React
@@ -72,6 +81,22 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	background: wp-colors.$white;
 	padding-bottom: wp-vars.$grid-unit-40;
 	position: relative;
+
+	&:has(.newspack-newsletters-admin__empty-state) .newspack-newsletters-admin__header,
+	&:has(.newspack-newsletters-admin__loading) .newspack-newsletters-admin__header {
+		display: none;
+	}
+
+	// Mirror newspack-plugin's `--newspack-wizard-section-width: 1006px`
+	// constraint when an empty state or loading state is rendered, so the
+	// Grid centres against a predictable container width like the wizard's
+	// `.newspack-wizard__sections` does.
+	&:has(.newspack-newsletters-admin__empty-state) .newspack-newsletters-admin__main,
+	&:has(.newspack-newsletters-admin__loading) .newspack-newsletters-admin__main {
+		margin-left: auto;
+		margin-right: auto;
+		max-width: 1006px;
+	}
 
 	.components-base-control__help a {
 		color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
@@ -128,6 +153,13 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 		border: 1px solid wp-colors.$gray-300;
 		border-radius: wp-vars.$grid-unit-05;
 		padding: wp-vars.$grid-unit-30;
+	}
+
+	&__loading {
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		min-height: 200px;
 	}
 }
 
