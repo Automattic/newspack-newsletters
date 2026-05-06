@@ -64,9 +64,9 @@ final class Newspack_Newsletters_Layouts {
 			'view_item'          => __( 'View Layout', 'newspack-newsletters' ),
 			'view_items'         => __( 'View Layouts', 'newspack-newsletters' ),
 			'search_items'       => __( 'Search Layouts', 'newspack-newsletters' ),
-			'not_found'          => __( 'No layouts found.', 'newspack-newsletters' ),
-			'not_found_in_trash' => __( 'No layouts found in trash.', 'newspack-newsletters' ),
-			'all_items'          => __( 'All layouts', 'newspack-newsletters' ),
+			'not_found'          => __( 'No Layouts found.', 'newspack-newsletters' ),
+			'not_found_in_trash' => __( 'No Layouts found in Trash.', 'newspack-newsletters' ),
+			'all_items'          => __( 'All Layouts', 'newspack-newsletters' ),
 			'item_published'     => __( 'Layout published.', 'newspack-newsletters' ),
 			'item_updated'       => __( 'Layout updated.', 'newspack-newsletters' ),
 		];
