@@ -40,7 +40,7 @@ const DEFAULT_LAYOUTS = { table: {} };
 
 export default function NewslettersListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
-	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useNewslettersData( view );
+	const { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh } = useNewslettersData( view );
 
 	const addNewHref = `${ getAdminUrl() }post-new.php?post_type=${ getCptSlug() }`;
 
@@ -48,12 +48,17 @@ export default function NewslettersListScreen() {
 	const actions = useMemo( () => getActions( { refresh } ), [ refresh ] );
 
 	const isStrictEmpty =
-		hasLoadedOnce && ! isLoading && paginationInfo.totalItems === 0 && ! view.search && ( ! view.filters || view.filters.length === 0 );
+		hasLoadedOnce &&
+		! isLoading &&
+		paginationInfo.totalItems === 0 &&
+		trashCount === 0 &&
+		! view.search &&
+		( ! view.filters || view.filters.length === 0 );
 
 	useHeaderActions(
 		useMemo(
 			() =>
-				! hasLoadedOnce || isStrictEmpty
+				! hasResolved || isStrictEmpty
 					? []
 					: [
 							{
@@ -62,11 +67,11 @@ export default function NewslettersListScreen() {
 								href: addNewHref,
 							},
 					  ],
-			[ hasLoadedOnce, isStrictEmpty, addNewHref ]
+			[ hasResolved, isStrictEmpty, addNewHref ]
 		)
 	);
 
-	if ( ! hasLoadedOnce ) {
+	if ( ! hasResolved ) {
 		return (
 			<HStack className="newspack-newsletters-admin__loading" justify="center">
 				<Spinner />

@@ -60,11 +60,10 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
-	// Track whether at least one fetch has resolved so the empty state
-	// doesn't flash before data arrives. The DataViews' own `isLoading`
-	// is not enough — `data` is `[]` and `totalItems` is `0` until the
-	// first response lands, which would render the empty state during
-	// the initial fetch.
+	// `hasResolved` flips on either success or failure of the first fetch — drives the spinner gate so a first-load
+	// error doesn't leave the screen stuck on the placeholder. `hasLoadedOnce` only flips on a successful response —
+	// drives the strict-empty check so a transient fetch failure doesn't trigger the onboarding banner.
+	const [ hasResolved, setHasResolved ] = useState( false );
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	useEffect( () => {
@@ -109,6 +108,7 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
+					setHasResolved( true );
 				}
 			} );
 
@@ -117,5 +117,5 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 		};
 	}, [ view.page, view.perPage, view.search, view.sort?.field, view.sort?.direction, mutationKey ] );
 
-	return { data, paginationInfo, isLoading, hasLoadedOnce };
+	return { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce };
 }

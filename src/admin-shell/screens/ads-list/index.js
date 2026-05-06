@@ -103,7 +103,7 @@ function useFilterTerms() {
 
 export default function AdsListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
-	const { data, paginationInfo, isLoading, hasLoadedOnce, refresh } = useAdsData( view );
+	const { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh } = useAdsData( view );
 	const filterTerms = useFilterTerms();
 
 	const addNewHref = `${ getAdminUrl() }post-new.php?post_type=${ ADS_CPT }`;
@@ -112,12 +112,17 @@ export default function AdsListScreen() {
 	const actions = useMemo( () => getActions( { refresh } ), [ refresh ] );
 
 	const isStrictEmpty =
-		hasLoadedOnce && ! isLoading && paginationInfo.totalItems === 0 && ! view.search && ( ! view.filters || view.filters.length === 0 );
+		hasLoadedOnce &&
+		! isLoading &&
+		paginationInfo.totalItems === 0 &&
+		trashCount === 0 &&
+		! view.search &&
+		( ! view.filters || view.filters.length === 0 );
 
 	useHeaderActions(
 		useMemo(
 			() =>
-				! hasLoadedOnce || isStrictEmpty
+				! hasResolved || isStrictEmpty
 					? []
 					: [
 							{
@@ -126,11 +131,11 @@ export default function AdsListScreen() {
 								href: addNewHref,
 							},
 					  ],
-			[ hasLoadedOnce, isStrictEmpty, addNewHref ]
+			[ hasResolved, isStrictEmpty, addNewHref ]
 		)
 	);
 
-	if ( ! hasLoadedOnce ) {
+	if ( ! hasResolved ) {
 		return (
 			<HStack className="newspack-newsletters-admin__loading" justify="center">
 				<Spinner />

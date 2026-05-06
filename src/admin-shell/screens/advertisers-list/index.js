@@ -54,7 +54,7 @@ export default function AdvertisersListScreen() {
 	// created one appears immediately on the next modal open.
 	const [ mutationKey, setMutationKey ] = useState( 0 );
 
-	const { data, paginationInfo, isLoading, hasLoadedOnce } = useAdvertisersData( view, mutationKey );
+	const { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce } = useAdvertisersData( view, mutationKey );
 	const allAdvertisers = useAllAdvertisers( mutationKey );
 
 	// `setModalState` (a `useState` setter) is itself stable, but wrapping
@@ -76,7 +76,7 @@ export default function AdvertisersListScreen() {
 	useHeaderActions(
 		useMemo(
 			() =>
-				! hasLoadedOnce || isStrictEmpty
+				! hasResolved || isStrictEmpty
 					? []
 					: [
 							{
@@ -85,11 +85,11 @@ export default function AdvertisersListScreen() {
 								onClick: openAdd,
 							},
 					  ],
-			[ hasLoadedOnce, isStrictEmpty, openAdd ]
+			[ hasResolved, isStrictEmpty, openAdd ]
 		)
 	);
 
-	if ( ! hasLoadedOnce ) {
+	if ( ! hasResolved ) {
 		return (
 			<HStack className="newspack-newsletters-admin__loading" justify="center">
 				<Spinner />

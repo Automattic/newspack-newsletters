@@ -34,8 +34,14 @@ export default function useAdsData( view ) {
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ refreshKey, setRefreshKey ] = useState( 0 );
-	// Tracks whether the first fetch has resolved — without it, the empty state would flash before data arrives.
+	// `hasResolved` flips on either success or failure of the first fetch — drives the spinner gate so a first-load
+	// error doesn't leave the screen stuck on the placeholder. `hasLoadedOnce` only flips on a successful response —
+	// drives the strict-empty check so a transient fetch failure doesn't trigger the onboarding banner.
+	const [ hasResolved, setHasResolved ] = useState( false );
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
+	// Tracks count of trashed ads so the empty state doesn't render when the only items are in Trash —
+	// the user still needs the Status filter path to view / restore / delete them.
+	const [ trashCount, setTrashCount ] = useState( 0 );
 
 	const refresh = useCallback( () => setRefreshKey( key => key + 1 ), [] );
 
@@ -67,6 +73,7 @@ export default function useAdsData( view ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
+					setHasResolved( true );
 				}
 			} );
 
@@ -84,5 +91,19 @@ export default function useAdsData( view ) {
 		refreshKey,
 	] );
 
-	return { data, paginationInfo, isLoading, hasLoadedOnce, refresh };
+	useEffect( () => {
+		let cancelled = false;
+		apiFetch( { path: `${ POSTS_PATH }?status=trash&per_page=1`, parse: false } )
+			.then( response => {
+				if ( ! cancelled ) {
+					setTrashCount( parseHeaderInt( response.headers.get( 'X-WP-Total' ) ) );
+				}
+			} )
+			.catch( () => {} );
+		return () => {
+			cancelled = true;
+		};
+	}, [ refreshKey ] );
+
+	return { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh };
 }
