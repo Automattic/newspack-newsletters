@@ -625,30 +625,18 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Remove some admin menu items, if the user has no matching capability.
+	 * Drop redundant Categories / Tags submenus from the Newsletters CPT
+	 * (shared with the Posts CPT; surfacing twice is clutter). Mirrors
+	 * `Newsletters_Wizard::add_page()` in newspack-plugin.
 	 */
 	public static function remove_admin_menu_items() {
-		$newsletter_post_type_object = get_post_type_object( self::NEWSPACK_NEWSLETTERS_CPT );
-		$newsletter_ad_post_type_object = get_post_type_object( Newspack_Newsletters\Ads::CPT );
-
-		if ( $newsletter_post_type_object === null || $newsletter_ad_post_type_object === null ) {
+		if ( ! get_post_type_object( self::NEWSPACK_NEWSLETTERS_CPT ) ) {
 			return;
 		}
 
-		// If the user can't edit newsletters, the "Category" will be the top-level menu item.
-		$category_page_slug = 'edit-tags.php?taxonomy=category&amp;post_type=' . self::NEWSPACK_NEWSLETTERS_CPT;
-
-		$can_edit_newsletters = current_user_can( $newsletter_post_type_object->cap->edit_posts );
-		$can_edit_newsletter_ads = current_user_can( $newsletter_ad_post_type_object->cap->edit_posts );
-
-		if ( ! $can_edit_newsletters && ! $can_edit_newsletter_ads ) {
-			// If they user can't edit newsletters, the taxonomy menu items will still be visible. Let's remove them.
-			remove_submenu_page( $category_page_slug, $category_page_slug );
-			remove_submenu_page( $category_page_slug, 'edit-tags.php?taxonomy=post_tag&amp;post_type=' . self::NEWSPACK_NEWSLETTERS_CPT );
-		}
-
-		// Note: Newsletter Ads menu handling is done in Newspack_Newsletters\Ads::add_ads_page()
-		// which dynamically places the menu based on user capabilities.
+		$cpt_parent = 'edit.php?post_type=' . self::NEWSPACK_NEWSLETTERS_CPT;
+		remove_submenu_page( $cpt_parent, 'edit-tags.php?taxonomy=category&amp;post_type=' . self::NEWSPACK_NEWSLETTERS_CPT );
+		remove_submenu_page( $cpt_parent, 'edit-tags.php?taxonomy=post_tag&amp;post_type=' . self::NEWSPACK_NEWSLETTERS_CPT );
 	}
 
 	/**

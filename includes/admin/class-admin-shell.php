@@ -144,8 +144,12 @@ class Admin_Shell {
 	 * @return string
 	 */
 	public static function add_body_class( $classes ) {
-		if ( self::get_current_page() ) {
-			$classes .= ' newspack-newsletters-admin-screen';
+		if ( ! self::get_current_page() ) {
+			return $classes;
+		}
+		$classes .= ' newspack-newsletters-admin-screen';
+		if ( self::is_bundled_mode() ) {
+			$classes .= ' newspack-newsletters-admin-screen--bundled';
 		}
 		return $classes;
 	}

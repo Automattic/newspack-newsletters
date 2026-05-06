@@ -83,18 +83,18 @@ class Advertisers_List_Page extends Admin_Page {
 	}
 
 	/**
-	 * Submenu entry to highlight while the advertisers list is rendered.
-	 *
-	 * Points at the auto-generated taxonomy submenu so the sidebar entry
-	 * remains active in standalone mode. In bundled mode the submenu is
-	 * hidden by `Newsletters_Wizard::registered_taxonomy_advertiser` and
-	 * the dark Newspack chrome takes over the active-tab indication via
-	 * `get_wizard_tab_url()` — a no-op highlight here is fine.
+	 * Match the auto-generated taxonomy submenu URL so the sidebar entry
+	 * highlights. The advertiser tax is shared with the newsletters CPT
+	 * (the only one with `show_in_menu`), so submenu mode highlights
+	 * under the newsletters CPT URL.
 	 *
 	 * @return string
 	 */
 	public function get_submenu_file() {
-		return 'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&post_type=' . Ads::CPT;
+		if ( Ads::display_ads_menu_item_separately() ) {
+			return 'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&amp;post_type=' . Ads::CPT;
+		}
+		return 'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&amp;post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 	}
 
 	/**

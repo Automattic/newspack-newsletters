@@ -130,7 +130,7 @@ class Subscription_Lists {
 			'new_item'              => __( 'New Subscription List', 'newspack-newsletters' ),
 			'edit_item'             => __( 'Edit list', 'newspack-newsletters' ),
 			'update_item'           => __( 'Update list', 'newspack-newsletters' ),
-			'view_item'             => __( 'View list', 'newspack-newsletters' ),
+			'view_item'             => __( 'View List', 'newspack-newsletters' ),
 			'view_items'            => __( 'View Subscription Lists', 'newspack-newsletters' ),
 			'search_items'          => __( 'Search Subscription List', 'newspack-newsletters' ),
 			'not_found'             => __( 'Not found', 'newspack-newsletters' ),
