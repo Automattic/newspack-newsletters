@@ -46,7 +46,7 @@ final class Newspack_Newsletters_Editor {
 	public function __construct() {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_filter( 'block_editor_settings_all', [ __CLASS__, 'disable_autosave' ], 10, 2 );
-		add_filter( 'block_editor_settings_all', [ __CLASS__, 'override_editor_layout' ], 10, 2 );
+		add_filter( 'block_editor_settings_all', [ __CLASS__, 'override_email_editor_settings' ], 10, 2 );
 		add_action( 'the_post', [ __CLASS__, 'strip_editor_modifications' ] );
 		add_action( 'after_setup_theme', [ __CLASS__, 'newspack_font_sizes' ], 11 );
 		add_filter( 'wp_theme_json_data_theme', [ __CLASS__, 'override_theme_json_for_email_editor' ] );
@@ -171,18 +171,20 @@ final class Newspack_Newsletters_Editor {
 	}
 
 	/**
-	 * Override the editor layout settings for the newsletter editor.
+	 * Override the editor settings and width for the newsletter editor.
 	 *
 	 * Block themes provide layout settings (contentSize, wideSize) via
 	 * block_editor_settings_all that control block widths in the editor.
 	 * For the newsletter editor, all blocks should use the email max-width.
+	 *
+	 * This function also hides the 'font' family option from the Typography panel.
 	 *
 	 * @param array                   $editor_settings      Default editor settings.
 	 * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
 	 *
 	 * @return array
 	 */
-	public static function override_editor_layout( $editor_settings, $block_editor_context ) {
+	public static function override_email_editor_settings( $editor_settings, $block_editor_context ) {
 		if (
 			! isset( $block_editor_context->post->post_type ) ||
 			! in_array( $block_editor_context->post->post_type, self::get_email_editor_cpts(), true )
@@ -196,6 +198,12 @@ final class Newspack_Newsletters_Editor {
 		if ( isset( $editor_settings['__experimentalFeatures']['layout'] ) ) {
 			$editor_settings['__experimentalFeatures']['layout']['contentSize'] = $email_width;
 			$editor_settings['__experimentalFeatures']['layout']['wideSize']    = $email_width;
+		}
+
+		// Hide the font-family picker — registered fonts (including those added
+		// via Appearance > Fonts) cannot be relied on to render in email clients.
+		if ( isset( $editor_settings['__experimentalFeatures']['typography'] ) ) {
+			$editor_settings['__experimentalFeatures']['typography']['fontFamilies'] = [];
 		}
 
 		return $editor_settings;
