@@ -1,5 +1,6 @@
 import {
 	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	Button,
 	CheckboxControl,
 	Notice,
@@ -84,7 +85,7 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 				{ workingCopy.map( list => {
 					const isLocal = list.type === 'local';
 					return (
-						<div key={ list.id } className="newspack-newsletters-settings__list-row">
+						<VStack key={ list.id } spacing={ 2 } className="newspack-newsletters-settings__list-row">
 							<CheckboxControl
 								label={ list.remote_name || list.name || list.title || __( '(unnamed list)', 'newspack-newsletters' ) }
 								checked={ !! list.active }
@@ -109,16 +110,13 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 									/>
 								</>
 							) : (
-								<p className="newspack-newsletters-settings__list-local-meta">
-									<strong>{ list.title }</strong>
-									{ list.description && <span> — { list.description }</span> }
-									{ ' — ' }
+								<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
 									<Button variant="link" onClick={ () => setModalState( list ) }>
 										{ __( 'Edit', 'newspack-newsletters' ) }
 									</Button>
-								</p>
+								</HStack>
 							) }
-						</div>
+						</VStack>
 					);
 				} ) }
 			</div>

@@ -169,21 +169,27 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	}
 
 	&__list-row {
+		// Mirror @wordpress/components' CheckboxControl scoping at the row
+		// level so siblings of the checkbox (the per-row Edit link) can
+		// resolve the same calc to align with the checkbox label.
+		--checkbox-input-size: 24px;
+		--checkbox-input-margin: 8px;
+
+		@media (min-width: 600px) {
+			--checkbox-input-size: 16px;
+		}
+
 		border-top: 1px solid wp-colors.$gray-200;
-		display: flex;
-		flex-direction: column;
-		gap: wp-vars.$grid-unit-15;
 		padding-top: wp-vars.$grid-unit-20;
 
 		&:first-child {
 			border-top: 0;
 			padding-top: 0;
 		}
-	}
 
-	&__list-local-meta {
-		color: wp-colors.$gray-700;
-		margin: 0;
+		.components-button.is-link {
+			margin-inline-start: calc(var(--checkbox-input-size) + var(--checkbox-input-margin));
+		}
 	}
 }
 
