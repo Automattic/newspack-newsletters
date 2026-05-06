@@ -1,3 +1,4 @@
+import apiFetch from '@wordpress/api-fetch';
 import {
 	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
@@ -7,8 +8,10 @@ import {
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
+import { dispatch } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
+import { store as noticesStore } from '@wordpress/notices';
 
 import LocalListModal from './local-list-modal';
 
@@ -16,7 +19,37 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
 	// `null` = closed, `'add'` = create modal, `<list>` = edit modal pre-populated.
 	const [ modalState, setModalState ] = useState( null );
+	const [ deletingId, setDeletingId ] = useState( null );
 	const closeModal = () => setModalState( null );
+
+	const handleDelete = async list => {
+		const message = sprintf(
+			// translators: %s is the title of the local list being deleted.
+			__( 'Delete the local list "%s"? This cannot be undone.', 'newspack-newsletters' ),
+			list.title
+		);
+		// eslint-disable-next-line no-alert
+		if ( ! window.confirm( message ) ) {
+			return;
+		}
+		setDeletingId( list.db_id );
+		try {
+			await apiFetch( {
+				path: `/newspack-newsletters/v1/lists/local/${ list.db_id }`,
+				method: 'DELETE',
+			} );
+			if ( onLocalListCreated ) {
+				onLocalListCreated();
+			}
+		} catch ( err ) {
+			dispatch( noticesStore ).createErrorNotice( err?.message || __( 'Could not delete the local list.', 'newspack-newsletters' ), {
+				type: 'snackbar',
+				explicitDismiss: true,
+			} );
+		} finally {
+			setDeletingId( null );
+		}
+	};
 
 	useEffect( () => {
 		setWorkingCopy( lists || [] );
@@ -111,8 +144,17 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 								</>
 							) : (
 								<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
-									<Button variant="link" onClick={ () => setModalState( list ) }>
+									<Button variant="link" onClick={ () => setModalState( list ) } disabled={ deletingId === list.db_id }>
 										{ __( 'Edit', 'newspack-newsletters' ) }
+									</Button>
+									<Button
+										variant="link"
+										isDestructive
+										onClick={ () => handleDelete( list ) }
+										isBusy={ deletingId === list.db_id }
+										disabled={ deletingId === list.db_id }
+									>
+										{ __( 'Delete', 'newspack-newsletters' ) }
 									</Button>
 								</HStack>
 							) }

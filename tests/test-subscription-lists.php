@@ -183,6 +183,40 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test delete_local_list happy path.
+	 */
+	public function test_delete_local_list() {
+		$list  = Subscription_Lists::create_local_list( 'To Be Deleted' );
+		$id    = $list->get_id();
+		$count = count( Subscription_Lists::get_all() );
+
+		$result = Subscription_Lists::delete_local_list( $id );
+		$this->assertTrue( $result );
+		$this->assertSame( $count - 1, count( Subscription_Lists::get_all() ) );
+		$this->assertNull( get_post( $id ) );
+	}
+
+	/**
+	 * Test delete_local_list rejects unknown post id.
+	 */
+	public function test_delete_local_list_rejects_unknown_id() {
+		$result = Subscription_Lists::delete_local_list( 999999 );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_found', $result->get_error_code() );
+	}
+
+	/**
+	 * Test delete_local_list refuses to delete non-local lists.
+	 */
+	public function test_delete_local_list_rejects_non_local() {
+		$remote = Subscription_Lists::create_remote_list( 'remote-delete-x', 'Remote List' );
+		$result = Subscription_Lists::delete_local_list( $remote->get_id() );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_local_list_not_local', $result->get_error_code() );
+		$this->assertNotNull( get_post( $remote->get_id() ) );
+	}
+
+	/**
 	 * Test create_remote_list
 	 */
 	public function test_create_remote_list() {

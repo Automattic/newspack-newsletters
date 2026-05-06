@@ -145,28 +145,41 @@ class Newspack_Newsletters_Subscription {
 			Newspack_Newsletters::API_NAMESPACE,
 			'/lists/local/(?P<id>\d+)',
 			[
-				'methods'             => \WP_REST_Server::EDITABLE,
-				'callback'            => [ __CLASS__, 'api_update_local_list' ],
-				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
-				'args'                => [
-					'id'          => [
-						'type'     => 'integer',
-						'required' => true,
+				[
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => [ __CLASS__, 'api_update_local_list' ],
+					'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+					'args'                => [
+						'id'          => [
+							'type'     => 'integer',
+							'required' => true,
+						],
+						'title'       => [
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						],
+						'description' => [
+							'type'              => 'string',
+							'required'          => false,
+							'sanitize_callback' => 'sanitize_textarea_field',
+						],
+						'audience'    => [
+							'type'              => 'string',
+							'required'          => false,
+							'sanitize_callback' => 'sanitize_text_field',
+						],
 					],
-					'title'       => [
-						'type'              => 'string',
-						'required'          => true,
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'description' => [
-						'type'              => 'string',
-						'required'          => false,
-						'sanitize_callback' => 'sanitize_textarea_field',
-					],
-					'audience'    => [
-						'type'              => 'string',
-						'required'          => false,
-						'sanitize_callback' => 'sanitize_text_field',
+				],
+				[
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => [ __CLASS__, 'api_delete_local_list' ],
+					'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+					'args'                => [
+						'id' => [
+							'type'     => 'integer',
+							'required' => true,
+						],
 					],
 				],
 			]
@@ -268,6 +281,21 @@ class Newspack_Newsletters_Subscription {
 		);
 		if ( is_wp_error( $list ) ) {
 			return \rest_ensure_response( $list );
+		}
+		return \rest_ensure_response( self::get_lists() );
+	}
+
+	/**
+	 * API method to delete a single local subscription list.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
+	 */
+	public static function api_delete_local_list( $request ) {
+		$result = Subscription_Lists::delete_local_list( (int) $request->get_param( 'id' ) );
+		if ( is_wp_error( $result ) ) {
+			return \rest_ensure_response( $result );
 		}
 		return \rest_ensure_response( self::get_lists() );
 	}

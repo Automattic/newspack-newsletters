@@ -768,6 +768,44 @@ class Subscription_Lists {
 	}
 
 	/**
+	 * Permanently deletes a local list by post id, validating that the
+	 * target exists and is a local list before issuing the delete.
+	 * Force-deletes (skips trash) so the row disappears from the lists
+	 * section in one round trip — re-creating an identically-named local
+	 * list is cheap.
+	 *
+	 * @param int $id Subscription_List post ID.
+	 * @return bool|WP_Error True on success.
+	 */
+	public static function delete_local_list( $id ) {
+		$post = get_post( $id );
+		if ( ! $post || self::CPT !== $post->post_type ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_not_found',
+				__( 'Subscription list not found.', 'newspack-newsletters' ),
+				[ 'status' => 404 ]
+			);
+		}
+		$list = new Subscription_List( $post );
+		if ( ! $list->is_local() ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_not_local',
+				__( 'This subscription list is not a local list.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+		}
+		$result = wp_delete_post( $list->get_id(), true );
+		if ( ! $result ) {
+			return new WP_Error(
+				'newspack_newsletters_local_list_delete_failed',
+				__( 'Could not delete the subscription list.', 'newspack-newsletters' ),
+				[ 'status' => 500 ]
+			);
+		}
+		return true;
+	}
+
+	/**
 	 * Clean up stored lists that no longer exist in the ESP.
 	 *
 	 * @param array  $existing_ids The list of IDs that exist in the ESP. All other remote lists will be deleted.
