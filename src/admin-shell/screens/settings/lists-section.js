@@ -54,8 +54,9 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 	};
 
 	useEffect( () => {
-		// Preserve unsaved row edits when the parent reloads after a
-		// local-list create / edit / delete.
+		// Preserve unsaved row edits when the parent reloads after local-list CRUD.
+		// For local rows, only `active` is inline-owned — title/description/audience
+		// come from the modal and must accept the refreshed values.
 		const incoming = lists || [];
 		setWorkingCopy( current => {
 			if ( ! dirtyIdsRef.current.size ) {
@@ -66,7 +67,13 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 					return row;
 				}
 				const dirty = current.find( c => c.id === row.id );
-				return dirty || row;
+				if ( ! dirty ) {
+					return row;
+				}
+				if ( row.type === 'local' ) {
+					return { ...row, active: dirty.active };
+				}
+				return dirty;
 			} );
 		} );
 	}, [ lists ] );
