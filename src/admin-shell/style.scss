@@ -176,7 +176,7 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 		// Match the form-toggle column so the per-row Edit link aligns with the toggle's label.
 		--row-input-offset: #{wp-vars.$grid-unit-50};
 
-		.components-toggle-control [data-wp-component="HStack"] {
+		.components-toggle-control .components-h-stack {
 			align-items: flex-start;
 		}
 

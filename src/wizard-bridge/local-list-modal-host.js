@@ -19,10 +19,18 @@ export default function LocalListModalHost() {
 	useEffect( () => {
 		const handleOpen = event => {
 			const { mode, list, kind } = event.detail || {};
+			// ESP mode is edit-only and requires a row with a db_id; bail on malformed payloads instead of mounting a modal that would crash on submit.
+			if ( kind === 'esp' ) {
+				if ( ! list?.db_id ) {
+					return;
+				}
+				setModalState( { mode: 'edit', list, kind: 'esp' } );
+				return;
+			}
 			setModalState( {
 				mode: mode || 'add',
 				list: mode === 'edit' ? list : null,
-				kind: kind === 'esp' ? 'esp' : 'local',
+				kind: 'local',
 			} );
 		};
 		const handleConfirmDelete = event => {

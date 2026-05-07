@@ -88,6 +88,11 @@ export default function LocalListModal( { list = null, kind = 'local', onClose, 
 			return;
 		}
 
+		if ( isEsp && ! list?.db_id ) {
+			setError( __( 'Missing list reference.', 'newspack-newsletters' ) );
+			return;
+		}
+
 		setIsBusy( true );
 		setError( '' );
 
