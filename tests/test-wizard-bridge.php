@@ -1,0 +1,80 @@
+<?php
+/**
+ * Tests for Wizard_Bridge.
+ *
+ * @package Newspack_Newsletters
+ */
+
+use Newspack\Newsletters\Wizard_Bridge;
+
+/**
+ * Tests for Wizard_Bridge.
+ *
+ * Tests are written in declaration order. The "missing newspack-plugin" case
+ * runs FIRST so the conditional `class_alias` later tests use to fake bundled
+ * mode does not leak into it — once aliased, the alias persists for the rest
+ * of the suite.
+ */
+class Wizard_Bridge_Test extends WP_UnitTestCase {
+
+	/**
+	 * Reset $_GET between tests.
+	 */
+	public function tear_down() {
+		unset( $_GET['page'] );
+		parent::tear_down();
+	}
+
+	/**
+	 * Without newspack-plugin loaded, never enqueue — even on the wizard URL.
+	 *
+	 * Must run before any other test in this class to avoid class_alias leakage.
+	 */
+	public function test_should_enqueue_returns_false_when_newspack_plugin_missing() {
+		$this->assertFalse( class_exists( '\Newspack\Newspack' ), 'Test ordering precondition: \Newspack\Newspack must not yet exist.' );
+		// Use a generic admin screen ID; `edit-newspack_nl_cpt` triggers Admin_Shell's
+		// legacy-redirect logic which `wp_safe_redirect`s and breaks PHPUnit's header
+		// state. `should_enqueue` does not care about the screen ID, only `is_admin()`.
+		set_current_screen( 'plugins' );
+		$_GET['page'] = Wizard_Bridge::WIZARD_PAGE_SLUG;
+		$this->assertFalse( Wizard_Bridge::should_enqueue() );
+	}
+
+	/**
+	 * Off the admin screen, never enqueue.
+	 */
+	public function test_should_enqueue_returns_false_when_not_admin() {
+		set_current_screen( 'front' );
+		$_GET['page'] = Wizard_Bridge::WIZARD_PAGE_SLUG;
+		$this->assertFalse( Wizard_Bridge::should_enqueue() );
+	}
+
+	/**
+	 * On admin with newspack-plugin present but no `?page=` query — wrong screen.
+	 */
+	public function test_should_enqueue_returns_false_when_page_query_missing() {
+		// Use a generic admin screen ID; `edit-newspack_nl_cpt` triggers Admin_Shell's
+		// legacy-redirect logic which `wp_safe_redirect`s and breaks PHPUnit's header
+		// state. `should_enqueue` does not care about the screen ID, only `is_admin()`.
+		set_current_screen( 'plugins' );
+		if ( ! class_exists( '\Newspack\Newspack' ) ) {
+			class_alias( '\stdClass', '\Newspack\Newspack' );
+		}
+		$this->assertFalse( Wizard_Bridge::should_enqueue() );
+	}
+
+	/**
+	 * Bundled-mode wizard page: enqueue.
+	 */
+	public function test_should_enqueue_returns_true_on_bundled_wizard_page() {
+		// Use a generic admin screen ID; `edit-newspack_nl_cpt` triggers Admin_Shell's
+		// legacy-redirect logic which `wp_safe_redirect`s and breaks PHPUnit's header
+		// state. `should_enqueue` does not care about the screen ID, only `is_admin()`.
+		set_current_screen( 'plugins' );
+		if ( ! class_exists( '\Newspack\Newspack' ) ) {
+			class_alias( '\stdClass', '\Newspack\Newspack' );
+		}
+		$_GET['page'] = Wizard_Bridge::WIZARD_PAGE_SLUG;
+		$this->assertTrue( Wizard_Bridge::should_enqueue() );
+	}
+}
