@@ -4,7 +4,6 @@ import './extensions';
 import { render } from '@wordpress/element';
 
 import LocalListModalHost from './local-list-modal-host';
-import { EVENTS } from './events';
 
 const ROOT_CLASS = 'newspack-newsletters-wizard-bridge-root';
 
@@ -21,11 +20,12 @@ export function boot() {
 	const container = document.createElement( 'div' );
 	container.className = ROOT_CLASS;
 	document.body.appendChild( container );
+	// `<LocalListModalHost />` flips `window.newspackNewslettersBridgeReady`
+	// and dispatches `bridge-mounted` from its own `useEffect`, so the signal
+	// only fires after its document listeners are installed. A consumer that
+	// reacts to `bridge-mounted` by synchronously dispatching `open-local-list-modal`
+	// is therefore guaranteed to be heard.
 	render( <LocalListModalHost />, container );
-	// Durable readiness flag for consumers that register listeners after boot.
-	// Set before dispatch so any synchronous listener observes a ready bridge.
-	window.newspackNewslettersBridgeReady = true;
-	document.dispatchEvent( new CustomEvent( EVENTS.BRIDGE_MOUNTED, { detail: {} } ) );
 }
 
 if ( typeof document !== 'undefined' ) {

@@ -53,6 +53,23 @@ describe( 'LocalListModalHost', () => {
 		await waitFor( () => expect( screen.getByText( /Delete the local list "Doomed"/ ) ).toBeInTheDocument() );
 	} );
 
+	it( 'sets readiness flag and dispatches bridge-mounted after document listeners are installed', async () => {
+		// A consumer registers for bridge-mounted and reacts by synchronously
+		// dispatching open-local-list-modal. The host must already be
+		// listening for OPEN_MODAL when the consumer's reaction fires —
+		// otherwise the open event is lost.
+		delete window.newspackNewslettersBridgeReady;
+		const ready = jest.fn( () => {
+			document.dispatchEvent( new CustomEvent( EVENTS.OPEN_MODAL, { detail: { mode: 'add' } } ) );
+		} );
+		document.addEventListener( EVENTS.BRIDGE_MOUNTED, ready );
+		render( <LocalListModalHost /> );
+		await waitFor( () => expect( ready ).toHaveBeenCalled() );
+		expect( window.newspackNewslettersBridgeReady ).toBe( true );
+		await waitFor( () => expect( screen.getByText( /Add new local list/ ) ).toBeInTheDocument() );
+		document.removeEventListener( EVENTS.BRIDGE_MOUNTED, ready );
+	} );
+
 	it( 'fires LOCAL_LIST_DELETED with detail after a successful DELETE', async () => {
 		render( <LocalListModalHost /> );
 		const deletedListener = jest.fn();
