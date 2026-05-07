@@ -1,15 +1,16 @@
-// The local-list-modal can render in two separate webpack entries
-// (`wizard-bridge` and `admin-shell`). A module-local Map would give each
-// bundle its own registry, so a registration made in one bundle would be
-// invisible to the other. Stash the registry on `window` under a stable
-// symbol-like key so both bundles read and write the same instance.
+// Registry lives on `window` so both bundles that import this module
+// (`wizard-bridge` + `admin-shell`) share one Map. A module-local Map
+// would give each bundle its own copy and registrations made in one
+// would be invisible to the other.
 const REGISTRY_KEY = '__newspackNewslettersLocalListModalExtensions';
+
+// Module-scoped fallback for SSR / non-jsdom environments — a fresh Map
+// per call would silently drop every registration.
+const FALLBACK_REGISTRY = new Map();
 
 function getRegistry() {
 	if ( typeof window === 'undefined' ) {
-		// Tests or SSR contexts without a window — fall back to a per-call
-		// Map. Production paths always have a window.
-		return new Map();
+		return FALLBACK_REGISTRY;
 	}
 	if ( ! window[ REGISTRY_KEY ] ) {
 		window[ REGISTRY_KEY ] = new Map();

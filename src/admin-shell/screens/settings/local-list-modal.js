@@ -32,7 +32,7 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 	const [ isBusy, setIsBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
 
-	const extensions = useMemo( () => getLocalListModalExtensions(), [] );
+	const extensions = getLocalListModalExtensions();
 
 	useEffect( () => {
 		let cancelled = false;
@@ -94,9 +94,12 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		try {
 			const saved = await apiFetch( { path, method, data } );
 			const ctx = { listId: saved?.db_id, list: saved, mode: isEdit ? 'edit' : 'add' };
+			// Re-read the registry at submit time so extensions registered after the modal mounted still run.
 			// `Promise.resolve().then(...)` so a sync throw inside an extension is a settled rejection, not a list-save failure.
 			const results = await Promise.allSettled(
-				extensions.map( ext => ( typeof ext.onSave === 'function' ? Promise.resolve().then( () => ext.onSave( ctx ) ) : Promise.resolve() ) )
+				getLocalListModalExtensions().map( ext =>
+					typeof ext.onSave === 'function' ? Promise.resolve().then( () => ext.onSave( ctx ) ) : Promise.resolve()
+				)
 			);
 			results.forEach( result => {
 				if ( result.status === 'rejected' ) {

@@ -127,4 +127,17 @@ describe( 'LocalListModal — extensions', () => {
 		expect( onClose ).toHaveBeenCalled();
 		expect( screen.queryByText( /Could not (create|update) local list/ ) ).not.toBeInTheDocument();
 	} );
+
+	it( 'runs extensions registered after the modal mounted', async () => {
+		const onSave = jest.fn().mockResolvedValue( undefined );
+		// Modal mounts with no extensions.
+		extensions.getLocalListModalExtensions.mockReturnValue( [] );
+		render( <LocalListModal list={ null } onClose={ jest.fn() } onSaved={ jest.fn() } /> );
+		await waitFor( () => expect( screen.getByLabelText( /List title/ ) ).toBeInTheDocument() );
+		// Late registration — modal must read the registry at submit time.
+		extensions.getLocalListModalExtensions.mockReturnValue( [ { render: () => null, onSave } ] );
+		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'Z' } } );
+		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
+		await waitFor( () => expect( onSave ).toHaveBeenCalled() );
+	} );
 } );
