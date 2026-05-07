@@ -5,8 +5,12 @@ import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { useEffect, useState, Fragment } from '@wordpress/element';
-import { Button, TextControl } from '@wordpress/components';
+import { useEffect, useState } from '@wordpress/element';
+import {
+	Button,
+	TextControl,
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 import { hasValidEmail, usePrevious } from '../utils';
 
 /**
@@ -81,7 +85,7 @@ export default compose( [
 	};
 
 	return (
-		<Fragment>
+		<VStack spacing={ 4 }>
 			<TextControl
 				label={ __( 'Send a test to', 'newspack-newsletters' ) }
 				help={
@@ -93,6 +97,8 @@ export default compose( [
 				type="email"
 				onChange={ onChangeEmail }
 				disabled={ localInFlight || inFlight }
+				__next40pxDefaultSize
+				__nextHasNoMarginBottom
 			/>
 			<div className="newspack-newsletters__testing-controls">
 				<Button
@@ -108,6 +114,6 @@ export default compose( [
 				</Button>
 			</div>
 			{ localMessage ? <p className="newspack-newsletters__testing-message">{ localMessage }</p> : null }
-		</Fragment>
+		</VStack>
 	);
 } );

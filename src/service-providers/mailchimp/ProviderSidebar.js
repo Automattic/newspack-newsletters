@@ -34,6 +34,8 @@ export const ProviderSidebar = ( { inFlight, meta, updateMeta } ) => {
 				options={ getFolderOptions() }
 				onChange={ folderId => updateMeta( { mc_folder_id: folderId } ) }
 				disabled={ inFlight || ! folders.length }
+				__next40pxDefaultSize
+				__nextHasNoMarginBottom
 			/>
 		</>
 	);

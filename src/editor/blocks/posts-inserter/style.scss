@@ -1,29 +1,21 @@
 @use "~@wordpress/base-styles/colors" as wp-colors;
+@use "~@wordpress/base-styles/variables" as wp-vars;
 
 :root {
 	--newspack-post-inserter-width: 574px;
 }
 
-.newspack-posts-inserter {
-	border: 1px solid wp-colors.$gray-900;
-	border-radius: 2px;
+.editor-styles-wrapper .block-editor-block-list__layout .wp-block.newspack-posts-inserter {
 	padding: 0;
 
-	&__header {
-		align-items: center;
-		background: white;
-		border-bottom: 1px solid wp-colors.$gray-900;
-		display: flex;
-		padding: 1em;
-		position: relative;
-		z-index: 1;
-
-		span {
-			font-size: 13px;
-			font-weight: 600;
-			margin-left: 4px;
-		}
+	+ .wp-block.newspack-posts-inserter {
+		margin-top: 12px;
 	}
+}
+
+.newspack-posts-inserter {
+	border: 1px solid wp-colors.$gray-900;
+	border-radius: wp-vars.$radius-small;
 
 	&__font-size-picker {
 		> .components-base-control__field > .components-base-control__label {
@@ -32,12 +24,6 @@
 		.components-font-size-picker__header .components-base-control__label {
 			opacity: 0;
 		}
-	}
-
-	&__footer {
-		background: white;
-		border-top: 1px solid wp-colors.$gray-900;
-		padding: 1em;
 	}
 
 	&--loading {
@@ -58,6 +44,7 @@
 
 		.block-editor-block-preview {
 			&__container {
+				overflow-x: hidden;
 				overflow-y: scroll;
 			}
 
@@ -80,6 +67,10 @@
 					transform-origin: 0 50% 0;
 				}
 			}
+		}
+
+		&.image-top {
+			padding: 14px 0;
 		}
 	}
 }

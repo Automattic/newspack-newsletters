@@ -5,7 +5,14 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { useEffect, useRef, useState } from '@wordpress/element';
-import { Button, Notice, Spinner, TextControl, TextareaControl } from '@wordpress/components';
+import {
+	Button,
+	Notice,
+	Spinner,
+	TextControl,
+	TextareaControl,
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 
 /**
  * External dependencies
@@ -194,32 +201,39 @@ const Sidebar = ( {
 
 	return (
 		<div className="newspack-newsletters__sidebar">
-			<TextControl
-				label={ __( 'Campaign Name', 'newspack-newsletters' ) }
-				className="newspack-newsletters__campaign-name-textcontrol"
-				value={ getCampaignName() }
-				placeholder={ 'Newspack Newsletter (' + postId + ')' }
-				disabled={ inFlight }
-				onChange={ value => updateMeta( { campaign_name: value } ) }
-			/>
-			<TextControl
-				label={ __( 'Subject', 'newspack-newsletters' ) }
-				className="newspack-newsletters__subject-textcontrol"
-				value={ plainTextTitle }
-				disabled={ inFlight }
-				onChange={ setPlainTextTitle }
-			/>
-			<TextareaControl
-				label={ __( 'Preview text', 'newspack-newsletters' ) }
-				className="newspack-newsletters__preview-textcontrol"
-				value={ previewText }
-				disabled={ inFlight }
-				onChange={ value => updateMeta( { preview_text: value } ) }
-			/>
-			<ProviderSidebar inFlight={ inFlight } postId={ postId } meta={ meta } updateMeta={ updateMeta } />
-			<hr />
-			<Sender errors={ errors } senderEmail={ senderEmail } senderName={ senderName } updateMeta={ updateMeta } postStatus={ status } />
-			{ isSupportedESP() && <SendTo /> }
+			<VStack spacing={ 4 }>
+				<TextControl
+					label={ __( 'Campaign Name', 'newspack-newsletters' ) }
+					className="newspack-newsletters__campaign-name-textcontrol"
+					value={ getCampaignName() }
+					placeholder={ 'Newspack Newsletter (' + postId + ')' }
+					disabled={ inFlight }
+					onChange={ value => updateMeta( { campaign_name: value } ) }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+				/>
+				<TextControl
+					label={ __( 'Subject', 'newspack-newsletters' ) }
+					className="newspack-newsletters__subject-textcontrol"
+					value={ plainTextTitle }
+					disabled={ inFlight }
+					onChange={ setPlainTextTitle }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+				/>
+				<TextareaControl
+					label={ __( 'Preview text', 'newspack-newsletters' ) }
+					className="newspack-newsletters__preview-textcontrol"
+					value={ previewText }
+					disabled={ inFlight }
+					onChange={ value => updateMeta( { preview_text: value } ) }
+					__nextHasNoMarginBottom
+				/>
+				<ProviderSidebar inFlight={ inFlight } postId={ postId } meta={ meta } updateMeta={ updateMeta } />
+				<hr />
+				<Sender errors={ errors } senderEmail={ senderEmail } senderName={ senderName } updateMeta={ updateMeta } postStatus={ status } />
+				{ isSupportedESP() && <SendTo /> }
+			</VStack>
 		</div>
 	);
 };
