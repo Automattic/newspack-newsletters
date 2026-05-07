@@ -19,10 +19,10 @@ const POST_STATUS_TO_KIND = {
 	trash: 'trash',
 	draft: 'draft',
 	pending: 'draft',
-	// WP-scheduled ads (post_status=future) are conceptually scheduled —
+	'auto-draft': 'draft',
 	// `Ads_List_REST::filter_rest_query`'s `scheduled` bucket includes
-	// `future` rows, so a `?post_status=future` deep link lands on the
-	// scheduled filter and the rows are visible.
+	// `future` rows, so deep links from WP's Publish-Schedule UI land
+	// on the same chip the date-driven scheduled rows do.
 	future: 'scheduled',
 };
 

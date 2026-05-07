@@ -19,7 +19,9 @@
 // these as `kind=scheduled` regardless of `start_date` meta. Without
 // `future` in the default set, WP-scheduled rows would silently
 // disappear from the list (the classic CPT list showed them).
-const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending' ];
+// `auto-draft` covers rows WP writes on `post-new.php` load so an
+// abandoned "Add new" still surfaces in the list.
+const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending', 'auto-draft' ];
 
 // Each value is the WP REST taxonomy filter param — i.e. the
 // taxonomy's `rest_base`, which defaults to the taxonomy slug when

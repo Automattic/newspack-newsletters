@@ -14,7 +14,9 @@
  *   common writable statuses when no status filter is set.
  */
 
-const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending' ];
+// `auto-draft` covers rows WP writes the moment `post-new.php` loads, so a
+// publisher who opens "Add new" then navigates away still sees the row.
+const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending', 'auto-draft' ];
 
 const FIELD_TO_QUERY_PARAM = {
 	status: 'status',

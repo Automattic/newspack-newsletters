@@ -33,6 +33,11 @@ describe( 'ads buildQueryParams', () => {
 		expect( status.split( ',' ) ).toContain( 'future' );
 	} );
 
+	it( 'includes auto-draft so a post-new + back row stays visible', () => {
+		const { status } = buildQueryParams( {} );
+		expect( status.split( ',' ) ).toContain( 'auto-draft' );
+	} );
+
 	it( 'maps a single kind filter to the kind-specific REST query param', () => {
 		const params = buildQueryParams( {
 			filters: [ { field: 'status', operator: 'isAny', value: [ 'expired' ] } ],

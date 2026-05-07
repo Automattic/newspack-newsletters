@@ -10,9 +10,11 @@ describe( 'ads getInitialFilters', () => {
 		expect( getInitialFilters( '?post_status=trash' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'trash' ] } ] );
 	} );
 
-	it( 'maps post_status=draft and pending to a draft kind filter', () => {
-		expect( getInitialFilters( '?post_status=draft' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'draft' ] } ] );
-		expect( getInitialFilters( '?post_status=pending' ) ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'draft' ] } ] );
+	it( 'maps post_status=draft, pending, and auto-draft to a draft kind filter', () => {
+		const expected = [ { field: 'status', operator: 'isAny', value: [ 'draft' ] } ];
+		expect( getInitialFilters( '?post_status=draft' ) ).toEqual( expected );
+		expect( getInitialFilters( '?post_status=pending' ) ).toEqual( expected );
+		expect( getInitialFilters( '?post_status=auto-draft' ) ).toEqual( expected );
 	} );
 
 	it( 'maps post_status=future to a scheduled kind filter so WP-scheduled ads stay visible on deep links', () => {
