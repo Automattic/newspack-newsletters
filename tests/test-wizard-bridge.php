@@ -9,11 +9,6 @@ use Newspack\Newsletters\Wizard_Bridge;
 
 /**
  * Tests for Wizard_Bridge.
- *
- * Tests are written in declaration order. The "missing newspack-plugin" case
- * runs FIRST so the conditional `class_alias` later tests use to fake bundled
- * mode does not leak into it — once aliased, the alias persists for the rest
- * of the suite.
  */
 class Wizard_Bridge_Test extends WP_UnitTestCase {
 
@@ -28,10 +23,16 @@ class Wizard_Bridge_Test extends WP_UnitTestCase {
 	/**
 	 * Without newspack-plugin loaded, never enqueue — even on the wizard URL.
 	 *
-	 * Must run before any other test in this class to avoid class_alias leakage.
+	 * The other tests in this class `class_alias( '\stdClass', '\Newspack\Newspack' )`
+	 * to fake bundled mode, and the alias persists for the lifetime of the
+	 * PHP process. Run this case in its own process so test ordering /
+	 * randomisation cannot leak the alias in.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_should_enqueue_returns_false_when_newspack_plugin_missing() {
-		$this->assertFalse( class_exists( '\Newspack\Newspack' ), 'Test ordering precondition: \Newspack\Newspack must not yet exist.' );
+		$this->assertFalse( class_exists( '\Newspack\Newspack' ), 'Process-isolation precondition: \Newspack\Newspack must not be aliased yet.' );
 		// Use a generic admin screen ID; `edit-newspack_nl_cpt` triggers Admin_Shell's
 		// legacy-redirect logic which `wp_safe_redirect`s and breaks PHPUnit's header
 		// state. `should_enqueue` does not care about the screen ID, only `is_admin()`.

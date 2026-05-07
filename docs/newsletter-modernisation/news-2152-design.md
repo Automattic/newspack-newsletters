@@ -27,7 +27,7 @@ Three moving parts:
 
 1. **newspack-plugin wizard** — small, surgical change in `<SubscriptionLists>` (`src/wizards/newsletters/views/settings/index.js`). For `type === 'local'` rows, replace the legacy `<ExternalLink edit_link>` with link-styled Edit + Delete buttons; switch the Add New `<Button href>` to `<Button onClick>`. Each click dispatches a documented `CustomEvent` on `document`. A `useEffect` listener reloads the wizard's lists on `local-list-saved` / `local-list-deleted`.
 2. **newspack-newsletters bridge bundle** — new build entry `src/wizard-bridge/`. On boot, mounts a `<LocalListModalHost>` at body level. The host listens for the `open-local-list-modal` and `open-local-list-confirm-delete` events, renders `<LocalListModal>` (existing) or the lifted `<LocalListDeleteModal>` via React portal, and dispatches `local-list-saved` / `local-list-deleted` after REST success.
-3. **PHP enqueue gate** — new class `Newspack\Newsletters\Wizard_Bridge`. Detects the bundled-mode wizard screen (`?page=newspack-newsletters`, screen ID match) on the `current_screen` action. Enqueues the bridge JS + CSS and localises auth bits. No-ops when newspack-plugin isn't active.
+3. **PHP enqueue gate** — new class `Newspack\Newsletters\Wizard_Bridge`. On `admin_enqueue_scripts`, checks `is_admin()` + `class_exists( '\Newspack\Newspack' )` + `?page=newspack-newsletters`. Enqueues the bridge JS + CSS and localises a small payload (`debug` flag). No-ops when newspack-plugin isn't active.
 
 Why event-driven over slot-fill: slot-fill needs the wizard to render slots that this plugin's bundle later fills — registration timing is fragile and the slot names become a public API. Document events are dumber, asynchronous, and let either bundle load in any order. Cross-bundle React-tree composition isn't required for any of the visual work in scope.
 
@@ -41,7 +41,7 @@ Why event-driven over slot-fill: slot-fill needs the wizard to render slots that
 | `src/wizard-bridge/local-list-modal-host.js` | Host component. Listens for the `open-` events. Renders `<LocalListModal>` or `<LocalListDeleteModal>` via portal. Dispatches `local-list-saved` / `local-list-deleted` on REST success. | 90 |
 | `src/wizard-bridge/events.js` | Single source of truth for event names + `detail` shapes. Imported by host and (for symmetry) by any consumer importing the shim. | 25 |
 | `src/wizard-bridge/extensions.js` | Modal extension registry. Exposes `registerLocalListModalExtension(id, definition)` + `getLocalListModalExtensions()`. Drains a pre-bridge queue on init so cross-bundle registration is order-independent. | 50 |
-| `src/wizard-bridge/style.scss` | Audience-picker SCSS isolated for the bridge bundle (the modal needs it; standalone shell already inlines it). | 20 |
+| `src/wizard-bridge/style.scss` | Placeholder. Exists so webpack emits `dist/wizard-bridge.css` for PHP to enqueue alongside the JS. Modal styling comes from `@wordpress/components`; reserved for any future bridge-specific styles. | 10 |
 | `src/wizard-bridge/local-list-modal-host.test.js` | Jest — open events mount the right modal; saved/deleted events fire after REST success; close on success. | 150 |
 | `src/wizard-bridge/extensions.test.js` | Registry: register, retrieve, queue-drain semantics, duplicate-id replacement with warning. | 80 |
 | `src/wizard-bridge/index.test.js` | Idempotent boot; early return when localised global missing. | 40 |
