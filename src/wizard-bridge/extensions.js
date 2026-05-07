@@ -27,8 +27,16 @@ export function registerLocalListModalExtension( id, definition ) {
 	registry.set( id, definition );
 }
 
-export function getLocalListModalExtensions() {
-	return Array.from( getRegistry().values() );
+// Default keeps pre-`appliesTo` extensions local-only.
+const DEFAULT_APPLIES_TO = [ 'local' ];
+
+function appliesToKind( definition, kind ) {
+	const scope = Array.isArray( definition?.appliesTo ) && definition.appliesTo.length > 0 ? definition.appliesTo : DEFAULT_APPLIES_TO;
+	return scope.includes( kind );
+}
+
+export function getLocalListModalExtensions( kind = 'local' ) {
+	return Array.from( getRegistry().values() ).filter( ext => appliesToKind( ext, kind ) );
 }
 
 if ( typeof window !== 'undefined' ) {

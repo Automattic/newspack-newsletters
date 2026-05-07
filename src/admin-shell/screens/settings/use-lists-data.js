@@ -25,27 +25,28 @@ export default function useListsData() {
 		load();
 	}, [ load ] );
 
-	const save = useCallback( async nextLists => {
-		const payload = {
-			lists: nextLists.map( list => ( {
-				id: list.id,
-				active: !! list.active,
-				// Server-side `sanitize_lists()` rejects rows with an empty
-				// title, so fall back to the remote/local list name when the
-				// user clears the field — preserves the "reset to default"
-				// affordance without breaking the save.
-				title: ( list.title && list.title.trim() ) || list.remote_name || list.name || '',
-				description: list.description || '',
-			} ) ),
-		};
-		const response = await apiFetch( {
-			path: LISTS_PATH,
-			method: 'POST',
-			data: payload,
+	// Optimistic per-row PATCH; rolls back on error.
+	const patchList = useCallback( async ( dbId, patch ) => {
+		let snapshot;
+		setLists( current => {
+			snapshot = current;
+			return current.map( row => ( row.db_id === dbId ? { ...row, ...patch } : row ) );
 		} );
-		setLists( Array.isArray( response ) ? response : nextLists );
-		return response;
+		try {
+			const response = await apiFetch( {
+				path: `${ LISTS_PATH }/${ dbId }`,
+				method: 'PATCH',
+				data: patch,
+			} );
+			setLists( current => current.map( row => ( row.db_id === dbId ? { ...row, ...response } : row ) ) );
+			return response;
+		} catch ( err ) {
+			if ( snapshot ) {
+				setLists( snapshot );
+			}
+			throw err;
+		}
 	}, [] );
 
-	return { lists, isLoading, error, reload: load, save };
+	return { lists, isLoading, error, reload: load, patchList };
 }

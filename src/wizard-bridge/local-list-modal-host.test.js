@@ -43,7 +43,37 @@ describe( 'LocalListModalHost', () => {
 		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
 		await waitFor( () => expect( savedListener ).toHaveBeenCalled() );
 		const detail = savedListener.mock.calls[ 0 ][ 0 ].detail;
-		expect( detail ).toEqual( expect.objectContaining( { listId: 99, mode: 'add', list: expect.objectContaining( { db_id: 99 } ) } ) );
+		expect( detail ).toEqual(
+			expect.objectContaining( { listId: 99, mode: 'add', kind: 'local', list: expect.objectContaining( { db_id: 99 } ) } )
+		);
+		document.removeEventListener( EVENTS.LOCAL_LIST_SAVED, savedListener );
+	} );
+
+	it( 'mounts LocalListModal in ESP mode when OPEN_MODAL fires with kind=esp', async () => {
+		render( <LocalListModalHost /> );
+		const list = { db_id: 22, title: 'Mailchimp list', description: '', type: 'remote' };
+		dispatchEvent( EVENTS.OPEN_MODAL, { mode: 'edit', kind: 'esp', list } );
+		await waitFor( () => expect( screen.getByText( /Edit subscription list/ ) ).toBeInTheDocument() );
+		// Audiences endpoint must not be hit in ESP mode.
+		const audiencesCall = apiFetch.mock.calls.find( call => call[ 0 ]?.path === '/newspack-newsletters/v1/lists/audiences' );
+		expect( audiencesCall ).toBeUndefined();
+	} );
+
+	it( 'forwards kind on LOCAL_LIST_SAVED after an ESP-mode save', async () => {
+		apiFetch.mockReset();
+		apiFetch.mockResolvedValue( { db_id: 22, title: 'Mailchimp list (renamed)' } );
+		render( <LocalListModalHost /> );
+		const savedListener = jest.fn();
+		document.addEventListener( EVENTS.LOCAL_LIST_SAVED, savedListener );
+		dispatchEvent( EVENTS.OPEN_MODAL, {
+			mode: 'edit',
+			kind: 'esp',
+			list: { db_id: 22, title: 'Mailchimp list', description: '', type: 'remote' },
+		} );
+		await waitFor( () => expect( screen.getByText( /Edit subscription list/ ) ).toBeInTheDocument() );
+		fireEvent.click( screen.getByRole( 'button', { name: /^Save changes$/ } ) );
+		await waitFor( () => expect( savedListener ).toHaveBeenCalled() );
+		expect( savedListener.mock.calls[ 0 ][ 0 ].detail ).toEqual( expect.objectContaining( { listId: 22, kind: 'esp', mode: 'edit' } ) );
 		document.removeEventListener( EVENTS.LOCAL_LIST_SAVED, savedListener );
 	} );
 

@@ -18,8 +18,12 @@ export default function LocalListModalHost() {
 
 	useEffect( () => {
 		const handleOpen = event => {
-			const { mode, list } = event.detail || {};
-			setModalState( { mode: mode || 'add', list: mode === 'edit' ? list : null } );
+			const { mode, list, kind } = event.detail || {};
+			setModalState( {
+				mode: mode || 'add',
+				list: mode === 'edit' ? list : null,
+				kind: kind === 'esp' ? 'esp' : 'local',
+			} );
 		};
 		const handleConfirmDelete = event => {
 			const list = event.detail?.list;
@@ -43,7 +47,7 @@ export default function LocalListModalHost() {
 	const handleSaved = useCallback( saved => {
 		document.dispatchEvent(
 			new CustomEvent( EVENTS.LOCAL_LIST_SAVED, {
-				detail: { listId: saved?.list?.db_id, mode: saved?.mode, list: saved?.list },
+				detail: { listId: saved?.list?.db_id, mode: saved?.mode, list: saved?.list, kind: saved?.kind },
 			} )
 		);
 	}, [] );
@@ -73,7 +77,7 @@ export default function LocalListModalHost() {
 
 	return (
 		<>
-			{ modalState && <LocalListModal list={ modalState.list } onClose={ closeModal } onSaved={ handleSaved } /> }
+			{ modalState && <LocalListModal list={ modalState.list } kind={ modalState.kind } onClose={ closeModal } onSaved={ handleSaved } /> }
 			{ deletePending && (
 				<LocalListDeleteModal
 					list={ deletePending }

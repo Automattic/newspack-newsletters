@@ -55,6 +55,28 @@ describe( 'extension registry', () => {
 		expect( typeof window.newspack.newsletters.registerLocalListModalExtension ).toBe( 'function' );
 	} );
 
+	it( 'filters by `kind`, defaulting unscoped extensions to local', () => {
+		const { registerLocalListModalExtension, getLocalListModalExtensions } = require( './extensions' );
+		const legacy = { render: () => 'legacy' };
+		const espOnly = { render: () => 'esp', appliesTo: [ 'esp' ] };
+		const both = { render: () => 'both', appliesTo: [ 'local', 'esp' ] };
+		registerLocalListModalExtension( 'legacy', legacy );
+		registerLocalListModalExtension( 'esp', espOnly );
+		registerLocalListModalExtension( 'both', both );
+
+		expect( getLocalListModalExtensions() ).toEqual( [ legacy, both ] );
+		expect( getLocalListModalExtensions( 'local' ) ).toEqual( [ legacy, both ] );
+		expect( getLocalListModalExtensions( 'esp' ) ).toEqual( [ espOnly, both ] );
+	} );
+
+	it( 'treats an empty appliesTo array as local-only (defensive default)', () => {
+		const { registerLocalListModalExtension, getLocalListModalExtensions } = require( './extensions' );
+		const empty = { render: () => 'empty', appliesTo: [] };
+		registerLocalListModalExtension( 'empty', empty );
+		expect( getLocalListModalExtensions( 'local' ) ).toEqual( [ empty ] );
+		expect( getLocalListModalExtensions( 'esp' ) ).toEqual( [] );
+	} );
+
 	it( 'shares the registry across multiple imports of the module (cross-bundle safety)', () => {
 		// Simulate two separate webpack entries each importing this module.
 		// `jest.isolateModules` evaluates the module in a fresh registry, so

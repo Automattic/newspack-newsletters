@@ -575,4 +575,139 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 		$this->assertNotContains( self::$posts['remote_mailchimp_inactive'], $ids );
 		$this->assertContains( self::$posts['remote_active_campaign'], $ids );
 	}
+
+	/**
+	 * Test api_patch_list updates ESP rows' title + description.
+	 */
+	public function test_api_patch_list_updates_remote_title_and_description() {
+		$db_id   = self::$posts['remote_mailchimp'];
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/' . $db_id );
+		$request->set_param( 'id', $db_id );
+		$request->set_param( 'title', 'Custom Title' );
+		$request->set_param( 'description', 'Custom description' );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 'Custom Title', $data['title'] );
+		$this->assertSame( 'Custom description', $data['description'] );
+		$this->assertSame( $db_id, $data['db_id'] );
+
+		$reloaded = new Subscription_List( $db_id );
+		$this->assertSame( 'Custom Title', $reloaded->get_title() );
+		$this->assertSame( 'Custom description', $reloaded->get_description() );
+	}
+
+	/**
+	 * Test api_patch_list flips the active flag for ESP rows.
+	 */
+	public function test_api_patch_list_toggles_remote_active() {
+		$db_id = self::$posts['remote_mailchimp_inactive'];
+		$this->assertFalse( ( new Subscription_List( $db_id ) )->is_active() );
+
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/' . $db_id );
+		$request->set_param( 'id', $db_id );
+		$request->set_param( 'active', true );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+		$data     = $response->get_data();
+
+		$this->assertTrue( $data['active'] );
+		$this->assertTrue( ( new Subscription_List( $db_id ) )->is_active() );
+	}
+
+	/**
+	 * Test api_patch_list flips the active flag for local rows too — same route serves both kinds for that field.
+	 */
+	public function test_api_patch_list_toggles_local_active() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$list  = Subscription_Lists::create_local_list( 'Toggle Me' );
+		$db_id = $list->get_id();
+		// Wire the list to the current provider so the guard doesn't reject the activation.
+		$list->update_current_provider_settings( 'audience-1', 'tag-1', 'tag-name' );
+		$this->assertFalse( ( new Subscription_List( $db_id ) )->is_active() );
+
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/' . $db_id );
+		$request->set_param( 'id', $db_id );
+		$request->set_param( 'active', true );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+		$data     = $response->get_data();
+
+		$this->assertTrue( $data['active'] );
+		$this->assertTrue( ( new Subscription_List( $db_id ) )->is_active() );
+	}
+
+	/**
+	 * Test api_patch_list mirrors the bulk path's guard: locals without
+	 * current-provider wiring cannot be activated through the per-row PATCH
+	 * either. The active flag is silently coerced to false (not an error).
+	 */
+	public function test_api_patch_list_forces_unconfigured_local_inactive() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$unconfigured = new Subscription_List( self::$posts['without_settings'] );
+		$this->assertFalse( $unconfigured->is_configured_for_current_provider() );
+		$this->assertEmpty( $unconfigured->get_configured_providers() );
+
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/' . $unconfigured->get_id() );
+		$request->set_param( 'id', $unconfigured->get_id() );
+		$request->set_param( 'active', true );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+		$data     = $response->get_data();
+
+		$this->assertFalse( $data['active'], 'PATCH coerces active=true to false for unconfigured locals.' );
+		$this->assertFalse( ( new Subscription_List( $unconfigured->get_id() ) )->is_active() );
+	}
+
+	/**
+	 * Test api_patch_list rejects title/description edits on local rows — those go through /lists/local/{id}.
+	 */
+	public function test_api_patch_list_rejects_local_title_edit() {
+		$list  = Subscription_Lists::create_local_list( 'Local Original', 'Original desc' );
+		$db_id = $list->get_id();
+
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/' . $db_id );
+		$request->set_param( 'id', $db_id );
+		$request->set_param( 'title', 'Renamed via wrong endpoint' );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $response );
+		$this->assertSame( 'newspack_newsletters_local_list_use_local_endpoint', $response->get_error_code() );
+
+		// Confirm the title was NOT changed.
+		$this->assertSame( 'Local Original', ( new Subscription_List( $db_id ) )->get_title() );
+	}
+
+	/**
+	 * Test api_patch_list rejects empty title (whitespace-only) on ESP rows.
+	 */
+	public function test_api_patch_list_rejects_empty_remote_title() {
+		$db_id = self::$posts['remote_mailchimp'];
+
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/' . $db_id );
+		$request->set_param( 'id', $db_id );
+		$request->set_param( 'title', '   ' );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $response );
+		$this->assertSame( 'newspack_newsletters_list_invalid_title', $response->get_error_code() );
+	}
+
+	/**
+	 * Test api_patch_list returns 404 when the post is missing or wrong CPT.
+	 */
+	public function test_api_patch_list_rejects_unknown_id() {
+		$request = new WP_REST_Request( 'PATCH', '/newspack-newsletters/v1/lists/999999' );
+		$request->set_param( 'id', 999999 );
+		$request->set_param( 'active', true );
+
+		$response = Newspack_Newsletters_Subscription::api_patch_list( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $response );
+		$this->assertSame( 'newspack_newsletters_list_not_found', $response->get_error_code() );
+	}
 }

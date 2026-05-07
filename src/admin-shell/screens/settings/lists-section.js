@@ -3,24 +3,22 @@ import {
 	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	Button,
-	CheckboxControl,
+	Card,
+	CardBody,
+	CardHeader,
 	Notice,
-	TextControl,
-	TextareaControl,
+	ToggleControl,
 } from '@wordpress/components';
 import { dispatch } from '@wordpress/data';
-import { useEffect, useRef, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { store as noticesStore } from '@wordpress/notices';
 
 import LocalListDeleteModal from './local-list-delete-modal';
 import LocalListModal from './local-list-modal';
 
-export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListChanged, isSaving } ) {
-	const [ workingCopy, setWorkingCopy ] = useState( lists || [] );
-	// Ref (not state) so the merge effect below isn't re-triggered by edits.
-	const dirtyIdsRef = useRef( new Set() );
-	// `null` = closed, `'add'` = create modal, `<list>` = edit modal pre-populated.
+export default function ListsSection( { lists, isLoading, error, canAddLocal, onPatchList, onLocalListChanged } ) {
+	// `null` = closed, `'add'` = create modal, `{ list, kind }` = edit modal pre-populated.
 	const [ modalState, setModalState ] = useState( null );
 	const [ deletingId, setDeletingId ] = useState( null );
 	const [ pendingDelete, setPendingDelete ] = useState( null );
@@ -53,165 +51,154 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 		}
 	};
 
-	useEffect( () => {
-		// Preserve unsaved row edits when the parent reloads after local-list CRUD.
-		// For local rows, only `active` is inline-owned — title/description/audience
-		// come from the modal and must accept the refreshed values.
-		const incoming = lists || [];
-		setWorkingCopy( current => {
-			if ( ! dirtyIdsRef.current.size ) {
-				return incoming;
-			}
-			return incoming.map( row => {
-				if ( ! dirtyIdsRef.current.has( row.id ) ) {
-					return row;
-				}
-				const dirty = current.find( c => c.id === row.id );
-				if ( ! dirty ) {
-					return row;
-				}
-				if ( row.type === 'local' ) {
-					return { ...row, active: dirty.active };
-				}
-				return dirty;
+	const handleToggleActive = async ( list, next ) => {
+		try {
+			await onPatchList( list.db_id, { active: next } );
+		} catch ( err ) {
+			dispatch( noticesStore ).createErrorNotice( err?.message || __( 'Could not update the subscription list.', 'newspack-newsletters' ), {
+				type: 'snackbar',
+				explicitDismiss: true,
 			} );
-		} );
-	}, [ lists ] );
-
-	const updateRow = ( id, patch ) => {
-		setWorkingCopy( current => current.map( row => ( row.id === id ? { ...row, ...patch } : row ) ) );
-		dirtyIdsRef.current.add( id );
+		}
 	};
 
-	const handleSave = async () => {
-		try {
-			await onSave( workingCopy );
-			dirtyIdsRef.current = new Set();
-		} catch {
-			// Parent surfaced the error notice; keep dirty tracking so a reload doesn't drop edits.
+	const handleModalSaved = () => {
+		if ( onLocalListChanged ) {
+			onLocalListChanged();
 		}
 	};
 
 	if ( error ) {
 		return (
-			<div className="newspack-newsletters-settings__section">
-				<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
-				<Notice status="error" isDismissible={ false }>
-					{ error?.message || __( 'Could not load lists from the configured provider.', 'newspack-newsletters' ) }
-				</Notice>
-			</div>
+			<Card>
+				<CardHeader>
+					<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
+				</CardHeader>
+				<CardBody>
+					<Notice status="error" isDismissible={ false }>
+						{ error?.message || __( 'Could not load lists from the configured provider.', 'newspack-newsletters' ) }
+					</Notice>
+				</CardBody>
+			</Card>
 		);
 	}
 
 	if ( isLoading ) {
 		return (
-			<div className="newspack-newsletters-settings__section">
-				<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
-				<p>{ __( 'Loading lists…', 'newspack-newsletters' ) }</p>
-			</div>
+			<Card>
+				<CardHeader>
+					<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
+				</CardHeader>
+				<CardBody>
+					<p>{ __( 'Loading lists…', 'newspack-newsletters' ) }</p>
+				</CardBody>
+			</Card>
 		);
 	}
 
-	if ( ! workingCopy.length ) {
+	const renderModal = () => {
+		if ( ! modalState ) {
+			return null;
+		}
+		if ( modalState === 'add' ) {
+			return <LocalListModal list={ null } kind="local" onClose={ closeModal } onSaved={ handleModalSaved } />;
+		}
+		return <LocalListModal list={ modalState.list } kind={ modalState.kind } onClose={ closeModal } onSaved={ handleModalSaved } />;
+	};
+
+	if ( ! lists?.length ) {
 		return (
-			<div className="newspack-newsletters-settings__section">
-				<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
-				<p>
-					{ __(
-						'No lists found for the configured provider yet. Save provider settings first if you have just connected.',
-						'newspack-newsletters'
+			<Card>
+				<CardHeader>
+					<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
+					{ canAddLocal && (
+						<Button variant="secondary" onClick={ () => setModalState( 'add' ) }>
+							{ __( 'Add new local list', 'newspack-newsletters' ) }
+						</Button>
 					) }
-				</p>
-				{ canAddLocal && (
-					<>
-						<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
-							<Button variant="secondary" onClick={ () => setModalState( 'add' ) }>
-								{ __( 'Add new local list', 'newspack-newsletters' ) }
-							</Button>
-						</HStack>
-						{ modalState && (
-							<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListChanged } />
+				</CardHeader>
+				<CardBody>
+					<p>
+						{ __(
+							'No lists found for the configured provider yet. Save provider settings first if you have just connected.',
+							'newspack-newsletters'
 						) }
-					</>
-				) }
-			</div>
+					</p>
+				</CardBody>
+				{ renderModal() }
+			</Card>
 		);
 	}
 
 	return (
-		<div className="newspack-newsletters-settings__section">
-			<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
-			<p>{ __( 'Manage which lists are available for subscription.', 'newspack-newsletters' ) }</p>
-
-			<div className="newspack-newsletters-settings__lists">
-				{ workingCopy.map( list => {
-					const isLocal = list.type === 'local';
-					const needsAudience = isLocal && ! list.audience;
-					return (
-						<VStack key={ list.id } spacing={ 2 } className="newspack-newsletters-settings__list-row">
-							<CheckboxControl
-								label={ list.remote_name || list.name || list.title || __( '(unnamed list)', 'newspack-newsletters' ) }
-								checked={ !! list.active && ! needsAudience }
-								onChange={ next => updateRow( list.id, { active: next } ) }
-								help={
-									needsAudience
-										? __( 'Configure an audience to enable subscriptions.', 'newspack-newsletters' )
-										: list.type_label || ''
-								}
-								disabled={ needsAudience }
-								__nextHasNoMarginBottom
-							/>
-							{ ! isLocal ? (
-								<>
-									<TextControl
-										label={ __( 'List title', 'newspack-newsletters' ) }
-										value={ list.title || '' }
-										onChange={ next => updateRow( list.id, { title: next } ) }
-										__nextHasNoMarginBottom
-										__next40pxDefaultSize
-									/>
-									<TextareaControl
-										label={ __( 'List description', 'newspack-newsletters' ) }
-										value={ list.description || '' }
-										onChange={ next => updateRow( list.id, { description: next } ) }
-										__nextHasNoMarginBottom
-									/>
-								</>
-							) : (
-								<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
-									<Button variant="link" onClick={ () => setModalState( list ) } disabled={ deletingId === list.db_id }>
-										{ __( 'Edit', 'newspack-newsletters' ) }
-									</Button>
-									<Button
-										variant="link"
-										isDestructive
-										onClick={ () => setPendingDelete( list ) }
-										isBusy={ deletingId === list.db_id }
-										disabled={ deletingId === list.db_id }
-									>
-										{ __( 'Delete', 'newspack-newsletters' ) }
-									</Button>
-								</HStack>
-							) }
-						</VStack>
-					);
-				} ) }
-			</div>
-
-			<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
-				<Button variant="primary" onClick={ handleSave } isBusy={ isSaving } disabled={ isSaving }>
-					{ __( 'Save subscription lists', 'newspack-newsletters' ) }
-				</Button>
+		<Card>
+			<CardHeader>
+				<h2>{ __( 'Subscription lists', 'newspack-newsletters' ) }</h2>
 				{ canAddLocal && (
 					<Button variant="secondary" onClick={ () => setModalState( 'add' ) }>
 						{ __( 'Add new local list', 'newspack-newsletters' ) }
 					</Button>
 				) }
-			</HStack>
+			</CardHeader>
+			<CardBody>
+				<VStack spacing={ 6 }>
+					<span>{ __( 'Manage which lists are available for subscription.', 'newspack-newsletters' ) }</span>
+					<VStack spacing={ 6 }>
+						{ lists.map( list => {
+							const isLocal = list.type === 'local';
+							const needsAudience = isLocal && ! list.audience;
+							const rowBusy = deletingId === list.db_id;
+							return (
+								<VStack key={ list.id } spacing={ 2 } className="newspack-newsletters-settings__list-row">
+									<ToggleControl
+										label={
+											<>
+												<strong>
+													{ list.title || list.name || list.remote_name || __( '(unnamed list)', 'newspack-newsletters' ) }
+												</strong>
+												{ list.description && (
+													<span className="newspack-newsletters-settings__list-description">{ list.description }</span>
+												) }
+											</>
+										}
+										checked={ !! list.active && ! needsAudience }
+										onChange={ next => handleToggleActive( list, next ) }
+										help={
+											needsAudience
+												? __( 'Configure an audience to enable this list.', 'newspack-newsletters' )
+												: list.type_label || ''
+										}
+										disabled={ needsAudience || rowBusy }
+										__nextHasNoMarginBottom
+									/>
+									<HStack justify="flex-start" spacing={ 2 } expanded={ false }>
+										<Button
+											variant="link"
+											onClick={ () => setModalState( { list, kind: isLocal ? 'local' : 'esp' } ) }
+											disabled={ rowBusy }
+										>
+											{ __( 'Edit', 'newspack-newsletters' ) }
+										</Button>
+										{ isLocal && (
+											<Button
+												variant="link"
+												isDestructive
+												onClick={ () => setPendingDelete( list ) }
+												isBusy={ deletingId === list.db_id }
+												disabled={ rowBusy }
+											>
+												{ __( 'Delete', 'newspack-newsletters' ) }
+											</Button>
+										) }
+									</HStack>
+								</VStack>
+							);
+						} ) }
+					</VStack>
+				</VStack>
+			</CardBody>
 
-			{ modalState && (
-				<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListChanged } />
-			) }
+			{ renderModal() }
 
 			<LocalListDeleteModal
 				list={ pendingDelete }
@@ -219,6 +206,6 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 				onCancel={ cancelDelete }
 				isBusy={ deletingId === pendingDelete?.db_id }
 			/>
-		</div>
+		</Card>
 	);
 }
