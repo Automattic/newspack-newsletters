@@ -4,11 +4,16 @@
  */
 /* eslint-enable jsdoc/check-tag-names */
 
+const REGISTRY_KEY = '__newspackNewslettersLocalListModalExtensions';
+
 describe( 'extension registry', () => {
 	beforeEach( () => {
-		// Reset modules so the registry's module-level state is fresh.
+		// Reset modules so the module's window-init side effects re-run, and
+		// clear the shared window state so each test starts with an empty
+		// registry.
 		jest.resetModules();
 		delete window.newspack;
+		delete window[ REGISTRY_KEY ];
 	} );
 
 	it( 'registers and retrieves an extension', () => {
@@ -48,5 +53,24 @@ describe( 'extension registry', () => {
 	it( 'exposes registerLocalListModalExtension on window.newspack.newsletters for late registrations', () => {
 		require( './extensions' );
 		expect( typeof window.newspack.newsletters.registerLocalListModalExtension ).toBe( 'function' );
+	} );
+
+	it( 'shares the registry across multiple imports of the module (cross-bundle safety)', () => {
+		// Simulate two separate webpack entries each importing this module.
+		// `jest.isolateModules` evaluates the module in a fresh registry, so
+		// the two `require` calls return independent module instances — the
+		// same situation as two webpack bundles. They must still see each
+		// other's registrations because the underlying Map lives on `window`.
+		let bundleA;
+		let bundleB;
+		jest.isolateModules( () => {
+			bundleA = require( './extensions' );
+		} );
+		jest.isolateModules( () => {
+			bundleB = require( './extensions' );
+		} );
+		const ext = { render: () => 'shared' };
+		bundleA.registerLocalListModalExtension( 'shared', ext );
+		expect( bundleB.getLocalListModalExtensions() ).toEqual( [ ext ] );
 	} );
 } );

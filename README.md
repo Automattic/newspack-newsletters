@@ -27,7 +27,7 @@ The wizard bridge dispatches and listens for these `CustomEvent`s on `document`.
 
 | Event | Direction | Detail | Fires |
 |---|---|---|---|
-| `newspack-newsletters:bridge-mounted` | Bridge → consumer | `{}` | Once, when the bridge first mounts. |
+| `newspack-newsletters:bridge-mounted` | Bridge → consumer | `{}` | Once, when the bridge first mounts. The bridge also sets `window.newspackNewslettersBridgeReady = true` synchronously before dispatching this event — read the flag instead of (or in addition to) the event when your listener may register after boot. |
 | `newspack-newsletters:open-local-list-modal` | Consumer → Bridge | `{ mode: 'add' \| 'edit', list: object \| null }` | When a consumer wants to open the modal. |
 | `newspack-newsletters:open-local-list-confirm-delete` | Consumer → Bridge | `{ list: object }` | When a consumer wants to open the delete confirmation. |
 | `newspack-newsletters:local-list-saved` | Bridge → consumer | `{ listId, mode, list }` | After a successful POST/PATCH to `/lists/local`, after extension `onSave` callbacks settle. |

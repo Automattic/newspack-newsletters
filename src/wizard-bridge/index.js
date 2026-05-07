@@ -22,6 +22,9 @@ export function boot() {
 	container.className = ROOT_CLASS;
 	document.body.appendChild( container );
 	render( <LocalListModalHost />, container );
+	// Durable readiness flag for consumers that register listeners after boot.
+	// Set before dispatch so any synchronous listener observes a ready bridge.
+	window.newspackNewslettersBridgeReady = true;
 	document.dispatchEvent( new CustomEvent( EVENTS.BRIDGE_MOUNTED, { detail: {} } ) );
 }
 
