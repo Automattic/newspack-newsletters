@@ -11,16 +11,6 @@ export default function useListsData() {
 	const queuesRef = useRef( new Map() );
 	const confirmedRef = useRef( new Map() );
 
-	const setConfirmed = list => {
-		const next = new Map();
-		list.forEach( row => {
-			if ( row?.db_id !== undefined && row?.db_id !== null ) {
-				next.set( row.db_id, row );
-			}
-		} );
-		confirmedRef.current = next;
-	};
-
 	const load = useCallback( async () => {
 		setIsLoading( true );
 		setError( null );
@@ -28,7 +18,13 @@ export default function useListsData() {
 			const response = await apiFetch( { path: LISTS_PATH } );
 			const next = Array.isArray( response ) ? response : [];
 			setLists( next );
-			setConfirmed( next );
+			const confirmed = new Map();
+			next.forEach( row => {
+				if ( row?.db_id !== undefined && row?.db_id !== null ) {
+					confirmed.set( row.db_id, row );
+				}
+			} );
+			confirmedRef.current = confirmed;
 		} catch ( err ) {
 			setError( err );
 		} finally {

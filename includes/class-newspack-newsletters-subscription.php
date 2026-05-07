@@ -198,7 +198,7 @@ class Newspack_Newsletters_Subscription {
 			Newspack_Newsletters::API_NAMESPACE,
 			'/lists/(?P<id>\d+)',
 			[
-				'methods'             => \WP_REST_Server::EDITABLE,
+				'methods'             => 'PATCH',
 				'callback'            => [ __CLASS__, 'api_patch_list' ],
 				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
 				'args'                => [
