@@ -18,8 +18,20 @@ export default function LocalListModalHost() {
 
 	useEffect( () => {
 		const handleOpen = event => {
-			const { mode, list } = event.detail || {};
-			setModalState( { mode: mode || 'add', list: mode === 'edit' ? list : null } );
+			const { mode, list, kind } = event.detail || {};
+			// ESP mode is edit-only and requires a row with a db_id; bail on malformed payloads instead of mounting a modal that would crash on submit.
+			if ( kind === 'esp' ) {
+				if ( ! list?.db_id ) {
+					return;
+				}
+				setModalState( { mode: 'edit', list, kind: 'esp' } );
+				return;
+			}
+			setModalState( {
+				mode: mode || 'add',
+				list: mode === 'edit' ? list : null,
+				kind: 'local',
+			} );
 		};
 		const handleConfirmDelete = event => {
 			const list = event.detail?.list;
@@ -43,7 +55,7 @@ export default function LocalListModalHost() {
 	const handleSaved = useCallback( saved => {
 		document.dispatchEvent(
 			new CustomEvent( EVENTS.LOCAL_LIST_SAVED, {
-				detail: { listId: saved?.list?.db_id, mode: saved?.mode, list: saved?.list },
+				detail: { listId: saved?.list?.db_id, mode: saved?.mode, list: saved?.list, kind: saved?.kind },
 			} )
 		);
 	}, [] );
@@ -73,7 +85,15 @@ export default function LocalListModalHost() {
 
 	return (
 		<>
-			{ modalState && <LocalListModal list={ modalState.list } onClose={ closeModal } onSaved={ handleSaved } /> }
+			{ modalState && (
+				<LocalListModal
+					key={ `${ modalState.mode }:${ modalState.kind }:${ modalState.list?.db_id || '' }` }
+					list={ modalState.list }
+					kind={ modalState.kind }
+					onClose={ closeModal }
+					onSaved={ handleSaved }
+				/>
+			) }
 			{ deletePending && (
 				<LocalListDeleteModal
 					list={ deletePending }

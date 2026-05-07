@@ -7,6 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Newspack\Newsletters\Subscription_List;
 use Newspack\Newsletters\Subscription_Lists;
 use Newspack\Newsletters\Reader_Activation;
 
@@ -193,6 +194,35 @@ class Newspack_Newsletters_Subscription {
 				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
 			]
 		);
+		register_rest_route(
+			Newspack_Newsletters::API_NAMESPACE,
+			'/lists/(?P<id>\d+)',
+			[
+				'methods'             => 'PATCH',
+				'callback'            => [ __CLASS__, 'api_patch_list' ],
+				'permission_callback' => [ 'Newspack_Newsletters', 'api_administration_permissions_check' ],
+				'args'                => [
+					'id'          => [
+						'type'     => 'integer',
+						'required' => true,
+					],
+					'active'      => [
+						'type'     => 'boolean',
+						'required' => false,
+					],
+					'title'       => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'description' => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -282,6 +312,77 @@ class Newspack_Newsletters_Subscription {
 		if ( is_wp_error( $list ) ) {
 			return \rest_ensure_response( $list );
 		}
+		return \rest_ensure_response( $list->to_array() );
+	}
+
+	/**
+	 * API method to update a single subscription list. Locals must use
+	 * /lists/local/{id} for title/description — that path also handles
+	 * audience binding.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function api_patch_list( $request ) {
+		$id   = (int) $request->get_param( 'id' );
+		$post = get_post( $id );
+		if ( ! $post || Subscription_Lists::CPT !== $post->post_type ) {
+			return \rest_ensure_response(
+				new WP_Error(
+					'newspack_newsletters_list_not_found',
+					__( 'Subscription list not found.', 'newspack-newsletters' ),
+					[ 'status' => 404 ]
+				)
+			);
+		}
+
+		$list   = new Subscription_List( $post );
+		$fields = [];
+
+		if ( null !== $request->get_param( 'active' ) ) {
+			$active = (bool) $request->get_param( 'active' );
+			// Mirror the bulk path: signup forms can't see unconfigured locals, so don't let them be active.
+			if ( $active && $list->is_local() && ! $list->is_configured_for_current_provider() ) {
+				$active = false;
+			}
+			$fields['active'] = $active;
+		}
+
+		$has_title       = null !== $request->get_param( 'title' );
+		$has_description = null !== $request->get_param( 'description' );
+		if ( $has_title || $has_description ) {
+			if ( $list->is_local() ) {
+				return \rest_ensure_response(
+					new WP_Error(
+						'newspack_newsletters_local_list_use_local_endpoint',
+						__( 'Local lists must be edited via /lists/local/{id}.', 'newspack-newsletters' ),
+						[ 'status' => 400 ]
+					)
+				);
+			}
+			if ( $has_title ) {
+				$title = trim( (string) $request->get_param( 'title' ) );
+				if ( '' === $title ) {
+					return \rest_ensure_response(
+						new WP_Error(
+							'newspack_newsletters_list_invalid_title',
+							__( 'List title is required.', 'newspack-newsletters' ),
+							[ 'status' => 400 ]
+						)
+					);
+				}
+				$fields['title'] = $title;
+			}
+			if ( $has_description ) {
+				$fields['description'] = (string) $request->get_param( 'description' );
+			}
+		}
+
+		if ( ! empty( $fields ) ) {
+			$list->update( $fields );
+		}
+
 		return \rest_ensure_response( $list->to_array() );
 	}
 

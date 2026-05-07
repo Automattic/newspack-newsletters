@@ -164,64 +164,31 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 }
 
 .newspack-newsletters-settings {
-	display: flex;
-	flex-direction: column;
-	gap: wp-vars.$grid-unit-50;
-	max-width: 720px;
+	margin: 0 auto;
+	max-width: calc(#{wp-vars.$grid-unit-10} * 79);
 	padding: 0 wp-vars.$grid-unit-30;
 
-	&__section {
-		background: wp-colors.$white;
-		border: 1px solid wp-colors.$gray-300;
-		border-radius: wp-vars.$grid-unit-05;
-		display: flex;
-		flex-direction: column;
-		gap: wp-vars.$grid-unit-20;
-		padding: wp-vars.$grid-unit-30;
-
-		h2 {
-			margin: 0;
-		}
-
-		> .components-button {
-			align-self: flex-start;
-		}
-	}
-
-	&__credentials {
-		display: flex;
-		flex-direction: column;
-		gap: wp-vars.$grid-unit-20;
-	}
-
-	&__lists {
-		display: flex;
-		flex-direction: column;
-		gap: wp-vars.$grid-unit-30;
+	h2 {
+		margin: 0;
 	}
 
 	&__list-row {
-		// Mirror @wordpress/components' CheckboxControl scoping at the row
-		// level so siblings of the checkbox (the per-row Edit link) can
-		// resolve the same calc to align with the checkbox label.
-		--checkbox-input-size: 24px;
-		--checkbox-input-margin: 8px;
+		// Match the form-toggle column so the per-row Edit link aligns with the toggle's label.
+		--row-input-offset: #{wp-vars.$grid-unit-50};
 
-		@media (min-width: 600px) {
-			--checkbox-input-size: 16px;
-		}
-
-		border-top: 1px solid wp-colors.$gray-200;
-		padding-top: wp-vars.$grid-unit-20;
-
-		&:first-child {
-			border-top: 0;
-			padding-top: 0;
+		.components-toggle-control .components-h-stack {
+			align-items: flex-start;
 		}
 
 		.components-button.is-link:first-child {
-			margin-inline-start: calc(var(--checkbox-input-size) + var(--checkbox-input-margin));
+			margin-inline-start: var(--row-input-offset);
 		}
+	}
+
+	&__list-description {
+		display: block;
+		font-weight: normal;
+		margin-top: wp-vars.$grid-unit-10;
 	}
 }
 

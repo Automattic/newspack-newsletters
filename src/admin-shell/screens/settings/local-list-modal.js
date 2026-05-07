@@ -6,6 +6,7 @@ import {
 	Modal,
 	Notice,
 	SelectControl,
+	Spinner,
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
@@ -16,11 +17,14 @@ import { store as noticesStore } from '@wordpress/notices';
 
 import { getLocalListModalExtensions } from '../../../wizard-bridge/extensions';
 
-const CREATE_PATH = '/newspack-newsletters/v1/lists/local';
+const LOCAL_PATH = '/newspack-newsletters/v1/lists/local';
+const LISTS_PATH = '/newspack-newsletters/v1/lists';
 const AUDIENCES_PATH = '/newspack-newsletters/v1/lists/audiences';
 
-export default function LocalListModal( { list = null, onClose, onSaved } ) {
-	const isEdit = Boolean( list?.db_id );
+export default function LocalListModal( { list = null, kind = 'local', onClose, onSaved } ) {
+	const isEsp = kind === 'esp';
+	// ESP rows are edit-only — remote lists are materialised from the provider.
+	const isEdit = isEsp || Boolean( list?.db_id );
 
 	const [ title, setTitle ] = useState( list?.title || '' );
 	const [ description, setDescription ] = useState( list?.description || '' );
@@ -32,9 +36,13 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 	const [ isBusy, setIsBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
 
-	const extensions = getLocalListModalExtensions();
+	const extensions = getLocalListModalExtensions( kind );
 
 	useEffect( () => {
+		if ( isEsp ) {
+			setAudiencesLoaded( true );
+			return undefined;
+		}
 		let cancelled = false;
 		apiFetch( { path: AUDIENCES_PATH } )
 			.then( payload => {
@@ -60,7 +68,7 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		return () => {
 			cancelled = true;
 		};
-	}, [] );
+	}, [ isEsp ] );
 
 	const audienceOptions = useMemo( () => {
 		const options = audiences.map( a => ( { label: a.name, value: a.id } ) );
@@ -80,24 +88,38 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 			return;
 		}
 
+		if ( isEsp && ! list?.db_id ) {
+			setError( __( 'Missing list reference.', 'newspack-newsletters' ) );
+			return;
+		}
+
 		setIsBusy( true );
 		setError( '' );
 
-		const path = isEdit ? `${ CREATE_PATH }/${ list.db_id }` : CREATE_PATH;
-		const method = isEdit ? 'PATCH' : 'POST';
-		const data = {
-			title: trimmedTitle,
-			description,
-			audience,
-		};
+		let path;
+		let method;
+		let data;
+		if ( isEsp ) {
+			path = `${ LISTS_PATH }/${ list.db_id }`;
+			method = 'PATCH';
+			data = { title: trimmedTitle, description };
+		} else if ( isEdit ) {
+			path = `${ LOCAL_PATH }/${ list.db_id }`;
+			method = 'PATCH';
+			data = { title: trimmedTitle, description, audience };
+		} else {
+			path = LOCAL_PATH;
+			method = 'POST';
+			data = { title: trimmedTitle, description, audience };
+		}
 
 		try {
 			const saved = await apiFetch( { path, method, data } );
-			const ctx = { listId: saved?.db_id, list: saved, mode: isEdit ? 'edit' : 'add' };
+			const ctx = { listId: saved?.db_id, list: saved, mode: isEdit ? 'edit' : 'add', kind };
 			// Re-read the registry at submit time so extensions registered after the modal mounted still run.
 			// `Promise.resolve().then(...)` so a sync throw inside an extension is a settled rejection, not a list-save failure.
 			const results = await Promise.allSettled(
-				getLocalListModalExtensions().map( ext =>
+				getLocalListModalExtensions( kind ).map( ext =>
 					typeof ext.onSave === 'function' ? Promise.resolve().then( () => ext.onSave( ctx ) ) : Promise.resolve()
 				)
 			);
@@ -109,74 +131,94 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 					);
 				}
 			} );
-			onSaved( { list: saved, mode: isEdit ? 'edit' : 'add' } );
+			onSaved( { list: saved, mode: isEdit ? 'edit' : 'add', kind } );
 			onClose();
 		} catch ( err ) {
-			const fallback = isEdit
-				? __( 'Could not update local list. Please try again.', 'newspack-newsletters' )
-				: __( 'Could not create local list. Please try again.', 'newspack-newsletters' );
+			let fallback;
+			if ( isEsp ) {
+				fallback = __( 'Could not update subscription list. Please try again.', 'newspack-newsletters' );
+			} else if ( isEdit ) {
+				fallback = __( 'Could not update local list. Please try again.', 'newspack-newsletters' );
+			} else {
+				fallback = __( 'Could not create local list. Please try again.', 'newspack-newsletters' );
+			}
 			setError( err?.message || fallback );
 			setIsBusy( false );
 		}
 	};
 
+	let modalTitle;
+	if ( isEsp ) {
+		modalTitle = __( 'Edit subscription list', 'newspack-newsletters' );
+	} else if ( isEdit ) {
+		modalTitle = __( 'Edit local list', 'newspack-newsletters' );
+	} else {
+		modalTitle = __( 'Add new local list', 'newspack-newsletters' );
+	}
+
 	return (
 		<Modal
-			title={ isEdit ? __( 'Edit local list', 'newspack-newsletters' ) : __( 'Add new local list', 'newspack-newsletters' ) }
+			title={ modalTitle }
 			onRequestClose={ isBusy ? () => {} : onClose }
 			shouldCloseOnEsc={ ! isBusy }
 			shouldCloseOnClickOutside={ ! isBusy }
 			size="medium"
 			className="newspack-newsletters-local-list-modal"
 		>
-			<form onSubmit={ submit }>
-				<VStack spacing={ 4 }>
-					{ error && (
-						<Notice status="error" isDismissible={ false }>
-							{ error }
-						</Notice>
-					) }
-					<TextControl
-						label={ __( 'List title', 'newspack-newsletters' ) }
-						value={ title }
-						onChange={ setTitle }
-						required
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-					/>
-					<TextareaControl
-						label={ __( 'List description', 'newspack-newsletters' ) }
-						help={ __( 'Optional description for this list.', 'newspack-newsletters' ) }
-						value={ description }
-						onChange={ setDescription }
-						__nextHasNoMarginBottom
-					/>
-					{ audiencesLoaded && audiences.length > 0 && (
-						<SelectControl
-							label={ audienceLabel }
-							value={ audience }
-							options={ audienceOptions }
-							onChange={ setAudience }
-							help={ audienceHelp }
+			{ ! audiencesLoaded ? (
+				<HStack justify="center" style={ { minHeight: 200 } }>
+					<Spinner />
+				</HStack>
+			) : (
+				<form onSubmit={ submit }>
+					<VStack spacing={ 4 }>
+						{ error && (
+							<Notice status="error" isDismissible={ false }>
+								{ error }
+							</Notice>
+						) }
+						<TextControl
+							label={ __( 'List title', 'newspack-newsletters' ) }
+							value={ title }
+							onChange={ setTitle }
+							required
 							__nextHasNoMarginBottom
 							__next40pxDefaultSize
 						/>
-					) }
-					{ extensions.map( ( ext, index ) => (
-						<div key={ index } className="newspack-newsletters-local-list-modal__extension">
-							{ typeof ext.render === 'function' ? ext.render( { list, mode: isEdit ? 'edit' : 'add', isBusy } ) : null }
-						</div>
-					) ) }
-					<HStack justify="flex-end" spacing={ 2 }>
-						<Button variant="tertiary" onClick={ onClose } disabled={ isBusy }>
-							{ __( 'Cancel', 'newspack-newsletters' ) }
-						</Button>
-						<Button variant="primary" type="submit" isBusy={ isBusy } disabled={ isBusy }>
-							{ isEdit ? __( 'Save changes', 'newspack-newsletters' ) : __( 'Add list', 'newspack-newsletters' ) }
-						</Button>
-					</HStack>
-				</VStack>
-			</form>
+						<TextareaControl
+							label={ __( 'List description', 'newspack-newsletters' ) }
+							help={ __( 'Optional description for this list.', 'newspack-newsletters' ) }
+							value={ description }
+							onChange={ setDescription }
+							__nextHasNoMarginBottom
+						/>
+						{ ! isEsp && audiencesLoaded && audiences.length > 0 && (
+							<SelectControl
+								label={ audienceLabel }
+								value={ audience }
+								options={ audienceOptions }
+								onChange={ setAudience }
+								help={ audienceHelp }
+								__nextHasNoMarginBottom
+								__next40pxDefaultSize
+							/>
+						) }
+						{ extensions.map( ( ext, index ) => (
+							<div key={ index } className="newspack-newsletters-local-list-modal__extension">
+								{ typeof ext.render === 'function' ? ext.render( { list, mode: isEdit ? 'edit' : 'add', kind, isBusy } ) : null }
+							</div>
+						) ) }
+						<HStack justify="flex-end" spacing={ 2 }>
+							<Button variant="tertiary" onClick={ onClose } disabled={ isBusy }>
+								{ __( 'Cancel', 'newspack-newsletters' ) }
+							</Button>
+							<Button variant="primary" type="submit" isBusy={ isBusy } disabled={ isBusy }>
+								{ isEdit ? __( 'Save changes', 'newspack-newsletters' ) : __( 'Add list', 'newspack-newsletters' ) }
+							</Button>
+						</HStack>
+					</VStack>
+				</form>
+			) }
 		</Modal>
 	);
 }

@@ -27,10 +27,11 @@ describe( 'LocalListModal', () => {
 		const onSaved = jest.fn();
 		const onClose = jest.fn();
 		render( <LocalListModal list={ null } onClose={ onClose } onSaved={ onSaved } /> );
+		await waitFor( () => expect( screen.getByLabelText( /List title/ ) ).toBeInTheDocument() );
 		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'New list' } } );
 		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
 		await waitFor( () => expect( onSaved ).toHaveBeenCalled() );
-		expect( onSaved ).toHaveBeenCalledWith( { list: saved, mode: 'add' } );
+		expect( onSaved ).toHaveBeenCalledWith( { list: saved, mode: 'add', kind: 'local' } );
 	} );
 
 	it( 'passes the saved list and mode to onSaved on edit', async () => {
@@ -44,10 +45,70 @@ describe( 'LocalListModal', () => {
 		} );
 		const onSaved = jest.fn();
 		render( <LocalListModal list={ list } onClose={ jest.fn() } onSaved={ onSaved } /> );
+		await waitFor( () => expect( screen.getByLabelText( /List title/ ) ).toBeInTheDocument() );
 		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'Renamed' } } );
 		fireEvent.click( screen.getByRole( 'button', { name: /^Save changes$/ } ) );
 		await waitFor( () => expect( onSaved ).toHaveBeenCalled() );
-		expect( onSaved ).toHaveBeenCalledWith( { list: saved, mode: 'edit' } );
+		expect( onSaved ).toHaveBeenCalledWith( { list: saved, mode: 'edit', kind: 'local' } );
+	} );
+} );
+
+describe( 'LocalListModal — ESP mode', () => {
+	beforeEach( () => {
+		apiFetch.mockReset();
+		extensions.getLocalListModalExtensions.mockReturnValue( [] );
+	} );
+
+	it( 'submits to PATCH /lists/{db_id} with title + description (no audience)', async () => {
+		const list = { db_id: 17, title: 'Newsletter A', description: 'old desc', type: 'remote' };
+		const saved = { ...list, title: 'Newsletter A — renamed', description: 'fresh desc' };
+		apiFetch.mockResolvedValue( saved );
+
+		const onSaved = jest.fn();
+		const onClose = jest.fn();
+		render( <LocalListModal list={ list } kind="esp" onClose={ onClose } onSaved={ onSaved } /> );
+
+		expect( screen.getByText( /Edit subscription list/ ) ).toBeInTheDocument();
+
+		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'Newsletter A — renamed' } } );
+		fireEvent.change( screen.getByLabelText( /List description/ ), { target: { value: 'fresh desc' } } );
+		fireEvent.click( screen.getByRole( 'button', { name: /^Save changes$/ } ) );
+
+		await waitFor( () => expect( onSaved ).toHaveBeenCalled() );
+		expect( apiFetch ).toHaveBeenCalledWith( {
+			path: '/newspack-newsletters/v1/lists/17',
+			method: 'PATCH',
+			data: { title: 'Newsletter A — renamed', description: 'fresh desc' },
+		} );
+		expect( onSaved ).toHaveBeenCalledWith( { list: saved, mode: 'edit', kind: 'esp' } );
+		expect( onClose ).toHaveBeenCalled();
+	} );
+
+	it( 'never fetches the audiences endpoint in ESP mode', async () => {
+		apiFetch.mockResolvedValue( { db_id: 17, title: 'X' } );
+		render( <LocalListModal list={ { db_id: 17, title: 'X', description: '' } } kind="esp" onClose={ jest.fn() } onSaved={ jest.fn() } /> );
+		await waitFor( () => expect( screen.getByText( /Edit subscription list/ ) ).toBeInTheDocument() );
+		const audiencesCall = apiFetch.mock.calls.find( call => call[ 0 ]?.path === '/newspack-newsletters/v1/lists/audiences' );
+		expect( audiencesCall ).toBeUndefined();
+	} );
+
+	it( 'queries the registry with kind=esp so local-only extensions are filtered out', async () => {
+		apiFetch.mockResolvedValue( { db_id: 17, title: 'X' } );
+		render( <LocalListModal list={ { db_id: 17, title: 'X', description: '' } } kind="esp" onClose={ jest.fn() } onSaved={ jest.fn() } /> );
+		await waitFor( () => expect( screen.getByText( /Edit subscription list/ ) ).toBeInTheDocument() );
+		expect( extensions.getLocalListModalExtensions ).toHaveBeenCalledWith( 'esp' );
+	} );
+
+	it( 'surfaces the ESP-specific fallback error when the PATCH fails', async () => {
+		apiFetch.mockRejectedValue( new Error( '' ) );
+		render( <LocalListModal list={ { db_id: 17, title: 'X', description: '' } } kind="esp" onClose={ jest.fn() } onSaved={ jest.fn() } /> );
+		fireEvent.click( screen.getByRole( 'button', { name: /^Save changes$/ } ) );
+		await waitFor( () =>
+			expect(
+				// Scope to the notice — wp's a11y-speak live region mirrors the same text into another node.
+				document.querySelector( '.components-notice__content' )
+			).toHaveTextContent( /Could not update subscription list/ )
+		);
 	} );
 } );
 
@@ -88,6 +149,7 @@ describe( 'LocalListModal — extensions', () => {
 		const onSaved = jest.fn();
 		const onClose = jest.fn();
 		render( <LocalListModal list={ null } onClose={ onClose } onSaved={ onSaved } /> );
+		await waitFor( () => expect( screen.getByLabelText( /List title/ ) ).toBeInTheDocument() );
 		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'X' } } );
 		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
 
@@ -115,6 +177,7 @@ describe( 'LocalListModal — extensions', () => {
 		const onSaved = jest.fn();
 		const onClose = jest.fn();
 		render( <LocalListModal list={ null } onClose={ onClose } onSaved={ onSaved } /> );
+		await waitFor( () => expect( screen.getByLabelText( /List title/ ) ).toBeInTheDocument() );
 		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'Y' } } );
 		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
 
