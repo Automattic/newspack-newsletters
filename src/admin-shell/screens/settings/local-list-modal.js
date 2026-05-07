@@ -86,8 +86,8 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		};
 
 		try {
-			await apiFetch( { path, method, data } );
-			onSaved();
+			const saved = await apiFetch( { path, method, data } );
+			onSaved( { list: saved, mode: isEdit ? 'edit' : 'add' } );
 			onClose();
 		} catch ( err ) {
 			const fallback = isEdit
