@@ -15,3 +15,6 @@ release
 .phpunit.result.cache
 /.tmp/
 /.tmp-*/
+
+# Claude Code runtime artefacts
+/.claude/
