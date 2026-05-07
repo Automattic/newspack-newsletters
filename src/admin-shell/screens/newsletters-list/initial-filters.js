@@ -9,8 +9,6 @@
  * Pure module so it stays trivial to unit-test.
  */
 
-// All three Draft-kind statuses share the dropdown's combined value so
-// deep links from any of them land on the same filter chip.
 const POST_STATUS_TO_FILTER_VALUE = {
 	trash: 'trash',
 	draft: 'draft,pending,auto-draft',

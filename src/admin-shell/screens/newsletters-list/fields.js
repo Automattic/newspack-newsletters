@@ -130,8 +130,7 @@ export function getFields() {
 			elements: [
 				{ value: 'publish,private', label: statusLabels.sent },
 				{ value: 'future', label: statusLabels.scheduled },
-				// All three render as "Draft" in `get_status_for_post`, so
-				// the filter has to request all three to match the column.
+				// Match `get_status_for_post`'s draft fallthrough.
 				{ value: 'draft,pending,auto-draft', label: statusLabels.draft },
 				{ value: 'trash', label: statusLabels.trash },
 			],
