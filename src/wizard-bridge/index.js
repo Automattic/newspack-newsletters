@@ -1,0 +1,37 @@
+import './style.scss';
+import './extensions';
+
+import { render } from '@wordpress/element';
+
+import LocalListModalHost from './local-list-modal-host';
+
+const ROOT_CLASS = 'newspack-newsletters-wizard-bridge-root';
+
+export function boot() {
+	if ( typeof document === 'undefined' ) {
+		return;
+	}
+	if ( document.querySelector( `.${ ROOT_CLASS }` ) ) {
+		return;
+	}
+	if ( ! window.newspack_newsletters_wizard_bridge ) {
+		return;
+	}
+	const container = document.createElement( 'div' );
+	container.className = ROOT_CLASS;
+	document.body.appendChild( container );
+	// `<LocalListModalHost />` flips `window.newspackNewslettersBridgeReady`
+	// and dispatches `bridge-mounted` from its own `useEffect`, so the signal
+	// only fires after its document listeners are installed. A consumer that
+	// reacts to `bridge-mounted` by synchronously dispatching `open-local-list-modal`
+	// is therefore guaranteed to be heard.
+	render( <LocalListModalHost />, container );
+}
+
+if ( typeof document !== 'undefined' ) {
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', boot );
+	} else {
+		boot();
+	}
+}

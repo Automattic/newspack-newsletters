@@ -4,16 +4,16 @@ import {
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	Button,
 	CheckboxControl,
-	Modal,
 	Notice,
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
 import { dispatch } from '@wordpress/data';
 import { useEffect, useRef, useState } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 import { store as noticesStore } from '@wordpress/notices';
 
+import LocalListDeleteModal from './local-list-delete-modal';
 import LocalListModal from './local-list-modal';
 
 export default function ListsSection( { lists, isLoading, error, canAddLocal, onSave, onLocalListChanged, isSaving } ) {
@@ -213,40 +213,12 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 				<LocalListModal list={ modalState === 'add' ? null : modalState } onClose={ closeModal } onSaved={ onLocalListChanged } />
 			) }
 
-			{ pendingDelete && (
-				<Modal
-					title={ __( 'Delete local list', 'newspack-newsletters' ) }
-					onRequestClose={ deletingId === pendingDelete.db_id ? () => {} : cancelDelete }
-					shouldCloseOnEsc={ deletingId !== pendingDelete.db_id }
-					shouldCloseOnClickOutside={ deletingId !== pendingDelete.db_id }
-					size="small"
-					className="newspack-newsletters-local-list-delete-modal"
-				>
-					<VStack spacing={ 4 }>
-						<p>
-							{ sprintf(
-								// translators: %s is the title of the local list being deleted.
-								__( 'Delete the local list "%s"? This cannot be undone.', 'newspack-newsletters' ),
-								pendingDelete.title
-							) }
-						</p>
-						<HStack justify="flex-end" spacing={ 2 }>
-							<Button variant="tertiary" onClick={ cancelDelete } disabled={ deletingId === pendingDelete.db_id }>
-								{ __( 'Cancel', 'newspack-newsletters' ) }
-							</Button>
-							<Button
-								variant="primary"
-								isDestructive
-								onClick={ confirmDelete }
-								isBusy={ deletingId === pendingDelete.db_id }
-								disabled={ deletingId === pendingDelete.db_id }
-							>
-								{ __( 'Delete list', 'newspack-newsletters' ) }
-							</Button>
-						</HStack>
-					</VStack>
-				</Modal>
-			) }
+			<LocalListDeleteModal
+				list={ pendingDelete }
+				onConfirm={ confirmDelete }
+				onCancel={ cancelDelete }
+				isBusy={ deletingId === pendingDelete?.db_id }
+			/>
 		</div>
 	);
 }

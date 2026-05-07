@@ -9,8 +9,12 @@ import {
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
+import { dispatch } from '@wordpress/data';
 import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { store as noticesStore } from '@wordpress/notices';
+
+import { getLocalListModalExtensions } from '../../../wizard-bridge/extensions';
 
 const CREATE_PATH = '/newspack-newsletters/v1/lists/local';
 const AUDIENCES_PATH = '/newspack-newsletters/v1/lists/audiences';
@@ -27,6 +31,8 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 	const [ audiencesLoaded, setAudiencesLoaded ] = useState( false );
 	const [ isBusy, setIsBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
+
+	const extensions = getLocalListModalExtensions();
 
 	useEffect( () => {
 		let cancelled = false;
@@ -86,8 +92,24 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		};
 
 		try {
-			await apiFetch( { path, method, data } );
-			onSaved();
+			const saved = await apiFetch( { path, method, data } );
+			const ctx = { listId: saved?.db_id, list: saved, mode: isEdit ? 'edit' : 'add' };
+			// Re-read the registry at submit time so extensions registered after the modal mounted still run.
+			// `Promise.resolve().then(...)` so a sync throw inside an extension is a settled rejection, not a list-save failure.
+			const results = await Promise.allSettled(
+				getLocalListModalExtensions().map( ext =>
+					typeof ext.onSave === 'function' ? Promise.resolve().then( () => ext.onSave( ctx ) ) : Promise.resolve()
+				)
+			);
+			results.forEach( result => {
+				if ( result.status === 'rejected' ) {
+					dispatch( noticesStore ).createErrorNotice(
+						result.reason?.message || __( 'A modal extension failed after save.', 'newspack-newsletters' ),
+						{ type: 'snackbar', explicitDismiss: true }
+					);
+				}
+			} );
+			onSaved( { list: saved, mode: isEdit ? 'edit' : 'add' } );
 			onClose();
 		} catch ( err ) {
 			const fallback = isEdit
@@ -140,6 +162,11 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 							__next40pxDefaultSize
 						/>
 					) }
+					{ extensions.map( ( ext, index ) => (
+						<div key={ index } className="newspack-newsletters-local-list-modal__extension">
+							{ typeof ext.render === 'function' ? ext.render( { list, mode: isEdit ? 'edit' : 'add', isBusy } ) : null }
+						</div>
+					) ) }
 					<HStack justify="flex-end" spacing={ 2 }>
 						<Button variant="tertiary" onClick={ onClose } disabled={ isBusy }>
 							{ __( 'Cancel', 'newspack-newsletters' ) }
