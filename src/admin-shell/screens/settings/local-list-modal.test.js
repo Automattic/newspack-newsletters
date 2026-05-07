@@ -1,12 +1,19 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import apiFetch from '@wordpress/api-fetch';
+import { dispatch } from '@wordpress/data';
+import { store as noticesStore } from '@wordpress/notices';
 import LocalListModal from './local-list-modal';
+import * as extensions from '../../../wizard-bridge/extensions';
 
 jest.mock( '@wordpress/api-fetch', () => jest.fn() );
+jest.mock( '../../../wizard-bridge/extensions', () => ( {
+	getLocalListModalExtensions: jest.fn( () => [] ),
+} ) );
 
 describe( 'LocalListModal', () => {
 	beforeEach( () => {
 		apiFetch.mockReset();
+		extensions.getLocalListModalExtensions.mockReturnValue( [] );
 	} );
 
 	it( 'passes the saved list and mode to onSaved on create', async () => {
@@ -41,5 +48,57 @@ describe( 'LocalListModal', () => {
 		fireEvent.click( screen.getByRole( 'button', { name: /^Save changes$/ } ) );
 		await waitFor( () => expect( onSaved ).toHaveBeenCalled() );
 		expect( onSaved ).toHaveBeenCalledWith( { list: saved, mode: 'edit' } );
+	} );
+} );
+
+describe( 'LocalListModal — extensions', () => {
+	beforeEach( () => {
+		apiFetch.mockReset();
+		apiFetch.mockImplementation( opts => {
+			if ( opts.path === '/newspack-newsletters/v1/lists/audiences' ) {
+				return Promise.resolve( { audiences: [], audience_label: 'List', help_before_save: '' } );
+			}
+			return Promise.resolve( { db_id: 1 } );
+		} );
+		extensions.getLocalListModalExtensions.mockReturnValue( [] );
+	} );
+
+	it( 'renders extension JSX after the built-in fields, in registration order', async () => {
+		extensions.getLocalListModalExtensions.mockReturnValue( [
+			{ render: () => <span data-testid="ext-a">A</span> },
+			{ render: () => <span data-testid="ext-b">B</span> },
+		] );
+		render( <LocalListModal list={ null } onClose={ jest.fn() } onSaved={ jest.fn() } /> );
+		await waitFor( () => expect( screen.getByTestId( 'ext-a' ) ).toBeInTheDocument() );
+		expect( screen.getByTestId( 'ext-b' ) ).toBeInTheDocument();
+	} );
+
+	it( 'awaits extension onSave callbacks after a successful POST and includes their rejections in error notices', async () => {
+		const createErrorNotice = jest.fn();
+		jest.spyOn( dispatch( noticesStore ), 'createErrorNotice' ).mockImplementation( createErrorNotice );
+
+		const onSaveResolved = jest.fn().mockResolvedValue( undefined );
+		const onSaveRejected = jest.fn().mockRejectedValue( new Error( 'image upload failed' ) );
+
+		extensions.getLocalListModalExtensions.mockReturnValue( [
+			{ render: () => null, onSave: onSaveResolved },
+			{ render: () => null, onSave: onSaveRejected },
+		] );
+
+		const onSaved = jest.fn();
+		const onClose = jest.fn();
+		render( <LocalListModal list={ null } onClose={ onClose } onSaved={ onSaved } /> );
+		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'X' } } );
+		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
+
+		await waitFor( () => expect( onSaved ).toHaveBeenCalled() );
+		expect( onSaveResolved ).toHaveBeenCalled();
+		expect( onSaveRejected ).toHaveBeenCalled();
+		expect( createErrorNotice ).toHaveBeenCalledWith(
+			expect.stringContaining( 'image upload failed' ),
+			expect.objectContaining( { type: 'snackbar' } )
+		);
+		// Rejection does not block close.
+		expect( onClose ).toHaveBeenCalled();
 	} );
 } );
