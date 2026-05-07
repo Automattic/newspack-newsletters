@@ -101,9 +101,17 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 			return null;
 		}
 		if ( modalState === 'add' ) {
-			return <LocalListModal list={ null } kind="local" onClose={ closeModal } onSaved={ handleModalSaved } />;
+			return <LocalListModal key="add:local" list={ null } kind="local" onClose={ closeModal } onSaved={ handleModalSaved } />;
 		}
-		return <LocalListModal list={ modalState.list } kind={ modalState.kind } onClose={ closeModal } onSaved={ handleModalSaved } />;
+		return (
+			<LocalListModal
+				key={ `edit:${ modalState.kind }:${ modalState.list?.db_id }` }
+				list={ modalState.list }
+				kind={ modalState.kind }
+				onClose={ closeModal }
+				onSaved={ handleModalSaved }
+			/>
+		);
 	};
 
 	if ( ! lists?.length ) {

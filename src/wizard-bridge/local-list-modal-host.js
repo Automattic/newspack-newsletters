@@ -85,7 +85,15 @@ export default function LocalListModalHost() {
 
 	return (
 		<>
-			{ modalState && <LocalListModal list={ modalState.list } kind={ modalState.kind } onClose={ closeModal } onSaved={ handleSaved } /> }
+			{ modalState && (
+				<LocalListModal
+					key={ `${ modalState.mode }:${ modalState.kind }:${ modalState.list?.db_id || '' }` }
+					list={ modalState.list }
+					kind={ modalState.kind }
+					onClose={ closeModal }
+					onSaved={ handleSaved }
+				/>
+			) }
 			{ deletePending && (
 				<LocalListDeleteModal
 					list={ deletePending }
