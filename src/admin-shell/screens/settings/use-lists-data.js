@@ -7,16 +7,28 @@ export default function useListsData() {
 	const [ lists, setLists ] = useState( [] );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ error, setError ] = useState( null );
-	// Per-row sequence + chain so concurrent same-row PATCHes serialise in click order both client- and server-side.
 	const sequencesRef = useRef( new Map() );
 	const queuesRef = useRef( new Map() );
+	const confirmedRef = useRef( new Map() );
+
+	const setConfirmed = list => {
+		const next = new Map();
+		list.forEach( row => {
+			if ( row?.db_id !== undefined && row?.db_id !== null ) {
+				next.set( row.db_id, row );
+			}
+		} );
+		confirmedRef.current = next;
+	};
 
 	const load = useCallback( async () => {
 		setIsLoading( true );
 		setError( null );
 		try {
 			const response = await apiFetch( { path: LISTS_PATH } );
-			setLists( Array.isArray( response ) ? response : [] );
+			const next = Array.isArray( response ) ? response : [];
+			setLists( next );
+			setConfirmed( next );
 		} catch ( err ) {
 			setError( err );
 		} finally {
@@ -31,12 +43,7 @@ export default function useListsData() {
 	const patchList = useCallback( ( dbId, patch ) => {
 		const seq = ( sequencesRef.current.get( dbId ) || 0 ) + 1;
 		sequencesRef.current.set( dbId, seq );
-		let preRowSnapshot = null;
-		setLists( current => {
-			const targetRow = current.find( row => row.db_id === dbId );
-			preRowSnapshot = targetRow ? { ...targetRow } : null;
-			return current.map( row => ( row.db_id === dbId ? { ...row, ...patch } : row ) );
-		} );
+		setLists( current => current.map( row => ( row.db_id === dbId ? { ...row, ...patch } : row ) ) );
 		const previous = queuesRef.current.get( dbId ) || Promise.resolve();
 		const next = previous
 			.catch( () => {} )
@@ -47,14 +54,18 @@ export default function useListsData() {
 						method: 'PATCH',
 						data: patch,
 					} );
+					const previousConfirmed = confirmedRef.current.get( dbId );
+					confirmedRef.current.set( dbId, previousConfirmed ? { ...previousConfirmed, ...response } : response );
 					if ( sequencesRef.current.get( dbId ) === seq ) {
 						setLists( current => current.map( row => ( row.db_id === dbId ? { ...row, ...response } : row ) ) );
 					}
 					return response;
 				} catch ( err ) {
-					if ( sequencesRef.current.get( dbId ) === seq && preRowSnapshot ) {
-						const restored = preRowSnapshot;
-						setLists( current => current.map( row => ( row.db_id === dbId ? restored : row ) ) );
+					if ( sequencesRef.current.get( dbId ) === seq ) {
+						const confirmed = confirmedRef.current.get( dbId );
+						if ( confirmed ) {
+							setLists( current => current.map( row => ( row.db_id === dbId ? confirmed : row ) ) );
+						}
 					}
 					throw err;
 				}
