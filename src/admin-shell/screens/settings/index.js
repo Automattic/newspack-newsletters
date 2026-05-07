@@ -28,12 +28,15 @@ export default function SettingsScreen() {
 	const [ pendingOptions, setPendingOptions ] = useState( {} );
 	const [ isSaving, setIsSaving ] = useState( false );
 
-	// Resync pending state whenever fresh data lands (post-save reload, OAuth
-	// authorise, manual refresh).
+	// Resync pending state whenever fresh provider data lands (post-save
+	// reload, OAuth authorise, manual refresh). Depending on the whole
+	// `data.provider` object — not just `savedSlug` — so that saving new
+	// credentials for the *same* provider also clears the plaintext from
+	// the input and flips Save back to a clean state.
 	useEffect( () => {
 		setPendingSlug( savedSlug );
 		setPendingCredentials( {} );
-	}, [ savedSlug ] );
+	}, [ data?.provider, savedSlug ] );
 
 	useEffect( () => {
 		setPendingOptions( {} );
