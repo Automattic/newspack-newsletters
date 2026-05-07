@@ -23,6 +23,11 @@ describe( 'buildQueryParams', () => {
 		expect( status.split( ',' ) ).not.toContain( 'trash' );
 	} );
 
+	it( 'includes auto-draft so a post-new + back row stays visible', () => {
+		const { status } = buildQueryParams( {} );
+		expect( status.split( ',' ) ).toContain( 'auto-draft' );
+	} );
+
 	it( 'replaces the default status set when the user filters by status', () => {
 		const params = buildQueryParams( {
 			filters: [ { field: 'status', operator: 'isAny', value: [ 'trash' ] } ],

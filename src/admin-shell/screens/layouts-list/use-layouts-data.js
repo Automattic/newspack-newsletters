@@ -43,9 +43,9 @@ function buildPath( view ) {
 		params.set( 'orderby', view.sort.field );
 		params.set( 'order', view.sort.direction === 'asc' ? 'asc' : 'desc' );
 	}
-	// Include drafts/pending so layouts authored via "Save draft" stay
-	// visible. `future` is excluded — layouts don't surface scheduling.
-	params.set( 'status', 'publish,private,draft,pending' );
+	// `auto-draft` keeps an abandoned "Add new" visible. `future` is excluded
+	// — layouts don't surface scheduling.
+	params.set( 'status', 'publish,private,draft,pending,auto-draft' );
 	params.set( '_embed', '1' );
 	if ( Array.isArray( view.author ) && view.author.length > 0 ) {
 		params.set( 'author', view.author.join( ',' ) );

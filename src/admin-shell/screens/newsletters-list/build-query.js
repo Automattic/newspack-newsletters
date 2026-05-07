@@ -14,7 +14,8 @@
  *   common writable statuses when no status filter is set.
  */
 
-const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending' ];
+// `auto-draft` so an abandoned "Add new" still shows in the list.
+const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending', 'auto-draft' ];
 
 const FIELD_TO_QUERY_PARAM = {
 	status: 'status',

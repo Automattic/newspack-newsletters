@@ -130,11 +130,8 @@ export function getFields() {
 			elements: [
 				{ value: 'publish,private', label: statusLabels.sent },
 				{ value: 'future', label: statusLabels.scheduled },
-				// Pending newsletters fall through to the `draft` kind in
-				// `compute_sent_at` and render as "Draft" in the table, so
-				// the filter has to include both for the displayed and
-				// filtered sets to match.
-				{ value: 'draft,pending', label: statusLabels.draft },
+				// Match `get_status_for_post`'s draft fallthrough.
+				{ value: 'draft,pending,auto-draft', label: statusLabels.draft },
 				{ value: 'trash', label: statusLabels.trash },
 			],
 			filterBy: { operators: [ 'isAny' ] },
