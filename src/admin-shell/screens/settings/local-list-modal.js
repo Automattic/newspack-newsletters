@@ -94,8 +94,9 @@ export default function LocalListModal( { list = null, onClose, onSaved } ) {
 		try {
 			const saved = await apiFetch( { path, method, data } );
 			const ctx = { listId: saved?.db_id, list: saved, mode: isEdit ? 'edit' : 'add' };
+			// `Promise.resolve().then(...)` so a sync throw inside an extension is a settled rejection, not a list-save failure.
 			const results = await Promise.allSettled(
-				extensions.map( ext => ( typeof ext.onSave === 'function' ? ext.onSave( ctx ) : Promise.resolve() ) )
+				extensions.map( ext => ( typeof ext.onSave === 'function' ? Promise.resolve().then( () => ext.onSave( ctx ) ) : Promise.resolve() ) )
 			);
 			results.forEach( result => {
 				if ( result.status === 'rejected' ) {

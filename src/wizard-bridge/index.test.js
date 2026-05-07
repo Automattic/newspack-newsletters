@@ -1,3 +1,5 @@
+import { waitFor } from '@testing-library/react';
+
 import { boot } from './index';
 import { EVENTS } from './events';
 
@@ -5,6 +7,7 @@ describe( 'wizard-bridge boot', () => {
 	beforeEach( () => {
 		document.body.innerHTML = '';
 		delete window.newspack_newsletters_wizard_bridge;
+		delete window.newspackNewslettersBridgeReady;
 	} );
 
 	it( 'no-ops when the localised global is missing', () => {
@@ -26,12 +29,13 @@ describe( 'wizard-bridge boot', () => {
 		expect( document.body.querySelectorAll( '.newspack-newsletters-wizard-bridge-root' ) ).toHaveLength( 1 );
 	} );
 
-	it( 'dispatches BRIDGE_MOUNTED on first successful mount', () => {
+	it( 'dispatches BRIDGE_MOUNTED and sets the readiness flag once the host effect has run', async () => {
 		window.newspack_newsletters_wizard_bridge = { debug: false };
 		const listener = jest.fn();
 		document.addEventListener( EVENTS.BRIDGE_MOUNTED, listener );
 		boot();
-		expect( listener ).toHaveBeenCalled();
+		await waitFor( () => expect( listener ).toHaveBeenCalled() );
+		expect( window.newspackNewslettersBridgeReady ).toBe( true );
 		document.removeEventListener( EVENTS.BRIDGE_MOUNTED, listener );
 	} );
 } );

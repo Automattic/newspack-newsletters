@@ -101,4 +101,30 @@ describe( 'LocalListModal — extensions', () => {
 		// Rejection does not block close.
 		expect( onClose ).toHaveBeenCalled();
 	} );
+
+	it( 'treats a synchronous throw inside an extension onSave as a rejection, not a list-save failure', async () => {
+		const createErrorNotice = jest.fn();
+		jest.spyOn( dispatch( noticesStore ), 'createErrorNotice' ).mockImplementation( createErrorNotice );
+
+		const onSaveSyncThrow = jest.fn( () => {
+			throw new Error( 'extension blew up sync' );
+		} );
+
+		extensions.getLocalListModalExtensions.mockReturnValue( [ { render: () => null, onSave: onSaveSyncThrow } ] );
+
+		const onSaved = jest.fn();
+		const onClose = jest.fn();
+		render( <LocalListModal list={ null } onClose={ onClose } onSaved={ onSaved } /> );
+		fireEvent.change( screen.getByLabelText( /List title/ ), { target: { value: 'Y' } } );
+		fireEvent.click( screen.getByRole( 'button', { name: /^Add list$/ } ) );
+
+		await waitFor( () => expect( onSaved ).toHaveBeenCalled() );
+		expect( onSaveSyncThrow ).toHaveBeenCalled();
+		expect( createErrorNotice ).toHaveBeenCalledWith(
+			expect.stringContaining( 'extension blew up sync' ),
+			expect.objectContaining( { type: 'snackbar' } )
+		);
+		expect( onClose ).toHaveBeenCalled();
+		expect( screen.queryByText( /Could not (create|update) local list/ ) ).not.toBeInTheDocument();
+	} );
 } );
