@@ -8,7 +8,7 @@ import { compose, useInstanceId } from '@wordpress/compose';
 import { BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useSelect, withDispatch, withSelect } from '@wordpress/data';
-import { useEffect, useRef } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 /**
@@ -158,43 +158,15 @@ const getEditorCanvasDocument = () => {
 };
 
 export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
+	// Bumped on canvas iframe mount/remount/load so the per-style effects
+	// below re-apply styles inside the new canvas document.
+	const [ iframeKey, setIframeKey ] = useState( 0 );
+
 	useEffect( () => {
-		const applyStyles = () => {
-			const canvasDoc = getEditorCanvasDocument();
-			canvasDoc.documentElement.style.setProperty( '--newspack-body-font', fontBody );
-			canvasDoc.documentElement.style.setProperty( '--newspack-header-font', fontHeader );
-
-			// Inside the iframe, clear the body background so the
-			// editor-styles-wrapper background color is visible.
-			if ( canvasDoc !== document && canvasDoc.body ) {
-				canvasDoc.body.style.setProperty( 'background', 'none' );
-			}
-
-			const editorElement = canvasDoc.querySelector( '.editor-styles-wrapper' );
-			if ( ! editorElement ) {
-				return;
-			}
-			editorElement.style.backgroundColor = backgroundColor;
-			editorElement.style.color = textColor;
-
-			let styleEl = canvasDoc.getElementById( 'newspack-newsletters__custom-styles' );
-			if ( ! styleEl ) {
-				styleEl = canvasDoc.createElement( 'style' );
-				styleEl.setAttribute( 'type', 'text/css' );
-				styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
-				canvasDoc.head.appendChild( styleEl );
-			}
-			styleEl.textContent = getScopedCss( '.editor-styles-wrapper', customCss );
-		};
-
-		applyStyles();
-
-		// Re-apply on iframe mount/remount (toggling fullscreen or the code
-		// editor remounts the canvas) and on iframe load (Firefox quirk —
-		// contentDocument isn't ready synchronously).
+		const bump = () => setIframeKey( key => key + 1 );
 		let currentIframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
 		if ( currentIframe ) {
-			currentIframe.addEventListener( 'load', applyStyles );
+			currentIframe.addEventListener( 'load', bump );
 		}
 		const observer = new MutationObserver( () => {
 			const nextIframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
@@ -202,23 +174,60 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 				return;
 			}
 			if ( currentIframe ) {
-				currentIframe.removeEventListener( 'load', applyStyles );
+				currentIframe.removeEventListener( 'load', bump );
 			}
 			currentIframe = nextIframe;
 			if ( currentIframe ) {
-				currentIframe.addEventListener( 'load', applyStyles );
+				currentIframe.addEventListener( 'load', bump );
 			}
-			applyStyles();
+			bump();
 		} );
 		observer.observe( document.body, { childList: true, subtree: true } );
-
 		return () => {
 			if ( currentIframe ) {
-				currentIframe.removeEventListener( 'load', applyStyles );
+				currentIframe.removeEventListener( 'load', bump );
 			}
 			observer.disconnect();
 		};
-	}, [ fontBody, fontHeader, backgroundColor, textColor, customCss ] );
+	}, [] );
+
+	useEffect( () => {
+		getEditorCanvasDocument().documentElement.style.setProperty( '--newspack-body-font', fontBody );
+	}, [ fontBody, iframeKey ] );
+
+	useEffect( () => {
+		getEditorCanvasDocument().documentElement.style.setProperty( '--newspack-header-font', fontHeader );
+	}, [ fontHeader, iframeKey ] );
+
+	useEffect( () => {
+		const canvasDoc = getEditorCanvasDocument();
+		// Inside the iframe, clear the body background so the
+		// editor-styles-wrapper background color is visible.
+		if ( canvasDoc !== document && canvasDoc.body ) {
+			canvasDoc.body.style.setProperty( 'background', 'none' );
+		}
+		const editorElement = canvasDoc.querySelector( '.editor-styles-wrapper' );
+		if ( editorElement ) {
+			editorElement.style.backgroundColor = backgroundColor;
+			editorElement.style.color = textColor;
+		}
+	}, [ backgroundColor, textColor, iframeKey ] );
+
+	useEffect( () => {
+		const canvasDoc = getEditorCanvasDocument();
+		const editorElement = canvasDoc.querySelector( '.editor-styles-wrapper' );
+		if ( ! editorElement ) {
+			return;
+		}
+		let styleEl = canvasDoc.getElementById( 'newspack-newsletters__custom-styles' );
+		if ( ! styleEl ) {
+			styleEl = canvasDoc.createElement( 'style' );
+			styleEl.setAttribute( 'type', 'text/css' );
+			styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
+			canvasDoc.head.appendChild( styleEl );
+		}
+		styleEl.textContent = getScopedCss( '.editor-styles-wrapper', customCss );
+	}, [ customCss, iframeKey ] );
 
 	return null;
 } );
