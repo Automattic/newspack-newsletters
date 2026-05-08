@@ -148,7 +148,9 @@ export const useCustomFontsInIframe = () => {
 	return ref;
 };
 
-const EDITOR_CANVAS_SELECTOR = 'iframe[title="Editor canvas"]';
+// Prefer the stable, non-translatable `name` attribute Gutenberg sets on the
+// canvas iframe; fall back to the translatable `title` for safety.
+const EDITOR_CANVAS_SELECTOR = 'iframe[name="editor-canvas"], iframe[title="Editor canvas"]';
 
 // TODO: Remove the parent-document fallback once WP 7.0 is officially released
 // and becomes the minimum supported version.
@@ -182,7 +184,10 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 			}
 			bump();
 		} );
-		observer.observe( document.body, { childList: true, subtree: true } );
+		// Scope the observer to the editor content region rather than the whole
+		// body so unrelated editor mutations don't trigger the callback.
+		const observerRoot = document.querySelector( '.interface-interface-skeleton__content' ) || document.body;
+		observer.observe( observerRoot, { childList: true, subtree: true } );
 		return () => {
 			if ( currentIframe ) {
 				currentIframe.removeEventListener( 'load', bump );
