@@ -148,36 +148,77 @@ export const useCustomFontsInIframe = () => {
 	return ref;
 };
 
+const EDITOR_CANVAS_SELECTOR = 'iframe[title="Editor canvas"]';
+
+// TODO: Remove the parent-document fallback once WP 7.0 is officially released
+// and becomes the minimum supported version.
+const getEditorCanvasDocument = () => {
+	const iframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
+	return iframe?.contentDocument ?? document;
+};
+
 export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
 	useEffect( () => {
-		document.documentElement.style.setProperty( '--newspack-body-font', fontBody );
-	}, [ fontBody ] );
-	useEffect( () => {
-		document.documentElement.style.setProperty( '--newspack-header-font', fontHeader );
-	}, [ fontHeader ] );
-	useEffect( () => {
-		const editorElement = document.querySelector( '.editor-styles-wrapper' );
-		if ( editorElement ) {
-			editorElement.style.backgroundColor = backgroundColor;
-			editorElement.style.color = textColor;
-		}
-	}, [ backgroundColor, textColor ] );
-	useEffect( () => {
-		const editorElement = document.querySelector( '.edit-post-visual-editor' );
-		if ( editorElement ) {
-			let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
-			if ( ! styleEl ) {
-				styleEl = document.createElement( 'style' );
-				styleEl.setAttribute( 'type', 'text/css' );
-				styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
-				document.head.appendChild( styleEl );
+		const applyStyles = () => {
+			const canvasDoc = getEditorCanvasDocument();
+			canvasDoc.documentElement.style.setProperty( '--newspack-body-font', fontBody );
+			canvasDoc.documentElement.style.setProperty( '--newspack-header-font', fontHeader );
+
+			// Inside the iframe, clear the body background so the
+			// editor-styles-wrapper background color is visible.
+			if ( canvasDoc !== document && canvasDoc.body ) {
+				canvasDoc.body.style.setProperty( 'background', 'none' );
 			}
 
-			const scopedCss = getScopedCss( '.edit-post-visual-editor', customCss );
+			const editorElement = canvasDoc.querySelector( '.editor-styles-wrapper' );
+			if ( ! editorElement ) {
+				return;
+			}
+			editorElement.style.backgroundColor = backgroundColor;
+			editorElement.style.color = textColor;
 
-			styleEl.textContent = scopedCss;
+			let styleEl = canvasDoc.getElementById( 'newspack-newsletters__custom-styles' );
+			if ( ! styleEl ) {
+				styleEl = canvasDoc.createElement( 'style' );
+				styleEl.setAttribute( 'type', 'text/css' );
+				styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
+				canvasDoc.head.appendChild( styleEl );
+			}
+			styleEl.textContent = getScopedCss( '.editor-styles-wrapper', customCss );
+		};
+
+		applyStyles();
+
+		// Re-apply on iframe mount/remount (toggling fullscreen or the code
+		// editor remounts the canvas) and on iframe load (Firefox quirk —
+		// contentDocument isn't ready synchronously).
+		let currentIframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
+		if ( currentIframe ) {
+			currentIframe.addEventListener( 'load', applyStyles );
 		}
-	}, [ customCss ] );
+		const observer = new MutationObserver( () => {
+			const nextIframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
+			if ( nextIframe === currentIframe ) {
+				return;
+			}
+			if ( currentIframe ) {
+				currentIframe.removeEventListener( 'load', applyStyles );
+			}
+			currentIframe = nextIframe;
+			if ( currentIframe ) {
+				currentIframe.addEventListener( 'load', applyStyles );
+			}
+			applyStyles();
+		} );
+		observer.observe( document.body, { childList: true, subtree: true } );
+
+		return () => {
+			if ( currentIframe ) {
+				currentIframe.removeEventListener( 'load', applyStyles );
+			}
+			observer.disconnect();
+		};
+	}, [ fontBody, fontHeader, backgroundColor, textColor, customCss ] );
 
 	return null;
 } );
