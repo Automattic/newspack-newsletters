@@ -148,9 +148,7 @@ export const useCustomFontsInIframe = () => {
 	return ref;
 };
 
-// Prefer the stable, non-translatable `name` attribute Gutenberg sets on the
-// canvas iframe; fall back to the translatable `title` for safety.
-const EDITOR_CANVAS_SELECTOR = 'iframe[name="editor-canvas"], iframe[title="Editor canvas"]';
+const EDITOR_CANVAS_SELECTOR = 'iframe[name="editor-canvas"]';
 
 // TODO: Remove the parent-document fallback once WP 7.0 is officially released
 // and becomes the minimum supported version.
