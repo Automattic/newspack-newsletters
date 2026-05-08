@@ -66,6 +66,9 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 		settings.supports = { ...settings.supports, align: [ 'full' ] };
 	}
 
+	/* Remove block-level Custom CSS field; CSS added there does not work in sent newsletters. */
+	settings.supports = { ...settings.supports, customCSS: false };
+
 	/* Remove 'Hide' option only for the newsletter CPT. */
 	if ( isEditingNewsletterCpt ) {
 		settings.supports = { ...settings.supports, visibility: false };
