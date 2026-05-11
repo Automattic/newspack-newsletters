@@ -30,12 +30,50 @@ class Ads_List_REST {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_filter(
+			'rest_' . Ads::CPT . '_collection_params',
+			[ __CLASS__, 'extend_collection_params' ]
+		);
+		add_filter(
 			'rest_' . Ads::CPT . '_query',
 			[ __CLASS__, 'filter_rest_query' ],
 			10,
 			2
 		);
+		add_filter(
+			'rest_' . Ads::CPT . '_query',
+			[ __CLASS__, 'translate_virtual_orderby' ],
+			20,
+			2
+		);
+		add_filter( 'posts_clauses', [ __CLASS__, 'apply_meta_sort_clauses' ], 10, 2 );
 	}
+
+	/**
+	 * Virtual REST orderby tokens. Applied via posts_clauses LEFT JOIN
+	 * in `apply_meta_sort_clauses`, not WP_Query meta args.
+	 */
+	const VIRTUAL_ORDERBY_TOKENS = [
+		'start_date'  => [
+			'meta_key' => 'start_date',
+			'is_num'   => false,
+		],
+		'expiry_date' => [
+			'meta_key' => 'expiry_date',
+			'is_num'   => false,
+		],
+		'price'       => [
+			'meta_key' => 'price',
+			'is_num'   => true,
+		],
+		'impressions' => [
+			'meta_key' => 'tracking_impressions',
+			'is_num'   => true,
+		],
+		'clicks'      => [
+			'meta_key' => 'tracking_clicks',
+			'is_num'   => true,
+		],
+	];
 
 	/**
 	 * Register tracking impression / click meta on the ads CPT subtype
@@ -187,6 +225,86 @@ class Ads_List_REST {
 		add_filter( 'posts_where', $callback, 10, 1 );
 
 		return $args;
+	}
+
+	/**
+	 * Widen the REST orderby enum to accept our virtual tokens.
+	 * Required because `rest_validate_request_arg` runs the enum
+	 * check before the `rest_${CPT}_query` filter can rewrite.
+	 *
+	 * @param array $params Collection params from the posts controller.
+	 * @return array
+	 */
+	public static function extend_collection_params( $params ) {
+		if ( isset( $params['orderby']['enum'] ) && is_array( $params['orderby']['enum'] ) ) {
+			$params['orderby']['enum'] = array_values(
+				array_unique(
+					array_merge(
+						$params['orderby']['enum'],
+						array_keys( self::VIRTUAL_ORDERBY_TOKENS )
+					)
+				)
+			);
+		}
+		return $params;
+	}
+
+	/**
+	 * Query var carrying meta-sort intent through to apply_meta_sort_clauses.
+	 */
+	const META_SORT_QUERY_VAR = 'newspack_ads_meta_sort';
+
+	/**
+	 * Stash meta-sort intent on the query args.
+	 *
+	 * @param array            $args    Prepared WP_Query args.
+	 * @param \WP_REST_Request $request Incoming REST request.
+	 * @return array
+	 */
+	public static function translate_virtual_orderby( $args, $request ) {
+		unset( $request );
+		$orderby = isset( $args['orderby'] ) ? $args['orderby'] : null;
+		if ( ! is_string( $orderby ) || ! isset( self::VIRTUAL_ORDERBY_TOKENS[ $orderby ] ) ) {
+			return $args;
+		}
+		$mapping = self::VIRTUAL_ORDERBY_TOKENS[ $orderby ];
+
+		$args['orderby'] = 'none';
+		$args[ self::META_SORT_QUERY_VAR ] = [
+			'meta_key' => $mapping['meta_key'],
+			'is_num'   => $mapping['is_num'],
+			'order'    => ( isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ) ? 'ASC' : 'DESC',
+		];
+
+		return $args;
+	}
+
+	/**
+	 * LEFT JOIN postmeta and order by it so rows missing the sorted key
+	 * still appear (a plain meta_key would inner-join them out).
+	 *
+	 * @param array     $clauses WP_Query SQL clauses.
+	 * @param \WP_Query $query   The WP_Query running the SQL.
+	 * @return array
+	 */
+	public static function apply_meta_sort_clauses( $clauses, $query ) {
+		if ( ! ( $query instanceof \WP_Query ) || Ads::CPT !== $query->get( 'post_type' ) ) {
+			return $clauses;
+		}
+		$sort = $query->get( self::META_SORT_QUERY_VAR );
+		if ( ! is_array( $sort ) || empty( $sort['meta_key'] ) ) {
+			return $clauses;
+		}
+		global $wpdb;
+		$clauses['join'] .= $wpdb->prepare(
+			" LEFT JOIN {$wpdb->postmeta} AS newspack_sort_meta ON newspack_sort_meta.post_id = {$wpdb->posts}.ID AND newspack_sort_meta.meta_key = %s",
+			$sort['meta_key']
+		);
+		// `+ 0` coerces to DOUBLE so decimal prices don't truncate (matches WP_Query's meta_value_num).
+		$value_expr = ! empty( $sort['is_num'] ) ? 'newspack_sort_meta.meta_value + 0' : 'newspack_sort_meta.meta_value'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		$order = ( isset( $sort['order'] ) && 'ASC' === $sort['order'] ) ? 'ASC' : 'DESC';
+		$clauses['orderby'] = $value_expr . ' ' . $order . ", {$wpdb->posts}.ID DESC";
+		return $clauses;
 	}
 
 	/**

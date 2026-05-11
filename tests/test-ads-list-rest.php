@@ -843,6 +843,282 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Virtual orderby tokens must be in the enum, else the controller
+	 * 400s before `translate_virtual_orderby` can rewrite.
+	 */
+	public function test_extend_collection_params_adds_virtual_orderby_tokens() {
+		$params = Ads_List_REST::extend_collection_params(
+			[
+				'orderby' => [
+					'enum' => [ 'date', 'title' ],
+				],
+			]
+		);
+
+		$enum = $params['orderby']['enum'];
+		foreach ( [ 'start_date', 'expiry_date', 'price', 'impressions', 'clicks' ] as $token ) {
+			$this->assertContains( $token, $enum );
+		}
+		$this->assertContains( 'date', $enum );
+		$this->assertContains( 'title', $enum );
+	}
+
+	/**
+	 * Duplicate tokens in the enum clutter the OpenAPI schema.
+	 */
+	public function test_extend_collection_params_dedupes_existing_tokens() {
+		$params = Ads_List_REST::extend_collection_params(
+			[
+				'orderby' => [
+					'enum' => [ 'date', 'price' ],
+				],
+			]
+		);
+
+		$this->assertSame( 1, count( array_keys( $params['orderby']['enum'], 'price', true ) ) );
+	}
+
+	/**
+	 * Each token encodes meta_key / is_num / order on a per-call query var.
+	 */
+	public function test_translate_virtual_orderby_encodes_sort_on_query_var() {
+		$expectations = [
+			'start_date'  => [
+				'meta_key' => 'start_date',
+				'is_num'   => false,
+			],
+			'expiry_date' => [
+				'meta_key' => 'expiry_date',
+				'is_num'   => false,
+			],
+			'price'       => [
+				'meta_key' => 'price',
+				'is_num'   => true,
+			],
+			'impressions' => [
+				'meta_key' => 'tracking_impressions',
+				'is_num'   => true,
+			],
+			'clicks'      => [
+				'meta_key' => 'tracking_clicks',
+				'is_num'   => true,
+			],
+		];
+
+		foreach ( $expectations as $token => $expected ) {
+			$args = Ads_List_REST::translate_virtual_orderby(
+				[
+					'orderby' => $token,
+					'order'   => 'asc',
+				],
+				$this->rest_request( [] )
+			);
+			$this->assertSame( 'none', $args['orderby'], sprintf( '%s should suppress default sort', $token ) );
+			$this->assertArrayNotHasKey( 'meta_key', $args, sprintf( '%s should not set meta_key', $token ) );
+			$sort = $args[ Ads_List_REST::META_SORT_QUERY_VAR ];
+			$this->assertSame( $expected['meta_key'], $sort['meta_key'], sprintf( '%s should encode meta_key', $token ) );
+			$this->assertSame( $expected['is_num'], $sort['is_num'], sprintf( '%s should encode is_num', $token ) );
+			$this->assertSame( 'ASC', $sort['order'], sprintf( '%s should encode order', $token ) );
+		}
+	}
+
+	/**
+	 * Repeat calls must not register new posts_clauses callbacks —
+	 * the sort lives on the query var, not in module-level filter state.
+	 */
+	public function test_translate_virtual_orderby_does_not_accumulate_filter_state() {
+		$before = isset( $GLOBALS['wp_filter']['posts_clauses'] ) ? count( $GLOBALS['wp_filter']['posts_clauses']->callbacks[10] ?? [] ) : 0;
+
+		Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'impressions',
+				'order'   => 'desc',
+			],
+			$this->rest_request( [] )
+		);
+		Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'price',
+				'order'   => 'asc',
+			],
+			$this->rest_request( [] )
+		);
+		Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'start_date',
+				'order'   => 'desc',
+			],
+			$this->rest_request( [] )
+		);
+
+		$after = count( $GLOBALS['wp_filter']['posts_clauses']->callbacks[10] ?? [] );
+		$this->assertSame( $before, $after );
+	}
+
+	/**
+	 * Native and unknown orderby values pass through untouched.
+	 */
+	public function test_translate_virtual_orderby_passes_through_native_and_unknown_values() {
+		foreach ( [ 'title', 'date', 'id', 'unknown' ] as $orderby ) {
+			$args = Ads_List_REST::translate_virtual_orderby(
+				[ 'orderby' => $orderby ],
+				$this->rest_request( [] )
+			);
+			$this->assertSame( $orderby, $args['orderby'] );
+			$this->assertArrayNotHasKey( 'meta_key', $args );
+		}
+	}
+
+	/**
+	 * Setting meta_key without an orderby would silently exclude
+	 * rows missing that meta — WP_Query inner-joins on the key.
+	 */
+	public function test_translate_virtual_orderby_leaves_args_alone_when_orderby_absent() {
+		$args = Ads_List_REST::translate_virtual_orderby(
+			[ 'post_status' => 'publish' ],
+			$this->rest_request( [] )
+		);
+		$this->assertSame( [ 'post_status' => 'publish' ], $args );
+	}
+
+	/**
+	 * End-to-end: numeric sort uses numeric comparison, not lexicographic.
+	 */
+	public function test_translate_virtual_orderby_numeric_sort_uses_numeric_comparison() {
+		$cheap     = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '2' ],
+			]
+		);
+		$expensive = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '10' ],
+			]
+		);
+
+		$args = Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'price',
+				'order'   => 'asc',
+			],
+			$this->rest_request( [] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$ordered = array_values( array_intersect( $query->posts, [ $cheap, $expensive ] ) );
+		$this->assertSame( [ $cheap, $expensive ], $ordered );
+	}
+
+	/**
+	 * Decimal prices must keep their fractional ordering — the editor
+	 * accepts step=0.01, so 10.01 and 10.99 must not collapse to the
+	 * same integer bucket (which would happen under `CAST AS SIGNED`).
+	 */
+	public function test_translate_virtual_orderby_preserves_decimal_precision_on_price() {
+		$cheap_decimal     = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '10.01' ],
+			]
+		);
+		$expensive_decimal = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '10.99' ],
+			]
+		);
+
+		$args = Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'price',
+				'order'   => 'asc',
+			],
+			$this->rest_request( [] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$ordered = array_values( array_intersect( $query->posts, [ $cheap_decimal, $expensive_decimal ] ) );
+		$this->assertSame( [ $cheap_decimal, $expensive_decimal ], $ordered );
+	}
+
+	/**
+	 * Rows missing the sorted meta must still appear — a plain
+	 * `meta_key` inner-join would drop fresh ads without
+	 * tracking_impressions, start_date, etc.
+	 */
+	public function test_translate_virtual_orderby_includes_rows_without_sorted_meta() {
+		$cases = [
+			[
+				'token' => 'impressions',
+				'key'   => 'tracking_impressions',
+				'value' => 42,
+			],
+			[
+				'token' => 'start_date',
+				'key'   => 'start_date',
+				'value' => gmdate( 'Y-m-d', strtotime( '+3 days' ) ),
+			],
+		];
+
+		foreach ( $cases as $case ) {
+			$with_meta    = $this->make_ad(
+				[
+					'post_status' => 'publish',
+					'meta_input'  => [ $case['key'] => $case['value'] ],
+				]
+			);
+			$without_meta = $this->make_ad( [ 'post_status' => 'publish' ] );
+
+			$args = Ads_List_REST::translate_virtual_orderby(
+				[
+					'orderby' => $case['token'],
+					'order'   => 'desc',
+				],
+				$this->rest_request( [] )
+			);
+
+			$query = new WP_Query(
+				array_merge(
+					$args,
+					[
+						'post_type'      => Ads::CPT,
+						'post_status'    => 'publish',
+						'fields'         => 'ids',
+						'posts_per_page' => -1,
+					]
+				)
+			);
+
+			$this->assertContains( $with_meta, $query->posts, sprintf( '%s: row with meta should appear', $case['token'] ) );
+			$this->assertContains( $without_meta, $query->posts, sprintf( '%s: row without meta should still appear', $case['token'] ) );
+		}
+	}
+
+	/**
 	 * `kind=expired` surfaces only published ads whose `expiry_date`
 	 * is in the past — verified end-to-end by running WP_Query with
 	 * the filtered args. Active, scheduled, and draft rows must not
