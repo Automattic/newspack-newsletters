@@ -5,9 +5,9 @@ import { dispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
 export function notifySuccess( message, options = {} ) {
-	dispatch( noticesStore ).createSuccessNotice( message, { type: 'snackbar', ...options } );
+	dispatch( noticesStore ).createSuccessNotice( message, { ...options, type: 'snackbar' } );
 }
 
 export function notifyError( message, options = {} ) {
-	dispatch( noticesStore ).createErrorNotice( message, { type: 'snackbar', explicitDismiss: true, ...options } );
+	dispatch( noticesStore ).createErrorNotice( message, { explicitDismiss: true, ...options, type: 'snackbar' } );
 }
