@@ -962,6 +962,49 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Decimal prices must keep their fractional ordering — the editor
+	 * accepts step=0.01, so 10.01 and 10.99 must not collapse to the
+	 * same integer bucket (which would happen under `CAST AS SIGNED`).
+	 */
+	public function test_translate_virtual_orderby_preserves_decimal_precision_on_price() {
+		$cheap_decimal     = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '10.01' ],
+			]
+		);
+		$expensive_decimal = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '10.99' ],
+			]
+		);
+
+		$args = Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'price',
+				'order'   => 'asc',
+			],
+			$this->rest_request( [] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$ordered = array_values( array_intersect( $query->posts, [ $cheap_decimal, $expensive_decimal ] ) );
+		$this->assertSame( [ $cheap_decimal, $expensive_decimal ], $ordered );
+	}
+
+	/**
 	 * Rows missing the sorted meta must still appear — a plain
 	 * `meta_key` inner-join would drop fresh ads without
 	 * tracking_impressions, start_date, etc.

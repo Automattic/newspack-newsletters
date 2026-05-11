@@ -275,11 +275,12 @@ class Ads_List_REST {
 				return $clauses;
 			}
 			global $wpdb;
-			$clauses['join']   .= $wpdb->prepare(
+			$clauses['join'] .= $wpdb->prepare(
 				" LEFT JOIN {$wpdb->postmeta} AS newspack_sort_meta ON newspack_sort_meta.post_id = {$wpdb->posts}.ID AND newspack_sort_meta.meta_key = %s",
 				$meta_key
 			);
-			$value_expr         = $is_num ? 'CAST( newspack_sort_meta.meta_value AS SIGNED )' : 'newspack_sort_meta.meta_value'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			// `+ 0` coerces to DOUBLE so decimal prices don't truncate (matches WP_Query's meta_value_num).
+			$value_expr = $is_num ? 'newspack_sort_meta.meta_value + 0' : 'newspack_sort_meta.meta_value'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			$clauses['orderby'] = $value_expr . ' ' . $order . ", {$wpdb->posts}.ID DESC";
 			remove_filter( 'posts_clauses', $callback, 10 );
 			return $clauses;
