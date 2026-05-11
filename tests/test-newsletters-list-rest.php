@@ -735,6 +735,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	 * collapses duplicates, and ignores auto-draft + other CPTs.
 	 */
 	public function test_filter_options_send_lists_returns_distinct_values_for_cpt() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		self::factory()->post->create(
 			[
@@ -787,6 +788,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	 * newsletter — scope-gated to our CPT, with `display_name` labels.
 	 */
 	public function test_filter_options_authors_returns_distinct_newsletter_authors() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
 		$cpt    = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		$alice  = self::factory()->user->create( [ 'display_name' => 'Alice' ] );
 		$bob    = self::factory()->user->create( [ 'display_name' => 'Bob' ] );
@@ -851,6 +853,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	 * newsletters in our CPT, never terms from other post types.
 	 */
 	public function test_filter_options_terms_returns_only_terms_used_on_newsletters() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
 		$cpt        = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		$used_cat   = self::factory()->term->create(
 			[
@@ -919,5 +922,80 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		$editor_id = self::factory()->user->create( [ 'role' => 'editor' ] );
 		wp_set_current_user( $editor_id );
 		$this->assertTrue( Newsletters_List_REST::rest_filter_options_permission_check() );
+	}
+
+	/**
+	 * A user without `edit_others_posts` only sees options derived from
+	 * their own newsletters — never leaks authors / terms / send-list
+	 * IDs from other publishers' drafts or private rows.
+	 */
+	public function test_filter_options_scopes_to_user_when_edit_others_posts_is_absent() {
+		$cpt   = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$mine  = self::factory()->user->create( [ 'role' => 'author' ] );
+		$other = self::factory()->user->create(
+			[
+				'role'         => 'editor',
+				'display_name' => 'Other Editor',
+			]
+		);
+
+		$my_cat    = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'My Cat',
+			]
+		);
+		$their_cat = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Their Cat',
+			]
+		);
+
+		$my_newsletter = self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'post_author' => $mine,
+				'meta_input'  => [ 'send_list_id' => 'mine-list' ],
+			]
+		);
+		wp_set_object_terms( $my_newsletter, [ $my_cat ], 'category' );
+
+		$their_newsletter = self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'post_author' => $other,
+				'meta_input'  => [ 'send_list_id' => 'their-list' ],
+			]
+		);
+		wp_set_object_terms( $their_newsletter, [ $their_cat ], 'category' );
+
+		// Acting as `mine` (no edit_others_posts), the dropdown narrows
+		// to options derived from their own newsletter only.
+		wp_set_current_user( $mine );
+		$options = Newsletters_List_REST::rest_get_filter_options()->get_data();
+
+		$author_ids    = array_column( $options['authors'], 'id' );
+		$category_ids  = array_column( $options['categories'], 'id' );
+		$send_list_ids = array_column( $options['send_lists'], 'id' );
+
+		$this->assertContains( $mine, $author_ids );
+		$this->assertNotContains( $other, $author_ids );
+		$this->assertContains( $my_cat, $category_ids );
+		$this->assertNotContains( $their_cat, $category_ids );
+		$this->assertContains( 'mine-list', $send_list_ids );
+		$this->assertNotContains( 'their-list', $send_list_ids );
+
+		// Editor (has edit_others_posts) sees the full set.
+		wp_set_current_user( $other );
+		$options = Newsletters_List_REST::rest_get_filter_options()->get_data();
+		$this->assertContains( $mine, array_column( $options['authors'], 'id' ) );
+		$this->assertContains( $other, array_column( $options['authors'], 'id' ) );
+		$this->assertContains( $my_cat, array_column( $options['categories'], 'id' ) );
+		$this->assertContains( $their_cat, array_column( $options['categories'], 'id' ) );
+		$this->assertContains( 'mine-list', array_column( $options['send_lists'], 'id' ) );
+		$this->assertContains( 'their-list', array_column( $options['send_lists'], 'id' ) );
 	}
 }

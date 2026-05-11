@@ -161,6 +161,26 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Author / categories / tags / send_list filter params survive the
+	 * legacy → React redirect so bookmarked filtered URLs round-trip.
+	 */
+	public function test_legacy_redirect_forwards_new_filter_params() {
+		$target  = Admin_Shell::get_legacy_redirect_target(
+			[
+				'author'                            => '42,7',
+				'categories'                        => '12',
+				'tags'                              => '5,11',
+				'newspack_newsletters_send_list_id' => 'list-a,list-b',
+			]
+		);
+		$decoded = urldecode( $target );
+		$this->assertStringContainsString( 'author=42,7', $decoded );
+		$this->assertStringContainsString( 'categories=12', $decoded );
+		$this->assertStringContainsString( 'tags=5,11', $decoded );
+		$this->assertStringContainsString( 'newspack_newsletters_send_list_id=list-a,list-b', $decoded );
+	}
+
+	/**
 	 * Helper: route requests through the redirect handler under fake screen
 	 * conditions so we can probe the action-detection logic without
 	 * actually redirecting.

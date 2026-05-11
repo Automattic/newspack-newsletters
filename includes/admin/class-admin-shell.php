@@ -226,7 +226,16 @@ class Admin_Shell {
 	 * the wrong slice anyway. Stick to filter / search / sort args that
 	 * map cleanly onto DataViews state.
 	 */
-	const FORWARDED_LEGACY_ARGS = [ 'post_status', 's', 'orderby', 'order' ];
+	const FORWARDED_LEGACY_ARGS = [
+		'post_status',
+		's',
+		'orderby',
+		'order',
+		'author',
+		'categories',
+		'tags',
+		'newspack_newsletters_send_list_id',
+	];
 
 	/**
 	 * Are any of the bulk-action selectors set to a real value (i.e. not

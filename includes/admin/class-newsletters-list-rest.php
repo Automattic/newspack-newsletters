@@ -251,44 +251,61 @@ class Newsletters_List_REST {
 
 	/**
 	 * One-shot payload of every option list the React filter dropdowns
-	 * consume. Scoped server-side to authors / terms / send-list IDs
-	 * actually used on newsletters — keeps the dropdowns honest (every
-	 * option yields at least one result) and sidesteps the WP REST
-	 * users/terms per_page=100 cap.
+	 * consume. Scoped to newsletters the current user can edit, so a
+	 * publisher without `edit_others_posts` only sees options derived
+	 * from their own rows — mirrors what the list itself shows.
 	 *
 	 * @return \WP_REST_Response
 	 */
 	public static function rest_get_filter_options() {
+		$user_scope = self::build_user_post_scope_sql();
 		return rest_ensure_response(
 			[
-				'authors'    => self::get_authors_used(),
-				'categories' => self::get_terms_used( 'category' ),
-				'tags'       => self::get_terms_used( 'post_tag' ),
-				'send_lists' => self::get_send_list_ids_used(),
+				'authors'    => self::get_authors_used( $user_scope ),
+				'categories' => self::get_terms_used( 'category', $user_scope ),
+				'tags'       => self::get_terms_used( 'post_tag', $user_scope ),
+				'send_lists' => self::get_send_list_ids_used( $user_scope ),
 			]
 		);
 	}
 
 	/**
-	 * Distinct authors of any non-auto-draft newsletter.
+	 * SQL fragment scoping a `wp_posts p` join to rows the current user
+	 * can edit — empty string for users with `edit_others_posts` (full
+	 * visibility), `AND p.post_author = <id>` otherwise.
 	 *
+	 * @return string
+	 */
+	private static function build_user_post_scope_sql() {
+		global $wpdb;
+		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( $cpt_object && current_user_can( $cpt_object->cap->edit_others_posts ) ) {
+			return '';
+		}
+		return $wpdb->prepare( ' AND p.post_author = %d', get_current_user_id() );
+	}
+
+	/**
+	 * Distinct authors of any non-auto-draft newsletter in scope.
+	 *
+	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
 	 * @return array<array{id: int, label: string}>
 	 */
-	private static function get_authors_used() {
+	private static function get_authors_used( $user_scope_sql = '' ) {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
 		$author_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT DISTINCT post_author
-				 FROM {$wpdb->posts}
-				 WHERE post_type = %s
-				   AND post_status NOT IN ( 'auto-draft' )
-				   AND post_author <> 0",
+				"SELECT DISTINCT p.post_author
+				 FROM {$wpdb->posts} p
+				 WHERE p.post_type = %s
+				   AND p.post_status NOT IN ( 'auto-draft' )
+				   AND p.post_author <> 0" . $user_scope_sql,
 				$cpt
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
 		$options = [];
 		foreach ( (array) $author_ids as $id ) {
 			$user = get_userdata( (int) $id );
@@ -309,16 +326,16 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Distinct terms applied to any non-auto-draft newsletter, in the
-	 * given taxonomy.
+	 * Distinct terms applied to any in-scope newsletter, in the given taxonomy.
 	 *
-	 * @param string $taxonomy `category` or `post_tag`.
+	 * @param string $taxonomy       `category` or `post_tag`.
+	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
 	 * @return array<array{id: int, label: string}>
 	 */
-	private static function get_terms_used( $taxonomy ) {
+	private static function get_terms_used( $taxonomy, $user_scope_sql = '' ) {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT DISTINCT t.term_id AS id, t.name AS label
@@ -328,14 +345,14 @@ class Newsletters_List_REST {
 				 INNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
 				 WHERE p.post_type = %s
 				   AND p.post_status NOT IN ( 'auto-draft' )
-				   AND tt.taxonomy = %s
-				 ORDER BY t.name ASC",
+				   AND tt.taxonomy = %s" . $user_scope_sql . '
+				 ORDER BY t.name ASC',
 				$cpt,
 				$taxonomy
 			),
 			ARRAY_A
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
 		return array_map(
 			static function ( $row ) {
 				return [
@@ -348,15 +365,16 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Distinct non-empty `send_list_id` meta values across newsletters.
+	 * Distinct non-empty `send_list_id` meta values across in-scope newsletters.
 	 * Friendly-name resolution is deferred (Known gaps); raw IDs ship.
 	 *
+	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
 	 * @return array<array{id: string, label: string}>
 	 */
-	private static function get_send_list_ids_used() {
+	private static function get_send_list_ids_used( $user_scope_sql = '' ) {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT DISTINCT pm.meta_value
@@ -365,12 +383,12 @@ class Newsletters_List_REST {
 				 WHERE pm.meta_key = 'send_list_id'
 				   AND pm.meta_value <> ''
 				   AND p.post_type = %s
-				   AND p.post_status NOT IN ( 'auto-draft' )
-				 ORDER BY pm.meta_value ASC",
+				   AND p.post_status NOT IN ( 'auto-draft' )" . $user_scope_sql . '
+				 ORDER BY pm.meta_value ASC',
 				$cpt
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
 		return array_map(
 			static function ( $id ) {
 				return [
