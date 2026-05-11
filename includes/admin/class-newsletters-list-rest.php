@@ -22,12 +22,14 @@ use WP_Post;
  */
 class Newsletters_List_REST {
 	const IS_PUBLIC_QUERY_PARAM = 'newspack_newsletters_is_public';
+	const SEND_LIST_QUERY_PARAM = 'newspack_newsletters_send_list_id';
 
 	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
+		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		add_filter(
 			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
 			[ __CLASS__, 'filter_rest_query' ],
@@ -37,6 +39,12 @@ class Newsletters_List_REST {
 		add_filter(
 			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
 			[ __CLASS__, 'expand_scheduled_filter' ],
+			10,
+			2
+		);
+		add_filter(
+			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
+			[ __CLASS__, 'filter_send_list_query' ],
 			10,
 			2
 		);
@@ -170,6 +178,111 @@ class Newsletters_List_REST {
 		add_filter( 'posts_where', $callback, 10, 1 );
 
 		return $args;
+	}
+
+	/**
+	 * Narrow to newsletters whose `send_list_id` meta matches one of
+	 * the requested IDs. Accepts comma-separated string or array.
+	 *
+	 * @param array            $args    Query args being assembled.
+	 * @param \WP_REST_Request $request Incoming REST request.
+	 * @return array
+	 */
+	public static function filter_send_list_query( $args, $request ) {
+		$value = $request->get_param( self::SEND_LIST_QUERY_PARAM );
+		if ( null === $value || '' === $value ) {
+			return $args;
+		}
+
+		$raw = is_array( $value ) ? $value : explode( ',', (string) $value );
+		$ids = array_values(
+			array_filter(
+				array_map( 'trim', array_map( 'strval', $raw ) ),
+				static function ( $v ) {
+					return '' !== $v;
+				}
+			)
+		);
+		if ( empty( $ids ) ) {
+			return $args;
+		}
+
+		$clause = [
+			'key'     => 'send_list_id',
+			'value'   => $ids,
+			'compare' => 'IN',
+		];
+
+		if ( empty( $args['meta_query'] ) ) {
+			$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		}
+		$args['meta_query'][] = $clause; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+
+		return $args;
+	}
+
+	/**
+	 * Register helper routes for the React list filter dropdowns.
+	 */
+	public static function register_rest_routes() {
+		register_rest_route(
+			'newspack-newsletters/v1',
+			'/newsletters-list/send-list-ids',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ __CLASS__, 'rest_get_send_list_ids' ],
+				'permission_callback' => [ __CLASS__, 'rest_filter_options_permission_check' ],
+			]
+		);
+	}
+
+	/**
+	 * Same cap a publisher needs to see the newsletters list itself.
+	 *
+	 * @return bool
+	 */
+	public static function rest_filter_options_permission_check() {
+		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( ! $cpt_object || empty( $cpt_object->cap->edit_posts ) ) {
+			return false;
+		}
+		return current_user_can( $cpt_object->cap->edit_posts );
+	}
+
+	/**
+	 * Distinct non-empty `send_list_id` values across newsletters.
+	 * Friendly-name resolution is deferred (Known gaps); raw IDs ship.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public static function rest_get_send_list_ids() {
+		global $wpdb;
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT pm.meta_value
+				 FROM {$wpdb->postmeta} pm
+				 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+				 WHERE pm.meta_key = 'send_list_id'
+				   AND pm.meta_value <> ''
+				   AND p.post_type = %s
+				   AND p.post_status NOT IN ( 'auto-draft' )
+				 ORDER BY pm.meta_value ASC",
+				$cpt
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery
+		$ids = array_map(
+			static function ( $id ) {
+				return [
+					'id'    => (string) $id,
+					'label' => (string) $id,
+				];
+			},
+			$rows ? $rows : []
+		);
+		return rest_ensure_response( $ids );
 	}
 
 	/**

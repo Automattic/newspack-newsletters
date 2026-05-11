@@ -622,4 +622,187 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		$this->assertSame( $existing[0], $args['meta_query'][0] );
 		$this->assertSame( 'is_public', $args['meta_query'][1]['key'] );
 	}
+
+	/**
+	 * Single send-list ID adds a meta_query IN clause with that one value.
+	 */
+	public function test_filter_send_list_query_adds_in_clause_for_single_id() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => 'list-a' ] )
+		);
+
+		$this->assertNotEmpty( $args['meta_query'] );
+		$this->assertSame( 'send_list_id', $args['meta_query'][0]['key'] );
+		$this->assertSame( 'IN', $args['meta_query'][0]['compare'] );
+		$this->assertSame( [ 'list-a' ], $args['meta_query'][0]['value'] );
+	}
+
+	/**
+	 * Comma-separated IDs split into the IN clause; whitespace stripped.
+	 */
+	public function test_filter_send_list_query_splits_and_trims_comma_list() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => 'list-a, list-b ,list-c' ] )
+		);
+
+		$this->assertSame( [ 'list-a', 'list-b', 'list-c' ], $args['meta_query'][0]['value'] );
+	}
+
+	/**
+	 * Array values are accepted as-is; empty entries are dropped.
+	 */
+	public function test_filter_send_list_query_accepts_array_and_drops_empty_entries() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => [ 'list-a', '', 'list-b' ] ] )
+		);
+
+		$this->assertSame( [ 'list-a', 'list-b' ], $args['meta_query'][0]['value'] );
+	}
+
+	/**
+	 * Missing / empty param leaves args alone — no meta_query side-effect.
+	 */
+	public function test_filter_send_list_query_passes_through_when_param_absent() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[ 'foo' => 'bar' ],
+			$this->rest_request( [] )
+		);
+		$this->assertSame( [ 'foo' => 'bar' ], $args );
+
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[ 'foo' => 'bar' ],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => '' ] )
+		);
+		$this->assertSame( [ 'foo' => 'bar' ], $args );
+	}
+
+	/**
+	 * End-to-end: with `send_list_id` meta on rows, the filter narrows
+	 * the result set to the requested IDs. Newsletters without the meta
+	 * drop out of an IN-clause filter, which is the intended behavior
+	 * for a "show me list X" filter (distinct from sort, where missing
+	 * meta has to round-trip).
+	 */
+	public function test_filter_send_list_query_narrows_query_to_requested_ids() {
+		$list_a = self::factory()->post->create(
+			[
+				'post_type'   => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-a' ],
+			]
+		);
+		$list_b = self::factory()->post->create(
+			[
+				'post_type'   => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-b' ],
+			]
+		);
+		$no_list = self::factory()->post->create(
+			[
+				'post_type'   => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_status' => 'publish',
+			]
+		);
+
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => 'list-a' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $list_a, $query->posts );
+		$this->assertNotContains( $list_b, $query->posts );
+		$this->assertNotContains( $no_list, $query->posts );
+	}
+
+	/**
+	 * REST helper returns each distinct `send_list_id`, sorted, and only
+	 * counts newsletters of our CPT. Auto-draft rows are excluded.
+	 */
+	public function test_rest_get_send_list_ids_returns_distinct_values_for_cpt() {
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-b' ],
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'meta_input'  => [ 'send_list_id' => 'list-a' ],
+			]
+		);
+		// Duplicate of list-a — should collapse.
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-a' ],
+			]
+		);
+		// Auto-draft must be excluded.
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'auto-draft',
+				'meta_input'  => [ 'send_list_id' => 'list-ignore' ],
+			]
+		);
+		// Other CPT row with same meta key must not leak through.
+		self::factory()->post->create(
+			[
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-other' ],
+			]
+		);
+
+		$response = Newsletters_List_REST::rest_get_send_list_ids();
+		$data     = $response->get_data();
+		$ids      = array_column( $data, 'id' );
+
+		$this->assertContains( 'list-a', $ids );
+		$this->assertContains( 'list-b', $ids );
+		$this->assertNotContains( 'list-ignore', $ids );
+		$this->assertNotContains( 'list-other', $ids );
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'IDs should be distinct' );
+		foreach ( $data as $row ) {
+			$this->assertSame( $row['id'], $row['label'] );
+		}
+	}
+
+	/**
+	 * Filter-options endpoint denies anonymous users.
+	 */
+	public function test_rest_filter_options_permission_check_denies_anonymous() {
+		wp_set_current_user( 0 );
+		$this->assertFalse( Newsletters_List_REST::rest_filter_options_permission_check() );
+	}
+
+	/**
+	 * Filter-options endpoint allows users with newsletter edit caps.
+	 */
+	public function test_rest_filter_options_permission_check_allows_editor() {
+		$editor_id = self::factory()->user->create( [ 'role' => 'editor' ] );
+		wp_set_current_user( $editor_id );
+		$this->assertTrue( Newsletters_List_REST::rest_filter_options_permission_check() );
+	}
 }

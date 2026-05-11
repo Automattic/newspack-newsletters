@@ -16,6 +16,7 @@ import { getAdminUrl, getCptSlug } from '../../admin-globals';
 import EmptyState from '../../components/empty-state';
 import { useHeaderActions } from '../../header-actions-context';
 import useNewslettersData from './use-newsletters-data';
+import useFilterElements from './use-filter-elements';
 import { getFields } from './fields';
 import { getActions } from './actions';
 import { getInitialView } from './initial-filters';
@@ -32,7 +33,7 @@ const DEFAULT_VIEW = {
 	search: '',
 	filters: [],
 	titleField: 'title',
-	fields: [ 'status', 'send_date', 'send_list', 'author', 'categories', 'public_page', 'date' ],
+	fields: [ 'status', 'send_date', 'send_list', 'author', 'categories', 'tags', 'public_page', 'date' ],
 	...getInitialView(),
 };
 
@@ -41,10 +42,11 @@ const DEFAULT_LAYOUTS = { table: {} };
 export default function NewslettersListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
 	const { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh } = useNewslettersData( view );
+	const filterElements = useFilterElements();
 
 	const addNewHref = `${ getAdminUrl() }post-new.php?post_type=${ getCptSlug() }`;
 
-	const fields = useMemo( () => getFields(), [] );
+	const fields = useMemo( () => getFields( filterElements ), [ filterElements ] );
 	const actions = useMemo( () => getActions( { refresh } ), [ refresh ] );
 
 	const isStrictEmpty =
