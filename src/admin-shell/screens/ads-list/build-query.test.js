@@ -85,23 +85,12 @@ describe( 'ads buildQueryParams', () => {
 		expect( params.meta_key ).toBeUndefined();
 	} );
 
-	it( 'maps view.sort.field=price to orderby=meta_value_num + meta_key=price', () => {
-		const params = buildQueryParams( { sort: { field: 'price', direction: 'desc' } } );
-		expect( params ).toMatchObject( {
-			orderby: 'meta_value_num',
-			order: 'desc',
-			meta_key: 'price',
-		} );
-	} );
-
-	it( 'maps impressions/clicks sorting to the tracking meta keys', () => {
-		const impressions = buildQueryParams( {
-			sort: { field: 'impressions', direction: 'desc' },
-		} );
-		expect( impressions.meta_key ).toBe( 'tracking_impressions' );
-
-		const clicks = buildQueryParams( { sort: { field: 'clicks', direction: 'asc' } } );
-		expect( clicks.meta_key ).toBe( 'tracking_clicks' );
+	it( 'sends meta-backed columns as virtual orderby tokens, not raw meta_value/meta_key', () => {
+		for ( const field of [ 'start_date', 'expiry_date', 'price', 'impressions', 'clicks' ] ) {
+			const params = buildQueryParams( { sort: { field, direction: 'desc' } } );
+			expect( params ).toMatchObject( { orderby: field, order: 'desc' } );
+			expect( params.meta_key ).toBeUndefined();
+		}
 	} );
 
 	it( 'omits orderby for unknown sort fields', () => {

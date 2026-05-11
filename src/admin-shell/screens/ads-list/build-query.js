@@ -33,22 +33,16 @@ const FIELD_TO_QUERY_PARAM = {
 	ad_placement: 'ad_placement',
 };
 
+// Meta-backed values are virtual tokens; the server rewrites them
+// to `meta_key` + `orderby=meta_value[_num]`.
 const SORT_FIELD_TO_ORDERBY = {
 	title: 'title',
 	date: 'date',
-	start_date: 'meta_value',
-	expiry_date: 'meta_value',
-	price: 'meta_value_num',
-	impressions: 'meta_value_num',
-	clicks: 'meta_value_num',
-};
-
-const SORT_FIELD_TO_META_KEY = {
 	start_date: 'start_date',
 	expiry_date: 'expiry_date',
 	price: 'price',
-	impressions: 'tracking_impressions',
-	clicks: 'tracking_clicks',
+	impressions: 'impressions',
+	clicks: 'clicks',
 };
 
 function asArray( value ) {
@@ -76,10 +70,6 @@ export function buildQueryParams( view = {} ) {
 	if ( view.sort?.field && SORT_FIELD_TO_ORDERBY[ view.sort.field ] ) {
 		params.orderby = SORT_FIELD_TO_ORDERBY[ view.sort.field ];
 		params.order = view.sort.direction === 'asc' ? 'asc' : 'desc';
-		const metaKey = SORT_FIELD_TO_META_KEY[ view.sort.field ];
-		if ( metaKey ) {
-			params.meta_key = metaKey;
-		}
 	}
 
 	const filters = Array.isArray( view.filters ) ? view.filters : [];

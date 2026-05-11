@@ -843,6 +843,132 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Virtual orderby tokens must be in the enum, else the controller
+	 * 400s before `translate_virtual_orderby` can rewrite.
+	 */
+	public function test_extend_collection_params_adds_virtual_orderby_tokens() {
+		$params = Ads_List_REST::extend_collection_params(
+			[
+				'orderby' => [
+					'enum' => [ 'date', 'title' ],
+				],
+			]
+		);
+
+		$enum = $params['orderby']['enum'];
+		foreach ( [ 'start_date', 'expiry_date', 'price', 'impressions', 'clicks' ] as $token ) {
+			$this->assertContains( $token, $enum );
+		}
+		$this->assertContains( 'date', $enum );
+		$this->assertContains( 'title', $enum );
+	}
+
+	/**
+	 * Duplicate tokens in the enum clutter the OpenAPI schema.
+	 */
+	public function test_extend_collection_params_dedupes_existing_tokens() {
+		$params = Ads_List_REST::extend_collection_params(
+			[
+				'orderby' => [
+					'enum' => [ 'date', 'price' ],
+				],
+			]
+		);
+
+		$this->assertSame( 1, count( array_keys( $params['orderby']['enum'], 'price', true ) ) );
+	}
+
+	/**
+	 * Date columns need `meta_value`; numeric columns need
+	 * `meta_value_num` or 10 sorts before 2.
+	 */
+	public function test_translate_virtual_orderby_rewrites_each_token_to_meta_args() {
+		$expectations = [
+			'start_date'  => [ 'meta_value', 'start_date' ],
+			'expiry_date' => [ 'meta_value', 'expiry_date' ],
+			'price'       => [ 'meta_value_num', 'price' ],
+			'impressions' => [ 'meta_value_num', 'tracking_impressions' ],
+			'clicks'      => [ 'meta_value_num', 'tracking_clicks' ],
+		];
+
+		foreach ( $expectations as $token => $expected ) {
+			$args = Ads_List_REST::translate_virtual_orderby(
+				[ 'orderby' => $token ],
+				$this->rest_request( [] )
+			);
+			$this->assertSame( $expected[0], $args['orderby'], sprintf( '%s should rewrite orderby', $token ) );
+			$this->assertSame( $expected[1], $args['meta_key'], sprintf( '%s should set meta_key', $token ) );
+		}
+	}
+
+	/**
+	 * Native and unknown orderby values pass through untouched.
+	 */
+	public function test_translate_virtual_orderby_passes_through_native_and_unknown_values() {
+		foreach ( [ 'title', 'date', 'id', 'unknown' ] as $orderby ) {
+			$args = Ads_List_REST::translate_virtual_orderby(
+				[ 'orderby' => $orderby ],
+				$this->rest_request( [] )
+			);
+			$this->assertSame( $orderby, $args['orderby'] );
+			$this->assertArrayNotHasKey( 'meta_key', $args );
+		}
+	}
+
+	/**
+	 * Setting meta_key without an orderby would silently exclude
+	 * rows missing that meta — WP_Query inner-joins on the key.
+	 */
+	public function test_translate_virtual_orderby_leaves_args_alone_when_orderby_absent() {
+		$args = Ads_List_REST::translate_virtual_orderby(
+			[ 'post_status' => 'publish' ],
+			$this->rest_request( [] )
+		);
+		$this->assertSame( [ 'post_status' => 'publish' ], $args );
+	}
+
+	/**
+	 * End-to-end: numeric sort uses numeric comparison, not lexicographic.
+	 */
+	public function test_translate_virtual_orderby_numeric_sort_uses_numeric_comparison() {
+		$cheap     = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '2' ],
+			]
+		);
+		$expensive = $this->make_ad(
+			[
+				'post_status' => 'publish',
+				'meta_input'  => [ 'price' => '10' ],
+			]
+		);
+
+		$args = Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'price',
+				'order'   => 'asc',
+			],
+			$this->rest_request( [] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Ads::CPT,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$ordered = array_values( array_intersect( $query->posts, [ $cheap, $expensive ] ) );
+		$this->assertSame( [ $cheap, $expensive ], $ordered );
+	}
+
+	/**
 	 * `kind=expired` surfaces only published ads whose `expiry_date`
 	 * is in the past — verified end-to-end by running WP_Query with
 	 * the filtered args. Active, scheduled, and draft rows must not

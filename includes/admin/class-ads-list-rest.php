@@ -30,12 +30,49 @@ class Ads_List_REST {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_filter(
+			'rest_' . Ads::CPT . '_collection_params',
+			[ __CLASS__, 'extend_collection_params' ]
+		);
+		add_filter(
 			'rest_' . Ads::CPT . '_query',
 			[ __CLASS__, 'filter_rest_query' ],
 			10,
 			2
 		);
+		add_filter(
+			'rest_' . Ads::CPT . '_query',
+			[ __CLASS__, 'translate_virtual_orderby' ],
+			20,
+			2
+		);
 	}
+
+	/**
+	 * Virtual REST orderby tokens → underlying WP_Query meta args.
+	 * Mirrors the classic-admin `Ads::handle_sorting` translation.
+	 */
+	const VIRTUAL_ORDERBY_TOKENS = [
+		'start_date'  => [
+			'orderby'  => 'meta_value',
+			'meta_key' => 'start_date',
+		],
+		'expiry_date' => [
+			'orderby'  => 'meta_value',
+			'meta_key' => 'expiry_date',
+		],
+		'price'       => [
+			'orderby'  => 'meta_value_num',
+			'meta_key' => 'price',
+		],
+		'impressions' => [
+			'orderby'  => 'meta_value_num',
+			'meta_key' => 'tracking_impressions',
+		],
+		'clicks'      => [
+			'orderby'  => 'meta_value_num',
+			'meta_key' => 'tracking_clicks',
+		],
+	];
 
 	/**
 	 * Register tracking impression / click meta on the ads CPT subtype
@@ -186,6 +223,47 @@ class Ads_List_REST {
 		};
 		add_filter( 'posts_where', $callback, 10, 1 );
 
+		return $args;
+	}
+
+	/**
+	 * Widen the REST orderby enum to accept our virtual tokens.
+	 * Required because `rest_validate_request_arg` runs the enum
+	 * check before the `rest_${CPT}_query` filter can rewrite.
+	 *
+	 * @param array $params Collection params from the posts controller.
+	 * @return array
+	 */
+	public static function extend_collection_params( $params ) {
+		if ( isset( $params['orderby']['enum'] ) && is_array( $params['orderby']['enum'] ) ) {
+			$params['orderby']['enum'] = array_values(
+				array_unique(
+					array_merge(
+						$params['orderby']['enum'],
+						array_keys( self::VIRTUAL_ORDERBY_TOKENS )
+					)
+				)
+			);
+		}
+		return $params;
+	}
+
+	/**
+	 * Rewrite a virtual orderby token to meta_key + meta_value[_num].
+	 *
+	 * @param array            $args    Prepared WP_Query args.
+	 * @param \WP_REST_Request $request Incoming REST request.
+	 * @return array
+	 */
+	public static function translate_virtual_orderby( $args, $request ) {
+		unset( $request );
+		$orderby = isset( $args['orderby'] ) ? $args['orderby'] : null;
+		if ( ! is_string( $orderby ) || ! isset( self::VIRTUAL_ORDERBY_TOKENS[ $orderby ] ) ) {
+			return $args;
+		}
+		$mapping          = self::VIRTUAL_ORDERBY_TOKENS[ $orderby ];
+		$args['orderby']  = $mapping['orderby'];
+		$args['meta_key'] = $mapping['meta_key']; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 		return $args;
 	}
 
