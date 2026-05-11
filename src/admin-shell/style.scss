@@ -289,30 +289,5 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 			flex: 1;
 		}
 	}
-
-	&__author {
-		align-items: center;
-		display: inline-flex;
-		gap: wp-vars.$grid-unit-10;
-	}
-
-	&__author-icon {
-		fill: currentcolor;
-		flex-shrink: 0;
-	}
-
-	&__author-avatar {
-		align-items: center;
-		display: inline-flex;
-		flex-shrink: 0;
-		height: 24px;
-		justify-content: center;
-		width: 24px;
-
-		img {
-			border-radius: 50%;
-			display: block;
-		}
-	}
 }
 
