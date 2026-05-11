@@ -104,6 +104,19 @@ describe( 'layouts list actions', () => {
 			expect( onMutated ).not.toHaveBeenCalled();
 		} );
 
+		it( 'falls back to "Copy of Untitled" when the source has an empty title', async () => {
+			const untitled = {
+				...prebuiltRow,
+				title: { raw: '   ', rendered: '' },
+				content: { raw: '<!-- wp:paragraph -->Hi<!-- /wp:paragraph -->', rendered: '' },
+			};
+			apiFetch.mockResolvedValueOnce( { id: 101 } );
+
+			await byId( 'duplicate' ).callback( [ untitled ] );
+
+			expect( apiFetch.mock.calls[ 0 ][ 0 ].data.title ).toBe( 'Copy of Untitled' );
+		} );
+
 		it( 'duplicates a prebuilt from the in-memory item as a draft, skipping the GET', async () => {
 			const prebuiltWithContent = {
 				...prebuiltRow,

@@ -61,9 +61,10 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
-	// `hasResolved` flips on either success or failure of the first fetch
-	// — drives the spinner gate so a first-load error doesn't strand the
-	// screen on the placeholder. `hasLoadedOnce` only flips on success.
+	// `hasResolved` flips on success or failure of the first real fetch
+	// (deliberately stays false while `view === null` — flipping there
+	// races the parent latch on null → non-null transitions).
+	// `hasLoadedOnce` only flips on success.
 	const [ hasResolved, setHasResolved ] = useState( false );
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
