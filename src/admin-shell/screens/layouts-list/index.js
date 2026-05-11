@@ -137,12 +137,7 @@ export default function LayoutsListScreen() {
 		return baseView;
 	}, [ view, showSaved, couldRideAlong, isPrebuiltLoading, ridingAlong, firstPageSavedSlots, restrictedAuthorIds ] );
 
-	const {
-		data: savedData,
-		paginationInfo: savedPagination,
-		isLoading,
-		hasLoadedOnce: savedHasLoadedOnce,
-	} = useLayoutsData( savedView, mutationKey );
+	const { data: savedData, paginationInfo: savedPagination, isLoading, hasResolved: savedHasResolved } = useLayoutsData( savedView, mutationKey );
 
 	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
 	const filteredSaved = showSaved ? savedData : [];
@@ -240,21 +235,22 @@ export default function LayoutsListScreen() {
 		)
 	);
 
-	// Gate on `savedHasLoadedOnce`, not `! isLoading` — the latter is
+	// Gate on `savedHasResolved`, not `! isLoading` — the latter is
 	// momentarily false between prebuilts resolving and the saved fetch
-	// starting, which would flash the grid before its data arrives.
-	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
+	// starting (would flash the grid early), and `hasLoadedOnce` only
+	// flips on success so a failed first fetch would strand the spinner.
+	const [ hasResolvedOnce, setHasResolvedOnce ] = useState( false );
 	useEffect( () => {
-		if ( hasLoadedOnce || isPrebuiltLoading ) {
+		if ( hasResolvedOnce || isPrebuiltLoading ) {
 			return;
 		}
-		if ( showSaved && ! savedHasLoadedOnce ) {
+		if ( showSaved && ! savedHasResolved ) {
 			return;
 		}
-		setHasLoadedOnce( true );
-	}, [ hasLoadedOnce, isPrebuiltLoading, showSaved, savedHasLoadedOnce ] );
+		setHasResolvedOnce( true );
+	}, [ hasResolvedOnce, isPrebuiltLoading, showSaved, savedHasResolved ] );
 
-	if ( ! hasLoadedOnce ) {
+	if ( ! hasResolvedOnce ) {
 		return (
 			<div className="newspack-newsletters-admin__loading">
 				<Spinner />

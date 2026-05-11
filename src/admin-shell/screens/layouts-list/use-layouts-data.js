@@ -55,14 +55,16 @@ function buildPath( view ) {
 /**
  * @param {Object} view          DataViews view state.
  * @param {number} [mutationKey] Increment from the parent to force a refetch after a mutation.
- * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasLoadedOnce: boolean }} The current data, pagination info, and loading flags.
+ * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasResolved: boolean, hasLoadedOnce: boolean }} The current data, pagination info, and loading flags.
  */
 export default function useLayoutsData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
-	// Only flips on real fetch resolution — null-view ticks don't latch
-	// it, so callers can gate an initial spinner without flickering.
+	// `hasResolved` flips on either success or failure of the first fetch
+	// — drives the spinner gate so a first-load error doesn't strand the
+	// screen on the placeholder. `hasLoadedOnce` only flips on success.
+	const [ hasResolved, setHasResolved ] = useState( false );
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	useEffect( () => {
@@ -98,6 +100,7 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
+					setHasResolved( true );
 				}
 			} );
 
@@ -116,5 +119,5 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 		mutationKey,
 	] );
 
-	return { data, paginationInfo, isLoading, hasLoadedOnce };
+	return { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce };
 }
