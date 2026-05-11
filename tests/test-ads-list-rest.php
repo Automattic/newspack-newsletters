@@ -879,25 +879,18 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Date columns need `meta_value`; numeric columns need
-	 * `meta_value_num` or 10 sorts before 2.
+	 * Default sort is suppressed and `meta_key` is never set on the
+	 * args — sort lands via a posts_clauses LEFT JOIN, so a top-level
+	 * `meta_key` would inner-join rows missing that key out.
 	 */
-	public function test_translate_virtual_orderby_rewrites_each_token_to_meta_args() {
-		$expectations = [
-			'start_date'  => [ 'meta_value', 'start_date' ],
-			'expiry_date' => [ 'meta_value', 'expiry_date' ],
-			'price'       => [ 'meta_value_num', 'price' ],
-			'impressions' => [ 'meta_value_num', 'tracking_impressions' ],
-			'clicks'      => [ 'meta_value_num', 'tracking_clicks' ],
-		];
-
-		foreach ( $expectations as $token => $expected ) {
+	public function test_translate_virtual_orderby_suppresses_default_sort_and_omits_meta_key() {
+		foreach ( [ 'start_date', 'expiry_date', 'price', 'impressions', 'clicks' ] as $token ) {
 			$args = Ads_List_REST::translate_virtual_orderby(
 				[ 'orderby' => $token ],
 				$this->rest_request( [] )
 			);
-			$this->assertSame( $expected[0], $args['orderby'], sprintf( '%s should rewrite orderby', $token ) );
-			$this->assertSame( $expected[1], $args['meta_key'], sprintf( '%s should set meta_key', $token ) );
+			$this->assertSame( 'none', $args['orderby'], sprintf( '%s should suppress default sort', $token ) );
+			$this->assertArrayNotHasKey( 'meta_key', $args, sprintf( '%s should not set meta_key', $token ) );
 		}
 	}
 
@@ -966,6 +959,59 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 
 		$ordered = array_values( array_intersect( $query->posts, [ $cheap, $expensive ] ) );
 		$this->assertSame( [ $cheap, $expensive ], $ordered );
+	}
+
+	/**
+	 * Rows missing the sorted meta must still appear — a plain
+	 * `meta_key` inner-join would drop fresh ads without
+	 * tracking_impressions, start_date, etc.
+	 */
+	public function test_translate_virtual_orderby_includes_rows_without_sorted_meta() {
+		$cases = [
+			[
+				'token' => 'impressions',
+				'key'   => 'tracking_impressions',
+				'value' => 42,
+			],
+			[
+				'token' => 'start_date',
+				'key'   => 'start_date',
+				'value' => gmdate( 'Y-m-d', strtotime( '+3 days' ) ),
+			],
+		];
+
+		foreach ( $cases as $case ) {
+			$with_meta    = $this->make_ad(
+				[
+					'post_status' => 'publish',
+					'meta_input'  => [ $case['key'] => $case['value'] ],
+				]
+			);
+			$without_meta = $this->make_ad( [ 'post_status' => 'publish' ] );
+
+			$args = Ads_List_REST::translate_virtual_orderby(
+				[
+					'orderby' => $case['token'],
+					'order'   => 'desc',
+				],
+				$this->rest_request( [] )
+			);
+
+			$query = new WP_Query(
+				array_merge(
+					$args,
+					[
+						'post_type'      => Ads::CPT,
+						'post_status'    => 'publish',
+						'fields'         => 'ids',
+						'posts_per_page' => -1,
+					]
+				)
+			);
+
+			$this->assertContains( $with_meta, $query->posts, sprintf( '%s: row with meta should appear', $case['token'] ) );
+			$this->assertContains( $without_meta, $query->posts, sprintf( '%s: row without meta should still appear', $case['token'] ) );
+		}
 	}
 
 	/**

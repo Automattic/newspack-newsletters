@@ -249,7 +249,9 @@ class Ads_List_REST {
 	}
 
 	/**
-	 * Rewrite a virtual orderby token to meta_key + meta_value[_num].
+	 * Rewrite a virtual orderby token via a LEFT JOIN. Plain `meta_key`
+	 * + `orderby=meta_value*` inner-joins postmeta and drops rows that
+	 * never wrote the key (fresh ads, ads with zero tracking activity).
 	 *
 	 * @param array            $args    Prepared WP_Query args.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -261,9 +263,29 @@ class Ads_List_REST {
 		if ( ! is_string( $orderby ) || ! isset( self::VIRTUAL_ORDERBY_TOKENS[ $orderby ] ) ) {
 			return $args;
 		}
-		$mapping          = self::VIRTUAL_ORDERBY_TOKENS[ $orderby ];
-		$args['orderby']  = $mapping['orderby'];
-		$args['meta_key'] = $mapping['meta_key']; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		$mapping  = self::VIRTUAL_ORDERBY_TOKENS[ $orderby ];
+		$meta_key = $mapping['meta_key'];
+		$is_num   = ( 'meta_value_num' === $mapping['orderby'] );
+		$order    = ( isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ) ? 'ASC' : 'DESC';
+
+		$args['orderby'] = 'none';
+
+		$callback = static function ( $clauses, $query ) use ( &$callback, $meta_key, $is_num, $order ) {
+			if ( ! ( $query instanceof \WP_Query ) || Ads::CPT !== $query->get( 'post_type' ) ) {
+				return $clauses;
+			}
+			global $wpdb;
+			$clauses['join']   .= $wpdb->prepare(
+				" LEFT JOIN {$wpdb->postmeta} AS newspack_sort_meta ON newspack_sort_meta.post_id = {$wpdb->posts}.ID AND newspack_sort_meta.meta_key = %s",
+				$meta_key
+			);
+			$value_expr         = $is_num ? 'CAST( newspack_sort_meta.meta_value AS SIGNED )' : 'newspack_sort_meta.meta_value'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			$clauses['orderby'] = $value_expr . ' ' . $order . ", {$wpdb->posts}.ID DESC";
+			remove_filter( 'posts_clauses', $callback, 10 );
+			return $clauses;
+		};
+		add_filter( 'posts_clauses', $callback, 10, 2 );
+
 		return $args;
 	}
 
