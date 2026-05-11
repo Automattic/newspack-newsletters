@@ -222,15 +222,15 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Register helper routes for the React list filter dropdowns.
+	 * Register the helper route that feeds the React list filter dropdowns.
 	 */
 	public static function register_rest_routes() {
 		register_rest_route(
 			'newspack-newsletters/v1',
-			'/newsletters-list/send-list-ids',
+			'/newsletters-list/filter-options',
 			[
 				'methods'             => 'GET',
-				'callback'            => [ __CLASS__, 'rest_get_send_list_ids' ],
+				'callback'            => [ __CLASS__, 'rest_get_filter_options' ],
 				'permission_callback' => [ __CLASS__, 'rest_filter_options_permission_check' ],
 			]
 		);
@@ -250,16 +250,114 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Distinct non-empty `send_list_id` values across newsletters.
-	 * Friendly-name resolution is deferred (Known gaps); raw IDs ship.
+	 * One-shot payload of every option list the React filter dropdowns
+	 * consume. Scoped server-side to authors / terms / send-list IDs
+	 * actually used on newsletters — keeps the dropdowns honest (every
+	 * option yields at least one result) and sidesteps the WP REST
+	 * users/terms per_page=100 cap.
 	 *
 	 * @return \WP_REST_Response
 	 */
-	public static function rest_get_send_list_ids() {
+	public static function rest_get_filter_options() {
+		return rest_ensure_response(
+			[
+				'authors'    => self::get_authors_used(),
+				'categories' => self::get_terms_used( 'category' ),
+				'tags'       => self::get_terms_used( 'post_tag' ),
+				'send_lists' => self::get_send_list_ids_used(),
+			]
+		);
+	}
+
+	/**
+	 * Distinct authors of any non-auto-draft newsletter.
+	 *
+	 * @return array<array{id: int, label: string}>
+	 */
+	private static function get_authors_used() {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery
-		$rows = $wpdb->get_col(
+		$author_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT post_author
+				 FROM {$wpdb->posts}
+				 WHERE post_type = %s
+				   AND post_status NOT IN ( 'auto-draft' )
+				   AND post_author <> 0",
+				$cpt
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery
+		$options = [];
+		foreach ( (array) $author_ids as $id ) {
+			$user = get_userdata( (int) $id );
+			if ( $user ) {
+				$options[] = [
+					'id'    => (int) $user->ID,
+					'label' => (string) $user->display_name,
+				];
+			}
+		}
+		usort(
+			$options,
+			static function ( $a, $b ) {
+				return strcasecmp( $a['label'], $b['label'] );
+			}
+		);
+		return $options;
+	}
+
+	/**
+	 * Distinct terms applied to any non-auto-draft newsletter, in the
+	 * given taxonomy.
+	 *
+	 * @param string $taxonomy `category` or `post_tag`.
+	 * @return array<array{id: int, label: string}>
+	 */
+	private static function get_terms_used( $taxonomy ) {
+		global $wpdb;
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DISTINCT t.term_id AS id, t.name AS label
+				 FROM {$wpdb->term_relationships} tr
+				 INNER JOIN {$wpdb->posts} p ON p.ID = tr.object_id
+				 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+				 INNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+				 WHERE p.post_type = %s
+				   AND p.post_status NOT IN ( 'auto-draft' )
+				   AND tt.taxonomy = %s
+				 ORDER BY t.name ASC",
+				$cpt,
+				$taxonomy
+			),
+			ARRAY_A
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery
+		return array_map(
+			static function ( $row ) {
+				return [
+					'id'    => (int) $row['id'],
+					'label' => (string) $row['label'],
+				];
+			},
+			$rows ? $rows : []
+		);
+	}
+
+	/**
+	 * Distinct non-empty `send_list_id` meta values across newsletters.
+	 * Friendly-name resolution is deferred (Known gaps); raw IDs ship.
+	 *
+	 * @return array<array{id: string, label: string}>
+	 */
+	private static function get_send_list_ids_used() {
+		global $wpdb;
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		$ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT DISTINCT pm.meta_value
 				 FROM {$wpdb->postmeta} pm
@@ -273,16 +371,15 @@ class Newsletters_List_REST {
 			)
 		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery
-		$ids = array_map(
+		return array_map(
 			static function ( $id ) {
 				return [
 					'id'    => (string) $id,
 					'label' => (string) $id,
 				];
 			},
-			$rows ? $rows : []
+			$ids ? $ids : []
 		);
-		return rest_ensure_response( $ids );
 	}
 
 	/**

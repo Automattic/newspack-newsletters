@@ -731,10 +731,10 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * REST helper returns each distinct `send_list_id`, sorted, and only
-	 * counts newsletters of our CPT. Auto-draft rows are excluded.
+	 * Filter-options endpoint returns send_list_ids actually used,
+	 * collapses duplicates, and ignores auto-draft + other CPTs.
 	 */
-	public function test_rest_get_send_list_ids_returns_distinct_values_for_cpt() {
+	public function test_filter_options_send_lists_returns_distinct_values_for_cpt() {
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		self::factory()->post->create(
 			[
@@ -750,7 +750,6 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'meta_input'  => [ 'send_list_id' => 'list-a' ],
 			]
 		);
-		// Duplicate of list-a — should collapse.
 		self::factory()->post->create(
 			[
 				'post_type'   => $cpt,
@@ -758,7 +757,6 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'meta_input'  => [ 'send_list_id' => 'list-a' ],
 			]
 		);
-		// Auto-draft must be excluded.
 		self::factory()->post->create(
 			[
 				'post_type'   => $cpt,
@@ -766,7 +764,6 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'meta_input'  => [ 'send_list_id' => 'list-ignore' ],
 			]
 		);
-		// Other CPT row with same meta key must not leak through.
 		self::factory()->post->create(
 			[
 				'post_type'   => 'post',
@@ -775,18 +772,136 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			]
 		);
 
-		$response = Newsletters_List_REST::rest_get_send_list_ids();
-		$data     = $response->get_data();
-		$ids      = array_column( $data, 'id' );
+		$response = Newsletters_List_REST::rest_get_filter_options();
+		$ids      = array_column( $response->get_data()['send_lists'], 'id' );
 
 		$this->assertContains( 'list-a', $ids );
 		$this->assertContains( 'list-b', $ids );
 		$this->assertNotContains( 'list-ignore', $ids );
 		$this->assertNotContains( 'list-other', $ids );
 		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'IDs should be distinct' );
-		foreach ( $data as $row ) {
-			$this->assertSame( $row['id'], $row['label'] );
+	}
+
+	/**
+	 * Filter-options returns distinct authors of any non-auto-draft
+	 * newsletter — scope-gated to our CPT, with `display_name` labels.
+	 */
+	public function test_filter_options_authors_returns_distinct_newsletter_authors() {
+		$cpt    = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$alice  = self::factory()->user->create( [ 'display_name' => 'Alice' ] );
+		$bob    = self::factory()->user->create( [ 'display_name' => 'Bob' ] );
+		$ghost  = self::factory()->user->create( [ 'display_name' => 'Ghost' ] );
+		$leaker = self::factory()->user->create( [ 'display_name' => 'Other-CPT Leaker' ] );
+
+		// Two newsletters by Alice (should collapse), one by Bob.
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'post_author' => $alice,
+			] 
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'post_author' => $alice,
+			] 
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'post_author' => $bob,
+			] 
+		);
+		// Ghost authored only an auto-draft — must not appear.
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'auto-draft',
+				'post_author' => $ghost,
+			] 
+		);
+		// Leaker authored a different CPT — must not appear.
+		self::factory()->post->create(
+			[
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'post_author' => $leaker,
+			] 
+		);
+
+		$authors = Newsletters_List_REST::rest_get_filter_options()->get_data()['authors'];
+		$ids     = array_column( $authors, 'id' );
+
+		$this->assertContains( $alice, $ids );
+		$this->assertContains( $bob, $ids );
+		$this->assertNotContains( $ghost, $ids );
+		$this->assertNotContains( $leaker, $ids );
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ) );
+		foreach ( $authors as $author ) {
+			$this->assertIsInt( $author['id'] );
+			$this->assertNotSame( '', $author['label'] );
 		}
+	}
+
+	/**
+	 * Filter-options returns categories / tags actually applied to
+	 * newsletters in our CPT, never terms from other post types.
+	 */
+	public function test_filter_options_terms_returns_only_terms_used_on_newsletters() {
+		$cpt        = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$used_cat   = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Used Cat',
+			] 
+		);
+		$unused_cat = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Unused Cat',
+			] 
+		);
+		$used_tag   = self::factory()->term->create(
+			[
+				'taxonomy' => 'post_tag',
+				'name'     => 'Used Tag',
+			] 
+		);
+		$other_cat  = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Other CPT Cat',
+			] 
+		);
+
+		$newsletter = self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+			] 
+		);
+		wp_set_object_terms( $newsletter, [ $used_cat ], 'category' );
+		wp_set_object_terms( $newsletter, [ $used_tag ], 'post_tag' );
+
+		$other_post = self::factory()->post->create(
+			[
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			] 
+		);
+		wp_set_object_terms( $other_post, [ $other_cat ], 'category' );
+
+		$options = Newsletters_List_REST::rest_get_filter_options()->get_data();
+		$cat_ids = array_column( $options['categories'], 'id' );
+		$tag_ids = array_column( $options['tags'], 'id' );
+
+		$this->assertContains( $used_cat, $cat_ids );
+		$this->assertNotContains( $unused_cat, $cat_ids );
+		$this->assertNotContains( $other_cat, $cat_ids );
+		$this->assertContains( $used_tag, $tag_ids );
 	}
 
 	/**

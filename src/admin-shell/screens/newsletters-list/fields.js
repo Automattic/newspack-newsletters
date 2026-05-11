@@ -170,9 +170,9 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 		{
 			id: 'author',
 			label: __( 'Author', 'newspack-newsletters' ),
-			elements: authors.map( user => ( {
-				value: String( user.id ),
-				label: user.name,
+			elements: authors.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
 			} ) ),
 			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: true,
@@ -182,9 +182,9 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 		{
 			id: 'categories',
 			label: __( 'Categories', 'newspack-newsletters' ),
-			elements: categories.map( term => ( {
-				value: String( term.id ),
-				label: term.name,
+			elements: categories.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
 			} ) ),
 			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: false,
@@ -198,9 +198,9 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 		{
 			id: 'tags',
 			label: __( 'Tags', 'newspack-newsletters' ),
-			elements: tags.map( term => ( {
-				value: String( term.id ),
-				label: term.name,
+			elements: tags.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
 			} ) ),
 			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: false,
