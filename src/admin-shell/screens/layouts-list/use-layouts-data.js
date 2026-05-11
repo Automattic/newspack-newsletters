@@ -55,14 +55,17 @@ function buildPath( view ) {
 /**
  * @param {Object} view          DataViews view state.
  * @param {number} [mutationKey] Increment from the parent to force a refetch after a mutation.
- * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasLoadedOnce: boolean }} The current data, pagination info, and loading flags.
+ * @return {{ data: Array, paginationInfo: Object, isLoading: boolean, hasResolved: boolean, hasLoadedOnce: boolean }} The current data, pagination info, and loading flags.
  */
 export default function useLayoutsData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
-	// Distinguishes "still fetching" from "really empty" so the screen
-	// doesn't flash an empty grid on first paint.
+	// `hasResolved` flips on success or failure of the first real fetch
+	// (deliberately stays false while `view === null` — flipping there
+	// races the parent latch on null → non-null transitions).
+	// `hasLoadedOnce` only flips on success.
+	const [ hasResolved, setHasResolved ] = useState( false );
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	useEffect( () => {
@@ -70,7 +73,6 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 			setData( [] );
 			setPaginationInfo( { totalItems: 0, totalPages: 0 } );
 			setIsLoading( false );
-			setHasLoadedOnce( true );
 			return undefined;
 		}
 		let cancelled = false;
@@ -99,6 +101,7 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 			.finally( () => {
 				if ( ! cancelled ) {
 					setIsLoading( false );
+					setHasResolved( true );
 				}
 			} );
 
@@ -117,5 +120,5 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 		mutationKey,
 	] );
 
-	return { data, paginationInfo, isLoading, hasLoadedOnce };
+	return { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce };
 }

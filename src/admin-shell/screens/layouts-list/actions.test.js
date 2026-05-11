@@ -53,12 +53,16 @@ describe( 'layouts list actions', () => {
 		expect( byId( 'edit' ).isPrimary ).toBe( true );
 	} );
 
-	it( 'every mutating action is eligible only for user-owned rows', () => {
-		[ 'edit', 'duplicate', 'rename', 'delete-permanently' ].forEach( id => {
+	it( 'edit, rename and delete are eligible only for user-owned rows', () => {
+		[ 'edit', 'rename', 'delete-permanently' ].forEach( id => {
 			const action = byId( id );
 			expect( action.isEligible( savedRow ) ).toBe( true );
 			expect( action.isEligible( prebuiltRow ) ).toBe( false );
 		} );
+	} );
+
+	it( 'Duplicate has no eligibility gate (prebuilts and saved both qualify)', () => {
+		expect( byId( 'duplicate' ).isEligible ).toBeUndefined();
 	} );
 
 	it( 'Delete supports bulk and is destructive', () => {
@@ -98,6 +102,39 @@ describe( 'layouts list actions', () => {
 			await byId( 'duplicate' ).callback( [ savedRow ] );
 
 			expect( onMutated ).not.toHaveBeenCalled();
+		} );
+
+		it( 'falls back to "Copy of Untitled" when the source has an empty title', async () => {
+			const untitled = {
+				...prebuiltRow,
+				title: { raw: '   ', rendered: '' },
+				content: { raw: '<!-- wp:paragraph -->Hi<!-- /wp:paragraph -->', rendered: '' },
+			};
+			apiFetch.mockResolvedValueOnce( { id: 101 } );
+
+			await byId( 'duplicate' ).callback( [ untitled ] );
+
+			expect( apiFetch.mock.calls[ 0 ][ 0 ].data.title ).toBe( 'Copy of Untitled' );
+		} );
+
+		it( 'duplicates a prebuilt from the in-memory item as a draft, skipping the GET', async () => {
+			const prebuiltWithContent = {
+				...prebuiltRow,
+				content: { raw: '<!-- wp:paragraph -->Prebuilt source<!-- /wp:paragraph -->', rendered: '' },
+			};
+			apiFetch.mockResolvedValueOnce( { id: 100 } );
+
+			await byId( 'duplicate' ).callback( [ prebuiltWithContent ] );
+
+			expect( apiFetch ).toHaveBeenCalledTimes( 1 );
+			const postCall = apiFetch.mock.calls[ 0 ][ 0 ];
+			expect( postCall.path ).toBe( COLLECTION_PATH );
+			expect( postCall.method ).toBe( 'POST' );
+			expect( postCall.data.status ).toBe( 'draft' );
+			expect( postCall.data.title ).toBe( 'Copy of Newsletter Plain' );
+			expect( postCall.data.content ).toBe( prebuiltWithContent.content.raw );
+			expect( postCall.data.meta ).toBeUndefined();
+			expect( onMutated ).toHaveBeenCalled();
 		} );
 	} );
 
