@@ -54,24 +54,24 @@ class Ads_List_REST {
 	 */
 	const VIRTUAL_ORDERBY_TOKENS = [
 		'start_date'  => [
-			'orderby'  => 'meta_value',
 			'meta_key' => 'start_date',
+			'is_num'   => false,
 		],
 		'expiry_date' => [
-			'orderby'  => 'meta_value',
 			'meta_key' => 'expiry_date',
+			'is_num'   => false,
 		],
 		'price'       => [
-			'orderby'  => 'meta_value_num',
 			'meta_key' => 'price',
+			'is_num'   => true,
 		],
 		'impressions' => [
-			'orderby'  => 'meta_value_num',
 			'meta_key' => 'tracking_impressions',
+			'is_num'   => true,
 		],
 		'clicks'      => [
-			'orderby'  => 'meta_value_num',
 			'meta_key' => 'tracking_clicks',
+			'is_num'   => true,
 		],
 	];
 
@@ -272,7 +272,7 @@ class Ads_List_REST {
 		$args['orderby'] = 'none';
 		$args[ self::META_SORT_QUERY_VAR ] = [
 			'meta_key' => $mapping['meta_key'],
-			'is_num'   => ( 'meta_value_num' === $mapping['orderby'] ),
+			'is_num'   => $mapping['is_num'],
 			'order'    => ( isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ) ? 'ASC' : 'DESC',
 		];
 
