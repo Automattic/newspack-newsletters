@@ -8,11 +8,20 @@
  * client-side. Server-side sort / filter — see build-query.
  */
 
+import { Icon } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
+import { commentAuthorAvatar, drafts, published, scheduled, trash } from '@wordpress/icons';
 import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
+
+const STATUS_KIND_ICONS = {
+	sent: published,
+	scheduled,
+	draft: drafts,
+	trash,
+};
 
 const formatDate = timestamp => {
 	if ( ! timestamp ) {
@@ -44,24 +53,31 @@ const renderTitle = ( { item } ) => {
 const renderStatus = ( { item } ) => {
 	const status = item?.newspack_newsletters_status || {};
 	const kind = status.kind || 'draft';
+	const icon = STATUS_KIND_ICONS[ kind ] || STATUS_KIND_ICONS.draft;
 
+	let label;
 	if ( 'sent' === kind && status.sent_at ) {
-		return sprintf(
+		label = sprintf(
 			/* translators: %s: formatted send date */
 			__( 'Sent %s', 'newspack-newsletters' ),
 			formatDate( status.sent_at )
 		);
-	}
-
-	if ( 'scheduled' === kind && status.scheduled_at ) {
-		return sprintf(
+	} else if ( 'scheduled' === kind && status.scheduled_at ) {
+		label = sprintf(
 			/* translators: %s: formatted scheduled date */
 			__( 'Scheduled for %s', 'newspack-newsletters' ),
 			formatDate( status.scheduled_at )
 		);
+	} else {
+		label = statusKindLabel( kind );
 	}
 
-	return statusKindLabel( kind );
+	return (
+		<span className="newspack-newsletters-list__status">
+			<Icon className="newspack-newsletters-list__status-icon" icon={ icon } size={ 24 } />
+			<span>{ label }</span>
+		</span>
+	);
 };
 
 const renderSendDate = ( { item } ) => {
@@ -81,7 +97,22 @@ const renderSendList = ( { item } ) => {
 
 const renderAuthor = ( { item } ) => {
 	const author = item?._embedded?.author?.[ 0 ];
-	return author?.name || '';
+	if ( ! author ) {
+		return '';
+	}
+	const avatarUrl = author.avatar_urls?.[ 48 ] || author.avatar_urls?.[ 24 ];
+	return (
+		<span className="newspack-newsletters-list__author">
+			{ avatarUrl ? (
+				<span className="newspack-newsletters-list__author-avatar">
+					<img src={ avatarUrl } width={ 16 } height={ 16 } alt="" />
+				</span>
+			) : (
+				<Icon className="newspack-newsletters-list__author-icon" icon={ commentAuthorAvatar } size={ 24 } />
+			) }
+			<span>{ author.name || '' }</span>
+		</span>
+	);
 };
 
 // Look up embedded terms by `taxonomy` — positional indexing is unsafe across post types.
