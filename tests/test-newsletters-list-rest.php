@@ -801,21 +801,21 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'post_type'   => $cpt,
 				'post_status' => 'publish',
 				'post_author' => $alice,
-			] 
+			]
 		);
 		self::factory()->post->create(
 			[
 				'post_type'   => $cpt,
 				'post_status' => 'draft',
 				'post_author' => $alice,
-			] 
+			]
 		);
 		self::factory()->post->create(
 			[
 				'post_type'   => $cpt,
 				'post_status' => 'publish',
 				'post_author' => $bob,
-			] 
+			]
 		);
 		// Ghost authored only an auto-draft — must not appear.
 		self::factory()->post->create(
@@ -823,7 +823,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'post_type'   => $cpt,
 				'post_status' => 'auto-draft',
 				'post_author' => $ghost,
-			] 
+			]
 		);
 		// Leaker authored a different CPT — must not appear.
 		self::factory()->post->create(
@@ -831,7 +831,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'post_type'   => 'post',
 				'post_status' => 'publish',
 				'post_author' => $leaker,
-			] 
+			]
 		);
 
 		$authors = Newsletters_List_REST::rest_get_filter_options()->get_data()['authors'];
@@ -859,32 +859,32 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			[
 				'taxonomy' => 'category',
 				'name'     => 'Used Cat',
-			] 
+			]
 		);
 		$unused_cat = self::factory()->term->create(
 			[
 				'taxonomy' => 'category',
 				'name'     => 'Unused Cat',
-			] 
+			]
 		);
 		$used_tag   = self::factory()->term->create(
 			[
 				'taxonomy' => 'post_tag',
 				'name'     => 'Used Tag',
-			] 
+			]
 		);
 		$other_cat  = self::factory()->term->create(
 			[
 				'taxonomy' => 'category',
 				'name'     => 'Other CPT Cat',
-			] 
+			]
 		);
 
 		$newsletter = self::factory()->post->create(
 			[
 				'post_type'   => $cpt,
 				'post_status' => 'publish',
-			] 
+			]
 		);
 		wp_set_object_terms( $newsletter, [ $used_cat ], 'category' );
 		wp_set_object_terms( $newsletter, [ $used_tag ], 'post_tag' );
@@ -893,7 +893,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			[
 				'post_type'   => 'post',
 				'post_status' => 'publish',
-			] 
+			]
 		);
 		wp_set_object_terms( $other_post, [ $other_cat ], 'category' );
 
