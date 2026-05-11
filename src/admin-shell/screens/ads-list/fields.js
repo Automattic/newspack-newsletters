@@ -12,11 +12,21 @@
  * `post_status` plus the matching date-driven SQL bucket.
  */
 
+import { Icon } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
+import { drafts, notAllowed, published, scheduled, trash } from '@wordpress/icons';
 import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
+
+const STATUS_KIND_ICONS = {
+	active: published,
+	scheduled,
+	expired: notAllowed,
+	draft: drafts,
+	trash,
+};
 
 const formatTimestampAsDate = timestamp => {
 	if ( ! timestamp ) {
@@ -67,24 +77,31 @@ const renderTitle = ( { item } ) => {
 const renderStatus = ( { item } ) => {
 	const status = item?.newspack_newsletters_ad_status || {};
 	const kind = status.kind || 'draft';
+	const icon = STATUS_KIND_ICONS[ kind ] || STATUS_KIND_ICONS.draft;
 
+	let label;
 	if ( 'expired' === kind && status.expires_at ) {
-		return sprintf(
+		label = sprintf(
 			/* translators: %s: formatted expiry date */
 			__( 'Expired %s', 'newspack-newsletters' ),
 			formatTimestampAsDate( status.expires_at )
 		);
-	}
-
-	if ( 'scheduled' === kind && status.starts_at ) {
-		return sprintf(
+	} else if ( 'scheduled' === kind && status.starts_at ) {
+		label = sprintf(
 			/* translators: %s: formatted start date */
 			__( 'Starts %s', 'newspack-newsletters' ),
 			formatTimestampAsDate( status.starts_at )
 		);
+	} else {
+		label = statusKindLabel( kind );
 	}
 
-	return statusKindLabel( kind );
+	return (
+		<span className="newspack-newsletters-list__status">
+			<Icon className="newspack-newsletters-list__status-icon" icon={ icon } size={ 24 } />
+			<span>{ label }</span>
+		</span>
+	);
 };
 
 const renderTerms =

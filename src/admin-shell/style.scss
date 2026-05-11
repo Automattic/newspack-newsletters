@@ -198,6 +198,48 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	box-shadow: none;
 }
 
+.newspack-newsletters-list {
+	&__author,
+	&__status {
+		align-items: center;
+		display: inline-flex;
+		gap: wp-vars.$grid-unit-10;
+	}
+
+	&__author-icon,
+	&__status-icon {
+		fill: currentcolor;
+		flex-shrink: 0;
+	}
+
+	&__author-avatar {
+		align-items: center;
+		display: inline-flex;
+		flex-shrink: 0;
+		height: 24px;
+		justify-content: center;
+		width: 24px;
+
+		img {
+			border-radius: 50%;
+			display: block;
+		}
+	}
+}
+
+// WP icons have a 24px viewBox with 4px padding — negative margin pulls neighbours in to the visible 16px footprint without changing the icon's draw.
+.dataviews-view-table {
+	.newspack-newsletters-list__author-icon,
+	.newspack-newsletters-list__status-icon {
+		margin: -4px;
+	}
+
+	.newspack-newsletters-list__author-avatar {
+		height: 16px;
+		width: 16px;
+	}
+}
+
 .newspack-newsletters-layouts-list {
 	&__preview {
 		background: wp-colors.$white;
@@ -257,6 +299,20 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	&__author-icon {
 		fill: currentcolor;
 		flex-shrink: 0;
+	}
+
+	&__author-avatar {
+		align-items: center;
+		display: inline-flex;
+		flex-shrink: 0;
+		height: 24px;
+		justify-content: center;
+		width: 24px;
+
+		img {
+			border-radius: 50%;
+			display: block;
+		}
 	}
 }
 

@@ -136,10 +136,21 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 			return null;
 		}
 		const isPrebuilt = !! item?.is_prebuilt;
-		const icon = isPrebuilt ? plugins : commentAuthorAvatar;
+		// Prefer the 48px source so the 16px display stays crisp on hi-DPI screens.
+		const avatarUrl = ! isPrebuilt && ( author.avatar_urls?.[ 48 ] || author.avatar_urls?.[ 24 ] );
 		return (
 			<span className="newspack-newsletters-layouts-list__author">
-				<Icon className="newspack-newsletters-layouts-list__author-icon" icon={ icon } size={ 24 } />
+				{ avatarUrl ? (
+					<span className="newspack-newsletters-layouts-list__author-avatar">
+						<img src={ avatarUrl } width={ 16 } height={ 16 } alt="" />
+					</span>
+				) : (
+					<Icon
+						className="newspack-newsletters-layouts-list__author-icon"
+						icon={ isPrebuilt ? plugins : commentAuthorAvatar }
+						size={ 24 }
+					/>
+				) }
 				<span>{ author.name || '' }</span>
 			</span>
 		);
