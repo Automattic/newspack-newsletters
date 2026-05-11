@@ -36,6 +36,37 @@ describe( 'getInitialFilters', () => {
 		const filters = getInitialFilters( '?post_type=newspack_nl_cpt&post_status=trash&page=newspack-newsletters-list' );
 		expect( filters ).toEqual( [ { field: 'status', operator: 'isAny', value: [ 'trash' ] } ] );
 	} );
+
+	it( 'maps author / categories / tags URL params onto matching DataView filters', () => {
+		const filters = getInitialFilters( '?author=42,7&categories=12&tags=5,11' );
+		expect( filters ).toEqual(
+			expect.arrayContaining( [
+				{ field: 'author', operator: 'isAny', value: [ '42', '7' ] },
+				{ field: 'categories', operator: 'isAny', value: [ '12' ] },
+				{ field: 'tags', operator: 'isAny', value: [ '5', '11' ] },
+			] )
+		);
+	} );
+
+	it( 'maps newspack_newsletters_send_list_id URL param onto the send_list filter', () => {
+		const filters = getInitialFilters( '?newspack_newsletters_send_list_id=list-a,list-b' );
+		expect( filters ).toContainEqual( {
+			field: 'send_list',
+			operator: 'isAny',
+			value: [ 'list-a', 'list-b' ],
+		} );
+	} );
+
+	it( 'combines a status filter with author / categories on the same URL', () => {
+		const filters = getInitialFilters( '?post_status=trash&author=42&categories=12' );
+		expect( filters ).toEqual(
+			expect.arrayContaining( [
+				{ field: 'status', operator: 'isAny', value: [ 'trash' ] },
+				{ field: 'author', operator: 'isAny', value: [ '42' ] },
+				{ field: 'categories', operator: 'isAny', value: [ '12' ] },
+			] )
+		);
+	} );
 } );
 
 describe( 'getInitialView', () => {

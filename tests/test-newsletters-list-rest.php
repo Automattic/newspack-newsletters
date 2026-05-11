@@ -622,4 +622,380 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		$this->assertSame( $existing[0], $args['meta_query'][0] );
 		$this->assertSame( 'is_public', $args['meta_query'][1]['key'] );
 	}
+
+	/**
+	 * Single send-list ID adds a meta_query IN clause with that one value.
+	 */
+	public function test_filter_send_list_query_adds_in_clause_for_single_id() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => 'list-a' ] )
+		);
+
+		$this->assertNotEmpty( $args['meta_query'] );
+		$this->assertSame( 'send_list_id', $args['meta_query'][0]['key'] );
+		$this->assertSame( 'IN', $args['meta_query'][0]['compare'] );
+		$this->assertSame( [ 'list-a' ], $args['meta_query'][0]['value'] );
+	}
+
+	/**
+	 * Comma-separated IDs split into the IN clause; whitespace stripped.
+	 */
+	public function test_filter_send_list_query_splits_and_trims_comma_list() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => 'list-a, list-b ,list-c' ] )
+		);
+
+		$this->assertSame( [ 'list-a', 'list-b', 'list-c' ], $args['meta_query'][0]['value'] );
+	}
+
+	/**
+	 * Array values are accepted as-is; empty entries are dropped.
+	 */
+	public function test_filter_send_list_query_accepts_array_and_drops_empty_entries() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => [ 'list-a', '', 'list-b' ] ] )
+		);
+
+		$this->assertSame( [ 'list-a', 'list-b' ], $args['meta_query'][0]['value'] );
+	}
+
+	/**
+	 * Missing / empty param leaves args alone — no meta_query side-effect.
+	 */
+	public function test_filter_send_list_query_passes_through_when_param_absent() {
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[ 'foo' => 'bar' ],
+			$this->rest_request( [] )
+		);
+		$this->assertSame( [ 'foo' => 'bar' ], $args );
+
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[ 'foo' => 'bar' ],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => '' ] )
+		);
+		$this->assertSame( [ 'foo' => 'bar' ], $args );
+	}
+
+	/**
+	 * End-to-end: with `send_list_id` meta on rows, the filter narrows
+	 * the result set to the requested IDs. Newsletters without the meta
+	 * drop out of an IN-clause filter, which is the intended behavior
+	 * for a "show me list X" filter (distinct from sort, where missing
+	 * meta has to round-trip).
+	 */
+	public function test_filter_send_list_query_narrows_query_to_requested_ids() {
+		$list_a = self::factory()->post->create(
+			[
+				'post_type'   => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-a' ],
+			]
+		);
+		$list_b = self::factory()->post->create(
+			[
+				'post_type'   => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-b' ],
+			]
+		);
+		$no_list = self::factory()->post->create(
+			[
+				'post_type'   => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'post_status' => 'publish',
+			]
+		);
+
+		$args = Newsletters_List_REST::filter_send_list_query(
+			[],
+			$this->rest_request( [ Newsletters_List_REST::SEND_LIST_QUERY_PARAM => 'list-a' ] )
+		);
+
+		$query = new WP_Query(
+			array_merge(
+				$args,
+				[
+					'post_type'      => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		$this->assertContains( $list_a, $query->posts );
+		$this->assertNotContains( $list_b, $query->posts );
+		$this->assertNotContains( $no_list, $query->posts );
+	}
+
+	/**
+	 * Filter-options endpoint returns send_list_ids actually used,
+	 * collapses duplicates, and ignores auto-draft + other CPTs.
+	 */
+	public function test_filter_options_send_lists_returns_distinct_values_for_cpt() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-b' ],
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'meta_input'  => [ 'send_list_id' => 'list-a' ],
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-a' ],
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'auto-draft',
+				'meta_input'  => [ 'send_list_id' => 'list-ignore' ],
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'meta_input'  => [ 'send_list_id' => 'list-other' ],
+			]
+		);
+
+		$response = Newsletters_List_REST::rest_get_filter_options();
+		$ids      = array_column( $response->get_data()['send_lists'], 'id' );
+
+		$this->assertContains( 'list-a', $ids );
+		$this->assertContains( 'list-b', $ids );
+		$this->assertNotContains( 'list-ignore', $ids );
+		$this->assertNotContains( 'list-other', $ids );
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'IDs should be distinct' );
+	}
+
+	/**
+	 * Filter-options returns distinct authors of any non-auto-draft
+	 * newsletter — scope-gated to our CPT, with `display_name` labels.
+	 */
+	public function test_filter_options_authors_returns_distinct_newsletter_authors() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$cpt    = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$alice  = self::factory()->user->create( [ 'display_name' => 'Alice' ] );
+		$bob    = self::factory()->user->create( [ 'display_name' => 'Bob' ] );
+		$ghost  = self::factory()->user->create( [ 'display_name' => 'Ghost' ] );
+		$leaker = self::factory()->user->create( [ 'display_name' => 'Other-CPT Leaker' ] );
+
+		// Two newsletters by Alice (should collapse), one by Bob.
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'post_author' => $alice,
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'post_author' => $alice,
+			]
+		);
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+				'post_author' => $bob,
+			]
+		);
+		// Ghost authored only an auto-draft — must not appear.
+		self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'auto-draft',
+				'post_author' => $ghost,
+			]
+		);
+		// Leaker authored a different CPT — must not appear.
+		self::factory()->post->create(
+			[
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'post_author' => $leaker,
+			]
+		);
+
+		$authors = Newsletters_List_REST::rest_get_filter_options()->get_data()['authors'];
+		$ids     = array_column( $authors, 'id' );
+
+		$this->assertContains( $alice, $ids );
+		$this->assertContains( $bob, $ids );
+		$this->assertNotContains( $ghost, $ids );
+		$this->assertNotContains( $leaker, $ids );
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ) );
+		foreach ( $authors as $author ) {
+			$this->assertIsInt( $author['id'] );
+			$this->assertNotSame( '', $author['label'] );
+		}
+	}
+
+	/**
+	 * Filter-options returns categories / tags actually applied to
+	 * newsletters in our CPT, never terms from other post types.
+	 */
+	public function test_filter_options_terms_returns_only_terms_used_on_newsletters() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$cpt        = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$used_cat   = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Used Cat',
+			]
+		);
+		$unused_cat = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Unused Cat',
+			]
+		);
+		$used_tag   = self::factory()->term->create(
+			[
+				'taxonomy' => 'post_tag',
+				'name'     => 'Used Tag',
+			]
+		);
+		$other_cat  = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Other CPT Cat',
+			]
+		);
+
+		$newsletter = self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'publish',
+			]
+		);
+		wp_set_object_terms( $newsletter, [ $used_cat ], 'category' );
+		wp_set_object_terms( $newsletter, [ $used_tag ], 'post_tag' );
+
+		$other_post = self::factory()->post->create(
+			[
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			]
+		);
+		wp_set_object_terms( $other_post, [ $other_cat ], 'category' );
+
+		$options = Newsletters_List_REST::rest_get_filter_options()->get_data();
+		$cat_ids = array_column( $options['categories'], 'id' );
+		$tag_ids = array_column( $options['tags'], 'id' );
+
+		$this->assertContains( $used_cat, $cat_ids );
+		$this->assertNotContains( $unused_cat, $cat_ids );
+		$this->assertNotContains( $other_cat, $cat_ids );
+		$this->assertContains( $used_tag, $tag_ids );
+	}
+
+	/**
+	 * Filter-options endpoint denies anonymous users.
+	 */
+	public function test_rest_filter_options_permission_check_denies_anonymous() {
+		wp_set_current_user( 0 );
+		$this->assertFalse( Newsletters_List_REST::rest_filter_options_permission_check() );
+	}
+
+	/**
+	 * Filter-options endpoint allows users with newsletter edit caps.
+	 */
+	public function test_rest_filter_options_permission_check_allows_editor() {
+		$editor_id = self::factory()->user->create( [ 'role' => 'editor' ] );
+		wp_set_current_user( $editor_id );
+		$this->assertTrue( Newsletters_List_REST::rest_filter_options_permission_check() );
+	}
+
+	/**
+	 * A user without `edit_others_posts` only sees options derived from
+	 * their own newsletters — never leaks authors / terms / send-list
+	 * IDs from other publishers' drafts or private rows.
+	 */
+	public function test_filter_options_scopes_to_user_when_edit_others_posts_is_absent() {
+		$cpt   = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$mine  = self::factory()->user->create( [ 'role' => 'author' ] );
+		$other = self::factory()->user->create(
+			[
+				'role'         => 'editor',
+				'display_name' => 'Other Editor',
+			]
+		);
+
+		$my_cat    = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'My Cat',
+			]
+		);
+		$their_cat = self::factory()->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Their Cat',
+			]
+		);
+
+		$my_newsletter = self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'post_author' => $mine,
+				'meta_input'  => [ 'send_list_id' => 'mine-list' ],
+			]
+		);
+		wp_set_object_terms( $my_newsletter, [ $my_cat ], 'category' );
+
+		$their_newsletter = self::factory()->post->create(
+			[
+				'post_type'   => $cpt,
+				'post_status' => 'draft',
+				'post_author' => $other,
+				'meta_input'  => [ 'send_list_id' => 'their-list' ],
+			]
+		);
+		wp_set_object_terms( $their_newsletter, [ $their_cat ], 'category' );
+
+		// Acting as `mine` (no edit_others_posts), the dropdown narrows
+		// to options derived from their own newsletter only.
+		wp_set_current_user( $mine );
+		$options = Newsletters_List_REST::rest_get_filter_options()->get_data();
+
+		$author_ids    = array_column( $options['authors'], 'id' );
+		$category_ids  = array_column( $options['categories'], 'id' );
+		$send_list_ids = array_column( $options['send_lists'], 'id' );
+
+		$this->assertContains( $mine, $author_ids );
+		$this->assertNotContains( $other, $author_ids );
+		$this->assertContains( $my_cat, $category_ids );
+		$this->assertNotContains( $their_cat, $category_ids );
+		$this->assertContains( 'mine-list', $send_list_ids );
+		$this->assertNotContains( 'their-list', $send_list_ids );
+
+		// Editor (has edit_others_posts) sees the full set.
+		wp_set_current_user( $other );
+		$options = Newsletters_List_REST::rest_get_filter_options()->get_data();
+		$this->assertContains( $mine, array_column( $options['authors'], 'id' ) );
+		$this->assertContains( $other, array_column( $options['authors'], 'id' ) );
+		$this->assertContains( $my_cat, array_column( $options['categories'], 'id' ) );
+		$this->assertContains( $their_cat, array_column( $options['categories'], 'id' ) );
+		$this->assertContains( 'mine-list', array_column( $options['send_lists'], 'id' ) );
+		$this->assertContains( 'their-list', array_column( $options['send_lists'], 'id' ) );
+	}
 }

@@ -84,14 +84,24 @@ const renderAuthor = ( { item } ) => {
 	return author?.name || '';
 };
 
-const renderCategories = ( { item } ) => {
-	const terms = item?._embedded?.[ 'wp:term' ] || [];
-	const categories = terms[ 0 ] || [];
-	return categories
-		.map( term => term?.name )
-		.filter( Boolean )
-		.join( ', ' );
+// Look up embedded terms by `taxonomy` — positional indexing is unsafe across post types.
+const termsForTaxonomy = ( item, taxonomy ) => {
+	const groups = item?._embedded?.[ 'wp:term' ] || [];
+	for ( const group of groups ) {
+		if ( Array.isArray( group ) && group.length > 0 && group[ 0 ]?.taxonomy === taxonomy ) {
+			return group;
+		}
+	}
+	return [];
 };
+
+const renderTerms =
+	taxonomy =>
+	( { item } ) =>
+		termsForTaxonomy( item, taxonomy )
+			.map( term => term?.name )
+			.filter( Boolean )
+			.join( ', ' );
 
 const renderPublicPage = ( { item } ) => {
 	const isPublic = !! item?.meta?.is_public;
@@ -113,7 +123,7 @@ const renderDate = ( { item } ) => {
 	return dateI18n( format, getDate( item.date ) );
 };
 
-export function getFields() {
+export function getFields( { authors = [], categories = [], tags = [], sendLists = [] } = {} ) {
 	const statusLabels = STATUS_KIND_LABELS();
 
 	return [
@@ -148,6 +158,11 @@ export function getFields() {
 		{
 			id: 'send_list',
 			label: __( 'Send list', 'newspack-newsletters' ),
+			elements: sendLists.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
+			} ) ),
+			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: false,
 			getValue: ( { item } ) => item?.meta?.send_list_id || '',
 			render: renderSendList,
@@ -155,6 +170,11 @@ export function getFields() {
 		{
 			id: 'author',
 			label: __( 'Author', 'newspack-newsletters' ),
+			elements: authors.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
+			} ) ),
+			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: true,
 			getValue: ( { item } ) => item?._embedded?.author?.[ 0 ]?.name || '',
 			render: renderAuthor,
@@ -162,13 +182,34 @@ export function getFields() {
 		{
 			id: 'categories',
 			label: __( 'Categories', 'newspack-newsletters' ),
+			elements: categories.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
+			} ) ),
+			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: false,
 			getValue: ( { item } ) =>
-				( item?._embedded?.[ 'wp:term' ]?.[ 0 ] || [] )
+				termsForTaxonomy( item, 'category' )
 					.map( term => term?.name )
 					.filter( Boolean )
 					.join( ', ' ),
-			render: renderCategories,
+			render: renderTerms( 'category' ),
+		},
+		{
+			id: 'tags',
+			label: __( 'Tags', 'newspack-newsletters' ),
+			elements: tags.map( ( { id, label } ) => ( {
+				value: String( id ),
+				label: String( label ),
+			} ) ),
+			filterBy: { operators: [ 'isAny' ] },
+			enableSorting: false,
+			getValue: ( { item } ) =>
+				termsForTaxonomy( item, 'post_tag' )
+					.map( term => term?.name )
+					.filter( Boolean )
+					.join( ', ' ),
+			render: renderTerms( 'post_tag' ),
 		},
 		{
 			id: 'public_page',

@@ -20,6 +20,10 @@ const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending', '
 const FIELD_TO_QUERY_PARAM = {
 	status: 'status',
 	author: 'author',
+	categories: 'categories',
+	tags: 'tags',
+	// `Newsletters_List_REST::filter_send_list_query` consumes this.
+	send_list: 'newspack_newsletters_send_list_id',
 	// `public_page` filter values are `'1'` / `'0'` (see `getFields`).
 	// `Newsletters_List_REST::filter_rest_query` consumes the same param.
 	public_page: 'newspack_newsletters_is_public',

@@ -22,12 +22,14 @@ use WP_Post;
  */
 class Newsletters_List_REST {
 	const IS_PUBLIC_QUERY_PARAM = 'newspack_newsletters_is_public';
+	const SEND_LIST_QUERY_PARAM = 'newspack_newsletters_send_list_id';
 
 	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
+		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		add_filter(
 			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
 			[ __CLASS__, 'filter_rest_query' ],
@@ -37,6 +39,12 @@ class Newsletters_List_REST {
 		add_filter(
 			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
 			[ __CLASS__, 'expand_scheduled_filter' ],
+			10,
+			2
+		);
+		add_filter(
+			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
+			[ __CLASS__, 'filter_send_list_query' ],
 			10,
 			2
 		);
@@ -170,6 +178,226 @@ class Newsletters_List_REST {
 		add_filter( 'posts_where', $callback, 10, 1 );
 
 		return $args;
+	}
+
+	/**
+	 * Narrow to newsletters whose `send_list_id` meta matches one of
+	 * the requested IDs. Accepts comma-separated string or array.
+	 *
+	 * @param array            $args    Query args being assembled.
+	 * @param \WP_REST_Request $request Incoming REST request.
+	 * @return array
+	 */
+	public static function filter_send_list_query( $args, $request ) {
+		$value = $request->get_param( self::SEND_LIST_QUERY_PARAM );
+		if ( null === $value || '' === $value ) {
+			return $args;
+		}
+
+		$raw = is_array( $value ) ? $value : explode( ',', (string) $value );
+		$ids = array_values(
+			array_filter(
+				array_map( 'trim', array_map( 'strval', $raw ) ),
+				static function ( $v ) {
+					return '' !== $v;
+				}
+			)
+		);
+		if ( empty( $ids ) ) {
+			return $args;
+		}
+
+		$clause = [
+			'key'     => 'send_list_id',
+			'value'   => $ids,
+			'compare' => 'IN',
+		];
+
+		if ( empty( $args['meta_query'] ) ) {
+			$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		}
+		$args['meta_query'][] = $clause; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+
+		return $args;
+	}
+
+	/**
+	 * Register the helper route that feeds the React list filter dropdowns.
+	 */
+	public static function register_rest_routes() {
+		register_rest_route(
+			'newspack-newsletters/v1',
+			'/newsletters-list/filter-options',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ __CLASS__, 'rest_get_filter_options' ],
+				'permission_callback' => [ __CLASS__, 'rest_filter_options_permission_check' ],
+			]
+		);
+	}
+
+	/**
+	 * Same cap a publisher needs to see the newsletters list itself.
+	 *
+	 * @return bool
+	 */
+	public static function rest_filter_options_permission_check() {
+		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( ! $cpt_object || empty( $cpt_object->cap->edit_posts ) ) {
+			return false;
+		}
+		return current_user_can( $cpt_object->cap->edit_posts );
+	}
+
+	/**
+	 * One-shot payload of every option list the React filter dropdowns
+	 * consume. Scoped to newsletters the current user can edit, so a
+	 * publisher without `edit_others_posts` only sees options derived
+	 * from their own rows — mirrors what the list itself shows.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public static function rest_get_filter_options() {
+		$user_scope = self::build_user_post_scope_sql();
+		return rest_ensure_response(
+			[
+				'authors'    => self::get_authors_used( $user_scope ),
+				'categories' => self::get_terms_used( 'category', $user_scope ),
+				'tags'       => self::get_terms_used( 'post_tag', $user_scope ),
+				'send_lists' => self::get_send_list_ids_used( $user_scope ),
+			]
+		);
+	}
+
+	/**
+	 * SQL fragment scoping a `wp_posts p` join to rows the current user
+	 * can edit — empty string for users with `edit_others_posts` (full
+	 * visibility), `AND p.post_author = <id>` otherwise.
+	 *
+	 * @return string
+	 */
+	private static function build_user_post_scope_sql() {
+		global $wpdb;
+		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( $cpt_object && current_user_can( $cpt_object->cap->edit_others_posts ) ) {
+			return '';
+		}
+		return $wpdb->prepare( ' AND p.post_author = %d', get_current_user_id() );
+	}
+
+	/**
+	 * Distinct authors of any non-auto-draft newsletter in scope.
+	 *
+	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
+	 * @return array<array{id: int, label: string}>
+	 */
+	private static function get_authors_used( $user_scope_sql = '' ) {
+		global $wpdb;
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$author_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT p.post_author
+				 FROM {$wpdb->posts} p
+				 WHERE p.post_type = %s
+				   AND p.post_status NOT IN ( 'auto-draft' )
+				   AND p.post_author <> 0" . $user_scope_sql,
+				$cpt
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$options = [];
+		foreach ( (array) $author_ids as $id ) {
+			$user = get_userdata( (int) $id );
+			if ( $user ) {
+				$options[] = [
+					'id'    => (int) $user->ID,
+					'label' => (string) $user->display_name,
+				];
+			}
+		}
+		usort(
+			$options,
+			static function ( $a, $b ) {
+				return strcasecmp( $a['label'], $b['label'] );
+			}
+		);
+		return $options;
+	}
+
+	/**
+	 * Distinct terms applied to any in-scope newsletter, in the given taxonomy.
+	 *
+	 * @param string $taxonomy       `category` or `post_tag`.
+	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
+	 * @return array<array{id: int, label: string}>
+	 */
+	private static function get_terms_used( $taxonomy, $user_scope_sql = '' ) {
+		global $wpdb;
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DISTINCT t.term_id AS id, t.name AS label
+				 FROM {$wpdb->term_relationships} tr
+				 INNER JOIN {$wpdb->posts} p ON p.ID = tr.object_id
+				 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+				 INNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+				 WHERE p.post_type = %s
+				   AND p.post_status NOT IN ( 'auto-draft' )
+				   AND tt.taxonomy = %s" . $user_scope_sql . '
+				 ORDER BY t.name ASC',
+				$cpt,
+				$taxonomy
+			),
+			ARRAY_A
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		return array_map(
+			static function ( $row ) {
+				return [
+					'id'    => (int) $row['id'],
+					'label' => (string) $row['label'],
+				];
+			},
+			$rows ? $rows : []
+		);
+	}
+
+	/**
+	 * Distinct non-empty `send_list_id` meta values across in-scope newsletters.
+	 * Friendly-name resolution is deferred (Known gaps); raw IDs ship.
+	 *
+	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
+	 * @return array<array{id: string, label: string}>
+	 */
+	private static function get_send_list_ids_used( $user_scope_sql = '' ) {
+		global $wpdb;
+		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT pm.meta_value
+				 FROM {$wpdb->postmeta} pm
+				 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+				 WHERE pm.meta_key = 'send_list_id'
+				   AND pm.meta_value <> ''
+				   AND p.post_type = %s
+				   AND p.post_status NOT IN ( 'auto-draft' )" . $user_scope_sql . '
+				 ORDER BY pm.meta_value ASC',
+				$cpt
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		return array_map(
+			static function ( $id ) {
+				return [
+					'id'    => (string) $id,
+					'label' => (string) $id,
+				];
+			},
+			$ids ? $ids : []
+		);
 	}
 
 	/**

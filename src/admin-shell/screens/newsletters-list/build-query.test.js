@@ -49,6 +49,32 @@ describe( 'buildQueryParams', () => {
 		expect( params.author ).toBe( '42' );
 	} );
 
+	it( 'joins multi-author selections with commas', () => {
+		const params = buildQueryParams( {
+			filters: [ { field: 'author', value: [ 42, 7 ] } ],
+		} );
+		expect( params.author ).toBe( '42,7' );
+	} );
+
+	it( 'maps categories / tags filters to the native term REST params', () => {
+		const cats = buildQueryParams( {
+			filters: [ { field: 'categories', value: [ 12, 34 ] } ],
+		} );
+		expect( cats.categories ).toBe( '12,34' );
+
+		const tags = buildQueryParams( {
+			filters: [ { field: 'tags', value: [ 5 ] } ],
+		} );
+		expect( tags.tags ).toBe( '5' );
+	} );
+
+	it( 'maps send_list filter to the custom REST param', () => {
+		const params = buildQueryParams( {
+			filters: [ { field: 'send_list', value: [ 'list-a', 'list-b' ] } ],
+		} );
+		expect( params.newspack_newsletters_send_list_id ).toBe( 'list-a,list-b' );
+	} );
+
 	it( 'maps public_page filter to the custom is_public REST query param', () => {
 		const yesParams = buildQueryParams( {
 			filters: [ { field: 'public_page', value: '1' } ],

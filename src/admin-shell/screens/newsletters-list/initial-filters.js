@@ -28,6 +28,14 @@ const ORDERBY_TO_SORT_FIELD = {
 	author: 'author',
 };
 
+// URL param → DataView filter field; mirrors build-query's reverse mapping.
+const URL_PARAM_TO_FILTER_FIELD = {
+	author: 'author',
+	categories: 'categories',
+	tags: 'tags',
+	newspack_newsletters_send_list_id: 'send_list',
+};
+
 /**
  * Read the current document URL and return DataViews-compatible
  * filters seeded from `post_status`. Returns `[]` when no recognised
@@ -38,17 +46,31 @@ const ORDERBY_TO_SORT_FIELD = {
  */
 export function getInitialFilters( search = typeof window === 'undefined' ? '' : window.location.search ) {
 	const params = new URLSearchParams( search );
+	const filters = [];
+
 	const postStatus = params.get( 'post_status' );
-	if ( ! postStatus ) {
-		return [];
+	if ( postStatus ) {
+		const value = POST_STATUS_TO_FILTER_VALUE[ postStatus ];
+		if ( value ) {
+			filters.push( { field: 'status', operator: 'isAny', value: [ value ] } );
+		}
 	}
 
-	const value = POST_STATUS_TO_FILTER_VALUE[ postStatus ];
-	if ( ! value ) {
-		return [];
+	for ( const [ urlParam, fieldId ] of Object.entries( URL_PARAM_TO_FILTER_FIELD ) ) {
+		const raw = params.get( urlParam );
+		if ( ! raw ) {
+			continue;
+		}
+		const values = raw
+			.split( ',' )
+			.map( v => v.trim() )
+			.filter( Boolean );
+		if ( values.length > 0 ) {
+			filters.push( { field: fieldId, operator: 'isAny', value: values } );
+		}
 	}
 
-	return [ { field: 'status', operator: 'isAny', value: [ value ] } ];
+	return filters;
 }
 
 /**
