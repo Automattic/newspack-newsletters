@@ -242,17 +242,34 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 
 .newspack-newsletters-layouts-list {
 	&__preview {
-		background: wp-colors.$white;
-		border-radius: wp-vars.$grid-unit-05;
-		// `aspect-ratio: 1` + `clip-path` together hug the BlockPreview
-		// iframe (positioned absolutely inside a transformed ancestor)
-		// so it doesn't overflow the card; `box-shadow: inset` draws the
-		// hairline inside the clip path.
 		aspect-ratio: 1;
-		box-shadow: inset 0 0 0 1px wp-colors.$gray-200;
-		clip-path: inset(0 round wp-vars.$grid-unit-05);
+		background: wp-colors.$white;
+		border: 1px solid wp-colors.$gray-200;
+		border-radius: wp-vars.$grid-unit-05;
+		box-sizing: border-box;
 		overflow: hidden;
 		position: relative;
+
+		// Admin pages don't enqueue `wp-block-editor` styles; inline the
+		// minimum BlockPreview rules so the scaled iframe anchors top-left.
+		.block-editor-block-preview__content {
+			left: 0;
+			margin: 0;
+			min-height: auto;
+			overflow: visible;
+			top: 0;
+			transform-origin: top left;
+			width: 100%;
+		}
+
+		.block-editor-iframe__container {
+			height: 100%;
+			width: 100%;
+		}
+
+		.block-editor-iframe__scale-container {
+			height: 100%;
+		}
 
 		&--empty {
 			align-items: center;
