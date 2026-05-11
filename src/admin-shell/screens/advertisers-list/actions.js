@@ -12,19 +12,10 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
+
+import { notifyError, notifySuccess } from '../../notices';
 
 const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
-
-function notify( message, type = 'success' ) {
-	const noticeApi = dispatch( noticesStore );
-	if ( 'error' === type ) {
-		noticeApi.createErrorNotice( message );
-	} else {
-		noticeApi.createSuccessNotice( message );
-	}
-}
 
 const deleteOne = id => apiFetch( { path: `${ TAXONOMY_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
@@ -109,15 +100,14 @@ export function getActions( { onEdit, onMutated } ) {
 					// fail server-side if picked as a parent.
 					onMutated();
 					if ( failed.length === 0 ) {
-						notify( _n( 'Advertiser deleted.', 'Advertisers deleted.', list.length, 'newspack-newsletters' ) );
+						notifySuccess( _n( 'Advertiser deleted.', 'Advertisers deleted.', list.length, 'newspack-newsletters' ) );
 					} else {
-						notify(
+						notifyError(
 							sprintf(
 								/* translators: %d: number that failed */
 								__( 'Failed to delete %d advertiser(s). Please try again.', 'newspack-newsletters' ),
 								failed.length
-							),
-							'error'
+							)
 						);
 					}
 				} }

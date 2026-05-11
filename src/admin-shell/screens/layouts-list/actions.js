@@ -6,21 +6,11 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
 import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
+import { notifyError, notifySuccess } from '../../notices';
 
 const COLLECTION_PATH = `/wp/v2/${ LAYOUT_CPT_SLUG }`;
-
-function notify( message, type = 'success' ) {
-	const noticeApi = dispatch( noticesStore );
-	if ( 'error' === type ) {
-		noticeApi.createErrorNotice( message );
-	} else {
-		noticeApi.createSuccessNotice( message );
-	}
-}
 
 function buildEditUrl( item ) {
 	const adminUrl = window.newspackNewslettersAdmin?.adminUrl || '/wp-admin/';
@@ -128,9 +118,9 @@ export function getActions( { onRenameStart, onMutated } ) {
 			try {
 				await duplicateOne( item );
 				onMutated();
-				notify( __( 'Layout duplicated.', 'newspack-newsletters' ) );
+				notifySuccess( __( 'Layout duplicated.', 'newspack-newsletters' ) );
 			} catch ( error ) {
-				notify( __( 'Failed to duplicate layout.', 'newspack-newsletters' ), 'error' );
+				notifyError( __( 'Failed to duplicate layout.', 'newspack-newsletters' ) );
 			}
 		},
 	};
@@ -169,15 +159,14 @@ export function getActions( { onRenameStart, onMutated } ) {
 					);
 					onMutated();
 					if ( failed.length === 0 ) {
-						notify( _n( 'Layout deleted.', 'Layouts deleted.', list.length, 'newspack-newsletters' ) );
+						notifySuccess( _n( 'Layout deleted.', 'Layouts deleted.', list.length, 'newspack-newsletters' ) );
 					} else {
-						notify(
+						notifyError(
 							sprintf(
 								/* translators: %d: number that failed */
 								__( 'Failed to delete %d layout(s). Please try again.', 'newspack-newsletters' ),
 								failed.length
-							),
-							'error'
+							)
 						);
 					}
 				} }

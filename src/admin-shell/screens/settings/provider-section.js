@@ -8,10 +8,9 @@ import {
 	TextControl,
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
-import { dispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
-import { store as noticesStore } from '@wordpress/notices';
 
+import { notifyError } from '../../notices';
 import { getProviderCredentialFields } from './provider-credentials-schema';
 
 export default function ProviderSection( {
@@ -46,10 +45,7 @@ export default function ProviderSection( {
 		// OAuth provider.
 		const authWindow = window.open( 'about:blank', 'newspack_newsletters_oauth', 'width=500,height=600' );
 		if ( ! authWindow ) {
-			dispatch( noticesStore ).createErrorNotice(
-				__( 'Could not open the authorisation window. Allow popups for this site and try again.', 'newspack-newsletters' ),
-				{ type: 'snackbar', explicitDismiss: true }
-			);
+			notifyError( __( 'Could not open the authorisation window. Allow popups for this site and try again.', 'newspack-newsletters' ) );
 			return;
 		}
 		let verified = false;

@@ -12,22 +12,12 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
 import { getAdminUrl } from '../../admin-globals';
+import { notifyError, notifySuccess } from '../../notices';
 import { isTrashed } from './status-label';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_ads_cpt';
-
-function notify( message, type = 'success' ) {
-	const noticeApi = dispatch( noticesStore );
-	if ( 'error' === type ) {
-		noticeApi.createErrorNotice( message );
-	} else {
-		noticeApi.createSuccessNotice( message );
-	}
-}
 
 const trashOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }`, method: 'DELETE' } );
 
@@ -124,15 +114,14 @@ export function getActions( { refresh } ) {
 					);
 					refresh();
 					if ( failed.length === 0 ) {
-						notify( _n( 'Ad moved to trash.', 'Ads moved to trash.', list.length, 'newspack-newsletters' ) );
+						notifySuccess( _n( 'Ad moved to trash.', 'Ads moved to trash.', list.length, 'newspack-newsletters' ) );
 					} else {
-						notify(
+						notifyError(
 							sprintf(
 								/* translators: %d: number that failed */
 								__( 'Failed to trash %d ad(s). Please try again.', 'newspack-newsletters' ),
 								failed.length
-							),
-							'error'
+							)
 						);
 					}
 				} }
@@ -160,15 +149,14 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Ad restored.', 'Ads restored.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess( _n( 'Ad restored.', 'Ads restored.', eligible.length, 'newspack-newsletters' ) );
 			} else {
-				notify(
+				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
 						__( 'Failed to restore %d ad(s).', 'newspack-newsletters' ),
 						failed.length
-					),
-					'error'
+					)
 				);
 			}
 		},
@@ -208,15 +196,14 @@ export function getActions( { refresh } ) {
 					);
 					refresh();
 					if ( failed.length === 0 ) {
-						notify( _n( 'Ad deleted.', 'Ads deleted.', list.length, 'newspack-newsletters' ) );
+						notifySuccess( _n( 'Ad deleted.', 'Ads deleted.', list.length, 'newspack-newsletters' ) );
 					} else {
-						notify(
+						notifyError(
 							sprintf(
 								/* translators: %d: number that failed */
 								__( 'Failed to delete %d ad(s).', 'newspack-newsletters' ),
 								failed.length
-							),
-							'error'
+							)
 						);
 					}
 				} }

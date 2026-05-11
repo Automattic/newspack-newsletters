@@ -6,9 +6,8 @@ import {
 } from '@wordpress/components';
 import { useCallback, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
+import { notifyError, notifySuccess } from '../../notices';
 import ListsSection from './lists-section';
 import OptionsSection from './options-section';
 import ProviderSection from './provider-section';
@@ -89,13 +88,13 @@ export default function SettingsScreen() {
 		setIsSaving( true );
 		try {
 			await saveSettings( payload );
-			dispatch( noticesStore ).createSuccessNotice( __( 'Settings saved.', 'newspack-newsletters' ), { type: 'snackbar' } );
+			notifySuccess( __( 'Settings saved.', 'newspack-newsletters' ) );
 			if ( payload.provider ) {
 				reloadLists();
 			}
 		} catch ( err ) {
 			const message = err?.message || __( 'Could not save settings. Check the credentials and try again.', 'newspack-newsletters' );
-			dispatch( noticesStore ).createErrorNotice( message, { type: 'snackbar', explicitDismiss: true } );
+			notifyError( message );
 		} finally {
 			setIsSaving( false );
 		}

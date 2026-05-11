@@ -8,11 +8,10 @@ import { registerCoreBlocks } from '@wordpress/block-library';
 import { DataViews } from '@wordpress/dataviews/wp';
 import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
 import { getAdminUrl } from '../../admin-globals';
 import { useHeaderActions } from '../../header-actions-context';
+import { notifyError, notifySuccess } from '../../notices';
 import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
 import useLayoutsData from './use-layouts-data';
 import usePrebuiltLayouts from './use-prebuilt-layouts';
@@ -206,9 +205,9 @@ export default function LayoutsListScreen() {
 				await renameLayout( item.id, nextTitle );
 				setRenamingId( null );
 				onMutated();
-				dispatch( noticesStore ).createSuccessNotice( __( 'Layout renamed.', 'newspack-newsletters' ) );
+				notifySuccess( __( 'Layout renamed.', 'newspack-newsletters' ) );
 			} catch ( error ) {
-				dispatch( noticesStore ).createErrorNotice( __( 'Failed to rename layout.', 'newspack-newsletters' ) );
+				notifyError( __( 'Failed to rename layout.', 'newspack-newsletters' ) );
 				throw error;
 			}
 		},

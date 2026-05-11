@@ -9,11 +9,10 @@ import {
 	Notice,
 	ToggleControl,
 } from '@wordpress/components';
-import { dispatch } from '@wordpress/data';
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { store as noticesStore } from '@wordpress/notices';
 
+import { notifyError } from '../../notices';
 import LocalListDeleteModal from './local-list-delete-modal';
 import LocalListModal from './local-list-modal';
 
@@ -41,10 +40,7 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 			}
 			setPendingDelete( null );
 		} catch ( err ) {
-			dispatch( noticesStore ).createErrorNotice( err?.message || __( 'Could not delete the local list.', 'newspack-newsletters' ), {
-				type: 'snackbar',
-				explicitDismiss: true,
-			} );
+			notifyError( err?.message || __( 'Could not delete the local list.', 'newspack-newsletters' ) );
 			setPendingDelete( null );
 		} finally {
 			setDeletingId( null );
@@ -55,10 +51,7 @@ export default function ListsSection( { lists, isLoading, error, canAddLocal, on
 		try {
 			await onPatchList( list.db_id, { active: next } );
 		} catch ( err ) {
-			dispatch( noticesStore ).createErrorNotice( err?.message || __( 'Could not update the subscription list.', 'newspack-newsletters' ), {
-				type: 'snackbar',
-				explicitDismiss: true,
-			} );
+			notifyError( err?.message || __( 'Could not update the subscription list.', 'newspack-newsletters' ) );
 		}
 	};
 

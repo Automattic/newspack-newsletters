@@ -15,8 +15,8 @@
 import apiFetch from '@wordpress/api-fetch';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
+
+import { notifyError } from '../../notices';
 
 const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
 
@@ -101,7 +101,7 @@ export default function useAdvertisersData( view, mutationKey = 0 ) {
 				// prevents `isStrictEmpty` from spuriously rendering
 				// the onboarding EmptyState — the failure surfaces via
 				// the error notice instead.
-				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load advertisers. Please refresh the page.', 'newspack-newsletters' ), {
+				notifyError( __( 'Failed to load advertisers. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-advertisers-list-fetch-error',
 				} );
 			} )
