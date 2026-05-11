@@ -879,19 +879,80 @@ class Ads_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Default sort is suppressed and `meta_key` is never set on the
-	 * args — sort lands via a posts_clauses LEFT JOIN, so a top-level
-	 * `meta_key` would inner-join rows missing that key out.
+	 * Each token encodes meta_key / is_num / order on a per-call query var.
 	 */
-	public function test_translate_virtual_orderby_suppresses_default_sort_and_omits_meta_key() {
-		foreach ( [ 'start_date', 'expiry_date', 'price', 'impressions', 'clicks' ] as $token ) {
+	public function test_translate_virtual_orderby_encodes_sort_on_query_var() {
+		$expectations = [
+			'start_date'  => [
+				'meta_key' => 'start_date',
+				'is_num'   => false,
+			],
+			'expiry_date' => [
+				'meta_key' => 'expiry_date',
+				'is_num'   => false,
+			],
+			'price'       => [
+				'meta_key' => 'price',
+				'is_num'   => true,
+			],
+			'impressions' => [
+				'meta_key' => 'tracking_impressions',
+				'is_num'   => true,
+			],
+			'clicks'      => [
+				'meta_key' => 'tracking_clicks',
+				'is_num'   => true,
+			],
+		];
+
+		foreach ( $expectations as $token => $expected ) {
 			$args = Ads_List_REST::translate_virtual_orderby(
-				[ 'orderby' => $token ],
+				[
+					'orderby' => $token,
+					'order'   => 'asc',
+				],
 				$this->rest_request( [] )
 			);
 			$this->assertSame( 'none', $args['orderby'], sprintf( '%s should suppress default sort', $token ) );
 			$this->assertArrayNotHasKey( 'meta_key', $args, sprintf( '%s should not set meta_key', $token ) );
+			$sort = $args[ Ads_List_REST::META_SORT_QUERY_VAR ];
+			$this->assertSame( $expected['meta_key'], $sort['meta_key'], sprintf( '%s should encode meta_key', $token ) );
+			$this->assertSame( $expected['is_num'], $sort['is_num'], sprintf( '%s should encode is_num', $token ) );
+			$this->assertSame( 'ASC', $sort['order'], sprintf( '%s should encode order', $token ) );
 		}
+	}
+
+	/**
+	 * Repeat calls must not register new posts_clauses callbacks —
+	 * the sort lives on the query var, not in module-level filter state.
+	 */
+	public function test_translate_virtual_orderby_does_not_accumulate_filter_state() {
+		$before = isset( $GLOBALS['wp_filter']['posts_clauses'] ) ? count( $GLOBALS['wp_filter']['posts_clauses']->callbacks[10] ?? [] ) : 0;
+
+		Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'impressions',
+				'order'   => 'desc',
+			],
+			$this->rest_request( [] )
+		);
+		Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'price',
+				'order'   => 'asc',
+			],
+			$this->rest_request( [] )
+		);
+		Ads_List_REST::translate_virtual_orderby(
+			[
+				'orderby' => 'start_date',
+				'order'   => 'desc',
+			],
+			$this->rest_request( [] )
+		);
+
+		$after = count( $GLOBALS['wp_filter']['posts_clauses']->callbacks[10] ?? [] );
+		$this->assertSame( $before, $after );
 	}
 
 	/**

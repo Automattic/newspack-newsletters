@@ -33,8 +33,8 @@ const FIELD_TO_QUERY_PARAM = {
 	ad_placement: 'ad_placement',
 };
 
-// Meta-backed values are virtual tokens; the server rewrites them
-// to `meta_key` + `orderby=meta_value[_num]`.
+// Meta-backed values are virtual tokens; the server applies the
+// sort via a posts_clauses LEFT JOIN on the underlying meta key.
 const SORT_FIELD_TO_ORDERBY = {
 	title: 'title',
 	date: 'date',

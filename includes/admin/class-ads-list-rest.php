@@ -45,11 +45,12 @@ class Ads_List_REST {
 			20,
 			2
 		);
+		add_filter( 'posts_clauses', [ __CLASS__, 'apply_meta_sort_clauses' ], 10, 2 );
 	}
 
 	/**
-	 * Virtual REST orderby tokens → underlying WP_Query meta args.
-	 * Mirrors the classic-admin `Ads::handle_sorting` translation.
+	 * Virtual REST orderby tokens. Applied via posts_clauses LEFT JOIN
+	 * in `apply_meta_sort_clauses`, not WP_Query meta args.
 	 */
 	const VIRTUAL_ORDERBY_TOKENS = [
 		'start_date'  => [
@@ -249,9 +250,12 @@ class Ads_List_REST {
 	}
 
 	/**
-	 * Rewrite a virtual orderby token via a LEFT JOIN. Plain `meta_key`
-	 * + `orderby=meta_value*` inner-joins postmeta and drops rows that
-	 * never wrote the key (fresh ads, ads with zero tracking activity).
+	 * Query var carrying meta-sort intent through to apply_meta_sort_clauses.
+	 */
+	const META_SORT_QUERY_VAR = 'newspack_ads_meta_sort';
+
+	/**
+	 * Stash meta-sort intent on the query args.
 	 *
 	 * @param array            $args    Prepared WP_Query args.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -263,31 +267,44 @@ class Ads_List_REST {
 		if ( ! is_string( $orderby ) || ! isset( self::VIRTUAL_ORDERBY_TOKENS[ $orderby ] ) ) {
 			return $args;
 		}
-		$mapping  = self::VIRTUAL_ORDERBY_TOKENS[ $orderby ];
-		$meta_key = $mapping['meta_key'];
-		$is_num   = ( 'meta_value_num' === $mapping['orderby'] );
-		$order    = ( isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ) ? 'ASC' : 'DESC';
+		$mapping = self::VIRTUAL_ORDERBY_TOKENS[ $orderby ];
 
 		$args['orderby'] = 'none';
-
-		$callback = static function ( $clauses, $query ) use ( &$callback, $meta_key, $is_num, $order ) {
-			if ( ! ( $query instanceof \WP_Query ) || Ads::CPT !== $query->get( 'post_type' ) ) {
-				return $clauses;
-			}
-			global $wpdb;
-			$clauses['join'] .= $wpdb->prepare(
-				" LEFT JOIN {$wpdb->postmeta} AS newspack_sort_meta ON newspack_sort_meta.post_id = {$wpdb->posts}.ID AND newspack_sort_meta.meta_key = %s",
-				$meta_key
-			);
-			// `+ 0` coerces to DOUBLE so decimal prices don't truncate (matches WP_Query's meta_value_num).
-			$value_expr = $is_num ? 'newspack_sort_meta.meta_value + 0' : 'newspack_sort_meta.meta_value'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			$clauses['orderby'] = $value_expr . ' ' . $order . ", {$wpdb->posts}.ID DESC";
-			remove_filter( 'posts_clauses', $callback, 10 );
-			return $clauses;
-		};
-		add_filter( 'posts_clauses', $callback, 10, 2 );
+		$args[ self::META_SORT_QUERY_VAR ] = [
+			'meta_key' => $mapping['meta_key'],
+			'is_num'   => ( 'meta_value_num' === $mapping['orderby'] ),
+			'order'    => ( isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ) ? 'ASC' : 'DESC',
+		];
 
 		return $args;
+	}
+
+	/**
+	 * LEFT JOIN postmeta and order by it so rows missing the sorted key
+	 * still appear (a plain meta_key would inner-join them out).
+	 *
+	 * @param array     $clauses WP_Query SQL clauses.
+	 * @param \WP_Query $query   The WP_Query running the SQL.
+	 * @return array
+	 */
+	public static function apply_meta_sort_clauses( $clauses, $query ) {
+		if ( ! ( $query instanceof \WP_Query ) || Ads::CPT !== $query->get( 'post_type' ) ) {
+			return $clauses;
+		}
+		$sort = $query->get( self::META_SORT_QUERY_VAR );
+		if ( ! is_array( $sort ) || empty( $sort['meta_key'] ) ) {
+			return $clauses;
+		}
+		global $wpdb;
+		$clauses['join'] .= $wpdb->prepare(
+			" LEFT JOIN {$wpdb->postmeta} AS newspack_sort_meta ON newspack_sort_meta.post_id = {$wpdb->posts}.ID AND newspack_sort_meta.meta_key = %s",
+			$sort['meta_key']
+		);
+		// `+ 0` coerces to DOUBLE so decimal prices don't truncate (matches WP_Query's meta_value_num).
+		$value_expr = ! empty( $sort['is_num'] ) ? 'newspack_sort_meta.meta_value + 0' : 'newspack_sort_meta.meta_value'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		$order = ( isset( $sort['order'] ) && 'ASC' === $sort['order'] ) ? 'ASC' : 'DESC';
+		$clauses['orderby'] = $value_expr . ' ' . $order . ", {$wpdb->posts}.ID DESC";
+		return $clauses;
 	}
 
 	/**
