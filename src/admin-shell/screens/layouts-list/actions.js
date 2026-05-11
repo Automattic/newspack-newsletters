@@ -3,7 +3,11 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { Button } from '@wordpress/components';
+import {
+	Button,
+	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
@@ -19,31 +23,54 @@ function buildEditUrl( item ) {
 
 const deleteOne = id => apiFetch( { path: `${ COLLECTION_PATH }/${ id }?force=true`, method: 'DELETE' } );
 
-async function duplicateOne( item ) {
+function copyTitle( source ) {
+	const sourceTitle = source?.title?.raw ?? source?.title?.rendered ?? __( 'Untitled', 'newspack-newsletters' );
+	return sprintf(
+		/* translators: %s: original layout title */
+		__( 'Copy of %s', 'newspack-newsletters' ),
+		sourceTitle
+	);
+}
+
+// Synthetic `prebuilt-<n>` id has no REST counterpart, so the copy is
+// built from the in-memory item; status=draft so the user can review.
+async function duplicatePrebuilt( item ) {
+	return apiFetch( {
+		path: COLLECTION_PATH,
+		method: 'POST',
+		data: {
+			status: 'draft',
+			title: copyTitle( item ),
+			content: item?.content?.raw ?? '',
+		},
+	} );
+}
+
+async function duplicateSaved( item ) {
 	// Re-fetch in `context=edit` so the duplicate is robust against
 	// future callers passing a leaner item shape than the list payload.
 	const source = await apiFetch( { path: `${ COLLECTION_PATH }/${ item.id }?context=edit` } );
-	const sourceTitle = source?.title?.raw ?? source?.title?.rendered ?? __( 'Untitled', 'newspack-newsletters' );
-	const payload = {
-		status: 'publish',
-		title: sprintf(
-			/* translators: %s: original layout title */
-			__( 'Copy of %s', 'newspack-newsletters' ),
-			sourceTitle
-		),
-		content: source?.content?.raw ?? '',
-		meta: {
-			font_header: source?.meta?.font_header ?? '',
-			font_body: source?.meta?.font_body ?? '',
-			background_color: source?.meta?.background_color ?? '',
-			text_color: source?.meta?.text_color ?? '',
-			custom_css: source?.meta?.custom_css ?? '',
-			campaign_defaults: source?.meta?.campaign_defaults ?? '',
-			disable_auto_ads: !! source?.meta?.disable_auto_ads,
+	return apiFetch( {
+		path: COLLECTION_PATH,
+		method: 'POST',
+		data: {
+			status: 'publish',
+			title: copyTitle( source ),
+			content: source?.content?.raw ?? '',
+			meta: {
+				font_header: source?.meta?.font_header ?? '',
+				font_body: source?.meta?.font_body ?? '',
+				background_color: source?.meta?.background_color ?? '',
+				text_color: source?.meta?.text_color ?? '',
+				custom_css: source?.meta?.custom_css ?? '',
+				campaign_defaults: source?.meta?.campaign_defaults ?? '',
+				disable_auto_ads: !! source?.meta?.disable_auto_ads,
+			},
 		},
-	};
-	return apiFetch( { path: COLLECTION_PATH, method: 'POST', data: payload } );
+	} );
 }
+
+const duplicateOne = item => ( item?.is_prebuilt ? duplicatePrebuilt( item ) : duplicateSaved( item ) );
 
 function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 	const [ isBusy, setIsBusy ] = useState( false );
@@ -59,9 +86,9 @@ function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 	);
 
 	return (
-		<div>
-			<p>{ question }</p>
-			<div style={ { display: 'flex', gap: '8px', justifyContent: 'flex-end' } }>
+		<VStack spacing={ 4 }>
+			<p style={ { margin: 0 } }>{ question }</p>
+			<HStack justify="flex-end" spacing={ 2 }>
 				<Button variant="tertiary" onClick={ closeModal } disabled={ isBusy }>
 					{ __( 'Cancel', 'newspack-newsletters' ) }
 				</Button>
@@ -82,8 +109,8 @@ function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
 				>
 					{ isBusy ? __( 'Deleting…', 'newspack-newsletters' ) : __( 'Delete permanently', 'newspack-newsletters' ) }
 				</Button>
-			</div>
-		</div>
+			</HStack>
+		</VStack>
 	);
 }
 
@@ -109,7 +136,6 @@ export function getActions( { onRenameStart, onMutated } ) {
 	const duplicateAction = {
 		id: 'duplicate',
 		label: __( 'Duplicate', 'newspack-newsletters' ),
-		isEligible: isUserOwned,
 		callback: async items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -144,6 +170,7 @@ export function getActions( { onRenameStart, onMutated } ) {
 		isDestructive: true,
 		supportsBulk: true,
 		isEligible: isUserOwned,
+		modalSize: 'small',
 		RenderModal: ( { items, closeModal } ) => (
 			<ConfirmDeleteModal
 				items={ items }

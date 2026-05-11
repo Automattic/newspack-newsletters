@@ -7,7 +7,7 @@ import { Icon, TextControl } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { dateI18n, getDate, getSettings } from '@wordpress/date';
 import { __ } from '@wordpress/i18n';
-import { commentAuthorAvatar, lock, plugins } from '@wordpress/icons';
+import { commentAuthorAvatar, plugins } from '@wordpress/icons';
 import { ENTER, ESCAPE } from '@wordpress/keycodes';
 
 import NewsletterPreview from '../../../components/newsletter-preview';
@@ -114,19 +114,6 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 			return <RenamingTitle item={ item } onCommit={ next => onRenameCommit?.( item, next ) } onCancel={ () => onRenameCancel?.() } />;
 		}
 		const label = getRawTitle( item ) || __( '(no title)', 'newspack-newsletters' );
-		if ( item?.is_prebuilt ) {
-			return (
-				<span className="newspack-newsletters-layouts-list__title">
-					<strong>{ label }</strong>
-					<Icon
-						className="newspack-newsletters-layouts-list__lock-icon"
-						icon={ lock }
-						size={ 16 }
-						aria-label={ __( 'Locked: bundled with the plugin', 'newspack-newsletters' ) }
-					/>
-				</span>
-			);
-		}
 		return <strong>{ label }</strong>;
 	};
 

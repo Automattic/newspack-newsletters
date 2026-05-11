@@ -1,10 +1,12 @@
 /**
  * Layouts list screen — React DataView managing prebuilt + user-saved
- * layouts. Prebuilts are passive (lock icon, no actions or selection).
+ * layouts. Prebuilts surface only Duplicate; other actions filter out
+ * via the row-level `isUserOwned` gate in `actions.js`.
  */
 
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
 import { registerCoreBlocks } from '@wordpress/block-library';
+import { Spinner } from '@wordpress/components';
 import { DataViews } from '@wordpress/dataviews/wp';
 import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -44,9 +46,9 @@ function ensureCoreBlocksRegistered() {
 const DEFAULT_VIEW = {
 	type: 'grid',
 	page: 1,
-	// Lower than the chassis default — each card mounts a BlockPreview
-	// iframe; 25 stutters on first paint even with `LazyPreview`.
-	perPage: 12,
+	// Each card mounts a BlockPreview iframe; 24 sits just under the
+	// ~25 threshold where first paint stutters even with `LazyPreview`.
+	perPage: 24,
 	sort: { field: 'modified', direction: 'desc' },
 	search: '',
 	filters: [],
@@ -135,7 +137,12 @@ export default function LayoutsListScreen() {
 		return baseView;
 	}, [ view, showSaved, couldRideAlong, isPrebuiltLoading, ridingAlong, firstPageSavedSlots, restrictedAuthorIds ] );
 
-	const { data: savedData, paginationInfo: savedPagination, isLoading } = useLayoutsData( savedView, mutationKey );
+	const {
+		data: savedData,
+		paginationInfo: savedPagination,
+		isLoading,
+		hasLoadedOnce: savedHasLoadedOnce,
+	} = useLayoutsData( savedView, mutationKey );
 
 	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
 	const filteredSaved = showSaved ? savedData : [];
@@ -232,6 +239,28 @@ export default function LayoutsListScreen() {
 			[]
 		)
 	);
+
+	// Gate on `savedHasLoadedOnce`, not `! isLoading` — the latter is
+	// momentarily false between prebuilts resolving and the saved fetch
+	// starting, which would flash the grid before its data arrives.
+	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
+	useEffect( () => {
+		if ( hasLoadedOnce || isPrebuiltLoading ) {
+			return;
+		}
+		if ( showSaved && ! savedHasLoadedOnce ) {
+			return;
+		}
+		setHasLoadedOnce( true );
+	}, [ hasLoadedOnce, isPrebuiltLoading, showSaved, savedHasLoadedOnce ] );
+
+	if ( ! hasLoadedOnce ) {
+		return (
+			<div className="newspack-newsletters-admin__loading">
+				<Spinner />
+			</div>
+		);
+	}
 
 	return (
 		<DataViews

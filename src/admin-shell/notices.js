@@ -1,6 +1,6 @@
 // <ShellNotices> in app.js only renders `type: 'snackbar'` entries — plain
-// dispatches are silently dropped. Errors default to explicitDismiss so the
-// aria-live announcement isn't auto-dismissed before it can be read.
+// dispatches are silently dropped. Both kinds auto-dismiss with no close
+// button; callers wanting a persistent error pass `explicitDismiss: true`.
 import { dispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
@@ -9,5 +9,5 @@ export function notifySuccess( message, options = {} ) {
 }
 
 export function notifyError( message, options = {} ) {
-	dispatch( noticesStore ).createErrorNotice( message, { explicitDismiss: true, ...options, type: 'snackbar' } );
+	dispatch( noticesStore ).createErrorNotice( message, { ...options, type: 'snackbar' } );
 }

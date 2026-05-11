@@ -61,8 +61,8 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 	const [ data, setData ] = useState( [] );
 	const [ paginationInfo, setPaginationInfo ] = useState( { totalItems: 0, totalPages: 0 } );
 	const [ isLoading, setIsLoading ] = useState( true );
-	// Distinguishes "still fetching" from "really empty" so the screen
-	// doesn't flash an empty grid on first paint.
+	// Only flips on real fetch resolution — null-view ticks don't latch
+	// it, so callers can gate an initial spinner without flickering.
 	const [ hasLoadedOnce, setHasLoadedOnce ] = useState( false );
 
 	useEffect( () => {
@@ -70,7 +70,6 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 			setData( [] );
 			setPaginationInfo( { totalItems: 0, totalPages: 0 } );
 			setIsLoading( false );
-			setHasLoadedOnce( true );
 			return undefined;
 		}
 		let cancelled = false;

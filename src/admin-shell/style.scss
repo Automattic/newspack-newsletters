@@ -161,6 +161,25 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 		justify-content: center;
 		min-height: 200px;
 	}
+
+	// Viewport-centred; flex+`width: auto` overrides SnackbarList's
+	// default `width: 100%` so the chip centres instead of left-pinning.
+	&__notices {
+		align-items: center;
+		bottom: wp-vars.$grid-unit-15;
+		display: flex;
+		flex-direction: column;
+		gap: wp-vars.$grid-unit-10;
+		left: 50%;
+		position: fixed;
+		transform: translateX(-50%);
+		width: auto;
+		z-index: 100000;
+
+		> * {
+			width: auto;
+		}
+	}
 }
 
 .newspack-newsletters-settings {
@@ -277,34 +296,8 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 			color: wp-colors.$gray-700;
 			display: flex;
 			justify-content: center;
-			min-height: 320px;
 		}
 	}
 
-	&__title {
-		align-items: center;
-		display: flex;
-		gap: wp-vars.$grid-unit-10;
-		width: 100%;
-	}
-
-	&__lock-icon {
-		fill: currentcolor;
-		margin-left: auto;
-	}
-
-	// Prebuilt rows are passive: hide actions + selection, let the lock
-	// icon sit flush right. `:has()` scopes to cards rendering the lock
-	// without a per-row class hook.
-	.dataviews-view-grid__card:has(&__lock-icon) {
-		.dataviews-all-actions-button,
-		.dataviews-selection-checkbox {
-			display: none;
-		}
-
-		.dataviews-view-grid__title-field {
-			flex: 1;
-		}
-	}
 }
 
