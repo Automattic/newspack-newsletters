@@ -12,22 +12,12 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
 import { getAdminUrl } from '../../admin-globals';
+import { notifyError, notifySuccess } from '../../notices';
 import { isTrashed } from './status-label';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
-
-function notify( message, type = 'success' ) {
-	const noticeApi = dispatch( noticesStore );
-	if ( 'error' === type ) {
-		noticeApi.createErrorNotice( message );
-	} else {
-		noticeApi.createSuccessNotice( message );
-	}
-}
 
 const trashOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }`, method: 'DELETE' } );
 
@@ -161,15 +151,14 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter page made public.', 'Newsletter pages made public.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess( _n( 'Newsletter page made public.', 'Newsletter pages made public.', eligible.length, 'newspack-newsletters' ) );
 			} else {
-				notify(
+				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
 						__( 'Failed to make %d newsletter page(s) public.', 'newspack-newsletters' ),
 						failed.length
-					),
-					'error'
+					)
 				);
 			}
 		},
@@ -195,15 +184,16 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess(
+					_n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', eligible.length, 'newspack-newsletters' )
+				);
 			} else {
-				notify(
+				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
 						__( 'Failed to make %d newsletter page(s) non-public.', 'newspack-newsletters' ),
 						failed.length
-					),
-					'error'
+					)
 				);
 			}
 		},
@@ -243,15 +233,14 @@ export function getActions( { refresh } ) {
 					);
 					refresh();
 					if ( failed.length === 0 ) {
-						notify( _n( 'Newsletter moved to trash.', 'Newsletters moved to trash.', list.length, 'newspack-newsletters' ) );
+						notifySuccess( _n( 'Newsletter moved to trash.', 'Newsletters moved to trash.', list.length, 'newspack-newsletters' ) );
 					} else {
-						notify(
+						notifyError(
 							sprintf(
 								/* translators: %d: number that failed */
 								__( 'Failed to trash %d newsletter(s). Please try again.', 'newspack-newsletters' ),
 								failed.length
-							),
-							'error'
+							)
 						);
 					}
 				} }
@@ -279,15 +268,14 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notify( _n( 'Newsletter restored.', 'Newsletters restored.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess( _n( 'Newsletter restored.', 'Newsletters restored.', eligible.length, 'newspack-newsletters' ) );
 			} else {
-				notify(
+				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
 						__( 'Failed to restore %d newsletter(s).', 'newspack-newsletters' ),
 						failed.length
-					),
-					'error'
+					)
 				);
 			}
 		},
@@ -327,15 +315,14 @@ export function getActions( { refresh } ) {
 					);
 					refresh();
 					if ( failed.length === 0 ) {
-						notify( _n( 'Newsletter deleted.', 'Newsletters deleted.', list.length, 'newspack-newsletters' ) );
+						notifySuccess( _n( 'Newsletter deleted.', 'Newsletters deleted.', list.length, 'newspack-newsletters' ) );
 					} else {
-						notify(
+						notifyError(
 							sprintf(
 								/* translators: %d: number that failed */
 								__( 'Failed to delete %d newsletter(s).', 'newspack-newsletters' ),
 								failed.length
-							),
-							'error'
+							)
 						);
 					}
 				} }

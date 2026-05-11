@@ -6,10 +6,9 @@
 import apiFetch from '@wordpress/api-fetch';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
 import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
+import { notifyError } from '../../notices';
 
 const COLLECTION_PATH = `/wp/v2/${ LAYOUT_CPT_SLUG }`;
 
@@ -93,7 +92,7 @@ export default function useLayoutsData( view, mutationKey = 0 ) {
 				}
 				// Preserve the last good page on failure — a transient
 				// network error shouldn't blank the screen.
-				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load layouts. Please refresh the page.', 'newspack-newsletters' ), {
+				notifyError( __( 'Failed to load layouts. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-layouts-list-fetch-error',
 				} );
 			} )

@@ -10,9 +10,8 @@
 import apiFetch from '@wordpress/api-fetch';
 import { useCallback, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { dispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
 
+import { notifyError } from '../../notices';
 import { buildQueryParams, toQueryString } from './build-query';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_ads_cpt';
@@ -69,7 +68,7 @@ export default function useAdsData( view ) {
 					return;
 				}
 				// Preserve last-good data on failure so a refetch error doesn't trigger the strict-empty banner.
-				dispatch( noticesStore ).createErrorNotice( __( 'Failed to load ads. Please refresh the page.', 'newspack-newsletters' ), {
+				notifyError( __( 'Failed to load ads. Please refresh the page.', 'newspack-newsletters' ), {
 					id: 'newspack-newsletters-ads-list-fetch-error',
 				} );
 			} )

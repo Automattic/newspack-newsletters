@@ -10,11 +10,10 @@ import {
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
-import { dispatch } from '@wordpress/data';
 import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { store as noticesStore } from '@wordpress/notices';
 
+import { notifyError } from '../../notices';
 import { getLocalListModalExtensions } from '../../../wizard-bridge/extensions';
 
 const LOCAL_PATH = '/newspack-newsletters/v1/lists/local';
@@ -125,10 +124,7 @@ export default function LocalListModal( { list = null, kind = 'local', onClose, 
 			);
 			results.forEach( result => {
 				if ( result.status === 'rejected' ) {
-					dispatch( noticesStore ).createErrorNotice(
-						result.reason?.message || __( 'A modal extension failed after save.', 'newspack-newsletters' ),
-						{ type: 'snackbar', explicitDismiss: true }
-					);
+					notifyError( result.reason?.message || __( 'A modal extension failed after save.', 'newspack-newsletters' ) );
 				}
 			} );
 			onSaved( { list: saved, mode: isEdit ? 'edit' : 'add', kind } );
