@@ -74,6 +74,9 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 			if ( ! node ) {
 				return;
 			}
+			// Reset readiness so a new layout / overwrite doesn't reveal
+			// the next iframe content while it's still loading.
+			setIsReady( false );
 			let cleanup = () => {};
 			let cancelled = false;
 			// 8s safety so the spinner never strands.
@@ -192,7 +195,7 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 				observer.disconnect();
 				cleanup();
 			};
-		}, [ layoutId, css, meta.background_color, meta.text_color ] );
+		}, [ layoutId, css, meta.background_color, meta.text_color, previewBlocks ] );
 		return ref;
 	};
 
