@@ -105,12 +105,14 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 					iframe.contentDocument.body.style.backgroundColor = meta.background_color || '';
 					iframe.contentDocument.body.style.color = meta.text_color || '';
 					const styleId = `newspack-newsletters__layout-preview-${ layoutId }`;
-					if ( ! iframe.contentDocument.getElementById( styleId ) ) {
-						const style = iframe.contentDocument.createElement( 'style' );
+					let style = iframe.contentDocument.getElementById( styleId );
+					if ( ! style ) {
+						style = iframe.contentDocument.createElement( 'style' );
 						style.id = styleId;
-						style.textContent = css;
 						iframe.contentDocument.head.appendChild( style );
 					}
+					// Always reassign — `elementId` re-generates on css recompute, leaving stale rules scoped to the old ID.
+					style.textContent = css;
 				};
 				if ( 'complete' === iframe.contentDocument?.readyState ) {
 					appendStyle();

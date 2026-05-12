@@ -160,7 +160,15 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 	useEffect( () => {
 		document.documentElement.style.setProperty( '--newspack-newsletters-header-font', fontHeader );
 	}, [ fontHeader ] );
-	// Mirror font vars and background/text colour into the iframed editor canvas — the parent's `<html>` and the parent `.editor-styles-wrapper` don't reach the iframe. Walks nested iframes too (posts-inserter renders BlockPreview inside the canvas iframe).
+	// Fallback for non-iframed canvases (older WP / classic metabox); the iframe walker below handles modern iframed canvases.
+	useEffect( () => {
+		const parentWrapper = document.querySelector( '.editor-styles-wrapper' );
+		if ( parentWrapper ) {
+			parentWrapper.style.backgroundColor = backgroundColor;
+			parentWrapper.style.color = textColor;
+		}
+	}, [ backgroundColor, textColor ] );
+	// Walks all canvas iframes (including the nested posts-inserter BlockPreview) so fonts and bg/text colour apply inside each.
 	useEffect( () => {
 		const selector = 'iframe[name="editor-canvas"], iframe[title="Editor canvas"]';
 		const seen = new WeakSet();

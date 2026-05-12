@@ -395,20 +395,26 @@ class Admin_Shell {
 			true
 		);
 
-		// `wp-edit-blocks` powers BlockPreview iframes; pulls `wp-block-library` + `wp-components` as deps. No bleed: admin chrome renders no `.wp-block-*` / `.block-editor-*` selectors.
-		wp_enqueue_style( 'wp-edit-blocks' );
+		$is_layouts_list = 'newspack-newsletters-layouts-list' === $current_page->get_slug();
+
+		// `wp-edit-blocks` is only needed by the layouts-list BlockPreview iframes — keep it off other admin-shell pages.
+		$admin_shell_css_deps = [];
+		if ( $is_layouts_list ) {
+			wp_enqueue_style( 'wp-edit-blocks' );
+			$admin_shell_css_deps[] = 'wp-edit-blocks';
+		}
 
 		if ( file_exists( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/admin-shell.css' ) ) {
 			wp_enqueue_style(
 				self::SCRIPT_HANDLE,
 				plugins_url( '../../dist/admin-shell.css', __FILE__ ),
-				[ 'wp-edit-blocks' ],
+				$admin_shell_css_deps,
 				$asset['version']
 			);
 		}
 
 		// Layouts list previews render `newspack-newsletters/posts-inserter`; without `editorBlocks.js` BlockPreview shows the "block not supported" fallback.
-		if ( 'newspack-newsletters-layouts-list' === $current_page->get_slug() ) {
+		if ( $is_layouts_list ) {
 			$blocks_js = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.js';
 			if ( file_exists( $blocks_js ) ) {
 				wp_enqueue_script(
