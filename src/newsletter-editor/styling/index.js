@@ -171,7 +171,8 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 	// Walks all canvas iframes (including the nested posts-inserter BlockPreview) so fonts and bg/text colour apply inside each.
 	useEffect( () => {
 		const selector = 'iframe[name="editor-canvas"], iframe[title="Editor canvas"]';
-		const seen = new WeakSet();
+		const seenIframes = new WeakSet();
+		const seenDocs = new WeakSet();
 		const observers = [];
 		const listeners = [];
 		const apply = iframeDoc => {
@@ -185,17 +186,18 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 		};
 		const visit = root => {
 			root.querySelectorAll( selector ).forEach( iframe => {
-				if ( seen.has( iframe ) ) {
+				if ( seenIframes.has( iframe ) ) {
 					return;
 				}
-				seen.add( iframe );
+				seenIframes.add( iframe );
 				const onLoad = () => {
 					const iframeDoc = iframe.contentDocument;
 					if ( ! iframeDoc?.documentElement ) {
 						return;
 					}
 					apply( iframeDoc );
-					if ( iframeDoc.body ) {
+					if ( iframeDoc.body && ! seenDocs.has( iframeDoc ) ) {
+						seenDocs.add( iframeDoc );
 						const innerObserver = new MutationObserver( () => {
 							apply( iframeDoc );
 							visit( iframeDoc );
@@ -210,9 +212,20 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 				listeners.push( () => iframe.removeEventListener( 'load', onLoad ) );
 			} );
 		};
+		if ( ! document.body ) {
+			return;
+		}
 		visit( document );
-		const rootObserver = new MutationObserver( () => visit( document ) );
-		rootObserver.observe( document.body, { childList: true, subtree: true } );
+		// Scope to the editor wrapper when present so we don't react to every mutation across the admin chrome.
+		const scope = document.querySelector( '.editor-styles-wrapper, .edit-post-visual-editor, #editor' ) || document.body;
+		const rootObserver = new MutationObserver( mutations => {
+			const isCanvasIframe = n => n.nodeType === 1 && ( n.matches?.( selector ) || n.querySelector?.( selector ) );
+			const hasIframeChange = mutations.some( m => Array.from( m.addedNodes ).some( isCanvasIframe ) );
+			if ( hasIframeChange ) {
+				visit( document );
+			}
+		} );
+		rootObserver.observe( scope, { childList: true, subtree: true } );
 		observers.push( rootObserver );
 		return () => {
 			observers.forEach( o => o.disconnect() );
