@@ -132,4 +132,4 @@ The `assets/sample-posts/` directory ships four placeholder photos used in layou
 - `3.jpg` — [Colorful gelato display in Las Vegas shop](https://www.pexels.com/photo/colorful-gelato-display-in-las-vegas-shop-33431371/) by [Abhishek Navlakha](https://www.pexels.com/@abhinav/)
 - `4.jpg` — [Vibrant organic salad at an outdoor lunch setting](https://www.pexels.com/photo/vibrant-organic-salad-at-an-outdoor-lunch-setting-32904717/) by [Abhishek Navlakha](https://www.pexels.com/@abhinav/)
 
-All four are used under the [Pexels Licence](https://www.pexels.com/license/).
+All four are used under the [Pexels License](https://www.pexels.com/license/).
