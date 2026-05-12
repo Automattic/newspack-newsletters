@@ -36,9 +36,8 @@ const TABS = [
 	},
 ];
 
-// `DataViewsPicker` reads selection mode from `actions.every(a => a.supportsBulk)`
-// — an empty array vacuously hits multi-select. One sentinel pins single-select;
-// free composition skips the default footer so this action never renders.
+// Sentinel `supportsBulk: false` action pins single-select; never rendered
+// because free composition skips the picker's default footer.
 const SINGLE_SELECT_ACTIONS = [ { id: '__single_select__', label: '', supportsBulk: false, callback: () => {} } ];
 
 const PICKER_DEFAULT_LAYOUTS = { pickerGrid: {} };
@@ -107,8 +106,6 @@ export default function LayoutPicker() {
 	const [ activeTabKey, setActiveTabKey ] = useState( 'prebuilt' );
 	const [ selection, setSelection ] = useState( [] );
 
-	// Auto-switch to Saved when any user-defined layouts exist (preserves
-	// the previous picker's behaviour for returning publishers).
 	useEffect( () => {
 		if ( layouts.filter( isUserDefinedLayout ).length ) {
 			setActiveTabKey( 'saved' );

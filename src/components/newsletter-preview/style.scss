@@ -4,8 +4,6 @@
 	position: absolute;
 	width: 100%;
 
-	// Hide BlockPreview until iframe images settle; the spinner overlay
-	// covers the empty card.
 	.block-editor-block-preview__container {
 		opacity: 0;
 		transition: opacity 200ms ease-out;

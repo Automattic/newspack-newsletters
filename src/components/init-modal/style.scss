@@ -230,8 +230,7 @@
 	}
 }
 
-// Mirrors `.newspack-newsletters-list__author*` from
-// `src/admin-shell/style.scss` so the picker chip stays visually aligned.
+// Mirrors `.newspack-newsletters-list__author*` from `admin-shell/style.scss`.
 .newspack-newsletters-list {
 	&__author {
 		align-items: center;

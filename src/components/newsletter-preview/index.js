@@ -74,15 +74,11 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 			if ( ! node ) {
 				return;
 			}
-			// Reset readiness so a new layout / overwrite doesn't reveal
-			// the next iframe content while it's still loading.
+			// Reset on input change so a new layout doesn't reveal mid-load.
 			setIsReady( false );
 			let cleanup = () => {};
 			let cancelled = false;
-			// 8s safety so the spinner never strands.
 			const safetyId = setTimeout( () => ! cancelled && setIsReady( true ), 8000 );
-			// Wait for cloned stylesheets and images to load — these
-			// drive every visible reflow inside the iframe.
 			const markReady = iframe => {
 				if ( cancelled ) {
 					return;
@@ -136,10 +132,8 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 						globalStyles.textContent = window.newspackNewslettersGlobalStyles;
 						iframe.contentDocument.head.appendChild( globalStyles );
 					}
-					// Newsletter-editor font defaults (arial/georgia) injected
-					// for surfaces that don't enqueue `editor.css` (e.g. admin-
-					// shell layouts list). `:where()` keeps specificity at 0
-					// so layout-level meta fonts still win.
+					// Newsletter-editor font defaults for surfaces that don't
+					// enqueue `editor.css` (e.g. admin-shell layouts list).
 					const defaultFontsId = 'newspack-newsletters-default-fonts';
 					if ( ! iframe.contentDocument.getElementById( defaultFontsId ) ) {
 						const defaultFonts = iframe.contentDocument.createElement( 'style' );
@@ -149,9 +143,7 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 						iframe.contentDocument.head.appendChild( defaultFonts );
 					}
 					iframe.contentDocument.body.id = elementId;
-					// Marker class so `editor.scss` overrides apply only to layout
-					// thumbnails, not to other in-editor BlockPreview consumers
-					// (e.g. the posts-inserter block).
+					// Scopes `editor.scss` overrides to layout thumbnails.
 					iframe.contentDocument.body.classList.add( 'newspack-newsletters-layout-preview' );
 					iframe.contentDocument.body.style.backgroundColor = meta.background_color || '';
 					iframe.contentDocument.body.style.color = meta.text_color || '';

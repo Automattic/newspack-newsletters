@@ -11,11 +11,8 @@
 	padding: 12px;
 }
 
-// Layout-thumbnail iframes (marker class added by `NewsletterPreview`)
-// reuse these stylesheets; drop the email-width cap, per-block padding,
-// and font override so thumbnails match the layouts list. Other in-editor
-// BlockPreview consumers (e.g. posts-inserter) lack the marker, so their
-// rendering stays untouched.
+// Layout thumbnails (marker class set by `NewsletterPreview`) drop the
+// email-width cap and per-block padding so they match the layouts list.
 .newspack-newsletters-layout-preview.editor-styles-wrapper .block-editor-block-list__layout.is-preview-mode .wp-block {
 	max-width: none;
 	padding-inline: 0;
