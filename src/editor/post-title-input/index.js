@@ -1,3 +1,4 @@
+/* globals newspack_email_editor_data */
 /**
  * WordPress dependencies
  */
@@ -5,13 +6,15 @@ import { createPortal, useEffect, useRef, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor';
 import { store as blockEditorStore } from '@wordpress/block-editor';
-import { TextControl } from '@wordpress/components';
+import { PanelBody, TextControl, TextareaControl } from '@wordpress/components';
 import { ENTER } from '@wordpress/keycodes';
 import { __ } from '@wordpress/i18n';
 
 const CANVAS_IFRAME_SELECTOR = 'iframe[name="editor-canvas"]';
 const WRAPPER_SELECTOR = '.editor-visual-editor__post-title-wrapper';
 const MOUNT_CLASSNAME = 'newspack-newsletters-post-title-mount';
+
+const isNewsletterCpt = newspack_email_editor_data?.newsletter_post_type === newspack_email_editor_data?.current_post_type;
 
 /**
  * Returns the document hosting the visual editor canvas.
@@ -48,13 +51,16 @@ function placeMount( doc ) {
 }
 
 export default function PostTitleInput() {
-	const inputRef = useRef( null );
+	const subjectRef = useRef( null );
 	const focusedRef = useRef( false );
+	const entityConverter = useRef( null );
 
-	const { title, isCleanNewPost } = useSelect( select => {
+	const { title, previewText, isCleanNewPost } = useSelect( select => {
 		const editor = select( editorStore );
+		const meta = editor.getEditedPostAttribute( 'meta' ) || {};
 		return {
 			title: editor.getEditedPostAttribute( 'title' ) || '',
+			previewText: meta.preview_text || '',
 			isCleanNewPost: editor.isCleanNewPost(),
 		};
 	}, [] );
@@ -62,6 +68,39 @@ export default function PostTitleInput() {
 	const { insertDefaultBlock } = useDispatch( blockEditorStore );
 
 	const [ mountNode, setMountNode ] = useState( null );
+	const [ plainTextTitle, setPlainTextTitle ] = useState( null );
+
+	// HTML-entity round-trip via a detached textarea, mirroring the previous
+	// sidebar control so titles like `Bob &amp; Alice` display as `Bob & Alice`
+	// in the plain-text input and serialise back the same way on save.
+	useEffect( () => {
+		if ( ! entityConverter.current ) {
+			entityConverter.current = document.createElement( 'textarea' );
+		}
+		return () => {
+			entityConverter.current = null;
+		};
+	}, [] );
+
+	useEffect( () => {
+		if ( ! entityConverter.current ) {
+			return;
+		}
+		entityConverter.current.innerHTML = title;
+		setPlainTextTitle( entityConverter.current.value );
+	}, [ title ] );
+
+	useEffect( () => {
+		if ( plainTextTitle === null || ! entityConverter.current ) {
+			return;
+		}
+		entityConverter.current.innerText = plainTextTitle;
+		const encoded = entityConverter.current.innerHTML;
+		if ( encoded !== title ) {
+			editPost( { title: encoded } );
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ plainTextTitle ] );
 
 	useEffect( () => {
 		let canvasDoc = null;
@@ -108,12 +147,12 @@ export default function PostTitleInput() {
 
 	// Mirror Gutenberg's behaviour of focusing the title field on a fresh, empty post.
 	useEffect( () => {
-		if ( focusedRef.current || ! inputRef.current || ! isCleanNewPost ) {
+		if ( focusedRef.current || ! subjectRef.current || ! isCleanNewPost ) {
 			return;
 		}
-		const { activeElement, body } = inputRef.current.ownerDocument;
+		const { activeElement, body } = subjectRef.current.ownerDocument;
 		if ( ! activeElement || body === activeElement ) {
-			inputRef.current.focus();
+			subjectRef.current.focus();
 			focusedRef.current = true;
 		}
 	}, [ isCleanNewPost, mountNode ] );
@@ -122,26 +161,40 @@ export default function PostTitleInput() {
 		return null;
 	}
 
-	const onKeyDown = event => {
+	const onSubjectKeyDown = event => {
 		if ( event.keyCode === ENTER ) {
 			event.preventDefault();
 			insertDefaultBlock( undefined, undefined, 0 );
 		}
 	};
 
+	const subjectLabel = isNewsletterCpt ? __( 'Subject', 'newspack-newsletters' ) : __( 'Title', 'newspack-newsletters' );
+	const panelTitle = isNewsletterCpt ? __( 'Email details', 'newspack-newsletters' ) : __( 'Layout details', 'newspack-newsletters' );
+
 	return createPortal(
 		<div className="newspack-newsletters-post-title">
-			<TextControl
-				ref={ inputRef }
-				__next40pxDefaultSize
-				__nextHasNoMarginBottom
-				label={ __( 'Title', 'newspack-newsletters' ) }
-				hideLabelFromVision
-				value={ title }
-				onChange={ value => editPost( { title: value } ) }
-				onKeyDown={ onKeyDown }
-				placeholder={ __( 'Add title', 'newspack-newsletters' ) }
-			/>
+			<PanelBody className="newspack-newsletters-post-title__panel" title={ panelTitle } initialOpen={ true }>
+				<div className="newspack-newsletters-post-title__fields">
+					<TextControl
+						ref={ subjectRef }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+						label={ subjectLabel }
+						value={ plainTextTitle ?? '' }
+						onChange={ setPlainTextTitle }
+						onKeyDown={ onSubjectKeyDown }
+					/>
+					{ isNewsletterCpt && (
+						<TextareaControl
+							__nextHasNoMarginBottom
+							label={ __( 'Preview text', 'newspack-newsletters' ) }
+							value={ previewText }
+							onChange={ value => editPost( { meta: { preview_text: value } } ) }
+							rows={ 2 }
+						/>
+					) }
+				</div>
+			</PanelBody>
 		</div>,
 		mountNode
 	);

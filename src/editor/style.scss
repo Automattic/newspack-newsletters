@@ -487,10 +487,30 @@
 	.newspack-newsletters-post-title {
 		// Pin admin typography so user-picked newsletter fonts (set via
 		// --newspack-newsletters-header-font / --body-font on the canvas) can't
-		// inherit down into our input.
+		// inherit down into our PanelBody / inputs.
 		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-		padding: wp-vars.$grid-unit-20;
 		border-bottom: 1px solid wp-colors.$gray-300;
 		background: wp-colors.$white;
+	}
+
+	// Centred panel matches the newsletter content width.
+	.newspack-newsletters-post-title__panel {
+		max-width: var(--newspack-newsletters-max-width);
+		margin-left: auto;
+		margin-right: auto;
+		// PanelBody ships a top border for inline use; we drop it because the
+		// surrounding container already provides a bottom-border separator.
+		border-top: 0;
+	}
+
+	.newspack-newsletters-post-title__fields {
+		display: flex;
+		flex-direction: column;
+		gap: wp-vars.$grid-unit-20;
+
+		// TextareaControl ships no default width — let it fill the panel body.
+		.components-textarea-control__input {
+			width: 100%;
+		}
 	}
 }
