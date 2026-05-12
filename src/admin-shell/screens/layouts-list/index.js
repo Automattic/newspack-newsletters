@@ -142,7 +142,7 @@ export default function LayoutsListScreen() {
 	const filteredPrebuilts = showPrebuilts ? prebuiltData : [];
 	const filteredSaved = showSaved ? savedData : [];
 
-	const data = useMemo( () => [ ...filteredPrebuilts, ...filteredSaved ], [ filteredPrebuilts, filteredSaved ] );
+	const data = useMemo( () => [ ...filteredSaved, ...filteredPrebuilts ], [ filteredPrebuilts, filteredSaved ] );
 
 	// Author elements grow as the user pages through; a static list would
 	// require a server-side enumeration of every layout author.

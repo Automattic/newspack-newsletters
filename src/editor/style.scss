@@ -11,6 +11,16 @@
 	padding: 12px;
 }
 
+// Layout thumbnails (marker class set by `NewsletterPreview`) drop the
+// email-width cap and per-block padding so they match the layouts list.
+.newspack-newsletters-layout-preview.editor-styles-wrapper .block-editor-block-list__layout.is-preview-mode .wp-block {
+	max-width: none;
+	padding-inline: 0;
+}
+.newspack-newsletters-layout-preview.editor-styles-wrapper .block-editor-block-list__layout.is-preview-mode.is-root-container > :where(:not([data-align="left"]):not([data-align="right"]):not([data-align="full"])) {
+	max-width: none;
+}
+
 .editor-styles-wrapper {
 	&.block-editor-writing-flow {
 		font-size: 16px;
