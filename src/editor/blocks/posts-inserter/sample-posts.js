@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 const sampleAsset = name => `${ window.newspack_email_editor_data?.sample_assets_url || '' }${ name }`;
 
 const buildSample = ( id, image, title, excerpt ) => ( {
-	ID: `sample-${ id }`,
+	id: `sample-${ id }`,
 	title: { rendered: title },
 	excerpt: { rendered: `<p>${ excerpt }</p>` },
 	link: '#',
