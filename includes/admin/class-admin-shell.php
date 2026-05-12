@@ -395,12 +395,50 @@ class Admin_Shell {
 			true
 		);
 
+		// `wp-edit-blocks` powers BlockPreview iframes; pulls `wp-block-library` + `wp-components` as deps. No bleed: admin chrome renders no `.wp-block-*` / `.block-editor-*` selectors.
+		wp_enqueue_style( 'wp-edit-blocks' );
+
 		if ( file_exists( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/admin-shell.css' ) ) {
 			wp_enqueue_style(
 				self::SCRIPT_HANDLE,
 				plugins_url( '../../dist/admin-shell.css', __FILE__ ),
-				[],
+				[ 'wp-edit-blocks' ],
 				$asset['version']
+			);
+		}
+
+		// Layouts list previews render `newspack-newsletters/posts-inserter`; without `editorBlocks.js` BlockPreview shows the "block not supported" fallback.
+		if ( 'newspack-newsletters-layouts-list' === $current_page->get_slug() ) {
+			$blocks_js = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.js';
+			if ( file_exists( $blocks_js ) ) {
+				wp_enqueue_script(
+					'newspack-newsletters-editor-blocks',
+					plugins_url( '../../dist/editorBlocks.js', __FILE__ ),
+					[],
+					filemtime( $blocks_js ),
+					true
+				);
+				wp_localize_script(
+					'newspack-newsletters-editor-blocks',
+					'newspack_email_editor_data',
+					\Newspack_Newsletters_Editor::get_email_editor_data()
+				);
+			}
+			$blocks_css = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.css';
+			if ( file_exists( $blocks_css ) ) {
+				wp_enqueue_style(
+					'newspack-newsletters-editor-blocks',
+					plugins_url( '../../dist/editorBlocks.css', __FILE__ ),
+					[],
+					filemtime( $blocks_css )
+				);
+			}
+
+			// theme.json compilation, passed to NewsletterPreview for in-iframe injection so the parent admin chrome isn't affected by its generic selectors.
+			wp_add_inline_script(
+				self::SCRIPT_HANDLE,
+				'window.newspackNewslettersGlobalStyles = ' . wp_json_encode( wp_get_global_stylesheet() ) . ';',
+				'before'
 			);
 		}
 
