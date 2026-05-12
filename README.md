@@ -119,3 +119,17 @@ The picker holds its state in a closure-captured ref. `onSave` reads the ref aft
 ### Stability
 
 Event names + payload shapes and the registry API are committed to backwards compatibility on minor releases. New optional fields on the extension definition are additive.
+
+
+## Credits
+
+### Sample preview images
+
+The `assets/sample-posts/` directory ships four placeholder photos used in layout previews (admin layouts list, editor layout picker):
+
+- `1.jpg` — [Bustling downtown San Francisco street scene](https://www.pexels.com/photo/bustling-downtown-san-francisco-street-scene-32490265/) by [Abhishek Navlakha](https://www.pexels.com/@abhinav/)
+- `2.jpg` — [Autonomous vehicle in San Francisco street scene](https://www.pexels.com/photo/autonomous-vehicle-in-san-francisco-street-scene-32461216/) by [Abhishek Navlakha](https://www.pexels.com/@abhinav/)
+- `3.jpg` — [Colorful gelato display in Las Vegas shop](https://www.pexels.com/photo/colorful-gelato-display-in-las-vegas-shop-33431371/) by [Abhishek Navlakha](https://www.pexels.com/@abhinav/)
+- `4.jpg` — [Vibrant organic salad at an outdoor lunch setting](https://www.pexels.com/photo/vibrant-organic-salad-at-an-outdoor-lunch-setting-32904717/) by [Abhishek Navlakha](https://www.pexels.com/@abhinav/)
+
+All four are used under the [Pexels License](https://www.pexels.com/license/).

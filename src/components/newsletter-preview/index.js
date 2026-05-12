@@ -2,15 +2,45 @@
  * WordPress dependencies
  */
 import { BlockPreview } from '@wordpress/block-editor';
-import { Fragment, useEffect, useRef, useState } from '@wordpress/element';
+import { Fragment, useEffect, useMemo, useRef, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import './style.scss';
 import { getScopedCss } from '../../newsletter-editor/styling';
+import { getSamplePosts } from '../../editor/blocks/posts-inserter/sample-posts';
+import { getTemplateBlocks } from '../../editor/blocks/posts-inserter/utils';
 
-const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
+const POSTS_INSERTER = 'newspack-newsletters/posts-inserter';
+
+const withSamplePostsInserter = blocks => {
+	if ( ! Array.isArray( blocks ) ) {
+		return blocks;
+	}
+	const samples = getSamplePosts();
+	let cursor = 0;
+	const take = count => {
+		const slice = Array.from( { length: count }, ( _, i ) => samples[ ( cursor + i ) % samples.length ] );
+		cursor += count;
+		return slice;
+	};
+	const walk = nodes =>
+		nodes.flatMap( block => {
+			if ( block?.name === POSTS_INSERTER ) {
+				const count = block.attributes?.postsToShow || samples.length;
+				return getTemplateBlocks( take( count ), block.attributes || {} );
+			}
+			if ( block?.innerBlocks?.length ) {
+				return [ { ...block, innerBlocks: walk( block.innerBlocks ) } ];
+			}
+			return [ block ];
+		} );
+	return walk( blocks );
+};
+
+const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) => {
+	const previewBlocks = useMemo( () => withSamplePostsInserter( blocks ), [ blocks ] );
 	const [ elementId, setElementId ] = useState( '' );
 	const [ css, setCss ] = useState( '' );
 
@@ -39,25 +69,75 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
 		const ref = useRef();
 		useEffect( () => {
 			const node = ref.current;
-			const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
-			if ( iframe ) {
+			if ( ! node ) {
+				return;
+			}
+			let cleanup = () => {};
+			const attach = iframe => {
 				const appendStyle = () => {
-					const style = document.createElement( 'style' );
-					style.id = `newspack-newsletters__layout-preview-${ layoutId }`;
-					style.textContent = css;
-					if ( iframe.contentDocument?.body ) {
-						iframe.contentDocument.body.id = elementId;
+					if ( ! iframe.contentDocument?.body ) {
+						return;
+					}
+					// `wp-edit-blocks-css` is the editor variant — Gutenberg skips it but BlockPreview renders edit-mode markup (e.g. social-link buttons) that needs it.
+					[ 'wp-block-library-css', 'wp-block-library-theme-css', 'wp-edit-blocks-css', 'wp-components-css' ].forEach( id => {
+						const source = document.getElementById( id );
+						if ( ! source || iframe.contentDocument.getElementById( id ) ) {
+							return;
+						}
+						const clone = iframe.contentDocument.createElement( source.tagName );
+						clone.id = id;
+						if ( 'LINK' === source.tagName ) {
+							clone.rel = 'stylesheet';
+							clone.href = source.href;
+						} else {
+							clone.textContent = source.textContent;
+						}
+						iframe.contentDocument.head.appendChild( clone );
+					} );
+					const globalStylesId = 'newspack-newsletters-global-styles';
+					if ( window.newspackNewslettersGlobalStyles && ! iframe.contentDocument.getElementById( globalStylesId ) ) {
+						const globalStyles = iframe.contentDocument.createElement( 'style' );
+						globalStyles.id = globalStylesId;
+						globalStyles.textContent = window.newspackNewslettersGlobalStyles;
+						iframe.contentDocument.head.appendChild( globalStyles );
+					}
+					iframe.contentDocument.body.id = elementId;
+					iframe.contentDocument.body.style.backgroundColor = meta.background_color || '';
+					iframe.contentDocument.body.style.color = meta.text_color || '';
+					const styleId = `newspack-newsletters__layout-preview-${ layoutId }`;
+					let style = iframe.contentDocument.getElementById( styleId );
+					if ( ! style ) {
+						style = iframe.contentDocument.createElement( 'style' );
+						style.id = styleId;
 						iframe.contentDocument.head.appendChild( style );
 					}
+					// Always reassign — `elementId` re-generates on css recompute, leaving stale rules scoped to the old ID.
+					style.textContent = css;
 				};
-				appendStyle();
-				// Handle Firefox iframe.
+				if ( 'complete' === iframe.contentDocument?.readyState ) {
+					appendStyle();
+				}
 				iframe.addEventListener( 'load', appendStyle );
-				return () => {
-					iframe.removeEventListener( 'load', appendStyle );
-				};
+				cleanup = () => iframe.removeEventListener( 'load', appendStyle );
+			};
+			const initial = node.querySelector( 'iframe[title="Editor canvas"]' );
+			if ( initial ) {
+				attach( initial );
+				return () => cleanup();
 			}
-		}, [ layoutId, css ] );
+			const observer = new MutationObserver( () => {
+				const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
+				if ( iframe ) {
+					observer.disconnect();
+					attach( iframe );
+				}
+			} );
+			observer.observe( node, { childList: true, subtree: true } );
+			return () => {
+				observer.disconnect();
+				cleanup();
+			};
+		}, [ layoutId, css, meta.background_color, meta.text_color ] );
 		return ref;
 	};
 
@@ -70,12 +150,9 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, ...props } ) => {
 				ref={ useInlineStyles() }
 				id={ elementId }
 				className="newspack-newsletters__layout-preview"
-				style={ {
-					backgroundColor: meta.background_color,
-					textColor: meta.text_color,
-				} }
+				style={ { backgroundColor: meta.background_color } }
 			>
-				<BlockPreview { ...props } />
+				<BlockPreview { ...props } blocks={ previewBlocks } />
 			</div>
 		</Fragment>
 	);

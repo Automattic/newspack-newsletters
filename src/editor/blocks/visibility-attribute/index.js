@@ -53,8 +53,8 @@ const withVisibilityControl = createHigherOrderComponent(
 	BlockEdit =>
 		compose(
 			withSelect( select => {
-				const { is_public } = select( 'core/editor' ).getEditedPostAttribute( 'meta' );
-				return { is_public };
+				const meta = select( 'core/editor' )?.getEditedPostAttribute?.( 'meta' ) || {};
+				return { is_public: meta.is_public };
 			} )
 		)( props => {
 			const { attributes, setAttributes } = props;
@@ -126,8 +126,8 @@ const withVisibilityNotice = createHigherOrderComponent(
 	BlockListBlock =>
 		compose(
 			withSelect( select => {
-				const { is_public } = select( 'core/editor' ).getEditedPostAttribute( 'meta' );
-				return { is_public };
+				const meta = select( 'core/editor' )?.getEditedPostAttribute?.( 'meta' ) || {};
+				return { is_public: meta.is_public };
 			} )
 		)( props => {
 			const value = props.attributes[ ATTRIBUTE_NAME ];
