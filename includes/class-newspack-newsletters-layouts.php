@@ -353,8 +353,9 @@ final class Newspack_Newsletters_Layouts {
 				'posts_per_page' => -1,
 			]
 		);
+		$author_cache  = [];
 		$user_layouts  = array_map(
-			function ( $post ) {
+			function ( $post ) use ( &$author_cache ) {
 				$post->meta = [
 					'background_color'  => get_post_meta( $post->ID, 'background_color', true ),
 					'text_color'        => get_post_meta( $post->ID, 'text_color', true ),
@@ -367,15 +368,16 @@ final class Newspack_Newsletters_Layouts {
 
 				// Mirrors the REST v2 `_embed=author` shape; the add-new
 				// picker reuses the same chip JSX as the layouts list.
-				$author_id  = (int) $post->post_author;
+				$author_id = (int) $post->post_author;
+				if ( ! isset( $author_cache[ $author_id ] ) ) {
+					$author_cache[ $author_id ] = [
+						'id'          => $author_id,
+						'name'        => $author_id ? get_the_author_meta( 'display_name', $author_id ) : '',
+						'avatar_urls' => $author_id ? rest_get_avatar_urls( $author_id ) : (object) [],
+					];
+				}
 				$post->_embedded = [ // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					'author' => [
-						[
-							'id'          => $author_id,
-							'name'        => $author_id ? get_the_author_meta( 'display_name', $author_id ) : '',
-							'avatar_urls' => $author_id ? rest_get_avatar_urls( $author_id ) : (object) [],
-						],
-					],
+					'author' => [ $author_cache[ $author_id ] ],
 				];
 
 				// Migrate layout defaults from legacy meta, if it exists.

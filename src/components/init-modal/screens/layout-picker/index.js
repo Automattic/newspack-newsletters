@@ -106,11 +106,13 @@ export default function LayoutPicker() {
 	const [ activeTabKey, setActiveTabKey ] = useState( 'prebuilt' );
 	const [ selection, setSelection ] = useState( [] );
 
+	const hasSaved = useMemo( () => layouts.some( isUserDefinedLayout ), [ layouts ] );
+
 	useEffect( () => {
-		if ( layouts.filter( isUserDefinedLayout ).length ) {
+		if ( hasSaved ) {
 			setActiveTabKey( 'saved' );
 		}
-	}, [ layouts.length ] );
+	}, [ hasSaved ] );
 
 	const activeTab = TABS.find( t => t.key === activeTabKey );
 
@@ -205,8 +207,6 @@ export default function LayoutPicker() {
 		editPost( { meta: { template_id: layoutId, ...meta } } );
 		resetEditorBlocks( post_content ? parse( post_content ) : [] );
 	};
-
-	const hasSaved = layouts.some( isUserDefinedLayout );
 
 	return (
 		<>
