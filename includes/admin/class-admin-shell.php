@@ -415,6 +415,13 @@ class Admin_Shell {
 
 		// Layouts list previews render `newspack-newsletters/posts-inserter`; without `editorBlocks.js` BlockPreview shows the "block not supported" fallback.
 		if ( $is_layouts_list ) {
+			// Localise on the admin-shell handle so the global is set before `admin-shell.js` runs — NewsletterPreview reads `sample_assets_url` at mount.
+			wp_localize_script(
+				self::SCRIPT_HANDLE,
+				'newspack_email_editor_data',
+				\Newspack_Newsletters_Editor::get_email_editor_data()
+			);
+
 			$blocks_js = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.js';
 			if ( file_exists( $blocks_js ) ) {
 				wp_enqueue_script(
@@ -423,11 +430,6 @@ class Admin_Shell {
 					[],
 					filemtime( $blocks_js ),
 					true
-				);
-				wp_localize_script(
-					'newspack-newsletters-editor-blocks',
-					'newspack_email_editor_data',
-					\Newspack_Newsletters_Editor::get_email_editor_data()
 				);
 			}
 			$blocks_css = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.css';
