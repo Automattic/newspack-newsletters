@@ -79,9 +79,11 @@ export default compose( [
 	withDispatch( dispatch => {
 		const { editPost, savePost } = dispatch( 'core/editor' );
 		const { saveEntityRecord } = dispatch( 'core' );
+		const { createErrorNotice } = dispatch( 'core/notices' );
 		return {
 			editPost,
 			savePost,
+			createErrorNotice,
 			saveLayout: payload =>
 				saveEntityRecord( 'postType', LAYOUT_CPT_SLUG, {
 					status: 'publish',
@@ -89,7 +91,7 @@ export default compose( [
 				} ),
 		};
 	} ),
-] )( ( { editPost, savePost, layoutId, saveLayout, postBlocks, postTitle, isEditedPostEmpty, layoutMeta, postStatus } ) => {
+] )( ( { editPost, savePost, layoutId, saveLayout, createErrorNotice, postBlocks, postTitle, isEditedPostEmpty, layoutMeta, postStatus } ) => {
 	const [ warningModalVisible, setWarningModalVisible ] = useState( false );
 	const [ updateModalVisible, setUpdateModalVisible ] = useState( false );
 	const { layouts, isFetchingLayouts } = useLayoutsState();
@@ -131,28 +133,28 @@ export default compose( [
 
 	const handleSaveAsLayout = () => {
 		setIsSavingLayout( true );
-		const updatePayload = {
-			title: newLayoutName,
-			content: postContent,
-			meta: layoutMeta,
-		};
-		saveLayout( updatePayload ).then( newLayout => {
-			setIsManageModalVisible( false );
-			handleLayoutUpdate( newLayout );
-		} );
+		saveLayout( { title: newLayoutName, content: postContent, meta: layoutMeta } )
+			.then( newLayout => {
+				setIsManageModalVisible( false );
+				handleLayoutUpdate( newLayout );
+			} )
+			.catch( () => {
+				setIsSavingLayout( false );
+				createErrorNotice( __( 'Failed to save layout. Please try again.', 'newspack-newsletters' ), { type: 'snackbar' } );
+			} );
 	};
 
 	const handleLayoutOverwrite = () => {
 		setIsSavingLayout( true );
-		const updatePayload = {
-			id: usedLayout.ID,
-			content: postContent,
-			meta: layoutMeta,
-		};
-		saveLayout( updatePayload ).then( layout => {
-			setUpdateModalVisible( false );
-			handleLayoutUpdate( layout );
-		} );
+		saveLayout( { id: usedLayout.ID, content: postContent, meta: layoutMeta } )
+			.then( layout => {
+				setUpdateModalVisible( false );
+				handleLayoutUpdate( layout );
+			} )
+			.catch( () => {
+				setIsSavingLayout( false );
+				createErrorNotice( __( 'Failed to update layout. Please try again.', 'newspack-newsletters' ), { type: 'snackbar' } );
+			} );
 	};
 
 	const isUsingCustomLayout = isUserDefinedLayout( usedLayout );
