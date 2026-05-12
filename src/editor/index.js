@@ -22,6 +22,7 @@ import registerConditionalContent from './blocks/conditional-content';
 import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import MJML from './mjml';
+import PostTitleInput from './post-title-input';
 
 const isEditingNewsletterCpt = newspack_email_editor_data.newsletter_post_type === newspack_email_editor_data.current_post_type;
 
@@ -112,5 +113,10 @@ registerPlugin( 'newspack-newsletters-plugin', {
 
 registerPlugin( 'newspack-newsletters-mjml', {
 	render: MJML,
+	icon: null,
+} );
+
+registerPlugin( 'newspack-newsletters-post-title-input', {
+	render: PostTitleInput,
 	icon: null,
 } );
