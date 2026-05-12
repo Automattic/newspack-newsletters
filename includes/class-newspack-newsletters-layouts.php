@@ -365,6 +365,19 @@ final class Newspack_Newsletters_Layouts {
 					'disable_auto_ads'  => boolval( get_post_meta( $post->ID, 'disable_auto_ads', true ) ),
 				];
 
+				// Mirrors the REST v2 `_embed=author` shape; the add-new
+				// picker reuses the same chip JSX as the layouts list.
+				$author_id  = (int) $post->post_author;
+				$post->_embedded = [ // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'author' => [
+						[
+							'id'          => $author_id,
+							'name'        => $author_id ? get_the_author_meta( 'display_name', $author_id ) : '',
+							'avatar_urls' => $author_id ? rest_get_avatar_urls( $author_id ) : (object) [],
+						],
+					],
+				];
+
 				// Migrate layout defaults from legacy meta, if it exists.
 				$is_esp_manual = 'manual' === Newspack_Newsletters::service_provider();
 				$campaign_defaults = $post->meta['campaign_defaults'];

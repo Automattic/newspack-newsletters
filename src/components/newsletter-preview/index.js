@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { BlockPreview } from '@wordpress/block-editor';
+import { Spinner } from '@wordpress/components';
 import { Fragment, useEffect, useMemo, useRef, useState } from '@wordpress/element';
 
 /**
@@ -43,6 +44,7 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 	const previewBlocks = useMemo( () => withSamplePostsInserter( blocks ), [ blocks ] );
 	const [ elementId, setElementId ] = useState( '' );
 	const [ css, setCss ] = useState( '' );
+	const [ isReady, setIsReady ] = useState( false );
 
 	// Generate inline layout styles for the preview.
 	useEffect(
@@ -73,6 +75,36 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 				return;
 			}
 			let cleanup = () => {};
+			let cancelled = false;
+			// 8s safety so the spinner never strands.
+			const safetyId = setTimeout( () => ! cancelled && setIsReady( true ), 8000 );
+			// Wait for cloned stylesheets and images to load — these
+			// drive every visible reflow inside the iframe.
+			const markReady = iframe => {
+				if ( cancelled ) {
+					return;
+				}
+				const doc = iframe?.contentDocument;
+				if ( ! doc ) {
+					return;
+				}
+				const awaitLoad = el =>
+					new Promise( resolve => {
+						el.addEventListener( 'load', resolve, { once: true } );
+						el.addEventListener( 'error', resolve, { once: true } );
+					} );
+				const linkPromises = Array.from( doc.querySelectorAll( 'link[rel="stylesheet"]' ) )
+					.filter( link => ! link.sheet )
+					.map( awaitLoad );
+				const imgPromises = Array.from( doc.querySelectorAll( 'img' ) )
+					.filter( img => ! img.complete )
+					.map( awaitLoad );
+				Promise.all( [ ...linkPromises, ...imgPromises ] ).then( () => {
+					if ( ! cancelled ) {
+						setIsReady( true );
+					}
+				} );
+			};
 			const attach = iframe => {
 				const appendStyle = () => {
 					if ( ! iframe.contentDocument?.body ) {
@@ -101,7 +133,23 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 						globalStyles.textContent = window.newspackNewslettersGlobalStyles;
 						iframe.contentDocument.head.appendChild( globalStyles );
 					}
+					// Newsletter-editor font defaults (arial/georgia) injected
+					// for surfaces that don't enqueue `editor.css` (e.g. admin-
+					// shell layouts list). `:where()` keeps specificity at 0
+					// so layout-level meta fonts still win.
+					const defaultFontsId = 'newspack-newsletters-default-fonts';
+					if ( ! iframe.contentDocument.getElementById( defaultFontsId ) ) {
+						const defaultFonts = iframe.contentDocument.createElement( 'style' );
+						defaultFonts.id = defaultFontsId;
+						defaultFonts.textContent =
+							'body *:not(code) { font-family: georgia, serif; } body h1, body h2, body h3, body h4, body h5, body h6 { font-family: arial, sans-serif; }';
+						iframe.contentDocument.head.appendChild( defaultFonts );
+					}
 					iframe.contentDocument.body.id = elementId;
+					// Marker class so `editor.scss` overrides apply only to layout
+					// thumbnails, not to other in-editor BlockPreview consumers
+					// (e.g. the posts-inserter block).
+					iframe.contentDocument.body.classList.add( 'newspack-newsletters-layout-preview' );
 					iframe.contentDocument.body.style.backgroundColor = meta.background_color || '';
 					iframe.contentDocument.body.style.color = meta.text_color || '';
 					const styleId = `newspack-newsletters__layout-preview-${ layoutId }`;
@@ -113,6 +161,7 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 					}
 					// Always reassign — `elementId` re-generates on css recompute, leaving stale rules scoped to the old ID.
 					style.textContent = css;
+					markReady( iframe );
 				};
 				if ( 'complete' === iframe.contentDocument?.readyState ) {
 					appendStyle();
@@ -123,7 +172,11 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 			const initial = node.querySelector( 'iframe[title="Editor canvas"]' );
 			if ( initial ) {
 				attach( initial );
-				return () => cleanup();
+				return () => {
+					cancelled = true;
+					clearTimeout( safetyId );
+					cleanup();
+				};
 			}
 			const observer = new MutationObserver( () => {
 				const iframe = node.querySelector( 'iframe[title="Editor canvas"]' );
@@ -134,6 +187,8 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 			} );
 			observer.observe( node, { childList: true, subtree: true } );
 			return () => {
+				cancelled = true;
+				clearTimeout( safetyId );
 				observer.disconnect();
 				cleanup();
 			};
@@ -149,9 +204,14 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 			<div
 				ref={ useInlineStyles() }
 				id={ elementId }
-				className="newspack-newsletters__layout-preview"
+				className={ `newspack-newsletters__layout-preview${ isReady ? ' is-ready' : '' }` }
 				style={ { backgroundColor: meta.background_color } }
 			>
+				{ ! isReady && (
+					<div className="newspack-newsletters__layout-preview-spinner">
+						<Spinner />
+					</div>
+				) }
 				<BlockPreview { ...props } blocks={ previewBlocks } />
 			</div>
 		</Fragment>
