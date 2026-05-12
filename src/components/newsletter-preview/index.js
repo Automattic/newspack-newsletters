@@ -100,6 +100,7 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 					.map( awaitLoad );
 				Promise.all( [ ...linkPromises, ...imgPromises ] ).then( () => {
 					if ( ! cancelled ) {
+						clearTimeout( safetyId );
 						setIsReady( true );
 					}
 				} );

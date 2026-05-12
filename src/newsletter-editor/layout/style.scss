@@ -41,7 +41,8 @@
 	}
 
 	&__item-label {
-		align-content: center;
+		align-items: center;
+		display: flex;
 		margin-top: wp-vars.$grid-unit-10;
 		min-height: wp-vars.$grid-unit-30;
 
