@@ -1017,7 +1017,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Get a payload for syncing post data to the ESP campaign.
 	 *
 	 * @param WP_Post|int $post Post object or ID.
-	 * @return object Payload for syncing.
+	 * @return array|WP_Error Payload for syncing, or WP_Error if the payload cannot be safely built (e.g. an unverified sender domain, or a configured sublist that cannot be resolved against Mailchimp).
 	 */
 	public function get_sync_payload( $post ) {
 		if ( is_int( $post ) ) {
@@ -1119,7 +1119,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						if ( ! empty( $segment_data['options'] ) ) {
 							$payload['recipients']['segment_opts'] = $segment_data['options'];
 						} else {
-							return new WP_Error( 'newspack_newsletters_mailchimp_error', __( 'Could not fetch segment criteria for segment ', 'newspack-newsletters' ) . $sublist['name'] );
+							return new WP_Error(
+								'newspack_newsletters_mailchimp_error',
+								sprintf(
+									// Translators: %s is the name of the Mailchimp segment.
+									__( 'Could not fetch segment criteria for segment %s.', 'newspack-newsletters' ),
+									$sublist[0]->get_name()
+								)
+							);
 						}
 						break;
 					default:
@@ -1171,6 +1178,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 			$payload        = $this->get_sync_payload( $post );
 
+			// Short-circuit on a WP_Error payload before reaching the filter
+			// below — its contract is an array, and passing a WP_Error through
+			// would fatal any third-party callback that assumes the documented
+			// shape.
+			if ( is_wp_error( $payload ) ) {
+				throw new Exception( esc_html( $payload->get_error_message() ) );
+			}
+
 			/**
 			 * Filter the metadata payload sent to Mailchimp when syncing.
 			 *
@@ -1181,11 +1196,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			 * @param string $mc_campaign_id Mailchimp campaign ID, if defined.
 			 */
 			$payload = apply_filters( 'newspack_newsletters_mc_payload_sync', $payload, $post, $mc_campaign_id );
-
-			// If we have any errors in the payload, throw an exception.
-			if ( is_wp_error( $payload ) ) {
-				throw new Exception( esc_html( $payload->get_error_message() ) );
-			}
 
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
