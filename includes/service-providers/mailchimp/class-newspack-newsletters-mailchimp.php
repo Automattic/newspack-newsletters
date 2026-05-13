@@ -1063,47 +1063,74 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'type'      => 'sublist',
 					]
 				);
-				if ( ! empty( $sublist ) && ! empty( $sublist[0]->get_entity_type() ) ) {
-					$sublist_type = $sublist[0]->get_entity_type();
-					switch ( $sublist_type ) {
-						case 'group':
-							$payload['recipients']['segment_opts'] = [
-								'match'      => 'all',
-								'conditions' => [
-									[
-										'condition_type' => 'Interests',
-										'field'          => 'interests-' . $send_sublist_id,
-										'op'             => 'interestcontains',
-										'value'          => [ $send_sublist_id ],
-									],
+				// A configured-but-unresolvable sublist must NOT silently fall
+				// through to a list-only payload — Mailchimp would treat the
+				// missing segment_opts as "send to the entire audience", and
+				// sent email cannot be unsent.
+				if ( is_wp_error( $sublist ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_sublist_lookup_failed',
+						sprintf(
+							// Translators: %s is the upstream error message from Mailchimp.
+							__( 'Could not verify the selected sublist with Mailchimp (%s). Sending was aborted to avoid sending to the entire audience.', 'newspack-newsletters' ),
+							$sublist->get_error_message()
+						)
+					);
+				}
+				if ( empty( $sublist ) || empty( $sublist[0]->get_entity_type() ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_sublist_not_found',
+						__( 'The selected sublist could not be found in Mailchimp. Sending was aborted to avoid sending to the entire audience. Please re-select a sublist and try again.', 'newspack-newsletters' )
+					);
+				}
+				$sublist_type = $sublist[0]->get_entity_type();
+				switch ( $sublist_type ) {
+					case 'group':
+						$payload['recipients']['segment_opts'] = [
+							'match'      => 'all',
+							'conditions' => [
+								[
+									'condition_type' => 'Interests',
+									'field'          => 'interests-' . $send_sublist_id,
+									'op'             => 'interestcontains',
+									'value'          => [ $send_sublist_id ],
 								],
-							];
-							break;
-						case 'tag':
-							$payload['recipients']['segment_opts'] = [
-								'match'      => 'all',
-								'conditions' => [
-									[
-										'condition_type' => 'StaticSegment',
-										'field'          => 'static_segment',
-										'op'             => 'static_is',
-										'value'          => $send_sublist_id,
-									],
+							],
+						];
+						break;
+					case 'tag':
+						$payload['recipients']['segment_opts'] = [
+							'match'      => 'all',
+							'conditions' => [
+								[
+									'condition_type' => 'StaticSegment',
+									'field'          => 'static_segment',
+									'op'             => 'static_is',
+									'value'          => $send_sublist_id,
 								],
-							];
-							break;
-						case 'segment':
-							$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $send_sublist_id, $send_list_id );
-							if ( is_wp_error( $segment_data ) ) {
-								return $segment_data;
-							}
-							if ( ! empty( $segment_data['options'] ) ) {
-								$payload['recipients']['segment_opts'] = $segment_data['options'];
-							} else {
-								return new WP_Error( 'newspack_newsletters_mailchimp_error', __( 'Could not fetch segment criteria for segment ', 'newspack-newsletters' ) . $sublist['name'] );
-							}
-							break;
-					}
+							],
+						];
+						break;
+					case 'segment':
+						$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $send_sublist_id, $send_list_id );
+						if ( is_wp_error( $segment_data ) ) {
+							return $segment_data;
+						}
+						if ( ! empty( $segment_data['options'] ) ) {
+							$payload['recipients']['segment_opts'] = $segment_data['options'];
+						} else {
+							return new WP_Error( 'newspack_newsletters_mailchimp_error', __( 'Could not fetch segment criteria for segment ', 'newspack-newsletters' ) . $sublist['name'] );
+						}
+						break;
+					default:
+						return new WP_Error(
+							'newspack_newsletters_mailchimp_sublist_unknown_type',
+							sprintf(
+								// Translators: %s is the unrecognized sublist entity type.
+								__( 'Unrecognized Mailchimp sublist type "%s". Sending was aborted to avoid sending to the entire audience.', 'newspack-newsletters' ),
+								$sublist_type
+							)
+						);
 				}
 			} else {
 				$payload['recipients']['segment_opts'] = (object) [];

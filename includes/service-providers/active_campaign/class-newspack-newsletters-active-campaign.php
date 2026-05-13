@@ -1181,6 +1181,37 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		$send_list_id    = get_post_meta( $post->ID, 'send_list_id', true );
 		$send_sublist_id = get_post_meta( $post->ID, 'send_sublist_id', true );
 
+		// A configured-but-unresolvable segment must NOT silently fall through
+		// to "no segment" — AC interprets segmentid=0 as "send to the entire
+		// parent audience", and sent email cannot be unsent. Verify the segment
+		// resolves before submitting; only an explicitly empty send_sublist_id
+		// (no segment ever picked) is treated as an intentional whole-list send.
+		if ( ! empty( $send_sublist_id ) ) {
+			$segment_check = $this->get_send_lists(
+				[
+					'type'      => 'sublist',
+					'ids'       => [ $send_sublist_id ],
+					'parent_id' => $send_list_id,
+				]
+			);
+			if ( is_wp_error( $segment_check ) ) {
+				return new \WP_Error(
+					'newspack_newsletters_active_campaign_segment_lookup_failed',
+					sprintf(
+						// Translators: %s is the upstream error message from ActiveCampaign.
+						__( 'Could not verify the selected segment with ActiveCampaign (%s). Sending was aborted to avoid sending to the entire audience.', 'newspack-newsletters' ),
+						$segment_check->get_error_message()
+					)
+				);
+			}
+			if ( empty( $segment_check ) ) {
+				return new \WP_Error(
+					'newspack_newsletters_active_campaign_segment_not_found',
+					__( 'The selected segment could not be found in ActiveCampaign. Sending was aborted to avoid sending to the entire audience. Please re-select a segment and try again.', 'newspack-newsletters' )
+				);
+			}
+		}
+
 		$is_public = get_post_meta( $post->ID, 'is_public', true );
 		if ( empty( $campaign_name ) ) {
 			$campaign_name = $this->get_campaign_name( $post );
@@ -1192,7 +1223,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'name'                                  => $campaign_name,
 			'fromname'                              => $from_name,
 			'fromemail'                             => $from_email,
-			'segmentid'                             => $send_sublist_id ?? 0, // 0 = No segment.
+			'segmentid'                             => ! empty( $send_sublist_id ) ? $send_sublist_id : 0, // 0 = No segment.
 			'p[' . $send_list_id . ']'              => $send_list_id,
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
 			'addressid'                             => $this->get_address_id(),
