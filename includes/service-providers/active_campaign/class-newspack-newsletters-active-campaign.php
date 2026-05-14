@@ -207,9 +207,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'label' => __( 'Inserts the sender email address for the current campaign.', 'newspack-newsletters' ),
 				],
 				[
-					'tag'      => '%CAMPAIGN_LINK_URL%',
-					'label'    => __( 'Inserts a link to view this campaign in a browser.', 'newspack-newsletters' ),
-					'keywords' => [ 'web version', 'view in browser' ],
+					'tag'      => '%WEBCOPY%',
+					'label'    => __( 'Inserts a link to view this campaign in a web browser (web copy link).', 'newspack-newsletters' ),
+					'keywords' => [ 'web copy', 'view in browser' ],
 				],
 				/* Date and time. */
 				[
@@ -245,17 +245,6 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'tag'      => '%CURRENT_DAY_SHORT%',
 					'label'    => __( 'Inserts the abbreviated weekday name (e.g. Mon).', 'newspack-newsletters' ),
 					'keywords' => [ 'weekday abbreviation' ],
-				],
-				/* Site tracking. */
-				[
-					'tag'      => '%LAST_SITE_URL%',
-					'label'    => __( 'Inserts the URL of the last site the contact visited (requires site tracking).', 'newspack-newsletters' ),
-					'keywords' => [ 'site tracking', 'last visited' ],
-				],
-				[
-					'tag'      => '%LAST_SITE_TITLE%',
-					'label'    => __( 'Inserts the page title of the last site the contact visited (requires site tracking).', 'newspack-newsletters' ),
-					'keywords' => [ 'site tracking', 'page title' ],
 				],
 			],
 		];
