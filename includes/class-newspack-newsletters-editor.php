@@ -374,6 +374,12 @@ final class Newspack_Newsletters_Editor {
 			],
 			'supported_social_icon_services' => Newspack_Newsletters_Renderer::get_supported_social_icons_services(),
 			'supported_esps'                 => Newspack_Newsletters::get_supported_providers(),
+			'merge_tags'                     => $provider
+				? $provider::get_merge_tags()
+				: [
+					'label' => '',
+					'tags'  => [],
+				],
 			'sample_assets_url'              => plugins_url( '../assets/sample-posts/', __FILE__ ),
 		];
 	}

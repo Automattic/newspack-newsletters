@@ -21,4 +21,26 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 		$this->assertSame( '', $result['label'] );
 		$this->assertSame( [], $result['tags'] );
 	}
+
+	/**
+	 * Editor data should contain a merge_tags key with label and tags sub-keys.
+	 */
+	public function test_email_editor_data_includes_merge_tags_key() {
+		\Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$data = Newspack_Newsletters_Editor::get_email_editor_data();
+		$this->assertArrayHasKey( 'merge_tags', $data );
+		$this->assertIsArray( $data['merge_tags'] );
+		$this->assertArrayHasKey( 'label', $data['merge_tags'] );
+		$this->assertArrayHasKey( 'tags', $data['merge_tags'] );
+	}
+
+	/**
+	 * When no provider is set, merge_tags should have empty label and tags.
+	 */
+	public function test_email_editor_data_merge_tags_empty_when_no_provider() {
+		\Newspack_Newsletters::set_service_provider( '' );
+		$data = Newspack_Newsletters_Editor::get_email_editor_data();
+		$this->assertSame( '', $data['merge_tags']['label'] );
+		$this->assertSame( [], $data['merge_tags']['tags'] );
+	}
 }
