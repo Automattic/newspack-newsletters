@@ -24,7 +24,7 @@ const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu, '' );
 
 const getStaticTags = () => newspack_email_editor_data?.merge_tags?.tags || [];
-const getLabel = () => newspack_email_editor_data?.merge_tags?.label || '';
+const getLabel = () => newspack_email_editor_data?.merge_tags?.label || __( 'merge tag', 'newspack-newsletters' );
 
 const buildOptions = listMergeFields =>
 	uniqBy(
@@ -69,6 +69,7 @@ const useMergeTagItems = filterValue => {
 const getCompleter = () => ( {
 	name: 'Merge Tags',
 	triggerPrefix: TRIGGER_PREFIX,
+	// `options` is required by Gutenberg's Autocomplete API but unused at runtime — `useItems` takes precedence when both are provided.
 	options: () => buildOptions( [] ),
 	useItems: useMergeTagItems,
 	getOptionLabel,
