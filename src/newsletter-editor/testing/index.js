@@ -102,6 +102,7 @@ export default compose( [
 	return (
 		<VStack spacing={ 4 }>
 			<TextControl
+				className="newspack-newsletters__no-margin-bottom"
 				label={ __( 'Send a test to', 'newspack-newsletters' ) }
 				help={
 					supportsMultipleTestEmailRecipients
@@ -113,7 +114,6 @@ export default compose( [
 				onChange={ onChangeEmail }
 				disabled={ localInFlight || inFlight }
 				__next40pxDefaultSize
-				__nextHasNoMarginBottom
 			/>
 			<div className="newspack-newsletters__testing-controls">
 				<Button

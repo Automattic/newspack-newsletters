@@ -242,49 +242,53 @@ export default [
 		),
 	},
 	/**
-	 * Social share.
+	 * Social share — X (formerly Twitter).
 	 */
 	{
 		tag: '*|TWITTER:FULLPROFILE|*',
 		label: __(
-			'Populates your campaign with your Twitter avatar, follower, tweet, and following counts; a follow link, and your latest tweets.',
+			'Inserts your X (formerly Twitter) avatar, follower, post, and following counts; a follow link; and your latest posts.',
 			'newspack-newsletters'
 		),
+		keywords: [ 'x', 'twitter' ],
 	},
 	{
 		tag: '*|TWITTER:PROFILE|*',
 		label: __(
-			"Populates your campaign with your Twitter avatar, follower, tweet, and following counts; and a follow link. Doesn't include your latest tweets.",
+			'Inserts your X (formerly Twitter) avatar, follower, post, and following counts, and a follow link. Excludes your latest posts.',
 			'newspack-newsletters'
 		),
+		keywords: [ 'x', 'twitter' ],
 	},
 	{
 		tag: '*|TWITTER:PROFILEURL|*',
-		label: __( 'Displays your direct Twitter profile URL. For example: http://www.twitter.com/mailchimp.', 'newspack-newsletters' ),
+		label: __( 'Displays your X (formerly Twitter) profile URL.', 'newspack-newsletters' ),
+		keywords: [ 'x', 'twitter' ],
 	},
 	{
 		tag: '*|TWITTER:TWEETS2|*',
 		label: __(
-			"This lets you control the number of tweets to show in your campaign. Replace 2 with the number of tweets you'd like to display.",
+			"Sets the number of X (formerly Twitter) posts to show. Replace 2 with the number you'd like to display.",
 			'newspack-newsletters'
 		),
+		keywords: [ 'x', 'twitter' ],
 	},
 	{
 		tag: '*|TWITTER:PROFILE:TWITTERUSERNAME|*',
-		label: __(
-			'Can be used to insert multiple Twitter profiles in your Mailchimp campaign. Replace TWITTERUSERNAME with the Twitter display name of any profile you want to show in your campaign.',
-			'newspack-newsletters'
-		),
+		label: __( "Inserts another user's X (formerly Twitter) profile. Replace TWITTERUSERNAME with their handle.", 'newspack-newsletters' ),
+		keywords: [ 'x', 'twitter' ],
 	},
 	{
 		tag: '*|TWITTER:TWEET|*',
-		label: __( 'Adds a Tweet button to your campaign that allows subscribers to share your campaign page link.', 'newspack-newsletters' ),
+		label: __( 'Adds a Share button that lets subscribers post a link to your campaign on X (formerly Twitter).', 'newspack-newsletters' ),
+		keywords: [ 'x', 'twitter' ],
 	},
 	{
 		tag: '*|TWITTER:TWEET [$text=my custom text here]|*',
 		label: __(
-			'Includes your own custom text, as opposed to the subject line of your newsletter in your Tweet. Also includes a link to your campaign page.',
+			'Posts custom text (instead of your subject line) alongside a link to your campaign on X (formerly Twitter).',
 			'newspack-newsletters'
 		),
+		keywords: [ 'x', 'twitter' ],
 	},
 ];
