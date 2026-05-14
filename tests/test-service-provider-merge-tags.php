@@ -87,4 +87,57 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 			$this->assertStringEndsWith( '|*', $entry['tag'] );
 		}
 	}
+
+	/**
+	 * ActiveCampaign get_merge_tags() should return the 'personalization tag' label.
+	 */
+	public function test_active_campaign_merge_tags_has_label() {
+		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
+		$this->assertSame( 'personalization tag', $result['label'] );
+	}
+
+	/**
+	 * ActiveCampaign merge tags should include the %FIRSTNAME% tag.
+	 */
+	public function test_active_campaign_merge_tags_includes_firstname() {
+		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
+		$tags   = array_column( $result['tags'], 'tag' );
+		$this->assertContains( '%FIRSTNAME%', $tags );
+	}
+
+	/**
+	 * ActiveCampaign merge tags should include the %EMAIL% tag.
+	 */
+	public function test_active_campaign_merge_tags_includes_email() {
+		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
+		$tags   = array_column( $result['tags'], 'tag' );
+		$this->assertContains( '%EMAIL%', $tags );
+	}
+
+	/**
+	 * ActiveCampaign merge tags should include the %UNSUBSCRIBELINK% tag.
+	 */
+	public function test_active_campaign_merge_tags_includes_unsubscribe() {
+		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
+		$tags   = array_column( $result['tags'], 'tag' );
+		$this->assertContains( '%UNSUBSCRIBELINK%', $tags );
+	}
+
+	/**
+	 * Every entry in the ActiveCampaign merge tags dictionary must have tag and label keys.
+	 */
+	public function test_active_campaign_merge_tags_entries_have_required_keys() {
+		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
+		$this->assertNotEmpty( $result['tags'] );
+		foreach ( $result['tags'] as $entry ) {
+			$this->assertArrayHasKey( 'tag', $entry );
+			$this->assertArrayHasKey( 'label', $entry );
+			$this->assertIsString( $entry['label'] );
+			$this->assertNotEmpty( $entry['label'] );
+			$this->assertIsString( $entry['tag'] );
+			$this->assertNotEmpty( $entry['tag'] );
+			$this->assertStringStartsWith( '%', $entry['tag'] );
+			$this->assertStringEndsWith( '%', $entry['tag'] );
+		}
+	}
 }

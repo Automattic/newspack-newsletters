@@ -88,6 +88,180 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	}
 
 	/**
+	 * ActiveCampaign personalization-tag dictionary for the editor autocomplete.
+	 *
+	 * Sourced from: https://help.activecampaign.com/hc/en-us/articles/220709307-Personalization-Tags-overview
+	 *
+	 * @return array
+	 */
+	public static function get_merge_tags() {
+		return [
+			'label' => __( 'personalization tag', 'newspack-newsletters' ),
+			'tags'  => [
+				/* Contact personalization. */
+				[
+					'tag'      => '%FIRSTNAME%',
+					'label'    => __( "Inserts the contact's first name.", 'newspack-newsletters' ),
+					'keywords' => [ 'first name' ],
+				],
+				[
+					'tag'      => '%LASTNAME%',
+					'label'    => __( "Inserts the contact's last name.", 'newspack-newsletters' ),
+					'keywords' => [ 'last name' ],
+				],
+				[
+					'tag'      => '%FULLNAME%',
+					'label'    => __( "Inserts the contact's full name.", 'newspack-newsletters' ),
+					'keywords' => [ 'full name' ],
+				],
+				[
+					'tag'   => '%EMAIL%',
+					'label' => __( "Inserts the contact's email address.", 'newspack-newsletters' ),
+				],
+				[
+					'tag'      => '%PHONE%',
+					'label'    => __( "Inserts the contact's phone number.", 'newspack-newsletters' ),
+					'keywords' => [ 'telephone' ],
+				],
+				[
+					'tag'      => '%ORGNAME%',
+					'label'    => __( "Inserts the contact's organization name.", 'newspack-newsletters' ),
+					'keywords' => [ 'company', 'organization' ],
+				],
+				[
+					'tag'   => '%TAGS%',
+					'label' => __( "Inserts the contact's tags as a comma-separated list.", 'newspack-newsletters' ),
+				],
+				/* Account (sender) details. */
+				[
+					'tag'      => '%ACCOUNT_NAME%',
+					'label'    => __( 'Inserts your ActiveCampaign account name.', 'newspack-newsletters' ),
+					'keywords' => [ 'sender', 'company' ],
+				],
+				[
+					'tag'   => '%ACCOUNT_ADDRESS%',
+					'label' => __( 'Inserts your account mailing address.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCOUNT_CITY%',
+					'label' => __( 'Inserts the city from your account address.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCOUNT_STATE%',
+					'label' => __( 'Inserts the state or province from your account address.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCOUNT_ZIP%',
+					'label' => __( 'Inserts the postal code from your account address.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCOUNT_COUNTRY%',
+					'label' => __( 'Inserts the country from your account address.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCOUNT_PHONE%',
+					'label' => __( 'Inserts your account phone number.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'      => '%ACCOUNT_URL%',
+					'label'    => __( 'Inserts your account website URL.', 'newspack-newsletters' ),
+					'keywords' => [ 'website' ],
+				],
+				/* Subscription management. */
+				[
+					'tag'      => '%UNSUBSCRIBELINK%',
+					'label'    => __( 'Inserts an unsubscribe link. Required in all campaigns.', 'newspack-newsletters' ),
+					'keywords' => [ 'unsubscribe', 'opt out' ],
+				],
+				[
+					'tag'      => '%PREFERENCESLINK%',
+					'label'    => __( "Inserts a link to the contact's email preferences page.", 'newspack-newsletters' ),
+					'keywords' => [ 'manage preferences', 'profile' ],
+				],
+				[
+					'tag'      => '%FORWARDLINK%',
+					'label'    => __( 'Inserts a forward-to-a-friend link.', 'newspack-newsletters' ),
+					'keywords' => [ 'forward', 'share' ],
+				],
+				[
+					'tag'      => '%SUBSCRIBERID%',
+					'label'    => __( "Inserts the contact's unique subscriber ID.", 'newspack-newsletters' ),
+					'keywords' => [ 'subscriber id', 'contact id' ],
+				],
+				[
+					'tag'      => '%LIST_NAME%',
+					'label'    => __( 'Inserts the name of the list this campaign was sent to.', 'newspack-newsletters' ),
+					'keywords' => [ 'list' ],
+				],
+				/* Campaign details. */
+				[
+					'tag'   => '%CAMPAIGN_SUBJECT%',
+					'label' => __( 'Inserts the subject line of the current campaign.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%CAMPAIGN_FROM_NAME%',
+					'label' => __( 'Inserts the sender name for the current campaign.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%CAMPAIGN_FROM_EMAIL%',
+					'label' => __( 'Inserts the sender email address for the current campaign.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'      => '%CAMPAIGN_LINK_URL%',
+					'label'    => __( 'Inserts a link to view this campaign in a browser.', 'newspack-newsletters' ),
+					'keywords' => [ 'web version', 'view in browser' ],
+				],
+				/* Date and time. */
+				[
+					'tag'   => '%CURRENT_YEAR%',
+					'label' => __( 'Inserts the current four-digit year.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'      => '%CURRENT_MONTH%',
+					'label'    => __( 'Inserts the current month as a number (1–12).', 'newspack-newsletters' ),
+					'keywords' => [ 'month number' ],
+				],
+				[
+					'tag'      => '%CURRENT_MONTH_LONG%',
+					'label'    => __( 'Inserts the full month name (e.g. January).', 'newspack-newsletters' ),
+					'keywords' => [ 'month name' ],
+				],
+				[
+					'tag'      => '%CURRENT_MONTH_SHORT%',
+					'label'    => __( 'Inserts the abbreviated month name (e.g. Jan).', 'newspack-newsletters' ),
+					'keywords' => [ 'month abbreviation' ],
+				],
+				[
+					'tag'      => '%CURRENT_DAY%',
+					'label'    => __( 'Inserts the current day of the month as a number.', 'newspack-newsletters' ),
+					'keywords' => [ 'day number' ],
+				],
+				[
+					'tag'      => '%CURRENT_DAY_LONG%',
+					'label'    => __( 'Inserts the full weekday name (e.g. Monday).', 'newspack-newsletters' ),
+					'keywords' => [ 'weekday name' ],
+				],
+				[
+					'tag'      => '%CURRENT_DAY_SHORT%',
+					'label'    => __( 'Inserts the abbreviated weekday name (e.g. Mon).', 'newspack-newsletters' ),
+					'keywords' => [ 'weekday abbreviation' ],
+				],
+				/* Site tracking. */
+				[
+					'tag'      => '%LAST_SITE_URL%',
+					'label'    => __( 'Inserts the URL of the last site the contact visited (requires site tracking).', 'newspack-newsletters' ),
+					'keywords' => [ 'site tracking', 'last visited' ],
+				],
+				[
+					'tag'      => '%LAST_SITE_TITLE%',
+					'label'    => __( 'Inserts the page title of the last site the contact visited (requires site tracking).', 'newspack-newsletters' ),
+					'keywords' => [ 'site tracking', 'page title' ],
+				],
+			],
+		];
+	}
+
+	/**
 	 * Test the ActiveCampaign API connection.
 	 *
 	 * @return true|WP_Error True if the connection is successful, WP_Error otherwise.
