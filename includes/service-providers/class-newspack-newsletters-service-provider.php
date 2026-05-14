@@ -570,6 +570,29 @@ Error message(s) received:
 	}
 
 	/**
+	 * Get the merge-tag dictionary for this ESP.
+	 *
+	 * Override on each concrete provider to expose its merge-tag autocomplete
+	 * dictionary in the newsletter editor. The default below returns an empty
+	 * dictionary so providers without an override silently disable the
+	 * completer (no fatal, no UI noise).
+	 *
+	 * Shape:
+	 *   [
+	 *     'label' => string  // ESP-native singular noun (e.g. "merge tag", "personalization tag").
+	 *     'tags'  => array[] // Each: [ 'tag' => '<inserted string>', 'label' => '<description>', 'keywords' => string[] ].
+	 *   ]
+	 *
+	 * @return array
+	 */
+	public static function get_merge_tags() {
+		return [
+			'label' => '',
+			'tags'  => [],
+		];
+	}
+
+	/**
 	 * Upserts a contact to the ESP using the provider specific methods.
 	 *
 	 * Note: Mailchimp overrides this method.
