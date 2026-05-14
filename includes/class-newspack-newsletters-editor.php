@@ -376,11 +376,7 @@ final class Newspack_Newsletters_Editor {
 			'supported_esps'                 => Newspack_Newsletters::get_supported_providers(),
 			'merge_tags'                     => $provider
 				? $provider::get_merge_tags()
-				: [
-					'label'          => '',
-					'trigger_prefix' => '',
-					'tags'           => [],
-				],
+				: Newspack_Newsletters_Service_Provider::get_merge_tags(),
 			'sample_assets_url'              => plugins_url( '../assets/sample-posts/', __FILE__ ),
 		];
 	}
