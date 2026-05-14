@@ -4,12 +4,13 @@
 import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import {
 	Button,
 	Notice,
 	Spinner,
 	TextControl,
+	TextareaControl,
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
 
@@ -36,20 +37,47 @@ const Sidebar = ( {
 	inFlight,
 	errors,
 	editPost,
+	title,
 	meta,
 	senderEmail,
 	senderName,
 	status,
 	campaignName,
+	previewText,
 	savePost,
 	stringifiedCampaignDefaults,
 	postId,
 } ) => {
+	const [ plainTextTitle, setPlainTextTitle ] = useState( null );
 	const isRetrieving = useIsRetrieving();
 	const { newsletterData } = useNewsletterData();
 	const newsletterDataError = useNewsletterDataError();
 	const campaign = newsletterData?.campaign;
 	const updateMeta = toUpdate => editPost( { meta: toUpdate } );
+	const entityConverter = useRef( null );
+
+	// Create a temp textarea element that we can use to convert HTML entities like &amp; to unicode characters.
+	useEffect( () => {
+		if ( entityConverter.current ) {
+		} else {
+			entityConverter.current = document.createElement( 'textarea' );
+		}
+		return () => entityConverter?.current?.remove && entityConverter.current.remove(); // Clean up temp element from DOM on unmount.
+	}, [] );
+
+	// Decode HTML entities in title.
+	useEffect( () => {
+		entityConverter.current.innerHTML = title;
+		setPlainTextTitle( entityConverter.current.value );
+	}, [ title ] );
+
+	// Encode HTML entities in title.
+	useEffect( () => {
+		if ( null !== plainTextTitle ) {
+			entityConverter.current.innerText = plainTextTitle;
+			editPost( { title: entityConverter.current.innerHTML } );
+		}
+	}, [ plainTextTitle ] );
 
 	// Reconcile stored campaign data with data fetched from ESP.
 	useEffect( () => {
@@ -184,6 +212,23 @@ const Sidebar = ( {
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 				/>
+				<TextControl
+					label={ __( 'Subject', 'newspack-newsletters' ) }
+					className="newspack-newsletters__subject-textcontrol"
+					value={ plainTextTitle }
+					disabled={ inFlight }
+					onChange={ setPlainTextTitle }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+				/>
+				<TextareaControl
+					label={ __( 'Preview text', 'newspack-newsletters' ) }
+					className="newspack-newsletters__preview-textcontrol"
+					value={ previewText }
+					disabled={ inFlight }
+					onChange={ value => updateMeta( { preview_text: value } ) }
+					__nextHasNoMarginBottom
+				/>
 				<ProviderSidebar inFlight={ inFlight } postId={ postId } meta={ meta } updateMeta={ updateMeta } />
 				<hr />
 				<Sender errors={ errors } senderEmail={ senderEmail } senderName={ senderName } updateMeta={ updateMeta } postStatus={ status } />
@@ -199,11 +244,13 @@ export default compose( [
 		const { getCurrentPostAttribute, getCurrentPostId, getEditedPostAttribute } = select( 'core/editor' );
 		const meta = getEditedPostAttribute( 'meta' );
 		return {
+			title: getEditedPostAttribute( 'title' ),
 			postId: getCurrentPostId(),
 			meta,
 			senderEmail: meta.senderEmail,
 			senderName: meta.senderName,
 			campaignName: meta.campaign_name,
+			previewText: meta.preview_text || '',
 			status: getCurrentPostAttribute( 'status' ),
 			stringifiedCampaignDefaults: meta.stringifiedCampaignDefaults || {},
 		};
