@@ -6,20 +6,26 @@ import { uniqBy } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useMemo } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 
 /**
  * Internal dependencies
  */
-import { getServiceProvider } from '../../../service-providers';
 import { STORE_NAMESPACE } from '../../../newsletter-editor/store';
-import tags from './merge-tags';
 import './style.scss';
+
+/* globals newspack_email_editor_data */
+
+const EMPTY_MERGE_FIELDS = [];
 
 const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu, '' );
+
+const getStaticTags = () => newspack_email_editor_data?.merge_tags?.tags || [];
+const getLabel = () => newspack_email_editor_data?.merge_tags?.label || __( 'merge tag', 'newspack-newsletters' );
+const getTriggerPrefix = () => newspack_email_editor_data?.merge_tags?.trigger_prefix || '*|';
 
 const buildOptions = listMergeFields =>
 	uniqBy(
@@ -29,15 +35,13 @@ const buildOptions = listMergeFields =>
 				label: mergeField.name,
 				keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
 			} ) ),
-			...tags,
+			...getStaticTags(),
 		],
 		'tag'
 	);
 
-const getOptions = () => buildOptions( wp.data.select( STORE_NAMESPACE )?.getData?.()?.merge_fields || [] );
-
 const getOptionLabel = ( { tag, label } ) => (
-	<div className="newspack-completer-mc-merge-tags">
+	<div className="newspack-completer-merge-tags">
 		<code>{ tag }</code>
 		<p>{ label }</p>
 	</div>
@@ -46,13 +50,13 @@ const getOptionLabel = ( { tag, label } ) => (
 const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ];
 
 // Default useItems caps results at 10; ours bypasses that so the full tag list is searchable.
-// Subscribe to merge_fields so the list refreshes when the store data resolves.
+// Subscribe to merge_fields so the list refreshes when the store data resolves (Mailchimp only).
 const useMergeTagItems = filterValue => {
-	const listMergeFields = useSelect( select => select( STORE_NAMESPACE )?.getData?.()?.merge_fields, [] ) || [];
+	const listMergeFields = useSelect( select => select( STORE_NAMESPACE )?.getData?.()?.merge_fields ?? EMPTY_MERGE_FIELDS, [] );
 	const items = useMemo( () => {
 		const opts = buildOptions( listMergeFields );
 		const keyed = opts.map( ( opt, i ) => ( {
-			key: `mailchimp-merge-tags-${ i }`,
+			key: `merge-tags-${ i }`,
 			value: opt,
 			label: getOptionLabel( opt ),
 			keywords: getOptionKeywords( opt ),
@@ -63,15 +67,11 @@ const useMergeTagItems = filterValue => {
 	return [ items ];
 };
 
-/**
- * Merge tags completer configuration.
- *
- * @return {Object} Completer configuration.
- */
 const getCompleter = () => ( {
-	name: 'Mailchimp Merge Tags',
-	triggerPrefix: '*|',
-	options: getOptions,
+	name: 'Merge Tags',
+	triggerPrefix: getTriggerPrefix(),
+	// `options` is required by Gutenberg's Autocomplete API but unused at runtime — `useItems` takes precedence when both are provided.
+	options: () => buildOptions( [] ),
 	useItems: useMergeTagItems,
 	getOptionLabel,
 	getOptionKeywords,
@@ -79,18 +79,27 @@ const getCompleter = () => ( {
 } );
 
 export default () => {
-	const { name: serviceProviderName } = getServiceProvider();
+	const tags = getStaticTags();
+	if ( ! tags.length ) {
+		return;
+	}
+
+	const label = getLabel();
+	const triggerPrefix = getTriggerPrefix();
+
 	const updateParagraphPlaceholder = ( settings, name ) => {
 		if ( name === 'core/paragraph' ) {
-			settings.attributes.placeholder.default = __( 'Type / to choose a block, or *| to add a merge tag', 'newspack-newsletters' );
+			settings.attributes.placeholder.default = sprintf(
+				/* translators: 1: trigger prefix (e.g. "*|" or "*%"), 2: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
+				__( 'Type / to choose a block, or %1$s to add a %2$s', 'newspack-newsletters' ),
+				triggerPrefix,
+				label
+			);
 		}
 		return settings;
 	};
-	const addMergeTagsCompleter = ( completers, blockName ) => {
-		return blockName === 'core/paragraph' ? [ ...completers, getCompleter() ] : completers;
-	};
-	if ( serviceProviderName === 'mailchimp' ) {
-		wp.hooks.addFilter( 'blocks.registerBlockType', 'newspack-newsletters/mailchimp-merge-tags-placeholder', updateParagraphPlaceholder );
-		wp.hooks.addFilter( 'editor.Autocomplete.completers', 'newspack-newsletters/autocompleters/mailchimp-merge-tags', addMergeTagsCompleter );
-	}
+	const addMergeTagsCompleter = ( completers, blockName ) => ( blockName === 'core/paragraph' ? [ ...completers, getCompleter() ] : completers );
+
+	wp.hooks.addFilter( 'blocks.registerBlockType', 'newspack-newsletters/merge-tags-placeholder', updateParagraphPlaceholder );
+	wp.hooks.addFilter( 'editor.Autocomplete.completers', 'newspack-newsletters/autocompleters/merge-tags', addMergeTagsCompleter );
 };

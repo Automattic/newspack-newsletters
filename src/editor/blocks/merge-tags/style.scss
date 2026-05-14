@@ -1,21 +1,21 @@
 @use "~@wordpress/base-styles/colors" as wp-colors;
 @use "~@wordpress/base-styles/variables" as wp-vars;
 
-.components-autocomplete__popover:has(.newspack-completer-mc-merge-tags) .components-popover__content {
+.components-autocomplete__popover:has(.newspack-completer-merge-tags) .components-popover__content {
 	width: 320px;
 	max-width: calc(100vw - #{wp-vars.$grid-unit-40});
 	max-height: min(50vh, 480px) !important;
 	overflow-y: auto;
 }
 
-.components-autocomplete__result:has(> .newspack-completer-mc-merge-tags) {
+.components-autocomplete__result:has(> .newspack-completer-merge-tags) {
 	block-size: auto;
 	padding-block: wp-vars.$grid-unit-10;
 	text-align: start;
 	white-space: normal;
 }
 
-.newspack-completer-mc-merge-tags {
+.newspack-completer-merge-tags {
 	code {
 		color: wp-colors.$gray-900;
 		display: inline-block;
@@ -29,7 +29,7 @@
 }
 
 // Inherit the button's selected colour so text stays legible on the WP admin theme bg.
-.components-autocomplete__result[aria-selected="true"] .newspack-completer-mc-merge-tags {
+.components-autocomplete__result[aria-selected="true"] .newspack-completer-merge-tags {
 	code,
 	p {
 		color: inherit;

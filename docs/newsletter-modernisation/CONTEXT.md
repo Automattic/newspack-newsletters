@@ -103,7 +103,6 @@ Capabilities the React surfaces don't yet match against WP's classic admin views
 - **NEWS-1928 — Send-list column shows raw IDs.** Friendly-name resolution needs a per-provider lookup; deferred pending a batched / cached approach.
 - **NEWS-1928 — Public-page filter has no inline counts** (classic WP shows "Trash (3)" segmented links).
 - **NEWS-2037 cosmetic gaps** — author column blank when `post_author = 0`; ads list Categories column lacks a filter; advertisers `PATCH` with `parent=<descendant_id>` returns 200 but `wp_update_term_parent` silently demotes (UI prevents it, but a third-party REST caller would see a misleading 200).
-- **NEWS-2242 — Generalise merge-tag autocomplete across ESPs.** Completer is registered only when `service_provider === 'mailchimp'`. Move to a provider-agnostic directory, expose each ESP's dictionary + trigger prefix via `newspack_email_editor_data`, drop the hard-coded provider guard.
 
 ## Open questions
 
