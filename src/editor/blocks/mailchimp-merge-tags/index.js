@@ -8,6 +8,7 @@ import { uniqBy } from 'lodash';
  */
 import { __ } from '@wordpress/i18n';
 import { useMemo } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
 
 /**
  * Internal dependencies
@@ -20,11 +21,8 @@ import './style.scss';
 const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu, '' );
 
-const getOptions = () => {
-	const { getData } = wp.data.select( STORE_NAMESPACE );
-	const newsletterData = getData();
-	const listMergeFields = newsletterData?.merge_fields || [];
-	return uniqBy(
+const buildOptions = listMergeFields =>
+	uniqBy(
 		[
 			...listMergeFields.map( mergeField => ( {
 				tag: `*|${ mergeField.tag }|*`,
@@ -35,7 +33,8 @@ const getOptions = () => {
 		],
 		'tag'
 	);
-};
+
+const getOptions = () => buildOptions( wp.data.select( STORE_NAMESPACE )?.getData?.()?.merge_fields || [] );
 
 const getOptionLabel = ( { tag, label } ) => (
 	<div className="newspack-completer-mc-merge-tags">
@@ -47,9 +46,11 @@ const getOptionLabel = ( { tag, label } ) => (
 const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ];
 
 // Default useItems caps results at 10; ours bypasses that so the full tag list is searchable.
+// Subscribe to merge_fields so the list refreshes when the store data resolves.
 const useMergeTagItems = filterValue => {
+	const listMergeFields = useSelect( select => select( STORE_NAMESPACE )?.getData?.()?.merge_fields, [] ) || [];
 	const items = useMemo( () => {
-		const opts = getOptions();
+		const opts = buildOptions( listMergeFields );
 		const keyed = opts.map( ( opt, i ) => ( {
 			key: `mailchimp-merge-tags-${ i }`,
 			value: opt,
@@ -58,7 +59,7 @@ const useMergeTagItems = filterValue => {
 		} ) );
 		const search = new RegExp( '(?:\\b|\\s|^)' + escapeRegExp( stripDiacritics( filterValue ) ), 'i' );
 		return keyed.filter( item => item.keywords.some( k => search.test( stripDiacritics( k ) ) ) );
-	}, [ filterValue ] );
+	}, [ filterValue, listMergeFields ] );
 	return [ items ];
 };
 
