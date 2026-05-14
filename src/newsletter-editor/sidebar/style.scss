@@ -1,5 +1,6 @@
 @use "~@wordpress/base-styles/colors" as wp-colors;
 @use "~@wordpress/base-styles/variables" as wp-vars;
+@use "../../utilities/classes";
 
 .newspack-newsletters {
 	&__editor-block {
@@ -89,13 +90,6 @@
 	.components-notice {
 		margin: 0;
 	}
-}
-
-// Utility: opt out of @wordpress/components' default 16px margin-bottom on
-// base-controls. Use this anywhere `__nextHasNoMarginBottom` doesn't take
-// effect (it's a no-op on TextControl in the current @wordpress/components).
-.newspack-newsletters__no-margin-bottom {
-	margin-bottom: 0 !important;
 }
 
 .newspack-newsletters__sidebar .components-base-control {
