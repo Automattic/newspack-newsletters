@@ -43,4 +43,46 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 		$this->assertSame( '', $data['merge_tags']['label'] );
 		$this->assertSame( [], $data['merge_tags']['tags'] );
 	}
+
+	/**
+	 * Mailchimp get_merge_tags() should return the 'merge tag' label.
+	 */
+	public function test_mailchimp_merge_tags_has_label() {
+		$result = Newspack_Newsletters_Mailchimp::get_merge_tags();
+		$this->assertSame( 'merge tag', $result['label'] );
+	}
+
+	/**
+	 * Mailchimp merge tags should include the FNAME tag.
+	 */
+	public function test_mailchimp_merge_tags_includes_fname() {
+		$result = Newspack_Newsletters_Mailchimp::get_merge_tags();
+		$tags   = array_column( $result['tags'], 'tag' );
+		$this->assertContains( '*|FNAME|*', $tags );
+	}
+
+	/**
+	 * Mailchimp merge tags should include the ARCHIVE tag.
+	 */
+	public function test_mailchimp_merge_tags_includes_archive() {
+		$result = Newspack_Newsletters_Mailchimp::get_merge_tags();
+		$tags   = array_column( $result['tags'], 'tag' );
+		$this->assertContains( '*|ARCHIVE|*', $tags );
+	}
+
+	/**
+	 * Every entry in the Mailchimp merge tags dictionary must have tag and label keys.
+	 */
+	public function test_mailchimp_merge_tags_entries_have_required_keys() {
+		$result = Newspack_Newsletters_Mailchimp::get_merge_tags();
+		$this->assertNotEmpty( $result['tags'] );
+		foreach ( $result['tags'] as $entry ) {
+			$this->assertArrayHasKey( 'tag', $entry );
+			$this->assertArrayHasKey( 'label', $entry );
+			$this->assertIsString( $entry['tag'] );
+			$this->assertNotEmpty( $entry['tag'] );
+			$this->assertStringStartsWith( '*|', $entry['tag'] );
+			$this->assertStringEndsWith( '|*', $entry['tag'] );
+		}
+	}
 }
