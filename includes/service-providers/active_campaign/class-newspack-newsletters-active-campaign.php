@@ -96,8 +96,9 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 */
 	public static function get_merge_tags() {
 		return [
-			'label' => __( 'personalization tag', 'newspack-newsletters' ),
-			'tags'  => [
+			'label'          => __( 'personalization tag', 'newspack-newsletters' ),
+			'trigger_prefix' => '*%',
+			'tags'           => [
 				/* Contact personalization. */
 				[
 					'tag'      => '%FIRSTNAME%',

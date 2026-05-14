@@ -579,16 +579,18 @@ Error message(s) received:
 	 *
 	 * Shape:
 	 *   [
-	 *     'label' => string  // ESP-native singular noun (e.g. "merge tag", "personalization tag").
-	 *     'tags'  => array[] // Each: [ 'tag' => '<inserted string>', 'label' => '<description>', 'keywords' => string[] ].
+	 *     'label'          => string  // ESP-native singular noun (e.g. "merge tag", "personalization tag").
+	 *     'trigger_prefix' => string  // Character sequence a user types to open the autocomplete picker (e.g. "*|", "*%").
+	 *     'tags'           => array[] // Each: [ 'tag' => '<inserted string>', 'label' => '<description>', 'keywords' => string[] ].
 	 *   ]
 	 *
 	 * @return array
 	 */
 	public static function get_merge_tags() {
 		return [
-			'label' => '',
-			'tags'  => [],
+			'label'          => '',
+			'trigger_prefix' => '',
+			'tags'           => [],
 		];
 	}
 

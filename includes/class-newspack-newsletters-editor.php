@@ -377,8 +377,9 @@ final class Newspack_Newsletters_Editor {
 			'merge_tags'                     => $provider
 				? $provider::get_merge_tags()
 				: [
-					'label' => '',
-					'tags'  => [],
+					'label'          => '',
+					'trigger_prefix' => '',
+					'tags'           => [],
 				],
 			'sample_assets_url'              => plugins_url( '../assets/sample-posts/', __FILE__ ),
 		];

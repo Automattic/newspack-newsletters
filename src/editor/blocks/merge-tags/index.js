@@ -18,7 +18,6 @@ import './style.scss';
 
 /* globals newspack_email_editor_data */
 
-const TRIGGER_PREFIX = '*|';
 const EMPTY_MERGE_FIELDS = [];
 
 const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
@@ -26,6 +25,7 @@ const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu
 
 const getStaticTags = () => newspack_email_editor_data?.merge_tags?.tags || [];
 const getLabel = () => newspack_email_editor_data?.merge_tags?.label || __( 'merge tag', 'newspack-newsletters' );
+const getTriggerPrefix = () => newspack_email_editor_data?.merge_tags?.trigger_prefix || '*|';
 
 const buildOptions = listMergeFields =>
 	uniqBy(
@@ -69,7 +69,7 @@ const useMergeTagItems = filterValue => {
 
 const getCompleter = () => ( {
 	name: 'Merge Tags',
-	triggerPrefix: TRIGGER_PREFIX,
+	triggerPrefix: getTriggerPrefix(),
 	// `options` is required by Gutenberg's Autocomplete API but unused at runtime — `useItems` takes precedence when both are provided.
 	options: () => buildOptions( [] ),
 	useItems: useMergeTagItems,
@@ -85,12 +85,14 @@ export default () => {
 	}
 
 	const label = getLabel();
+	const triggerPrefix = getTriggerPrefix();
 
 	const updateParagraphPlaceholder = ( settings, name ) => {
 		if ( name === 'core/paragraph' ) {
 			settings.attributes.placeholder.default = sprintf(
-				/* translators: %s: ESP-native singular noun, e.g. "merge tag" or "personalization tag". */
-				__( 'Type / to choose a block, or *| to add a %s', 'newspack-newsletters' ),
+				/* translators: 1: trigger prefix (e.g. "*|" or "*%"), 2: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
+				__( 'Type / to choose a block, or %1$s to add a %2$s', 'newspack-newsletters' ),
+				triggerPrefix,
 				label
 			);
 		}

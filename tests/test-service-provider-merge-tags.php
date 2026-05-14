@@ -17,8 +17,10 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 		$result = Newspack_Newsletters_Service_Provider::get_merge_tags();
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'label', $result );
+		$this->assertArrayHasKey( 'trigger_prefix', $result );
 		$this->assertArrayHasKey( 'tags', $result );
 		$this->assertSame( '', $result['label'] );
+		$this->assertSame( '', $result['trigger_prefix'] );
 		$this->assertSame( [], $result['tags'] );
 	}
 
@@ -31,6 +33,7 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'merge_tags', $data );
 		$this->assertIsArray( $data['merge_tags'] );
 		$this->assertArrayHasKey( 'label', $data['merge_tags'] );
+		$this->assertArrayHasKey( 'trigger_prefix', $data['merge_tags'] );
 		$this->assertArrayHasKey( 'tags', $data['merge_tags'] );
 	}
 
@@ -41,6 +44,7 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 		\Newspack_Newsletters::set_service_provider( '' );
 		$data = Newspack_Newsletters_Editor::get_email_editor_data();
 		$this->assertSame( '', $data['merge_tags']['label'] );
+		$this->assertSame( '', $data['merge_tags']['trigger_prefix'] );
 		$this->assertSame( [], $data['merge_tags']['tags'] );
 	}
 
@@ -50,6 +54,14 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 	public function test_mailchimp_merge_tags_has_label() {
 		$result = Newspack_Newsletters_Mailchimp::get_merge_tags();
 		$this->assertSame( 'merge tag', $result['label'] );
+	}
+
+	/**
+	 * Mailchimp trigger prefix should be '*|'.
+	 */
+	public function test_mailchimp_merge_tags_trigger_prefix() {
+		$result = Newspack_Newsletters_Mailchimp::get_merge_tags();
+		$this->assertSame( '*|', $result['trigger_prefix'] );
 	}
 
 	/**
@@ -94,6 +106,14 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 	public function test_active_campaign_merge_tags_has_label() {
 		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
 		$this->assertSame( 'personalization tag', $result['label'] );
+	}
+
+	/**
+	 * ActiveCampaign trigger prefix should be '*%'.
+	 */
+	public function test_active_campaign_merge_tags_trigger_prefix() {
+		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
+		$this->assertSame( '*%', $result['trigger_prefix'] );
 	}
 
 	/**

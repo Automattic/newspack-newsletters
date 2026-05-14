@@ -2239,8 +2239,9 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 */
 	public static function get_merge_tags() {
 		return [
-			'label' => __( 'merge tag', 'newspack-newsletters' ),
-			'tags'  => [
+			'label'          => __( 'merge tag', 'newspack-newsletters' ),
+			'trigger_prefix' => '*|',
+			'tags'           => [
 				/* Campaigns. */
 				[
 					'tag'   => '*|ARCHIVE|*',
