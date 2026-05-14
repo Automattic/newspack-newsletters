@@ -125,8 +125,8 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 			{ ! isLayout && isSupportedESP() && ! isManualESP() && (
 				<PluginDocumentSettingPanel name="newsletters-settings-panel" title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }>
 					<VStack spacing={ 4 }>
-						<CampaignLink />
 						<Sidebar inFlight={ inFlight } isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
+						<CampaignLink />
 					</VStack>
 				</PluginDocumentSettingPanel>
 			) }

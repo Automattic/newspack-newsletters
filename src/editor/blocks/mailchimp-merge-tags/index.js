@@ -7,6 +7,7 @@ import { uniqBy } from 'lodash';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { useMemo } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -16,41 +17,65 @@ import { STORE_NAMESPACE } from '../../../newsletter-editor/store';
 import tags from './merge-tags';
 import './style.scss';
 
+const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu, '' );
+
+const getOptions = () => {
+	const { getData } = wp.data.select( STORE_NAMESPACE );
+	const newsletterData = getData();
+	const listMergeFields = newsletterData?.merge_fields || [];
+	return uniqBy(
+		[
+			...listMergeFields.map( mergeField => ( {
+				tag: `*|${ mergeField.tag }|*`,
+				label: mergeField.name,
+				keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
+			} ) ),
+			...tags,
+		],
+		'tag'
+	);
+};
+
+const getOptionLabel = ( { tag, label } ) => (
+	<div className="newspack-completer-mc-merge-tags">
+		<code>{ tag }</code>
+		<p>{ label }</p>
+	</div>
+);
+
+const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ];
+
+// Default useItems caps results at 10; ours bypasses that so the full tag list is searchable.
+const useMergeTagItems = filterValue => {
+	const items = useMemo( () => {
+		const opts = getOptions();
+		const keyed = opts.map( ( opt, i ) => ( {
+			key: `mailchimp-merge-tags-${ i }`,
+			value: opt,
+			label: getOptionLabel( opt ),
+			keywords: getOptionKeywords( opt ),
+		} ) );
+		const search = new RegExp( '(?:\\b|\\s|^)' + escapeRegExp( stripDiacritics( filterValue ) ), 'i' );
+		return keyed.filter( item => item.keywords.some( k => search.test( stripDiacritics( k ) ) ) );
+	}, [ filterValue ] );
+	return [ items ];
+};
+
 /**
  * Merge tags completer configuration.
  *
  * @return {Object} Completer configuration.
  */
-const getCompleter = () => {
-	return {
-		name: 'Mailchimp Merge Tags',
-		triggerPrefix: '*|',
-		options: () => {
-			const { getData } = wp.data.select( STORE_NAMESPACE );
-			const newsletterData = getData();
-			const listMergeFields = newsletterData?.merge_fields || [];
-			return uniqBy(
-				[
-					...listMergeFields.map( mergeField => ( {
-						tag: `*|${ mergeField.tag }|*`,
-						label: mergeField.name,
-						keywords: [ 'list', 'audience', ...mergeField.name.split( ' ' ) ],
-					} ) ),
-					...tags,
-				],
-				'tag'
-			);
-		},
-		getOptionLabel: ( { tag, label } ) => (
-			<div className="newspack-completer-mc-merge-tags">
-				<code>{ tag }</code>
-				<p>{ label }</p>
-			</div>
-		),
-		getOptionKeywords: ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ],
-		getOptionCompletion: ( { tag } ) => tag,
-	};
-};
+const getCompleter = () => ( {
+	name: 'Mailchimp Merge Tags',
+	triggerPrefix: '*|',
+	options: getOptions,
+	useItems: useMergeTagItems,
+	getOptionLabel,
+	getOptionKeywords,
+	getOptionCompletion: ( { tag } ) => tag,
+} );
 
 export default () => {
 	const { name: serviceProviderName } = getServiceProvider();

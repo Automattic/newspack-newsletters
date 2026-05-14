@@ -90,3 +90,24 @@
 		margin: 0;
 	}
 }
+
+// Utility: opt out of @wordpress/components' default 16px margin-bottom on
+// base-controls. Use this anywhere `__nextHasNoMarginBottom` doesn't take
+// effect (it's a no-op on TextControl in the current @wordpress/components).
+.newspack-newsletters__no-margin-bottom {
+	margin-bottom: 0 !important;
+}
+
+.newspack-newsletters__sidebar .components-base-control {
+	margin-bottom: 0;
+}
+
+.components-panel__row:has(> .newspack-newsletters__visibility-row) {
+	margin: 0;
+}
+
+.newspack-newsletters__visibility-dropdown-content .components-popover__content {
+	width: 320px;
+	max-width: calc(100vw - #{wp-vars.$grid-unit-40});
+	padding: wp-vars.$grid-unit-20;
+}
