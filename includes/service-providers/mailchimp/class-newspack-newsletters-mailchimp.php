@@ -2358,7 +2358,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				/* Email footers. */
 				[
 					'tag'   => '*|UNSUB|*',
-					'label' => __( "Gives your subscribers the opportunity to unsubscribe from your emails. (Required by law and Mailchimp's Terms of Use.).", 'newspack-newsletters' ),
+					'label' => __( "Gives your subscribers the opportunity to unsubscribe from your emails. (Required by law and Mailchimp's Terms of Use.)", 'newspack-newsletters' ),
 				],
 				[
 					'tag'   => '*|LIST:DESCRIPTION|*',
