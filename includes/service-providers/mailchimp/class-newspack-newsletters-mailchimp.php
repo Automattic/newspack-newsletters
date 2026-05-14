@@ -2376,10 +2376,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'label' => __( "Inserts a text URL that points to your vcard (.vcf) file of your address details. Use this as a link's Web Address to create a linked version.", 'newspack-newsletters' ),
 				],
 				[
-					'tag'   => '*|LIST:NAME|*',
-					'label' => __( 'Inserts the name of your audience.', 'newspack-newsletters' ),
-				],
-				[
 					'tag'   => '*|ABOUT_LIST|*',
 					'label' => __( 'Creates a link to the About Your List page.', 'newspack-newsletters' ),
 				],
@@ -2404,10 +2400,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 					'label' => __( 'Inserts your company or organization telephone number.', 'newspack-newsletters' ),
 				],
 				[
-					'tag'   => '*|LIST:COMPANY|*',
-					'label' => __( 'Inserts your company or organization name.', 'newspack-newsletters' ),
-				],
-				[
 					'tag'   => '*|ABUSE_EMAIL|*',
 					'label' => __( 'Inserts the email address located in the Required Email Footer Content for this audience.', 'newspack-newsletters' ),
 				],
@@ -2422,11 +2414,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				[
 					'tag'   => '*|FORWARD|*',
 					'label' => __( "Inserts the URL to your audience's Forward to a Friend form.", 'newspack-newsletters' ),
-				],
-				/* Subscriber counts. */
-				[
-					'tag'   => '*|LIST:SUBSCRIBERS|*',
-					'label' => __( 'Displays a number. You can use this with a text blurb. For example, if you have 100 subscribers, and input "*|LIST:SUBSCRIBERS|* Happy Customers are currently enjoying our newsletters" in your campaign, we\'ll display "100 Happy Customers are currently enjoying our newsletters."', 'newspack-newsletters' ),
 				],
 				/* Social share — X (formerly Twitter). */
 				[
