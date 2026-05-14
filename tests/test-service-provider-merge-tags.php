@@ -79,6 +79,8 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 		foreach ( $result['tags'] as $entry ) {
 			$this->assertArrayHasKey( 'tag', $entry );
 			$this->assertArrayHasKey( 'label', $entry );
+			$this->assertIsString( $entry['label'] );
+			$this->assertNotEmpty( $entry['label'] );
 			$this->assertIsString( $entry['tag'] );
 			$this->assertNotEmpty( $entry['tag'] );
 			$this->assertStringStartsWith( '*|', $entry['tag'] );
