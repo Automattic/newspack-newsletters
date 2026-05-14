@@ -117,30 +117,79 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 	}
 
 	/**
-	 * ActiveCampaign merge tags should include the %FIRSTNAME% tag.
+	 * ActiveCampaign merge tags should include all canonical AC personalization tags.
 	 */
-	public function test_active_campaign_merge_tags_includes_firstname() {
+	public function test_active_campaign_merge_tags_includes_canonical_tags() {
 		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
 		$tags   = array_column( $result['tags'], 'tag' );
-		$this->assertContains( '%FIRSTNAME%', $tags );
+		// Sample of canonical AC personalization tags. If any of these go missing the
+		// dictionary has drifted from https://help.activecampaign.com/hc/en-us/articles/220709307.
+		$canonical = [
+			'%EMAIL%',
+			'%FIRSTNAME%',
+			'%LASTNAME%',
+			'%FULLNAME%',
+			'%PHONE%',
+			'%ORGANIZATION%',
+			'%UNSUBSCRIBELINK%',
+			'%WEBCOPY%',
+			'%UPDATELINK%',
+			'%FORWARD2FRIEND%',
+			'%ACCT_NAME%',
+			'%ACCT_URL%',
+			'%LISTNAME%',
+			'%SUBSCRIBERID%',
+			'%CAMPAIGNID%',
+			'%MESSAGEID%',
+			'%TODAY%',
+		];
+		foreach ( $canonical as $tag ) {
+			$this->assertContains( $tag, $tags, "Missing canonical AC tag: $tag" );
+		}
 	}
 
 	/**
-	 * ActiveCampaign merge tags should include the %EMAIL% tag.
+	 * ActiveCampaign merge tags should not include invented (non-canonical) tags.
 	 */
-	public function test_active_campaign_merge_tags_includes_email() {
+	public function test_active_campaign_merge_tags_excludes_invented_tags() {
 		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
 		$tags   = array_column( $result['tags'], 'tag' );
-		$this->assertContains( '%EMAIL%', $tags );
+		// Tags that LOOK plausible but AC does not actually document. Regression guard
+		// against the v1 dictionary drift caught in PR #2133 review.
+		$invented = [
+			'%ORGNAME%',
+			'%PREFERENCESLINK%',
+			'%FORWARDLINK%',
+			'%LIST_NAME%',
+			'%ACCOUNT_NAME%',
+			'%ACCOUNT_ADDRESS%',
+			'%ACCOUNT_CITY%',
+			'%ACCOUNT_STATE%',
+			'%ACCOUNT_ZIP%',
+			'%ACCOUNT_COUNTRY%',
+			'%ACCOUNT_PHONE%',
+			'%ACCOUNT_URL%',
+			'%CURRENT_YEAR%',
+			'%CURRENT_MONTH%',
+			'%CURRENT_DAY%',
+			'%CAMPAIGN_SUBJECT%',
+			'%CAMPAIGN_FROM_NAME%',
+			'%CAMPAIGN_FROM_EMAIL%',
+			'%CAMPAIGN_LINK_URL%',
+		];
+		foreach ( $invented as $tag ) {
+			$this->assertNotContains( $tag, $tags, "Invented (non-canonical) tag present: $tag" );
+		}
 	}
 
 	/**
-	 * ActiveCampaign merge tags should include the %UNSUBSCRIBELINK% tag.
+	 * ActiveCampaign merge tags dictionary should contain at least 50 entries.
 	 */
-	public function test_active_campaign_merge_tags_includes_unsubscribe() {
+	public function test_active_campaign_merge_tags_has_minimum_size() {
 		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
-		$tags   = array_column( $result['tags'], 'tag' );
-		$this->assertContains( '%UNSUBSCRIBELINK%', $tags );
+		// AC documents ~64 standard tags. Allow a buffer below to catch accidental large removals
+		// without making the test brittle to small future trims.
+		$this->assertGreaterThanOrEqual( 50, count( $result['tags'] ) );
 	}
 
 	/**

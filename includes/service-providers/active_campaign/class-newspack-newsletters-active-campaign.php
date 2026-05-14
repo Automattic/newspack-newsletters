@@ -101,6 +101,10 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'tags'           => [
 				/* Contact personalization. */
 				[
+					'tag'   => '%EMAIL%',
+					'label' => __( "Inserts the contact's email address.", 'newspack-newsletters' ),
+				],
+				[
 					'tag'      => '%FIRSTNAME%',
 					'label'    => __( "Inserts the contact's first name.", 'newspack-newsletters' ),
 					'keywords' => [ 'first name' ],
@@ -116,136 +120,285 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 					'keywords' => [ 'full name' ],
 				],
 				[
-					'tag'   => '%EMAIL%',
-					'label' => __( "Inserts the contact's email address.", 'newspack-newsletters' ),
-				],
-				[
 					'tag'      => '%PHONE%',
 					'label'    => __( "Inserts the contact's phone number.", 'newspack-newsletters' ),
 					'keywords' => [ 'telephone' ],
 				],
 				[
-					'tag'      => '%ORGNAME%',
+					'tag'      => '%ORGANIZATION%',
 					'label'    => __( "Inserts the contact's organization name.", 'newspack-newsletters' ),
 					'keywords' => [ 'company', 'organization' ],
 				],
+				/* Subscription metadata. */
 				[
-					'tag'   => '%TAGS%',
-					'label' => __( "Inserts the contact's tags as a comma-separated list.", 'newspack-newsletters' ),
-				],
-				/* Account (sender) details. */
-				[
-					'tag'      => '%ACCOUNT_NAME%',
-					'label'    => __( 'Inserts your ActiveCampaign account name.', 'newspack-newsletters' ),
-					'keywords' => [ 'sender', 'company' ],
+					'tag'   => '%SUBDATE%',
+					'label' => __( 'Inserts the date the contact subscribed to the list.', 'newspack-newsletters' ),
 				],
 				[
-					'tag'   => '%ACCOUNT_ADDRESS%',
-					'label' => __( 'Inserts your account mailing address.', 'newspack-newsletters' ),
+					'tag'   => '%SUBTIME%',
+					'label' => __( 'Inserts the time the contact subscribed to the list.', 'newspack-newsletters' ),
 				],
+				/* Campaign links. */
 				[
-					'tag'   => '%ACCOUNT_CITY%',
-					'label' => __( 'Inserts the city from your account address.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'   => '%ACCOUNT_STATE%',
-					'label' => __( 'Inserts the state or province from your account address.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'   => '%ACCOUNT_ZIP%',
-					'label' => __( 'Inserts the postal code from your account address.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'   => '%ACCOUNT_COUNTRY%',
-					'label' => __( 'Inserts the country from your account address.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'   => '%ACCOUNT_PHONE%',
-					'label' => __( 'Inserts your account phone number.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'      => '%ACCOUNT_URL%',
-					'label'    => __( 'Inserts your account website URL.', 'newspack-newsletters' ),
-					'keywords' => [ 'website' ],
-				],
-				/* Subscription management. */
-				[
-					'tag'      => '%UNSUBSCRIBELINK%',
-					'label'    => __( 'Inserts an unsubscribe link. Required in all campaigns.', 'newspack-newsletters' ),
-					'keywords' => [ 'unsubscribe', 'opt out' ],
-				],
-				[
-					'tag'      => '%PREFERENCESLINK%',
-					'label'    => __( "Inserts a link to the contact's email preferences page.", 'newspack-newsletters' ),
-					'keywords' => [ 'manage preferences', 'profile' ],
-				],
-				[
-					'tag'      => '%FORWARDLINK%',
-					'label'    => __( 'Inserts a forward-to-a-friend link.', 'newspack-newsletters' ),
-					'keywords' => [ 'forward', 'share' ],
-				],
-				[
-					'tag'      => '%SUBSCRIBERID%',
-					'label'    => __( "Inserts the contact's unique subscriber ID.", 'newspack-newsletters' ),
-					'keywords' => [ 'subscriber id', 'contact id' ],
-				],
-				[
-					'tag'      => '%LIST_NAME%',
-					'label'    => __( 'Inserts the name of the list this campaign was sent to.', 'newspack-newsletters' ),
-					'keywords' => [ 'list' ],
-				],
-				/* Campaign details. */
-				[
-					'tag'   => '%CAMPAIGN_SUBJECT%',
-					'label' => __( 'Inserts the subject line of the current campaign.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'   => '%CAMPAIGN_FROM_NAME%',
-					'label' => __( 'Inserts the sender name for the current campaign.', 'newspack-newsletters' ),
-				],
-				[
-					'tag'   => '%CAMPAIGN_FROM_EMAIL%',
-					'label' => __( 'Inserts the sender email address for the current campaign.', 'newspack-newsletters' ),
+					'tag'   => '%UNSUBSCRIBELINK%',
+					'label' => __( 'Inserts the unsubscribe link required in every email.', 'newspack-newsletters' ),
 				],
 				[
 					'tag'      => '%WEBCOPY%',
 					'label'    => __( 'Inserts a link to view this campaign in a web browser (web copy link).', 'newspack-newsletters' ),
 					'keywords' => [ 'web copy', 'view in browser' ],
 				],
+				[
+					'tag'   => '%WEBCOPY-NOSOCIAL%',
+					'label' => __( 'Inserts a web copy link without social-share links.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'      => '%UPDATELINK%',
+					'label'    => __( "Inserts a link to the contact's subscription preferences page.", 'newspack-newsletters' ),
+					'keywords' => [ 'preferences', 'update profile' ],
+				],
+				[
+					'tag'      => '%FORWARD2FRIEND%',
+					'label'    => __( 'Inserts a link that lets the contact forward this email to a friend.', 'newspack-newsletters' ),
+					'keywords' => [ 'forward' ],
+				],
+				/* Deals (most recent deal). */
+				[
+					'tag'   => '%DEAL_OWNER_FIRST_NAME%',
+					'label' => __( "Inserts the deal owner's first name.", 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_OWNER_LAST_NAME%',
+					'label' => __( "Inserts the deal owner's last name.", 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_OWNER_EMAIL%',
+					'label' => __( "Inserts the deal owner's email address.", 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_TITLE%',
+					'label' => __( 'Inserts the deal title.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_DESCRIPTION%',
+					'label' => __( 'Inserts the deal description.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_VALUE%',
+					'label' => __( 'Inserts the deal value.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_STATUS%',
+					'label' => __( 'Inserts the deal status.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_PIPELINE%',
+					'label' => __( 'Inserts the deal pipeline.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_STAGE%',
+					'label' => __( 'Inserts the deal stage.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_CREATED_DATE%',
+					'label' => __( 'Inserts the deal created date.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%DEAL_UPDATED_DATE%',
+					'label' => __( 'Inserts the deal last-updated date.', 'newspack-newsletters' ),
+				],
+				/* Account fields. */
+				[
+					'tag'      => '%ACCT_NAME%',
+					'label'    => __( 'Inserts the account name.', 'newspack-newsletters' ),
+					'keywords' => [ 'account' ],
+				],
+				[
+					'tag'   => '%ACCT_URL%',
+					'label' => __( 'Inserts the account URL.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_CREATED_DATE%',
+					'label' => __( 'Inserts the account created date.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_UPDATED_DATE%',
+					'label' => __( 'Inserts the account last-updated date.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_ADDRESS_1%',
+					'label' => __( 'Inserts the account address line 1.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_ADDRESS_2%',
+					'label' => __( 'Inserts the account address line 2.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_CITY%',
+					'label' => __( 'Inserts the account city.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'      => '%ACCT_STATE_PROVIDENCE%',
+					'label'    => __( 'Inserts the account state or province.', 'newspack-newsletters' ),
+					'keywords' => [ 'state', 'province' ],
+				],
+				[
+					'tag'      => '%ACCT_POSTAL_CODE%',
+					'label'    => __( 'Inserts the account postal code.', 'newspack-newsletters' ),
+					'keywords' => [ 'zip', 'postcode' ],
+				],
+				[
+					'tag'   => '%ACCT_NUMBER_OF_EMPLOYEES%',
+					'label' => __( 'Inserts the account number of employees.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_ANNUAL_REVENUE%',
+					'label' => __( 'Inserts the account annual revenue.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_INDUSTRY_VERTICAL%',
+					'label' => __( 'Inserts the account industry or vertical.', 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%ACCT_COUNTRY%',
+					'label' => __( 'Inserts the account country.', 'newspack-newsletters' ),
+				],
+				/* Social share. */
+				[
+					'tag'      => '%SOCIALSHARE%',
+					'label'    => __( 'Inserts the full set of social-share submit links.', 'newspack-newsletters' ),
+					'keywords' => [ 'social' ],
+				],
+				[
+					'tag'      => '%SOCIAL-FACEBOOK-LIKE%',
+					'label'    => __( 'Inserts a Facebook Like button.', 'newspack-newsletters' ),
+					'keywords' => [ 'facebook' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-FACEBOOK%',
+					'label'    => __( 'Inserts a Share on Facebook link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'facebook' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-FACEBOOK-LINK%',
+					'label'    => __( 'Inserts a Share on Facebook link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'facebook' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-TWITTER%',
+					'label'    => __( 'Inserts a Share on X (formerly Twitter) link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'x', 'twitter' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-TWITTER-LINK%',
+					'label'    => __( 'Inserts a Share on X (formerly Twitter) link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'x', 'twitter' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-DIGG%',
+					'label'    => __( 'Inserts a Share on Digg link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'digg' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-DIGG-LINK%',
+					'label'    => __( 'Inserts a Share on Digg link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'digg' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-REDDIT%',
+					'label'    => __( 'Inserts a Share on Reddit link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'reddit' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-REDDIT-LINK%',
+					'label'    => __( 'Inserts a Share on Reddit link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'reddit' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-DELICIOUS%',
+					'label'    => __( 'Inserts a Share on del.icio.us link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'delicious' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-DELICIOUS-LINK%',
+					'label'    => __( 'Inserts a Share on del.icio.us link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'delicious' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-GPLUS%',
+					'label'    => __( 'Inserts a Share on Google+ link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'google plus', 'gplus' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-GPLUS-LINK%',
+					'label'    => __( 'Inserts a Share on Google+ link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'google plus', 'gplus' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-STUMBLEUPON%',
+					'label'    => __( 'Inserts a Share on StumbleUpon link/icon.', 'newspack-newsletters' ),
+					'keywords' => [ 'stumbleupon' ],
+				],
+				[
+					'tag'      => '%SOCIALSHARE-STUMBLEUPON-LINK%',
+					'label'    => __( 'Inserts a Share on StumbleUpon link (no icon).', 'newspack-newsletters' ),
+					'keywords' => [ 'stumbleupon' ],
+				],
 				/* Date and time. */
 				[
-					'tag'   => '%CURRENT_YEAR%',
-					'label' => __( 'Inserts the current four-digit year.', 'newspack-newsletters' ),
+					'tag'      => '%TODAY%',
+					'label'    => __( "Inserts today's date.", 'newspack-newsletters' ),
+					'keywords' => [ 'date', 'today' ],
 				],
 				[
-					'tag'      => '%CURRENT_MONTH%',
-					'label'    => __( 'Inserts the current month as a number (1–12).', 'newspack-newsletters' ),
-					'keywords' => [ 'month number' ],
+					'tag'      => '%TODAY+1%',
+					'label'    => __( "Inserts today's date plus N days. Replace 1 with the number of days you want to add.", 'newspack-newsletters' ),
+					'keywords' => [ 'date', 'tomorrow', 'future' ],
 				],
 				[
-					'tag'      => '%CURRENT_MONTH_LONG%',
-					'label'    => __( 'Inserts the full month name (e.g. January).', 'newspack-newsletters' ),
-					'keywords' => [ 'month name' ],
+					'tag'      => '%TODAY-1%',
+					'label'    => __( "Inserts today's date minus N days. Replace 1 with the number of days you want to subtract.", 'newspack-newsletters' ),
+					'keywords' => [ 'date', 'yesterday', 'past' ],
+				],
+				/* Sender info. */
+				[
+					'tag'      => '%SENDER-INFO%',
+					'label'    => __( 'Inserts the sender / list contact info.', 'newspack-newsletters' ),
+					'keywords' => [ 'sender', 'address' ],
 				],
 				[
-					'tag'      => '%CURRENT_MONTH_SHORT%',
-					'label'    => __( 'Inserts the abbreviated month name (e.g. Jan).', 'newspack-newsletters' ),
-					'keywords' => [ 'month abbreviation' ],
+					'tag'      => '%SENDER-INFO-SINGLELINE%',
+					'label'    => __( 'Inserts the sender / list contact info on a single line.', 'newspack-newsletters' ),
+					'keywords' => [ 'sender', 'address' ],
 				],
 				[
-					'tag'      => '%CURRENT_DAY%',
-					'label'    => __( 'Inserts the current day of the month as a number.', 'newspack-newsletters' ),
-					'keywords' => [ 'day number' ],
+					'tag'      => '%SENDER-LIST-REMINDER%',
+					'label'    => __( "Inserts the list's permission reminder.", 'newspack-newsletters' ),
+					'keywords' => [ 'reminder' ],
+				],
+				/* Contact and list metadata. */
+				[
+					'tag'      => '%CONTACTIP%',
+					'label'    => __( "Inserts the contact's IP address.", 'newspack-newsletters' ),
+					'keywords' => [ 'ip' ],
 				],
 				[
-					'tag'      => '%CURRENT_DAY_LONG%',
-					'label'    => __( 'Inserts the full weekday name (e.g. Monday).', 'newspack-newsletters' ),
-					'keywords' => [ 'weekday name' ],
+					'tag'      => '%LISTNAME%',
+					'label'    => __( "Inserts the name of the contact's list.", 'newspack-newsletters' ),
+					'keywords' => [ 'list' ],
 				],
 				[
-					'tag'      => '%CURRENT_DAY_SHORT%',
-					'label'    => __( 'Inserts the abbreviated weekday name (e.g. Mon).', 'newspack-newsletters' ),
-					'keywords' => [ 'weekday abbreviation' ],
+					'tag'      => '%SUBSCRIBERID%',
+					'label'    => __( "Inserts the contact's unique ID.", 'newspack-newsletters' ),
+					'keywords' => [ 'id', 'subscriber' ],
+				],
+				[
+					'tag'   => '%CAMPAIGNID%',
+					'label' => __( "Inserts the campaign's unique ID.", 'newspack-newsletters' ),
+				],
+				[
+					'tag'   => '%MESSAGEID%',
+					'label' => __( "Inserts the message's unique ID.", 'newspack-newsletters' ),
 				],
 			],
 		];
