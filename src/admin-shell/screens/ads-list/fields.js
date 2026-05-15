@@ -109,7 +109,7 @@ const renderImpressions = ( { item } ) => String( item?.meta?.tracking_impressio
 const renderClicks = ( { item } ) => String( item?.meta?.tracking_clicks ?? 0 );
 const renderPrice = ( { item } ) => {
 	const price = item?.meta?.price;
-	if ( price === undefined || price === null || price === '' ) {
+	if ( ! price ) {
 		return '';
 	}
 	return String( price );

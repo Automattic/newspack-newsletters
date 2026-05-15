@@ -45,7 +45,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 	const initialExpiryDate = item?.meta?.expiry_date || '';
 	const initialPrice = ( () => {
 		const value = item?.meta?.price;
-		return value === undefined || value === null ? '' : String( value );
+		return value ? String( value ) : '';
 	} )();
 
 	const [ advertiserSelections, setAdvertiserSelections ] = useState( initialAdvertiserSelections );
@@ -86,12 +86,10 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 
 	const handleSave = async () => {
 		setIsBusy( true );
-		// `null` clears the meta via the nullable REST schema (see `register_meta`
-		// for `price` in `includes/ads/class-ads.php`).
 		const meta = {
 			start_date: startDate,
 			expiry_date: expiryDate,
-			price: price === '' ? null : Number( price ),
+			price: price === '' ? 0 : Number( price ),
 		};
 		const data = {
 			newspack_nl_advertiser: advertiserSelections.map( s => s.id ),

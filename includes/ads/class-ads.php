@@ -116,13 +116,7 @@ final class Ads {
 			'price',
 			[
 				'object_subtype' => self::CPT,
-				// Nullable schema so Quick Edit can clear an already-set price by
-				// POSTing `meta.price: null`, which delegates to delete_post_meta.
-				'show_in_rest'   => [
-					'schema' => [
-						'type' => [ 'number', 'null' ],
-					],
-				],
+				'show_in_rest'   => true,
 				'type'           => 'number',
 				'single'         => true,
 				'auth_callback'  => '__return_true',
