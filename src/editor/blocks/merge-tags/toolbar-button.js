@@ -74,9 +74,10 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 
 	useEffect( () => {
 		const { text, start } = value;
-		const grew = text.length > prevTextLengthRef.current;
+		// Only fire on single-character growth so paste operations don't hijack the picker.
+		const typedOne = text.length === prevTextLengthRef.current + 1;
 		prevTextLengthRef.current = text.length;
-		if ( ! grew ) {
+		if ( ! typedOne ) {
 			return;
 		}
 		const legacy = getLegacyTrigger();
