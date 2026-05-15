@@ -43,9 +43,9 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 				{ items.length === 0 ? (
 					<p className="newspack-newsletters-merge-tags-picker__empty">{ __( 'No matches.', 'newspack-newsletters' ) }</p>
 				) : (
-					<ul className="newspack-newsletters-merge-tags-picker__list" role="listbox">
+					<ul className="newspack-newsletters-merge-tags-picker__list">
 						{ items.map( item => (
-							<li key={ item.key } role="option" aria-selected="false">
+							<li key={ item.key }>
 								<Button className="newspack-newsletters-merge-tags-picker__option" onClick={ () => onSelect( item.value.tag ) }>
 									{ item.label }
 								</Button>
