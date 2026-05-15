@@ -226,11 +226,6 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	100% { opacity: 1; }
 }
 
-@keyframes newspack-newsletters-quick-edit-fade-out {
-	0% { opacity: 1; }
-	100% { opacity: 0; }
-}
-
 @keyframes newspack-newsletters-quick-edit-slide-in-right {
 	0% { transform: translateX(100%); }
 	100% { transform: translateX(0); }
@@ -327,11 +322,13 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	}
 }
 
-// Mirror the open animation on close: overlay fades out, frame slides
-// out to the right. Higher specificity than @wp/components' default
-// disappear-animation so our keyframes win the cascade.
+// Mirror the open slide-in with a slide-out on close. Higher specificity
+// than @wp/components' default disappear-animation so our keyframes win
+// the cascade. Overlay animation suppressed because applying opacity to
+// the overlay propagates to the sliding frame and turns the motion into
+// a fade.
 .components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out {
-	animation: 0.08s linear forwards newspack-newsletters-quick-edit-fade-out;
+	animation: none;
 }
 
 .components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out .components-modal__frame {
