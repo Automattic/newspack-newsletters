@@ -45,10 +45,7 @@ export default function QuickEditPanel( {
 			__experimentalHideHeader
 			onRequestClose={ isBusy ? () => {} : onClose }
 			shouldCloseOnEsc={ ! isBusy }
-			// Suppress click-outside dismiss: the side-anchored layout makes
-			// "outside" a large target and an accidental click during edit
-			// would silently drop unsaved field changes.
-			shouldCloseOnClickOutside={ false }
+			shouldCloseOnClickOutside={ ! isBusy }
 			className={ frameClassName }
 			overlayClassName="newspack-newsletters-quick-edit-modal__overlay"
 		>
