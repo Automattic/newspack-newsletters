@@ -99,7 +99,7 @@ function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, quest
 const isMakePublicEligible = item => ! isTrashed( item ) && ! item?.meta?.is_public;
 const isMakeNonPublicEligible = item => ! isTrashed( item ) && !! item?.meta?.is_public;
 
-export function getActions( { refresh } ) {
+export function getActions( { refresh, openQuickEdit } ) {
 	const editAction = {
 		id: 'edit',
 		label: __( 'Edit', 'newspack-newsletters' ),
@@ -110,6 +110,19 @@ export function getActions( { refresh } ) {
 				return;
 			}
 			window.location.href = `${ getAdminUrl() }post.php?post=${ item.id }&action=edit`;
+		},
+	};
+
+	const quickEditAction = {
+		id: 'quick-edit',
+		label: __( 'Quick edit', 'newspack-newsletters' ),
+		isEligible: item => ! isTrashed( item ),
+		callback: items => {
+			const item = items[ 0 ];
+			if ( ! item || typeof openQuickEdit !== 'function' ) {
+				return;
+			}
+			openQuickEdit( item );
 		},
 	};
 
@@ -330,5 +343,5 @@ export function getActions( { refresh } ) {
 		),
 	};
 
-	return [ editAction, viewAction, makePublicAction, makeNonPublicAction, trashAction, restoreAction, deleteAction ];
+	return [ editAction, quickEditAction, viewAction, makePublicAction, makeNonPublicAction, trashAction, restoreAction, deleteAction ];
 }
