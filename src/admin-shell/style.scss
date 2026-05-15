@@ -219,16 +219,27 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 
 // Side-mounted Quick Edit panel — mirrors Core's
 // `dataviews-action-modal__quick-edit` pattern in the Site Editor's
-// Pages route. Override the standard `<Modal>` overlay/frame to anchor
-// the panel to the right edge at fixed width and full height, with a
-// sticky footer for the Cancel / Save actions.
+// Pages route: overlay fade-in, frame slides in from the right, sticky
+// footer with 50/50 Cancel / Save buttons.
+@keyframes newspack-newsletters-quick-edit-fade-in {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@keyframes newspack-newsletters-quick-edit-slide-in-right {
+	0% { transform: translateX(100%); }
+	100% { transform: translateX(0); }
+}
+
 .newspack-newsletters-quick-edit-modal__overlay {
 	align-items: stretch;
+	animation: 0.08s linear forwards newspack-newsletters-quick-edit-fade-in;
 	justify-content: flex-end;
 	padding: 0;
 }
 
 .components-modal__frame.newspack-newsletters-quick-edit-modal {
+	animation: 0.2s ease-out forwards newspack-newsletters-quick-edit-slide-in-right;
 	border-radius: 0;
 	box-shadow: -1px 0 16px rgb(0 0 0 / 8%);
 	height: 100vh;
@@ -277,6 +288,18 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	padding: wp-vars.$grid-unit-20 wp-vars.$grid-unit-30;
 	position: sticky;
 	z-index: 1;
+
+	.components-button {
+		flex: 1;
+		justify-content: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.newspack-newsletters-quick-edit-modal__overlay,
+	.components-modal__frame.newspack-newsletters-quick-edit-modal {
+		animation: none;
+	}
 }
 
 .newspack-newsletters-list {
