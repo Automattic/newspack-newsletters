@@ -240,7 +240,7 @@ class Newsletters_List_REST {
 			[
 				'methods'             => 'GET',
 				'callback'            => [ __CLASS__, 'rest_get_quick_edit_authors' ],
-				'permission_callback' => [ __CLASS__, 'rest_filter_options_permission_check' ],
+				'permission_callback' => [ __CLASS__, 'rest_quick_edit_authors_permission_check' ],
 			]
 		);
 	}
@@ -279,9 +279,28 @@ class Newsletters_List_REST {
 	}
 
 	/**
+	 * Restrict the Quick Edit author picker to users who can reassign
+	 * authorship — i.e. those with the CPT's `edit_others_posts`. Stops
+	 * a user-enumeration leak: editors who can only edit their own
+	 * newsletters couldn't actually change the author anyway, but were
+	 * previously able to pull the full list of newsletter editors'
+	 * IDs + display names through this endpoint.
+	 *
+	 * @return bool
+	 */
+	public static function rest_quick_edit_authors_permission_check() {
+		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		if ( ! $cpt_object || empty( $cpt_object->cap->edit_others_posts ) ) {
+			return false;
+		}
+		return current_user_can( $cpt_object->cap->edit_others_posts );
+	}
+
+	/**
 	 * Full set of users eligible to author a newsletter, for the Quick
-	 * Edit author picker. Gated by `edit_posts` because core `/wp/v2/users`
-	 * is `list_users`-gated and would 403 for editors.
+	 * Edit author picker. Gated by the CPT's `edit_others_posts` so the
+	 * response is only available to users who can actually reassign
+	 * authorship (see permission callback above).
 	 *
 	 * @return \WP_REST_Response
 	 */

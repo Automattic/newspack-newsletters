@@ -12,44 +12,51 @@ import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { envelope } from '@wordpress/icons';
 
+import { canEditOthersNewsletters } from '../../admin-globals';
 import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
 import { fetchAllTerms, initialSelectionsForTaxonomy, resolveTokens, sortedIdsEqual } from '../../utils/terms';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
 
-function useQuickEditOptions() {
+// Skip the authors fetch when the user can't reassign authorship — the
+// REST endpoint would 403 anyway, and the picker is rendered disabled.
+function useQuickEditOptions( { fetchAuthors } ) {
 	const [ options, setOptions ] = useState( { authors: [], categories: [], tags: [] } );
 
 	useEffect( () => {
 		let cancelled = false;
-		Promise.all( [
-			apiFetch( { path: '/newspack-newsletters/v1/newsletters-list/quick-edit-authors' } ).catch( () => [] ),
-			fetchAllTerms( '/wp/v2/categories' ),
-			fetchAllTerms( '/wp/v2/tags' ),
-		] ).then( ( [ authors, categories, tags ] ) => {
-			if ( cancelled ) {
-				return;
+		const authorsPromise = fetchAuthors
+			? apiFetch( { path: '/newspack-newsletters/v1/newsletters-list/quick-edit-authors' } ).catch( () => [] )
+			: Promise.resolve( [] );
+		Promise.all( [ authorsPromise, fetchAllTerms( '/wp/v2/categories' ), fetchAllTerms( '/wp/v2/tags' ) ] ).then(
+			( [ authors, categories, tags ] ) => {
+				if ( cancelled ) {
+					return;
+				}
+				setOptions( {
+					authors: Array.isArray( authors ) ? authors : [],
+					categories: Array.isArray( categories ) ? categories : [],
+					tags: Array.isArray( tags ) ? tags : [],
+				} );
 			}
-			setOptions( {
-				authors: Array.isArray( authors ) ? authors : [],
-				categories: Array.isArray( categories ) ? categories : [],
-				tags: Array.isArray( tags ) ? tags : [],
-			} );
-		} );
+		);
 		return () => {
 			cancelled = true;
 		};
-	}, [] );
+	}, [ fetchAuthors ] );
 
 	return options;
 }
 
 export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) {
-	const { authors, categories, tags } = useQuickEditOptions();
+	const canReassignAuthor = canEditOthersNewsletters();
+	const { authors, categories, tags } = useQuickEditOptions( { fetchAuthors: canReassignAuthor } );
 
-	const initialAuthor = item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '';
+	const initialAuthorEmbed = item?._embedded?.author?.[ 0 ];
+	const initialAuthor = initialAuthorEmbed?.id ?? item?.author ?? '';
 	const initialAuthorId = initialAuthor ? String( initialAuthor ) : '';
+	const initialAuthorName = initialAuthorEmbed?.name ?? '';
 	const initialCategorySelections = useMemo( () => initialSelectionsForTaxonomy( item, 'category' ), [ item ] );
 	const initialTagSelections = useMemo( () => initialSelectionsForTaxonomy( item, 'post_tag' ), [ item ] );
 	const initialVisibility = item?.meta?.is_public ? 'public' : 'private';
@@ -66,14 +73,18 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 		! sortedIdsEqual( categorySelections, initialCategorySelections ) ||
 		! sortedIdsEqual( tagSelections, initialTagSelections );
 
-	const authorOptions = useMemo(
-		() =>
-			authors.map( ( { id, name } ) => ( {
-				value: String( id ),
-				label: String( name ),
-			} ) ),
-		[ authors ]
-	);
+	// When the user can't reassign authorship, the authors fetch is
+	// skipped — synthesize a single-entry list from the embedded author
+	// so the picker still shows the current value.
+	const authorOptions = useMemo( () => {
+		if ( ! canReassignAuthor && initialAuthorId ) {
+			return [ { value: initialAuthorId, label: String( initialAuthorName || initialAuthorId ) } ];
+		}
+		return authors.map( ( { id, name } ) => ( {
+			value: String( id ),
+			label: String( name ),
+		} ) );
+	}, [ authors, canReassignAuthor, initialAuthorId, initialAuthorName ] );
 
 	const categoryNames = useMemo( () => categories.map( c => String( c.name ) ), [ categories ] );
 	const tagNames = useMemo( () => tags.map( t => String( t.name ) ), [ tags ] );
@@ -126,6 +137,7 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 				value={ authorId }
 				options={ authorOptions }
 				onChange={ next => setAuthorId( next || initialAuthorId ) }
+				disabled={ ! canReassignAuthor }
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
 			/>

@@ -35,3 +35,15 @@ export function getAdminUrl() {
 export function getCptSlug() {
 	return getGlobal()?.cptSlug || DEFAULT_CPT_SLUG;
 }
+
+/**
+ * Whether the current user can reassign newsletter authorship
+ * (CPT-level `edit_others_posts`). Drives the Quick Edit Author
+ * picker — falsy users see a disabled control and the panel skips
+ * the authors fetch.
+ *
+ * @return {boolean} True when authorship reassignment is allowed.
+ */
+export function canEditOthersNewsletters() {
+	return Boolean( getGlobal()?.canEditOthersNewsletters );
+}

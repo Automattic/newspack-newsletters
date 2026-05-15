@@ -450,22 +450,31 @@ class Admin_Shell {
 			);
 		}
 
+		$cpt_object                  = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
+		$can_edit_others_newsletters = $cpt_object && ! empty( $cpt_object->cap->edit_others_posts )
+			? current_user_can( $cpt_object->cap->edit_others_posts )
+			: false;
+
 		wp_localize_script(
 			self::SCRIPT_HANDLE,
 			'newspackNewslettersAdmin',
 			[
-				'currentPage'     => $current_page->get_slug(),
-				'mountId'         => $current_page->get_mount_id(),
-				'label'           => $current_page->get_label(),
-				'bundledMode'     => self::is_bundled_mode(),
-				'classicSettings' => \Newspack_Newsletters_Settings::get_settings_url(),
-				'restNonce'       => wp_create_nonce( 'wp_rest' ),
-				'restUrl'         => esc_url_raw( rest_url() ),
+				'currentPage'              => $current_page->get_slug(),
+				'mountId'                  => $current_page->get_mount_id(),
+				'label'                    => $current_page->get_label(),
+				'bundledMode'              => self::is_bundled_mode(),
+				'classicSettings'          => \Newspack_Newsletters_Settings::get_settings_url(),
+				'restNonce'                => wp_create_nonce( 'wp_rest' ),
+				'restUrl'                  => esc_url_raw( rest_url() ),
 				// Pass `admin_url()` so JS doesn't have to assume `/wp-admin/`
 				// lives at the document origin — subdirectory installs and
 				// some multisite setups put it under a path.
-				'adminUrl'        => esc_url_raw( admin_url() ),
-				'cptSlug'         => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				'adminUrl'                 => esc_url_raw( admin_url() ),
+				'cptSlug'                  => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+				// Drives Quick Edit's Author picker: editors without this cap
+				// can't reassign authorship, so the picker is rendered disabled
+				// and the authors endpoint isn't called.
+				'canEditOthersNewsletters' => $can_edit_others_newsletters,
 			]
 		);
 	}
