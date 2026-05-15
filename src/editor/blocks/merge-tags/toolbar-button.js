@@ -14,9 +14,10 @@ import { mergeTags } from 'newspack-icons';
 import { TRIGGER, getLabel, getLegacyTrigger, useMergeTagItems } from './utils';
 
 const FORMAT_NAME = 'newspack-newsletters/merge-tag';
-// useAnchor needs the tagName to resolve the selection range; the format itself is never applied.
+// className disambiguates from core/underline (which already claims bare `<span>`) even though the format is never applied.
 const FORMAT_SETTINGS = {
 	tagName: 'span',
+	className: 'newspack-newsletters-merge-tag-noop',
 };
 
 const CaretAnchoredPicker = ( { contentRef, value, onSelect, onClose } ) => {
@@ -134,7 +135,6 @@ export default () => {
 			__( 'Insert %s', 'newspack-newsletters' ),
 			getLabel()
 		),
-		className: null,
 		edit: MergeTagEdit,
 		...FORMAT_SETTINGS,
 	} );
