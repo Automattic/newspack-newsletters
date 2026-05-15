@@ -337,14 +337,16 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 
 .newspack-newsletters-list {
 	&__author,
-	&__status {
+	&__status,
+	&__visibility {
 		align-items: center;
 		display: inline-flex;
 		gap: wp-vars.$grid-unit-10;
 	}
 
 	&__author-icon,
-	&__status-icon {
+	&__status-icon,
+	&__visibility-icon {
 		fill: currentcolor;
 		flex-shrink: 0;
 	}
@@ -367,7 +369,8 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 // WP icons have a 24px viewBox with 4px padding — negative margin pulls neighbours in to the visible 16px footprint without changing the icon's draw.
 .dataviews-view-table {
 	.newspack-newsletters-list__author-icon,
-	.newspack-newsletters-list__status-icon {
+	.newspack-newsletters-list__status-icon,
+	.newspack-newsletters-list__visibility-icon {
 		margin: -4px;
 	}
 
