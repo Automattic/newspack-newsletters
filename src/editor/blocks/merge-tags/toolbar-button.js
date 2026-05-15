@@ -33,6 +33,7 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 			anchor={ anchor }
 			className="newspack-newsletters-merge-tags-picker__popover"
 			placement="bottom-start"
+			offset={ 16 }
 			focusOnMount="firstElement"
 			onClose={ onClose }
 			onFocusOutside={ onClose }
@@ -59,11 +60,13 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 
 const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 	const [ isOpen, setOpen ] = useState( false );
+	const [ anchorMode, setAnchorMode ] = useState( 'caret' );
+	const [ buttonRef, setButtonRef ] = useState();
 	// Snapshot the value so the caret survives the popover stealing focus.
 	const valueRef = useRef( value );
 	const prevTextLengthRef = useRef( value.text.length );
 
-	const popoverAnchor = useAnchor( {
+	const caretAnchor = useAnchor( {
 		editableContentElement: contentRef?.current,
 		value,
 		settings: FORMAT_SETTINGS,
@@ -83,12 +86,14 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 			const stripped = remove( value, start - matched.length, start );
 			valueRef.current = stripped;
 			onChange( stripped );
+			setAnchorMode( 'caret' );
 			setOpen( true );
 		}
 	}, [ value, onChange ] );
 
-	const openPicker = () => {
+	const openFromToolbar = () => {
 		valueRef.current = value;
+		setAnchorMode( 'toolbar' );
 		setOpen( true );
 	};
 
@@ -103,12 +108,14 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 		getLabel()
 	);
 
+	const anchor = anchorMode === 'toolbar' ? buttonRef : caretAnchor;
+
 	return (
 		<>
 			<BlockControls group="inline">
-				<ToolbarButton icon={ mergeTags } label={ label } onClick={ openPicker } isActive={ isOpen } />
+				<ToolbarButton ref={ setButtonRef } icon={ mergeTags } label={ label } onClick={ openFromToolbar } isActive={ isOpen } />
 			</BlockControls>
-			{ isOpen && <MergeTagPicker anchor={ popoverAnchor } onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
+			{ isOpen && <MergeTagPicker anchor={ anchor } onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
 		</>
 	);
 };
