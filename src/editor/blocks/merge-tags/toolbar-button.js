@@ -15,7 +15,7 @@ import { getLabel, useMergeTagItems } from './utils';
 
 const FORMAT_NAME = 'newspack-newsletters/merge-tag';
 
-const MergeTagPicker = ( { onSelect, onClose } ) => {
+const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
 	const [ items ] = useMergeTagItems( search );
 	const searchLabel = sprintf(
@@ -26,6 +26,7 @@ const MergeTagPicker = ( { onSelect, onClose } ) => {
 
 	return (
 		<Popover
+			anchor={ anchor }
 			className="newspack-newsletters-merge-tags-picker__popover"
 			placement="bottom-start"
 			focusOnMount="firstElement"
@@ -54,6 +55,7 @@ const MergeTagPicker = ( { onSelect, onClose } ) => {
 
 const MergeTagEdit = ( { value, onChange } ) => {
 	const [ isOpen, setOpen ] = useState( false );
+	const [ buttonRef, setButtonRef ] = useState();
 	// Snapshot the value so the caret survives the popover stealing focus.
 	const valueRef = useRef( value );
 
@@ -76,9 +78,9 @@ const MergeTagEdit = ( { value, onChange } ) => {
 	return (
 		<>
 			<BlockControls group="inline">
-				<ToolbarButton icon={ mergeTags } label={ label } onClick={ openPicker } isActive={ isOpen } />
+				<ToolbarButton ref={ setButtonRef } icon={ mergeTags } label={ label } onClick={ openPicker } isActive={ isOpen } />
 			</BlockControls>
-			{ isOpen && <MergeTagPicker onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
+			{ isOpen && <MergeTagPicker anchor={ buttonRef } onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
 		</>
 	);
 };
