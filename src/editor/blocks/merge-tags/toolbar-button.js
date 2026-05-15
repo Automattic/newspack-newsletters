@@ -14,9 +14,9 @@ import { mergeTags } from 'newspack-icons';
 import { TRIGGER, getLabel, getLegacyTrigger, useMergeTagItems } from './utils';
 
 const FORMAT_NAME = 'newspack-newsletters/merge-tag';
+// useAnchor needs the tagName to resolve the selection range; the format itself is never applied.
 const FORMAT_SETTINGS = {
 	tagName: 'span',
-	className: 'newspack-newsletters-merge-tag-noop',
 };
 
 const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
@@ -127,8 +127,8 @@ export default () => {
 			__( 'Insert %s', 'newspack-newsletters' ),
 			getLabel()
 		),
-		// Required by registerFormatType but never applied — `edit` is used only to render the toolbar fill.
-		...FORMAT_SETTINGS,
+		className: null,
 		edit: MergeTagEdit,
+		...FORMAT_SETTINGS,
 	} );
 };

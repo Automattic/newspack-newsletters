@@ -19,8 +19,8 @@ import { STORE_NAMESPACE } from '../../../newsletter-editor/store';
 
 const EMPTY_MERGE_FIELDS = [];
 
-const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu, '' );
+const normalise = str => stripDiacritics( str ).toLowerCase();
 
 export const TRIGGER = '{}';
 
@@ -64,7 +64,7 @@ export const useMergeTagItems = filterValue => {
 		if ( ! filterValue ) {
 			return keyed;
 		}
-		const search = new RegExp( '(?:\\b|\\s|^)' + escapeRegExp( stripDiacritics( filterValue ) ), 'i' );
-		return keyed.filter( item => item.keywords.some( k => search.test( stripDiacritics( k ) ) ) );
+		const needle = normalise( filterValue );
+		return keyed.filter( item => item.keywords.some( k => normalise( k ).includes( needle ) ) );
 	}, [ filterValue, listMergeFields ] );
 };
