@@ -3,21 +3,21 @@
  */
 import { BlockControls } from '@wordpress/block-editor';
 import { Button, Popover, SearchControl, ToolbarButton } from '@wordpress/components';
-import { useRef, useState } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { insert, registerFormatType } from '@wordpress/rich-text';
+import { insert, registerFormatType, remove } from '@wordpress/rich-text';
 import { mergeTags } from 'newspack-icons';
 
 /**
  * Internal dependencies
  */
-import { getLabel, useMergeTagItems } from './utils';
+import { TRIGGER, getLabel, getLegacyTrigger, useMergeTagItems } from './utils';
 
 const FORMAT_NAME = 'newspack-newsletters/merge-tag';
 
 const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
-	const [ items ] = useMergeTagItems( search );
+	const items = useMergeTagItems( search );
 	const searchLabel = sprintf(
 		/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
 		__( 'Search %s', 'newspack-newsletters' ),
@@ -58,6 +58,25 @@ const MergeTagEdit = ( { value, onChange } ) => {
 	const [ buttonRef, setButtonRef ] = useState();
 	// Snapshot the value so the caret survives the popover stealing focus.
 	const valueRef = useRef( value );
+	const prevTextLengthRef = useRef( value.text.length );
+
+	useEffect( () => {
+		const { text, start } = value;
+		const grew = text.length > prevTextLengthRef.current;
+		prevTextLengthRef.current = text.length;
+		if ( ! grew ) {
+			return;
+		}
+		const legacy = getLegacyTrigger();
+		const triggers = legacy ? [ TRIGGER, legacy ] : [ TRIGGER ];
+		const matched = triggers.find( t => start >= t.length && text.slice( start - t.length, start ) === t );
+		if ( matched ) {
+			const stripped = remove( value, start - matched.length, start );
+			valueRef.current = stripped;
+			onChange( stripped );
+			setOpen( true );
+		}
+	}, [ value, onChange ] );
 
 	const openPicker = () => {
 		valueRef.current = value;

@@ -580,7 +580,7 @@ Error message(s) received:
 	 * Shape:
 	 *   [
 	 *     'label'          => string  // ESP-native singular noun (e.g. "merge tag", "personalization tag").
-	 *     'trigger_prefix' => string  // Character sequence a user types to open the autocomplete picker (e.g. "*|", "*%").
+	 *     'trigger_prefix' => string  // Legacy ESP-native autocomplete trigger preserved for muscle memory (e.g. "*|" for Mailchimp). Leave empty to opt out; the universal "{}" picker trigger always works.
 	 *     'tags'           => array[] // Each: [ 'tag' => '<inserted string>', 'label' => '<description>', 'keywords' => string[] ].
 	 *   ]
 	 *

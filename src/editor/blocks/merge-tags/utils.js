@@ -22,11 +22,14 @@ const EMPTY_MERGE_FIELDS = [];
 const escapeRegExp = str => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 const stripDiacritics = str => str.normalize( 'NFD' ).replace( /\p{Diacritic}/gu, '' );
 
+export const TRIGGER = '{}';
+
 export const getStaticTags = () => newspack_email_editor_data?.merge_tags?.tags || [];
 export const getLabel = () => newspack_email_editor_data?.merge_tags?.label || __( 'merge tag', 'newspack-newsletters' );
-export const getTriggerPrefix = () => newspack_email_editor_data?.merge_tags?.trigger_prefix || '*|';
+// Optional muscle-memory trigger (e.g. "*|" for Mailchimp) that opens the same picker as TRIGGER. Empty when none.
+export const getLegacyTrigger = () => newspack_email_editor_data?.merge_tags?.trigger_prefix || '';
 
-export const buildOptions = listMergeFields =>
+const buildOptions = listMergeFields =>
 	uniqBy(
 		[
 			...listMergeFields.map( mergeField => ( {
@@ -39,20 +42,18 @@ export const buildOptions = listMergeFields =>
 		'tag'
 	);
 
-export const getOptionLabelNode = ( { tag, label } ) => (
+const getOptionLabelNode = ( { tag, label } ) => (
 	<div className="newspack-completer-merge-tags">
 		<code>{ tag }</code>
 		<p>{ label }</p>
 	</div>
 );
 
-export const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ];
+const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ];
 
-// Bypasses Gutenberg's default 10-result cap so the full list is searchable.
-// Returns a tuple to match the Autocomplete `useItems` contract; the picker destructures it.
 export const useMergeTagItems = filterValue => {
 	const listMergeFields = useSelect( select => select( STORE_NAMESPACE )?.getData?.()?.merge_fields ?? EMPTY_MERGE_FIELDS, [] );
-	const items = useMemo( () => {
+	return useMemo( () => {
 		const opts = buildOptions( listMergeFields );
 		const keyed = opts.map( ( opt, i ) => ( {
 			key: `merge-tags-${ i }`,
@@ -66,5 +67,4 @@ export const useMergeTagItems = filterValue => {
 		const search = new RegExp( '(?:\\b|\\s|^)' + escapeRegExp( stripDiacritics( filterValue ) ), 'i' );
 		return keyed.filter( item => item.keywords.some( k => search.test( stripDiacritics( k ) ) ) );
 	}, [ filterValue, listMergeFields ] );
-	return [ items ];
 };
