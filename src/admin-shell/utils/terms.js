@@ -79,10 +79,10 @@ export const sortedIdsEqual = ( a, b ) => {
 // name match. Existing selections keep their ID across re-renders, so a
 // user who picked one of two same-named terms stays on that one. New
 // tokens (just-typed names) still resolve to the first matching option,
-// so on hierarchical taxonomies that allow duplicate names — Categories
-// being the only one we expose — a fresh pick can land on the "wrong"
-// sibling. Acceptable trade-off vs. disambiguating every suggestion
-// label; revisit if duplicate-name categories prove common in practice.
+// so on any hierarchical taxonomy that allows duplicate names — these
+// panels expose Categories and Advertisers as such — a fresh pick can
+// land on the "wrong" sibling. Acceptable trade-off vs. disambiguating
+// every suggestion label; revisit if duplicate-name terms prove common.
 export const resolveTokens = ( newTokens, currentSelections, options ) =>
 	newTokens
 		.map( token => {
