@@ -2,9 +2,10 @@
  * Shared term/taxonomy helpers for DataView list screens and Quick Edit
  * panels. These deal with reading embedded terms off `_embedded.wp:term`,
  * paginating REST collections beyond the 100-item cap, and round-tripping
- * `FormTokenField` string tokens to `{id, name}` selections without
- * name-keyed maps (which collide on duplicate term names — possible on
- * hierarchical / custom taxonomies).
+ * `FormTokenField` string tokens to `{id, name}` selections. Existing
+ * selections preserve their ID across re-renders, which mitigates (but
+ * doesn't fully eliminate) duplicate-name ambiguity on hierarchical
+ * taxonomies — see `resolveTokens` for the residual trade-off.
  */
 
 import apiFetch from '@wordpress/api-fetch';
