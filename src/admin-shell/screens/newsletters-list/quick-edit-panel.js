@@ -106,6 +106,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 				onChange={ setCategoryTokens }
 				__experimentalValidateInput={ validateCategory }
 				__experimentalShowHowTo={ false }
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 			/>
 			<FormTokenField
@@ -115,6 +116,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 				onChange={ setTagTokens }
 				__experimentalValidateInput={ validateTag }
 				__experimentalShowHowTo={ false }
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 			/>
 		</QuickEditPanel>

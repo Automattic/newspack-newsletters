@@ -41,7 +41,7 @@ export default function QuickEditPanel( { title, onClose, onSave, isBusy = false
 					<VStack spacing={ 4 }>{ children }</VStack>
 				</div>
 				<HStack className="newspack-newsletters-quick-edit-modal__footer" justify="flex-end" spacing={ 2 }>
-					<Button variant="tertiary" onClick={ onClose } disabled={ isBusy }>
+					<Button variant="secondary" onClick={ onClose } disabled={ isBusy }>
 						{ __( 'Cancel', 'newspack-newsletters' ) }
 					</Button>
 					<Button variant="primary" type="submit" isBusy={ isBusy } disabled={ isBusy || ! canSave }>

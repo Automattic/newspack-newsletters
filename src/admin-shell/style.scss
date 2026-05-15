@@ -246,7 +246,7 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	margin: 0;
 	max-height: 100vh;
 	max-width: 100vw;
-	width: 480px;
+	width: 350px;
 
 	@media (max-width: 600px) {
 		width: 100vw;
@@ -281,7 +281,6 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 
 .newspack-newsletters-quick-edit-modal__footer {
 	background: wp-colors.$white;
-	border-top: 1px solid wp-colors.$gray-200;
 	bottom: 0;
 	flex: 0 0 auto;
 	margin: 0;
@@ -293,6 +292,17 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 		flex: 1;
 		justify-content: center;
 	}
+}
+
+// Suppress @wp/components' default disappear animation; the panel
+// snaps closed instantly to match Core's Pages Quick Edit behaviour.
+// `animation-duration: 0s` rather than `animation: none` because the
+// @wp/components rule sets `animation-name` directly — overriding the
+// shorthand isn't enough when its rule lands later in the cascade.
+.components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out,
+.components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out .components-modal__frame {
+	animation-duration: 0s;
+	animation-name: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -110,6 +110,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, cate
 				onChange={ setAdvertiserTokens }
 				__experimentalValidateInput={ validateAdvertiser }
 				__experimentalShowHowTo={ false }
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 			/>
 			<FormTokenField
@@ -119,6 +120,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, cate
 				onChange={ setPlacementTokens }
 				__experimentalValidateInput={ validatePlacement }
 				__experimentalShowHowTo={ false }
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 			/>
 			<FormTokenField
@@ -128,6 +130,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, cate
 				onChange={ setCategoryTokens }
 				__experimentalValidateInput={ validateCategory }
 				__experimentalShowHowTo={ false }
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 			/>
 			<TextControl
