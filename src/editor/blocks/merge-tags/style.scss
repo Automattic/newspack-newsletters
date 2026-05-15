@@ -48,6 +48,7 @@
 
 	.components-search-control {
 		flex-shrink: 0;
+		margin-block-end: wp-vars.$grid-unit-10;
 		padding: wp-vars.$grid-unit-10;
 		border-block-end: 1px solid wp-colors.$gray-200;
 	}
@@ -55,7 +56,7 @@
 	&__list {
 		flex: 1 1 auto;
 		margin: 0;
-		padding: wp-vars.$grid-unit-05 0;
+		padding: 0;
 		list-style: none;
 		overflow-y: auto;
 
