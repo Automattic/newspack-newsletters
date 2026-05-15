@@ -5,8 +5,8 @@ import { RichTextToolbarButton } from '@wordpress/block-editor';
 import { Button, Popover, SearchControl } from '@wordpress/components';
 import { useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { code } from '@wordpress/icons';
 import { insert, registerFormatType } from '@wordpress/rich-text';
+import { mergeTags } from 'newspack-icons';
 
 /**
  * Internal dependencies
@@ -84,7 +84,7 @@ const MergeTagEdit = ( { value, onChange, isActive } ) => {
 
 	return (
 		<>
-			<RichTextToolbarButton icon={ code } title={ label } onClick={ openPicker } isActive={ isActive || isOpen } />
+			<RichTextToolbarButton icon={ mergeTags } title={ label } onClick={ openPicker } isActive={ isActive || isOpen } />
 			{ isOpen && <MergeTagPicker onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
 		</>
 	);
