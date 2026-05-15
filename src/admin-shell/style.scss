@@ -226,9 +226,19 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	100% { opacity: 1; }
 }
 
+@keyframes newspack-newsletters-quick-edit-fade-out {
+	0% { opacity: 1; }
+	100% { opacity: 0; }
+}
+
 @keyframes newspack-newsletters-quick-edit-slide-in-right {
 	0% { transform: translateX(100%); }
 	100% { transform: translateX(0); }
+}
+
+@keyframes newspack-newsletters-quick-edit-slide-out-right {
+	0% { transform: translateX(0); }
+	100% { transform: translateX(100%); }
 }
 
 .newspack-newsletters-quick-edit-modal__overlay {
@@ -317,15 +327,15 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	}
 }
 
-// Suppress @wp/components' default disappear animation; the panel
-// snaps closed instantly to match Core's Pages Quick Edit behaviour.
-// `animation-duration: 0s` rather than `animation: none` because the
-// @wp/components rule sets `animation-name` directly — overriding the
-// shorthand isn't enough when its rule lands later in the cascade.
-.components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out,
+// Mirror the open animation on close: overlay fades out, frame slides
+// out to the right. Higher specificity than @wp/components' default
+// disappear-animation so our keyframes win the cascade.
+.components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out {
+	animation: 0.08s linear forwards newspack-newsletters-quick-edit-fade-out;
+}
+
 .components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out .components-modal__frame {
-	animation-duration: 0s;
-	animation-name: none;
+	animation: 0.2s ease-in forwards newspack-newsletters-quick-edit-slide-out-right;
 }
 
 @media (prefers-reduced-motion: reduce) {
