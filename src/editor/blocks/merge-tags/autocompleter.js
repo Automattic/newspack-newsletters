@@ -11,7 +11,7 @@ import { buildOptions, getOptionLabelNode, getOptionKeywords, getTriggerPrefix, 
 const getCompleter = () => ( {
 	name: 'Merge Tags',
 	triggerPrefix: getTriggerPrefix(),
-	// `options` is required by Gutenberg's Autocomplete API but unused at runtime — `useItems` takes precedence when both are provided.
+	// Required by the Autocomplete API but unused — `useItems` takes precedence.
 	options: () => buildOptions( [] ),
 	useItems: useMergeTagItems,
 	getOptionLabel: getOptionLabelNode,

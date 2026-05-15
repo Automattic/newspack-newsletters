@@ -1,8 +1,8 @@
 /**
  * WordPress dependencies
  */
-import { RichTextToolbarButton } from '@wordpress/block-editor';
-import { Button, Popover, SearchControl } from '@wordpress/components';
+import { BlockControls } from '@wordpress/block-editor';
+import { Button, Popover, SearchControl, ToolbarButton } from '@wordpress/components';
 import { useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { insert, registerFormatType } from '@wordpress/rich-text';
@@ -18,6 +18,11 @@ const FORMAT_NAME = 'newspack-newsletters/merge-tag';
 const MergeTagPicker = ( { onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
 	const [ items ] = useMergeTagItems( search );
+	const searchLabel = sprintf(
+		/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
+		__( 'Search %s', 'newspack-newsletters' ),
+		getLabel()
+	);
 
 	return (
 		<Popover
@@ -28,21 +33,7 @@ const MergeTagPicker = ( { onSelect, onClose } ) => {
 			onFocusOutside={ onClose }
 		>
 			<div className="newspack-newsletters-merge-tags-picker">
-				<SearchControl
-					__nextHasNoMarginBottom
-					value={ search }
-					onChange={ setSearch }
-					label={ sprintf(
-						/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
-						__( 'Search %s', 'newspack-newsletters' ),
-						getLabel()
-					) }
-					placeholder={ sprintf(
-						/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
-						__( 'Search %s', 'newspack-newsletters' ),
-						getLabel()
-					) }
-				/>
+				<SearchControl __nextHasNoMarginBottom value={ search } onChange={ setSearch } label={ searchLabel } placeholder={ searchLabel } />
 				{ items.length === 0 ? (
 					<p className="newspack-newsletters-merge-tags-picker__empty">{ __( 'No matches.', 'newspack-newsletters' ) }</p>
 				) : (
@@ -61,9 +52,9 @@ const MergeTagPicker = ( { onSelect, onClose } ) => {
 	);
 };
 
-const MergeTagEdit = ( { value, onChange, isActive } ) => {
+const MergeTagEdit = ( { value, onChange } ) => {
 	const [ isOpen, setOpen ] = useState( false );
-	// Snapshot the RichTextValue at click-time so the selection survives popover focus stealing it from the editor.
+	// Snapshot the value so the caret survives the popover stealing focus.
 	const valueRef = useRef( value );
 
 	const openPicker = () => {
@@ -84,7 +75,9 @@ const MergeTagEdit = ( { value, onChange, isActive } ) => {
 
 	return (
 		<>
-			<RichTextToolbarButton icon={ mergeTags } title={ label } onClick={ openPicker } isActive={ isActive || isOpen } />
+			<BlockControls group="inline">
+				<ToolbarButton icon={ mergeTags } label={ label } onClick={ openPicker } isActive={ isOpen } />
+			</BlockControls>
 			{ isOpen && <MergeTagPicker onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
 		</>
 	);
@@ -92,12 +85,12 @@ const MergeTagEdit = ( { value, onChange, isActive } ) => {
 
 export default () => {
 	registerFormatType( FORMAT_NAME, {
-		// `tagName`/`className` are required by registerFormatType but never applied — we use the format slot purely to inject a toolbar button via `edit`.
 		title: sprintf(
 			/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
 			__( 'Insert %s', 'newspack-newsletters' ),
 			getLabel()
 		),
+		// Required by registerFormatType but never applied — `edit` is used only to render the toolbar fill.
 		tagName: 'span',
 		className: 'newspack-newsletters-merge-tag-noop',
 		edit: MergeTagEdit,

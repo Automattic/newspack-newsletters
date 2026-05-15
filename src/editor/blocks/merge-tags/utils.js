@@ -48,9 +48,8 @@ export const getOptionLabelNode = ( { tag, label } ) => (
 
 export const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) ];
 
-// Default useItems caps results at 10; ours bypasses that so the full tag list is searchable.
-// Subscribe to merge_fields so the list refreshes when the store data resolves (Mailchimp only).
-// Returns a single-element tuple to match Gutenberg's Autocomplete `useItems` contract; the toolbar picker destructures it.
+// Bypasses Gutenberg's default 10-result cap so the full list is searchable.
+// Returns a tuple to match the Autocomplete `useItems` contract; the picker destructures it.
 export const useMergeTagItems = filterValue => {
 	const listMergeFields = useSelect( select => select( STORE_NAMESPACE )?.getData?.()?.merge_fields ?? EMPTY_MERGE_FIELDS, [] );
 	const items = useMemo( () => {
