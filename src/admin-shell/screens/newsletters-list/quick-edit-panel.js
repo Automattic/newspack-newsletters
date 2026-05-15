@@ -28,19 +28,37 @@ const termsForTaxonomy = ( item, taxonomy ) => {
 	return [];
 };
 
-const initialTokensForTaxonomy = ( item, taxonomy ) =>
+const initialSelectionsForTaxonomy = ( item, taxonomy ) =>
 	termsForTaxonomy( item, taxonomy )
-		.map( term => term?.name )
-		.filter( Boolean );
+		.map( term => ( { id: term?.id, name: term?.name } ) )
+		.filter( s => typeof s.id === 'number' && s.name );
 
-const sortedTokensEqual = ( a, b ) => {
+const sortedIdsEqual = ( a, b ) => {
 	if ( a.length !== b.length ) {
 		return false;
 	}
-	const sa = [ ...a ].map( String ).sort();
-	const sb = [ ...b ].map( String ).sort();
+	const sa = a.map( s => s.id ).sort();
+	const sb = b.map( s => s.id ).sort();
 	return sa.every( ( v, i ) => v === sb[ i ] );
 };
+
+// Resolve user-typed tokens to `{id, name}` pairs without going through
+// name-keyed maps (which collide on duplicate term names, possible for
+// hierarchical / custom taxonomies). Existing selections keep their ID;
+// new tokens are matched against `options` and silently dropped if no
+// match — `__experimentalValidateInput` prevents that path anyway.
+const resolveTokens = ( newTokens, currentSelections, options ) =>
+	newTokens
+		.map( token => {
+			const name = typeof token === 'string' ? token : token.value;
+			const existing = currentSelections.find( s => s.name.toLowerCase() === String( name ).toLowerCase() );
+			if ( existing ) {
+				return existing;
+			}
+			const match = options.find( o => String( o.name ).toLowerCase() === String( name ).toLowerCase() );
+			return match ? { id: match.id, name: match.name } : null;
+		} )
+		.filter( Boolean );
 
 async function fetchAllTerms( basePath ) {
 	const all = [];
@@ -101,21 +119,21 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 
 	const initialAuthor = item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '';
 	const initialAuthorId = initialAuthor ? String( initialAuthor ) : '';
-	const initialCategoryTokens = useMemo( () => initialTokensForTaxonomy( item, 'category' ), [ item ] );
-	const initialTagTokens = useMemo( () => initialTokensForTaxonomy( item, 'post_tag' ), [ item ] );
+	const initialCategorySelections = useMemo( () => initialSelectionsForTaxonomy( item, 'category' ), [ item ] );
+	const initialTagSelections = useMemo( () => initialSelectionsForTaxonomy( item, 'post_tag' ), [ item ] );
 	const initialVisibility = item?.meta?.is_public ? 'public' : 'private';
 
 	const [ authorId, setAuthorId ] = useState( initialAuthorId );
-	const [ categoryTokens, setCategoryTokens ] = useState( initialCategoryTokens );
-	const [ tagTokens, setTagTokens ] = useState( initialTagTokens );
+	const [ categorySelections, setCategorySelections ] = useState( initialCategorySelections );
+	const [ tagSelections, setTagSelections ] = useState( initialTagSelections );
 	const [ visibility, setVisibility ] = useState( initialVisibility );
 	const [ isBusy, setIsBusy ] = useState( false );
 
 	const isDirty =
 		authorId !== initialAuthorId ||
 		visibility !== initialVisibility ||
-		! sortedTokensEqual( categoryTokens, initialCategoryTokens ) ||
-		! sortedTokensEqual( tagTokens, initialTagTokens );
+		! sortedIdsEqual( categorySelections, initialCategorySelections ) ||
+		! sortedIdsEqual( tagSelections, initialTagSelections );
 
 	const authorOptions = useMemo(
 		() =>
@@ -128,6 +146,8 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 
 	const categoryNames = useMemo( () => categories.map( c => String( c.name ) ), [ categories ] );
 	const tagNames = useMemo( () => tags.map( t => String( t.name ) ), [ tags ] );
+	const categoryTokens = useMemo( () => categorySelections.map( s => s.name ), [ categorySelections ] );
+	const tagTokens = useMemo( () => tagSelections.map( s => s.name ), [ tagSelections ] );
 
 	const validateAgainst = names => {
 		const lower = new Set( names.map( n => n.toLowerCase() ) );
@@ -137,16 +157,11 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 	const validateCategory = useMemo( () => validateAgainst( categoryNames ), [ categoryNames ] );
 	const validateTag = useMemo( () => validateAgainst( tagNames ), [ tagNames ] );
 
-	const namesToIds = ( options, tokens ) => {
-		const byName = new Map( options.map( o => [ String( o.name ).toLowerCase(), o.id ] ) );
-		return tokens.map( token => byName.get( String( token ).toLowerCase() ) ).filter( id => typeof id === 'number' );
-	};
-
 	const handleSave = async () => {
 		setIsBusy( true );
 		const data = {
-			categories: namesToIds( categories, categoryTokens ),
-			tags: namesToIds( tags, tagTokens ),
+			categories: categorySelections.map( s => s.id ),
+			tags: tagSelections.map( s => s.id ),
 			meta: { is_public: visibility === 'public' },
 		};
 		if ( authorId ) {
@@ -188,7 +203,7 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 				label={ __( 'Categories', 'newspack-newsletters' ) }
 				value={ categoryTokens }
 				suggestions={ categoryNames }
-				onChange={ setCategoryTokens }
+				onChange={ next => setCategorySelections( resolveTokens( next, categorySelections, categories ) ) }
 				__experimentalValidateInput={ validateCategory }
 				__experimentalShowHowTo={ false }
 				__next40pxDefaultSize
@@ -198,7 +213,7 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 				label={ __( 'Tags', 'newspack-newsletters' ) }
 				value={ tagTokens }
 				suggestions={ tagNames }
-				onChange={ setTagTokens }
+				onChange={ next => setTagSelections( resolveTokens( next, tagSelections, tags ) ) }
 				__experimentalValidateInput={ validateTag }
 				__experimentalShowHowTo={ false }
 				__next40pxDefaultSize

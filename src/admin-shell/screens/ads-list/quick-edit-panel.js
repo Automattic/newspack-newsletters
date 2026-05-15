@@ -73,30 +73,40 @@ const termsForTaxonomy = ( item, taxonomy ) => {
 	return [];
 };
 
-const initialTokensForTaxonomy = ( item, taxonomy ) =>
+const initialSelectionsForTaxonomy = ( item, taxonomy ) =>
 	termsForTaxonomy( item, taxonomy )
-		.map( term => term?.name )
-		.filter( Boolean );
+		.map( term => ( { id: term?.id, name: term?.name } ) )
+		.filter( s => typeof s.id === 'number' && s.name );
 
-const labelsToIds = ( options, tokens, idKey, labelKey ) => {
-	const byLabel = new Map( options.map( o => [ String( o[ labelKey ] ).toLowerCase(), o[ idKey ] ] ) );
-	return tokens.map( token => byLabel.get( String( token ).toLowerCase() ) ).filter( id => typeof id === 'number' );
-};
-
-const sortedTokensEqual = ( a, b ) => {
+const sortedIdsEqual = ( a, b ) => {
 	if ( a.length !== b.length ) {
 		return false;
 	}
-	const sa = [ ...a ].map( String ).sort();
-	const sb = [ ...b ].map( String ).sort();
+	const sa = a.map( s => s.id ).sort();
+	const sb = b.map( s => s.id ).sort();
 	return sa.every( ( v, i ) => v === sb[ i ] );
 };
 
+// See newsletters quick-edit-panel.js for the rationale (name-keyed
+// lookup is ambiguous when taxonomies allow duplicate term names).
+const resolveTokens = ( newTokens, currentSelections, options ) =>
+	newTokens
+		.map( token => {
+			const name = typeof token === 'string' ? token : token.value;
+			const existing = currentSelections.find( s => s.name.toLowerCase() === String( name ).toLowerCase() );
+			if ( existing ) {
+				return existing;
+			}
+			const match = options.find( o => String( o.name ).toLowerCase() === String( name ).toLowerCase() );
+			return match ? { id: match.id, name: match.name } : null;
+		} )
+		.filter( Boolean );
+
 export default function AdsQuickEditPanel( { item, advertisers, placements, onClose, onSaved } ) {
 	const categories = useQuickEditCategories();
-	const initialAdvertiserTokens = useMemo( () => initialTokensForTaxonomy( item, 'newspack_nl_advertiser' ), [ item ] );
-	const initialPlacementTokens = useMemo( () => initialTokensForTaxonomy( item, 'newspack_nl_ad_placement' ), [ item ] );
-	const initialCategoryTokens = useMemo( () => initialTokensForTaxonomy( item, 'category' ), [ item ] );
+	const initialAdvertiserSelections = useMemo( () => initialSelectionsForTaxonomy( item, 'newspack_nl_advertiser' ), [ item ] );
+	const initialPlacementSelections = useMemo( () => initialSelectionsForTaxonomy( item, 'newspack_nl_ad_placement' ), [ item ] );
+	const initialCategorySelections = useMemo( () => initialSelectionsForTaxonomy( item, 'category' ), [ item ] );
 	const initialStartDate = item?.meta?.start_date || '';
 	const initialExpiryDate = item?.meta?.expiry_date || '';
 	const initialPrice = ( () => {
@@ -104,9 +114,9 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 		return value === undefined || value === null ? '' : String( value );
 	} )();
 
-	const [ advertiserTokens, setAdvertiserTokens ] = useState( initialAdvertiserTokens );
-	const [ placementTokens, setPlacementTokens ] = useState( initialPlacementTokens );
-	const [ categoryTokens, setCategoryTokens ] = useState( initialCategoryTokens );
+	const [ advertiserSelections, setAdvertiserSelections ] = useState( initialAdvertiserSelections );
+	const [ placementSelections, setPlacementSelections ] = useState( initialPlacementSelections );
+	const [ categorySelections, setCategorySelections ] = useState( initialCategorySelections );
 	const [ startDate, setStartDate ] = useState( initialStartDate );
 	const [ expiryDate, setExpiryDate ] = useState( initialExpiryDate );
 	const [ price, setPrice ] = useState( initialPrice );
@@ -116,13 +126,16 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 		startDate !== initialStartDate ||
 		expiryDate !== initialExpiryDate ||
 		price !== initialPrice ||
-		! sortedTokensEqual( advertiserTokens, initialAdvertiserTokens ) ||
-		! sortedTokensEqual( placementTokens, initialPlacementTokens ) ||
-		! sortedTokensEqual( categoryTokens, initialCategoryTokens );
+		! sortedIdsEqual( advertiserSelections, initialAdvertiserSelections ) ||
+		! sortedIdsEqual( placementSelections, initialPlacementSelections ) ||
+		! sortedIdsEqual( categorySelections, initialCategorySelections );
 
 	const advertiserSuggestions = useMemo( () => advertisers.map( t => String( t.name ) ), [ advertisers ] );
 	const placementSuggestions = useMemo( () => placements.map( t => String( t.name ) ), [ placements ] );
 	const categorySuggestions = useMemo( () => categories.map( t => String( t.name ) ), [ categories ] );
+	const advertiserTokens = useMemo( () => advertiserSelections.map( s => s.name ), [ advertiserSelections ] );
+	const placementTokens = useMemo( () => placementSelections.map( s => s.name ), [ placementSelections ] );
+	const categoryTokens = useMemo( () => categorySelections.map( s => s.name ), [ categorySelections ] );
 
 	const validateAgainst = labels => {
 		const lower = new Set( labels.map( l => l.toLowerCase() ) );
@@ -148,9 +161,9 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 			meta.price = Number( price );
 		}
 		const data = {
-			newspack_nl_advertiser: labelsToIds( advertisers, advertiserTokens, 'id', 'name' ),
-			ad_placement: labelsToIds( placements, placementTokens, 'id', 'name' ),
-			categories: labelsToIds( categories, categoryTokens, 'id', 'name' ),
+			newspack_nl_advertiser: advertiserSelections.map( s => s.id ),
+			ad_placement: placementSelections.map( s => s.id ),
+			categories: categorySelections.map( s => s.id ),
 			meta,
 		};
 		try {
@@ -181,7 +194,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 				label={ __( 'Advertiser', 'newspack-newsletters' ) }
 				value={ advertiserTokens }
 				suggestions={ advertiserSuggestions }
-				onChange={ setAdvertiserTokens }
+				onChange={ next => setAdvertiserSelections( resolveTokens( next, advertiserSelections, advertisers ) ) }
 				__experimentalValidateInput={ validateAdvertiser }
 				__experimentalShowHowTo={ false }
 				__next40pxDefaultSize
@@ -191,7 +204,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 				label={ __( 'Ad placement', 'newspack-newsletters' ) }
 				value={ placementTokens }
 				suggestions={ placementSuggestions }
-				onChange={ setPlacementTokens }
+				onChange={ next => setPlacementSelections( resolveTokens( next, placementSelections, placements ) ) }
 				__experimentalValidateInput={ validatePlacement }
 				__experimentalShowHowTo={ false }
 				__next40pxDefaultSize
@@ -201,7 +214,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 				label={ __( 'Categories', 'newspack-newsletters' ) }
 				value={ categoryTokens }
 				suggestions={ categorySuggestions }
-				onChange={ setCategoryTokens }
+				onChange={ next => setCategorySelections( resolveTokens( next, categorySelections, categories ) ) }
 				__experimentalValidateInput={ validateCategory }
 				__experimentalShowHowTo={ false }
 				__next40pxDefaultSize
