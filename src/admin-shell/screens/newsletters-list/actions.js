@@ -12,8 +12,10 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { edit, trash } from '@wordpress/icons';
 
 import { getAdminUrl } from '../../admin-globals';
+import RenameForm from '../../components/rename-form';
 import { notifyError, notifySuccess } from '../../notices';
 import { isTrashed } from './status-label';
 
@@ -103,7 +105,6 @@ export function getActions( { refresh, openQuickEdit } ) {
 	const editAction = {
 		id: 'edit',
 		label: __( 'Edit', 'newspack-newsletters' ),
-		isPrimary: true,
 		callback: items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -115,7 +116,9 @@ export function getActions( { refresh, openQuickEdit } ) {
 
 	const quickEditAction = {
 		id: 'quick-edit',
-		label: __( 'Quick edit', 'newspack-newsletters' ),
+		label: __( 'Quick Edit', 'newspack-newsletters' ),
+		isPrimary: true,
+		icon: edit,
 		isEligible: item => ! isTrashed( item ),
 		callback: items => {
 			const item = items[ 0 ];
@@ -124,6 +127,23 @@ export function getActions( { refresh, openQuickEdit } ) {
 			}
 			openQuickEdit( item );
 		},
+	};
+
+	const renameAction = {
+		id: 'rename',
+		label: __( 'Rename', 'newspack-newsletters' ),
+		modalHeader: __( 'Rename', 'newspack-newsletters' ),
+		modalSize: 'medium',
+		isEligible: item => ! isTrashed( item ),
+		RenderModal: ( { items, closeModal } ) => (
+			<RenameForm
+				item={ items[ 0 ] }
+				postPath={ POSTS_PATH }
+				savedMessage={ __( 'Newsletter renamed.', 'newspack-newsletters' ) }
+				closeModal={ closeModal }
+				onSaved={ refresh }
+			/>
+		),
 	};
 
 	const viewAction = {
@@ -144,7 +164,7 @@ export function getActions( { refresh, openQuickEdit } ) {
 
 	const makePublicAction = {
 		id: 'make-public',
-		label: __( 'Make newsletter pages public', 'newspack-newsletters' ),
+		label: __( 'Make newsletter public', 'newspack-newsletters' ),
 		supportsBulk: true,
 		// Hide on already-public rows and on trashed rows; nothing to do
 		// in the first case, dangerous-feeling in the second.
@@ -164,12 +184,12 @@ export function getActions( { refresh, openQuickEdit } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notifySuccess( _n( 'Newsletter page made public.', 'Newsletter pages made public.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess( _n( 'Newsletter made public.', 'Newsletters made public.', eligible.length, 'newspack-newsletters' ) );
 			} else {
 				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
-						__( 'Failed to make %d newsletter page(s) public.', 'newspack-newsletters' ),
+						__( 'Failed to make %d newsletter(s) public.', 'newspack-newsletters' ),
 						failed.length
 					)
 				);
@@ -179,7 +199,7 @@ export function getActions( { refresh, openQuickEdit } ) {
 
 	const makeNonPublicAction = {
 		id: 'make-non-public',
-		label: __( 'Make newsletter pages non-public', 'newspack-newsletters' ),
+		label: __( 'Make newsletter non-public', 'newspack-newsletters' ),
 		supportsBulk: true,
 		isEligible: isMakeNonPublicEligible,
 		callback: async items => {
@@ -197,14 +217,12 @@ export function getActions( { refresh, openQuickEdit } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notifySuccess(
-					_n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', eligible.length, 'newspack-newsletters' )
-				);
+				notifySuccess( _n( 'Newsletter made non-public.', 'Newsletters made non-public.', eligible.length, 'newspack-newsletters' ) );
 			} else {
 				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
-						__( 'Failed to make %d newsletter page(s) non-public.', 'newspack-newsletters' ),
+						__( 'Failed to make %d newsletter(s) non-public.', 'newspack-newsletters' ),
 						failed.length
 					)
 				);
@@ -214,7 +232,10 @@ export function getActions( { refresh, openQuickEdit } ) {
 
 	const trashAction = {
 		id: 'trash',
-		label: __( 'Move to trash', 'newspack-newsletters' ),
+		label: __( 'Trash', 'newspack-newsletters' ),
+		isPrimary: true,
+		icon: trash,
+		modalHeader: __( 'Move to trash', 'newspack-newsletters' ),
 		isDestructive: true,
 		supportsBulk: true,
 		isEligible: item => ! isTrashed( item ),
@@ -343,5 +364,5 @@ export function getActions( { refresh, openQuickEdit } ) {
 		),
 	};
 
-	return [ editAction, quickEditAction, viewAction, makePublicAction, makeNonPublicAction, trashAction, restoreAction, deleteAction ];
+	return [ quickEditAction, trashAction, makePublicAction, makeNonPublicAction, editAction, renameAction, viewAction, restoreAction, deleteAction ];
 }
