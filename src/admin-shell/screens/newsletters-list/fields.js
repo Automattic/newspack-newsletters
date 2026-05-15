@@ -136,7 +136,7 @@ const renderTerms =
 
 const renderPublicPage = ( { item } ) => {
 	const isPublic = !! item?.meta?.is_public;
-	return isPublic ? __( 'Yes', 'newspack-newsletters' ) : __( 'No', 'newspack-newsletters' );
+	return isPublic ? __( 'Email and web', 'newspack-newsletters' ) : __( 'Email only', 'newspack-newsletters' );
 };
 
 const renderDate = ( { item } ) => {
@@ -244,10 +244,10 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 		},
 		{
 			id: 'public_page',
-			label: __( 'Public page', 'newspack-newsletters' ),
+			label: __( 'Visibility', 'newspack-newsletters' ),
 			elements: [
-				{ value: '1', label: __( 'Yes', 'newspack-newsletters' ) },
-				{ value: '0', label: __( 'No', 'newspack-newsletters' ) },
+				{ value: '1', label: __( 'Email and web', 'newspack-newsletters' ) },
+				{ value: '0', label: __( 'Email only', 'newspack-newsletters' ) },
 			],
 			filterBy: { operators: [ 'is' ] },
 			getValue: ( { item } ) => ( item?.meta?.is_public ? '1' : '0' ),
