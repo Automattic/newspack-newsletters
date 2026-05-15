@@ -5,7 +5,7 @@ import { BlockControls } from '@wordpress/block-editor';
 import { Button, Popover, SearchControl, ToolbarButton } from '@wordpress/components';
 import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { insert, registerFormatType, remove } from '@wordpress/rich-text';
+import { insert, registerFormatType, remove, useAnchor } from '@wordpress/rich-text';
 import { mergeTags } from 'newspack-icons';
 
 /**
@@ -14,6 +14,10 @@ import { mergeTags } from 'newspack-icons';
 import { TRIGGER, getLabel, getLegacyTrigger, useMergeTagItems } from './utils';
 
 const FORMAT_NAME = 'newspack-newsletters/merge-tag';
+const FORMAT_SETTINGS = {
+	tagName: 'span',
+	className: 'newspack-newsletters-merge-tag-noop',
+};
 
 const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
@@ -53,12 +57,17 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	);
 };
 
-const MergeTagEdit = ( { value, onChange } ) => {
+const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 	const [ isOpen, setOpen ] = useState( false );
-	const [ buttonRef, setButtonRef ] = useState();
 	// Snapshot the value so the caret survives the popover stealing focus.
 	const valueRef = useRef( value );
 	const prevTextLengthRef = useRef( value.text.length );
+
+	const popoverAnchor = useAnchor( {
+		editableContentElement: contentRef?.current,
+		value,
+		settings: FORMAT_SETTINGS,
+	} );
 
 	useEffect( () => {
 		const { text, start } = value;
@@ -97,9 +106,9 @@ const MergeTagEdit = ( { value, onChange } ) => {
 	return (
 		<>
 			<BlockControls group="inline">
-				<ToolbarButton ref={ setButtonRef } icon={ mergeTags } label={ label } onClick={ openPicker } isActive={ isOpen } />
+				<ToolbarButton icon={ mergeTags } label={ label } onClick={ openPicker } isActive={ isOpen } />
 			</BlockControls>
-			{ isOpen && <MergeTagPicker anchor={ buttonRef } onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
+			{ isOpen && <MergeTagPicker anchor={ popoverAnchor } onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
 		</>
 	);
 };
@@ -112,8 +121,7 @@ export default () => {
 			getLabel()
 		),
 		// Required by registerFormatType but never applied — `edit` is used only to render the toolbar fill.
-		tagName: 'span',
-		className: 'newspack-newsletters-merge-tag-noop',
+		...FORMAT_SETTINGS,
 		edit: MergeTagEdit,
 	} );
 };
