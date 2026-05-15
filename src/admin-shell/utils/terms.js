@@ -67,16 +67,22 @@ export const sortedIdsEqual = ( a, b ) => {
 	if ( a.length !== b.length ) {
 		return false;
 	}
-	const sa = a.map( s => s.id ).sort();
-	const sb = b.map( s => s.id ).sort();
+	// Numeric comparator — `Array.prototype.sort()` defaults to lexicographic
+	// order, so `[2, 10]` would sort to `[10, 2]`. Set-equality still works
+	// either way, but the numeric form removes ambiguity for future readers.
+	const sa = a.map( s => s.id ).sort( ( x, y ) => x - y );
+	const sb = b.map( s => s.id ).sort( ( x, y ) => x - y );
 	return sa.every( ( v, i ) => v === sb[ i ] );
 };
 
-// Resolve user-typed tokens to `{id, name}` pairs without going through
-// name-keyed maps (which collide on duplicate term names). Existing
-// selections keep their ID; new tokens are matched against `options` and
-// silently dropped if no match — `__experimentalValidateInput` prevents
-// that path anyway.
+// Resolve user-typed tokens to `{id, name}` pairs by case-insensitive
+// name match. Existing selections keep their ID across re-renders, so a
+// user who picked one of two same-named terms stays on that one. New
+// tokens (just-typed names) still resolve to the first matching option,
+// so on hierarchical taxonomies that allow duplicate names — Categories
+// being the only one we expose — a fresh pick can land on the "wrong"
+// sibling. Acceptable trade-off vs. disambiguating every suggestion
+// label; revisit if duplicate-name categories prove common in practice.
 export const resolveTokens = ( newTokens, currentSelections, options ) =>
 	newTokens
 		.map( token => {
