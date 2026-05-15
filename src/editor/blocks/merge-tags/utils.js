@@ -53,18 +53,21 @@ const getOptionKeywords = ( { tag, keywords } ) => [ tag, ...( keywords || [] ) 
 
 export const useMergeTagItems = filterValue => {
 	const listMergeFields = useSelect( select => select( STORE_NAMESPACE )?.getData?.()?.merge_fields ?? EMPTY_MERGE_FIELDS, [] );
+	const keyed = useMemo(
+		() =>
+			buildOptions( listMergeFields ).map( ( opt, i ) => ( {
+				key: `merge-tags-${ i }`,
+				value: opt,
+				label: getOptionLabelNode( opt ),
+				keywords: getOptionKeywords( opt ),
+			} ) ),
+		[ listMergeFields ]
+	);
 	return useMemo( () => {
-		const opts = buildOptions( listMergeFields );
-		const keyed = opts.map( ( opt, i ) => ( {
-			key: `merge-tags-${ i }`,
-			value: opt,
-			label: getOptionLabelNode( opt ),
-			keywords: getOptionKeywords( opt ),
-		} ) );
 		if ( ! filterValue ) {
 			return keyed;
 		}
 		const needle = normalise( filterValue );
 		return keyed.filter( item => item.keywords.some( k => normalise( k ).includes( needle ) ) );
-	}, [ filterValue, listMergeFields ] );
+	}, [ filterValue, keyed ] );
 };

@@ -19,6 +19,15 @@ const FORMAT_SETTINGS = {
 	tagName: 'span',
 };
 
+const CaretAnchoredPicker = ( { contentRef, value, onSelect, onClose } ) => {
+	const anchor = useAnchor( {
+		editableContentElement: contentRef?.current,
+		value,
+		settings: FORMAT_SETTINGS,
+	} );
+	return <MergeTagPicker anchor={ anchor } onSelect={ onSelect } onClose={ onClose } />;
+};
+
 const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
 	const items = useMergeTagItems( search );
@@ -66,12 +75,6 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 	const valueRef = useRef( value );
 	const prevTextLengthRef = useRef( value.text.length );
 
-	const caretAnchor = useAnchor( {
-		editableContentElement: contentRef?.current,
-		value,
-		settings: FORMAT_SETTINGS,
-	} );
-
 	useEffect( () => {
 		const { text, start } = value;
 		// Only fire on single-character growth so paste operations don't hijack the picker.
@@ -109,14 +112,17 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 		getLabel()
 	);
 
-	const anchor = anchorMode === 'toolbar' ? buttonRef : caretAnchor;
+	const closePicker = () => setOpen( false );
 
 	return (
 		<>
 			<BlockControls group="inline">
 				<ToolbarButton ref={ setButtonRef } icon={ mergeTags } label={ label } onClick={ openFromToolbar } isActive={ isOpen } />
 			</BlockControls>
-			{ isOpen && <MergeTagPicker anchor={ anchor } onSelect={ handleSelect } onClose={ () => setOpen( false ) } /> }
+			{ isOpen && anchorMode === 'toolbar' && <MergeTagPicker anchor={ buttonRef } onSelect={ handleSelect } onClose={ closePicker } /> }
+			{ isOpen && anchorMode === 'caret' && (
+				<CaretAnchoredPicker contentRef={ contentRef } value={ value } onSelect={ handleSelect } onClose={ closePicker } />
+			) }
 		</>
 	);
 };
