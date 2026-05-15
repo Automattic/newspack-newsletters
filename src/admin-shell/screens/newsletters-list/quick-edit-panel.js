@@ -1,14 +1,14 @@
 /**
- * Quick Edit panel for the newsletters list — categories, tags, author.
- * Saves via `POST /wp/v2/newspack_nl_cpt/{id}` and refreshes the list.
- * Status stays off the form: the service-provider base class fires an
- * ESP campaign send on `transition_post_status`, which would dispatch
- * irreversibly from an inline edit.
+ * Quick Edit panel for the newsletters list. Lazy-loads full term and
+ * author sets so newsletters can be assigned categories/tags/authors
+ * that aren't already used elsewhere. Status is intentionally absent —
+ * the service-provider base class fires an ESP send on
+ * `transition_post_status`.
  */
 
 import apiFetch from '@wordpress/api-fetch';
 import { ComboboxControl, FormTokenField, RadioControl } from '@wordpress/components';
-import { useMemo, useState } from '@wordpress/element';
+import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { envelope } from '@wordpress/icons';
 
@@ -16,6 +16,7 @@ import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
+const TERMS_PER_PAGE = 100;
 
 const termsForTaxonomy = ( item, taxonomy ) => {
 	const groups = item?._embedded?.[ 'wp:term' ] || [];
@@ -41,7 +42,63 @@ const sortedTokensEqual = ( a, b ) => {
 	return sa.every( ( v, i ) => v === sb[ i ] );
 };
 
-export default function NewslettersQuickEditPanel( { item, authors, categories, tags, onClose, onSaved } ) {
+async function fetchAllTerms( basePath ) {
+	const all = [];
+	let page = 1;
+	let totalPages = 1;
+	while ( page <= totalPages ) {
+		try {
+			const response = await apiFetch( {
+				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=id,name&page=${ page }`,
+				parse: false,
+			} );
+			const data = await response.json();
+			if ( ! Array.isArray( data ) ) {
+				break;
+			}
+			all.push( ...data );
+			if ( page === 1 ) {
+				const headerPages = parseInt( response.headers?.get?.( 'X-WP-TotalPages' ) || '1', 10 );
+				totalPages = Number.isFinite( headerPages ) && headerPages > 0 ? headerPages : 1;
+			}
+		} catch ( error ) {
+			break;
+		}
+		page += 1;
+	}
+	return all;
+}
+
+function useQuickEditOptions() {
+	const [ options, setOptions ] = useState( { authors: [], categories: [], tags: [] } );
+
+	useEffect( () => {
+		let cancelled = false;
+		Promise.all( [
+			apiFetch( { path: '/newspack-newsletters/v1/newsletters-list/quick-edit-authors' } ).catch( () => [] ),
+			fetchAllTerms( '/wp/v2/categories' ),
+			fetchAllTerms( '/wp/v2/tags' ),
+		] ).then( ( [ authors, categories, tags ] ) => {
+			if ( cancelled ) {
+				return;
+			}
+			setOptions( {
+				authors: Array.isArray( authors ) ? authors : [],
+				categories: Array.isArray( categories ) ? categories : [],
+				tags: Array.isArray( tags ) ? tags : [],
+			} );
+		} );
+		return () => {
+			cancelled = true;
+		};
+	}, [] );
+
+	return options;
+}
+
+export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) {
+	const { authors, categories, tags } = useQuickEditOptions();
+
 	const initialAuthor = item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '';
 	const initialAuthorId = initialAuthor ? String( initialAuthor ) : '';
 	const initialCategoryTokens = useMemo( () => initialTokensForTaxonomy( item, 'category' ), [ item ] );
@@ -62,34 +119,34 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 
 	const authorOptions = useMemo(
 		() =>
-			authors.map( ( { id, label } ) => ( {
+			authors.map( ( { id, name } ) => ( {
 				value: String( id ),
-				label: String( label ),
+				label: String( name ),
 			} ) ),
 		[ authors ]
 	);
 
-	const categoryLabels = useMemo( () => categories.map( c => String( c.label ) ), [ categories ] );
-	const tagLabels = useMemo( () => tags.map( t => String( t.label ) ), [ tags ] );
+	const categoryNames = useMemo( () => categories.map( c => String( c.name ) ), [ categories ] );
+	const tagNames = useMemo( () => tags.map( t => String( t.name ) ), [ tags ] );
 
-	const validateAgainst = labels => {
-		const lower = new Set( labels.map( l => l.toLowerCase() ) );
+	const validateAgainst = names => {
+		const lower = new Set( names.map( n => n.toLowerCase() ) );
 		return token => lower.has( String( token ).toLowerCase() );
 	};
 
-	const validateCategory = useMemo( () => validateAgainst( categoryLabels ), [ categoryLabels ] );
-	const validateTag = useMemo( () => validateAgainst( tagLabels ), [ tagLabels ] );
+	const validateCategory = useMemo( () => validateAgainst( categoryNames ), [ categoryNames ] );
+	const validateTag = useMemo( () => validateAgainst( tagNames ), [ tagNames ] );
 
-	const labelsToIds = ( options, tokens ) => {
-		const byLabel = new Map( options.map( o => [ String( o.label ).toLowerCase(), o.id ] ) );
-		return tokens.map( token => byLabel.get( String( token ).toLowerCase() ) ).filter( id => typeof id === 'number' );
+	const namesToIds = ( options, tokens ) => {
+		const byName = new Map( options.map( o => [ String( o.name ).toLowerCase(), o.id ] ) );
+		return tokens.map( token => byName.get( String( token ).toLowerCase() ) ).filter( id => typeof id === 'number' );
 	};
 
 	const handleSave = async () => {
 		setIsBusy( true );
 		const data = {
-			categories: labelsToIds( categories, categoryTokens ),
-			tags: labelsToIds( tags, tagTokens ),
+			categories: namesToIds( categories, categoryTokens ),
+			tags: namesToIds( tags, tagTokens ),
 			meta: { is_public: visibility === 'public' },
 		};
 		if ( authorId ) {
@@ -105,7 +162,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 		}
 	};
 
-	const subjectTitle = item?.title?.raw ?? item?.title?.rendered ?? __( '(no title)', 'newspack-newsletters' );
+	const subjectTitle = item?.title?.raw ?? item?.title?.rendered ?? __( '(no subject)', 'newspack-newsletters' );
 
 	return (
 		<QuickEditPanel
@@ -130,7 +187,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 			<FormTokenField
 				label={ __( 'Categories', 'newspack-newsletters' ) }
 				value={ categoryTokens }
-				suggestions={ categoryLabels }
+				suggestions={ categoryNames }
 				onChange={ setCategoryTokens }
 				__experimentalValidateInput={ validateCategory }
 				__experimentalShowHowTo={ false }
@@ -140,7 +197,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 			<FormTokenField
 				label={ __( 'Tags', 'newspack-newsletters' ) }
 				value={ tagTokens }
-				suggestions={ tagLabels }
+				suggestions={ tagNames }
 				onChange={ setTagTokens }
 				__experimentalValidateInput={ validateTag }
 				__experimentalShowHowTo={ false }

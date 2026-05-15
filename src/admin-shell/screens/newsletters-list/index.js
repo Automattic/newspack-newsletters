@@ -113,9 +113,6 @@ export default function NewslettersListScreen() {
 			{ quickEditItem && (
 				<NewslettersQuickEditPanel
 					item={ quickEditItem }
-					authors={ filterElements.authors }
-					categories={ filterElements.categories }
-					tags={ filterElements.tags }
 					onClose={ () => setQuickEditItem( null ) }
 					onSaved={ () => {
 						refresh();

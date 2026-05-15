@@ -10,7 +10,7 @@
 
 import apiFetch from '@wordpress/api-fetch';
 import { FormTokenField, TextControl } from '@wordpress/components';
-import { useMemo, useState } from '@wordpress/element';
+import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { emailAd } from 'newspack-icons';
 
@@ -18,6 +18,50 @@ import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_ads_cpt';
+const TERMS_PER_PAGE = 100;
+
+async function fetchAllTerms( basePath ) {
+	const all = [];
+	let page = 1;
+	let totalPages = 1;
+	while ( page <= totalPages ) {
+		try {
+			const response = await apiFetch( {
+				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=id,name&page=${ page }`,
+				parse: false,
+			} );
+			const data = await response.json();
+			if ( ! Array.isArray( data ) ) {
+				break;
+			}
+			all.push( ...data );
+			if ( page === 1 ) {
+				const headerPages = parseInt( response.headers?.get?.( 'X-WP-TotalPages' ) || '1', 10 );
+				totalPages = Number.isFinite( headerPages ) && headerPages > 0 ? headerPages : 1;
+			}
+		} catch ( error ) {
+			break;
+		}
+		page += 1;
+	}
+	return all;
+}
+
+function useQuickEditCategories() {
+	const [ categories, setCategories ] = useState( [] );
+	useEffect( () => {
+		let cancelled = false;
+		fetchAllTerms( '/wp/v2/categories' ).then( terms => {
+			if ( ! cancelled ) {
+				setCategories( Array.isArray( terms ) ? terms : [] );
+			}
+		} );
+		return () => {
+			cancelled = true;
+		};
+	}, [] );
+	return categories;
+}
 
 const termsForTaxonomy = ( item, taxonomy ) => {
 	const groups = item?._embedded?.[ 'wp:term' ] || [];
@@ -48,7 +92,8 @@ const sortedTokensEqual = ( a, b ) => {
 	return sa.every( ( v, i ) => v === sb[ i ] );
 };
 
-export default function AdsQuickEditPanel( { item, advertisers, placements, categories, onClose, onSaved } ) {
+export default function AdsQuickEditPanel( { item, advertisers, placements, onClose, onSaved } ) {
+	const categories = useQuickEditCategories();
 	const initialAdvertiserTokens = useMemo( () => initialTokensForTaxonomy( item, 'newspack_nl_advertiser' ), [ item ] );
 	const initialPlacementTokens = useMemo( () => initialTokensForTaxonomy( item, 'newspack_nl_ad_placement' ), [ item ] );
 	const initialCategoryTokens = useMemo( () => initialTokensForTaxonomy( item, 'category' ), [ item ] );
@@ -94,13 +139,12 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, cate
 
 	const handleSave = async () => {
 		setIsBusy( true );
+		// Omit `price` when blank so previously-unset ads stay unset.
 		const meta = {
 			start_date: startDate,
 			expiry_date: expiryDate,
 		};
-		if ( price === '' ) {
-			meta.price = 0;
-		} else {
+		if ( price !== '' ) {
 			meta.price = Number( price );
 		}
 		const data = {

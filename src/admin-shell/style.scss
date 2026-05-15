@@ -337,7 +337,8 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 
 @media (prefers-reduced-motion: reduce) {
 	.newspack-newsletters-quick-edit-modal__overlay,
-	.components-modal__frame.newspack-newsletters-quick-edit-modal {
+	.components-modal__frame.newspack-newsletters-quick-edit-modal,
+	.components-modal__screen-overlay.newspack-newsletters-quick-edit-modal__overlay.is-animating-out .components-modal__frame {
 		animation: none;
 	}
 }

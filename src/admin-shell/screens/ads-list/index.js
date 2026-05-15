@@ -75,29 +75,25 @@ async function fetchAllTerms( basePath ) {
 	return all;
 }
 
-// One-shot fetch for the taxonomy term sets that drive the Advertiser
-// and Ad placement filter dropdowns, plus the Quick Edit category
-// picker. Paginates through every page so sites with many terms still
-// get a complete dropdown.
+// Filter-dropdown taxonomy terms (advertisers + placements). Paginated
+// so sites with many terms still get a complete list. Categories are
+// fetched lazily inside the Quick Edit panel.
 function useFilterTerms() {
-	const [ terms, setTerms ] = useState( { advertisers: [], placements: [], categories: [] } );
+	const [ terms, setTerms ] = useState( { advertisers: [], placements: [] } );
 
 	useEffect( () => {
 		let cancelled = false;
-		Promise.all( [
-			fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ),
-			fetchAllTerms( '/wp/v2/ad_placement' ),
-			fetchAllTerms( '/wp/v2/categories' ),
-		] ).then( ( [ advertisers, placements, categories ] ) => {
-			if ( cancelled ) {
-				return;
+		Promise.all( [ fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ), fetchAllTerms( '/wp/v2/ad_placement' ) ] ).then(
+			( [ advertisers, placements ] ) => {
+				if ( cancelled ) {
+					return;
+				}
+				setTerms( {
+					advertisers: Array.isArray( advertisers ) ? advertisers : [],
+					placements: Array.isArray( placements ) ? placements : [],
+				} );
 			}
-			setTerms( {
-				advertisers: Array.isArray( advertisers ) ? advertisers : [],
-				placements: Array.isArray( placements ) ? placements : [],
-				categories: Array.isArray( categories ) ? categories : [],
-			} );
-		} );
+		);
 		return () => {
 			cancelled = true;
 		};
@@ -184,7 +180,6 @@ export default function AdsListScreen() {
 					item={ quickEditItem }
 					advertisers={ filterTerms.advertisers }
 					placements={ filterTerms.placements }
-					categories={ filterTerms.categories }
 					onClose={ () => setQuickEditItem( null ) }
 					onSaved={ () => {
 						refresh();

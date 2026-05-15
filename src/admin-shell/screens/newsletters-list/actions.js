@@ -200,8 +200,13 @@ export function getActions( { refresh, openQuickEdit } ) {
 			} else {
 				notifyError(
 					sprintf(
-						/* translators: %d: number that failed */
-						__( 'Failed to update visibility for %d newsletter(s).', 'newspack-newsletters' ),
+						/* translators: %d: number of newsletters that failed */
+						_n(
+							'Failed to update visibility for %d newsletter.',
+							'Failed to update visibility for %d newsletters.',
+							failed.length,
+							'newspack-newsletters'
+						),
 						failed.length
 					)
 				);
@@ -244,8 +249,13 @@ export function getActions( { refresh, openQuickEdit } ) {
 			} else {
 				notifyError(
 					sprintf(
-						/* translators: %d: number that failed */
-						__( 'Failed to update visibility for %d newsletter(s).', 'newspack-newsletters' ),
+						/* translators: %d: number of newsletters that failed */
+						_n(
+							'Failed to update visibility for %d newsletter.',
+							'Failed to update visibility for %d newsletters.',
+							failed.length,
+							'newspack-newsletters'
+						),
 						failed.length
 					)
 				);
