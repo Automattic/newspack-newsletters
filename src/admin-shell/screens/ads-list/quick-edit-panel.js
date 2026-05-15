@@ -81,7 +81,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 	const validateCategory = useMemo( () => validateAgainst( categorySuggestions ), [ categorySuggestions ] );
 
 	const datesValid = ! startDate || ! expiryDate || startDate <= expiryDate;
-	const priceValid = price === '' || ! Number.isNaN( Number( price ) );
+	const priceValid = price === '' || ( Number.isFinite( Number( price ) ) && Number( price ) >= 0 );
 	const canSave = datesValid && priceValid;
 
 	const handleSave = async () => {
@@ -177,7 +177,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 				min={ 0 }
 				step="0.01"
 				onChange={ setPrice }
-				help={ priceValid ? '' : __( 'Price must be a number.', 'newspack-newsletters' ) }
+				help={ priceValid ? '' : __( 'Price must be a non-negative finite number.', 'newspack-newsletters' ) }
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
 			/>
