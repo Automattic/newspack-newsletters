@@ -165,7 +165,7 @@ export function getActions( { refresh, openQuickEdit } ) {
 
 	const makePublicAction = {
 		id: 'make-public',
-		label: __( 'Make newsletter public', 'newspack-newsletters' ),
+		label: __( 'Set visibility to Email and web', 'newspack-newsletters' ),
 		supportsBulk: true,
 		// Hide on already-public rows and on trashed rows; nothing to do
 		// in the first case, dangerous-feeling in the second.
@@ -185,12 +185,23 @@ export function getActions( { refresh, openQuickEdit } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notifySuccess( _n( 'Newsletter made public.', 'Newsletters made public.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess(
+					sprintf(
+						/* translators: %d: number of newsletters updated */
+						_n(
+							'Visibility updated for %d newsletter.',
+							'Visibility updated for %d newsletters.',
+							eligible.length,
+							'newspack-newsletters'
+						),
+						eligible.length
+					)
+				);
 			} else {
 				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
-						__( 'Failed to make %d newsletter(s) public.', 'newspack-newsletters' ),
+						__( 'Failed to update visibility for %d newsletter(s).', 'newspack-newsletters' ),
 						failed.length
 					)
 				);
@@ -200,7 +211,7 @@ export function getActions( { refresh, openQuickEdit } ) {
 
 	const makeNonPublicAction = {
 		id: 'make-non-public',
-		label: __( 'Make newsletter non-public', 'newspack-newsletters' ),
+		label: __( 'Set visibility to Email only', 'newspack-newsletters' ),
 		supportsBulk: true,
 		isEligible: isMakeNonPublicEligible,
 		callback: async items => {
@@ -218,12 +229,23 @@ export function getActions( { refresh, openQuickEdit } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notifySuccess( _n( 'Newsletter made non-public.', 'Newsletters made non-public.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess(
+					sprintf(
+						/* translators: %d: number of newsletters updated */
+						_n(
+							'Visibility updated for %d newsletter.',
+							'Visibility updated for %d newsletters.',
+							eligible.length,
+							'newspack-newsletters'
+						),
+						eligible.length
+					)
+				);
 			} else {
 				notifyError(
 					sprintf(
 						/* translators: %d: number that failed */
-						__( 'Failed to make %d newsletter(s) non-public.', 'newspack-newsletters' ),
+						__( 'Failed to update visibility for %d newsletter(s).', 'newspack-newsletters' ),
 						failed.length
 					)
 				);
