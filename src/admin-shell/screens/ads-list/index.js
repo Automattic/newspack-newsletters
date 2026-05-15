@@ -20,6 +20,7 @@ import useAdsData from './use-ads-data';
 import { getFields } from './fields';
 import { getActions } from './actions';
 import { getInitialView } from './initial-filters';
+import AdsQuickEditPanel from './quick-edit-panel';
 
 const DEFAULT_VIEW = {
 	type: 'table',
@@ -75,24 +76,28 @@ async function fetchAllTerms( basePath ) {
 }
 
 // One-shot fetch for the taxonomy term sets that drive the Advertiser
-// and Ad placement filter dropdowns. Paginates through every page so
-// sites with many terms still get a complete dropdown.
+// and Ad placement filter dropdowns, plus the Quick Edit category
+// picker. Paginates through every page so sites with many terms still
+// get a complete dropdown.
 function useFilterTerms() {
-	const [ terms, setTerms ] = useState( { advertisers: [], placements: [] } );
+	const [ terms, setTerms ] = useState( { advertisers: [], placements: [], categories: [] } );
 
 	useEffect( () => {
 		let cancelled = false;
-		Promise.all( [ fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ), fetchAllTerms( '/wp/v2/ad_placement' ) ] ).then(
-			( [ advertisers, placements ] ) => {
-				if ( cancelled ) {
-					return;
-				}
-				setTerms( {
-					advertisers: Array.isArray( advertisers ) ? advertisers : [],
-					placements: Array.isArray( placements ) ? placements : [],
-				} );
+		Promise.all( [
+			fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ),
+			fetchAllTerms( '/wp/v2/ad_placement' ),
+			fetchAllTerms( '/wp/v2/categories' ),
+		] ).then( ( [ advertisers, placements, categories ] ) => {
+			if ( cancelled ) {
+				return;
 			}
-		);
+			setTerms( {
+				advertisers: Array.isArray( advertisers ) ? advertisers : [],
+				placements: Array.isArray( placements ) ? placements : [],
+				categories: Array.isArray( categories ) ? categories : [],
+			} );
+		} );
 		return () => {
 			cancelled = true;
 		};
@@ -103,13 +108,14 @@ function useFilterTerms() {
 
 export default function AdsListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
+	const [ quickEditItem, setQuickEditItem ] = useState( null );
 	const { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh } = useAdsData( view );
 	const filterTerms = useFilterTerms();
 
 	const addNewHref = `${ getAdminUrl() }post-new.php?post_type=${ ADS_CPT }`;
 
 	const fields = useMemo( () => getFields( filterTerms ), [ filterTerms ] );
-	const actions = useMemo( () => getActions( { refresh } ), [ refresh ] );
+	const actions = useMemo( () => getActions( { refresh, openQuickEdit: setQuickEditItem } ), [ refresh ] );
 
 	const isStrictEmpty =
 		hasLoadedOnce &&
@@ -159,18 +165,33 @@ export default function AdsListScreen() {
 	}
 
 	return (
-		<DataViews
-			className="newspack-newsletters-list newspack-newsletters-ads-list"
-			data={ data }
-			fields={ fields }
-			view={ view }
-			onChangeView={ setView }
-			actions={ actions }
-			paginationInfo={ paginationInfo }
-			defaultLayouts={ DEFAULT_LAYOUTS }
-			isLoading={ isLoading }
-			getItemId={ item => String( item.id ) }
-			search
-		/>
+		<>
+			<DataViews
+				className="newspack-newsletters-list newspack-newsletters-ads-list"
+				data={ data }
+				fields={ fields }
+				view={ view }
+				onChangeView={ setView }
+				actions={ actions }
+				paginationInfo={ paginationInfo }
+				defaultLayouts={ DEFAULT_LAYOUTS }
+				isLoading={ isLoading }
+				getItemId={ item => String( item.id ) }
+				search
+			/>
+			{ quickEditItem && (
+				<AdsQuickEditPanel
+					item={ quickEditItem }
+					advertisers={ filterTerms.advertisers }
+					placements={ filterTerms.placements }
+					categories={ filterTerms.categories }
+					onClose={ () => setQuickEditItem( null ) }
+					onSaved={ () => {
+						refresh();
+						setQuickEditItem( null );
+					} }
+				/>
+			) }
+		</>
 	);
 }
