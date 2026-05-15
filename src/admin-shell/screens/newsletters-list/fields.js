@@ -10,7 +10,7 @@
 
 import { Icon } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
-import { atSymbol, commentAuthorAvatar, drafts, globe, published, scheduled, trash } from '@wordpress/icons';
+import { commentAuthorAvatar, drafts, envelope, globe, published, scheduled, trash } from '@wordpress/icons';
 import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
@@ -136,7 +136,7 @@ const renderTerms =
 
 const renderPublicPage = ( { item } ) => {
 	const isPublic = !! item?.meta?.is_public;
-	const icon = isPublic ? globe : atSymbol;
+	const icon = isPublic ? globe : envelope;
 	const label = isPublic ? __( 'Email and web', 'newspack-newsletters' ) : __( 'Email only', 'newspack-newsletters' );
 	return (
 		<span className="newspack-newsletters-list__visibility">
