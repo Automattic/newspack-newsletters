@@ -12,8 +12,10 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { edit, trash } from '@wordpress/icons';
 
 import { getAdminUrl } from '../../admin-globals';
+import RenameForm from '../../components/rename-form';
 import { notifyError, notifySuccess } from '../../notices';
 import { isTrashed } from './status-label';
 
@@ -99,11 +101,10 @@ function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, quest
 const isMakePublicEligible = item => ! isTrashed( item ) && ! item?.meta?.is_public;
 const isMakeNonPublicEligible = item => ! isTrashed( item ) && !! item?.meta?.is_public;
 
-export function getActions( { refresh } ) {
+export function getActions( { refresh, openQuickEdit } ) {
 	const editAction = {
 		id: 'edit',
 		label: __( 'Edit', 'newspack-newsletters' ),
-		isPrimary: true,
 		callback: items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -111,6 +112,39 @@ export function getActions( { refresh } ) {
 			}
 			window.location.href = `${ getAdminUrl() }post.php?post=${ item.id }&action=edit`;
 		},
+	};
+
+	const quickEditAction = {
+		id: 'quick-edit',
+		label: __( 'Quick Edit', 'newspack-newsletters' ),
+		isPrimary: true,
+		icon: edit,
+		isEligible: item => ! isTrashed( item ),
+		callback: items => {
+			const item = items[ 0 ];
+			if ( ! item || typeof openQuickEdit !== 'function' ) {
+				return;
+			}
+			openQuickEdit( item );
+		},
+	};
+
+	const renameAction = {
+		id: 'rename',
+		label: __( 'Rename', 'newspack-newsletters' ),
+		modalHeader: __( 'Rename', 'newspack-newsletters' ),
+		modalSize: 'medium',
+		isEligible: item => ! isTrashed( item ),
+		RenderModal: ( { items, closeModal } ) => (
+			<RenameForm
+				item={ items[ 0 ] }
+				postPath={ POSTS_PATH }
+				fieldLabel={ __( 'Subject', 'newspack-newsletters' ) }
+				savedMessage={ __( 'Newsletter renamed.', 'newspack-newsletters' ) }
+				closeModal={ closeModal }
+				onSaved={ refresh }
+			/>
+		),
 	};
 
 	const viewAction = {
@@ -131,7 +165,7 @@ export function getActions( { refresh } ) {
 
 	const makePublicAction = {
 		id: 'make-public',
-		label: __( 'Make newsletter pages public', 'newspack-newsletters' ),
+		label: __( 'Set visibility to Email and web', 'newspack-newsletters' ),
 		supportsBulk: true,
 		// Hide on already-public rows and on trashed rows; nothing to do
 		// in the first case, dangerous-feeling in the second.
@@ -151,12 +185,28 @@ export function getActions( { refresh } ) {
 			);
 			refresh();
 			if ( failed.length === 0 ) {
-				notifySuccess( _n( 'Newsletter page made public.', 'Newsletter pages made public.', eligible.length, 'newspack-newsletters' ) );
+				notifySuccess(
+					sprintf(
+						/* translators: %d: number of newsletters updated */
+						_n(
+							'Visibility updated for %d newsletter.',
+							'Visibility updated for %d newsletters.',
+							eligible.length,
+							'newspack-newsletters'
+						),
+						eligible.length
+					)
+				);
 			} else {
 				notifyError(
 					sprintf(
-						/* translators: %d: number that failed */
-						__( 'Failed to make %d newsletter page(s) public.', 'newspack-newsletters' ),
+						/* translators: %d: number of newsletters that failed */
+						_n(
+							'Failed to update visibility for %d newsletter.',
+							'Failed to update visibility for %d newsletters.',
+							failed.length,
+							'newspack-newsletters'
+						),
 						failed.length
 					)
 				);
@@ -166,7 +216,7 @@ export function getActions( { refresh } ) {
 
 	const makeNonPublicAction = {
 		id: 'make-non-public',
-		label: __( 'Make newsletter pages non-public', 'newspack-newsletters' ),
+		label: __( 'Set visibility to Email only', 'newspack-newsletters' ),
 		supportsBulk: true,
 		isEligible: isMakeNonPublicEligible,
 		callback: async items => {
@@ -185,13 +235,27 @@ export function getActions( { refresh } ) {
 			refresh();
 			if ( failed.length === 0 ) {
 				notifySuccess(
-					_n( 'Newsletter page made non-public.', 'Newsletter pages made non-public.', eligible.length, 'newspack-newsletters' )
+					sprintf(
+						/* translators: %d: number of newsletters updated */
+						_n(
+							'Visibility updated for %d newsletter.',
+							'Visibility updated for %d newsletters.',
+							eligible.length,
+							'newspack-newsletters'
+						),
+						eligible.length
+					)
 				);
 			} else {
 				notifyError(
 					sprintf(
-						/* translators: %d: number that failed */
-						__( 'Failed to make %d newsletter page(s) non-public.', 'newspack-newsletters' ),
+						/* translators: %d: number of newsletters that failed */
+						_n(
+							'Failed to update visibility for %d newsletter.',
+							'Failed to update visibility for %d newsletters.',
+							failed.length,
+							'newspack-newsletters'
+						),
 						failed.length
 					)
 				);
@@ -201,7 +265,10 @@ export function getActions( { refresh } ) {
 
 	const trashAction = {
 		id: 'trash',
-		label: __( 'Move to trash', 'newspack-newsletters' ),
+		label: __( 'Trash', 'newspack-newsletters' ),
+		isPrimary: true,
+		icon: trash,
+		modalHeader: __( 'Move to trash', 'newspack-newsletters' ),
 		isDestructive: true,
 		supportsBulk: true,
 		isEligible: item => ! isTrashed( item ),
@@ -330,5 +397,5 @@ export function getActions( { refresh } ) {
 		),
 	};
 
-	return [ editAction, viewAction, makePublicAction, makeNonPublicAction, trashAction, restoreAction, deleteAction ];
+	return [ quickEditAction, trashAction, makePublicAction, makeNonPublicAction, editAction, renameAction, viewAction, restoreAction, deleteAction ];
 }

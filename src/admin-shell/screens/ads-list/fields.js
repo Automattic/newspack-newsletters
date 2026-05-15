@@ -18,6 +18,7 @@ import { drafts, notAllowed, published, scheduled, trash } from '@wordpress/icon
 import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
+import { termsForTaxonomy } from '../../utils/terms';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
 
 const STATUS_KIND_ICONS = {
@@ -51,19 +52,6 @@ const formatDate = ymd => {
 const editUrl = item => `${ getAdminUrl() }post.php?post=${ item.id }&action=edit`;
 
 const getTitle = item => item?.title?.raw ?? item?.title?.rendered ?? '';
-
-// Look up the `_embedded.wp:term` group whose terms belong to the
-// requested taxonomy. Order is not guaranteed across post types, so a
-// keyed lookup is safer than `terms[0]` / `terms[1]`.
-const termsForTaxonomy = ( item, taxonomy ) => {
-	const groups = item?._embedded?.[ 'wp:term' ] || [];
-	for ( const group of groups ) {
-		if ( Array.isArray( group ) && group.length > 0 && group[ 0 ]?.taxonomy === taxonomy ) {
-			return group;
-		}
-	}
-	return [];
-};
 
 const renderTitle = ( { item } ) => {
 	const title = getTitle( item ) || __( '(no title)', 'newspack-newsletters' );
@@ -121,7 +109,7 @@ const renderImpressions = ( { item } ) => String( item?.meta?.tracking_impressio
 const renderClicks = ( { item } ) => String( item?.meta?.tracking_clicks ?? 0 );
 const renderPrice = ( { item } ) => {
 	const price = item?.meta?.price;
-	if ( price === undefined || price === null || price === '' ) {
+	if ( ! price ) {
 		return '';
 	}
 	return String( price );

@@ -20,6 +20,7 @@ import useFilterElements from './use-filter-elements';
 import { getFields } from './fields';
 import { getActions } from './actions';
 import { getInitialView } from './initial-filters';
+import NewslettersQuickEditPanel from './quick-edit-panel';
 
 // Spread the URL-seeded patch last so anything forwarded from the
 // legacy CPT URL (status filter, search term, sort) overrides the
@@ -33,7 +34,7 @@ const DEFAULT_VIEW = {
 	search: '',
 	filters: [],
 	titleField: 'title',
-	fields: [ 'status', 'send_date', 'send_list', 'author', 'categories', 'tags', 'public_page', 'date' ],
+	fields: [ 'status', 'date', 'send_date', 'send_list', 'author', 'public_page' ],
 	...getInitialView(),
 };
 
@@ -41,13 +42,14 @@ const DEFAULT_LAYOUTS = { table: {} };
 
 export default function NewslettersListScreen() {
 	const [ view, setView ] = useState( DEFAULT_VIEW );
+	const [ quickEditItem, setQuickEditItem ] = useState( null );
 	const { data, paginationInfo, isLoading, hasResolved, hasLoadedOnce, trashCount, refresh } = useNewslettersData( view );
 	const filterElements = useFilterElements();
 
 	const addNewHref = `${ getAdminUrl() }post-new.php?post_type=${ getCptSlug() }`;
 
 	const fields = useMemo( () => getFields( filterElements ), [ filterElements ] );
-	const actions = useMemo( () => getActions( { refresh } ), [ refresh ] );
+	const actions = useMemo( () => getActions( { refresh, openQuickEdit: setQuickEditItem } ), [ refresh ] );
 
 	const isStrictEmpty =
 		hasLoadedOnce &&
@@ -94,18 +96,30 @@ export default function NewslettersListScreen() {
 	}
 
 	return (
-		<DataViews
-			className="newspack-newsletters-list"
-			data={ data }
-			fields={ fields }
-			view={ view }
-			onChangeView={ setView }
-			actions={ actions }
-			paginationInfo={ paginationInfo }
-			defaultLayouts={ DEFAULT_LAYOUTS }
-			isLoading={ isLoading }
-			getItemId={ item => String( item.id ) }
-			search
-		/>
+		<>
+			<DataViews
+				className="newspack-newsletters-list"
+				data={ data }
+				fields={ fields }
+				view={ view }
+				onChangeView={ setView }
+				actions={ actions }
+				paginationInfo={ paginationInfo }
+				defaultLayouts={ DEFAULT_LAYOUTS }
+				isLoading={ isLoading }
+				getItemId={ item => String( item.id ) }
+				search
+			/>
+			{ quickEditItem && (
+				<NewslettersQuickEditPanel
+					item={ quickEditItem }
+					onClose={ () => setQuickEditItem( null ) }
+					onSaved={ () => {
+						refresh();
+						setQuickEditItem( null );
+					} }
+				/>
+			) }
+		</>
 	);
 }

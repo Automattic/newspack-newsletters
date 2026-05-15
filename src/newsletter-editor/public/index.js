@@ -13,12 +13,12 @@ import {
 import { compose } from '@wordpress/compose';
 import { withDispatch, withSelect } from '@wordpress/data';
 import { useMemo, useState } from '@wordpress/element';
-import { atSymbol, closeSmall, globe } from '@wordpress/icons';
+import { closeSmall, envelope, globe } from '@wordpress/icons';
 
 const PublicSettingsComponent = ( { meta, updateIsPublic } ) => {
 	const isPublic = !! meta.is_public;
 	const currentLabel = isPublic ? __( 'Email and web', 'newspack-newsletters' ) : __( 'Email only', 'newspack-newsletters' );
-	const currentIcon = isPublic ? globe : atSymbol;
+	const currentIcon = isPublic ? globe : envelope;
 
 	const [ popoverAnchor, setPopoverAnchor ] = useState( null );
 	const popoverProps = useMemo(

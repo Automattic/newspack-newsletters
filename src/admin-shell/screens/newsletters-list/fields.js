@@ -10,10 +10,11 @@
 
 import { Icon } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
-import { commentAuthorAvatar, drafts, published, scheduled, trash } from '@wordpress/icons';
+import { commentAuthorAvatar, drafts, envelope, globe, published, scheduled, trash } from '@wordpress/icons';
 import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
+import { termsForTaxonomy } from '../../utils/terms';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
 
 const STATUS_KIND_ICONS = {
@@ -42,7 +43,7 @@ const editUrl = item => `${ getAdminUrl() }post.php?post=${ item.id }&action=edi
 const getTitle = item => item?.title?.raw ?? item?.title?.rendered ?? '';
 
 const renderTitle = ( { item } ) => {
-	const title = getTitle( item ) || __( '(no title)', 'newspack-newsletters' );
+	const title = getTitle( item ) || __( '(no subject)', 'newspack-newsletters' );
 	return (
 		<a className="newspack-newsletters-list__title" href={ editUrl( item ) }>
 			<strong>{ title }</strong>
@@ -115,17 +116,6 @@ const renderAuthor = ( { item } ) => {
 	);
 };
 
-// Look up embedded terms by `taxonomy` — positional indexing is unsafe across post types.
-const termsForTaxonomy = ( item, taxonomy ) => {
-	const groups = item?._embedded?.[ 'wp:term' ] || [];
-	for ( const group of groups ) {
-		if ( Array.isArray( group ) && group.length > 0 && group[ 0 ]?.taxonomy === taxonomy ) {
-			return group;
-		}
-	}
-	return [];
-};
-
 const renderTerms =
 	taxonomy =>
 	( { item } ) =>
@@ -136,7 +126,14 @@ const renderTerms =
 
 const renderPublicPage = ( { item } ) => {
 	const isPublic = !! item?.meta?.is_public;
-	return isPublic ? __( 'Yes', 'newspack-newsletters' ) : __( 'No', 'newspack-newsletters' );
+	const icon = isPublic ? globe : envelope;
+	const label = isPublic ? __( 'Email and web', 'newspack-newsletters' ) : __( 'Email only', 'newspack-newsletters' );
+	return (
+		<span className="newspack-newsletters-list__visibility">
+			<Icon className="newspack-newsletters-list__visibility-icon" icon={ icon } size={ 24 } />
+			<span>{ label }</span>
+		</span>
+	);
 };
 
 const renderDate = ( { item } ) => {
@@ -160,7 +157,7 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 	return [
 		{
 			id: 'title',
-			label: __( 'Title', 'newspack-newsletters' ),
+			label: __( 'Subject', 'newspack-newsletters' ),
 			enableGlobalSearch: true,
 			getValue: ( { item } ) => getTitle( item ),
 			render: renderTitle,
@@ -244,10 +241,10 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 		},
 		{
 			id: 'public_page',
-			label: __( 'Public page', 'newspack-newsletters' ),
+			label: __( 'Visibility', 'newspack-newsletters' ),
 			elements: [
-				{ value: '1', label: __( 'Yes', 'newspack-newsletters' ) },
-				{ value: '0', label: __( 'No', 'newspack-newsletters' ) },
+				{ value: '1', label: __( 'Email and web', 'newspack-newsletters' ) },
+				{ value: '0', label: __( 'Email only', 'newspack-newsletters' ) },
 			],
 			filterBy: { operators: [ 'is' ] },
 			getValue: ( { item } ) => ( item?.meta?.is_public ? '1' : '0' ),

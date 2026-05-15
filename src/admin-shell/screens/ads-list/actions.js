@@ -12,8 +12,10 @@ import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { edit, trash } from '@wordpress/icons';
 
 import { getAdminUrl } from '../../admin-globals';
+import RenameForm from '../../components/rename-form';
 import { notifyError, notifySuccess } from '../../notices';
 import { isTrashed } from './status-label';
 
@@ -66,11 +68,10 @@ function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, quest
 	);
 }
 
-export function getActions( { refresh } ) {
+export function getActions( { refresh, openQuickEdit } ) {
 	const editAction = {
 		id: 'edit',
 		label: __( 'Edit', 'newspack-newsletters' ),
-		isPrimary: true,
 		callback: items => {
 			const item = items[ 0 ];
 			if ( ! item ) {
@@ -80,9 +81,45 @@ export function getActions( { refresh } ) {
 		},
 	};
 
+	const quickEditAction = {
+		id: 'quick-edit',
+		label: __( 'Quick Edit', 'newspack-newsletters' ),
+		isPrimary: true,
+		icon: edit,
+		isEligible: item => ! isTrashed( item ),
+		callback: items => {
+			const item = items[ 0 ];
+			if ( ! item || typeof openQuickEdit !== 'function' ) {
+				return;
+			}
+			openQuickEdit( item );
+		},
+	};
+
+	const renameAction = {
+		id: 'rename',
+		label: __( 'Rename', 'newspack-newsletters' ),
+		modalHeader: __( 'Rename', 'newspack-newsletters' ),
+		modalSize: 'medium',
+		isEligible: item => ! isTrashed( item ),
+		RenderModal: ( { items, closeModal } ) => (
+			<RenameForm
+				item={ items[ 0 ] }
+				postPath={ POSTS_PATH }
+				fieldLabel={ __( 'Title', 'newspack-newsletters' ) }
+				savedMessage={ __( 'Ad renamed.', 'newspack-newsletters' ) }
+				closeModal={ closeModal }
+				onSaved={ refresh }
+			/>
+		),
+	};
+
 	const trashAction = {
 		id: 'trash',
-		label: __( 'Move to trash', 'newspack-newsletters' ),
+		label: __( 'Trash', 'newspack-newsletters' ),
+		isPrimary: true,
+		icon: trash,
+		modalHeader: __( 'Move to trash', 'newspack-newsletters' ),
 		isDestructive: true,
 		supportsBulk: true,
 		isEligible: item => ! isTrashed( item ),
@@ -211,5 +248,5 @@ export function getActions( { refresh } ) {
 		),
 	};
 
-	return [ editAction, trashAction, restoreAction, deleteAction ];
+	return [ quickEditAction, trashAction, editAction, renameAction, restoreAction, deleteAction ];
 }
