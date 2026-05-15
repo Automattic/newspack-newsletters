@@ -14,7 +14,7 @@ import { mergeTags } from 'newspack-icons';
 import { TRIGGER, getLabel, getLegacyTrigger, useMergeTagItems } from './utils';
 
 const FORMAT_NAME = 'newspack-newsletters/merge-tag';
-// className disambiguates from core/underline (which already claims bare `<span>`) even though the format is never applied.
+// `registerFormatType` rejects a `tagName: 'span'` + `className: null` registration because `core/underline` already claims bare `<span>`. The class never lands in markup (the format is never applied) — it exists purely to win that validation check.
 const FORMAT_SETTINGS = {
 	tagName: 'span',
 	className: 'newspack-newsletters-merge-tag-noop',
@@ -54,7 +54,10 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 			if ( event.key !== 'ArrowDown' && event.key !== 'ArrowUp' ) {
 				return;
 			}
-			const focusables = Array.from( container.querySelectorAll( 'input, button' ) );
+			// Scope to the search input + option buttons, skipping the SearchControl's internal clear-button.
+			const focusables = Array.from(
+				container.querySelectorAll( '.components-search-control input, .newspack-newsletters-merge-tags-picker__option' )
+			);
 			if ( focusables.length < 2 ) {
 				return;
 			}
