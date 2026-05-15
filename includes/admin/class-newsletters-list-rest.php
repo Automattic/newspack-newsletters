@@ -269,7 +269,6 @@ class Newsletters_List_REST {
 		);
 	}
 
-
 	/**
 	 * SQL fragment scoping a `wp_posts p` join to rows the current user
 	 * can edit — empty string for users with `edit_others_posts` (full
