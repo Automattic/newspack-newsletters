@@ -86,6 +86,7 @@ Cross-cutting traps an agent would lose hours rediscovering from code alone. Per
 - **DataViews CSS imports via SCSS `@import "@wordpress/dataviews/build-style/style.css"`, not a JS import.** The package declares `sideEffects: false`, so a JS import is silently tree-shaken; sass-loader resolves through webpack and inlines the CSS, bypassing the flag. ([NEWS-2088 / #2104](https://github.com/Automattic/newspack-newsletters/pull/2104))
 - **`newspack-components`' wizard barrel import re-registers `newspack/wizards` on every load.** Worked around with a `NormalModuleReplacementPlugin` stub matching an internal `dist/esm/wizard/index.js` path — fragile to any major `dist/` reorganisation. ([NEWS-2200 / #2122](https://github.com/Automattic/newspack-newsletters/pull/2122))
 - **`@wordpress/dataviews/wp`, not `@wordpress/dataviews`.** `/wp` is pre-bundled for WordPress admin (themed dropdowns, action menus via `@wordpress/components`, unlock-helper for experimental APIs).
+- **Side-mounted Quick Edit = `<Modal>` + overlay flex.** Mirror Core's `wp-admin/site-editor.php?p=/page` Quick Edit by setting `overlayClassName` to `justify-content: flex-end; align-items: stretch` and pinning the frame full-height to the right. Critically, both `.components-modal__content` *and* its hidden `.components-modal__children-container` child must be `display: flex; flex-direction: column` — without the second, `flex: 1` on the form fails and the sticky footer floats inline. Pair with `FormTokenField.__experimentalValidateInput` so free-text tokens don't silently drop in the labels-to-IDs save lookup. ([NEWS-1932](https://linear.app/a8c/issue/NEWS-1932), [NEWS-1933](https://linear.app/a8c/issue/NEWS-1933))
 
 ## Process rules
 
@@ -97,8 +98,6 @@ Cross-cutting traps an agent would lose hours rediscovering from code alone. Per
 
 Capabilities the React surfaces don't yet match against WP's classic admin views, captured here so future iterations can decide whether to close them. Not blockers for the current epic.
 
-- **NEWS-1932 — Quick Edit / Bulk Edit parity (newsletters).** Classic CPT list lets users bulk-edit categories / tags / author / status; the React DataView only exposes Trash / Restore / Delete / Make public / Make non-public. Status changes stay off the table — `transition_post_status` to `publish` / `private` dispatches the ESP campaign.
-- **NEWS-1933 — Bulk Edit parity (ads).** Same posture as NEWS-1932. Author / status are intentionally out of scope.
 - **NEWS-1952 — Empty-state retrofit.** NEWS-1951 introduced the `EmptyState` chassis component; Newsletters and Ads list retrofits remain on NEWS-1952. Ad Placement is **not** a candidate (`show_ui` / `show_in_menu` false).
 - **NEWS-1928 — Send-list column shows raw IDs.** Friendly-name resolution needs a per-provider lookup; deferred pending a batched / cached approach.
 - **NEWS-1928 — Public-page filter has no inline counts** (classic WP shows "Trash (3)" segmented links).
