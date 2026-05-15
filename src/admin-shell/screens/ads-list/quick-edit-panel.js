@@ -39,17 +39,41 @@ const labelsToIds = ( options, tokens, idKey, labelKey ) => {
 	return tokens.map( token => byLabel.get( String( token ).toLowerCase() ) ).filter( id => typeof id === 'number' );
 };
 
+const sortedTokensEqual = ( a, b ) => {
+	if ( a.length !== b.length ) {
+		return false;
+	}
+	const sa = [ ...a ].map( String ).sort();
+	const sb = [ ...b ].map( String ).sort();
+	return sa.every( ( v, i ) => v === sb[ i ] );
+};
+
 export default function AdsQuickEditPanel( { item, advertisers, placements, categories, onClose, onSaved } ) {
-	const [ advertiserTokens, setAdvertiserTokens ] = useState( () => initialTokensForTaxonomy( item, 'newspack_nl_advertiser' ) );
-	const [ placementTokens, setPlacementTokens ] = useState( () => initialTokensForTaxonomy( item, 'newspack_nl_ad_placement' ) );
-	const [ categoryTokens, setCategoryTokens ] = useState( () => initialTokensForTaxonomy( item, 'category' ) );
-	const [ startDate, setStartDate ] = useState( item?.meta?.start_date || '' );
-	const [ expiryDate, setExpiryDate ] = useState( item?.meta?.expiry_date || '' );
-	const [ price, setPrice ] = useState( () => {
+	const initialAdvertiserTokens = useMemo( () => initialTokensForTaxonomy( item, 'newspack_nl_advertiser' ), [ item ] );
+	const initialPlacementTokens = useMemo( () => initialTokensForTaxonomy( item, 'newspack_nl_ad_placement' ), [ item ] );
+	const initialCategoryTokens = useMemo( () => initialTokensForTaxonomy( item, 'category' ), [ item ] );
+	const initialStartDate = item?.meta?.start_date || '';
+	const initialExpiryDate = item?.meta?.expiry_date || '';
+	const initialPrice = ( () => {
 		const value = item?.meta?.price;
 		return value === undefined || value === null ? '' : String( value );
-	} );
+	} )();
+
+	const [ advertiserTokens, setAdvertiserTokens ] = useState( initialAdvertiserTokens );
+	const [ placementTokens, setPlacementTokens ] = useState( initialPlacementTokens );
+	const [ categoryTokens, setCategoryTokens ] = useState( initialCategoryTokens );
+	const [ startDate, setStartDate ] = useState( initialStartDate );
+	const [ expiryDate, setExpiryDate ] = useState( initialExpiryDate );
+	const [ price, setPrice ] = useState( initialPrice );
 	const [ isBusy, setIsBusy ] = useState( false );
+
+	const isDirty =
+		startDate !== initialStartDate ||
+		expiryDate !== initialExpiryDate ||
+		price !== initialPrice ||
+		! sortedTokensEqual( advertiserTokens, initialAdvertiserTokens ) ||
+		! sortedTokensEqual( placementTokens, initialPlacementTokens ) ||
+		! sortedTokensEqual( categoryTokens, initialCategoryTokens );
 
 	const advertiserSuggestions = useMemo( () => advertisers.map( t => String( t.name ) ), [ advertisers ] );
 	const placementSuggestions = useMemo( () => placements.map( t => String( t.name ) ), [ placements ] );
@@ -102,6 +126,7 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, cate
 			title={ __( 'Quick edit', 'newspack-newsletters' ) }
 			icon={ emailAd }
 			subjectTitle={ subjectTitle }
+			isDirty={ isDirty }
 			onClose={ onClose }
 			onSave={ handleSave }
 			isBusy={ isBusy }

@@ -13,6 +13,7 @@ import {
 	Icon,
 	Modal,
 } from '@wordpress/components';
+import { useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { close } from '@wordpress/icons';
 
@@ -20,6 +21,7 @@ export default function QuickEditPanel( {
 	title,
 	icon,
 	subjectTitle,
+	isDirty = false,
 	onClose,
 	onSave,
 	isBusy = false,
@@ -28,6 +30,24 @@ export default function QuickEditPanel( {
 	className,
 	children,
 } ) {
+	// Route X / Cancel through Modal's exit cycle by dispatching a
+	// synthetic Escape on the overlay. Modal's `handleEscapeKeyDown`
+	// runs `closeModal()` first, which adds `.is-animating-out` and
+	// waits for the slide-out animation before invoking `onRequestClose`.
+	// Calling `onClose` directly would unmount before the animation
+	// has a chance to play.
+	const requestClose = useCallback( () => {
+		if ( isBusy ) {
+			return;
+		}
+		const overlay = document.querySelector( '.newspack-newsletters-quick-edit-modal__overlay' );
+		if ( overlay ) {
+			overlay.dispatchEvent( new KeyboardEvent( 'keydown', { key: 'Escape', code: 'Escape', bubbles: true } ) );
+		} else {
+			onClose();
+		}
+	}, [ isBusy, onClose ] );
+
 	const handleSubmit = event => {
 		event.preventDefault();
 		if ( isBusy || ! canSave ) {
@@ -45,7 +65,9 @@ export default function QuickEditPanel( {
 			__experimentalHideHeader
 			onRequestClose={ isBusy ? () => {} : onClose }
 			shouldCloseOnEsc={ ! isBusy }
-			shouldCloseOnClickOutside={ ! isBusy }
+			// Block click-outside dismissal while the form is dirty so
+			// unsaved edits aren't silently dropped by a stray click.
+			shouldCloseOnClickOutside={ ! isBusy && ! isDirty }
 			className={ frameClassName }
 			overlayClassName="newspack-newsletters-quick-edit-modal__overlay"
 		>
@@ -59,7 +81,7 @@ export default function QuickEditPanel( {
 					icon={ close }
 					size="small"
 					label={ __( 'Close', 'newspack-newsletters' ) }
-					onClick={ onClose }
+					onClick={ requestClose }
 					disabled={ isBusy }
 				/>
 			</HStack>
@@ -68,7 +90,7 @@ export default function QuickEditPanel( {
 					<VStack spacing={ 4 }>{ children }</VStack>
 				</div>
 				<HStack className="newspack-newsletters-quick-edit-modal__footer" justify="flex-end" spacing={ 2 }>
-					<Button variant="secondary" onClick={ onClose } disabled={ isBusy }>
+					<Button variant="secondary" onClick={ requestClose } disabled={ isBusy }>
 						{ __( 'Cancel', 'newspack-newsletters' ) }
 					</Button>
 					<Button variant="primary" type="submit" isBusy={ isBusy } disabled={ isBusy || ! canSave }>

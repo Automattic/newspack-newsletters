@@ -32,13 +32,33 @@ const initialTokensForTaxonomy = ( item, taxonomy ) =>
 		.map( term => term?.name )
 		.filter( Boolean );
 
+const sortedTokensEqual = ( a, b ) => {
+	if ( a.length !== b.length ) {
+		return false;
+	}
+	const sa = [ ...a ].map( String ).sort();
+	const sb = [ ...b ].map( String ).sort();
+	return sa.every( ( v, i ) => v === sb[ i ] );
+};
+
 export default function NewslettersQuickEditPanel( { item, authors, categories, tags, onClose, onSaved } ) {
 	const initialAuthor = item?._embedded?.author?.[ 0 ]?.id ?? item?.author ?? '';
-	const [ authorId, setAuthorId ] = useState( initialAuthor ? String( initialAuthor ) : '' );
-	const [ categoryTokens, setCategoryTokens ] = useState( () => initialTokensForTaxonomy( item, 'category' ) );
-	const [ tagTokens, setTagTokens ] = useState( () => initialTokensForTaxonomy( item, 'post_tag' ) );
-	const [ visibility, setVisibility ] = useState( item?.meta?.is_public ? 'public' : 'private' );
+	const initialAuthorId = initialAuthor ? String( initialAuthor ) : '';
+	const initialCategoryTokens = useMemo( () => initialTokensForTaxonomy( item, 'category' ), [ item ] );
+	const initialTagTokens = useMemo( () => initialTokensForTaxonomy( item, 'post_tag' ), [ item ] );
+	const initialVisibility = item?.meta?.is_public ? 'public' : 'private';
+
+	const [ authorId, setAuthorId ] = useState( initialAuthorId );
+	const [ categoryTokens, setCategoryTokens ] = useState( initialCategoryTokens );
+	const [ tagTokens, setTagTokens ] = useState( initialTagTokens );
+	const [ visibility, setVisibility ] = useState( initialVisibility );
 	const [ isBusy, setIsBusy ] = useState( false );
+
+	const isDirty =
+		authorId !== initialAuthorId ||
+		visibility !== initialVisibility ||
+		! sortedTokensEqual( categoryTokens, initialCategoryTokens ) ||
+		! sortedTokensEqual( tagTokens, initialTagTokens );
 
 	const authorOptions = useMemo(
 		() =>
@@ -92,6 +112,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 			title={ __( 'Quick edit', 'newspack-newsletters' ) }
 			icon={ envelope }
 			subjectTitle={ subjectTitle }
+			isDirty={ isDirty }
 			onClose={ onClose }
 			onSave={ handleSave }
 			isBusy={ isBusy }
