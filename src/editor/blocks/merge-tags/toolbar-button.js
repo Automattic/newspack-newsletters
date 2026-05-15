@@ -33,6 +33,11 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
 	const items = useMergeTagItems( search );
 	const containerRef = useRef();
+	const dialogLabel = sprintf(
+		/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
+		__( 'Insert %s', 'newspack-newsletters' ),
+		getLabel()
+	);
 	const searchLabel = sprintf(
 		/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
 		__( 'Search %s', 'newspack-newsletters' ),
@@ -76,7 +81,7 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 			onClose={ onClose }
 			onFocusOutside={ onClose }
 		>
-			<div ref={ containerRef } className="newspack-newsletters-merge-tags-picker">
+			<div ref={ containerRef } className="newspack-newsletters-merge-tags-picker" role="dialog" aria-label={ dialogLabel }>
 				<SearchControl __nextHasNoMarginBottom value={ search } onChange={ setSearch } label={ searchLabel } placeholder={ searchLabel } />
 				{ items.length === 0 ? (
 					<p className="newspack-newsletters-merge-tags-picker__empty">{ __( 'No matches.', 'newspack-newsletters' ) }</p>
@@ -100,7 +105,7 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 	const [ isOpen, setOpen ] = useState( false );
 	const [ anchorMode, setAnchorMode ] = useState( 'caret' );
 	const [ buttonRef, setButtonRef ] = useState();
-	// Snapshot the value so the caret survives the popover stealing focus.
+	// Snapshot the value at open time so the caret survives the popover stealing focus. Intermediate edits while open aren't expected — `onFocusOutside` closes the popover the moment focus returns to the editor.
 	const valueRef = useRef( value );
 	const prevTextRef = useRef( value.text );
 
