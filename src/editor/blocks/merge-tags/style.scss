@@ -39,8 +39,7 @@
 .newspack-newsletters-merge-tags-picker__popover .components-popover__content {
 	width: 320px;
 	max-width: calc(100vw - #{wp-vars.$grid-unit-40});
-	border-color: currentcolor;
-	box-shadow: none;
+	box-shadow: 0 0 0 1px currentcolor;
 }
 
 .newspack-newsletters-merge-tags-picker {
