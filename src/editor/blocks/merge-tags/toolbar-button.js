@@ -135,6 +135,8 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 					label={ label }
 					onMouseDown={ onToolbarMouseDown }
 					onClick={ toggleFromToolbar }
+					aria-expanded={ isOpen }
+					aria-haspopup="dialog"
 				/>
 			</BlockControls>
 			{ isOpen && anchorMode === 'toolbar' && <MergeTagPicker anchor={ buttonRef } onSelect={ handleSelect } onClose={ closePicker } /> }
