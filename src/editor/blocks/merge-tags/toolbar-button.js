@@ -96,10 +96,21 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 		}
 	}, [ value, onChange ] );
 
-	const openFromToolbar = () => {
+	const toggleFromToolbar = () => {
+		if ( isOpen ) {
+			setOpen( false );
+			return;
+		}
 		valueRef.current = value;
 		setAnchorMode( 'toolbar' );
 		setOpen( true );
+	};
+
+	// Keep popover focus when clicking the open button so onFocusOutside doesn't pre-close it before the toggle handler fires.
+	const onToolbarMouseDown = event => {
+		if ( isOpen ) {
+			event.preventDefault();
+		}
 	};
 
 	const handleSelect = tag => {
@@ -118,7 +129,13 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 	return (
 		<>
 			<BlockControls group="inline">
-				<ToolbarButton ref={ setButtonRef } icon={ mergeTags } label={ label } onClick={ openFromToolbar } isActive={ isOpen } />
+				<ToolbarButton
+					ref={ setButtonRef }
+					icon={ mergeTags }
+					label={ label }
+					onMouseDown={ onToolbarMouseDown }
+					onClick={ toggleFromToolbar }
+				/>
 			</BlockControls>
 			{ isOpen && anchorMode === 'toolbar' && <MergeTagPicker anchor={ buttonRef } onSelect={ handleSelect } onClose={ closePicker } /> }
 			{ isOpen && anchorMode === 'caret' && (
