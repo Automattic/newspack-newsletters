@@ -69,7 +69,7 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 		};
 		container.addEventListener( 'keydown', handleKeyDown );
 		return () => container.removeEventListener( 'keydown', handleKeyDown );
-	}, [ items ] );
+	}, [] );
 
 	return (
 		<Popover
