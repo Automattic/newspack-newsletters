@@ -42,7 +42,7 @@ const editUrl = item => `${ getAdminUrl() }post.php?post=${ item.id }&action=edi
 const getTitle = item => item?.title?.raw ?? item?.title?.rendered ?? '';
 
 const renderTitle = ( { item } ) => {
-	const title = getTitle( item ) || __( '(no title)', 'newspack-newsletters' );
+	const title = getTitle( item ) || __( '(no subject)', 'newspack-newsletters' );
 	return (
 		<a className="newspack-newsletters-list__title" href={ editUrl( item ) }>
 			<strong>{ title }</strong>
@@ -160,7 +160,7 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 	return [
 		{
 			id: 'title',
-			label: __( 'Title', 'newspack-newsletters' ),
+			label: __( 'Subject', 'newspack-newsletters' ),
 			enableGlobalSearch: true,
 			getValue: ( { item } ) => getTitle( item ),
 			render: renderTitle,

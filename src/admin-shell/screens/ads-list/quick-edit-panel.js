@@ -12,6 +12,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { FormTokenField, TextControl } from '@wordpress/components';
 import { useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { emailAd } from 'newspack-icons';
 
 import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
@@ -94,9 +95,13 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, cate
 		}
 	};
 
+	const subjectTitle = item?.title?.raw ?? item?.title?.rendered ?? __( '(no title)', 'newspack-newsletters' );
+
 	return (
 		<QuickEditPanel
 			title={ __( 'Quick edit', 'newspack-newsletters' ) }
+			icon={ emailAd }
+			subjectTitle={ subjectTitle }
 			onClose={ onClose }
 			onSave={ handleSave }
 			isBusy={ isBusy }

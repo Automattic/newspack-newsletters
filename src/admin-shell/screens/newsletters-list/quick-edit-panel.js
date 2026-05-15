@@ -7,9 +7,10 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { ComboboxControl, FormTokenField } from '@wordpress/components';
+import { ComboboxControl, FormTokenField, RadioControl } from '@wordpress/components';
 import { useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { envelope } from '@wordpress/icons';
 
 import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
@@ -36,6 +37,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 	const [ authorId, setAuthorId ] = useState( initialAuthor ? String( initialAuthor ) : '' );
 	const [ categoryTokens, setCategoryTokens ] = useState( () => initialTokensForTaxonomy( item, 'category' ) );
 	const [ tagTokens, setTagTokens ] = useState( () => initialTokensForTaxonomy( item, 'post_tag' ) );
+	const [ visibility, setVisibility ] = useState( item?.meta?.is_public ? 'public' : 'private' );
 	const [ isBusy, setIsBusy ] = useState( false );
 
 	const authorOptions = useMemo(
@@ -68,6 +70,7 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 		const data = {
 			categories: labelsToIds( categories, categoryTokens ),
 			tags: labelsToIds( tags, tagTokens ),
+			meta: { is_public: visibility === 'public' },
 		};
 		if ( authorId ) {
 			data.author = parseInt( authorId, 10 );
@@ -82,9 +85,13 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 		}
 	};
 
+	const subjectTitle = item?.title?.raw ?? item?.title?.rendered ?? __( '(no title)', 'newspack-newsletters' );
+
 	return (
 		<QuickEditPanel
 			title={ __( 'Quick edit', 'newspack-newsletters' ) }
+			icon={ envelope }
+			subjectTitle={ subjectTitle }
 			onClose={ onClose }
 			onSave={ handleSave }
 			isBusy={ isBusy }
@@ -118,6 +125,23 @@ export default function NewslettersQuickEditPanel( { item, authors, categories, 
 				__experimentalShowHowTo={ false }
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
+			/>
+			<RadioControl
+				label={ __( 'Visibility', 'newspack-newsletters' ) }
+				selected={ visibility }
+				options={ [
+					{
+						label: __( 'Email and web', 'newspack-newsletters' ),
+						value: 'public',
+						description: __( 'Sent by email and published as an article on your site.', 'newspack-newsletters' ),
+					},
+					{
+						label: __( 'Email only', 'newspack-newsletters' ),
+						value: 'private',
+						description: __( 'Sent by email only; not visible on your site.', 'newspack-newsletters' ),
+					},
+				] }
+				onChange={ setVisibility }
 			/>
 		</QuickEditPanel>
 	);

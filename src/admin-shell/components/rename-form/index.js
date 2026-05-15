@@ -21,7 +21,7 @@ import { notifyError, notifySuccess } from '../../notices';
 
 const titleOf = item => item?.title?.raw ?? item?.title?.rendered ?? '';
 
-export default function RenameForm( { item, postPath, savedMessage, closeModal, onSaved } ) {
+export default function RenameForm( { item, postPath, fieldLabel, savedMessage, closeModal, onSaved } ) {
 	const initialTitle = titleOf( item );
 	const [ name, setName ] = useState( initialTitle );
 	const [ isBusy, setIsBusy ] = useState( false );
@@ -54,7 +54,7 @@ export default function RenameForm( { item, postPath, savedMessage, closeModal, 
 		<form onSubmit={ handleSubmit }>
 			<VStack spacing={ 4 }>
 				<TextControl
-					label={ __( 'Name', 'newspack-newsletters' ) }
+					label={ fieldLabel || __( 'Name', 'newspack-newsletters' ) }
 					value={ name }
 					onChange={ setName }
 					__nextHasNoMarginBottom

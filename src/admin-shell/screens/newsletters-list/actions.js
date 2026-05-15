@@ -139,6 +139,7 @@ export function getActions( { refresh, openQuickEdit } ) {
 			<RenameForm
 				item={ items[ 0 ] }
 				postPath={ POSTS_PATH }
+				fieldLabel={ __( 'Subject', 'newspack-newsletters' ) }
 				savedMessage={ __( 'Newsletter renamed.', 'newspack-newsletters' ) }
 				closeModal={ closeModal }
 				onSaved={ refresh }

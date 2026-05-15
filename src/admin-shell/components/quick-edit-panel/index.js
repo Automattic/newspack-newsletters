@@ -7,13 +7,27 @@
 
 import {
 	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+	__experimentalTruncate as Truncate, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	Button,
+	Icon,
 	Modal,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { close } from '@wordpress/icons';
 
-export default function QuickEditPanel( { title, onClose, onSave, isBusy = false, canSave = true, saveLabel, className, children } ) {
+export default function QuickEditPanel( {
+	title,
+	icon,
+	subjectTitle,
+	onClose,
+	onSave,
+	isBusy = false,
+	canSave = true,
+	saveLabel,
+	className,
+	children,
+} ) {
 	const handleSubmit = event => {
 		event.preventDefault();
 		if ( isBusy || ! canSave ) {
@@ -27,6 +41,8 @@ export default function QuickEditPanel( { title, onClose, onSave, isBusy = false
 	return (
 		<Modal
 			title={ title }
+			contentLabel={ title }
+			__experimentalHideHeader
 			onRequestClose={ isBusy ? () => {} : onClose }
 			shouldCloseOnEsc={ ! isBusy }
 			// Suppress click-outside dismiss: the side-anchored layout makes
@@ -36,6 +52,20 @@ export default function QuickEditPanel( { title, onClose, onSave, isBusy = false
 			className={ frameClassName }
 			overlayClassName="newspack-newsletters-quick-edit-modal__overlay"
 		>
+			<HStack className="newspack-newsletters-quick-edit-modal__header" spacing={ 2 } alignment="center">
+				{ icon && <Icon className="newspack-newsletters-quick-edit-modal__icon" icon={ icon } size={ 24 } /> }
+				<h2 className="newspack-newsletters-quick-edit-modal__title">
+					<Truncate>{ subjectTitle || title }</Truncate>
+				</h2>
+				<Button
+					className="newspack-newsletters-quick-edit-modal__close"
+					icon={ close }
+					size="small"
+					label={ __( 'Close', 'newspack-newsletters' ) }
+					onClick={ onClose }
+					disabled={ isBusy }
+				/>
+			</HStack>
 			<form className="newspack-newsletters-quick-edit-modal__form" onSubmit={ handleSubmit }>
 				<div className="newspack-newsletters-quick-edit-modal__content">
 					<VStack spacing={ 4 }>{ children }</VStack>

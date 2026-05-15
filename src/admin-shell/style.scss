@@ -266,6 +266,29 @@ body.newspack-newsletters-admin-screen--bundled .newspack-newsletters-admin-moun
 	}
 }
 
+.newspack-newsletters-quick-edit-modal__header {
+	flex: 0 0 auto;
+	padding: wp-vars.$grid-unit-30 wp-vars.$grid-unit-30 0;
+}
+
+.newspack-newsletters-quick-edit-modal__icon {
+	fill: currentcolor;
+	flex-shrink: 0;
+}
+
+.newspack-newsletters-quick-edit-modal__title {
+	flex: 1 1 auto;
+	font-size: inherit;
+	font-weight: 500;
+	line-height: inherit;
+	margin: 0;
+	min-width: 0;
+}
+
+.newspack-newsletters-quick-edit-modal__close {
+	flex-shrink: 0;
+}
+
 .newspack-newsletters-quick-edit-modal__form {
 	display: flex;
 	flex: 1 1 auto;
