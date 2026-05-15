@@ -32,11 +32,39 @@ const CaretAnchoredPicker = ( { contentRef, value, onSelect, onClose } ) => {
 const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 	const [ search, setSearch ] = useState( '' );
 	const items = useMergeTagItems( search );
+	const containerRef = useRef();
 	const searchLabel = sprintf(
 		/* translators: %s: ESP-native singular noun (e.g. "merge tag" or "personalization tag"). */
 		__( 'Search %s', 'newspack-newsletters' ),
 		getLabel()
 	);
+
+	// Roving focus across the search input + option buttons via Arrow keys.
+	useEffect( () => {
+		const container = containerRef.current;
+		if ( ! container ) {
+			return;
+		}
+		const handleKeyDown = event => {
+			if ( event.key !== 'ArrowDown' && event.key !== 'ArrowUp' ) {
+				return;
+			}
+			const focusables = Array.from( container.querySelectorAll( 'input, button' ) );
+			if ( focusables.length < 2 ) {
+				return;
+			}
+			const current = focusables.indexOf( container.ownerDocument.activeElement );
+			if ( current === -1 ) {
+				return;
+			}
+			const direction = event.key === 'ArrowDown' ? 1 : -1;
+			const next = ( current + direction + focusables.length ) % focusables.length;
+			focusables[ next ].focus();
+			event.preventDefault();
+		};
+		container.addEventListener( 'keydown', handleKeyDown );
+		return () => container.removeEventListener( 'keydown', handleKeyDown );
+	}, [ items ] );
 
 	return (
 		<Popover
@@ -48,7 +76,7 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 			onClose={ onClose }
 			onFocusOutside={ onClose }
 		>
-			<div className="newspack-newsletters-merge-tags-picker">
+			<div ref={ containerRef } className="newspack-newsletters-merge-tags-picker">
 				<SearchControl __nextHasNoMarginBottom value={ search } onChange={ setSearch } label={ searchLabel } placeholder={ searchLabel } />
 				{ items.length === 0 ? (
 					<p className="newspack-newsletters-merge-tags-picker__empty">{ __( 'No matches.', 'newspack-newsletters' ) }</p>
@@ -74,22 +102,26 @@ const MergeTagEdit = ( { value, onChange, contentRef } ) => {
 	const [ buttonRef, setButtonRef ] = useState();
 	// Snapshot the value so the caret survives the popover stealing focus.
 	const valueRef = useRef( value );
-	const prevTextLengthRef = useRef( value.text.length );
+	const prevTextRef = useRef( value.text );
 
 	useEffect( () => {
 		const { text, start } = value;
-		// Only fire on single-character growth so paste operations don't hijack the picker.
-		const typedOne = text.length === prevTextLengthRef.current + 1;
-		prevTextLengthRef.current = text.length;
-		if ( ! typedOne ) {
+		const prevText = prevTextRef.current;
+		prevTextRef.current = text;
+		// Verify exactly one character was just inserted at caret-1 (rules out paste, multi-char edits, and pre-existing `{}` further along).
+		if ( text.length !== prevText.length + 1 || start < 2 ) {
+			return;
+		}
+		if ( text.slice( 0, start - 1 ) + text.slice( start ) !== prevText ) {
 			return;
 		}
 		const legacy = getLegacyTrigger();
 		const triggers = legacy ? [ TRIGGER, legacy ] : [ TRIGGER ];
-		const matched = triggers.find( t => start >= t.length && text.slice( start - t.length, start ) === t );
+		const matched = triggers.find( t => text.slice( start - t.length, start ) === t );
 		if ( matched ) {
 			const stripped = remove( value, start - matched.length, start );
 			valueRef.current = stripped;
+			prevTextRef.current = stripped.text;
 			onChange( stripped );
 			setAnchorMode( 'caret' );
 			setOpen( true );
