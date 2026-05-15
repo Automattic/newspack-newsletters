@@ -61,7 +61,7 @@ export default function QuickEditPanel( {
 	return (
 		<Modal
 			title={ title }
-			contentLabel={ title }
+			contentLabel={ subjectTitle ? `${ title }: ${ subjectTitle }` : title }
 			__experimentalHideHeader
 			onRequestClose={ isBusy ? () => {} : onClose }
 			shouldCloseOnEsc={ ! isBusy }

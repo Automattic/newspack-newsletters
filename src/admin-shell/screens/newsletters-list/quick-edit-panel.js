@@ -1,90 +1,62 @@
 /**
- * Quick Edit panel for the newsletters list. Lazy-loads full term and
- * author sets so newsletters can be assigned categories/tags/authors
- * that aren't already used elsewhere. Status is intentionally absent —
- * the service-provider base class fires an ESP send on
- * `transition_post_status`.
+ * Quick Edit panel for the newsletters list. Lazy-loads full term sets
+ * so newsletters can be assigned categories/tags that aren't already
+ * used elsewhere. Status is intentionally absent — the service-provider
+ * base class fires an ESP send on `transition_post_status`. Author is
+ * intentionally absent too — the full editor remains the place to
+ * reassign authorship.
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { ComboboxControl, FormTokenField, RadioControl } from '@wordpress/components';
+import { FormTokenField, RadioControl } from '@wordpress/components';
 import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { envelope } from '@wordpress/icons';
 
-import { canEditOthersNewsletters } from '../../admin-globals';
 import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
 import { fetchAllTerms, initialSelectionsForTaxonomy, resolveTokens, sortedIdsEqual } from '../../utils/terms';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
 
-// Skip the authors fetch when the user can't reassign authorship — the
-// REST endpoint would 403 anyway, and the picker is rendered disabled.
-function useQuickEditOptions( { fetchAuthors } ) {
-	const [ options, setOptions ] = useState( { authors: [], categories: [], tags: [] } );
+function useQuickEditOptions() {
+	const [ options, setOptions ] = useState( { categories: [], tags: [] } );
 
 	useEffect( () => {
 		let cancelled = false;
-		const authorsPromise = fetchAuthors
-			? apiFetch( { path: '/newspack-newsletters/v1/newsletters-list/quick-edit-authors' } ).catch( () => [] )
-			: Promise.resolve( [] );
-		Promise.all( [ authorsPromise, fetchAllTerms( '/wp/v2/categories' ), fetchAllTerms( '/wp/v2/tags' ) ] ).then(
-			( [ authors, categories, tags ] ) => {
-				if ( cancelled ) {
-					return;
-				}
-				setOptions( {
-					authors: Array.isArray( authors ) ? authors : [],
-					categories: Array.isArray( categories ) ? categories : [],
-					tags: Array.isArray( tags ) ? tags : [],
-				} );
+		Promise.all( [ fetchAllTerms( '/wp/v2/categories' ), fetchAllTerms( '/wp/v2/tags' ) ] ).then( ( [ categories, tags ] ) => {
+			if ( cancelled ) {
+				return;
 			}
-		);
+			setOptions( {
+				categories: Array.isArray( categories ) ? categories : [],
+				tags: Array.isArray( tags ) ? tags : [],
+			} );
+		} );
 		return () => {
 			cancelled = true;
 		};
-	}, [ fetchAuthors ] );
+	}, [] );
 
 	return options;
 }
 
 export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) {
-	const canReassignAuthor = canEditOthersNewsletters();
-	const { authors, categories, tags } = useQuickEditOptions( { fetchAuthors: canReassignAuthor } );
+	const { categories, tags } = useQuickEditOptions();
 
-	const initialAuthorEmbed = item?._embedded?.author?.[ 0 ];
-	const initialAuthor = initialAuthorEmbed?.id ?? item?.author ?? '';
-	const initialAuthorId = initialAuthor ? String( initialAuthor ) : '';
-	const initialAuthorName = initialAuthorEmbed?.name ?? '';
 	const initialCategorySelections = useMemo( () => initialSelectionsForTaxonomy( item, 'category' ), [ item ] );
 	const initialTagSelections = useMemo( () => initialSelectionsForTaxonomy( item, 'post_tag' ), [ item ] );
 	const initialVisibility = item?.meta?.is_public ? 'public' : 'private';
 
-	const [ authorId, setAuthorId ] = useState( initialAuthorId );
 	const [ categorySelections, setCategorySelections ] = useState( initialCategorySelections );
 	const [ tagSelections, setTagSelections ] = useState( initialTagSelections );
 	const [ visibility, setVisibility ] = useState( initialVisibility );
 	const [ isBusy, setIsBusy ] = useState( false );
 
 	const isDirty =
-		authorId !== initialAuthorId ||
 		visibility !== initialVisibility ||
 		! sortedIdsEqual( categorySelections, initialCategorySelections ) ||
 		! sortedIdsEqual( tagSelections, initialTagSelections );
-
-	// When the user can't reassign authorship, the authors fetch is
-	// skipped — synthesize a single-entry list from the embedded author
-	// so the picker still shows the current value.
-	const authorOptions = useMemo( () => {
-		if ( ! canReassignAuthor && initialAuthorId ) {
-			return [ { value: initialAuthorId, label: String( initialAuthorName || initialAuthorId ) } ];
-		}
-		return authors.map( ( { id, name } ) => ( {
-			value: String( id ),
-			label: String( name ),
-		} ) );
-	}, [ authors, canReassignAuthor, initialAuthorId, initialAuthorName ] );
 
 	const categoryNames = useMemo( () => categories.map( c => String( c.name ) ), [ categories ] );
 	const tagNames = useMemo( () => tags.map( t => String( t.name ) ), [ tags ] );
@@ -106,9 +78,6 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 			tags: tagSelections.map( s => s.id ),
 			meta: { is_public: visibility === 'public' },
 		};
-		if ( authorId ) {
-			data.author = parseInt( authorId, 10 );
-		}
 		try {
 			await apiFetch( { path: `${ POSTS_PATH }/${ item.id }`, method: 'POST', data } );
 			notifySuccess( __( 'Newsletter updated.', 'newspack-newsletters' ) );
@@ -132,15 +101,6 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 			isBusy={ isBusy }
 			saveLabel={ __( 'Save', 'newspack-newsletters' ) }
 		>
-			<ComboboxControl
-				label={ __( 'Author', 'newspack-newsletters' ) }
-				value={ authorId }
-				options={ authorOptions }
-				onChange={ next => setAuthorId( next || initialAuthorId ) }
-				disabled={ ! canReassignAuthor }
-				__nextHasNoMarginBottom
-				__next40pxDefaultSize
-			/>
 			<FormTokenField
 				label={ __( 'Categories', 'newspack-newsletters' ) }
 				value={ categoryTokens }

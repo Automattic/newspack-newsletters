@@ -234,15 +234,6 @@ class Newsletters_List_REST {
 				'permission_callback' => [ __CLASS__, 'rest_filter_options_permission_check' ],
 			]
 		);
-		register_rest_route(
-			'newspack-newsletters/v1',
-			'/newsletters-list/quick-edit-authors',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ __CLASS__, 'rest_get_quick_edit_authors' ],
-				'permission_callback' => [ __CLASS__, 'rest_quick_edit_authors_permission_check' ],
-			]
-		);
 	}
 
 	/**
@@ -278,55 +269,6 @@ class Newsletters_List_REST {
 		);
 	}
 
-	/**
-	 * Restrict the Quick Edit author picker to users who can reassign
-	 * authorship — i.e. those with the CPT's `edit_others_posts`. Stops
-	 * a user-enumeration leak: editors who can only edit their own
-	 * newsletters couldn't actually change the author anyway, but were
-	 * previously able to pull the full list of newsletter editors'
-	 * IDs + display names through this endpoint.
-	 *
-	 * @return bool
-	 */
-	public static function rest_quick_edit_authors_permission_check() {
-		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		if ( ! $cpt_object || empty( $cpt_object->cap->edit_others_posts ) ) {
-			return false;
-		}
-		return current_user_can( $cpt_object->cap->edit_others_posts );
-	}
-
-	/**
-	 * Full set of users eligible to author a newsletter, for the Quick
-	 * Edit author picker. Gated by the CPT's `edit_others_posts` so the
-	 * response is only available to users who can actually reassign
-	 * authorship (see permission callback above).
-	 *
-	 * @return \WP_REST_Response
-	 */
-	public static function rest_get_quick_edit_authors() {
-		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
-		if ( ! $cpt_object || empty( $cpt_object->cap->edit_posts ) ) {
-			return rest_ensure_response( [] );
-		}
-		$users = get_users(
-			[
-				'capability' => [ $cpt_object->cap->edit_posts ],
-				'fields'     => [ 'ID', 'display_name' ],
-				'orderby'    => 'display_name',
-				'order'      => 'ASC',
-				'number'     => -1,
-			]
-		);
-		$options = [];
-		foreach ( (array) $users as $user ) {
-			$options[] = [
-				'id'   => (int) $user->ID,
-				'name' => (string) $user->display_name,
-			];
-		}
-		return rest_ensure_response( $options );
-	}
 
 	/**
 	 * SQL fragment scoping a `wp_posts p` join to rows the current user
