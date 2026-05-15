@@ -109,11 +109,11 @@ class Test_Service_Provider_Merge_Tags extends WP_UnitTestCase {
 	}
 
 	/**
-	 * ActiveCampaign trigger prefix should be '*%'.
+	 * ActiveCampaign exposes no legacy trigger_prefix; the universal '{}' picker trigger is the canonical entry point.
 	 */
 	public function test_active_campaign_merge_tags_trigger_prefix() {
 		$result = Newspack_Newsletters_Active_Campaign::get_merge_tags();
-		$this->assertSame( '*%', $result['trigger_prefix'] );
+		$this->assertSame( '', $result['trigger_prefix'] );
 	}
 
 	/**
