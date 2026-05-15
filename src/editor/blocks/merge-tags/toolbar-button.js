@@ -33,7 +33,7 @@ const MergeTagPicker = ( { anchor, onSelect, onClose } ) => {
 			anchor={ anchor }
 			className="newspack-newsletters-merge-tags-picker__popover"
 			placement="bottom-start"
-			offset={ 12 }
+			offset={ 13 }
 			focusOnMount="firstElement"
 			onClose={ onClose }
 			onFocusOutside={ onClose }
