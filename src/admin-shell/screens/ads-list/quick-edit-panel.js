@@ -16,36 +16,9 @@ import { emailAd } from 'newspack-icons';
 
 import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
+import { fetchAllTerms, initialSelectionsForTaxonomy, resolveTokens, sortedIdsEqual } from '../../utils/terms';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_ads_cpt';
-const TERMS_PER_PAGE = 100;
-
-async function fetchAllTerms( basePath ) {
-	const all = [];
-	let page = 1;
-	let totalPages = 1;
-	while ( page <= totalPages ) {
-		try {
-			const response = await apiFetch( {
-				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=id,name&page=${ page }`,
-				parse: false,
-			} );
-			const data = await response.json();
-			if ( ! Array.isArray( data ) ) {
-				break;
-			}
-			all.push( ...data );
-			if ( page === 1 ) {
-				const headerPages = parseInt( response.headers?.get?.( 'X-WP-TotalPages' ) || '1', 10 );
-				totalPages = Number.isFinite( headerPages ) && headerPages > 0 ? headerPages : 1;
-			}
-		} catch ( error ) {
-			break;
-		}
-		page += 1;
-	}
-	return all;
-}
 
 function useQuickEditCategories() {
 	const [ categories, setCategories ] = useState( [] );
@@ -62,45 +35,6 @@ function useQuickEditCategories() {
 	}, [] );
 	return categories;
 }
-
-const termsForTaxonomy = ( item, taxonomy ) => {
-	const groups = item?._embedded?.[ 'wp:term' ] || [];
-	for ( const group of groups ) {
-		if ( Array.isArray( group ) && group.length > 0 && group[ 0 ]?.taxonomy === taxonomy ) {
-			return group;
-		}
-	}
-	return [];
-};
-
-const initialSelectionsForTaxonomy = ( item, taxonomy ) =>
-	termsForTaxonomy( item, taxonomy )
-		.map( term => ( { id: term?.id, name: term?.name } ) )
-		.filter( s => typeof s.id === 'number' && s.name );
-
-const sortedIdsEqual = ( a, b ) => {
-	if ( a.length !== b.length ) {
-		return false;
-	}
-	const sa = a.map( s => s.id ).sort();
-	const sb = b.map( s => s.id ).sort();
-	return sa.every( ( v, i ) => v === sb[ i ] );
-};
-
-// See newsletters quick-edit-panel.js for the rationale (name-keyed
-// lookup is ambiguous when taxonomies allow duplicate term names).
-const resolveTokens = ( newTokens, currentSelections, options ) =>
-	newTokens
-		.map( token => {
-			const name = typeof token === 'string' ? token : token.value;
-			const existing = currentSelections.find( s => s.name.toLowerCase() === String( name ).toLowerCase() );
-			if ( existing ) {
-				return existing;
-			}
-			const match = options.find( o => String( o.name ).toLowerCase() === String( name ).toLowerCase() );
-			return match ? { id: match.id, name: match.name } : null;
-		} )
-		.filter( Boolean );
 
 export default function AdsQuickEditPanel( { item, advertisers, placements, onClose, onSaved } ) {
 	const categories = useQuickEditCategories();
@@ -152,14 +86,13 @@ export default function AdsQuickEditPanel( { item, advertisers, placements, onCl
 
 	const handleSave = async () => {
 		setIsBusy( true );
-		// Omit `price` when blank so previously-unset ads stay unset.
+		// `null` clears the meta via the nullable REST schema (see `register_meta`
+		// for `price` in `includes/ads/class-ads.php`).
 		const meta = {
 			start_date: startDate,
 			expiry_date: expiryDate,
+			price: price === '' ? null : Number( price ),
 		};
-		if ( price !== '' ) {
-			meta.price = Number( price );
-		}
 		const data = {
 			newspack_nl_advertiser: advertiserSelections.map( s => s.id ),
 			ad_placement: placementSelections.map( s => s.id ),

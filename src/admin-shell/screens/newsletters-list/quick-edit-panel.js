@@ -14,78 +14,9 @@ import { envelope } from '@wordpress/icons';
 
 import QuickEditPanel from '../../components/quick-edit-panel';
 import { notifyError, notifySuccess } from '../../notices';
+import { fetchAllTerms, initialSelectionsForTaxonomy, resolveTokens, sortedIdsEqual } from '../../utils/terms';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
-const TERMS_PER_PAGE = 100;
-
-const termsForTaxonomy = ( item, taxonomy ) => {
-	const groups = item?._embedded?.[ 'wp:term' ] || [];
-	for ( const group of groups ) {
-		if ( Array.isArray( group ) && group.length > 0 && group[ 0 ]?.taxonomy === taxonomy ) {
-			return group;
-		}
-	}
-	return [];
-};
-
-const initialSelectionsForTaxonomy = ( item, taxonomy ) =>
-	termsForTaxonomy( item, taxonomy )
-		.map( term => ( { id: term?.id, name: term?.name } ) )
-		.filter( s => typeof s.id === 'number' && s.name );
-
-const sortedIdsEqual = ( a, b ) => {
-	if ( a.length !== b.length ) {
-		return false;
-	}
-	const sa = a.map( s => s.id ).sort();
-	const sb = b.map( s => s.id ).sort();
-	return sa.every( ( v, i ) => v === sb[ i ] );
-};
-
-// Resolve user-typed tokens to `{id, name}` pairs without going through
-// name-keyed maps (which collide on duplicate term names, possible for
-// hierarchical / custom taxonomies). Existing selections keep their ID;
-// new tokens are matched against `options` and silently dropped if no
-// match — `__experimentalValidateInput` prevents that path anyway.
-const resolveTokens = ( newTokens, currentSelections, options ) =>
-	newTokens
-		.map( token => {
-			const name = typeof token === 'string' ? token : token.value;
-			const existing = currentSelections.find( s => s.name.toLowerCase() === String( name ).toLowerCase() );
-			if ( existing ) {
-				return existing;
-			}
-			const match = options.find( o => String( o.name ).toLowerCase() === String( name ).toLowerCase() );
-			return match ? { id: match.id, name: match.name } : null;
-		} )
-		.filter( Boolean );
-
-async function fetchAllTerms( basePath ) {
-	const all = [];
-	let page = 1;
-	let totalPages = 1;
-	while ( page <= totalPages ) {
-		try {
-			const response = await apiFetch( {
-				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=id,name&page=${ page }`,
-				parse: false,
-			} );
-			const data = await response.json();
-			if ( ! Array.isArray( data ) ) {
-				break;
-			}
-			all.push( ...data );
-			if ( page === 1 ) {
-				const headerPages = parseInt( response.headers?.get?.( 'X-WP-TotalPages' ) || '1', 10 );
-				totalPages = Number.isFinite( headerPages ) && headerPages > 0 ? headerPages : 1;
-			}
-		} catch ( error ) {
-			break;
-		}
-		page += 1;
-	}
-	return all;
-}
 
 function useQuickEditOptions() {
 	const [ options, setOptions ] = useState( { authors: [], categories: [], tags: [] } );
@@ -194,8 +125,7 @@ export default function NewslettersQuickEditPanel( { item, onClose, onSaved } ) 
 				label={ __( 'Author', 'newspack-newsletters' ) }
 				value={ authorId }
 				options={ authorOptions }
-				onChange={ next => setAuthorId( next || '' ) }
-				allowReset
+				onChange={ next => setAuthorId( next || initialAuthorId ) }
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
 			/>

@@ -14,6 +14,7 @@ import { commentAuthorAvatar, drafts, envelope, globe, published, scheduled, tra
 import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
+import { termsForTaxonomy } from '../../utils/terms';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
 
 const STATUS_KIND_ICONS = {
@@ -113,17 +114,6 @@ const renderAuthor = ( { item } ) => {
 			<span>{ author.name || '' }</span>
 		</span>
 	);
-};
-
-// Look up embedded terms by `taxonomy` — positional indexing is unsafe across post types.
-const termsForTaxonomy = ( item, taxonomy ) => {
-	const groups = item?._embedded?.[ 'wp:term' ] || [];
-	for ( const group of groups ) {
-		if ( Array.isArray( group ) && group.length > 0 && group[ 0 ]?.taxonomy === taxonomy ) {
-			return group;
-		}
-	}
-	return [];
 };
 
 const renderTerms =
