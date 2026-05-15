@@ -580,7 +580,7 @@ Error message(s) received:
 	 * Shape:
 	 *   [
 	 *     'label'          => string  // ESP-native singular noun (e.g. "merge tag", "personalization tag").
-	 *     'trigger_prefix' => string  // Legacy ESP-native autocomplete trigger preserved for muscle memory (e.g. "*|" for Mailchimp). Leave empty to opt out; the universal "{}" picker trigger always works.
+	 *     'trigger_prefix' => string  // Legacy 2-character ESP-native trigger preserved for existing Mailchimp muscle memory (`*|`). Leave empty for any other provider; the universal `{}` picker trigger always works and is the only trigger new providers should rely on.
 	 *     'tags'           => array[] // Each: [ 'tag' => '<inserted string>', 'label' => '<description>', 'keywords' => string[] ].
 	 *   ]
 	 *
