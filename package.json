@@ -42,7 +42,7 @@
 	},
 	"dependencies": {
 		"classnames": "^2.5.1",
-		"mjml-browser": "^4.18.0",
+		"mjml-browser": "^5.2.1",
 		"newspack-components": "^4.3.0",
 		"qs": "^6.15.2"
 	},
