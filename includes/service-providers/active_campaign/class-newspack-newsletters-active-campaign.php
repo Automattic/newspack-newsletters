@@ -998,7 +998,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		}
 		/** Create disposable campaign for sending a test. */
 		$campaign_name = sprintf( 'Test for %s', $this->get_campaign_name( $post ) );
-		$campaign      = $this->create_campaign( get_post( $post_id ), $campaign_name );
+		$campaign      = $this->create_campaign( get_post( $post_id ), $campaign_name, true );
 		if ( is_wp_error( $campaign ) ) {
 			return $campaign;
 		}
@@ -1156,10 +1156,11 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 	 *
 	 * @param WP_Post $post          Post to create campaign for.
 	 * @param string  $campaign_name Optional custom title for this campaign.
+	 * @param bool    $is_test       Whether this campaign is a disposable test send. Test sends deliver via `action=test` with explicit recipient emails, so the campaign's segmentid is never used — segment validation is skipped to let publishers test newsletters that reference a deleted-but-still-saved segment.
 	 *
 	 * @return array|WP_Error Campaign data or error.
 	 */
-	private function create_campaign( $post, $campaign_name = '' ) {
+	private function create_campaign( $post, $campaign_name = '', $is_test = false ) {
 		$sync_result = $this->sync( $post );
 		if ( is_wp_error( $sync_result ) ) {
 			return $sync_result;
@@ -1184,9 +1185,20 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		// A configured-but-unresolvable segment must NOT silently fall through
 		// to "no segment" — AC interprets segmentid=0 as "send to the entire
 		// parent audience", and sent email cannot be unsent. Verify the segment
-		// resolves before submitting; only an explicitly empty send_sublist_id
-		// (no segment ever picked) is treated as an intentional whole-list send.
-		if ( ! empty( $send_sublist_id ) ) {
+		// resolves before submitting; only an explicitly unset send_sublist_id
+		// (null or '' — no segment ever picked) is treated as an intentional
+		// whole-list send. A literal "0" is treated as configured-but-invalid
+		// rather than as "no segment", since AC segment IDs are positive
+		// integers and zero is the sentinel for the whole-audience case.
+		$has_configured_segment = ! $is_test && null !== $send_sublist_id && '' !== $send_sublist_id;
+		if ( $has_configured_segment ) {
+			// Note: AC segments are global per account, not scoped to a parent
+			// list. `get_send_lists()` accepts `parent_id` but only echoes it
+			// back on the returned `Send_List` — it does NOT filter the AC
+			// `audiences` lookup. A segment that belongs to a different list
+			// will therefore still resolve here. Cross-list mismatches are an
+			// inherent AC limitation rather than something this guard can
+			// catch.
 			$segment_check = $this->get_send_lists(
 				[
 					'type'      => 'sublist',
@@ -1223,7 +1235,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 			'name'                                  => $campaign_name,
 			'fromname'                              => $from_name,
 			'fromemail'                             => $from_email,
-			'segmentid'                             => ! empty( $send_sublist_id ) ? $send_sublist_id : 0, // 0 = No segment.
+			'segmentid'                             => $has_configured_segment ? $send_sublist_id : 0, // 0 = No segment (intentional whole-list send, or a test send where the segment is irrelevant because delivery is via `action=test` with explicit recipients).
 			'p[' . $send_list_id . ']'              => $send_list_id,
 			'm[' . $sync_result['message_id'] . ']' => 100, // 100 = 100% of contacts will receive this.
 			'addressid'                             => $this->get_address_id(),

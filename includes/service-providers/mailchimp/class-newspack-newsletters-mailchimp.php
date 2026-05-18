@@ -1054,7 +1054,20 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'list_id' => $send_list_id,
 			];
 			$send_sublist_id = get_post_meta( $post->ID, 'send_sublist_id', true );
-			if ( ! empty( $send_sublist_id ) ) {
+			// Only an explicitly unset send_sublist_id (null or '' — no sublist
+			// ever picked) is treated as an intentional whole-list send. Any
+			// other value, including a literal "0", is treated as
+			// configured-and-must-resolve so a garbage value can't quietly fall
+			// through to the whole audience.
+			if ( null !== $send_sublist_id && '' !== $send_sublist_id ) {
+				// Note: Mailchimp groups and tags are looked up via
+				// Newspack_Newsletters_Mailchimp_Cached_Data, which refreshes
+				// asynchronously (~10-minute TTL). A group or tag that was
+				// deleted upstream within that window can still resolve from
+				// stale cache and pass this check. Saved segments are looked
+				// up live via `fetch_segment()` further down and don't have
+				// this gap. Closing the group/tag gap would mean a live
+				// lookup at send time — tracked as follow-up.
 				$sublist = $this->get_send_lists(
 					[
 						'ids'       => [ $send_sublist_id ],
@@ -1434,6 +1447,16 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				];
 			} elseif ( $segment_id ) {
 				$segment_data = $mc->get( "lists/$list_id/segments/$segment_id" );
+				// A configured-but-unresolvable saved segment must NOT silently
+				// fall through to an empty segment_opts payload — Mailchimp
+				// would PATCH the campaign to "send to the entire audience",
+				// and a subsequent send would mail the full list.
+				if ( empty( $segment_data ) || empty( $segment_data['type'] ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_segment_not_found',
+						__( 'The selected segment could not be found in Mailchimp. The audience was not updated to avoid sending to the entire list.', 'newspack-newsletters' )
+					);
+				}
 				if ( 'static' === $segment_data['type'] ) {
 					// Handle static segments (tags).
 					$segment_opts = [
@@ -1450,6 +1473,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				} elseif ( 'saved' === $segment_data['type'] ) {
 					// Handle saved segments.
 					$segment_opts = $segment_data['options'];
+				} else {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_segment_unknown_type',
+						sprintf(
+							// Translators: %s is the unrecognized segment type returned by Mailchimp.
+							__( 'Unrecognized Mailchimp segment type "%s". The audience was not updated to avoid sending to the entire list.', 'newspack-newsletters' ),
+							$segment_data['type']
+						)
+					);
 				}
 			}
 
