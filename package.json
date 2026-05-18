@@ -47,6 +47,6 @@
 		"qs": "^6.15.2"
 	},
 	"devDependencies": {
-		"newspack-scripts": "^5.9.7"
+		"newspack-scripts": "^5.9.8"
 	}
 }
