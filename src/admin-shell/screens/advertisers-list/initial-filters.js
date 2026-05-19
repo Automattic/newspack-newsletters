@@ -11,6 +11,8 @@
  * Pure module so it stays trivial to unit-test.
  */
 
+import { makeGetInitialView } from '../../utils/initial-view';
+
 // Map the WP REST terms controller `orderby` values that the React
 // DataView fields here also expose. `id` / `include` / `term_group`
 // are accepted by REST but the DataView has no field for them, so a
@@ -22,33 +24,9 @@ const ORDERBY_TO_SORT_FIELD = {
 	count: 'count',
 };
 
-/**
- * Read the current document URL and return a partial DataView `view`
- * patch (search / sort) seeded from forwarded legacy args. Anything
- * not present in the URL is omitted so callers can spread the result
- * over their `DEFAULT_VIEW` without clobbering keys.
- *
- * @param {string} [search] URL search string (defaults to `window.location.search`).
- * @return {Object} Partial view object.
- */
-export function getInitialView( search = typeof window === 'undefined' ? '' : window.location.search ) {
-	const params = new URLSearchParams( search );
-	const patch = {};
-
-	const term = params.get( 's' );
-	if ( term ) {
-		patch.search = term;
-	}
-
-	const orderby = params.get( 'orderby' );
-	const order = params.get( 'order' );
-	const sortField = orderby && ORDERBY_TO_SORT_FIELD[ orderby ];
-	if ( sortField ) {
-		patch.sort = {
-			field: sortField,
-			direction: 'desc' === ( order || '' ).toLowerCase() ? 'desc' : 'asc',
-		};
-	}
-
-	return patch;
-}
+// Alphabetical lists default to ascending; everywhere else the default
+// is descending.
+export const { getInitialView } = makeGetInitialView( {
+	orderbyMap: ORDERBY_TO_SORT_FIELD,
+	defaultSortDirection: 'asc',
+} );

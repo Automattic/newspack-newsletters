@@ -9,6 +9,8 @@
  * Pure module so it stays trivial to unit-test.
  */
 
+import { makeGetInitialView } from '../../utils/initial-view';
+
 const POST_STATUS_TO_FILTER_VALUE = {
 	trash: 'trash',
 	draft: 'draft,pending,auto-draft',
@@ -36,75 +38,8 @@ const URL_PARAM_TO_FILTER_FIELD = {
 	newspack_newsletters_send_list_id: 'send_list',
 };
 
-/**
- * Read the current document URL and return DataViews-compatible
- * filters seeded from `post_status`. Returns `[]` when no recognised
- * value is present.
- *
- * @param {string} [search] URL search string (defaults to `window.location.search`).
- * @return {Array<{ field: string, operator: string, value: Array<string> }>} DataViews-shaped initial filters.
- */
-export function getInitialFilters( search = typeof window === 'undefined' ? '' : window.location.search ) {
-	const params = new URLSearchParams( search );
-	const filters = [];
-
-	const postStatus = params.get( 'post_status' );
-	if ( postStatus ) {
-		const value = POST_STATUS_TO_FILTER_VALUE[ postStatus ];
-		if ( value ) {
-			filters.push( { field: 'status', operator: 'isAny', value: [ value ] } );
-		}
-	}
-
-	for ( const [ urlParam, fieldId ] of Object.entries( URL_PARAM_TO_FILTER_FIELD ) ) {
-		const raw = params.get( urlParam );
-		if ( ! raw ) {
-			continue;
-		}
-		const values = raw
-			.split( ',' )
-			.map( v => v.trim() )
-			.filter( Boolean );
-		if ( values.length > 0 ) {
-			filters.push( { field: fieldId, operator: 'isAny', value: values } );
-		}
-	}
-
-	return filters;
-}
-
-/**
- * Read the current document URL and return a partial DataView `view`
- * patch (filters / search / sort) seeded from forwarded legacy args.
- * Anything not present in the URL is omitted so callers can spread
- * the result over their `DEFAULT_VIEW` without clobbering keys.
- *
- * @param {string} [search] URL search string (defaults to `window.location.search`).
- * @return {Object} Partial view object.
- */
-export function getInitialView( search = typeof window === 'undefined' ? '' : window.location.search ) {
-	const params = new URLSearchParams( search );
-	const patch = {};
-
-	const filters = getInitialFilters( search );
-	if ( filters.length > 0 ) {
-		patch.filters = filters;
-	}
-
-	const term = params.get( 's' );
-	if ( term ) {
-		patch.search = term;
-	}
-
-	const orderby = params.get( 'orderby' );
-	const order = params.get( 'order' );
-	const sortField = orderby && ORDERBY_TO_SORT_FIELD[ orderby ];
-	if ( sortField ) {
-		patch.sort = {
-			field: sortField,
-			direction: 'asc' === ( order || '' ).toLowerCase() ? 'asc' : 'desc',
-		};
-	}
-
-	return patch;
-}
+export const { getInitialFilters, getInitialView } = makeGetInitialView( {
+	orderbyMap: ORDERBY_TO_SORT_FIELD,
+	postStatusMap: POST_STATUS_TO_FILTER_VALUE,
+	urlParamToFilterField: URL_PARAM_TO_FILTER_FIELD,
+} );

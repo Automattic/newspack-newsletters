@@ -9,39 +9,14 @@
  * URL-shareable filter / sort state is supported day-one.
  */
 
+import { makeGetInitialView } from '../../utils/initial-view';
+
 const ORDERBY_TO_SORT_FIELD = {
 	title: 'title',
 	modified: 'modified',
 	date: 'date',
 };
 
-/**
- * Read the document URL and return a partial DataView `view` patch
- * (search / sort) seeded from the query string. Anything not present
- * is omitted so the caller can spread the result over its
- * `DEFAULT_VIEW` without clobbering keys.
- *
- * @param {string} [search] URL search string (defaults to `window.location.search`).
- * @return {Object} Partial view object.
- */
-export function getInitialView( search = typeof window === 'undefined' ? '' : window.location.search ) {
-	const params = new URLSearchParams( search );
-	const patch = {};
-
-	const term = params.get( 's' );
-	if ( term ) {
-		patch.search = term;
-	}
-
-	const orderby = params.get( 'orderby' );
-	const order = params.get( 'order' );
-	const sortField = orderby && ORDERBY_TO_SORT_FIELD[ orderby ];
-	if ( sortField ) {
-		patch.sort = {
-			field: sortField,
-			direction: 'asc' === ( order || '' ).toLowerCase() ? 'asc' : 'desc',
-		};
-	}
-
-	return patch;
-}
+export const { getInitialView } = makeGetInitialView( {
+	orderbyMap: ORDERBY_TO_SORT_FIELD,
+} );
