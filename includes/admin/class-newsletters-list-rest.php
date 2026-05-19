@@ -176,13 +176,9 @@ class Newsletters_List_REST {
 
 	/**
 	 * `future` not selected: exclude rows the renderer wouldn't show as
-	 * Sent or Draft. Both `sending_scheduled` and `scheduling_error`
-	 * suppress sent state in `compute_sent_at`, so a published row with
-	 * either meta renders as something other than Sent and must drop
-	 * out of the Sent / Draft results.
-	 *
-	 * Trash is exempt — `get_status_for_post` short-circuits to `trash`
-	 * kind before either meta check.
+	 * Sent. Both `sending_scheduled` and `scheduling_error` suppress sent
+	 * state in `compute_sent_at`. Trash is exempt because
+	 * `get_status_for_post` short-circuits to `trash` before either check.
 	 *
 	 * @param array $args Query args being assembled.
 	 * @return array

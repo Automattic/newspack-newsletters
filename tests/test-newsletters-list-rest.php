@@ -476,8 +476,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 	/**
 	 * Sent filter excludes publish rows carrying `sending_scheduled` or
-	 * `scheduling_error` meta — both suppress sent state in
-	 * `compute_sent_at`, so neither renders as Sent.
+	 * `scheduling_error` meta — neither renders as Sent.
 	 */
 	public function test_sent_filter_excludes_inflight_scheduled_rows() {
 		$published    = $this->make_newsletter(
