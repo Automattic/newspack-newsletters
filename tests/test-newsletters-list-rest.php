@@ -454,15 +454,13 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		];
 
 		foreach ( $cases as $params ) {
-			$original = [ 'post_status' => 'something_specific' ];
-			$before   = $this->count_posts_where_callbacks();
+			$before = $this->count_posts_where_callbacks();
 
-			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
-				$original,
+			Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+				[],
 				$this->rest_request( $params )
 			);
 
-			$this->assertSame( $original, $args, 'Args should not be mutated for params: ' . wp_json_encode( $params ) );
 			$this->assertSame(
 				$before + 1,
 				$this->count_posts_where_callbacks(),
@@ -472,6 +470,29 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			// Drain the one-shot so it doesn't leak into the next iteration.
 			apply_filters( 'posts_where', '' );
 		}
+	}
+
+	/**
+	 * Draft selection widens `post_status` to include publish/private so
+	 * scheduling_error fallthrough rows are reachable. Other selections
+	 * don't need widening.
+	 */
+	public function test_align_status_filter_widens_post_status_when_draft_selected() {
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => [ 'draft', 'pending', 'auto-draft' ] ] )
+		);
+
+		$this->assertContains( 'publish', $args['post_status'] );
+		$this->assertContains( 'private', $args['post_status'] );
+		$this->assertContains( 'draft', $args['post_status'] );
+
+		// Sent-only doesn't need widening.
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[ 'post_status' => 'preserved' ],
+			$this->rest_request( [ 'status' => [ 'publish', 'private' ] ] )
+		);
+		$this->assertSame( 'preserved', $args['post_status'] );
 	}
 
 	/**
@@ -515,11 +536,11 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Draft filter excludes draft rows carrying `sending_scheduled` meta
-	 * (those render as Scheduled), but keeps `scheduling_error` rows —
-	 * they still fall through to Draft in `get_status_for_post`.
+	 * Draft filter mirrors the renderer's Draft kind: keeps draft-family
+	 * rows AND publish/private rows with `scheduling_error` (which fall
+	 * through to Draft), while excluding any row with `sending_scheduled`.
 	 */
-	public function test_draft_filter_excludes_inflight_scheduled_rows() {
+	public function test_draft_filter_matches_renderer_draft_kind() {
 		$plain_draft  = $this->make_newsletter( [ 'post_status' => 'draft' ] );
 		$pending_send = $this->make_newsletter(
 			[
@@ -533,19 +554,36 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
 			]
 		);
+		$errored_publish = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
+			]
+		);
+		// Should NOT match: plain publish renders as Sent, not Draft.
+		$plain_publish = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
 
 		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 			[],
 			$this->rest_request( [ 'status' => [ 'draft', 'pending', 'auto-draft' ] ] )
 		);
 
-		$query = $this->run_newsletter_query(
-			array_merge( $args, [ 'post_status' => [ 'draft', 'pending', 'auto-draft' ] ] )
-		);
+		// `align_status_filter_with_scheduled_meta` widens `post_status`
+		// to include publish/private when Draft is wanted, so let the
+		// returned args drive the query.
+		$query = $this->run_newsletter_query( $args );
 
 		$this->assertContains( $plain_draft, $query->posts, 'plain draft surfaces' );
 		$this->assertNotContains( $pending_send, $query->posts, 'in-flight scheduled draft is excluded' );
-		$this->assertContains( $errored_draft, $query->posts, 'draft with scheduling_error still surfaces — it renders as Draft' );
+		$this->assertContains( $errored_draft, $query->posts, 'draft with scheduling_error surfaces' );
+		$this->assertContains( $errored_publish, $query->posts, 'publish row with scheduling_error surfaces — renders as Draft' );
+		$this->assertNotContains( $plain_publish, $query->posts, 'plain publish stays out — it renders as Sent, not Draft' );
 	}
 
 	/**

@@ -175,36 +175,52 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * `future` not selected: exclude rows the renderer wouldn't show as
-	 * the user's chosen kind. `sending_scheduled` always promotes to
-	 * Scheduled. `scheduling_error` only suppresses Sent — rows fall
-	 * through to Draft, so it must stay included whenever the selection
-	 * asks for Draft. Trash is exempt because `get_status_for_post`
-	 * short-circuits to `trash` before any meta check.
+	 * `future` not selected: align with the renderer kind-by-kind. Maps
+	 * the user's raw status selection to the kinds `get_status_for_post`
+	 * would emit (sent / draft / trash), widens `post_status` when Draft
+	 * is wanted (publish/private rows with `scheduling_error` fall
+	 * through to Draft in the renderer and are otherwise unreachable),
+	 * and installs a `posts_where` whose OR-branches encode the exact
+	 * conditions for each chosen kind.
 	 *
 	 * @param array    $args              Query args being assembled.
 	 * @param string[] $selected_statuses User's status selection (already normalised).
 	 * @return array
 	 */
 	private static function exclude_scheduled_meta( $args, $selected_statuses ) {
+		$wants_sent  = ! empty( array_intersect( $selected_statuses, [ 'publish', 'private' ] ) );
 		$wants_draft = ! empty( array_intersect( $selected_statuses, [ 'draft', 'pending', 'auto-draft' ] ) );
+		$wants_trash = in_array( 'trash', $selected_statuses, true );
 
-		$callback = static function ( $where ) use ( &$callback, $wants_draft ) {
+		if ( $wants_draft ) {
+			$args['post_status'] = array_values(
+				array_unique( array_merge( $selected_statuses, [ 'publish', 'private' ] ) )
+			);
+		}
+
+		$callback = static function ( $where ) use ( &$callback, $wants_sent, $wants_draft, $wants_trash ) {
 			global $wpdb;
-			if ( $wants_draft ) {
-				$where .= $wpdb->prepare(
-					" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) )",
-					'trash',
-					'sending_scheduled'
-				);
-			} else {
-				$where .= $wpdb->prepare(
-					" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )",
-					'trash',
-					'sending_scheduled',
-					'scheduling_error'
-				);
+			$clauses      = [];
+			$prepare_args = [];
+
+			if ( $wants_trash ) {
+				$clauses[]      = "{$wpdb->posts}.post_status = %s";
+				$prepare_args[] = 'trash';
 			}
+			if ( $wants_sent ) {
+				$clauses[] = "( {$wpdb->posts}.post_status IN (%s, %s) AND NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )";
+				array_push( $prepare_args, 'publish', 'private', 'sending_scheduled', 'scheduling_error' );
+			}
+			if ( $wants_draft ) {
+				$clauses[] = "( NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) AND ( {$wpdb->posts}.post_status IN (%s, %s, %s) OR ( {$wpdb->posts}.post_status IN (%s, %s) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) ) ) )";
+				array_push( $prepare_args, 'sending_scheduled', 'draft', 'pending', 'auto-draft', 'publish', 'private', 'scheduling_error' );
+			}
+
+			if ( ! empty( $clauses ) ) {
+				$sql    = ' AND ( ' . implode( ' OR ', $clauses ) . ' )';
+				$where .= $wpdb->prepare( $sql, $prepare_args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is composed from a fixed set of `%s` placeholders.
+			}
+
 			remove_filter( 'posts_where', $callback, 10 );
 			return $where;
 		};
