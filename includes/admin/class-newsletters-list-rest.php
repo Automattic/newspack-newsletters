@@ -175,9 +175,14 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * `future` not selected: exclude rows that would render as Scheduled.
-	 * Trash is exempt because `get_status_for_post` short-circuits to
-	 * `trash` kind before the `sending_scheduled` check.
+	 * `future` not selected: exclude rows the renderer wouldn't show as
+	 * Sent or Draft. Both `sending_scheduled` and `scheduling_error`
+	 * suppress sent state in `compute_sent_at`, so a published row with
+	 * either meta renders as something other than Sent and must drop
+	 * out of the Sent / Draft results.
+	 *
+	 * Trash is exempt — `get_status_for_post` short-circuits to `trash`
+	 * kind before either meta check.
 	 *
 	 * @param array $args Query args being assembled.
 	 * @return array
@@ -186,9 +191,10 @@ class Newsletters_List_REST {
 		$callback = static function ( $where ) use ( &$callback ) {
 			global $wpdb;
 			$where .= $wpdb->prepare(
-				" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) )",
+				" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )",
 				'trash',
-				'sending_scheduled'
+				'sending_scheduled',
+				'scheduling_error'
 			);
 			remove_filter( 'posts_where', $callback, 10 );
 			return $where;

@@ -475,8 +475,9 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Sent filter excludes publish rows carrying `sending_scheduled` meta
-	 * — the column renders them as Scheduled.
+	 * Sent filter excludes publish rows carrying `sending_scheduled` or
+	 * `scheduling_error` meta — both suppress sent state in
+	 * `compute_sent_at`, so neither renders as Sent.
 	 */
 	public function test_sent_filter_excludes_inflight_scheduled_rows() {
 		$published    = $this->make_newsletter(
@@ -492,6 +493,13 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'meta_input'  => [ 'sending_scheduled' => true ],
 			]
 		);
+		$failed_send = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
+			]
+		);
 		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
 
 		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
@@ -503,6 +511,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 		$this->assertContains( $published, $query->posts, 'plain published row surfaces' );
 		$this->assertNotContains( $pending_send, $query->posts, 'in-flight scheduled publish row is excluded' );
+		$this->assertNotContains( $failed_send, $query->posts, 'publish row with scheduling_error is excluded' );
 		$this->assertNotContains( $plain_draft, $query->posts, 'plain draft is excluded by status filter' );
 	}
 
