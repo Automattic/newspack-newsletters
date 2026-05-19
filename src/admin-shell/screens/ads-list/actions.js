@@ -9,14 +9,13 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { Button } from '@wordpress/components';
-import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { edit, trash } from '@wordpress/icons';
 
 import { getAdminUrl } from '../../admin-globals';
+import ConfirmModal from '../../components/confirm-modal';
 import RenameForm from '../../components/rename-form';
-import { notifyError, notifySuccess } from '../../notices';
+import { runBulk } from '../../utils/bulk-action';
 import { isTrashed } from './status-label';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_ads_cpt';
@@ -36,37 +35,6 @@ const restoreOne = id =>
 	} );
 
 const deleteOne = id => apiFetch( { path: `${ POSTS_PATH }/${ id }?force=true`, method: 'DELETE' } );
-
-function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, question, isDestructive, onConfirm } ) {
-	const [ isBusy, setIsBusy ] = useState( false );
-	return (
-		<div>
-			<p>{ question }</p>
-			<div style={ { display: 'flex', gap: '8px', justifyContent: 'flex-end' } }>
-				<Button variant="tertiary" onClick={ closeModal } disabled={ isBusy }>
-					{ __( 'Cancel', 'newspack-newsletters' ) }
-				</Button>
-				<Button
-					variant="primary"
-					isDestructive={ isDestructive }
-					isBusy={ isBusy }
-					disabled={ isBusy }
-					onClick={ async () => {
-						setIsBusy( true );
-						try {
-							await onConfirm( items );
-							closeModal();
-						} catch ( error ) {
-							setIsBusy( false );
-						}
-					} }
-				>
-					{ isBusy ? confirmingLabel : confirmLabel }
-				</Button>
-			</div>
-		</div>
-	);
-}
 
 export function getActions( { refresh, openQuickEdit } ) {
 	const editAction = {
@@ -140,28 +108,23 @@ export function getActions( { refresh, openQuickEdit } ) {
 					items.length
 				) }
 				isDestructive
-				onConfirm={ async list => {
-					const failed = [];
-					await Promise.all(
-						list.map( item =>
-							trashOne( item.id ).catch( () => {
-								failed.push( item );
-							} )
-						)
-					);
-					refresh();
-					if ( failed.length === 0 ) {
-						notifySuccess( _n( 'Ad moved to trash.', 'Ads moved to trash.', list.length, 'newspack-newsletters' ) );
-					} else {
-						notifyError(
+				onConfirm={ list =>
+					runBulk( list, item => trashOne( item.id ), {
+						refresh,
+						successPlural: n => _n( 'Ad moved to trash.', 'Ads moved to trash.', n, 'newspack-newsletters' ),
+						failurePlural: n =>
 							sprintf(
 								/* translators: %d: number that failed */
-								__( 'Failed to trash %d ad(s). Please try again.', 'newspack-newsletters' ),
-								failed.length
-							)
-						);
-					}
-				} }
+								_n(
+									'Failed to trash %d ad. Please try again.',
+									'Failed to trash %d ads. Please try again.',
+									n,
+									'newspack-newsletters'
+								),
+								n
+							),
+					} )
+				}
 			/>
 		),
 	};
@@ -176,26 +139,16 @@ export function getActions( { refresh, openQuickEdit } ) {
 			if ( eligible.length === 0 ) {
 				return;
 			}
-			const failed = [];
-			await Promise.all(
-				eligible.map( item =>
-					restoreOne( item.id ).catch( () => {
-						failed.push( item );
-					} )
-				)
-			);
-			refresh();
-			if ( failed.length === 0 ) {
-				notifySuccess( _n( 'Ad restored.', 'Ads restored.', eligible.length, 'newspack-newsletters' ) );
-			} else {
-				notifyError(
+			await runBulk( eligible, item => restoreOne( item.id ), {
+				refresh,
+				successPlural: n => _n( 'Ad restored.', 'Ads restored.', n, 'newspack-newsletters' ),
+				failurePlural: n =>
 					sprintf(
 						/* translators: %d: number that failed */
-						__( 'Failed to restore %d ad(s).', 'newspack-newsletters' ),
-						failed.length
-					)
-				);
-			}
+						_n( 'Failed to restore %d ad.', 'Failed to restore %d ads.', n, 'newspack-newsletters' ),
+						n
+					),
+			} );
 		},
 	};
 
@@ -222,28 +175,18 @@ export function getActions( { refresh, openQuickEdit } ) {
 					items.length
 				) }
 				isDestructive
-				onConfirm={ async list => {
-					const failed = [];
-					await Promise.all(
-						list.map( item =>
-							deleteOne( item.id ).catch( () => {
-								failed.push( item );
-							} )
-						)
-					);
-					refresh();
-					if ( failed.length === 0 ) {
-						notifySuccess( _n( 'Ad deleted.', 'Ads deleted.', list.length, 'newspack-newsletters' ) );
-					} else {
-						notifyError(
+				onConfirm={ list =>
+					runBulk( list, item => deleteOne( item.id ), {
+						refresh,
+						successPlural: n => _n( 'Ad deleted.', 'Ads deleted.', n, 'newspack-newsletters' ),
+						failurePlural: n =>
 							sprintf(
 								/* translators: %d: number that failed */
-								__( 'Failed to delete %d ad(s).', 'newspack-newsletters' ),
-								failed.length
-							)
-						);
-					}
-				} }
+								_n( 'Failed to delete %d ad.', 'Failed to delete %d ads.', n, 'newspack-newsletters' ),
+								n
+							),
+					} )
+				}
 			/>
 		),
 	};
