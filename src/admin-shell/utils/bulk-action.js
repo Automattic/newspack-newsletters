@@ -1,24 +1,9 @@
-/**
- * Shared scaffolding for parallel per-item mutations behind a single
- * row/bulk action callback. Captures the `failed = []; Promise.all(... catch)`
- * pattern + the success / partial-failure notice dispatch.
- *
- * Callers supply the pre-translated singular/plural strings via
- * `successPlural` and `failurePlural` callbacks so each screen can use
- * the right noun and `_n` form. The helper itself stays i18n-agnostic.
- */
-
 import { notifyError, notifySuccess } from '../notices';
 
 /**
- * Run an async `op( item )` against every item in parallel, swallowing
- * per-item rejections, then dispatch a single aggregated notice.
- *
- * `refresh` runs once all ops have settled (success or failure) so the
- * list reflects whatever state the server actually arrived at. The
- * caller is responsible for pre-filtering `items` against any
- * `isEligible` predicate — non-modal bulk callbacks receive the full
- * DataViews selection.
+ * Run `op( item )` in parallel against each item, swallow per-item
+ * rejections, then dispatch a single aggregated success/failure notice.
+ * Callers must pre-filter against any `isEligible` predicate.
  *
  * @param {Array<Object>}                        items
  * @param {( item: Object ) => Promise<unknown>} op

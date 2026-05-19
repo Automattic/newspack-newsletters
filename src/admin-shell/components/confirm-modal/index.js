@@ -1,14 +1,3 @@
-/**
- * Shared confirmation modal body used by destructive DataView actions
- * across the list screens (newsletters, ads, advertisers, layouts).
- *
- * DataViews mounts the modal chrome; this component renders only the
- * question + Cancel/Confirm buttons. The async `onConfirm` is invoked
- * with the modal's pre-filtered item list and resolves before the modal
- * closes; on rejection the Confirm button is re-enabled so the user can
- * retry without losing the modal.
- */
-
 import { Button } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';

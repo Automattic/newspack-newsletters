@@ -1,26 +1,7 @@
-/**
- * Shared factory for translating forwarded legacy admin URL args into
- * DataViews `view` patches (filters / search / sort).
- *
- * Each list screen receives forwarded query args from
- * `Admin_Shell::maybe_redirect_legacy_list` and seeds its initial view
- * from them. The translation shape is uniform: a `post_status` →
- * filter-value map, an `orderby` → DataView field map, and optional
- * extra URL-param → filter-field bindings. The factory captures that
- * shape so each screen contributes only its lookup tables.
- */
-
-const EMPTY_SEARCH = '';
-
-const readSearch = search => search ?? ( typeof window === 'undefined' ? EMPTY_SEARCH : window.location.search );
+const readSearch = search => search ?? ( typeof window === 'undefined' ? '' : window.location.search );
 
 /**
- * Build a `{ getInitialFilters, getInitialView }` pair for a list screen.
- *
- * `defaultSortDirection` controls fallback direction when the URL has an
- * `orderby` without an `order` (or with an unrecognised one). Advertisers
- * use `'asc'` because alphabetical defaults to ascending; everywhere else
- * the default is `'desc'`.
+ * Build a `{ getInitialFilters, getInitialView }` pair from URL → view bindings.
  *
  * @param {Object} config                         Screen configuration.
  * @param {Object} config.orderbyMap              Map of REST `orderby` values to DataView field IDs.
