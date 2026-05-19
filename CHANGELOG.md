@@ -1,3 +1,10 @@
+## [3.33.1](https://github.com/Automattic/newspack-newsletters/compare/v3.33.0...v3.33.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* remove block-level CSS field from Newsletter editor ([#2116](https://github.com/Automattic/newspack-newsletters/issues/2116)) ([6789a29](https://github.com/Automattic/newspack-newsletters/commit/6789a29ecf95c26b3509e7e8de05f0e7a6c91018))
+
 # [3.33.0](https://github.com/Automattic/newspack-newsletters/compare/v3.32.0...v3.33.0) (2026-05-18)
 
 
