@@ -64,7 +64,9 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 		settings.supports = { ...settings.supports, align: [ 'full' ] };
 	}
 
-	/* Remove 'Hide' and 'Custom CSS' options for all blocks for Newsletters CPTs, Newsletter Ads */
+	/* This bundle is only enqueued in the email editor (see
+	 * Newspack_Newsletters_Editor::enqueue_block_editor_assets), so disabling
+	 * these block supports applies to the newsletter and newsletter-ad CPTs only. */
 	settings.supports = { ...settings.supports, customCSS: false, visibility: false };
 
 	return settings;
