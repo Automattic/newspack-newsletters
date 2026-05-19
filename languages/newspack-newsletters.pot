@@ -2,14 +2,14 @@
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Newsletters 3.31.1\n"
+"Project-Id-Version: Newspack Newsletters 3.32.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/newspack-newsletters\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-15T13:07:37+00:00\n"
+"POT-Creation-Date: 2026-05-06T23:06:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-newsletters\n"
@@ -339,39 +339,43 @@ msgstr[1] ""
 
 #: includes/class-newspack-newsletters-contacts.php:323
 #: includes/class-newspack-newsletters-contacts.php:358
-#: includes/class-newspack-newsletters-subscription.php:620
+#: includes/class-newspack-newsletters-subscription.php:633
 msgid "Not supported for this provider"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:253
+#: includes/class-newspack-newsletters-editor.php:294
+#: includes/class-newspack-newsletters-editor.php:340
 msgctxt "font size name"
 msgid "Small"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:258
+#: includes/class-newspack-newsletters-editor.php:299
+#: includes/class-newspack-newsletters-editor.php:346
 msgctxt "font size name"
 msgid "Medium"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:263
+#: includes/class-newspack-newsletters-editor.php:304
+#: includes/class-newspack-newsletters-editor.php:352
 msgctxt "font size name"
 msgid "Large"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:268
+#: includes/class-newspack-newsletters-editor.php:309
+#: includes/class-newspack-newsletters-editor.php:358
 msgctxt "font size name"
 msgid "Extra Large"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:370
+#: includes/class-newspack-newsletters-editor.php:538
 msgid "Continue reading…"
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:371
+#: includes/class-newspack-newsletters-editor.php:539
 msgid "By "
 msgstr ""
 
-#: includes/class-newspack-newsletters-editor.php:372
+#: includes/class-newspack-newsletters-editor.php:540
 msgid "and "
 msgstr ""
 
@@ -515,9 +519,9 @@ msgstr ""
 
 #: includes/class-newspack-newsletters-settings.php:458
 #: includes/class-newspack-newsletters-settings.php:464
-#: includes/class-newspack-newsletters-subscription.php:771
-#: includes/class-newspack-newsletters-subscription.php:869
-#: includes/class-newspack-newsletters-subscription.php:872
+#: includes/class-newspack-newsletters-subscription.php:784
+#: includes/class-newspack-newsletters-subscription.php:882
+#: includes/class-newspack-newsletters-subscription.php:885
 msgid "Invalid request."
 msgstr ""
 
@@ -540,68 +544,68 @@ msgid "Provider does not handle the contact-exists check."
 msgstr ""
 
 #. translators: %s: User display name.
-#: includes/class-newspack-newsletters-subscription.php:798
+#: includes/class-newspack-newsletters-subscription.php:811
 #, php-format
 msgid "Hello, %s!"
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:799
+#: includes/class-newspack-newsletters-subscription.php:812
 msgid "Verify your email address by visiting the following address:"
 msgstr ""
 
 #. translators: %s Site title.
-#: includes/class-newspack-newsletters-subscription.php:816
+#: includes/class-newspack-newsletters-subscription.php:829
 #, php-format
 msgid "[%s] Verify your email"
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:850
+#: includes/class-newspack-newsletters-subscription.php:863
 msgid "Check your email address for a verification link."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:864
+#: includes/class-newspack-newsletters-subscription.php:877
 msgid "You're not logged in."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:880
+#: includes/class-newspack-newsletters-subscription.php:893
 msgid "Your email has been verified."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:933
+#: includes/class-newspack-newsletters-subscription.php:946
 msgid "Newsletters"
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:951
+#: includes/class-newspack-newsletters-subscription.php:964
 msgid "Please verify your email address before managing your newsletters subscriptions."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:955
+#: includes/class-newspack-newsletters-subscription.php:968
 msgid "Verify Email"
 msgstr ""
 
 #. translators: %s: Error message.
-#: includes/class-newspack-newsletters-subscription.php:976
+#: includes/class-newspack-newsletters-subscription.php:989
 #, php-format
 msgid "Error while attempting to subscribe: %s"
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:984
+#: includes/class-newspack-newsletters-subscription.php:997
 msgid "Manage your newsletter preferences."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:1018
+#: includes/class-newspack-newsletters-subscription.php:1031
 msgid "Update subscriptions"
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:1036
+#: includes/class-newspack-newsletters-subscription.php:1049
 msgid "You must be logged in and verified to update your subscriptions."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:1065
+#: includes/class-newspack-newsletters-subscription.php:1078
 msgid "You must select newsletters to update."
 msgstr ""
 
-#: includes/class-newspack-newsletters-subscription.php:1067
+#: includes/class-newspack-newsletters-subscription.php:1080
 msgid "Your subscriptions were updated."
 msgstr ""
 
@@ -1478,7 +1482,7 @@ msgstr ""
 msgid "Error sending test email. Please enter a name and email in the \"FROM\" section."
 msgstr ""
 
-#: includes/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php:2282
+#: includes/service-providers/mailchimp/class-newspack-newsletters-mailchimp.php:2277
 msgid "List ID is required."
 msgstr ""
 
@@ -1527,15 +1531,15 @@ msgstr ""
 #: dist/adsEditor.js:1
 #: src/components/ad-placements/index.js:59
 #: src/components/send-button/index.js:359
-#: src/newsletter-editor/layout/index.js:230
-#: src/newsletter-editor/layout/index.js:261
-#: src/newsletter-editor/sidebar/autocomplete.js:123
+#: src/newsletter-editor/layout/index.js:240
+#: src/newsletter-editor/layout/index.js:271
+#: src/newsletter-editor/sidebar/autocomplete.js:125
 msgid "Cancel"
 msgstr ""
 
 #: dist/adsEditor.js:1
 #: src/components/ad-placements/index.js:62
-#: src/newsletter-editor/layout/index.js:227
+#: src/newsletter-editor/layout/index.js:237
 msgid "Save"
 msgstr ""
 
@@ -1735,15 +1739,15 @@ msgstr ""
 #: dist/blocks.js:1
 #: dist/editorBlocks.js:5
 #: src/blocks/subscribe/edit.js:194
-#: src/editor/blocks/posts-inserter/index.js:238
-#: src/newsletter-editor/styling/index.js:207
+#: src/editor/blocks/posts-inserter/index.js:261
+#: src/newsletter-editor/styling/index.js:224
 msgid "Text"
 msgstr ""
 
 #: dist/blocks.js:1
 #: dist/editorBlocks.js:5
 #: src/blocks/subscribe/edit.js:199
-#: src/newsletter-editor/styling/index.js:212
+#: src/newsletter-editor/styling/index.js:229
 msgid "Background"
 msgstr ""
 
@@ -1821,7 +1825,7 @@ msgstr ""
 
 #: dist/blocks.js:4
 #: src/blocks/subscribe/edit.js:354
-#: src/newsletter-editor/sidebar/sender.js:47
+#: src/newsletter-editor/sidebar/sender.js:56
 msgid "Name"
 msgstr ""
 
@@ -1934,122 +1938,123 @@ msgid "Z → A"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/components/select-control-with-optgroup/index.js:49
-msgid "-- Select --"
-msgstr ""
-
-#: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:21
+#: src/newsletter-editor/styling/index.js:27
 msgid "Sans Serif"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:25
+#: src/newsletter-editor/styling/index.js:31
 msgid "Arial"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:29
+#: src/newsletter-editor/styling/index.js:35
 msgid "Tahoma"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:33
+#: src/newsletter-editor/styling/index.js:39
 msgid "Trebuchet"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:37
+#: src/newsletter-editor/styling/index.js:43
 msgid "Verdana"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:43
+#: src/newsletter-editor/styling/index.js:49
 msgid "Serif"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:47
+#: src/newsletter-editor/styling/index.js:53
 msgid "Georgia"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:51
+#: src/newsletter-editor/styling/index.js:57
 msgid "Palatino"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:55
+#: src/newsletter-editor/styling/index.js:61
 msgid "Times New Roman"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:61
+#: src/newsletter-editor/styling/index.js:67
 msgid "Monospace"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:65
+#: src/newsletter-editor/styling/index.js:71
 msgid "Courier"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:226
-#: src/newsletter-editor/styling/index.js:201
+#: src/editor/blocks/posts-inserter/index.js:249
+#: src/newsletter-editor/styling/index.js:218
 msgid "Color"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:242
-#: src/newsletter-editor/styling/index.js:216
+#: src/editor/blocks/posts-inserter/index.js:265
+#: src/newsletter-editor/styling/index.js:233
 msgid "Typography"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:218
+#: src/newsletter-editor/styling/index.js:236
 msgid "Headings font"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:224
+#: src/newsletter-editor/styling/index.js:245
 msgid "Body font"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:230
-#: src/newsletter-editor/styling/index.js:234
-#: src/newsletter-editor/styling/index.js:245
+#: src/newsletter-editor/styling/index.js:255
+#: src/newsletter-editor/styling/index.js:259
+#: src/newsletter-editor/styling/index.js:270
 msgid "Custom CSS"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:235
+#: src/newsletter-editor/styling/index.js:260
 msgid "This is an advanced feature and may result in unpredictable behavior. Custom CSS will be appended to default styles in sent emails only."
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/newsletter-editor/styling/index.js:246
+#: src/newsletter-editor/styling/index.js:271
 msgid "Write custom CSS…"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:74
+#: src/editor/blocks/posts-inserter/index.js:73
 msgid "Subtitle"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:143
+#: src/editor/blocks/posts-inserter/index.js:142
 msgid "Show image on top"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:149
+#: src/editor/blocks/posts-inserter/index.js:148
 msgid "Show image on left"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:155
+#: src/editor/blocks/posts-inserter/index.js:154
 msgid "Show image on right"
+msgstr ""
+
+#: dist/editorBlocks.js:5
+#: src/editor/blocks/posts-inserter/index.js:163
+msgctxt "image size abbreviation"
+msgid "S"
 msgstr ""
 
 #: dist/editorBlocks.js:5
@@ -2059,97 +2064,108 @@ msgstr ""
 
 #: dist/editorBlocks.js:5
 #: src/editor/blocks/posts-inserter/index.js:168
+msgctxt "image size abbreviation"
+msgid "M"
+msgstr ""
+
+#: dist/editorBlocks.js:5
+#: src/editor/blocks/posts-inserter/index.js:169
 msgid "Medium"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:172
+#: src/editor/blocks/posts-inserter/index.js:173
+msgctxt "image size abbreviation"
+msgid "L"
+msgstr ""
+
+#: dist/editorBlocks.js:5
+#: src/editor/blocks/posts-inserter/index.js:174
 msgid "Large"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:179
+#: src/editor/blocks/posts-inserter/index.js:181
 msgid "Post Content"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:181
+#: src/editor/blocks/posts-inserter/index.js:183
 msgid "Post subtitle"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:186
+#: src/editor/blocks/posts-inserter/index.js:188
 msgid "Post excerpt"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:192
+#: src/editor/blocks/posts-inserter/index.js:194
 msgid "Max number of words in excerpt"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:200
+#: src/editor/blocks/posts-inserter/index.js:202
 msgid "Date"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:205
+#: src/editor/blocks/posts-inserter/index.js:207
 msgid "Featured image"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:210
+#: src/editor/blocks/posts-inserter/index.js:212
 msgid "Author's name"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:215
+#: src/editor/blocks/posts-inserter/index.js:217
 msgid "\"Continue reading…\" link"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:220
+#: src/editor/blocks/posts-inserter/index.js:224
+msgid "Image size"
+msgstr ""
+
+#: dist/editorBlocks.js:5
+#: src/editor/blocks/posts-inserter/index.js:243
 msgid "Sorting & Filtering"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:232
+#: src/editor/blocks/posts-inserter/index.js:255
 msgid "Heading"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:245
+#: src/editor/blocks/posts-inserter/index.js:268
 msgid "Heading size"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:258
+#: src/editor/blocks/posts-inserter/index.js:281
 msgid "Subtitle size"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:271
+#: src/editor/blocks/posts-inserter/index.js:294
 msgid "Text size"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:292
-msgid "Image Size"
-msgstr ""
-
-#: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:329
-#: src/editor/blocks/posts-inserter/index.js:427
-msgid "Posts Inserter"
-msgstr ""
-
-#: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:339
+#: src/editor/blocks/posts-inserter/index.js:313
 msgid "Insert posts"
 msgstr ""
 
 #: dist/editorBlocks.js:5
-#: src/editor/blocks/posts-inserter/index.js:428
+#: src/editor/blocks/posts-inserter/index.js:410
+msgid "Posts Inserter"
+msgstr ""
+
+#: dist/editorBlocks.js:5
+#: src/editor/blocks/posts-inserter/index.js:411
 msgid "Lets you insert posts into your newsletter."
 msgstr ""
 
@@ -2823,60 +2839,60 @@ msgstr ""
 msgid "Email content is too long and may get clipped by email clients."
 msgstr ""
 
-#: src/newsletter-editor/index.js:84
+#: src/newsletter-editor/index.js:86
 msgid "Error communicating with service provider."
 msgstr ""
 
-#: src/newsletter-editor/index.js:99
+#: src/newsletter-editor/index.js:101
 msgid "Newsletter Global Styles"
 msgstr ""
 
-#: src/newsletter-editor/index.js:115
+#: src/newsletter-editor/index.js:117
 msgid "Newsletter Campaign"
 msgstr ""
 
-#: src/newsletter-editor/index.js:122
+#: src/newsletter-editor/index.js:126
 msgid "Testing"
 msgstr ""
 
-#: src/newsletter-editor/index.js:126
+#: src/newsletter-editor/index.js:130
 msgid "Layout"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:140
+#: src/newsletter-editor/layout/index.js:147
 msgid "Are you sure you want to overwrite this layout?"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:157
+#: src/newsletter-editor/layout/index.js:164
 msgid "Unschedule this newsletter to edit layout."
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:186
+#: src/newsletter-editor/layout/index.js:195
 msgid "Save new layout"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:197
+#: src/newsletter-editor/layout/index.js:206
 msgid "Update layout"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:208
-#: src/newsletter-editor/layout/index.js:258
+#: src/newsletter-editor/layout/index.js:217
+#: src/newsletter-editor/layout/index.js:268
 msgid "Reset layout"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:215
+#: src/newsletter-editor/layout/index.js:225
 msgid "Save newsletter as a layout"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:220
+#: src/newsletter-editor/layout/index.js:230
 msgid "Title"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:239
+#: src/newsletter-editor/layout/index.js:249
 msgid "Reset newsletter layout?"
 msgstr ""
 
-#: src/newsletter-editor/layout/index.js:244
+#: src/newsletter-editor/layout/index.js:254
 msgid "Resetting the layout will remove all customizations and edits you’ve made. This action cannot be undone."
 msgstr ""
 
@@ -2907,7 +2923,7 @@ msgid "Clear"
 msgstr ""
 
 #: src/newsletter-editor/sidebar/autocomplete.js:69
-#: src/newsletter-editor/sidebar/sender.js:99
+#: src/newsletter-editor/sidebar/sender.js:121
 msgid "Manage"
 msgstr ""
 
@@ -2927,35 +2943,35 @@ msgstr ""
 msgid "Start typing to search by name or type"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/autocomplete.js:117
+#: src/newsletter-editor/sidebar/autocomplete.js:119
 msgid "Error fetching send lists."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:139
+#: src/newsletter-editor/sidebar/index.js:146
 msgid "You must authorize your account before publishing your newsletter."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:158
+#: src/newsletter-editor/sidebar/index.js:165
 msgid "There was an error retrieving campaign data. Please try again."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:178
+#: src/newsletter-editor/sidebar/index.js:185
 msgid "Retrieving campaign data…"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:190
+#: src/newsletter-editor/sidebar/index.js:197
 msgid "Campaign has been sent."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:198
+#: src/newsletter-editor/sidebar/index.js:206
 msgid "Campaign Name"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:206
+#: src/newsletter-editor/sidebar/index.js:216
 msgid "Subject"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/index.js:213
+#: src/newsletter-editor/sidebar/index.js:225
 msgid "Preview text"
 msgstr ""
 
@@ -3000,77 +3016,77 @@ msgid "Invalid %s selection."
 msgstr ""
 
 #. translators: %s: list of allowed domains
-#: src/newsletter-editor/sidebar/sender.js:30
+#: src/newsletter-editor/sidebar/sender.js:37
 #, js-format
 msgid "Sender email must contain one of the following domains: %s"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:38
+#: src/newsletter-editor/sidebar/sender.js:45
 msgid "Unschedule this newsletter to edit sender info."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:40
+#: src/newsletter-editor/sidebar/sender.js:49
 msgid "Sender"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:43
+#: src/newsletter-editor/sidebar/sender.js:52
 msgid "Updated sender info fetched from ESP."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:52
+#: src/newsletter-editor/sidebar/sender.js:61
 msgid "The campaign’s sender name."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:56
-#: src/newsletter-editor/sidebar/sender.js:79
+#: src/newsletter-editor/sidebar/sender.js:67
+#: src/newsletter-editor/sidebar/sender.js:92
 msgid "Email"
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:59
+#: src/newsletter-editor/sidebar/sender.js:70
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:67
+#: src/newsletter-editor/sidebar/sender.js:78
 msgid "The campaign’s sender email."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:74
+#: src/newsletter-editor/sidebar/sender.js:87
 msgid "There are no verified email addresses."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:81
+#: src/newsletter-editor/sidebar/sender.js:94
 msgid "Select a verified sender email."
 msgstr ""
 
-#: src/newsletter-editor/sidebar/sender.js:86
+#: src/newsletter-editor/sidebar/sender.js:99
 msgid "-- Select a sender email --"
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:58
+#: src/newsletter-editor/testing/index.js:62
 msgid "Test email sent."
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:61
+#: src/newsletter-editor/testing/index.js:65
 msgid "Error sending test email."
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:86
+#: src/newsletter-editor/testing/index.js:90
 msgid "Send a test to"
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:89
+#: src/newsletter-editor/testing/index.js:93
 msgid "Use commas to separate multiple emails. Any unsaved changes will be saved."
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:90
+#: src/newsletter-editor/testing/index.js:94
 msgid "Any unsaved changes will be saved."
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:106
+#: src/newsletter-editor/testing/index.js:112
 msgid "Sending test email…"
 msgstr ""
 
-#: src/newsletter-editor/testing/index.js:107
+#: src/newsletter-editor/testing/index.js:113
 msgid "Send a test email"
 msgstr ""
 

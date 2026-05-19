@@ -7,6 +7,8 @@ import { Fragment, useEffect, useState } from '@wordpress/element';
 import { PluginDocumentSettingPanel, PluginSidebar, PluginSidebarMoreMenuItem, PluginPostStatusInfo } from '@wordpress/editor';
 import { registerPlugin } from '@wordpress/plugins';
 import { styles } from '@wordpress/icons';
+// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
+import { __experimentalVStack as VStack } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -113,8 +115,10 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 
 			{ isSupportedESP() && ! isManualESP() && (
 				<PluginDocumentSettingPanel name="newsletters-settings-panel" title={ __( 'Newsletter Campaign', 'newspack-newsletters' ) }>
-					<CampaignLink />
-					<Sidebar inFlight={ inFlight } isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
+					<VStack spacing={ 4 }>
+						<CampaignLink />
+						<Sidebar inFlight={ inFlight } isConnected={ isConnected } oauthUrl={ oauthUrl } onAuthorize={ verifyToken } />
+					</VStack>
 				</PluginDocumentSettingPanel>
 			) }
 

@@ -5,11 +5,17 @@
  */
 import { PlainText, __experimentalPanelColorGradientSettings as PanelColorGradientSettings } from '@wordpress/block-editor'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { compose, useInstanceId } from '@wordpress/compose';
-import { BaseControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
+import {
+	BaseControl,
+	Panel,
+	PanelBody,
+	PanelRow,
+	SelectControl,
+	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
+} from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useSelect, withDispatch, withSelect } from '@wordpress/data';
 import { useEffect, useRef, useState } from '@wordpress/element';
-import SelectControlWithOptGroup from '../../components/select-control-with-optgroup/';
 
 /**
  * Internal dependencies
@@ -125,8 +131,8 @@ export const useCustomFontsInIframe = () => {
 				const updateStyleProperties = () => {
 					const element = iframe.contentDocument?.documentElement;
 					if ( element ) {
-						element.style.setProperty( '--newspack-body-font', fontBody );
-						element.style.setProperty( '--newspack-header-font', fontHeader );
+						element.style.setProperty( '--newspack-newsletters-body-font', fontBody );
+						element.style.setProperty( '--newspack-newsletters-header-font', fontHeader );
 						element.querySelector( 'body' ).style.setProperty( 'background', 'none' );
 					}
 				};
@@ -195,11 +201,11 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 	}, [] );
 
 	useEffect( () => {
-		getEditorCanvasDocument().documentElement.style.setProperty( '--newspack-body-font', fontBody );
+		getEditorCanvasDocument().documentElement.style.setProperty( '--newspack-newsletters-body-font', fontBody );
 	}, [ fontBody, iframeKey ] );
 
 	useEffect( () => {
-		getEditorCanvasDocument().documentElement.style.setProperty( '--newspack-header-font', fontHeader );
+		getEditorCanvasDocument().documentElement.style.setProperty( '--newspack-newsletters-header-font', fontHeader );
 	}, [ fontHeader, iframeKey ] );
 
 	useEffect( () => {
@@ -246,7 +252,18 @@ export const Styling = compose( [
 		editPost( { meta: { [ key ]: value } } );
 	};
 
-	const instanceId = useInstanceId( SelectControlWithOptGroup );
+	const instanceId = useInstanceId( SelectControl );
+
+	const renderFontOptions = () =>
+		fontOptgroups.map( group => (
+			<optgroup key={ group.label } label={ group.label }>
+				{ group.options.map( option => (
+					<option key={ option.value } value={ option.value }>
+						{ option.label }
+					</option>
+				) ) }
+			</optgroup>
+		) );
 
 	return (
 		<Panel>
@@ -267,18 +284,26 @@ export const Styling = compose( [
 				] }
 			/>
 			<PanelBody name="newsletters-typography-panel" title={ __( 'Typography', 'newspack-newsletters' ) }>
-				<SelectControlWithOptGroup
-					label={ __( 'Headings font', 'newspack-newsletters' ) }
-					value={ fontHeader }
-					optgroups={ fontOptgroups }
-					onChange={ value => updateStyleValue( 'font_header', value ) }
-				/>
-				<SelectControlWithOptGroup
-					label={ __( 'Body font', 'newspack-newsletters' ) }
-					value={ fontBody }
-					optgroups={ fontOptgroups }
-					onChange={ value => updateStyleValue( 'font_body', value ) }
-				/>
+				<VStack spacing={ 4 }>
+					<SelectControl
+						label={ __( 'Headings font', 'newspack-newsletters' ) }
+						value={ fontHeader }
+						onChange={ value => updateStyleValue( 'font_header', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+					>
+						{ renderFontOptions() }
+					</SelectControl>
+					<SelectControl
+						label={ __( 'Body font', 'newspack-newsletters' ) }
+						value={ fontBody }
+						onChange={ value => updateStyleValue( 'font_body', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+					>
+						{ renderFontOptions() }
+					</SelectControl>
+				</VStack>
 			</PanelBody>
 			<PanelBody name="newsletters-css-panel" title={ __( 'Custom CSS', 'newspack-newsletters' ) } initialOpen={ false }>
 				<PanelRow className="newspack-newsletters__css-panel">

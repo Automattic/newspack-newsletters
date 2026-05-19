@@ -66,6 +66,55 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test font-size preset mapping in paragraph rendering.
+	 */
+	public function test_render_font_size_presets() {
+		$inner_html = '<p>Hello, Newspack!</p>';
+
+		$render_with_font_size = function ( $font_size ) use ( $inner_html ) {
+			$attrs = [];
+			if ( null !== $font_size ) {
+				$attrs['fontSize'] = $font_size;
+			}
+			return Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/paragraph',
+					'attrs'        => $attrs,
+					'innerBlocks'  => [],
+					'innerContent' => [],
+					'innerHTML'    => $inner_html,
+				]
+			);
+		};
+
+		// New presets added in this PR.
+		$this->assertStringContainsString(
+			'font-size="40px"',
+			$render_with_font_size( 'xx-large' ),
+			'Renders xx-large preset as 40px.'
+		);
+		$this->assertStringContainsString(
+			'font-size="48px"',
+			$render_with_font_size( 'xxx-large' ),
+			'Renders xxx-large preset as 48px.'
+		);
+		$this->assertStringContainsString(
+			'font-size="72px"',
+			$render_with_font_size( 'xxxxxx-large' ),
+			'Renders xxxxxx-large preset as 72px.'
+		);
+
+		// Unknown presets should fall back to the default 16px without emitting
+		// a PHP notice.
+		$unknown_output = $render_with_font_size( 'not-a-real-preset' );
+		$this->assertStringContainsString(
+			'font-size="16px"',
+			$unknown_output,
+			'Falls back to the default 16px for unknown presets.'
+		);
+	}
+
+	/**
 	 * Filter the OEmbed return value.
 	 *
 	 * @param array $data The data to return.
@@ -405,6 +454,79 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			Newspack_Newsletters_Renderer::process_links( '<a href="//newspack.com?value=1">linky<a>' ),
 			'<a href="//newspack.com?value=1&utm_medium=email">linky<a>',
 			'Appends utm_medium=email to links with params'
+		);
+	}
+
+	/**
+	 * Test margin conversion to section padding.
+	 */
+	public function test_render_margin_as_section_padding() {
+		// Preset margin values should be converted to px.
+		$output = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/paragraph',
+				'attrs'        => [
+					'style' => [
+						'spacing' => [
+							'margin' => [
+								'top'    => 'var:preset|spacing|40',
+								'bottom' => 'var:preset|spacing|40',
+							],
+						],
+					],
+				],
+				'innerBlocks'  => [],
+				'innerContent' => [ '<p>Test</p>' ],
+				'innerHTML'    => '<p>Test</p>',
+			]
+		);
+		$this->assertStringContainsString(
+			'mj-section padding="24px 0 24px 0"',
+			$output,
+			'Preset margins are converted to px section padding'
+		);
+
+		// Pixel margin values should pass through.
+		$output = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/paragraph',
+				'attrs'        => [
+					'style' => [
+						'spacing' => [
+							'margin' => [
+								'top'    => '10px',
+								'bottom' => '20px',
+								'left'   => '5px',
+								'right'  => '5px',
+							],
+						],
+					],
+				],
+				'innerBlocks'  => [],
+				'innerContent' => [ '<p>Test</p>' ],
+				'innerHTML'    => '<p>Test</p>',
+			]
+		);
+		$this->assertStringContainsString(
+			'mj-section padding="10px 5px 20px 5px"',
+			$output,
+			'Pixel margins map directly to section padding'
+		);
+
+		// Block without margin should have section padding 0.
+		$output = Newspack_Newsletters_Renderer::render_mjml_component(
+			[
+				'blockName'    => 'core/paragraph',
+				'attrs'        => [],
+				'innerBlocks'  => [],
+				'innerContent' => [ '<p>Test</p>' ],
+				'innerHTML'    => '<p>Test</p>',
+			]
+		);
+		$this->assertStringContainsString(
+			'mj-section padding="0"',
+			$output,
+			'Block without margin gets section padding 0'
 		);
 	}
 

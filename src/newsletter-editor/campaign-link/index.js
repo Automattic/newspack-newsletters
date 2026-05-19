@@ -16,14 +16,14 @@ export default function CampaignLink() {
 		return null;
 	}
 	return (
-		<p>
-			<Button variant="secondary" href={ newsletterData.link } target="_blank" rel="noopener noreferrer">
+		<div className="newspack-newsletters-buttons-group">
+			<Button variant="secondary" href={ newsletterData.link } target="_blank" rel="noopener noreferrer" __next40pxDefaultSize>
 				{ sprintf(
 					// translators: %s: service provider name.
 					__( 'View Campaign in %s', 'newspack-newsletters' ),
 					getServiceProvider().displayName
 				) }
 			</Button>
-		</p>
+		</div>
 	);
 }
