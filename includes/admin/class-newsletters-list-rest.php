@@ -38,7 +38,7 @@ class Newsletters_List_REST {
 		);
 		add_filter(
 			'rest_' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT . '_query',
-			[ __CLASS__, 'expand_scheduled_filter' ],
+			[ __CLASS__, 'align_status_filter_with_scheduled_meta' ],
 			10,
 			2
 		);
@@ -101,27 +101,42 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * The "Scheduled" filter element value (`status=future`) only matches
-	 * native WP-scheduled posts, but the Status column also renders rows
-	 * with the in-flight `sending_scheduled` meta as "Scheduled" — those
-	 * would otherwise disappear when the user applies the filter. The
-	 * Status filter uses `isAny`, so users can also combine Scheduled
-	 * with other statuses (e.g. `future,publish,private` or
-	 * `future,trash`); the expansion fires whenever the selection
-	 * **contains** `future`, while preserving the user's other picks.
+	 * Reconcile the DataView Status filter with the derived status the
+	 * column actually renders. The filter values map to raw `post_status`,
+	 * but `get_status_for_post` also promotes any row carrying the
+	 * in-flight `sending_scheduled` meta to "Scheduled" — so a `publish`
+	 * row mid-send renders as Scheduled, not Sent. Without this filter,
+	 * a Sent (or Draft) selection would silently include those rows.
 	 *
-	 * Strategy: widen `post_status` to the union of the user's selection
-	 * and the statuses where a `sending_scheduled` row might live, then
-	 * install a one-shot `posts_where` that re-narrows to
-	 * `(post_status IN <user selection> OR EXISTS sending_scheduled)`.
-	 * The callback removes itself after firing so it stays scoped to
-	 * the single query.
+	 * Two opposing cases, both anchored on whether `future` is in the
+	 * user's selection:
+	 *
+	 * 1. **`future` selected** (alone or mixed). Widen `post_status` to
+	 *    the union of the user's selection and the statuses where a
+	 *    `sending_scheduled` row might live, then install a one-shot
+	 *    `posts_where` that re-narrows to
+	 *    `(post_status IN <user selection> OR EXISTS sending_scheduled)`.
+	 *    This surfaces in-flight scheduled rows alongside the user's
+	 *    explicit picks (e.g. `future,publish` keeps published rows AND
+	 *    pulls in any publish-with-`sending_scheduled` row).
+	 *
+	 * 2. **`future` not selected** (non-empty selection). Install a
+	 *    `posts_where` that excludes rows with `sending_scheduled` meta
+	 *    so they don't leak into Sent or Draft. Trash is exempt:
+	 *    `get_status_for_post` short-circuits to `trash` kind before the
+	 *    `sending_scheduled` check, so a trashed row with leftover meta
+	 *    still renders as Trash and must survive the Trash filter.
+	 *
+	 * Empty selection (no Status filter active) passes through unchanged.
+	 *
+	 * The `posts_where` callbacks remove themselves after firing so they
+	 * stay scoped to the single query.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
 	 * @return array
 	 */
-	public static function expand_scheduled_filter( $args, $request ) {
+	public static function align_status_filter_with_scheduled_meta( $args, $request ) {
 		$status = $request->get_param( 'status' );
 		if ( is_array( $status ) ) {
 			$values = array_map( 'strval', $status );
@@ -137,17 +152,29 @@ class Newsletters_List_REST {
 			)
 		);
 
-		// Trigger as soon as the user's selection contains `future`. For
-		// a sole-`future` request we narrow back to scheduled-only via
-		// the OR clause; for mixed selections (e.g. `future,publish` or
-		// `future,trash`) we still surface in-flight scheduled rows
-		// alongside the user's other picks.
-		if ( ! in_array( 'future', $values, true ) ) {
+		if ( empty( $values ) ) {
 			return $args;
 		}
 
-		$selected_statuses = $values;
+		if ( in_array( 'future', $values, true ) ) {
+			return self::widen_for_scheduled_meta( $args, $values );
+		}
 
+		return self::exclude_scheduled_meta( $args );
+	}
+
+	/**
+	 * Case 1 of `align_status_filter_with_scheduled_meta`: future IS in
+	 * the user's selection. Widen `post_status` to include the statuses
+	 * where a `sending_scheduled` row might live, then install a
+	 * `posts_where` that re-narrows to `(post_status IN <selection> OR
+	 * EXISTS sending_scheduled)`.
+	 *
+	 * @param array    $args              Query args being assembled.
+	 * @param string[] $selected_statuses User's status selection (already normalised).
+	 * @return array
+	 */
+	private static function widen_for_scheduled_meta( $args, $selected_statuses ) {
 		// Widened set = the user's selection ∪ the statuses where a
 		// `sending_scheduled` row might live. Starting from the user's
 		// selection (rather than a fixed list) is what lets `trash`
@@ -172,6 +199,39 @@ class Newsletters_List_REST {
 				$placeholders
 			);
 			$where       .= $wpdb->prepare( $sql, $prepare_args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is built from a fixed list of `%s` placeholders.
+			remove_filter( 'posts_where', $callback, 10 );
+			return $where;
+		};
+		add_filter( 'posts_where', $callback, 10, 1 );
+
+		return $args;
+	}
+
+	/**
+	 * Case 2 of `align_status_filter_with_scheduled_meta`: future is NOT
+	 * in the user's selection. Install a `posts_where` that excludes
+	 * rows carrying `sending_scheduled` meta (which would otherwise
+	 * render as Scheduled). Trashed rows are exempt — they render as
+	 * Trash via the short-circuit in `get_status_for_post`, so the
+	 * Trash filter must still surface them even when leftover meta is
+	 * present.
+	 *
+	 * `sending_scheduled` is only ever written via `update_post_meta(…,
+	 * true)` (stored as `'1'`) or removed via `delete_post_meta`, so the
+	 * `<> ''` truthy guard plus `EXISTS` matches the renderer's
+	 * `get_post_meta(…)` check exactly.
+	 *
+	 * @param array $args Query args being assembled.
+	 * @return array
+	 */
+	private static function exclude_scheduled_meta( $args ) {
+		$callback = static function ( $where ) use ( &$callback ) {
+			global $wpdb;
+			$where .= $wpdb->prepare(
+				" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) )",
+				'trash',
+				'sending_scheduled'
+			);
 			remove_filter( 'posts_where', $callback, 10 );
 			return $where;
 		};

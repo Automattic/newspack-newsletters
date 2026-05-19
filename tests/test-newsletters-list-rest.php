@@ -36,6 +36,47 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper: run a WP_Query against the newsletters CPT with the args
+	 * `align_status_filter_with_scheduled_meta` returned, so the one-shot
+	 * `posts_where` callbacks actually fire and remove themselves.
+	 *
+	 * @param array $args Extra query args (post_status, etc.) layered on top.
+	 * @return \WP_Query
+	 */
+	private function run_newsletter_query( $args = [] ) {
+		return new WP_Query(
+			array_merge(
+				[
+					'post_type'      => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				],
+				$args
+			)
+		);
+	}
+
+	/**
+	 * Helper: count callbacks currently registered on `posts_where`.
+	 * Used to assert that `align_status_filter_with_scheduled_meta`
+	 * installed (or didn't install) its one-shot filter.
+	 *
+	 * @return int
+	 */
+	private function count_posts_where_callbacks() {
+		if ( empty( $GLOBALS['wp_filter']['posts_where'] ) ) {
+			return 0;
+		}
+		$total = 0;
+		foreach ( $GLOBALS['wp_filter']['posts_where']->callbacks as $callbacks ) {
+			$total += count( $callbacks );
+		}
+		return $total;
+	}
+
+	/**
 	 * A draft newsletter has kind=draft and no timestamps.
 	 */
 	public function test_draft_post_reports_draft_kind() {
@@ -374,27 +415,160 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `expand_scheduled_filter` is a no-op for any request whose status
-	 * selection doesn't contain `future` — no filter, or other statuses
-	 * keep the default behaviour.
+	 * Empty / absent Status selection is a true pass-through — args
+	 * unchanged AND no `posts_where` installed. Anything else fires one
+	 * of the two branches and is covered by the dedicated tests below.
 	 */
-	public function test_expand_scheduled_filter_passes_through_when_future_not_selected() {
+	public function test_align_status_filter_with_scheduled_meta_passes_through_when_selection_empty() {
 		$cases = [
 			[],
 			[ 'status' => '' ],
+			[ 'status' => [] ],
+			[ 'status' => [ '' ] ],
+		];
+
+		foreach ( $cases as $params ) {
+			$original     = [ 'post_status' => 'something_specific' ];
+			$where_before = $GLOBALS['wp_filter']['posts_where'] ?? null;
+
+			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+				$original,
+				$this->rest_request( $params )
+			);
+
+			$this->assertSame( $original, $args, 'Should pass through for params: ' . wp_json_encode( $params ) );
+			$this->assertSame(
+				$where_before,
+				$GLOBALS['wp_filter']['posts_where'] ?? null,
+				'Empty selection must not install a posts_where filter for params: ' . wp_json_encode( $params )
+			);
+		}
+	}
+
+	/**
+	 * Non-empty selection without `future` doesn't mutate `$args`
+	 * (post_status passes straight through to WP_Query), but it MUST
+	 * install the inverse `posts_where` that excludes `sending_scheduled`
+	 * rows — otherwise Sent / Draft filters silently include rows that
+	 * render as Scheduled.
+	 */
+	public function test_align_status_filter_with_scheduled_meta_installs_inverse_where_when_future_absent() {
+		$cases = [
 			[ 'status' => 'publish' ],
 			[ 'status' => 'publish,private' ],
 			[ 'status' => [ 'publish', 'private' ] ],
+			[ 'status' => 'draft,pending,auto-draft' ],
+			[ 'status' => 'trash' ],
 		];
 
 		foreach ( $cases as $params ) {
 			$original = [ 'post_status' => 'something_specific' ];
-			$args     = Newsletters_List_REST::expand_scheduled_filter(
+			$before   = $this->count_posts_where_callbacks();
+
+			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 				$original,
 				$this->rest_request( $params )
 			);
-			$this->assertSame( $original, $args, 'Should pass through for params: ' . wp_json_encode( $params ) );
+
+			$this->assertSame( $original, $args, 'Args should not be mutated for params: ' . wp_json_encode( $params ) );
+			$this->assertSame(
+				$before + 1,
+				$this->count_posts_where_callbacks(),
+				'A posts_where callback should be installed for params: ' . wp_json_encode( $params )
+			);
+
+			// Drain the one-shot by triggering it against a no-op WP_Query
+			// so we don't leak state into subsequent assertions.
+			apply_filters( 'posts_where', '' );
 		}
+	}
+
+	/**
+	 * Sent filter (`publish,private`) must exclude rows that carry
+	 * `sending_scheduled` meta — otherwise an in-flight publish row
+	 * leaks in even though the column renders it as Scheduled.
+	 */
+	public function test_sent_filter_excludes_inflight_scheduled_rows() {
+		$published    = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
+		$pending_send = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+		// Should NOT match: not publish/private.
+		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
+
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => [ 'publish', 'private' ] ] )
+		);
+
+		$query = $this->run_newsletter_query( array_merge( $args, [ 'post_status' => [ 'publish', 'private' ] ] ) );
+
+		$this->assertContains( $published, $query->posts, 'plain published row surfaces' );
+		$this->assertNotContains( $pending_send, $query->posts, 'in-flight scheduled publish row is excluded' );
+		$this->assertNotContains( $plain_draft, $query->posts, 'plain draft is excluded by status filter' );
+	}
+
+	/**
+	 * Draft filter (`draft,pending,auto-draft`) must exclude rows with
+	 * `sending_scheduled` meta — a draft that was queued for sending but
+	 * never completed (e.g. after retries gave up) renders as Scheduled
+	 * in the column, so it shouldn't surface under Draft.
+	 */
+	public function test_draft_filter_excludes_inflight_scheduled_rows() {
+		$plain_draft  = $this->make_newsletter( [ 'post_status' => 'draft' ] );
+		$pending_send = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => [ 'draft', 'pending', 'auto-draft' ] ] )
+		);
+
+		$query = $this->run_newsletter_query(
+			array_merge( $args, [ 'post_status' => [ 'draft', 'pending', 'auto-draft' ] ] )
+		);
+
+		$this->assertContains( $plain_draft, $query->posts, 'plain draft surfaces' );
+		$this->assertNotContains( $pending_send, $query->posts, 'in-flight scheduled draft is excluded' );
+	}
+
+	/**
+	 * Trash filter must still include trashed rows even if they carry
+	 * leftover `sending_scheduled` meta — `get_status_for_post` short-
+	 * circuits to `trash` kind before the scheduled check, so the column
+	 * renders them as Trash and the filter should surface them.
+	 */
+	public function test_trash_filter_includes_trashed_rows_with_sending_scheduled_meta() {
+		$trashed = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+		wp_trash_post( $trashed );
+
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => 'trash' ] )
+		);
+
+		$query = $this->run_newsletter_query( array_merge( $args, [ 'post_status' => [ 'trash' ] ] ) );
+
+		$this->assertContains( $trashed, $query->posts, 'trashed row with sending_scheduled meta still surfaces under Trash' );
 	}
 
 	/**
@@ -407,7 +581,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	public function test_expand_scheduled_filter_widens_post_status_when_future_is_selected() {
 		// Sole-`future` selection: trash NOT included.
 		foreach ( [ 'future', [ 'future' ] ] as $value ) {
-			$args = Newsletters_List_REST::expand_scheduled_filter(
+			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 				[],
 				$this->rest_request( [ 'status' => $value ] )
 			);
@@ -418,7 +592,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 		// Future + other published statuses: still no trash.
 		foreach ( [ 'future,publish,private', [ 'future', 'publish', 'private' ] ] as $value ) {
-			$args = Newsletters_List_REST::expand_scheduled_filter(
+			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 				[],
 				$this->rest_request( [ 'status' => $value ] )
 			);
@@ -429,7 +603,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		// Future + trash: trash MUST be in the widened set, otherwise
 		// WP_Query filters it out before `posts_where` can preserve it.
 		foreach ( [ 'future,trash', [ 'future', 'trash' ] ] as $value ) {
-			$args = Newsletters_List_REST::expand_scheduled_filter(
+			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 				[],
 				$this->rest_request( [ 'status' => $value ] )
 			);
@@ -469,7 +643,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			]
 		);
 
-		$args = Newsletters_List_REST::expand_scheduled_filter(
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 			[],
 			$this->rest_request( [ 'status' => 'future' ] )
 		);
@@ -524,7 +698,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		// out by the OR clause.
 		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
 
-		$args = Newsletters_List_REST::expand_scheduled_filter(
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 			[],
 			$this->rest_request( [ 'status' => [ 'future', 'publish', 'private' ] ] )
 		);
@@ -578,7 +752,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		// Should NOT match: not future, not trashed, no sending_scheduled meta.
 		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
 
-		$args = Newsletters_List_REST::expand_scheduled_filter(
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 			[],
 			$this->rest_request( [ 'status' => [ 'future', 'trash' ] ] )
 		);
