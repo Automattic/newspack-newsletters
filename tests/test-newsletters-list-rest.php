@@ -36,11 +36,10 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper: run a WP_Query against the newsletters CPT with the args
-	 * `align_status_filter_with_scheduled_meta` returned, so the one-shot
-	 * `posts_where` callbacks actually fire and remove themselves.
+	 * Run a WP_Query against the newsletters CPT so any installed
+	 * one-shot `posts_where` callbacks actually fire.
 	 *
-	 * @param array $args Extra query args (post_status, etc.) layered on top.
+	 * @param array $args Extra query args layered on top of the defaults.
 	 * @return \WP_Query
 	 */
 	private function run_newsletter_query( $args = [] ) {
@@ -59,9 +58,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper: count callbacks currently registered on `posts_where`.
-	 * Used to assert that `align_status_filter_with_scheduled_meta`
-	 * installed (or didn't install) its one-shot filter.
+	 * Count callbacks currently registered on `posts_where`.
 	 *
 	 * @return int
 	 */
@@ -415,9 +412,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Empty / absent Status selection is a true pass-through — args
-	 * unchanged AND no `posts_where` installed. Anything else fires one
-	 * of the two branches and is covered by the dedicated tests below.
+	 * Empty selection is a true pass-through — no `posts_where` installed.
 	 */
 	public function test_align_status_filter_with_scheduled_meta_passes_through_when_selection_empty() {
 		$cases = [
@@ -446,11 +441,8 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Non-empty selection without `future` doesn't mutate `$args`
-	 * (post_status passes straight through to WP_Query), but it MUST
-	 * install the inverse `posts_where` that excludes `sending_scheduled`
-	 * rows — otherwise Sent / Draft filters silently include rows that
-	 * render as Scheduled.
+	 * Non-empty selection without `future` must install the exclusion
+	 * `posts_where`, otherwise in-flight scheduled rows leak in.
 	 */
 	public function test_align_status_filter_with_scheduled_meta_installs_inverse_where_when_future_absent() {
 		$cases = [
@@ -477,16 +469,14 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'A posts_where callback should be installed for params: ' . wp_json_encode( $params )
 			);
 
-			// Drain the one-shot by triggering it against a no-op WP_Query
-			// so we don't leak state into subsequent assertions.
+			// Drain the one-shot so it doesn't leak into the next iteration.
 			apply_filters( 'posts_where', '' );
 		}
 	}
 
 	/**
-	 * Sent filter (`publish,private`) must exclude rows that carry
-	 * `sending_scheduled` meta — otherwise an in-flight publish row
-	 * leaks in even though the column renders it as Scheduled.
+	 * Sent filter excludes publish rows carrying `sending_scheduled` meta
+	 * — the column renders them as Scheduled.
 	 */
 	public function test_sent_filter_excludes_inflight_scheduled_rows() {
 		$published    = $this->make_newsletter(
@@ -502,7 +492,6 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'meta_input'  => [ 'sending_scheduled' => true ],
 			]
 		);
-		// Should NOT match: not publish/private.
 		$plain_draft = $this->make_newsletter( [ 'post_status' => 'draft' ] );
 
 		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
@@ -518,10 +507,8 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Draft filter (`draft,pending,auto-draft`) must exclude rows with
-	 * `sending_scheduled` meta — a draft that was queued for sending but
-	 * never completed (e.g. after retries gave up) renders as Scheduled
-	 * in the column, so it shouldn't surface under Draft.
+	 * Draft filter excludes draft rows carrying `sending_scheduled` meta
+	 * — e.g. a queued send that gave up after retries renders as Scheduled.
 	 */
 	public function test_draft_filter_excludes_inflight_scheduled_rows() {
 		$plain_draft  = $this->make_newsletter( [ 'post_status' => 'draft' ] );
@@ -546,10 +533,8 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Trash filter must still include trashed rows even if they carry
-	 * leftover `sending_scheduled` meta — `get_status_for_post` short-
-	 * circuits to `trash` kind before the scheduled check, so the column
-	 * renders them as Trash and the filter should surface them.
+	 * Trash filter still includes trashed rows with leftover
+	 * `sending_scheduled` meta — they render as Trash, not Scheduled.
 	 */
 	public function test_trash_filter_includes_trashed_rows_with_sending_scheduled_meta() {
 		$trashed = $this->make_newsletter(

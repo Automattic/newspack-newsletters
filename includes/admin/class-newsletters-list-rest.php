@@ -101,36 +101,10 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Reconcile the DataView Status filter with the derived status the
-	 * column actually renders. The filter values map to raw `post_status`,
-	 * but `get_status_for_post` also promotes any row carrying the
-	 * in-flight `sending_scheduled` meta to "Scheduled" — so a `publish`
-	 * row mid-send renders as Scheduled, not Sent. Without this filter,
-	 * a Sent (or Draft) selection would silently include those rows.
-	 *
-	 * Two opposing cases, both anchored on whether `future` is in the
-	 * user's selection:
-	 *
-	 * 1. **`future` selected** (alone or mixed). Widen `post_status` to
-	 *    the union of the user's selection and the statuses where a
-	 *    `sending_scheduled` row might live, then install a one-shot
-	 *    `posts_where` that re-narrows to
-	 *    `(post_status IN <user selection> OR EXISTS sending_scheduled)`.
-	 *    This surfaces in-flight scheduled rows alongside the user's
-	 *    explicit picks (e.g. `future,publish` keeps published rows AND
-	 *    pulls in any publish-with-`sending_scheduled` row).
-	 *
-	 * 2. **`future` not selected** (non-empty selection). Install a
-	 *    `posts_where` that excludes rows with `sending_scheduled` meta
-	 *    so they don't leak into Sent or Draft. Trash is exempt:
-	 *    `get_status_for_post` short-circuits to `trash` kind before the
-	 *    `sending_scheduled` check, so a trashed row with leftover meta
-	 *    still renders as Trash and must survive the Trash filter.
-	 *
-	 * Empty selection (no Status filter active) passes through unchanged.
-	 *
-	 * The `posts_where` callbacks remove themselves after firing so they
-	 * stay scoped to the single query.
+	 * Reconcile the Status filter with the kind `get_status_for_post`
+	 * actually renders: any row carrying `sending_scheduled` meta is
+	 * promoted to "Scheduled" regardless of `post_status`, so the raw
+	 * filter value alone misclassifies in-flight rows under Sent/Draft.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -164,23 +138,16 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Case 1 of `align_status_filter_with_scheduled_meta`: future IS in
-	 * the user's selection. Widen `post_status` to include the statuses
-	 * where a `sending_scheduled` row might live, then install a
-	 * `posts_where` that re-narrows to `(post_status IN <selection> OR
-	 * EXISTS sending_scheduled)`.
+	 * `future` selected: surface in-flight scheduled rows alongside the
+	 * user's picks. Widens `post_status` then narrows back via
+	 * `posts_where` — anything outside the widened set is unreachable
+	 * because WP_Query applies `post_status IN (...)` first.
 	 *
 	 * @param array    $args              Query args being assembled.
 	 * @param string[] $selected_statuses User's status selection (already normalised).
 	 * @return array
 	 */
 	private static function widen_for_scheduled_meta( $args, $selected_statuses ) {
-		// Widened set = the user's selection ∪ the statuses where a
-		// `sending_scheduled` row might live. Starting from the user's
-		// selection (rather than a fixed list) is what lets `trash`
-		// survive a mixed Scheduled+Trash filter — WP_Query has already
-		// applied `post_status IN (...)` by the time `posts_where`
-		// runs, so anything outside the widened set is unreachable.
 		$args['post_status'] = array_values(
 			array_unique(
 				array_merge(
@@ -208,18 +175,9 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Case 2 of `align_status_filter_with_scheduled_meta`: future is NOT
-	 * in the user's selection. Install a `posts_where` that excludes
-	 * rows carrying `sending_scheduled` meta (which would otherwise
-	 * render as Scheduled). Trashed rows are exempt — they render as
-	 * Trash via the short-circuit in `get_status_for_post`, so the
-	 * Trash filter must still surface them even when leftover meta is
-	 * present.
-	 *
-	 * `sending_scheduled` is only ever written via `update_post_meta(…,
-	 * true)` (stored as `'1'`) or removed via `delete_post_meta`, so the
-	 * `<> ''` truthy guard plus `EXISTS` matches the renderer's
-	 * `get_post_meta(…)` check exactly.
+	 * `future` not selected: exclude rows that would render as Scheduled.
+	 * Trash is exempt because `get_status_for_post` short-circuits to
+	 * `trash` kind before the `sending_scheduled` check.
 	 *
 	 * @param array $args Query args being assembled.
 	 * @return array
