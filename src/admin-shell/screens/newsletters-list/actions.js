@@ -9,14 +9,13 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { Button } from '@wordpress/components';
-import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { edit, trash } from '@wordpress/icons';
 
 import { getAdminUrl } from '../../admin-globals';
+import ConfirmModal from '../../components/confirm-modal';
 import RenameForm from '../../components/rename-form';
-import { notifyError, notifySuccess } from '../../notices';
+import { runBulk } from '../../utils/bulk-action';
 import { isTrashed } from './status-label';
 
 const POSTS_PATH = '/wp/v2/newspack_nl_cpt';
@@ -61,37 +60,6 @@ const setIsPublic = ( id, isPublic ) =>
 		data: { meta: { is_public: !! isPublic } },
 	} );
 
-function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, question, isDestructive, onConfirm } ) {
-	const [ isBusy, setIsBusy ] = useState( false );
-	return (
-		<div>
-			<p>{ question }</p>
-			<div style={ { display: 'flex', gap: '8px', justifyContent: 'flex-end' } }>
-				<Button variant="tertiary" onClick={ closeModal } disabled={ isBusy }>
-					{ __( 'Cancel', 'newspack-newsletters' ) }
-				</Button>
-				<Button
-					variant="primary"
-					isDestructive={ isDestructive }
-					isBusy={ isBusy }
-					disabled={ isBusy }
-					onClick={ async () => {
-						setIsBusy( true );
-						try {
-							await onConfirm( items );
-							closeModal();
-						} catch ( error ) {
-							setIsBusy( false );
-						}
-					} }
-				>
-					{ isBusy ? confirmingLabel : confirmLabel }
-				</Button>
-			</div>
-		</div>
-	);
-}
-
 // Eligibility predicates extracted to constants so each non-modal bulk
 // callback can re-apply them to the selection. DataViews only filters
 // by `isEligible` automatically for **modal** bulk actions; plain
@@ -100,6 +68,20 @@ function ConfirmModal( { items, closeModal, confirmLabel, confirmingLabel, quest
 // the latter when they hit "Restore".
 const isMakePublicEligible = item => ! isTrashed( item ) && ! item?.meta?.is_public;
 const isMakeNonPublicEligible = item => ! isTrashed( item ) && !! item?.meta?.is_public;
+
+const visibilitySuccess = n =>
+	sprintf(
+		/* translators: %d: number of newsletters updated */
+		_n( 'Visibility updated for %d newsletter.', 'Visibility updated for %d newsletters.', n, 'newspack-newsletters' ),
+		n
+	);
+
+const visibilityFailure = n =>
+	sprintf(
+		/* translators: %d: number of newsletters that failed */
+		_n( 'Failed to update visibility for %d newsletter.', 'Failed to update visibility for %d newsletters.', n, 'newspack-newsletters' ),
+		n
+	);
 
 export function getActions( { refresh, openQuickEdit } ) {
 	const editAction = {
@@ -175,42 +157,11 @@ export function getActions( { refresh, openQuickEdit } ) {
 			if ( eligible.length === 0 ) {
 				return;
 			}
-			const failed = [];
-			await Promise.all(
-				eligible.map( item =>
-					setIsPublic( item.id, true ).catch( () => {
-						failed.push( item );
-					} )
-				)
-			);
-			refresh();
-			if ( failed.length === 0 ) {
-				notifySuccess(
-					sprintf(
-						/* translators: %d: number of newsletters updated */
-						_n(
-							'Visibility updated for %d newsletter.',
-							'Visibility updated for %d newsletters.',
-							eligible.length,
-							'newspack-newsletters'
-						),
-						eligible.length
-					)
-				);
-			} else {
-				notifyError(
-					sprintf(
-						/* translators: %d: number of newsletters that failed */
-						_n(
-							'Failed to update visibility for %d newsletter.',
-							'Failed to update visibility for %d newsletters.',
-							failed.length,
-							'newspack-newsletters'
-						),
-						failed.length
-					)
-				);
-			}
+			await runBulk( eligible, item => setIsPublic( item.id, true ), {
+				refresh,
+				successPlural: visibilitySuccess,
+				failurePlural: visibilityFailure,
+			} );
 		},
 	};
 
@@ -224,42 +175,11 @@ export function getActions( { refresh, openQuickEdit } ) {
 			if ( eligible.length === 0 ) {
 				return;
 			}
-			const failed = [];
-			await Promise.all(
-				eligible.map( item =>
-					setIsPublic( item.id, false ).catch( () => {
-						failed.push( item );
-					} )
-				)
-			);
-			refresh();
-			if ( failed.length === 0 ) {
-				notifySuccess(
-					sprintf(
-						/* translators: %d: number of newsletters updated */
-						_n(
-							'Visibility updated for %d newsletter.',
-							'Visibility updated for %d newsletters.',
-							eligible.length,
-							'newspack-newsletters'
-						),
-						eligible.length
-					)
-				);
-			} else {
-				notifyError(
-					sprintf(
-						/* translators: %d: number of newsletters that failed */
-						_n(
-							'Failed to update visibility for %d newsletter.',
-							'Failed to update visibility for %d newsletters.',
-							failed.length,
-							'newspack-newsletters'
-						),
-						failed.length
-					)
-				);
-			}
+			await runBulk( eligible, item => setIsPublic( item.id, false ), {
+				refresh,
+				successPlural: visibilitySuccess,
+				failurePlural: visibilityFailure,
+			} );
 		},
 	};
 
@@ -289,28 +209,23 @@ export function getActions( { refresh, openQuickEdit } ) {
 					items.length
 				) }
 				isDestructive
-				onConfirm={ async list => {
-					const failed = [];
-					await Promise.all(
-						list.map( item =>
-							trashOne( item.id ).catch( () => {
-								failed.push( item );
-							} )
-						)
-					);
-					refresh();
-					if ( failed.length === 0 ) {
-						notifySuccess( _n( 'Newsletter moved to trash.', 'Newsletters moved to trash.', list.length, 'newspack-newsletters' ) );
-					} else {
-						notifyError(
+				onConfirm={ list =>
+					runBulk( list, item => trashOne( item.id ), {
+						refresh,
+						successPlural: n => _n( 'Newsletter moved to trash.', 'Newsletters moved to trash.', n, 'newspack-newsletters' ),
+						failurePlural: n =>
 							sprintf(
 								/* translators: %d: number that failed */
-								__( 'Failed to trash %d newsletter(s). Please try again.', 'newspack-newsletters' ),
-								failed.length
-							)
-						);
-					}
-				} }
+								_n(
+									'Failed to trash %d newsletter. Please try again.',
+									'Failed to trash %d newsletters. Please try again.',
+									n,
+									'newspack-newsletters'
+								),
+								n
+							),
+					} )
+				}
 			/>
 		),
 	};
@@ -325,26 +240,16 @@ export function getActions( { refresh, openQuickEdit } ) {
 			if ( eligible.length === 0 ) {
 				return;
 			}
-			const failed = [];
-			await Promise.all(
-				eligible.map( item =>
-					restoreOne( item.id ).catch( () => {
-						failed.push( item );
-					} )
-				)
-			);
-			refresh();
-			if ( failed.length === 0 ) {
-				notifySuccess( _n( 'Newsletter restored.', 'Newsletters restored.', eligible.length, 'newspack-newsletters' ) );
-			} else {
-				notifyError(
+			await runBulk( eligible, item => restoreOne( item.id ), {
+				refresh,
+				successPlural: n => _n( 'Newsletter restored.', 'Newsletters restored.', n, 'newspack-newsletters' ),
+				failurePlural: n =>
 					sprintf(
 						/* translators: %d: number that failed */
-						__( 'Failed to restore %d newsletter(s).', 'newspack-newsletters' ),
-						failed.length
-					)
-				);
-			}
+						_n( 'Failed to restore %d newsletter.', 'Failed to restore %d newsletters.', n, 'newspack-newsletters' ),
+						n
+					),
+			} );
 		},
 	};
 
@@ -371,28 +276,18 @@ export function getActions( { refresh, openQuickEdit } ) {
 					items.length
 				) }
 				isDestructive
-				onConfirm={ async list => {
-					const failed = [];
-					await Promise.all(
-						list.map( item =>
-							deleteOne( item.id ).catch( () => {
-								failed.push( item );
-							} )
-						)
-					);
-					refresh();
-					if ( failed.length === 0 ) {
-						notifySuccess( _n( 'Newsletter deleted.', 'Newsletters deleted.', list.length, 'newspack-newsletters' ) );
-					} else {
-						notifyError(
+				onConfirm={ list =>
+					runBulk( list, item => deleteOne( item.id ), {
+						refresh,
+						successPlural: n => _n( 'Newsletter deleted.', 'Newsletters deleted.', n, 'newspack-newsletters' ),
+						failurePlural: n =>
 							sprintf(
 								/* translators: %d: number that failed */
-								__( 'Failed to delete %d newsletter(s).', 'newspack-newsletters' ),
-								failed.length
-							)
-						);
-					}
-				} }
+								_n( 'Failed to delete %d newsletter.', 'Failed to delete %d newsletters.', n, 'newspack-newsletters' ),
+								n
+							),
+					} )
+				}
 			/>
 		),
 	};

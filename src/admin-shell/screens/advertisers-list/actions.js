@@ -9,57 +9,14 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { Button } from '@wordpress/components';
-import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
-import { notifyError, notifySuccess } from '../../notices';
+import ConfirmModal from '../../components/confirm-modal';
+import { runBulk } from '../../utils/bulk-action';
 
 const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
 
 const deleteOne = id => apiFetch( { path: `${ TAXONOMY_PATH }/${ id }?force=true`, method: 'DELETE' } );
-
-function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
-	const [ isBusy, setIsBusy ] = useState( false );
-	const question = sprintf(
-		/* translators: %d: number of advertisers */
-		_n(
-			'Permanently delete %d advertiser? Ads referencing it will lose the assignment. This cannot be undone.',
-			'Permanently delete %d advertisers? Ads referencing them will lose the assignment. This cannot be undone.',
-			items.length,
-			'newspack-newsletters'
-		),
-		items.length
-	);
-
-	return (
-		<div>
-			<p>{ question }</p>
-			<div style={ { display: 'flex', gap: '8px', justifyContent: 'flex-end' } }>
-				<Button variant="tertiary" onClick={ closeModal } disabled={ isBusy }>
-					{ __( 'Cancel', 'newspack-newsletters' ) }
-				</Button>
-				<Button
-					variant="primary"
-					isDestructive
-					isBusy={ isBusy }
-					disabled={ isBusy }
-					onClick={ async () => {
-						setIsBusy( true );
-						try {
-							await onConfirm( items );
-							closeModal();
-						} catch ( error ) {
-							setIsBusy( false );
-						}
-					} }
-				>
-					{ isBusy ? __( 'Deleting…', 'newspack-newsletters' ) : __( 'Delete permanently', 'newspack-newsletters' ) }
-				</Button>
-			</div>
-		</div>
-	);
-}
 
 export function getActions( { onEdit, onMutated } ) {
 	const editAction = {
@@ -81,36 +38,44 @@ export function getActions( { onEdit, onMutated } ) {
 		isDestructive: true,
 		supportsBulk: true,
 		RenderModal: ( { items, closeModal } ) => (
-			<ConfirmDeleteModal
+			<ConfirmModal
 				items={ items }
 				closeModal={ closeModal }
-				onConfirm={ async list => {
-					const failed = [];
-					await Promise.all(
-						list.map( item =>
-							deleteOne( item.id ).catch( () => {
-								failed.push( item );
-							} )
-						)
-					);
-					// `onMutated` refetches both the paginated list and
-					// the all-advertisers cache that powers the parent
-					// picker — without the second refetch, a deleted
-					// term would linger in the modal's TreeSelect and
-					// fail server-side if picked as a parent.
-					onMutated();
-					if ( failed.length === 0 ) {
-						notifySuccess( _n( 'Advertiser deleted.', 'Advertisers deleted.', list.length, 'newspack-newsletters' ) );
-					} else {
-						notifyError(
+				confirmLabel={ __( 'Delete permanently', 'newspack-newsletters' ) }
+				confirmingLabel={ __( 'Deleting…', 'newspack-newsletters' ) }
+				question={ sprintf(
+					/* translators: %d: number of advertisers */
+					_n(
+						'Permanently delete %d advertiser? Ads referencing it will lose the assignment. This cannot be undone.',
+						'Permanently delete %d advertisers? Ads referencing them will lose the assignment. This cannot be undone.',
+						items.length,
+						'newspack-newsletters'
+					),
+					items.length
+				) }
+				isDestructive
+				onConfirm={ list =>
+					runBulk( list, item => deleteOne( item.id ), {
+						// `onMutated` refetches both the paginated list and
+						// the all-advertisers cache that powers the parent
+						// picker — without the second refetch, a deleted
+						// term would linger in the modal's TreeSelect and
+						// fail server-side if picked as a parent.
+						refresh: onMutated,
+						successPlural: n => _n( 'Advertiser deleted.', 'Advertisers deleted.', n, 'newspack-newsletters' ),
+						failurePlural: n =>
 							sprintf(
 								/* translators: %d: number that failed */
-								__( 'Failed to delete %d advertiser(s). Please try again.', 'newspack-newsletters' ),
-								failed.length
-							)
-						);
-					}
-				} }
+								_n(
+									'Failed to delete %d advertiser. Please try again.',
+									'Failed to delete %d advertisers. Please try again.',
+									n,
+									'newspack-newsletters'
+								),
+								n
+							),
+					} )
+				}
 			/>
 		),
 	};

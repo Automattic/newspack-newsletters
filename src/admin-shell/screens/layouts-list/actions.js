@@ -3,16 +3,12 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import {
-	Button,
-	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
-	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
-} from '@wordpress/components';
-import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
+import ConfirmModal from '../../components/confirm-modal';
 import { notifyError, notifySuccess } from '../../notices';
+import { runBulk } from '../../utils/bulk-action';
 
 const COLLECTION_PATH = `/wp/v2/${ LAYOUT_CPT_SLUG }`;
 
@@ -75,48 +71,6 @@ async function duplicateSaved( item ) {
 
 const duplicateOne = item => ( item?.is_prebuilt ? duplicatePrebuilt( item ) : duplicateSaved( item ) );
 
-function ConfirmDeleteModal( { items, closeModal, onConfirm } ) {
-	const [ isBusy, setIsBusy ] = useState( false );
-	const question = sprintf(
-		/* translators: %d: number of layouts */
-		_n(
-			'Permanently delete %d layout? Newsletters created from it keep their content; only the saved layout entry is removed. This cannot be undone.',
-			'Permanently delete %d layouts? Newsletters created from them keep their content; only the saved layout entries are removed. This cannot be undone.',
-			items.length,
-			'newspack-newsletters'
-		),
-		items.length
-	);
-
-	return (
-		<VStack spacing={ 4 }>
-			<p style={ { margin: 0 } }>{ question }</p>
-			<HStack justify="flex-end" spacing={ 2 }>
-				<Button variant="tertiary" onClick={ closeModal } disabled={ isBusy }>
-					{ __( 'Cancel', 'newspack-newsletters' ) }
-				</Button>
-				<Button
-					variant="primary"
-					isDestructive
-					isBusy={ isBusy }
-					disabled={ isBusy }
-					onClick={ async () => {
-						setIsBusy( true );
-						try {
-							await onConfirm( items );
-							closeModal();
-						} catch ( error ) {
-							setIsBusy( false );
-						}
-					} }
-				>
-					{ isBusy ? __( 'Deleting…', 'newspack-newsletters' ) : __( 'Delete permanently', 'newspack-newsletters' ) }
-				</Button>
-			</HStack>
-		</VStack>
-	);
-}
-
 // Prebuilts are bundled JSON, shared across every site, and locked from
 // every mutating action in this view.
 const isUserOwned = item => ! item?.is_prebuilt;
@@ -175,31 +129,39 @@ export function getActions( { onRenameStart, onMutated } ) {
 		isEligible: isUserOwned,
 		modalSize: 'small',
 		RenderModal: ( { items, closeModal } ) => (
-			<ConfirmDeleteModal
+			<ConfirmModal
 				items={ items }
 				closeModal={ closeModal }
-				onConfirm={ async list => {
-					const failed = [];
-					await Promise.all(
-						list.map( item =>
-							deleteOne( item.id ).catch( () => {
-								failed.push( item );
-							} )
-						)
-					);
-					onMutated();
-					if ( failed.length === 0 ) {
-						notifySuccess( _n( 'Layout deleted.', 'Layouts deleted.', list.length, 'newspack-newsletters' ) );
-					} else {
-						notifyError(
+				confirmLabel={ __( 'Delete permanently', 'newspack-newsletters' ) }
+				confirmingLabel={ __( 'Deleting…', 'newspack-newsletters' ) }
+				question={ sprintf(
+					/* translators: %d: number of layouts */
+					_n(
+						'Permanently delete %d layout? Newsletters created from it keep their content; only the saved layout entry is removed. This cannot be undone.',
+						'Permanently delete %d layouts? Newsletters created from them keep their content; only the saved layout entries are removed. This cannot be undone.',
+						items.length,
+						'newspack-newsletters'
+					),
+					items.length
+				) }
+				isDestructive
+				onConfirm={ list =>
+					runBulk( list, item => deleteOne( item.id ), {
+						refresh: onMutated,
+						successPlural: n => _n( 'Layout deleted.', 'Layouts deleted.', n, 'newspack-newsletters' ),
+						failurePlural: n =>
 							sprintf(
 								/* translators: %d: number that failed */
-								__( 'Failed to delete %d layout(s). Please try again.', 'newspack-newsletters' ),
-								failed.length
-							)
-						);
-					}
-				} }
+								_n(
+									'Failed to delete %d layout. Please try again.',
+									'Failed to delete %d layouts. Please try again.',
+									n,
+									'newspack-newsletters'
+								),
+								n
+							),
+					} )
+				}
 			/>
 		),
 	};
