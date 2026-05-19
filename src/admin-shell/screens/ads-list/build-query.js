@@ -14,13 +14,15 @@
  *   same set the publisher previously saw on the classic CPT list.
  */
 
+import { buildQueryParams as baseBuildQueryParams, toQueryString } from '../../utils/build-query';
+
 // `future` covers WP-scheduled ads (the standard Publish-Schedule UI) —
 // the React Ads list and the consolidated status payload both treat
 // these as `kind=scheduled` regardless of `start_date` meta. Without
 // `future` in the default set, WP-scheduled rows would silently
 // disappear from the list (the classic CPT list showed them).
 // `auto-draft` keeps an abandoned "Add new" visible.
-const DEFAULT_STATUSES = [ 'publish', 'private', 'future', 'draft', 'pending', 'auto-draft' ];
+const DEFAULT_STATUSES = 'publish,private,future,draft,pending,auto-draft';
 
 // Each value is the WP REST taxonomy filter param — i.e. the
 // taxonomy's `rest_base`, which defaults to the taxonomy slug when
@@ -45,81 +47,16 @@ const SORT_FIELD_TO_ORDERBY = {
 	clicks: 'clicks',
 };
 
-function asArray( value ) {
-	if ( Array.isArray( value ) ) {
-		return value;
-	}
-	if ( value === undefined || value === null || value === '' ) {
-		return [];
-	}
-	return [ value ];
-}
-
 export function buildQueryParams( view = {} ) {
-	const params = {
-		page: view.page || 1,
-		per_page: view.perPage || 25,
-		_embed: 'wp:term',
-		context: 'edit',
-	};
-
-	if ( view.search ) {
-		params.search = view.search;
-	}
-
-	if ( view.sort?.field && SORT_FIELD_TO_ORDERBY[ view.sort.field ] ) {
-		params.orderby = SORT_FIELD_TO_ORDERBY[ view.sort.field ];
-		params.order = view.sort.direction === 'asc' ? 'asc' : 'desc';
-	}
-
-	const filters = Array.isArray( view.filters ) ? view.filters : [];
-	const statusFilter = filters.find( filter => filter.field === 'status' );
-
-	if ( statusFilter ) {
-		const kinds = asArray( statusFilter.value );
-		if ( kinds.length > 0 ) {
-			params.newspack_newsletters_ad_status = kinds.join( ',' );
-		}
-	} else {
-		// No kind filter: hand WP a post_status default that matches the
-		// writable statuses publishers see today on the classic list.
-		// Trash is excluded by default — selecting Trash in the filter
-		// flips into the kind path which sets `post_status=trash`
-		// server-side.
-		params.status = DEFAULT_STATUSES.join( ',' );
-	}
-
-	for ( const filter of filters ) {
-		if ( filter.field === 'status' ) {
-			continue;
-		}
-		const param = FIELD_TO_QUERY_PARAM[ filter.field ];
-		if ( ! param ) {
-			continue;
-		}
-		const values = asArray( filter.value );
-		if ( values.length === 0 ) {
-			continue;
-		}
-		params[ param ] = values.join( ',' );
-	}
-
-	return params;
-}
-
-/**
- * Serialise params object into a query string suitable for apiFetch's `path`.
- *
- * @param {Object} params Query params from buildQueryParams.
- * @return {string} Query string starting with `?`.
- */
-export function toQueryString( params ) {
-	const search = new URLSearchParams();
-	Object.entries( params ).forEach( ( [ key, value ] ) => {
-		if ( value === undefined || value === null || value === '' ) {
-			return;
-		}
-		search.append( key, String( value ) );
+	return baseBuildQueryParams( view, {
+		fieldToQueryParam: FIELD_TO_QUERY_PARAM,
+		sortFieldToOrderby: SORT_FIELD_TO_ORDERBY,
+		defaultStatuses: DEFAULT_STATUSES,
+		// Active kind filter → custom REST param; no filter → wide post_status default.
+		statusFilterParam: 'newspack_newsletters_ad_status',
+		defaultStatusParam: 'status',
+		extraParams: { _embed: 'wp:term' },
 	} );
-	return `?${ search.toString() }`;
 }
+
+export { toQueryString };
