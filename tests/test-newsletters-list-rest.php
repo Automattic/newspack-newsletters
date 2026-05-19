@@ -635,6 +635,62 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Scheduled+Sent must exclude publish rows with `scheduling_error`
+	 * (they render as Draft, not Sent or Scheduled), and Scheduled+Draft
+	 * must include them. Both cases previously bypassed the kind logic
+	 * because `future` triggered a separate raw-status branch.
+	 */
+	public function test_scheduled_plus_sent_or_draft_aligns_with_renderer_for_scheduling_error_rows() {
+		$future_post = $this->make_newsletter(
+			[
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			]
+		);
+		$pending_send = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+		$plain_publish = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
+		$errored_publish = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
+			]
+		);
+
+		// Scheduled+Sent: errored_publish renders as Draft → out.
+		$args  = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => [ 'future', 'publish', 'private' ] ] )
+		);
+		$query = $this->run_newsletter_query( $args );
+		$this->assertContains( $future_post, $query->posts, 'Scheduled+Sent: future post surfaces' );
+		$this->assertContains( $pending_send, $query->posts, 'Scheduled+Sent: sending_scheduled draft surfaces' );
+		$this->assertContains( $plain_publish, $query->posts, 'Scheduled+Sent: plain publish surfaces' );
+		$this->assertNotContains( $errored_publish, $query->posts, 'Scheduled+Sent: publish with scheduling_error is excluded (renders as Draft)' );
+
+		// Scheduled+Draft: errored_publish renders as Draft → in.
+		$args  = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => [ 'future', 'draft', 'pending', 'auto-draft' ] ] )
+		);
+		$query = $this->run_newsletter_query( $args );
+		$this->assertContains( $future_post, $query->posts, 'Scheduled+Draft: future post surfaces' );
+		$this->assertContains( $pending_send, $query->posts, 'Scheduled+Draft: sending_scheduled draft surfaces' );
+		$this->assertContains( $errored_publish, $query->posts, 'Scheduled+Draft: publish with scheduling_error surfaces (renders as Draft)' );
+		$this->assertNotContains( $plain_publish, $query->posts, 'Scheduled+Draft: plain publish is excluded (renders as Sent)' );
+	}
+
+	/**
 	 * Trash filter still includes trashed rows with leftover
 	 * `sending_scheduled` meta — they render as Trash, not Scheduled.
 	 */
