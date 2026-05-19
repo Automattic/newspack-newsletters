@@ -8,9 +8,14 @@ import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { LAYOUT_CPT_SLUG } from '../../../utils/consts';
+import { buildQueryParams, toQueryString } from '../../utils/build-query';
 import { notifyError } from '../../notices';
 
 const COLLECTION_PATH = `/wp/v2/${ LAYOUT_CPT_SLUG }`;
+
+// `auto-draft` keeps an abandoned "Add new" visible. `future` is excluded
+// — layouts don't surface scheduling.
+const DEFAULT_STATUSES = 'publish,private,draft,pending,auto-draft';
 
 function parseHeaderInt( value ) {
 	const parsed = parseInt( value, 10 );
@@ -25,31 +30,18 @@ function readPaginationInfo( response ) {
 }
 
 function buildPath( view ) {
-	const params = new URLSearchParams();
-	// `offset` overrides `page` so page 1 can reserve slots for prebuilts
-	// and subsequent pages start mid-collection.
-	if ( typeof view.offset === 'number' ) {
-		params.set( 'offset', String( view.offset ) );
-	} else {
-		params.set( 'page', String( view.page || 1 ) );
-	}
-	params.set( 'per_page', String( view.perPage || 12 ) );
-	params.set( 'context', 'edit' );
-	if ( view.search ) {
-		params.set( 'search', view.search );
-	}
-	if ( view.sort?.field ) {
-		params.set( 'orderby', view.sort.field );
-		params.set( 'order', view.sort.direction === 'asc' ? 'asc' : 'desc' );
-	}
-	// `auto-draft` keeps an abandoned "Add new" visible. `future` is excluded
-	// — layouts don't surface scheduling.
-	params.set( 'status', 'publish,private,draft,pending,auto-draft' );
-	params.set( '_embed', '1' );
-	if ( Array.isArray( view.author ) && view.author.length > 0 ) {
-		params.set( 'author', view.author.join( ',' ) );
-	}
-	return `${ COLLECTION_PATH }?${ params.toString() }`;
+	const params = buildQueryParams( view, {
+		defaultPerPage: 12,
+		defaultStatuses: DEFAULT_STATUSES,
+		// `offset` overrides `page` so page 1 can reserve slots for prebuilts
+		// and subsequent pages start mid-collection.
+		supportsOffset: true,
+		// Legacy `_embed=1` form — layouts pull author + taxonomy + revisions
+		// in one request for the grid preview tooltip.
+		extraParams: { _embed: '1' },
+		arrayParams: [ { viewKey: 'author', param: 'author' } ],
+	} );
+	return `${ COLLECTION_PATH }${ toQueryString( params ) }`;
 }
 
 /**

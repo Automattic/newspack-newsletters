@@ -16,6 +16,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
+import { buildQueryParams, toQueryString } from '../../utils/build-query';
 import { notifyError } from '../../notices';
 
 const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
@@ -33,18 +34,7 @@ function readPaginationInfo( response ) {
 }
 
 function buildPath( view ) {
-	const params = new URLSearchParams();
-	params.set( 'page', String( view.page || 1 ) );
-	params.set( 'per_page', String( view.perPage || 25 ) );
-	params.set( 'context', 'edit' );
-	if ( view.search ) {
-		params.set( 'search', view.search );
-	}
-	if ( view.sort?.field ) {
-		params.set( 'orderby', view.sort.field );
-		params.set( 'order', view.sort.direction === 'asc' ? 'asc' : 'desc' );
-	}
-	return `${ TAXONOMY_PATH }?${ params.toString() }`;
+	return `${ TAXONOMY_PATH }${ toQueryString( buildQueryParams( view ) ) }`;
 }
 
 /**
