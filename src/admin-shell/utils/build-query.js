@@ -1,12 +1,3 @@
-/**
- * Shared DataViews-`view` → REST-query translation for list screens.
- *
- * Each screen contributes its own filter-field-to-REST-param map, its
- * own sort-field-to-orderby map, and (where applicable) its
- * status-filter conventions. The core shape — page / per_page / search /
- * sort / extra embeds — is uniform and lives here.
- */
-
 function asArray( value ) {
 	if ( Array.isArray( value ) ) {
 		return value;
@@ -19,9 +10,6 @@ function asArray( value ) {
 
 /**
  * Translate a DataViews `view` into a flat REST params object.
- *
- * `view` shape (subset we read):
- *   { page, perPage, offset?, sort?: { field, direction }, search?, filters?: [{ field, operator, value }], [arrayParam]?: Array }
  *
  * @param {Object}                                    view                         DataViews view state.
  * @param {Object}                                    options                      Screen-specific bindings.
