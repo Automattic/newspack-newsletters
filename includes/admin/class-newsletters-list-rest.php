@@ -134,7 +134,7 @@ class Newsletters_List_REST {
 			return self::widen_for_scheduled_meta( $args, $values );
 		}
 
-		return self::exclude_scheduled_meta( $args );
+		return self::exclude_scheduled_meta( $args, $values );
 	}
 
 	/**
@@ -176,22 +176,35 @@ class Newsletters_List_REST {
 
 	/**
 	 * `future` not selected: exclude rows the renderer wouldn't show as
-	 * Sent. Both `sending_scheduled` and `scheduling_error` suppress sent
-	 * state in `compute_sent_at`. Trash is exempt because
-	 * `get_status_for_post` short-circuits to `trash` before either check.
+	 * the user's chosen kind. `sending_scheduled` always promotes to
+	 * Scheduled. `scheduling_error` only suppresses Sent — rows fall
+	 * through to Draft, so it must stay included whenever the selection
+	 * asks for Draft. Trash is exempt because `get_status_for_post`
+	 * short-circuits to `trash` before any meta check.
 	 *
-	 * @param array $args Query args being assembled.
+	 * @param array    $args              Query args being assembled.
+	 * @param string[] $selected_statuses User's status selection (already normalised).
 	 * @return array
 	 */
-	private static function exclude_scheduled_meta( $args ) {
-		$callback = static function ( $where ) use ( &$callback ) {
+	private static function exclude_scheduled_meta( $args, $selected_statuses ) {
+		$wants_draft = ! empty( array_intersect( $selected_statuses, [ 'draft', 'pending', 'auto-draft' ] ) );
+
+		$callback = static function ( $where ) use ( &$callback, $wants_draft ) {
 			global $wpdb;
-			$where .= $wpdb->prepare(
-				" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )",
-				'trash',
-				'sending_scheduled',
-				'scheduling_error'
-			);
+			if ( $wants_draft ) {
+				$where .= $wpdb->prepare(
+					" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) )",
+					'trash',
+					'sending_scheduled'
+				);
+			} else {
+				$where .= $wpdb->prepare(
+					" AND ( {$wpdb->posts}.post_status = %s OR NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )",
+					'trash',
+					'sending_scheduled',
+					'scheduling_error'
+				);
+			}
 			remove_filter( 'posts_where', $callback, 10 );
 			return $where;
 		};

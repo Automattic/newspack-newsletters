@@ -516,7 +516,8 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 	/**
 	 * Draft filter excludes draft rows carrying `sending_scheduled` meta
-	 * — e.g. a queued send that gave up after retries renders as Scheduled.
+	 * (those render as Scheduled), but keeps `scheduling_error` rows —
+	 * they still fall through to Draft in `get_status_for_post`.
 	 */
 	public function test_draft_filter_excludes_inflight_scheduled_rows() {
 		$plain_draft  = $this->make_newsletter( [ 'post_status' => 'draft' ] );
@@ -524,6 +525,12 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			[
 				'post_status' => 'draft',
 				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+		$errored_draft = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
 			]
 		);
 
@@ -538,6 +545,55 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 		$this->assertContains( $plain_draft, $query->posts, 'plain draft surfaces' );
 		$this->assertNotContains( $pending_send, $query->posts, 'in-flight scheduled draft is excluded' );
+		$this->assertContains( $errored_draft, $query->posts, 'draft with scheduling_error still surfaces — it renders as Draft' );
+	}
+
+	/**
+	 * Mixed Sent + Draft selection keeps `scheduling_error` rows
+	 * (whether on draft or publish), since the user's selection covers
+	 * the Draft kind they fall through to.
+	 */
+	public function test_mixed_sent_and_draft_filter_keeps_scheduling_error_rows() {
+		$plain_publish = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+			]
+		);
+		$errored_publish = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
+			]
+		);
+		$errored_draft = $this->make_newsletter(
+			[
+				'post_status' => 'draft',
+				'meta_input'  => [ 'scheduling_error' => 'send failed' ],
+			]
+		);
+		$pending_send = $this->make_newsletter(
+			[
+				'post_status' => 'publish',
+				'post_date'   => '2026-04-20 10:00:00',
+				'meta_input'  => [ 'sending_scheduled' => true ],
+			]
+		);
+
+		$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => [ 'publish', 'private', 'draft', 'pending', 'auto-draft' ] ] )
+		);
+
+		$query = $this->run_newsletter_query(
+			array_merge( $args, [ 'post_status' => [ 'publish', 'private', 'draft', 'pending', 'auto-draft' ] ] )
+		);
+
+		$this->assertContains( $plain_publish, $query->posts, 'plain published row surfaces' );
+		$this->assertContains( $errored_publish, $query->posts, 'publish row with scheduling_error stays — renders as Draft' );
+		$this->assertContains( $errored_draft, $query->posts, 'draft with scheduling_error stays — renders as Draft' );
+		$this->assertNotContains( $pending_send, $query->posts, 'in-flight scheduled row stays out — renders as Scheduled' );
 	}
 
 	/**
