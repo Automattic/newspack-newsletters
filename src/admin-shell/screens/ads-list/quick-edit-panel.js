@@ -24,11 +24,13 @@ function useQuickEditCategories() {
 	const [ categories, setCategories ] = useState( [] );
 	useEffect( () => {
 		let cancelled = false;
-		fetchAllTerms( '/wp/v2/categories' ).then( terms => {
-			if ( ! cancelled ) {
-				setCategories( Array.isArray( terms ) ? terms : [] );
-			}
-		} );
+		fetchAllTerms( '/wp/v2/categories' )
+			.then( terms => {
+				if ( ! cancelled ) {
+					setCategories( Array.isArray( terms ) ? terms : [] );
+				}
+			} )
+			.catch( () => {} );
 		return () => {
 			cancelled = true;
 		};

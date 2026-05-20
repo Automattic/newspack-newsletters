@@ -46,8 +46,8 @@ function useFilterTerms() {
 
 	useEffect( () => {
 		let cancelled = false;
-		Promise.all( [ fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ), fetchAllTerms( '/wp/v2/ad_placement' ) ] ).then(
-			( [ advertisers, placements ] ) => {
+		Promise.all( [ fetchAllTerms( '/wp/v2/newspack_nl_advertiser' ), fetchAllTerms( '/wp/v2/ad_placement' ) ] )
+			.then( ( [ advertisers, placements ] ) => {
 				if ( cancelled ) {
 					return;
 				}
@@ -55,8 +55,8 @@ function useFilterTerms() {
 					advertisers: Array.isArray( advertisers ) ? advertisers : [],
 					placements: Array.isArray( placements ) ? placements : [],
 				} );
-			}
-		);
+			} )
+			.catch( () => {} );
 		return () => {
 			cancelled = true;
 		};
