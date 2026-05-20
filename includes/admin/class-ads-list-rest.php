@@ -133,7 +133,7 @@ class Ads_List_REST {
 		$post_status_set = [];
 		$bucket_clauses  = [];
 
-		// `private` is publish-equivalent for lifecycle kinds (a private ad with valid dates is just a publish ad with restricted visibility); `future` folds into `scheduled` only.
+		// `private` is publish-equivalent for lifecycle kinds (a private ad with valid dates is just a published ad with restricted visibility); `future` folds into `scheduled` only.
 		foreach ( $kinds as $kind ) {
 			switch ( $kind ) {
 				case 'trash':
