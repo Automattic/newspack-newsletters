@@ -20,11 +20,7 @@ export function boot() {
 	const container = document.createElement( 'div' );
 	container.className = ROOT_CLASS;
 	document.body.appendChild( container );
-	// `<LocalListModalHost />` flips `window.newspackNewslettersBridgeReady`
-	// and dispatches `bridge-mounted` from its own `useEffect`, so the signal
-	// only fires after its document listeners are installed. A consumer that
-	// reacts to `bridge-mounted` by synchronously dispatching `open-local-list-modal`
-	// is therefore guaranteed to be heard.
+	// `<LocalListModalHost />` flips `bridgeReady` and dispatches `bridge-mounted` from its own effect, so a sync consumer dispatch lands at a ready listener.
 	render( <LocalListModalHost />, container );
 }
 
