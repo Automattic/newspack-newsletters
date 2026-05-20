@@ -270,6 +270,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	public function test_highlight_parent_menu_returns_cpt_url_when_on_a_managed_page() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-list';
+		set_current_screen( 'admin_page_newspack-newsletters-list' );
 
 		$expected = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		$this->assertSame( $expected, Admin_Shell::highlight_parent_menu( 'unrelated.php' ) );
@@ -292,6 +293,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	public function test_highlight_submenu_targets_all_newsletters_for_list_page() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-list';
+		set_current_screen( 'admin_page_newspack-newsletters-list' );
 
 		$expected = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		$this->assertSame( $expected, Admin_Shell::highlight_submenu( 'unrelated' ) );
@@ -308,6 +310,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	public function test_highlight_submenu_targets_ads_cpt_for_ads_list_page() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-ads-list';
+		set_current_screen( 'admin_page_newspack-newsletters-ads-list' );
 
 		$expected = 'edit.php?post_type=' . \Newspack_Newsletters\Ads::CPT;
 		$this->assertSame( $expected, Admin_Shell::highlight_submenu( 'unrelated' ) );
@@ -383,6 +386,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	public function test_highlight_parent_menu_for_ads_page_in_submenu_mode() {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-ads-list';
+		set_current_screen( 'admin_page_newspack-newsletters-ads-list' );
 
 		$expected = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		$this->assertSame( $expected, Admin_Shell::highlight_parent_menu( 'unrelated.php' ) );
@@ -406,6 +410,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-ads-list';
+		set_current_screen( 'admin_page_newspack-newsletters-ads-list' );
 
 		Admin_Shell::patch_wizard_header_active_tab();
 
