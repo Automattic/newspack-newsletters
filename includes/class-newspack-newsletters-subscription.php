@@ -577,21 +577,26 @@ class Newspack_Newsletters_Subscription {
 	public static function sanitize_lists( $lists ) {
 		$sanitized = [];
 		foreach ( $lists as $list ) {
-			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) ) {
-				continue;
-			}
-			$title = is_string( $list['title'] ) ? trim( $list['title'] ) : '';
-			if ( '' === $title ) {
+			if ( ! isset( $list['id'] ) || empty( $list['id'] ) ) {
 				continue;
 			}
 			$entry = [
 				'id'     => $list['id'],
 				'active' => isset( $list['active'] ) ? (bool) $list['active'] : false,
-				'title'  => $title,
 			];
-			// Carry `description` only when present — preserves "omit means leave alone".
-			if ( array_key_exists( 'description', $list ) ) {
-				$entry['description'] = (string) $list['description'];
+			// Carry `title` only when caller supplied a non-empty string.
+			// null / missing / non-string → omit so update() no-ops the field
+			// and the cleanup loop still sees the row in `$existing_ids`.
+			if ( isset( $list['title'] ) && is_string( $list['title'] ) ) {
+				$title = trim( $list['title'] );
+				if ( '' !== $title ) {
+					$entry['title'] = $title;
+				}
+			}
+			// Carry `description` only when caller supplied a string. Casting
+			// null → '' here would silently clobber the stored description.
+			if ( isset( $list['description'] ) && is_string( $list['description'] ) ) {
+				$entry['description'] = $list['description'];
 			}
 			$sanitized[] = $entry;
 		}

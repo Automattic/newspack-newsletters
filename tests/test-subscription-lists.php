@@ -125,6 +125,64 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * External sync callers that include a row with `title => null` (meaning
+	 * "leave the stored title alone") used to have the entire entry dropped
+	 * by sanitize_lists, which then made the cleanup loop deactivate the
+	 * list. The row must survive so its `active` flag is honoured and the
+	 * stored title is preserved.
+	 */
+	public function test_update_lists_keeps_row_when_title_is_null() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$mc_list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$mc_list->update( [ 'active' => true ] );
+		$this->assertTrue( $mc_list->is_active() );
+		$original_title = $mc_list->get_title();
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => $mc_list->get_public_id(),
+					'active' => true,
+					'title'  => null,
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $reloaded->is_active(), 'A null title must not cause the row to be dropped and then deactivated by the cleanup loop' );
+		$this->assertSame( $original_title, $reloaded->get_title(), 'Stored title is preserved when caller sends title => null' );
+	}
+
+	/**
+	 * Sanitization used to cast `description => null` to `''`, which then
+	 * clobbered the stored description via `Subscription_List::update()`.
+	 * A null/absent description must be a no-op.
+	 */
+	public function test_update_lists_preserves_description_when_passed_null() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$mc_list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$mc_list->update( [ 'active' => true ] );
+		$original_description = $mc_list->get_description();
+		$this->assertNotSame( '', $original_description );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'          => $mc_list->get_public_id(),
+					'active'      => true,
+					'title'       => $mc_list->get_title(),
+					'description' => null,
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( $original_description, $reloaded->get_description() );
+	}
+
+	/**
 	 * Test update_lists doesn't drop other-provider rows that were hidden
 	 * from the current-provider UI.
 	 */
