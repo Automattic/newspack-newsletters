@@ -129,7 +129,8 @@ final class Newspack_Newsletters_Layouts {
 			},
 			explode( ',', $raw )
 		);
-		$valid = array_values( array_filter( $emails, 'is_email' ) );
+		// Cap at 10 — auth-gated but `explode( ',', $raw )` is otherwise unbounded.
+		$valid = array_slice( array_values( array_filter( $emails, 'is_email' ) ), 0, 10 );
 
 		if ( empty( $valid ) ) {
 			return new WP_Error(
