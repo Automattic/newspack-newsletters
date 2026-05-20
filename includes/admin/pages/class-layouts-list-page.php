@@ -52,11 +52,16 @@ class Layouts_List_Page extends Admin_Page {
 
 	/**
 	 * Classic CPT list screen the React page shadows. Catches the back
-	 * button in the layout editor.
+	 * button in the layout editor. Returns `null` when the Layouts
+	 * class is missing so a load-order regression degrades to "no
+	 * redirect" rather than fatalling every wp-admin request.
 	 *
-	 * @return string
+	 * @return string|null
 	 */
 	public function get_legacy_screen_id() {
+		if ( ! class_exists( '\Newspack_Newsletters_Layouts' ) ) {
+			return null;
+		}
 		return 'edit-' . \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT;
 	}
 
