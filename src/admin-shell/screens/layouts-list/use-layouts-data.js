@@ -17,8 +17,7 @@ function buildPath( view ) {
 		defaultStatuses: DEFAULT_STATUSES,
 		// `offset` overrides `page` so page 1 can reserve slots for prebuilts.
 		supportsOffset: true,
-		// Legacy `_embed=1` returns author + taxonomy in one go for grid tooltips.
-		extraParams: { _embed: '1' },
+		extraParams: { _embed: 'author,wp:term' },
 		arrayParams: [ { viewKey: 'author', param: 'author' } ],
 	} );
 	return `${ COLLECTION_PATH }${ toQueryString( params ) }`;
