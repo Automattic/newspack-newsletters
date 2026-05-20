@@ -55,6 +55,7 @@ class Settings_REST {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_routes' ] );
+		add_action( 'newspack_newsletters_provider_credentials_changed', [ __CLASS__, 'bust_oauth_cache' ] );
 	}
 
 	/**
@@ -315,13 +316,15 @@ class Settings_REST {
 	}
 
 	/**
-	 * Transient key for the cached OAuth snapshot.
+	 * Transient key for the cached OAuth snapshot. Keyed per user because
+	 * `auth_url` carries a per-user `wp_create_nonce` — sharing the cache
+	 * across users would leak User A's nonce into User B's response.
 	 *
 	 * @param string $provider_slug Provider slug.
 	 * @return string Transient key.
 	 */
 	private static function oauth_cache_key( $provider_slug ) {
-		return 'newspack_newsletters_oauth_state_' . sanitize_key( $provider_slug );
+		return 'newspack_newsletters_oauth_state_' . sanitize_key( $provider_slug ) . '_' . get_current_user_id();
 	}
 
 	/**

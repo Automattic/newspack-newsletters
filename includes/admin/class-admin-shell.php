@@ -24,6 +24,25 @@ class Admin_Shell {
 	const SCRIPT_HANDLE = 'newspack-newsletters-admin-shell';
 
 	/**
+	 * Slug => hookname returned by `add_submenu_page`. Populated by
+	 * `register_menu()` so `Admin_Page::is_admin_page()` survives the
+	 * fresh page instances `get_pages()` returns on every call.
+	 *
+	 * @var array<string,string>
+	 */
+	private static $hook_suffixes = [];
+
+	/**
+	 * Lookup the registered hookname for a given page slug.
+	 *
+	 * @param string $slug Page slug.
+	 * @return string Hookname, or `''` if the slug was not registered.
+	 */
+	public static function get_hook_suffix_for_slug( $slug ) {
+		return isset( self::$hook_suffixes[ $slug ] ) ? self::$hook_suffixes[ $slug ] : '';
+	}
+
+	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
@@ -179,6 +198,7 @@ class Admin_Shell {
 	 */
 	public static function register_menu() {
 		global $_registered_pages;
+		self::$hook_suffixes = [];
 		foreach ( self::get_pages() as $page ) {
 			$parent_slug = $page->get_parent_slug();
 			$hook_suffix = add_submenu_page(
@@ -189,8 +209,9 @@ class Admin_Shell {
 				$page->get_slug(),
 				[ $page, 'render' ]
 			);
-			if ( is_string( $hook_suffix ) ) {
+			if ( is_string( $hook_suffix ) && '' !== $hook_suffix ) {
 				$page->set_hook_suffix( $hook_suffix );
+				self::$hook_suffixes[ $page->get_slug() ] = $hook_suffix;
 			}
 			if ( $page->is_hidden_from_menu() ) {
 				// Hidden React pages (the list views) shadow a classic
