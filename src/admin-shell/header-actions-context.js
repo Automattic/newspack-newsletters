@@ -20,12 +20,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useState } from '@wordpress/element';
 
-const HeaderActionsContext = createContext( null );
+// Split contexts so registrations don't re-render readers and vice versa:
+// `useHeaderActions` callers (screens) consume the stable API; `<PageHeader>` consumes the value.
+const HeaderActionsAPIContext = createContext( null );
+const HeaderActionsValueContext = createContext( [] );
 
 export function HeaderActionsProvider( { children } ) {
-	// `ownerOrder` keeps insertion order so we can resolve "the most
-	// recent registration" without scanning timestamps. `actionsByOwner`
-	// holds each registration's array.
 	const [ registry, setRegistry ] = useState( () => ( {
 		ownerOrder: [],
 		actionsByOwner: {},
@@ -59,6 +59,8 @@ export function HeaderActionsProvider( { children } ) {
 		[]
 	);
 
+	const api = useMemo( () => ( { upsert, remove } ), [ upsert, remove ] );
+
 	const visibleActions = useMemo( () => {
 		const { ownerOrder, actionsByOwner } = registry;
 		if ( ownerOrder.length === 0 ) {
@@ -67,9 +69,11 @@ export function HeaderActionsProvider( { children } ) {
 		return actionsByOwner[ ownerOrder[ ownerOrder.length - 1 ] ] || [];
 	}, [ registry ] );
 
-	const value = useMemo( () => ( { actions: visibleActions, upsert, remove } ), [ visibleActions, upsert, remove ] );
-
-	return <HeaderActionsContext.Provider value={ value }>{ children }</HeaderActionsContext.Provider>;
+	return (
+		<HeaderActionsAPIContext.Provider value={ api }>
+			<HeaderActionsValueContext.Provider value={ visibleActions }>{ children }</HeaderActionsValueContext.Provider>
+		</HeaderActionsAPIContext.Provider>
+	);
 }
 
 /**
@@ -77,8 +81,7 @@ export function HeaderActionsProvider( { children } ) {
  * `<PageHeader />` component to render the action row.
  */
 export function useHeaderActionsValue() {
-	const ctx = useContext( HeaderActionsContext );
-	return ctx ? ctx.actions : [];
+	return useContext( HeaderActionsValueContext );
 }
 
 /**
@@ -100,14 +103,14 @@ export function useHeaderActionsValue() {
  * @param {Array} actions Memoised array of action descriptors.
  */
 export function useHeaderActions( actions ) {
-	const ctx = useContext( HeaderActionsContext );
+	const api = useContext( HeaderActionsAPIContext );
 	const ownerId = useId();
 
 	useEffect( () => {
-		if ( ! ctx ) {
+		if ( ! api ) {
 			return undefined;
 		}
-		ctx.upsert( ownerId, Array.isArray( actions ) ? actions : [] );
-		return () => ctx.remove( ownerId );
-	}, [ ctx, ownerId, actions ] );
+		api.upsert( ownerId, Array.isArray( actions ) ? actions : [] );
+		return () => api.remove( ownerId );
+	}, [ api, ownerId, actions ] );
 }

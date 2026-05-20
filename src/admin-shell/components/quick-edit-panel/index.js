@@ -30,22 +30,11 @@ export default function QuickEditPanel( {
 	className,
 	children,
 } ) {
-	// Route X / Cancel through Modal's exit cycle by dispatching a
-	// synthetic Escape on the overlay. Modal's `handleEscapeKeyDown`
-	// runs `closeModal()` first, which adds `.is-animating-out` and
-	// waits for the slide-out animation before invoking `onRequestClose`.
-	// Calling `onClose` directly would unmount before the animation
-	// has a chance to play.
 	const requestClose = useCallback( () => {
 		if ( isBusy ) {
 			return;
 		}
-		const overlay = document.querySelector( '.newspack-newsletters-quick-edit-modal__overlay' );
-		if ( overlay ) {
-			overlay.dispatchEvent( new KeyboardEvent( 'keydown', { key: 'Escape', code: 'Escape', bubbles: true } ) );
-		} else {
-			onClose();
-		}
+		onClose();
 	}, [ isBusy, onClose ] );
 
 	const handleSubmit = event => {
