@@ -14,7 +14,6 @@
 
 namespace Newspack\Newsletters\Admin\Pages;
 
-use Newspack\Newsletters\Admin\Admin_Page;
 use Newspack_Newsletters;
 use Newspack_Newsletters\Ads;
 
@@ -23,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * "Advertisers" list page — registered in both modes.
  */
-class Advertisers_List_Page extends Admin_Page {
+class Advertisers_List_Page extends Hidden_React_List_Page {
 	/**
 	 * Page slug.
 	 *
@@ -48,34 +47,6 @@ class Advertisers_List_Page extends Admin_Page {
 	 * @return string
 	 */
 	public function get_parent_slug() {
-		if ( Ads::display_ads_menu_item_separately() ) {
-			return 'edit.php?post_type=' . Ads::CPT;
-		}
-		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
-	}
-
-	/**
-	 * The visible click target is the auto-generated taxonomy submenu
-	 * `edit-tags.php?taxonomy=newspack_nl_advertiser` (in standalone) or
-	 * the wizard's "Advertisers" tab (in bundled, where
-	 * `Newsletters_Wizard::registered_taxonomy_advertiser` flips
-	 * `show_in_menu` off). Either way our React page lives behind a
-	 * redirect, not a separate sidebar entry.
-	 *
-	 * @return bool
-	 */
-	public function is_hidden_from_menu() {
-		return true;
-	}
-
-	/**
-	 * Active top-level menu while the advertisers list is rendered.
-	 * Same dynamic placement as the ads list — top-level ads CPT or the
-	 * newsletters CPT depending on `display_ads_menu_item_separately()`.
-	 *
-	 * @return string
-	 */
-	public function get_parent_file() {
 		if ( Ads::display_ads_menu_item_separately() ) {
 			return 'edit.php?post_type=' . Ads::CPT;
 		}
@@ -108,20 +79,13 @@ class Advertisers_List_Page extends Admin_Page {
 	}
 
 	/**
-	 * Build the redirect URL for the legacy advertisers term-management
-	 * screen. Same shape as the ads list redirect — the React page lives
-	 * at `edit.php?post_type=newspack_nl_ads_cpt&page=<slug>` regardless
-	 * of which taxonomy URL the user came from.
+	 * Post type the React page lives under in the admin URL — the ads
+	 * CPT, regardless of which taxonomy URL the user came from.
 	 *
-	 * @param array $forwarded Forwarded query args.
 	 * @return string
 	 */
-	public function get_legacy_redirect_target( $forwarded = [] ) {
-		return \Newspack\Newsletters\Admin\Admin_Shell::build_legacy_redirect_target(
-			Ads::CPT,
-			$this->slug,
-			$forwarded
-		);
+	public function get_redirect_post_type() {
+		return Ads::CPT;
 	}
 
 	/**
