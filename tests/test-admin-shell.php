@@ -6,6 +6,7 @@
  */
 
 use Newspack\Newsletters\Admin\Admin_Shell;
+use Newspack\Newsletters\Admin\Admin_Shell_Menu;
 
 /**
  * Admin Shell Test.
@@ -344,7 +345,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `Admin_Shell::register_menu` registers each hidden page's
+	 * `Admin_Shell_Menu::register_menu` registers each hidden page's
 	 * callback under both the parent-derived hookname (what
 	 * `add_submenu_page` returns) and the URL-derived `admin_page_*`
 	 * hookname `admin.php` line ~182 looks up at request time. Without
@@ -356,7 +357,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 
 		// Run the same hook the admin chrome would fire.
-		Admin_Shell::register_menu();
+		Admin_Shell_Menu::register_menu();
 
 		global $_registered_pages;
 

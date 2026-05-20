@@ -39,7 +39,7 @@ class Newsletters_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * Register under the newsletters CPT parent. `Admin_Shell::register_menu`
+	 * Register under the newsletters CPT parent. `Admin_Shell_Menu::register_menu`
 	 * removes the visible submenu after registration because
 	 * `is_hidden_from_menu()` returns true (inherited from
 	 * `Hidden_React_List_Page`).

@@ -32,9 +32,10 @@ abstract class Admin_Page {
 	protected $capability = 'edit_posts';
 
 	/**
-	 * Hookname returned by `add_submenu_page`. Captured by `Admin_Shell`
-	 * at registration time so `is_admin_page()` can narrow its match to
-	 * the actual admin screen rather than just `$_GET['page']`.
+	 * Hookname returned by `add_submenu_page`. Captured by
+	 * `Admin_Shell_Menu` at registration time so `is_admin_page()` can
+	 * narrow its match to the actual admin screen rather than just
+	 * `$_GET['page']`.
 	 *
 	 * @var string
 	 */
@@ -260,9 +261,9 @@ abstract class Admin_Page {
 		if ( ! $screen ) {
 			return false;
 		}
-		$hook_suffix = $this->hook_suffix ? $this->hook_suffix : Admin_Shell::get_hook_suffix_for_slug( $this->slug );
+		$hook_suffix = $this->hook_suffix ? $this->hook_suffix : Admin_Shell_Menu::get_hook_suffix_for_slug( $this->slug );
 		// `admin_page_<slug>` is the shadow hookname used when the parent
-		// CPT isn't a top-level menu — see Admin_Shell::register_menu.
+		// CPT isn't a top-level menu — see Admin_Shell_Menu::register_menu.
 		$expected = array_filter( [ $hook_suffix, 'admin_page_' . $this->slug ] );
 		return in_array( $screen->id, $expected, true );
 	}
