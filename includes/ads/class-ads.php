@@ -178,6 +178,21 @@ final class Ads {
 	}
 
 	/**
+	 * Top-level admin URL the Newsletter Ads family of pages lives under.
+	 * Resolves the bundled-vs-standalone branch on `display_ads_menu_item_separately()`
+	 * in one place — pages composing menu URLs should call this rather
+	 * than re-implementing the if/else.
+	 *
+	 * @return string
+	 */
+	public static function get_top_level_url() {
+		if ( self::display_ads_menu_item_separately() ) {
+			return 'edit.php?post_type=' . self::CPT;
+		}
+		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+	}
+
+	/**
 	 * Display Newsletter Ads as a separate menu item, if the user can't edit Newsletters but can edit Newsletter Ads.
 	 * Otherwise, the Newsletter Ads will be a submenu item under Newsletters.
 	 */
