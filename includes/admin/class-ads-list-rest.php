@@ -217,12 +217,23 @@ class Ads_List_REST {
 
 		$args['post_status'] = array_values( array_unique( $post_status_set ) );
 
-		$callback = static function ( $where ) use ( &$callback, $bucket_clauses ) {
+		// Per-request token scopes the closure to this specific WP_Query.
+		// Without it, `posts_where` fires for every nested WP_Query in the
+		// same request and the closure would both corrupt those unrelated
+		// queries and `remove_filter` itself before the intended WP_Query
+		// reached `posts_where`.
+		$token                              = uniqid( 'newspack_ads_bucket_', true );
+		$args['_newspack_ads_bucket_token'] = $token;
+
+		$callback = static function ( $where, $wp_query ) use ( &$callback, $token, $bucket_clauses ) {
+			if ( ! is_object( $wp_query ) || $wp_query->get( '_newspack_ads_bucket_token' ) !== $token ) {
+				return $where;
+			}
 			$where .= ' AND ( ' . implode( ' OR ', $bucket_clauses ) . ' )';
 			remove_filter( 'posts_where', $callback, 10 );
 			return $where;
 		};
-		add_filter( 'posts_where', $callback, 10, 1 );
+		add_filter( 'posts_where', $callback, 10, 2 );
 
 		return $args;
 	}

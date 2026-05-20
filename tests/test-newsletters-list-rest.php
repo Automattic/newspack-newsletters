@@ -467,8 +467,10 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'A posts_where callback should be installed for params: ' . wp_json_encode( $params )
 			);
 
-			// Drain the one-shot so it doesn't leak into the next iteration.
-			apply_filters( 'posts_where', '' );
+			// Drain so the next iteration starts from the same baseline.
+			// The closure now token-gates against the WP_Query arg, so
+			// firing `apply_filters` without a matching query is a no-op.
+			remove_all_filters( 'posts_where' );
 		}
 	}
 
