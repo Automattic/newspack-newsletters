@@ -625,9 +625,8 @@ final class Newspack_Newsletters {
 	}
 
 	/**
-	 * Drop redundant Categories / Tags submenus from the Newsletters CPT
-	 * (shared with the Posts CPT; surfacing twice is clutter). Mirrors
-	 * `Newsletters_Wizard::add_page()` in newspack-plugin.
+	 * Drop redundant Categories / Tags submenus from the Newsletters
+	 * CPT — they're shared with Posts and surfacing twice is clutter.
 	 */
 	public static function remove_admin_menu_items() {
 		if ( ! get_post_type_object( self::NEWSPACK_NEWSLETTERS_CPT ) ) {
@@ -1164,9 +1163,7 @@ final class Newspack_Newsletters {
 	 */
 	public static function activation_nag() {
 		$screen = get_current_screen();
-		// Match both the legacy classic settings screen and the new
-		// standalone React settings screen — neither should display the
-		// "head to settings" nag, since the user is already there.
+		// Match both the legacy and React settings screens — neither should show the "head to settings" nag.
 		$on_settings_screen = $screen && is_string( $screen->base ) && false !== strpos( $screen->base, 'newspack-newsletters-settings' );
 		if ( $on_settings_screen || ( $screen && self::NEWSPACK_NEWSLETTERS_CPT === $screen->post_type ) ) {
 			return;
@@ -1203,10 +1200,7 @@ final class Newspack_Newsletters {
 			return;
 		}
 
-		// Banner belongs to the bundled experience. Mirror the filterable
-		// `Admin_Shell::is_bundled_mode()` contract that decides whether
-		// the React Settings page is registered, so a `newspack_newsletters_admin_bundled_mode`
-		// override can't leave the banner enqueued on a standalone shell.
+		// Banner is bundled-only — mirror `Admin_Shell::is_bundled_mode()` so the filter override drops it from a standalone shell too.
 		$is_bundled = class_exists( '\Newspack\Newsletters\Admin\Admin_Shell' )
 			? \Newspack\Newsletters\Admin\Admin_Shell::is_bundled_mode()
 			: class_exists( '\Newspack\Newspack' );

@@ -59,14 +59,9 @@ final class Ads {
 	}
 
 	/**
-	 * REST namespace for ads endpoints.
-	 *
-	 * Originally this was `'wp/v2/' . self::CPT`, but that creates a
-	 * REST namespace whose path collides with the CPT's standard
-	 * collection route at `/wp-json/wp/v2/newspack_nl_ads_cpt`: the
-	 * GET handler is shadowed by the namespace metadata response,
-	 * breaking REST consumers (including the React Ads list). Use a
-	 * distinct, plugin-scoped namespace instead.
+	 * REST namespace for ads endpoints. Plugin-scoped to avoid the
+	 * collision a `wp/v2/<CPT>` namespace has with the CPT's standard
+	 * collection route — the metadata response would shadow the GET.
 	 */
 	const REST_NAMESPACE = 'newspack-newsletters/v1';
 
@@ -178,10 +173,8 @@ final class Ads {
 	}
 
 	/**
-	 * Top-level admin URL the Newsletter Ads family of pages lives under.
-	 * Resolves the bundled-vs-standalone branch on `display_ads_menu_item_separately()`
-	 * in one place — pages composing menu URLs should call this rather
-	 * than re-implementing the if/else.
+	 * Top-level admin URL for the Newsletter Ads page family —
+	 * collapses the bundled-vs-standalone branch into one place.
 	 *
 	 * @return string
 	 */

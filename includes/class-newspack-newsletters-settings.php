@@ -26,13 +26,8 @@ class Newspack_Newsletters_Settings {
 	}
 
 	/**
-	 * Get newsletters settings url.
-	 *
-	 * Mirrors `Admin_Shell::is_bundled_mode()` — the same filterable
-	 * contract decides whether the React Settings page is registered, so
-	 * the URL needs to honour any `newspack_newsletters_admin_bundled_mode`
-	 * override. Falls back to a direct `class_exists` check if Admin_Shell
-	 * isn't loaded yet at call time.
+	 * Get newsletters settings url. Mirrors `Admin_Shell::is_bundled_mode()`
+	 * — falls back to `class_exists` if Admin_Shell isn't loaded yet.
 	 *
 	 * @return string URL to settings page.
 	 */
@@ -224,12 +219,8 @@ class Newspack_Newsletters_Settings {
 	/**
 	 * Register the classic Settings page.
 	 *
-	 * Registers under the original CPT parent so the page's URL and
-	 * `$screen->base` (`newspack_nl_cpt_page_newspack-newsletters-settings-admin`)
-	 * stay stable for callers that detect the settings screen or build the
-	 * settings URL via {@see self::get_settings_url()}. The visible menu
-	 * link is then removed so the React admin shell owns the visible
-	 * Settings entry until the React surface lands.
+	 * URL and screen-base stay stable; the visible menu link is removed
+	 * so the React admin shell owns the entry.
 	 */
 	public static function add_plugin_page() {
 		$parent_slug = 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
