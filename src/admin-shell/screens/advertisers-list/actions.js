@@ -1,11 +1,8 @@
 /**
  * Per-row + bulk actions for the Advertisers list.
  *
- * Edit opens the Add/Edit Modal (no separate edit screen); Delete
- * confirms then calls `DELETE /wp/v2/<taxonomy>/<id>?force=true` (the
- * REST taxonomy endpoint requires `force=true` because terms cannot be
- * trashed — they're either present or absent). Bulk Delete batches the
- * same single-term delete in parallel.
+ * Delete is `force=true` — REST taxonomy terms can't be trashed, only
+ * removed outright.
  */
 
 import apiFetch from '@wordpress/api-fetch';

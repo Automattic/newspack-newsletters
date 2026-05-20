@@ -2,10 +2,6 @@
 /**
  * Admin shell — legacy CPT list redirect.
  *
- * Owns the `current_screen` hook that 302s the classic
- * `edit.php?post_type=…` URLs through to their React replacements,
- * and the helper that builds the redirect target.
- *
  * @package Newspack_Newsletters
  */
 
@@ -18,12 +14,10 @@ defined( 'ABSPATH' ) || exit;
  */
 class Admin_Shell_Legacy_Redirect {
 	/**
-	 * Query args we forward from the legacy URL onto the React page so the
-	 * JS side can seed initial view state. `paged` is deliberately
-	 * omitted — the legacy WP list table uses 20 items per page while the
-	 * DataView defaults to 25, so a `paged=N` carry-over would point at
-	 * the wrong slice anyway. Stick to filter / search / sort args that
-	 * map cleanly onto DataViews state.
+	 * Query args forwarded from the legacy URL onto the React page.
+	 *
+	 * `paged` is deliberately omitted — legacy WP_List_Table uses 20
+	 * per page vs DataView's 25, so the slice wouldn't translate.
 	 */
 	const FORWARDED_LEGACY_ARGS = [
 		'post_status',
@@ -44,10 +38,8 @@ class Admin_Shell_Legacy_Redirect {
 	}
 
 	/**
-	 * Are any of the bulk-action selectors set to a real value (i.e. not
-	 * the `-1` "no action selected" sentinel WP submits when the user
-	 * leaves the dropdown alone)? Both `action` (top-of-table dropdown)
-	 * and `action2` (bottom-of-table dropdown) are checked.
+	 * Whether `action` / `action2` carry a real value (i.e. not WP's
+	 * `-1` "no action selected" sentinel).
 	 *
 	 * @return bool
 	 */
@@ -67,15 +59,11 @@ class Admin_Shell_Legacy_Redirect {
 	}
 
 	/**
-	 * Redirect legacy CPT list GET requests (deep links, browser
-	 * history, third-party menu links) to the matching React page.
-	 * Each chassis page declares its legacy screen id and redirect
-	 * target — this handler iterates pages and lets the matching one
-	 * supply the destination. Form-submission GETs that carry
-	 * `?action=` are left alone so classic admin flows continue to
-	 * work. Filter / search / sort args are forwarded so the React
-	 * page can pre-fill view state — see `getInitialView` on the JS
-	 * side.
+	 * Redirect legacy CPT list GETs to the matching React page.
+	 *
+	 * Form-submission GETs carrying `?action=…` are left alone so
+	 * classic admin flows continue to work; the `-1` sentinel from
+	 * a stale bulk-action submit is treated as a no-op.
 	 *
 	 * @param \WP_Screen $screen Current screen.
 	 */
@@ -98,11 +86,6 @@ class Admin_Shell_Legacy_Redirect {
 			return;
 		}
 
-		// `action=-1` (and the bottom dropdown's `action2=-1`) is WP's
-		// "no bulk action selected" sentinel — typically left in the URL
-		// after the user submits the bulk-actions form without picking
-		// one. Treat it as a no-op so those stale URLs still redirect to
-		// the React page; only bypass for real action values.
 		if ( self::has_real_get_action() ) {
 			return;
 		}
@@ -132,8 +115,6 @@ class Admin_Shell_Legacy_Redirect {
 
 	/**
 	 * Build a redirect target URL for a chassis-managed page.
-	 * Centralises the `?post_type=…&page=…&<forwarded>` shape so each
-	 * page only has to hand over its CPT slug + page slug.
 	 *
 	 * @param string       $post_type CPT slug the page shadows.
 	 * @param string       $page_slug The React page's `?page=` slug.

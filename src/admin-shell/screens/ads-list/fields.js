@@ -1,15 +1,8 @@
 /**
  * Field definitions for the Ads list DataView.
  *
- * Default columns: Title, Status, Advertiser, Ad placement, Start date,
- * Expiration date, Impressions, Clicks, Price. Categories and Date are
- * registered as additional toggleable fields.
- *
- * The Status column renders the consolidated kind from
- * `newspack_newsletters_ad_status`; the Status filter targets the same
- * kinds so the displayed and filtered sets stay in sync — the server
- * (`Ads_List_REST::filter_rest_query`) translates kinds into
- * `post_status` plus the matching date-driven SQL bucket.
+ * Status renders the consolidated kind from
+ * `newspack_newsletters_ad_status` so the column matches the filter.
  */
 
 import { Icon } from '@wordpress/components';

@@ -1,24 +1,17 @@
 /**
- * Shared term/taxonomy helpers for DataView list screens and Quick Edit
- * panels. These deal with reading embedded terms off `_embedded.wp:term`,
- * paginating REST collections beyond the 100-item cap, and round-tripping
- * `FormTokenField` string tokens to `{id, name}` selections. Existing
- * selections preserve their ID across re-renders, which mitigates (but
- * doesn't fully eliminate) duplicate-name ambiguity on hierarchical
- * taxonomies — see `resolveTokens` for the residual trade-off.
+ * Shared term/taxonomy helpers for DataView screens.
+ *
+ * Reads `_embedded.wp:term`, paginates beyond the 100-item REST cap,
+ * and round-trips `FormTokenField` tokens. `resolveTokens` preserves
+ * existing selections' IDs across re-renders (see its comment for the
+ * residual duplicate-name caveat on hierarchical taxonomies).
  */
 
 import apiFetch from '@wordpress/api-fetch';
 
 export const TERMS_PER_PAGE = 100;
 
-// Walk every page of a REST collection and return the flat list. Used
-// because `per_page` caps at 100 server-side, so a single request silently
-// truncates on sites with many terms. Reads `X-WP-TotalPages` from the
-// first response (parse: false to expose the Response object) and keeps
-// requesting until exhausted. Network or shape errors fall back to
-// whatever has been collected so callers degrade to "best effort" rather
-// than empty.
+// Walk every page — `per_page` caps at 100 server-side, so a single request silently truncates on sites with many terms.
 export async function fetchAllTerms( basePath ) {
 	const all = [];
 	let page = 1;
@@ -46,9 +39,7 @@ export async function fetchAllTerms( basePath ) {
 	return all;
 }
 
-// Look up the `_embedded.wp:term` group whose terms belong to the
-// requested taxonomy. Order is not guaranteed across post types, so a
-// keyed lookup is safer than `terms[0]` / `terms[1]`.
+// Keyed lookup — group order isn't guaranteed across post types.
 export const termsForTaxonomy = ( item, taxonomy ) => {
 	const groups = item?._embedded?.[ 'wp:term' ] || [];
 	for ( const group of groups ) {
@@ -68,22 +59,13 @@ export const sortedIdsEqual = ( a, b ) => {
 	if ( a.length !== b.length ) {
 		return false;
 	}
-	// Numeric comparator — `Array.prototype.sort()` defaults to lexicographic
-	// order, so `[2, 10]` would sort to `[10, 2]`. Set-equality still works
-	// either way, but the numeric form removes ambiguity for future readers.
+	// Numeric comparator — default sort is lexicographic (`[2, 10]` → `[10, 2]`).
 	const sa = a.map( s => s.id ).sort( ( x, y ) => x - y );
 	const sb = b.map( s => s.id ).sort( ( x, y ) => x - y );
 	return sa.every( ( v, i ) => v === sb[ i ] );
 };
 
-// Resolve user-typed tokens to `{id, name}` pairs by case-insensitive
-// name match. Existing selections keep their ID across re-renders, so a
-// user who picked one of two same-named terms stays on that one. New
-// tokens (just-typed names) still resolve to the first matching option,
-// so on any hierarchical taxonomy that allows duplicate names — these
-// panels expose Categories and Advertisers as such — a fresh pick can
-// land on the "wrong" sibling. Acceptable trade-off vs. disambiguating
-// every suggestion label; revisit if duplicate-name terms prove common.
+// Existing selections keep their ID; a freshly-typed token resolves to the first name match — duplicate-name siblings on hierarchical taxonomies can land on the "wrong" one (acceptable trade-off vs. disambiguating every suggestion label).
 export const resolveTokens = ( newTokens, currentSelections, options ) =>
 	newTokens
 		.map( token => {

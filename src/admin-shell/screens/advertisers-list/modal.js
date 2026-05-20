@@ -1,22 +1,9 @@
 /**
  * Add/Edit Advertiser Modal — single component, two modes.
  *
- * Mounted by the Advertisers DataView screen's header action ("Add new
- * advertiser") and the per-row Edit action. Shape:
- *
- *   - Name (required, TextControl).
- *   - Description (TextareaControl).
- *   - Slug (TextControl, empty allowed — `wp_insert_term` /
- *     `wp_update_term` generate one server-side from the name when blank;
- *     duplicates surface as a `WP_Error` from the same call).
- *   - Parent advertiser (TreeSelect, indented hierarchy — the taxonomy is
- *     hierarchical and `<SelectControl>` does not show indentation by
- *     default).
- *
- * The Modal handles its own POST/PATCH against `/wp/v2/<taxonomy>` and
- * surfaces `WP_Error` responses as inline messages — slug-collision and
- * the parent-self guard (`Advertisers_List_REST::guard_parent_self`) are
- * the realistic failure modes.
+ * Posts directly to `/wp/v2/<taxonomy>`; slug collisions and the
+ * parent-self guard surface inline. `TreeSelect` (not `SelectControl`)
+ * for the parent picker — the latter doesn't render indentation.
  */
 
 import apiFetch from '@wordpress/api-fetch';

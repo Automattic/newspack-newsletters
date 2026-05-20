@@ -1,17 +1,11 @@
 /**
- * Translate a DataViews `view` object into the query string used by
- * `/wp/v2/newspack_nl_cpt`. Pure function so it's trivial to test.
+ * Translate a DataViews `view` into the `/wp/v2/newspack_nl_cpt`
+ * query string.
  *
- * View shape (subset we care about):
- *   { page, perPage, sort?: { field, direction }, search?, filters?: [{ field, operator, value }] }
- *
- * Notes on filtering:
- * - We map filters to native WP REST params (`status`, `author`) rather
- *   than to our derived `kind` so server-side queries stay simple. The
- *   Status column still renders the derived `kind` (sent/scheduled/draft/
- *   trash) for visual clarity — see `renderStatus` in `fields.js`.
- * - `status=any` excludes trash by default, so we explicitly include the
- *   common writable statuses when no status filter is set.
+ * Filters map to native WP params (`status`, `author`); the Status
+ * column derives the kind in `fields.js`. `status=any` excludes
+ * trash, so we name the writable statuses explicitly when no filter
+ * is set.
  */
 
 import { buildQueryParams as baseBuildQueryParams, toQueryString } from '../../utils/build-query';

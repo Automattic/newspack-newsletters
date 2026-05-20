@@ -1,11 +1,8 @@
 /**
  * Field definitions for the Newsletters list DataView.
  *
- * Columns map the existing CPT list (Title, Public page, Date,
- * Author, Categories) plus modern additions (Status, Send date, Send
- * list). Status renders via the consolidated REST field
- * `newspack_newsletters_status` so we never re-derive sent/scheduled
- * client-side. Server-side sort / filter — see build-query.
+ * Status renders the consolidated `newspack_newsletters_status` REST
+ * field so sent/scheduled is never re-derived client-side.
  */
 
 import { Icon } from '@wordpress/components';

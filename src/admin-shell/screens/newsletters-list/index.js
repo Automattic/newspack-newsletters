@@ -1,9 +1,5 @@
 /**
  * Newsletters list screen — React DataView replacing the classic CPT list.
- *
- * Mounts at `?page=newspack-newsletters-list` (registered in
- * `Newsletters_List_Page`). Server-side paginated; the Status column
- * uses the consolidated `newspack_newsletters_status` REST field.
  */
 
 import { __experimentalHStack as HStack, Spinner } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
@@ -22,10 +18,7 @@ import { getActions } from './actions';
 import { getInitialView } from './initial-filters';
 import NewslettersQuickEditPanel from './quick-edit-panel';
 
-// Spread the URL-seeded patch last so anything forwarded from the
-// legacy CPT URL (status filter, search term, sort) overrides the
-// defaults — see `Admin_Shell::maybe_redirect_legacy_list` and
-// `getInitialView`.
+// URL-seeded patch last so forwarded-from-legacy values override defaults.
 const DEFAULT_VIEW = {
 	type: 'table',
 	page: 1,

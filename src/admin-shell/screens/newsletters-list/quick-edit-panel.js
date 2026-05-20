@@ -1,10 +1,9 @@
 /**
- * Quick Edit panel for the newsletters list. Lazy-loads full term sets
- * so newsletters can be assigned categories/tags that aren't already
- * used elsewhere. Status is intentionally absent — the service-provider
- * base class fires an ESP send on `transition_post_status`. Author is
- * intentionally absent too — the full editor remains the place to
- * reassign authorship.
+ * Quick Edit panel for the newsletters list.
+ *
+ * Status / Author stay in the full editor — status because the
+ * service-provider base class fires an ESP send on
+ * `transition_post_status`.
  */
 
 import apiFetch from '@wordpress/api-fetch';

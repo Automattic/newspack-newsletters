@@ -1,11 +1,7 @@
-// Registry lives on `window` so both bundles that import this module
-// (`wizard-bridge` + `admin-shell`) share one Map. A module-local Map
-// would give each bundle its own copy and registrations made in one
-// would be invisible to the other.
+// `window` so both bundles importing this module share one Map (per-bundle copies would isolate registrations).
 const REGISTRY_KEY = '__newspackNewslettersLocalListModalExtensions';
 
-// Module-scoped fallback for SSR / non-jsdom environments — a fresh Map
-// per call would silently drop every registration.
+// Module-scoped fallback for SSR / non-jsdom — without this a fresh Map per call would drop every registration.
 const FALLBACK_REGISTRY = new Map();
 
 function getRegistry() {

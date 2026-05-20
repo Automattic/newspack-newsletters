@@ -1,17 +1,7 @@
 /**
- * Lightweight fetch of every advertiser term — `id`, `name`, `parent`
- * only — for the Add/Edit Modal's parent picker.
- *
- * The DataView's paginated fetch is the wrong shape for the picker:
- * a hierarchical TreeSelect needs the complete term graph to render
- * indented options and to exclude the descendants of a term being
- * edited. Paging / searching the DataView would otherwise truncate
- * the picker silently — sites with more than one page of advertisers
- * would lose valid parents from the dropdown.
- *
- * Refetched whenever `refreshKey` changes (the screen bumps the key
- * after every successful Modal save) so newly-created or renamed
- * advertisers surface immediately on the next modal open.
+ * Lightweight fetch of every advertiser term for the Modal's parent
+ * picker — the DataView's paginated fetch would silently truncate the
+ * picker on sites with more than one page of advertisers.
  */
 
 import apiFetch from '@wordpress/api-fetch';

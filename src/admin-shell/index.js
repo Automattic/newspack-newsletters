@@ -1,11 +1,6 @@
 /**
- * Admin shell entry point.
- *
- * Resolves the current admin page slug (provided by PHP via the
- * `newspackNewslettersAdmin` global) and mounts the matching screen
- * inside the page's React root container.
- *
- * @see Newspack\Newsletters\Admin\Admin_Shell
+ * Admin shell entry point — resolves the current page slug from the
+ * `newspackNewslettersAdmin` global and mounts the matching screen.
  */
 
 import { createRoot } from '@wordpress/element';
@@ -31,8 +26,6 @@ domReady( () => {
 		return;
 	}
 
-	// Prefer the PHP-localised label so the rendered heading/title stays
-	// aligned with the admin menu label registered in PHP (see
-	// `Admin_Shell_Assets::enqueue`). Registry label is the fallback.
+	// Prefer the PHP-localised label so the rendered heading matches the admin menu — registry label is the fallback.
 	createRoot( target ).render( <App label={ resolveLabel( currentPage ) } Screen={ entry.component } /> );
 } );

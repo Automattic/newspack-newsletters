@@ -1,11 +1,8 @@
 /**
  * Per-row + bulk actions for the Ads list.
  *
- * The ads CPT has no `transition_post_status` ESP-send hazard (the
- * service-provider hook short-circuits on the newsletter CPT only), so
- * destructive lifecycle actions like Trash / Restore / Delete are safe.
- * Activation/deactivation is date-driven — there's no equivalent of the
- * newsletters list's `Make public` toggles.
+ * Trash / Restore / Delete are safe here — unlike the newsletters
+ * list, the ads CPT has no `transition_post_status` ESP-send hazard.
  */
 
 import apiFetch from '@wordpress/api-fetch';

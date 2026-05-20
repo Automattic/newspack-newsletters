@@ -1,9 +1,5 @@
 /**
  * Ads list screen — React DataView replacing the classic ads CPT list.
- *
- * Mounts at `?page=newspack-newsletters-ads-list` (registered in
- * `Ads_List_Page`). Server-side paginated; the Status column uses the
- * consolidated `newspack_newsletters_ad_status` REST field.
  */
 
 import { __experimentalHStack as HStack, Spinner } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis

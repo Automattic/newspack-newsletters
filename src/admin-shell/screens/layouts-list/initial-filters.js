@@ -1,12 +1,9 @@
 /**
  * URL-driven initial view state for the Layouts list.
  *
- * The Layouts page has no legacy admin URL to redirect from (the
- * layouts CPT is `'public' => false` and never surfaced its own
- * `edit.php?post_type=…` admin screen). Even so, expose the same
- * shape the Advertisers / Ads / Newsletters lists do so deep links
- * the chassis may forward in future continue to work, and so
- * URL-shareable filter / sort state is supported day-one.
+ * Mirrors the other lists' shape so URL-shareable filter / sort
+ * state is supported, even though the layouts CPT has no legacy
+ * admin URL to redirect from.
  */
 
 import { makeGetInitialView } from '../../utils/initial-view';

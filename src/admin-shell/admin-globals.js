@@ -1,14 +1,9 @@
 /**
  * Safe getters for the PHP-localised `newspackNewslettersAdmin` global.
  *
- * Importing modules can run outside wp-admin (Jest, Storybook, a
- * misconfigured enqueue), so reaching into `window.newspackNewslettersAdmin`
- * directly throws when the global is absent. These getters use optional
- * chaining + sensible fallbacks so the modules stay importable.
- *
- * The values are PHP-side mirrors; if they ever drift from the real
- * registration, the fallbacks here are a safety net rather than a
- * source of truth — see `Admin_Shell_Assets::enqueue`.
+ * Modules can import outside wp-admin (Jest, Storybook); these getters
+ * use optional chaining + fallbacks so imports don't throw on a
+ * missing global.
  */
 
 const DEFAULT_ADMIN_URL = '/wp-admin/';

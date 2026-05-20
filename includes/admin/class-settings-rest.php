@@ -22,10 +22,9 @@ class Settings_REST {
 	const ROUTE         = 'admin-shell/settings';
 
 	/**
-	 * Allowlist of credential fields exposed to the React shell, keyed by
-	 * provider slug. Constant Contact's `api_credentials()` also returns
-	 * `access_token` / `refresh_token` — long-lived OAuth secrets that
-	 * never need to leave the server.
+	 * Credential fields exposed to the React shell, keyed by provider
+	 * slug. Excludes long-lived OAuth secrets (Constant Contact's
+	 * `access_token` / `refresh_token`) — those never leave the server.
 	 */
 	const PROVIDER_CREDENTIAL_ALLOWLIST = [
 		'mailchimp'        => [ 'api_key' ],
@@ -34,11 +33,9 @@ class Settings_REST {
 	];
 
 	/**
-	 * Settings-list option keys that are managed by the provider /
-	 * credentials section, not the cross-cutting options section. These
-	 * skip the options schema so `get_settings_list()`'s provider-scoped
-	 * *non-credential* entries (e.g. `newspack_mailchimp_auto_append_footer`)
-	 * still surface as options.
+	 * Settings-list option keys managed by the credentials section.
+	 * Skipped by the options schema so provider-scoped *non-credential*
+	 * entries (e.g. `newspack_mailchimp_auto_append_footer`) still surface.
 	 */
 	const PROVIDER_CREDENTIAL_OPTION_KEYS = [
 		'newspack_mailchimp_api_key',
@@ -271,13 +268,11 @@ class Settings_REST {
 	}
 
 	/**
-	 * Resolve the provider's OAuth state for the Settings response.
+	 * Resolve the provider's OAuth state.
 	 *
-	 * The `valid` flag is short-cached (site-global) so the Settings GET
-	 * doesn't hit the provider's verify endpoint on every page load.
-	 * `auth_url` is built fresh on every request — it carries a
-	 * `wp_create_nonce` that's session-token-scoped, so caching it
-	 * would leak nonces across users / browser sessions.
+	 * `valid` is short-cached; `auth_url` is rebuilt every request
+	 * because its `wp_create_nonce` is session-token-scoped — caching
+	 * it would leak nonces across users.
 	 *
 	 * @param object|null $provider      Active provider instance.
 	 * @param string      $provider_slug Provider slug.
@@ -330,9 +325,7 @@ class Settings_REST {
 	}
 
 	/**
-	 * Transient key for the cached OAuth validity. Site-global —
-	 * `auth_url` is no longer cached here, so per-user keying is not
-	 * required.
+	 * Transient key for the cached OAuth validity (site-global).
 	 *
 	 * @param string $provider_slug Provider slug.
 	 * @return string Transient key.

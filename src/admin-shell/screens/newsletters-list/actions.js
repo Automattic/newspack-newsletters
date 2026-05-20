@@ -1,11 +1,9 @@
 /**
  * Per-row + bulk actions for the Newsletters list.
  *
- * Status transitions are deliberately limited: only Trash, Restore, and
- * Permanently delete are exposed. The base service-provider class
- * triggers an ESP campaign send on `transition_post_status` to publish
- * or private — bulk publishing newsletters here would dispatch
- * irreversibly. Editing post status remains the editor's job.
+ * Status transitions stay in the editor — the service-provider base
+ * class fires an ESP send on `transition_post_status` to publish or
+ * private, so bulk publishing here would dispatch irreversibly.
  */
 
 import apiFetch from '@wordpress/api-fetch';

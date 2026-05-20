@@ -2,10 +2,9 @@
 /**
  * Newspack Newsletters Wizard Bridge.
  *
- * Enqueues the bridge JS bundle on the bundled-mode (newspack-plugin)
- * Newsletters Settings wizard, so its `<SubscriptionLists>` card can dispatch
- * document events that mount this plugin's `<LocalListModal>` /
- * `<LocalListDeleteModal>` flows.
+ * Enqueues the bridge JS bundle on the bundled-mode Newsletters
+ * Settings wizard so its `<SubscriptionLists>` card can mount this
+ * plugin's local-list modals via document events.
  *
  * @package Newspack_Newsletters
  */

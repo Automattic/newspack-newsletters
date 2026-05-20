@@ -1,11 +1,8 @@
 /**
- * Screen registry for the admin shell.
+ * Screen registry — maps admin page slugs to React components.
  *
- * Each entry maps an admin page slug (matching the PHP-side slug)
- * to a React component plus its menu label. Slugs that aren't
- * registered here resolve to null. Settings is standalone-only at
- * the PHP layer — `Admin_Shell::get_pages()` skips registering it
- * in bundled mode.
+ * Settings is standalone-only at the PHP layer (`Admin_Shell::get_pages`
+ * excludes it in bundled mode), so its registration here is harmless.
  */
 
 import { __ } from '@wordpress/i18n';
@@ -47,14 +44,11 @@ export function resolveScreen( slug ) {
 
 /**
  * Resolve the visible page label, preferring the PHP-localised value
- * (`window.newspackNewslettersAdmin.label`) so the heading/title stays
- * aligned with the admin menu label PHP renders. Falls back to the JS
- * registry entry's label when the global is missing — e.g. in unit
- * tests, Storybook, or a misconfigured enqueue.
+ * so the heading stays aligned with the admin menu PHP renders.
  *
  * @param {string} slug          Page slug (PHP-localised `currentPage`).
  * @param {Object} [globalScope] Override for tests; defaults to `window`.
- * @return {string} Resolved label, or an empty string if neither source has one.
+ * @return {string} Resolved label, or an empty string.
  */
 export function resolveLabel( slug, globalScope = typeof window === 'undefined' ? {} : window ) {
 	const phpLabel = globalScope?.newspackNewslettersAdmin?.label;

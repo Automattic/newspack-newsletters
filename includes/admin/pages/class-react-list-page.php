@@ -2,12 +2,8 @@
 /**
  * Abstract React list-page base.
  *
- * Shared scaffold for the React DataView pages that shadow a classic
- * `edit.php?post_type=…` or `edit-tags.php?taxonomy=…` screen. The
- * subclass provides the post_type used in the React page URL via
- * `get_redirect_post_type()`; this base wires the corresponding
- * legacy-list redirect through
- * `Admin_Shell_Legacy_Redirect::build_legacy_redirect_target`.
+ * Wires the legacy-list redirect target from the subclass's
+ * `get_redirect_post_type()` + page slug.
  *
  * @package Newspack_Newsletters
  */
@@ -33,9 +29,7 @@ abstract class React_List_Page extends Admin_Page {
 	abstract public function get_redirect_post_type();
 
 	/**
-	 * Default redirect: hand the page's CPT slug + own slug to the
-	 * shared helper. Subclasses can still override for non-standard
-	 * targets.
+	 * Default redirect target — page's CPT slug + own slug.
 	 *
 	 * @param array $forwarded Forwarded query args.
 	 * @return string

@@ -23,9 +23,8 @@ class Layouts_List_Page extends React_List_Page {
 	protected $slug = 'newspack-newsletters-layouts-list';
 
 	/**
-	 * Capability required to view the page. Matches the CPT registration
-	 * gate so the page and the REST collection align (avoids "menu visible
-	 * but everything 404s").
+	 * Capability required. Matches the CPT registration so the page
+	 * and the REST collection align.
 	 *
 	 * @var string
 	 */
@@ -50,8 +49,8 @@ class Layouts_List_Page extends React_List_Page {
 	}
 
 	/**
-	 * Classic CPT list screen the React page shadows. Catches the back
-	 * button in the layout editor.
+	 * Classic CPT list screen the React page shadows — catches the
+	 * back button in the layout editor.
 	 *
 	 * @return string|null
 	 */
@@ -64,8 +63,8 @@ class Layouts_List_Page extends React_List_Page {
 	}
 
 	/**
-	 * The React page lives under the newsletters CPT menu, not the layouts
-	 * CPT — that's the `post_type` arg used here.
+	 * The React page lives under the newsletters CPT menu, not the
+	 * layouts CPT.
 	 *
 	 * @return string
 	 */

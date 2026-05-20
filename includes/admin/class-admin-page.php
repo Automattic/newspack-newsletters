@@ -23,19 +23,12 @@ abstract class Admin_Page {
 	/**
 	 * Capability required to view the page.
 	 *
-	 * Defaults to `edit_posts` so users who could previously edit newsletters via
-	 * the (now hidden) CPT menu retain access. Pages requiring elevated access —
-	 * Settings being the canonical example — override this.
-	 *
 	 * @var string
 	 */
 	protected $capability = 'edit_posts';
 
 	/**
-	 * Hookname returned by `add_submenu_page`. Captured by
-	 * `Admin_Shell_Menu` at registration time so `is_admin_page()` can
-	 * narrow its match to the actual admin screen rather than just
-	 * `$_GET['page']`.
+	 * Hookname returned by `add_submenu_page`, captured at registration.
 	 *
 	 * @var string
 	 */
@@ -69,25 +62,16 @@ abstract class Admin_Page {
 	/**
 	 * Parent menu slug for `add_submenu_page`.
 	 *
-	 * Override in subclasses to return the URL of the parent menu the
-	 * page is registered under. WP's `get_plugin_page_hookname` mixes
-	 * `$admin_page_hooks[ $parent_slug ]` into the hookname, so the
-	 * value here has to match what the lookup at request time sees —
-	 * passing `null` is unsafe because registration- and lookup-time
-	 * resolution can drift. Hidden pages (`is_hidden_from_menu()`)
-	 * register under the same parent then get unhooked from the
-	 * sidebar after registration via `remove_submenu_page`, keeping
-	 * the URL routable while staying invisible.
+	 * Subclasses return a concrete value — passing `null` is unsafe
+	 * because WP's hookname computation mixes the parent in and
+	 * registration- and lookup-time resolution can drift.
 	 *
 	 * @return string|null
 	 */
 	abstract public function get_parent_slug();
 
 	/**
-	 * Whether the page should be removed from the visible submenu list
-	 * after registration. Default: visible. Hidden pages still register
-	 * (URL routable) but `remove_submenu_page` strips the menu entry
-	 * so it doesn't appear in the sidebar.
+	 * Whether the page should be unhooked from the visible submenu list.
 	 *
 	 * @return bool
 	 */
@@ -96,16 +80,7 @@ abstract class Admin_Page {
 	}
 
 	/**
-	 * `parent_file` override for menu-highlighting.
-	 *
-	 * `Admin_Shell::highlight_parent_menu` filters the global
-	 * `parent_file` and delegates to this method when the current
-	 * request resolves to this page. Return the URL of the top-level
-	 * menu that should appear active (e.g.
-	 * `'edit.php?post_type=newspack_nl_cpt'`), or `null` to let WP's
-	 * native resolution stand. Pages hidden from the menu via
-	 * `is_hidden_from_menu()` will typically need a non-null override
-	 * so the sidebar doesn't collapse to an inactive state.
+	 * `parent_file` override for menu-highlighting; `null` defers to WP.
 	 *
 	 * @return string|null
 	 */
@@ -114,15 +89,7 @@ abstract class Admin_Page {
 	}
 
 	/**
-	 * `submenu_file` override for menu-highlighting.
-	 *
-	 * Companion to `get_parent_file()`. Returns the URL of the
-	 * specific submenu entry that should appear active when this page
-	 * is rendered, or `null` to defer to WP's default resolution.
-	 * Visible submenus (where `get_parent_slug()` returns a real
-	 * value) usually return `null` because WP's auto-detection is
-	 * correct; hidden React pages return the URL of the click-target
-	 * submenu they shadow.
+	 * `submenu_file` override for menu-highlighting; `null` defers to WP.
 	 *
 	 * @return string|null
 	 */
@@ -131,11 +98,7 @@ abstract class Admin_Page {
 	}
 
 	/**
-	 * `WP_Screen::id` of the classic CPT list this page shadows, or
-	 * `null` when the page doesn't replace a legacy URL. Hidden React
-	 * pages typically declare an id like `'edit-newspack_nl_cpt'` so
-	 * `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list` can
-	 * 302 the legacy URL across to the React surface.
+	 * `WP_Screen::id` of the classic CPT list this page shadows.
 	 *
 	 * @return string|null
 	 */
@@ -144,10 +107,7 @@ abstract class Admin_Page {
 	}
 
 	/**
-	 * Build the URL the legacy CPT list redirects to for this page.
-	 * Returns `null` when the page doesn't shadow a legacy URL — the
-	 * redirect handler skips it. Forwarded args (filter / search /
-	 * sort) are appended so the React side can seed its initial view.
+	 * Build the URL the legacy CPT list redirects to.
 	 *
 	 * @param array $forwarded Forwarded query args.
 	 * @return string|null
@@ -158,17 +118,11 @@ abstract class Admin_Page {
 
 	/**
 	 * URL of the newspack-plugin admin-header tab whose `selected`
-	 * state should reflect this page, or `null` when no patching is
-	 * required. The wizard header (`WizardsAdminHeader`) decides which
-	 * tab is active via strict `window.location.href === tab.href`
-	 * equality, which breaks for hidden React subpages — the live URL
-	 * has an extra `&page=…` query the tab href doesn't carry. Pages
-	 * that are conceptually a subpage of an existing wizard tab
-	 * override this; the chassis flips the matching `<a>` to selected
-	 * via inline script after the React header mounts. Returning
-	 * `null` is the right default — most pages either have no wizard
-	 * tabs (the wizard's `get_tabs()` only renders them on the ads /
-	 * advertisers screens) or are themselves the canonical tab URL.
+	 * state should reflect this page.
+	 *
+	 * Override on hidden subpages whose live URL carries an extra
+	 * `&page=…` the tab href doesn't — the wizard header's strict
+	 * URL equality check would otherwise miss them.
 	 *
 	 * @return string|null
 	 */
@@ -177,16 +131,11 @@ abstract class Admin_Page {
 	}
 
 	/**
-	 * Desired 0-based array index within the parent submenu list.
+	 * Desired 0-based index within the parent submenu list.
 	 *
-	 * Returning a non-null value triggers a late-priority pass over
-	 * the global `$submenu` that physically reorders this page's
-	 * entry. We can't lean on `add_submenu_page`'s `$position`
-	 * argument because it keys on numeric positions that collide
-	 * unpredictably with auto-registered CPT entries (`edit.php`
-	 * adds "All Newsletters" and "Add New …" at runtime-derived
-	 * keys, so passing position 3 doesn't reliably slot between
-	 * them).
+	 * `add_submenu_page`'s `$position` is unreliable here — numeric
+	 * positions collide with auto-registered CPT entries — so a
+	 * late-priority pass over `$submenu` does the reordering.
 	 *
 	 * @return int|null
 	 */
@@ -197,14 +146,10 @@ abstract class Admin_Page {
 	/**
 	 * Override the wizard header breadcrumb text for this page.
 	 *
-	 * Newspack-plugin's `Newsletters_Wizard` resolves the breadcrumb
-	 * from its `admin_screens` map keyed on CPT / page / taxonomy
-	 * slugs. For `edit.php?post_type=…&page=…` URLs the resolution
-	 * prefers the post_type, so a hidden React subpage (or a visible
-	 * submenu the wizard doesn't recognise) ends up showing the
-	 * parent CPT's label. Pages can override here to inject the
-	 * correct text via inline script after the wizard header mounts.
-	 * Returning `null` defers to the wizard's own resolution.
+	 * Newspack-plugin's wizard prefers `post_type` over `page` slug
+	 * when resolving the breadcrumb, so a hidden React subpage ends
+	 * up showing the parent CPT's label. Override to inject the
+	 * correct text via inline script after the header mounts.
 	 *
 	 * @return string|null
 	 */
@@ -244,10 +189,6 @@ abstract class Admin_Page {
 	/**
 	 * Whether the current request is for this admin page.
 	 *
-	 * Narrower than a bare `$_GET['page']` match: a foreign admin URL
-	 * that happens to carry the same query key won't activate our
-	 * page-scoped enqueue / body class / filter hooks.
-	 *
 	 * @return bool
 	 */
 	public function is_admin_page() {
@@ -262,8 +203,7 @@ abstract class Admin_Page {
 			return false;
 		}
 		$hook_suffix = $this->hook_suffix ? $this->hook_suffix : Admin_Shell_Menu::get_hook_suffix_for_slug( $this->slug );
-		// `admin_page_<slug>` is the shadow hookname used when the parent
-		// CPT isn't a top-level menu — see Admin_Shell_Menu::register_menu.
+		// `admin_page_<slug>` is the shadow hookname used when the parent CPT isn't a top-level menu — see Admin_Shell_Menu::register_menu.
 		$expected = array_filter( [ $hook_suffix, 'admin_page_' . $this->slug ] );
 		return in_array( $screen->id, $expected, true );
 	}

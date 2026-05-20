@@ -2,16 +2,9 @@
  * Advertisers list screen — React DataView replacing the classic
  * taxonomy term-management screen for `newspack_nl_advertiser`.
  *
- * Mounts at `?page=newspack-newsletters-advertisers-list` (registered
- * in `Advertisers_List_Page`). Server-side paginated; columns are
- * Name / Description / Slug / Count.
- *
- * Two REST fetches drive the screen: `useAdvertisersData` is the
- * paginated DataView fetch; `useAllAdvertisers` is a separate
- * lightweight fetch (`id`, `name`, `parent` only) that powers the
- * Modal's parent picker. Without the second fetch the picker would
- * silently truncate to the current DataView page on sites with more
- * than one page of advertisers.
+ * Two fetches drive the screen: paginated DataView data + a
+ * lightweight all-terms fetch for the Modal's parent picker (see
+ * `useAllAdvertisers`).
  */
 
 import { __experimentalHStack as HStack, Spinner } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis

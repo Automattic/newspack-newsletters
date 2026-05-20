@@ -1,14 +1,9 @@
 <?php
 /**
- * Abstract hidden React list-page base.
+ * Hidden React list-page base — registered but invisible submenu.
  *
- * Adds the "registered but invisible" submenu plumbing on top of
- * `React_List_Page`: the page is routable via its slug but stripped
- * from the sidebar by `Admin_Shell_Menu::register_menu`. Subclasses keep
- * `get_parent_slug()` (mode-aware) and `get_submenu_file()` (target
- * of the highlight); this base defaults `get_parent_file()` to the
- * same URL as `get_parent_slug()`, which is the right answer for
- * every hidden React page in the milestone.
+ * Routable via its slug; the visible submenu entry is stripped by
+ * `Admin_Shell_Menu::register_menu`.
  *
  * @package Newspack_Newsletters
  */
@@ -31,10 +26,7 @@ abstract class Hidden_React_List_Page extends React_List_Page {
 	}
 
 	/**
-	 * Highlight the same top-level entry the page is registered under.
-	 * Mirroring `get_parent_slug()` is the right default for every
-	 * hidden React page in the milestone; subclasses can override for
-	 * a different highlight target.
+	 * Highlight the top-level entry the page is registered under.
 	 *
 	 * @return string
 	 */

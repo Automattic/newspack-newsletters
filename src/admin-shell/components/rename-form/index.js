@@ -1,10 +1,8 @@
 /**
  * Inline rename form for DataView row actions.
  *
- * Designed to be rendered inside an action's `RenderModal` — DataViews
- * supplies the surrounding `<Modal>` (medium size, title, focus trap),
- * so this component is just the form body: a TextControl plus a
- * Cancel / Save footer.
+ * Renders inside the action's `RenderModal` — DataViews provides the
+ * surrounding `<Modal>`, so this is just the form body.
  */
 
 import apiFetch from '@wordpress/api-fetch';

@@ -40,9 +40,7 @@ export default function LocalListModalHost() {
 		};
 		document.addEventListener( EVENTS.OPEN_MODAL, handleOpen );
 		document.addEventListener( EVENTS.OPEN_CONFIRM_DELETE, handleConfirmDelete );
-		// Signal readiness only after the document listeners are installed.
-		// A consumer reacting to `bridge-mounted` may synchronously dispatch
-		// `open-local-list-modal` — its event must arrive at a ready listener.
+		// Listeners installed; signal readiness. A sync consumer dispatch on `bridge-mounted` must land here, not before.
 		window.newspackNewslettersBridgeReady = true;
 		document.dispatchEvent( new CustomEvent( EVENTS.BRIDGE_MOUNTED, { detail: {} } ) );
 		return () => {

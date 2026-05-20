@@ -2,12 +2,6 @@
 /**
  * Admin shell bootstrap.
  *
- * Provides the React mount infrastructure (asset enqueue, page
- * registry, mode detection) the list-screen pages plug into. The
- * chassis itself does not introduce its own top-level menu — pages
- * register as submenus under the Newsletters CPT menu so the
- * existing menu structure is preserved.
- *
  * @package Newspack_Newsletters
  */
 
@@ -16,7 +10,7 @@ namespace Newspack\Newsletters\Admin;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registers the React-based Newsletters admin shell.
+ * Newsletters admin shell — orchestration.
  */
 class Admin_Shell {
 	/**
@@ -32,11 +26,7 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Filter the global `parent_file` so the sidebar's top-level menu
-	 * highlights correctly while a chassis-managed page is rendered.
-	 * Each page declares its own override via `Admin_Page::get_parent_file()`
-	 * — that's where the dynamic logic lives (e.g. ads switching
-	 * between top-level and submenu mode based on user caps).
+	 * `parent_file` filter — delegates to the current page.
 	 *
 	 * @param string $parent_file The current parent file value.
 	 * @return string
@@ -53,11 +43,7 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Filter the global `submenu_file` so the active submenu entry
-	 * matches the page on screen. Each page declares its own override
-	 * via `Admin_Page::get_submenu_file()`; visible submenus typically
-	 * return `null` (WP's auto-detection is correct), while hidden
-	 * React pages name the auto-generated CPT submenu they shadow.
+	 * `submenu_file` filter — delegates to the current page.
 	 *
 	 * @param string $submenu_file The current submenu file value.
 	 * @return string
@@ -74,8 +60,7 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Add a body class on chassis-managed admin pages so our SCSS can scope
-	 * the white-canvas styling without bleeding into other admin screens.
+	 * Add a body class on chassis-managed admin pages so SCSS can scope styling.
 	 *
 	 * @param string $classes Existing body classes (space-separated).
 	 * @return string
@@ -115,8 +100,8 @@ class Admin_Shell {
 		 * Filters whether the admin shell should run in bundled mode.
 		 *
 		 * Bundled mode means newspack-plugin is the canonical surface for
-		 * shared settings (Engagement > Newsletters); standalone mode means
-		 * this plugin owns its own settings page.
+		 * shared settings (Engagement > Newsletters); standalone mode
+		 * means this plugin owns its own settings page.
 		 *
 		 * @param bool $is_bundled Default detection: whether the Newspack core class is loaded.
 		 */
@@ -124,10 +109,10 @@ class Admin_Shell {
 	}
 
 	/**
-	 * Get the registered admin pages, filtered by mode.
+	 * Registered admin pages, filtered by mode.
 	 *
-	 * In bundled mode the Settings page is omitted because the canonical
-	 * settings surface is newspack-plugin's Engagement > Newsletters page.
+	 * Settings is omitted in bundled mode — newspack-plugin's Engagement >
+	 * Newsletters is the canonical settings surface.
 	 *
 	 * @return Admin_Page[]
 	 */
