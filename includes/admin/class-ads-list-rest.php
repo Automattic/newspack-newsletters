@@ -21,6 +21,8 @@ use WP_Post;
  * Register the REST field powering the ads list view's Status column.
  */
 class Ads_List_REST {
+	use Status_Filter_Builder;
+
 	const STATUS_QUERY_PARAM = 'newspack_newsletters_ad_status';
 
 	/**
@@ -140,19 +142,9 @@ class Ads_List_REST {
 	 * @return array
 	 */
 	public static function filter_rest_query( $args, $request ) {
-		$value = $request->get_param( self::STATUS_QUERY_PARAM );
-		if ( null === $value || '' === $value ) {
-			return $args;
-		}
-
-		$raw_kinds = is_array( $value ) ? $value : explode( ',', (string) $value );
-		$kinds     = array_values(
-			array_intersect(
-				self::VALID_KINDS,
-				array_map( 'trim', $raw_kinds )
-			)
+		$kinds = array_values(
+			array_intersect( self::VALID_KINDS, self::parse_status_values( $request->get_param( self::STATUS_QUERY_PARAM ) ) )
 		);
-
 		if ( empty( $kinds ) ) {
 			return $args;
 		}
@@ -217,23 +209,7 @@ class Ads_List_REST {
 
 		$args['post_status'] = array_values( array_unique( $post_status_set ) );
 
-		// Token-scope the closure: `posts_where` fires for every WP_Query in the request, so
-		// without this gate a nested query corrupts the WHERE and self-removes the filter
-		// before our intended query runs.
-		$token                              = uniqid( 'newspack_ads_bucket_', true );
-		$args['_newspack_ads_bucket_token'] = $token;
-
-		$callback = static function ( $where, $wp_query ) use ( &$callback, $token, $bucket_clauses ) {
-			if ( ! is_object( $wp_query ) || $wp_query->get( '_newspack_ads_bucket_token' ) !== $token ) {
-				return $where;
-			}
-			$where .= ' AND ( ' . implode( ' OR ', $bucket_clauses ) . ' )';
-			remove_filter( 'posts_where', $callback, 10 );
-			return $where;
-		};
-		add_filter( 'posts_where', $callback, 10, 2 );
-
-		return $args;
+		return self::install_bucket_filter( $args, $bucket_clauses, '_newspack_ads_bucket_token' );
 	}
 
 	/**
