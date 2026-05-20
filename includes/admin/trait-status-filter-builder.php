@@ -1,22 +1,6 @@
 <?php
 /**
- * Shared scaffolding for the React lists' kind-based status filter.
- *
- * Both the newsletters and ads REST endpoints expose a `?status=`
- * filter whose values are domain-specific *kinds* (sent / scheduled /
- * draft / trash for newsletters; active / scheduled / expired / draft
- * / trash for ads) — not raw `post_status` values. Each kind expands
- * into its own bucket: a widened `post_status` set plus a SQL
- * fragment that ORs into `posts_where` to filter rows to that kind's
- * exact definition.
- *
- * This trait collapses the two pieces of scaffolding both endpoints
- * re-implemented: input parsing (`?status=` accepts a comma-string
- * or array) and the token-scoped, self-removing `posts_where`
- * closure that ORs the bucket SQL clauses. The kind→clause mapping
- * itself stays in each consumer — it's domain-specific (newsletters
- * keys off `sending_scheduled`/`scheduling_error` meta; ads keys off
- * `start_date`/`expiry_date`) and there's no clean shared shape.
+ * Status filter builder trait.
  *
  * @package Newspack_Newsletters
  */
@@ -26,16 +10,13 @@ namespace Newspack\Newsletters\Admin;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Token-scoped bucket-filter builder used by the list-page REST
- * status filters.
+ * Shared status-filter scaffolding for list-page REST endpoints.
  */
 trait Status_Filter_Builder {
 	/**
-	 * Parse a `?status=` value (string or array) into a deduplicated,
-	 * trimmed list of non-empty kinds. Whitespace and empty entries
-	 * are dropped; numeric and string inputs are coerced to strings.
+	 * Parse a `?status=` param into a deduplicated list of kinds.
 	 *
-	 * @param mixed $value Raw param value.
+	 * @param mixed $value Raw param value (string or array).
 	 * @return string[]
 	 */
 	protected static function parse_status_values( $value ) {
@@ -56,24 +37,14 @@ trait Status_Filter_Builder {
 	}
 
 	/**
-	 * Install a token-scoped, self-removing `posts_where` closure that
-	 * ORs the given bucket SQL clauses into the WHERE.
-	 *
-	 * Each clause must be a complete, self-contained boolean
-	 * expression (already prepared via `$wpdb->prepare()` if it
-	 * embeds untrusted values). The closure self-removes after firing
-	 * once for the matching query — token-scoping prevents nested
-	 * `WP_Query` invocations from consuming the filter early.
-	 *
-	 * Caller stores the token under a unique key on `$args` so the
-	 * closure can recognise the intended query (`$wp_query->get($key)`);
-	 * the same `$args` is then handed back to WP_Query unchanged.
+	 * Token-scoped, self-removing `posts_where` install. The token
+	 * gate is what prevents nested WP_Query invocations from
+	 * consuming the filter before the intended query runs.
 	 *
 	 * @param array    $args           Query args being assembled.
 	 * @param string[] $bucket_clauses Already-prepared SQL clauses to OR.
-	 * @param string   $token_key      Query-args key that scopes the closure
-	 *                                 to the intended `WP_Query`.
-	 * @return array Modified args (with `$token_key` set).
+	 * @param string   $token_key      Query-args key scoping the closure.
+	 * @return array
 	 */
 	protected static function install_bucket_filter( array $args, array $bucket_clauses, $token_key ) {
 		if ( empty( $bucket_clauses ) ) {
