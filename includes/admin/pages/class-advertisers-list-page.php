@@ -47,10 +47,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 * @return string
 	 */
 	public function get_parent_slug() {
-		if ( Ads::display_ads_menu_item_separately() ) {
-			return 'edit.php?post_type=' . Ads::CPT;
-		}
-		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		return Ads::get_top_level_url();
 	}
 
 	/**
