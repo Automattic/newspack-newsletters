@@ -27,10 +27,11 @@ final class Newspack_Newsletters_Blocks {
 			return;
 		}
 		$handle = 'newspack-newsletters-blocks';
+		$asset  = include NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.asset.php';
 		wp_enqueue_script(
 			$handle,
 			plugins_url( '../dist/blocks.js', __FILE__ ),
-			[],
+			$asset['dependencies'],
 			filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/blocks.js' ),
 			true
 		);
