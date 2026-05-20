@@ -338,6 +338,7 @@ class Newsletters_List_REST {
 				 WHERE p.post_type = %s
 				   AND p.post_status NOT IN ( 'auto-draft' )
 				   AND p.post_author <> 0" . $user_scope_sql . '
+				 ORDER BY p.post_author ASC
 				 LIMIT %d',
 				$cpt,
 				self::FILTER_OPTIONS_LIMIT
