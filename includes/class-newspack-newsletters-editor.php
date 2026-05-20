@@ -555,10 +555,11 @@ final class Newspack_Newsletters_Editor {
 
 			wp_add_inline_style( 'newspack-newsletters', self::get_color_palette_css( '.editor-styles-wrapper' ) );
 
+			$editor_asset = include NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.asset.php';
 			\wp_enqueue_script(
 				'newspack-newsletters-editor',
 				plugins_url( '../dist/editor.js', __FILE__ ),
-				[ 'lodash' ],
+				$editor_asset['dependencies'],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editor.js' ),
 				true
 			);
@@ -567,10 +568,11 @@ final class Newspack_Newsletters_Editor {
 		}
 
 		if ( self::is_editing_newsletter_ad() ) {
+			$ads_page_asset = include NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.asset.php';
 			\wp_enqueue_script(
 				'newspack-newsletters-ads-page',
 				plugins_url( '../dist/adsEditor.js', __FILE__ ),
-				[ 'wp-components', 'wp-api-fetch' ],
+				$ads_page_asset['dependencies'],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/adsEditor.js' ),
 				true
 			);
@@ -595,10 +597,11 @@ final class Newspack_Newsletters_Editor {
 			);
 			wp_style_add_data( 'newspack-newsletters-newsletter-editor', 'rtl', 'replace' );
 			wp_enqueue_style( 'newspack-newsletters-newsletter-editor' );
+			$newsletter_editor_asset = include NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.asset.php';
 			\wp_enqueue_script(
 				'newspack-newsletters-newsletter-editor',
 				plugins_url( '../dist/newsletterEditor.js', __FILE__ ),
-				[],
+				$newsletter_editor_asset['dependencies'],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterEditor.js' ),
 				true
 			);
@@ -611,10 +614,11 @@ final class Newspack_Newsletters_Editor {
 					]
 				);
 			}
+			$ads_editor_asset = include NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterAdsEditor.asset.php';
 			\wp_enqueue_script(
 				'newspack-newsletters-ads-editor',
 				plugins_url( '../dist/newsletterAdsEditor.js', __FILE__ ),
-				[ 'wp-components', 'wp-api-fetch' ],
+				$ads_editor_asset['dependencies'],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/newsletterAdsEditor.js' ),
 				true
 			);
@@ -622,10 +626,11 @@ final class Newspack_Newsletters_Editor {
 
 		// If it's a reusable block, register this plugin's blocks.
 		if ( 'wp_block' === get_post_type() ) {
+			$editor_blocks_asset = include NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.asset.php';
 			\wp_enqueue_script(
 				'newspack-newsletters-editor-blocks',
 				plugins_url( '../dist/editorBlocks.js', __FILE__ ),
-				[],
+				$editor_blocks_asset['dependencies'],
 				filemtime( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/editorBlocks.js' ),
 				true
 			);
