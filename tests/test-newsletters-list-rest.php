@@ -456,7 +456,7 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 		foreach ( $cases as $params ) {
 			$before = $this->count_posts_where_callbacks();
 
-			Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			$args = Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 				[],
 				$this->rest_request( $params )
 			);
@@ -467,10 +467,11 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 				'A posts_where callback should be installed for params: ' . wp_json_encode( $params )
 			);
 
-			// Drain so the next iteration starts from the same baseline.
-			// The closure now token-gates against the WP_Query arg, so
-			// firing `apply_filters` without a matching query is a no-op.
-			remove_all_filters( 'posts_where' );
+			// Drain only the closure we just installed by firing posts_where with a
+			// WP_Query carrying the matching token — preserves any unrelated callbacks.
+			$drain = new WP_Query();
+			$drain->set( '_newspack_nl_bucket_token', $args['_newspack_nl_bucket_token'] );
+			apply_filters( 'posts_where', '', $drain );
 		}
 	}
 
