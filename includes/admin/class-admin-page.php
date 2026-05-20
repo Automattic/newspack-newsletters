@@ -134,8 +134,8 @@ abstract class Admin_Page {
 	 * `WP_Screen::id` of the classic CPT list this page shadows, or
 	 * `null` when the page doesn't replace a legacy URL. Hidden React
 	 * pages typically declare an id like `'edit-newspack_nl_cpt'` so
-	 * `Admin_Shell::maybe_redirect_legacy_list` can 302 the legacy
-	 * URL across to the React surface.
+	 * `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list` can
+	 * 302 the legacy URL across to the React surface.
 	 *
 	 * @return string|null
 	 */

@@ -80,7 +80,7 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 
 	/**
 	 * Legacy screen id matches the classic ads CPT list so
-	 * `Admin_Shell::maybe_redirect_legacy_list` can route the GET
+	 * `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list` can route the GET
 	 * request to the React page.
 	 */
 	public function test_legacy_screen_id_matches_ads_cpt() {

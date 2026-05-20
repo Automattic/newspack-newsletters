@@ -52,7 +52,7 @@ class Newsletters_List_Page_Test extends WP_UnitTestCase {
 	 * hookname matches what `admin.php` computes at request time, then
 	 * is marked hidden so the visible submenu entry is stripped — its
 	 * actual click target is the auto-generated CPT submenu, redirected
-	 * by `Admin_Shell::maybe_redirect_legacy_list`.
+	 * by `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list`.
 	 */
 	public function test_registers_hidden_under_the_newsletters_cpt() {
 		$page = new Newsletters_List_Page();

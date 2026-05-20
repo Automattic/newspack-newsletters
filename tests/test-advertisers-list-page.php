@@ -84,7 +84,7 @@ class Advertisers_List_Page_Test extends WP_UnitTestCase {
 
 	/**
 	 * Legacy screen id matches the classic taxonomy term-management
-	 * screen so `Admin_Shell::maybe_redirect_legacy_list` can route the
+	 * screen so `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list` can route the
 	 * GET request to the React page. `WP_Screen::id` for
 	 * `edit-tags.php?taxonomy=X` is `edit-X`.
 	 */

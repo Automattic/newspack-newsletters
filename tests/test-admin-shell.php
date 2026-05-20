@@ -6,7 +6,9 @@
  */
 
 use Newspack\Newsletters\Admin\Admin_Shell;
+use Newspack\Newsletters\Admin\Admin_Shell_Legacy_Redirect;
 use Newspack\Newsletters\Admin\Admin_Shell_Menu;
+use Newspack\Newsletters\Admin\Pages\Newsletters_List_Page;
 
 /**
  * Admin Shell Test.
@@ -114,7 +116,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * isolated from `wp_safe_redirect`'s exit behaviour.
 	 */
 	public function test_legacy_list_url_redirects_to_react_page() {
-		$target = Admin_Shell::get_legacy_redirect_target();
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target();
 		$this->assertStringContainsString( 'edit.php?', $target );
 		$this->assertStringContainsString( 'post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, $target );
 		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
@@ -128,7 +130,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * back-compat with the original signature.
 	 */
 	public function test_legacy_redirect_forwards_post_status() {
-		$target = Admin_Shell::get_legacy_redirect_target( 'trash' );
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target( 'trash' );
 		$this->assertStringContainsString( 'post_status=trash', $target );
 		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
 	}
@@ -139,7 +141,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * with equivalent view state — Copilot review #2095.
 	 */
 	public function test_legacy_redirect_forwards_search_and_sort() {
-		$target = Admin_Shell::get_legacy_redirect_target(
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target(
 			[
 				's'       => 'weeklydigest',
 				'orderby' => 'title',
@@ -157,7 +159,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * doesn't translate cleanly. The redirect drops it on the floor.
 	 */
 	public function test_legacy_redirect_drops_paged() {
-		$target = Admin_Shell::get_legacy_redirect_target( [ 'paged' => '3' ] );
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target( [ 'paged' => '3' ] );
 		$this->assertStringNotContainsString( 'paged=3', $target );
 	}
 
@@ -166,7 +168,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * legacy → React redirect so bookmarked filtered URLs round-trip.
 	 */
 	public function test_legacy_redirect_forwards_new_filter_params() {
-		$target  = Admin_Shell::get_legacy_redirect_target(
+		$target  = ( new Newsletters_List_Page() )->get_legacy_redirect_target(
 			[
 				'author'                            => '42,7',
 				'categories'                        => '12',
@@ -195,7 +197,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 
 		$screen = WP_Screen::get( 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
 
-		$reflection = new ReflectionMethod( Admin_Shell::class, 'has_real_get_action' );
+		$reflection = new ReflectionMethod( Admin_Shell_Legacy_Redirect::class, 'has_real_get_action' );
 		$reflection->setAccessible( true );
 
 		// `has_real_get_action` is the gate the live redirect uses; if it

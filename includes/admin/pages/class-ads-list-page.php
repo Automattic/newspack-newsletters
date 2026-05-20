@@ -9,7 +9,7 @@
  * grouped underneath it. The React page is kept out of the visible menu
  * via the inherited `is_hidden_from_menu()`; the visible click target
  * remains the auto-generated `edit.php?post_type=newspack_nl_ads_cpt`
- * entry that `Ads::add_ads_page` creates. `Admin_Shell::maybe_redirect_legacy_list`
+ * entry that `Ads::add_ads_page` creates. `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list`
  * 302s the legacy URL to the React page.
  *
  * @package Newspack_Newsletters
