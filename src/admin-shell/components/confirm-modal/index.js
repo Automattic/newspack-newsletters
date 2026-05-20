@@ -17,7 +17,8 @@ export default function ConfirmModal( { items, closeModal, confirmLabel, confirm
 	const [ isBusy, setIsBusy ] = useState( false );
 	return (
 		<div>
-			<p>{ question }</p>
+			{ /* Wrap raw strings in a <p>; pass ReactNodes through to avoid nested-paragraph markup. */ }
+			{ 'string' === typeof question ? <p>{ question }</p> : question }
 			<div style={ { display: 'flex', gap: '8px', justifyContent: 'flex-end' } }>
 				<Button variant="tertiary" onClick={ closeModal } disabled={ isBusy }>
 					{ __( 'Cancel', 'newspack-newsletters' ) }

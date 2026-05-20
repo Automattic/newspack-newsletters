@@ -16,10 +16,14 @@ import { notifyError, notifySuccess } from '../notices';
 export async function runBulk( items, op, { refresh, successPlural, failurePlural } ) {
 	const failed = [];
 	await Promise.all(
+		// `Promise.resolve().then(() => op(item))` adapts a possibly-sync
+		// throw or non-Promise return into a rejection so .catch() always sees it.
 		items.map( item =>
-			op( item ).catch( () => {
-				failed.push( item );
-			} )
+			Promise.resolve()
+				.then( () => op( item ) )
+				.catch( () => {
+					failed.push( item );
+				} )
 		)
 	);
 	if ( typeof refresh === 'function' ) {
