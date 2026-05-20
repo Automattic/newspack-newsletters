@@ -212,6 +212,26 @@ abstract class Admin_Page {
 	}
 
 	/**
+	 * Extra CSS deps for the admin-shell bundle — the only way to force
+	 * load order relative to `admin-shell.css`.
+	 *
+	 * @return string[]
+	 */
+	public function get_admin_shell_style_deps() {
+		return [];
+	}
+
+	/**
+	 * Page-specific extras attached after the admin-shell bundle is
+	 * registered under `$handle`.
+	 *
+	 * @param string $handle Admin-shell script handle.
+	 */
+	public function enqueue_extras( $handle ) {
+		unset( $handle );
+	}
+
+	/**
 	 * Store the hookname `add_submenu_page` returned at registration.
 	 *
 	 * @param string $hook_suffix Hookname.
