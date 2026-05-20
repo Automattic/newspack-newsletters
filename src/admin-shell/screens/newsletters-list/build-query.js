@@ -19,8 +19,8 @@ import { buildQueryParams as baseBuildQueryParams, toQueryString } from '../../u
 // `auto-draft` so an abandoned "Add new" still shows in the list.
 const DEFAULT_STATUSES = 'publish,private,future,draft,pending,auto-draft';
 
+// `status` is handled separately by the shared util's status-filter branch, not here.
 const FIELD_TO_QUERY_PARAM = {
-	status: 'status',
 	author: 'author',
 	categories: 'categories',
 	tags: 'tags',
