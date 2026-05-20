@@ -7,7 +7,6 @@
 
 namespace Newspack\Newsletters\Admin\Pages;
 
-use Newspack\Newsletters\Admin\Admin_Page;
 use Newspack_Newsletters;
 
 defined( 'ABSPATH' ) || exit;
@@ -15,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * "Layouts" list page — always registered (prebuilts ship with the plugin).
  */
-class Layouts_List_Page extends Admin_Page {
+class Layouts_List_Page extends React_List_Page {
 	/**
 	 * Page slug.
 	 *
@@ -68,15 +67,10 @@ class Layouts_List_Page extends Admin_Page {
 	 * The React page lives under the newsletters CPT menu, not the layouts
 	 * CPT — that's the `post_type` arg used here.
 	 *
-	 * @param array $forwarded Forwarded query args.
 	 * @return string
 	 */
-	public function get_legacy_redirect_target( $forwarded = [] ) {
-		return \Newspack\Newsletters\Admin\Admin_Shell::build_legacy_redirect_target(
-			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
-			$this->slug,
-			$forwarded
-		);
+	public function get_redirect_post_type() {
+		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 	}
 
 	/**
