@@ -405,20 +405,6 @@ class Admin_Shell {
 		}
 		unset( $hook_suffix );
 
-		$asset_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/admin-shell.asset.php';
-		if ( ! file_exists( $asset_path ) ) {
-			return;
-		}
-		$asset = require $asset_path;
-
-		wp_enqueue_script(
-			self::SCRIPT_HANDLE,
-			plugins_url( '../../dist/admin-shell.js', __FILE__ ),
-			$asset['dependencies'],
-			$asset['version'],
-			true
-		);
-
 		$is_layouts_list = 'newspack-newsletters-layouts-list' === $current_page->get_slug();
 
 		// `wp-edit-blocks` is only needed by the layouts-list BlockPreview iframes — keep it off other admin-shell pages.
@@ -428,13 +414,15 @@ class Admin_Shell {
 			$admin_shell_css_deps[] = 'wp-edit-blocks';
 		}
 
-		if ( file_exists( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/admin-shell.css' ) ) {
-			wp_enqueue_style(
-				self::SCRIPT_HANDLE,
-				plugins_url( '../../dist/admin-shell.css', __FILE__ ),
-				$admin_shell_css_deps,
-				$asset['version']
-			);
+		$asset = Asset_Loader::enqueue_bundle(
+			self::SCRIPT_HANDLE,
+			NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist',
+			plugins_url( '../../dist', __FILE__ ),
+			[],
+			$admin_shell_css_deps
+		);
+		if ( ! $asset ) {
+			return;
 		}
 
 		// Layouts list previews render `newspack-newsletters/posts-inserter`; without `editorBlocks.js` BlockPreview shows the "block not supported" fallback.
