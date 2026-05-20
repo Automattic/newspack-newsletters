@@ -16,10 +16,7 @@ defined( 'ABSPATH' ) || exit;
  */
 trait Rest_Status_Field {
 	/**
-	 * Adapter matching WP's documented field-callback signature
-	 * (`( $object, $field_name, $request, $object_type )`) — only
-	 * `$object` is used; the rest are accepted defensively for
-	 * future strict-mode runtimes and IDE tooling.
+	 * Adapter matching WP's field-callback signature; only `$post_array` is used.
 	 *
 	 * @param array  $post_array  Prepared post response.
 	 * @param string $field_name  Unused.

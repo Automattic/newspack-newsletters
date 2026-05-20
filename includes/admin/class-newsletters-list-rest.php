@@ -2,11 +2,6 @@
 /**
  * REST surface for the Newsletters list DataView.
  *
- * Adds a read-only `newspack_newsletters_status` field on the newsletters
- * CPT that consolidates `post_status`, `is_newsletter_sent()`, and the
- * scheduled-send signals into a single payload, so the React side never
- * has to re-derive sent/scheduled state from raw meta.
- *
  * @package Newspack_Newsletters
  */
 
@@ -18,7 +13,10 @@ use Newspack_Newsletters;
 use WP_Post;
 
 /**
- * Register the REST field powering the list view's Status column.
+ * Adds a read-only `newspack_newsletters_status` field on the newsletters
+ * CPT consolidating `post_status` + sent / scheduled signals, plus the
+ * filter-option payload and meta-aware query rewrites the React DataView
+ * needs.
  */
 class Newsletters_List_REST {
 	use Rest_Status_Field;
@@ -60,11 +58,8 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Translate the React list's `newspack_newsletters_is_public` query arg
-	 * into a `meta_query` clause so the Public-page filter actually narrows
-	 * the result set. Strict whitelist: accepts only `'1'` / `'0'` (or
-	 * boolean `true` / `false`) — anything else is ignored so unexpected
-	 * values can't silently flip the filter.
+	 * Translate `newspack_newsletters_is_public` into a `meta_query`
+	 * clause. Strict whitelist: only `1`/`0` (or boolean) accepted.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -78,7 +73,6 @@ class Newsletters_List_REST {
 		} elseif ( false === $value || '0' === $value || 0 === $value ) {
 			$is_public = false;
 		} else {
-			// Null, empty string, or anything outside the whitelist — pass through.
 			return $args;
 		}
 
@@ -110,20 +104,13 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Align the Status filter with the kind `get_status_for_post` would
-	 * emit. The DataView filter values are raw `post_status` strings,
-	 * but the column derives Sent/Scheduled/Draft from a mix of status
-	 * and `sending_scheduled` / `scheduling_error` meta. Without this
-	 * adapter, raw post_status filtering misclassifies rows in both
-	 * directions (e.g. an in-flight publish leaks under Sent; a
-	 * publish-with-`scheduling_error` is invisible under Draft).
+	 * Align the Status filter with the kind `get_status_for_post` emits.
 	 *
-	 * Strategy: map the selection to kinds (sent/draft/scheduled/trash),
-	 * widen `post_status` to every status the chosen kinds' SQL branches
-	 * reference (so WP_Query doesn't strip away reachable rows), and
-	 * install a `posts_where` whose OR-branches encode the renderer's
-	 * exact conditions for each chosen kind. The callback removes itself
-	 * after firing so it stays scoped to the single query.
+	 * Raw `post_status` filtering misclassifies rows in both directions
+	 * (an in-flight publish leaks under Sent; a publish-with-error is
+	 * invisible under Draft). Map selection → kinds, widen `post_status`
+	 * to every status the kinds' SQL branches reference, and install a
+	 * scoped `posts_where` whose OR-branches mirror the renderer.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -140,10 +127,7 @@ class Newsletters_List_REST {
 		$wants_scheduled = in_array( 'future', $values, true );
 		$wants_trash     = in_array( 'trash', $values, true );
 
-		// Widen `post_status` to every status the chosen kinds' SQL
-		// branches reference. WP_Query applies `post_status IN (...)`
-		// before our `posts_where` fires, so anything outside the
-		// widened set is unreachable.
+		// WP_Query applies `post_status IN (…)` before our `posts_where` fires; anything outside the widened set is unreachable.
 		$widened = $values;
 		if ( $wants_sent || $wants_draft || $wants_scheduled ) {
 			$widened = array_merge( $widened, [ 'publish', 'private' ] );
@@ -240,7 +224,7 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Register the helper route that feeds the React list filter dropdowns.
+	 * Register the helper route feeding the React list filter dropdowns.
 	 */
 	public static function register_rest_routes() {
 		register_rest_route(
@@ -269,9 +253,8 @@ class Newsletters_List_REST {
 
 	/**
 	 * One-shot payload of every option list the React filter dropdowns
-	 * consume. Scoped to newsletters the current user can edit, so a
-	 * publisher without `edit_others_posts` only sees options derived
-	 * from their own rows — mirrors what the list itself shows.
+	 * consume. Scoped to newsletters the current user can edit so the
+	 * filters match what the list itself shows.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -289,8 +272,8 @@ class Newsletters_List_REST {
 
 	/**
 	 * SQL fragment scoping a `wp_posts p` join to rows the current user
-	 * can edit — empty string for users with `edit_others_posts` (full
-	 * visibility), `AND p.post_author = <id>` otherwise.
+	 * can edit — empty string for `edit_others_posts`, an authorship
+	 * filter otherwise.
 	 *
 	 * @return string
 	 */
@@ -306,7 +289,7 @@ class Newsletters_List_REST {
 	/**
 	 * Distinct authors of any non-auto-draft newsletter in scope.
 	 *
-	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
+	 * @param string $user_scope_sql User-scope WHERE fragment.
 	 * @return array<array{id: int, label: string}>
 	 */
 	private static function get_authors_used( $user_scope_sql = '' ) {
@@ -350,7 +333,7 @@ class Newsletters_List_REST {
 	 * Distinct terms applied to any in-scope newsletter, in the given taxonomy.
 	 *
 	 * @param string $taxonomy       `category` or `post_tag`.
-	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
+	 * @param string $user_scope_sql User-scope WHERE fragment.
 	 * @return array<array{id: int, label: string}>
 	 */
 	private static function get_terms_used( $taxonomy, $user_scope_sql = '' ) {
@@ -388,10 +371,10 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Distinct non-empty `send_list_id` meta values across in-scope newsletters.
-	 * Friendly-name resolution is deferred (Known gaps); raw IDs ship.
+	 * Distinct non-empty `send_list_id` meta values across in-scope
+	 * newsletters. Friendly-name resolution deferred; raw IDs ship.
 	 *
-	 * @param string $user_scope_sql User-scope WHERE fragment from `build_user_post_scope_sql`.
+	 * @param string $user_scope_sql User-scope WHERE fragment.
 	 * @return array<array{id: string, label: string}>
 	 */
 	private static function get_send_list_ids_used( $user_scope_sql = '' ) {
@@ -450,12 +433,9 @@ class Newsletters_List_REST {
 	/**
 	 * Compute the consolidated status payload for a newsletter post.
 	 *
-	 * Resolution order matters: trash takes precedence (we don't want to
-	 * mask trashed-but-previously-sent items as sent), then sent (covers
-	 * publish/private with the post's publish-date fallback), then
-	 * scheduled (`post_status=future` or the `sending_scheduled` meta
-	 * flag set during an in-flight ESP dispatch), finally draft as the
-	 * catch-all.
+	 * Resolution order: trash (so a trashed sent row doesn't mask as
+	 * sent) → sent → scheduled (`future` or `sending_scheduled` meta)
+	 * → draft as the catch-all.
 	 *
 	 * @param WP_Post|null $post Post object.
 	 * @return array { kind, sent_at, scheduled_at }
@@ -501,28 +481,11 @@ class Newsletters_List_REST {
 	}
 
 	/**
-	 * Read-only equivalent of `Newspack_Newsletters::is_newsletter_sent` —
-	 * mirrors its resolution logic exactly but never writes to `post_meta`.
+	 * Read-only equivalent of `Newspack_Newsletters::is_newsletter_sent`.
 	 *
-	 * `is_newsletter_sent` calls `set_newsletter_sent` to back-fill the
-	 * `newsletter_sent` meta whenever a published post is missing it (or
-	 * has mismatched meta), so calling it from the REST GET would issue
-	 * one write per row in the response. This list endpoint is read-only
-	 * by contract — derive the timestamp without mutating.
-	 *
-	 * Resolution order matches `is_newsletter_sent`:
-	 *
-	 * 1. `sending_scheduled` / `scheduling_error` meta suppress sent state.
-	 * 2. Compute the publish timestamp first (`0` when the post isn't
-	 *    `publish` / `private`).
-	 * 3. Accept `newsletter_sent` meta only when it is positive AND equals
-	 *    the publish timestamp. Stale meta on a draft / scheduled row
-	 *    therefore reports as "not sent", and a published row with
-	 *    mismatched meta reports the publish timestamp instead of the
-	 *    drifted meta value.
-	 * 4. Otherwise, for `publish` / `private` rows, return the publish
-	 *    timestamp.
-	 * 5. Otherwise return `null`.
+	 * `is_newsletter_sent` back-fills `newsletter_sent` meta on a stale
+	 * row, so calling it from this REST GET would issue a write per
+	 * response row. Derive the timestamp without mutating instead.
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return int|null Sent timestamp, or null when not (yet) sent.
@@ -540,10 +503,7 @@ class Newsletters_List_REST {
 		$post_datetime = $is_published ? get_post_datetime( $post, 'date', 'gmt' ) : false;
 		$publish_date  = $post_datetime ? $post_datetime->getTimestamp() : 0;
 
-		// Only accept `newsletter_sent` when it actually matches the
-		// publish timestamp. Anything else is stale / mismatched meta
-		// that `is_newsletter_sent` would otherwise overwrite — we just
-		// ignore it instead.
+		// Only accept `newsletter_sent` when it matches the publish timestamp — anything else is the stale meta `is_newsletter_sent` would otherwise overwrite.
 		if ( 0 < $sent && $sent === $publish_date ) {
 			return $sent;
 		}

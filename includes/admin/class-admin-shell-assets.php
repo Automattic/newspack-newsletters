@@ -2,10 +2,6 @@
 /**
  * Admin shell — asset enqueue.
  *
- * Owns the admin-shell bundle enqueue and the inline-script patch that
- * fixes the newspack-plugin wizard header's tab-selection state on
- * hidden React subpages.
- *
  * @package Newspack_Newsletters
  */
 
@@ -16,7 +12,7 @@ use Newspack_Newsletters;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Asset enqueue.
+ * Asset enqueue + wizard-header inline-script patch.
  */
 class Admin_Shell_Assets {
 	const SCRIPT_HANDLE = 'newspack-newsletters-admin-shell';
@@ -26,17 +22,15 @@ class Admin_Shell_Assets {
 	 */
 	public static function init() {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue' ] );
-		// Priority 99 so we run after newspack-plugin's wizard header
-		// has registered its script — `wp_add_inline_script` needs the
-		// handle in place to attach.
+		// Priority 99 so we run after newspack-plugin's wizard header has registered its script — `wp_add_inline_script` needs the handle in place.
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'patch_wizard_header_active_tab' ], 99 );
 	}
 
 	/**
 	 * Enqueue the shared admin-shell bundle on registered admin pages.
-	 * Pages contribute style deps via `get_admin_shell_style_deps()` and
-	 * sibling enqueues via `enqueue_extras()` so this method stays
-	 * branch-free.
+	 *
+	 * Pages contribute style deps via `get_admin_shell_style_deps()`
+	 * and sibling enqueues via `enqueue_extras()`.
 	 */
 	public static function enqueue() {
 		$current_page = Admin_Shell::get_current_page();
@@ -69,7 +63,6 @@ class Admin_Shell_Assets {
 				'classicSettings' => \Newspack_Newsletters_Settings::get_settings_url(),
 				'restNonce'       => wp_create_nonce( 'wp_rest' ),
 				'restUrl'         => esc_url_raw( rest_url() ),
-				// `admin_url()` rather than assuming `/wp-admin/` lives at the document origin — subdirectory and multisite installs put it under a path.
 				'adminUrl'        => esc_url_raw( admin_url() ),
 				'cptSlug'         => Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			]
@@ -77,21 +70,13 @@ class Admin_Shell_Assets {
 	}
 
 	/**
-	 * Patch the newspack-plugin wizard header's "selected" tab state
-	 * for hidden React subpages. The wizard's `WizardsAdminHeader`
-	 * (`src/wizards/admin-header/index.tsx`) decides the active tab
-	 * via strict `window.location.href === tab.href` equality, which
-	 * breaks for our hidden React subpages — the live URL has an
-	 * extra `&page=…` query the tab href doesn't carry. Each page
-	 * declares the canonical tab URL via `get_wizard_tab_url()`; we
-	 * inject a tiny inline script after the wizard header script to
-	 * flip the matching `<a>` to `.selected` once the React component
-	 * has mounted. Runs only when the wizard header script is
-	 * registered (i.e. bundled mode + the wizard recognises the
-	 * screen — for ads, that's via `Newsletters_Wizard::get_tabs()`).
+	 * Patch the wizard header's "selected" tab state for hidden React subpages.
 	 *
-	 * Upstream fix tracked separately; the wizard's URL-equality
-	 * check should accept subpages so this workaround can be removed.
+	 * The wizard's strict `window.location.href === tab.href` check
+	 * breaks for subpages (live URL carries an extra `&page=…`). Each
+	 * page declares its canonical tab URL + breadcrumb label; this
+	 * injects an observer that flips the matching `<a>` to `.selected`
+	 * and rewrites the heading once the wizard mounts.
 	 */
 	public static function patch_wizard_header_active_tab() {
 		$current_page = Admin_Shell::get_current_page();
@@ -102,27 +87,16 @@ class Admin_Shell_Assets {
 			return;
 		}
 
-		$tab_url           = $current_page->get_wizard_tab_url();
-		$breadcrumb_label  = $current_page->get_wizard_header_label();
+		$tab_url          = $current_page->get_wizard_tab_url();
+		$breadcrumb_label = $current_page->get_wizard_header_label();
 
 		if ( null === $tab_url && null === $breadcrumb_label ) {
 			return;
 		}
 
-		// Single inline-script payload covers both patches. Each runs
-		// independently — the wizard renders its DOM after this script is
-		// parsed, so we observe document.body and re-apply on every
-		// mutation until the targets exist (and once after, to defend
-		// against React rerenders that swap the nodes).
 		$tab_url_json    = null === $tab_url ? 'null' : wp_json_encode( $tab_url );
 		$breadcrumb_json = null === $breadcrumb_label ? 'null' : wp_json_encode( $breadcrumb_label );
 
-		// The wizard renders its DOM after this script is parsed and may
-		// re-render its header on route changes, so the observer waits
-		// for the targets, patches once both are present, and then
-		// disconnects. A deferred follow-up apply() run catches an
-		// immediate post-mount rerender without leaving the observer
-		// attached for the lifetime of the page.
 		wp_add_inline_script(
 			'newspack-wizards-admin-header',
 			sprintf(

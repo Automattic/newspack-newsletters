@@ -2,11 +2,6 @@
 /**
  * REST surface for the Newsletter Ads list DataView.
  *
- * Adds a read-only `newspack_newsletters_ad_status` field on the ads CPT
- * that consolidates `post_status` and the date-driven lifecycle
- * (`start_date` / `expiry_date` meta) into a single payload, so the
- * React side never has to re-derive state from raw meta.
- *
  * @package Newspack_Newsletters
  */
 
@@ -18,7 +13,10 @@ use Newspack_Newsletters\Ads;
 use WP_Post;
 
 /**
- * Register the REST field powering the ads list view's Status column.
+ * Adds a read-only `newspack_newsletters_ad_status` REST field on the
+ * ads CPT consolidating `post_status` + date-driven lifecycle into a
+ * single payload, plus the status-filter and meta-sort rails the
+ * React DataView needs.
  */
 class Ads_List_REST {
 	use Rest_Status_Field;
@@ -52,8 +50,8 @@ class Ads_List_REST {
 	}
 
 	/**
-	 * Virtual REST orderby tokens. Applied via posts_clauses LEFT JOIN
-	 * in `apply_meta_sort_clauses`, not WP_Query meta args.
+	 * Virtual REST orderby tokens. Applied via `posts_clauses` LEFT
+	 * JOIN in `apply_meta_sort_clauses`, not WP_Query meta args.
 	 */
 	const VIRTUAL_ORDERBY_TOKENS = [
 		'start_date'  => [
@@ -79,22 +77,11 @@ class Ads_List_REST {
 	];
 
 	/**
-	 * Register tracking impression / click meta on the ads CPT subtype
-	 * so the React columns can read them via the REST `meta` block and
-	 * sort via `orderby=meta_value_num`. The meta is written by the
-	 * tracking layer (`Newspack_Newsletters\Tracking\Click` and
-	 * `Ads::track_ad_impression`) but was never previously registered,
-	 * so it didn't surface in REST.
+	 * Register tracking impression / click meta as REST-readable.
 	 *
-	 * `auth_callback` returns `false` so the meta is read-only via
-	 * REST — these are server-managed telemetry counters and the
-	 * posts endpoint must not accept client writes (stats tampering
-	 * vector). Direct `update_post_meta()` calls from the tracking
-	 * layer aren't gated by `auth_callback` and continue to work; the
-	 * gate only fires on the REST update path's `current_user_can(
-	 * 'edit_post_meta', … )` check. The schema also declares
-	 * `readonly: true` so REST clients see the field as documentation-
-	 * level read-only.
+	 * `auth_callback => __return_false` makes the meta read-only via
+	 * REST — these are server-managed counters; direct `update_post_meta`
+	 * from the tracking layer isn't gated by `auth_callback`.
 	 */
 	public static function register_meta() {
 		$readonly_counter_args = [
@@ -115,28 +102,18 @@ class Ads_List_REST {
 
 	/**
 	 * Valid kind values accepted on the `STATUS_QUERY_PARAM`. Anything
-	 * outside this list is ignored so unexpected input can't widen the
-	 * result set.
+	 * outside this list is ignored.
 	 */
 	const VALID_KINDS = [ 'active', 'scheduled', 'expired', 'draft', 'trash' ];
 
 	/**
-	 * Translate the React list's kind-based status filter
-	 * (`active|scheduled|expired|draft|trash`) into native query args
-	 * plus a one-shot `posts_where` callback that ORs each selected
-	 * kind into its own complete bucket (`post_status` + the
-	 * date-driven meta condition where applicable). The Status column
-	 * renders the derived kind, and the filter targets the same kinds
-	 * — so the displayed and filtered sets always match.
+	 * Translate the kind-based status filter into native query args
+	 * plus a `posts_where` callback that ORs each kind into its own
+	 * bucket (`post_status` + date-driven meta condition).
 	 *
-	 * The bucketed `posts_where` approach is what lets us mix
-	 * non-publish kinds (`draft`/`trash`) with publish-driven kinds
-	 * (`active`/`scheduled`/`expired`) in the same selection: a plain
-	 * draft row passes the `draft` bucket without having to satisfy
-	 * any meta condition, while an expired row passes the `expired`
-	 * bucket only when its `expiry_date` meta is in the past. A flat
-	 * `meta_query` would AND the meta condition across all rows and
-	 * silently drop the drafts.
+	 * Bucketing is what lets `draft`/`trash` mix with the publish-
+	 * driven kinds in the same selection — a flat `meta_query` would
+	 * AND the meta condition across all rows and drop the drafts.
 	 *
 	 * @param array            $args    Query args being assembled.
 	 * @param \WP_REST_Request $request Incoming REST request.
@@ -156,19 +133,7 @@ class Ads_List_REST {
 		$post_status_set = [];
 		$bucket_clauses  = [];
 
-		// `private` is treated as publish-equivalent for the lifecycle
-		// kinds: a private ad with valid dates is functionally a published
-		// ad with restricted visibility, so it should surface in the same
-		// active/scheduled/expired buckets as a public publish row. The
-		// React list also requests `private` by default (see
-		// `DEFAULT_STATUSES` in build-query.js), so excluding it here
-		// would make private rows disappear the moment any kind filter
-		// is applied.
-		//
-		// `future` (WP-scheduled via the standard Publish-Schedule UI)
-		// is folded into the `scheduled` bucket only — those rows haven't
-		// published yet, so `active` and `expired` lifecycle resolution
-		// doesn't apply.
+		// `private` is publish-equivalent for lifecycle kinds (a private ad with valid dates is just a publish ad with restricted visibility); `future` folds into `scheduled` only.
 		foreach ( $kinds as $kind ) {
 			switch ( $kind ) {
 				case 'trash':
@@ -214,9 +179,9 @@ class Ads_List_REST {
 	}
 
 	/**
-	 * Widen the REST orderby enum to accept our virtual tokens.
-	 * Required because `rest_validate_request_arg` runs the enum
-	 * check before the `rest_${CPT}_query` filter can rewrite.
+	 * Widen the REST orderby enum to accept our virtual tokens —
+	 * `rest_validate_request_arg` runs the enum check before
+	 * `rest_${CPT}_query` can rewrite.
 	 *
 	 * @param array $params Collection params from the posts controller.
 	 * @return array
@@ -236,7 +201,7 @@ class Ads_List_REST {
 	}
 
 	/**
-	 * Query var carrying meta-sort intent through to apply_meta_sort_clauses.
+	 * Query var carrying meta-sort intent through to `apply_meta_sort_clauses`.
 	 */
 	const META_SORT_QUERY_VAR = 'newspack_ads_meta_sort';
 
@@ -266,8 +231,8 @@ class Ads_List_REST {
 	}
 
 	/**
-	 * LEFT JOIN postmeta and order by it so rows missing the sorted key
-	 * still appear (a plain meta_key would inner-join them out).
+	 * LEFT JOIN postmeta and order by it so rows missing the sorted
+	 * key still appear (a plain `meta_key` arg would inner-join them out).
 	 *
 	 * @param array     $clauses WP_Query SQL clauses.
 	 * @param \WP_Query $query   The WP_Query running the SQL.
@@ -337,13 +302,7 @@ class Ads_List_REST {
 			return $payload;
 		}
 
-		// WP-scheduled ads (the standard Publish-Schedule UI sets
-		// `post_status=future`) resolve to `scheduled`. The React
-		// renderer reads `starts_at` to show "Starts <date>", so we
-		// expose `post_date_gmt` as the timestamp — that's the moment
-		// WordPress will auto-publish the row. `start_date` /
-		// `expiry_date` meta are ignored on `future` rows; WP's own
-		// scheduling owns the lifecycle until the row publishes.
+		// `future` (WP's Publish-Schedule) is `scheduled`; `post_date_gmt` is the auto-publish moment, and `start_date` / `expiry_date` meta don't apply until it publishes.
 		if ( 'future' === $post->post_status ) {
 			$payload['kind']      = 'scheduled';
 			$starts_at            = strtotime( $post->post_date_gmt . ' UTC' );
@@ -351,25 +310,12 @@ class Ads_List_REST {
 			return $payload;
 		}
 
-		// `private` is treated as publish-equivalent for kind resolution:
-		// a private ad with valid dates is functionally a published ad
-		// with restricted visibility, so it should surface as
-		// active/scheduled/expired the same way. Falling through to the
-		// `draft` default would mislabel the row in the list and hide it
-		// from the lifecycle filters.
 		if ( in_array( $post->post_status, [ 'publish', 'private' ], true ) ) {
 			$today       = gmdate( 'Y-m-d' );
 			$start_date  = (string) get_post_meta( $post->ID, 'start_date', true );
 			$expiry_date = (string) get_post_meta( $post->ID, 'expiry_date', true );
 
-			// Use noon UTC so the resulting timestamp lands on the
-			// intended calendar day in any reasonable site timezone —
-			// midnight UTC would render as the previous day for users
-			// behind UTC. The underlying meta is date-only, so the
-			// time-of-day component is just a presentation safeguard.
-			// Normalise `strtotime` failures to `null` so the REST
-			// schema's `integer|null` declaration holds even if the
-			// meta is malformed.
+			// Noon UTC so the timestamp lands on the intended calendar day in any reasonable site timezone; date-only meta makes the time-of-day a presentation safeguard.
 			if ( '' !== $start_date ) {
 				$starts_at            = strtotime( $start_date . ' 12:00:00 UTC' );
 				$payload['starts_at'] = false === $starts_at ? null : $starts_at;
