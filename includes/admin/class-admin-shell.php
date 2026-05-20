@@ -181,7 +181,7 @@ class Admin_Shell {
 		global $_registered_pages;
 		foreach ( self::get_pages() as $page ) {
 			$parent_slug = $page->get_parent_slug();
-			add_submenu_page(
+			$hook_suffix = add_submenu_page(
 				$parent_slug,
 				$page->get_label(),
 				$page->get_label(),
@@ -189,6 +189,9 @@ class Admin_Shell {
 				$page->get_slug(),
 				[ $page, 'render' ]
 			);
+			if ( is_string( $hook_suffix ) ) {
+				$page->set_hook_suffix( $hook_suffix );
+			}
 			if ( $page->is_hidden_from_menu() ) {
 				// Hidden React pages (the list views) shadow a classic
 				// CPT URL via `Admin_Shell::maybe_redirect_legacy_list`.

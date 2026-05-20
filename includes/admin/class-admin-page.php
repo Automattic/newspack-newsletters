@@ -32,6 +32,15 @@ abstract class Admin_Page {
 	protected $capability = 'edit_posts';
 
 	/**
+	 * Hookname returned by `add_submenu_page`. Captured by `Admin_Shell`
+	 * at registration time so `is_admin_page()` can narrow its match to
+	 * the actual admin screen rather than just `$_GET['page']`.
+	 *
+	 * @var string
+	 */
+	protected $hook_suffix = '';
+
+	/**
 	 * Get the page slug.
 	 *
 	 * @return string
@@ -203,7 +212,20 @@ abstract class Admin_Page {
 	}
 
 	/**
+	 * Store the hookname `add_submenu_page` returned at registration.
+	 *
+	 * @param string $hook_suffix Hookname.
+	 */
+	public function set_hook_suffix( $hook_suffix ) {
+		$this->hook_suffix = (string) $hook_suffix;
+	}
+
+	/**
 	 * Whether the current request is for this admin page.
+	 *
+	 * Narrower than a bare `$_GET['page']` match: a foreign admin URL
+	 * that happens to carry the same query key won't activate our
+	 * page-scoped enqueue / body class / filter hooks.
 	 *
 	 * @return bool
 	 */
@@ -211,7 +233,19 @@ abstract class Admin_Page {
 		if ( ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return false;
 		}
-		return $this->slug === sanitize_text_field( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $this->slug !== sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return false;
+		}
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen ) {
+			return false;
+		}
+		if ( $this->hook_suffix ) {
+			// `admin_page_<slug>` is the shadow hookname used when the
+			// parent CPT isn't a top-level menu — see Admin_Shell::register_menu.
+			return $screen->id === $this->hook_suffix || $screen->id === 'admin_page_' . $this->slug;
+		}
+		return false !== strpos( $screen->id, $this->slug );
 	}
 
 	/**

@@ -16,15 +16,17 @@ class Admin_Page_Test extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		unset( $_GET['page'] );
+		set_current_screen( 'front' );
 		parent::tear_down();
 	}
 
 	/**
-	 * Returns true when ?page= matches the slug.
+	 * Returns true when both ?page= and the current screen match the page.
 	 */
-	public function test_is_admin_page_matches_slug() {
+	public function test_is_admin_page_matches_slug_on_matching_screen() {
 		$page         = new Settings_Page();
 		$_GET['page'] = $page->get_slug();
+		set_current_screen( 'admin_page_' . $page->get_slug() );
 		$this->assertTrue( $page->is_admin_page() );
 	}
 
@@ -34,6 +36,7 @@ class Admin_Page_Test extends WP_UnitTestCase {
 	public function test_is_admin_page_does_not_match_other_slug() {
 		$page         = new Settings_Page();
 		$_GET['page'] = 'something-else';
+		set_current_screen( 'admin_page_' . $page->get_slug() );
 		$this->assertFalse( $page->is_admin_page() );
 	}
 
@@ -43,6 +46,17 @@ class Admin_Page_Test extends WP_UnitTestCase {
 	public function test_is_admin_page_handles_missing_param() {
 		$page = new Settings_Page();
 		unset( $_GET['page'] );
+		$this->assertFalse( $page->is_admin_page() );
+	}
+
+	/**
+	 * Returns false when ?page= matches but the current screen does not —
+	 * defends against a foreign admin URL carrying the same query key.
+	 */
+	public function test_is_admin_page_rejects_foreign_screen() {
+		$page         = new Settings_Page();
+		$_GET['page'] = $page->get_slug();
+		set_current_screen( 'tools' );
 		$this->assertFalse( $page->is_admin_page() );
 	}
 }
