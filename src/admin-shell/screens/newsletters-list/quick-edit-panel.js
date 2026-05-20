@@ -24,15 +24,17 @@ function useQuickEditOptions() {
 
 	useEffect( () => {
 		let cancelled = false;
-		Promise.all( [ fetchAllTerms( '/wp/v2/categories' ), fetchAllTerms( '/wp/v2/tags' ) ] ).then( ( [ categories, tags ] ) => {
-			if ( cancelled ) {
-				return;
-			}
-			setOptions( {
-				categories: Array.isArray( categories ) ? categories : [],
-				tags: Array.isArray( tags ) ? tags : [],
-			} );
-		} );
+		Promise.all( [ fetchAllTerms( '/wp/v2/categories' ), fetchAllTerms( '/wp/v2/tags' ) ] )
+			.then( ( [ categories, tags ] ) => {
+				if ( cancelled ) {
+					return;
+				}
+				setOptions( {
+					categories: Array.isArray( categories ) ? categories : [],
+					tags: Array.isArray( tags ) ? tags : [],
+				} );
+			} )
+			.catch( () => {} );
 		return () => {
 			cancelled = true;
 		};
