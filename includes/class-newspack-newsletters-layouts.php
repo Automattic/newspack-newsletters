@@ -123,13 +123,14 @@ final class Newspack_Newsletters_Layouts {
 	public static function rest_send_layout_test_email( $request ) {
 		$post_id = absint( $request['id'] );
 		$raw     = (string) $request->get_param( 'test_email' );
-		$emails  = array_map(
+		// Cap at 10 — auth-gated but the comma split is otherwise unbounded.
+		// Limit explode to 11 so we still have headroom if the first segment is invalid.
+		$emails = array_map(
 			static function ( $email ) {
 				return sanitize_email( trim( $email ) );
 			},
-			explode( ',', $raw )
+			explode( ',', $raw, 11 )
 		);
-		// Cap at 10 — auth-gated but `explode( ',', $raw )` is otherwise unbounded.
 		$valid = array_slice( array_values( array_filter( $emails, 'is_email' ) ), 0, 10 );
 
 		if ( empty( $valid ) ) {
