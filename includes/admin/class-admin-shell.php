@@ -405,36 +405,28 @@ class Admin_Shell {
 		}
 		unset( $hook_suffix );
 
-		$asset_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/admin-shell.asset.php';
-		if ( ! file_exists( $asset_path ) ) {
-			return;
-		}
-		$asset = require $asset_path;
-
-		wp_enqueue_script(
-			self::SCRIPT_HANDLE,
-			plugins_url( '../../dist/admin-shell.js', __FILE__ ),
-			$asset['dependencies'],
-			$asset['version'],
-			true
-		);
-
 		$is_layouts_list = 'newspack-newsletters-layouts-list' === $current_page->get_slug();
 
 		// `wp-edit-blocks` is only needed by the layouts-list BlockPreview iframes — keep it off other admin-shell pages.
-		$admin_shell_css_deps = [];
-		if ( $is_layouts_list ) {
-			wp_enqueue_style( 'wp-edit-blocks' );
-			$admin_shell_css_deps[] = 'wp-edit-blocks';
+		$admin_shell_css_deps = $is_layouts_list ? [ 'wp-edit-blocks' ] : [];
+
+		$asset = Asset_Loader::enqueue_bundle(
+			self::SCRIPT_HANDLE,
+			'admin-shell',
+			NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist',
+			plugins_url( '../../dist', __FILE__ ),
+			[],
+			$admin_shell_css_deps
+		);
+		if ( ! $asset ) {
+			return;
 		}
 
-		if ( file_exists( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/admin-shell.css' ) ) {
-			wp_enqueue_style(
-				self::SCRIPT_HANDLE,
-				plugins_url( '../../dist/admin-shell.css', __FILE__ ),
-				$admin_shell_css_deps,
-				$asset['version']
-			);
+		// Explicit fallback so `wp-edit-blocks` still loads on layouts-list when
+		// `dist/admin-shell.css` is missing (the dep array only fires through the
+		// CSS enqueue, which `Asset_Loader` skips when the .css isn't built).
+		if ( $is_layouts_list ) {
+			wp_enqueue_style( 'wp-edit-blocks' );
 		}
 
 		// Layouts list previews render `newspack-newsletters/posts-inserter`; without `editorBlocks.js` BlockPreview shows the "block not supported" fallback.

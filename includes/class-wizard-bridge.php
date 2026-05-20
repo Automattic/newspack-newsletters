@@ -12,6 +12,8 @@
 
 namespace Newspack\Newsletters;
 
+use Newspack\Newsletters\Admin\Asset_Loader;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -54,27 +56,14 @@ class Wizard_Bridge {
 			return;
 		}
 
-		$asset_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/wizard-bridge.asset.php';
-		if ( ! file_exists( $asset_path ) ) {
-			return;
-		}
-		$asset = require $asset_path;
-
-		wp_enqueue_script(
+		$asset = Asset_Loader::enqueue_bundle(
 			self::SCRIPT_HANDLE,
-			plugins_url( '../dist/wizard-bridge.js', __FILE__ ),
-			$asset['dependencies'],
-			$asset['version'],
-			true
+			'wizard-bridge',
+			NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist',
+			plugins_url( '../dist', __FILE__ )
 		);
-
-		if ( file_exists( NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist/wizard-bridge.css' ) ) {
-			wp_enqueue_style(
-				self::SCRIPT_HANDLE,
-				plugins_url( '../dist/wizard-bridge.css', __FILE__ ),
-				[],
-				$asset['version']
-			);
+		if ( ! $asset ) {
+			return;
 		}
 
 		wp_localize_script(
