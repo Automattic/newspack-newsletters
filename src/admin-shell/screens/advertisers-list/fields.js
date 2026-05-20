@@ -1,13 +1,8 @@
 /**
  * Field definitions for the Advertisers list DataView.
  *
- * Default columns: Name, Description, Slug, Count.
- *
- * The WP REST terms controller accepts `orderby` ∈ { id, include, name,
- * slug, term_group, description, count }. `enableSorting` is opt-in here
- * — `name`, `slug`, and `count` are useful list sorts; `description`
- * remains non-sortable by design because ordering by free-form text
- * isn't useful in this UI.
+ * `enableSorting` is opt-in — `name`, `slug`, `count` are useful sorts;
+ * `description` stays non-sortable (free-form text).
  */
 
 import { __ } from '@wordpress/i18n';

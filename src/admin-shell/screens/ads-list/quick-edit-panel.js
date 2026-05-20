@@ -1,11 +1,8 @@
 /**
- * Quick Edit panel for the newsletter ads list — advertiser,
- * placement, category, start/expiry dates, price. Saves via
- * `POST /wp/v2/newspack_nl_ads_cpt/{id}` and refreshes the list.
+ * Quick Edit panel for the ads list — advertiser, placement,
+ * category, start/expiry dates, price.
  *
- * Status is not editable here: the editor still owns the lifecycle,
- * and Insertion strategy / position stay in the full editor too —
- * they're too granular for an inline panel.
+ * Status / insertion strategy / position stay in the full editor.
  */
 
 import apiFetch from '@wordpress/api-fetch';
