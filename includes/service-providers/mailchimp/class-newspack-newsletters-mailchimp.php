@@ -1225,7 +1225,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		// Layouts share the email editor (so the bundle, MJML refresh, and
 		// editor chrome all load) but must never create or update an ESP
 		// campaign — the post type is the boundary.
-		if ( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === get_post_type( $post_id ) ) {
+		if ( $this->is_layout_post( $post_id ) ) {
 			return;
 		}
 		$post = get_post( $post_id );

@@ -416,6 +416,19 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 	}
 
 	/**
+	 * Whether the given post is a layout-CPT post. Layouts share the
+	 * email editor surface with newsletters but must never trigger ESP
+	 * campaign sync / dispatch — every lifecycle hook in this class
+	 * (and its subclasses) gates on this.
+	 *
+	 * @param int|\WP_Post $post_or_id Post ID or post object.
+	 * @return bool
+	 */
+	protected function is_layout_post( $post_or_id ) {
+		return Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === get_post_type( $post_or_id );
+	}
+
+	/**
 	 * Send a newsletter.
 	 *
 	 * @param WP_Post $post The post object — typically a newsletter, but
@@ -430,7 +443,7 @@ abstract class Newspack_Newsletters_Service_Provider implements Newspack_Newslet
 		$post_id = $post->ID;
 
 		// Defence in depth: layouts must never dispatch a campaign, regardless of upstream guards.
-		if ( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === get_post_type( $post ) ) {
+		if ( $this->is_layout_post( $post ) ) {
 			return null;
 		}
 
