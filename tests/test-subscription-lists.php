@@ -125,6 +125,114 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A `title => null` row used to be dropped by sanitize_lists, which then
+	 * tripped the cleanup loop into deactivating the list.
+	 */
+	public function test_update_lists_keeps_row_when_title_is_null() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$mc_list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$mc_list->update( [ 'active' => true ] );
+		$this->assertTrue( $mc_list->is_active() );
+		$original_title = $mc_list->get_title();
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => $mc_list->get_public_id(),
+					'active' => true,
+					'title'  => null,
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $reloaded->is_active(), 'A null title must not cause the row to be dropped and then deactivated by the cleanup loop' );
+		$this->assertSame( $original_title, $reloaded->get_title(), 'Stored title is preserved when caller sends title => null' );
+	}
+
+	/**
+	 * A literal `"0"` title is a legal remote list name; `empty()` would reject it.
+	 */
+	public function test_update_lists_accepts_string_zero_as_title() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$count_before = count( Subscription_Lists::get_all() );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => 'xyz-zero-titled',
+					'active' => true,
+					'title'  => '0',
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$created = Subscription_List::from_public_id( 'xyz-zero-titled' );
+		$this->assertInstanceOf( Subscription_List::class, $created );
+		$this->assertSame( '0', $created->get_title() );
+		$this->assertSame( $count_before + 1, count( Subscription_Lists::get_all() ) );
+	}
+
+	/**
+	 * All-skipped payloads must error rather than fall through to the cleanup
+	 * loop, which would otherwise deactivate every scoped list.
+	 */
+	public function test_update_lists_all_skipped_payload_errors_without_cleanup() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
+		$mc_list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$mc_list->update( [ 'active' => true ] );
+		$this->assertTrue( $mc_list->is_active() );
+
+		$count_before = count( Subscription_Lists::get_all() );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => 'xyz-brand-new-unknown',
+					'active' => true,
+					'title'  => null,
+				],
+			]
+		);
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_invalid_lists', $result->get_error_code() );
+		$this->assertSame( $count_before, count( Subscription_Lists::get_all() ), 'Unknown remote id without a title must not be created' );
+		$this->assertNull( Subscription_List::from_public_id( 'xyz-brand-new-unknown' ) );
+
+		$reloaded = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $reloaded->is_active(), 'Existing scoped lists must remain active when every payload row was skipped' );
+	}
+
+	/**
+	 * `description => null` used to be cast to `''` and clobber the stored value.
+	 */
+	public function test_update_lists_preserves_description_when_passed_null() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$mc_list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$mc_list->update( [ 'active' => true ] );
+		$original_description = $mc_list->get_description();
+		$this->assertNotSame( '', $original_description );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'          => $mc_list->get_public_id(),
+					'active'      => true,
+					'title'       => $mc_list->get_title(),
+					'description' => null,
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$reloaded = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertSame( $original_description, $reloaded->get_description() );
+	}
+
+	/**
 	 * Test update_lists doesn't drop other-provider rows that were hidden
 	 * from the current-provider UI.
 	 */

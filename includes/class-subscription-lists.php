@@ -503,7 +503,8 @@ class Subscription_Lists {
 	 * @return Subscription_List
 	 */
 	public static function get_or_create_remote_list( $list ) {
-		if ( empty( $list['id'] ) || empty( $list['title'] ) ) {
+		// `empty()` would reject a legitimate `"0"` title; check string-emptiness directly.
+		if ( empty( $list['id'] ) || ! isset( $list['title'] ) || ! is_string( $list['title'] ) || '' === trim( $list['title'] ) ) {
 			throw new \Exception( 'Invalid list' );
 		}
 
@@ -761,7 +762,11 @@ class Subscription_Lists {
 		}
 		$lists = Newspack_Newsletters_Subscription::sanitize_lists( $lists );
 		if ( empty( $lists ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
+			return new WP_Error(
+				'newspack_newsletters_invalid_lists',
+				__( 'Invalid list configuration.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
 		}
 
 		$existing_ids = [];
@@ -772,6 +777,10 @@ class Subscription_Lists {
 
 			// If a remote list was not found, create one.
 			if ( ! $stored_list instanceof Subscription_List && ! Subscription_List::is_local_public_id( $list['id'] ) ) {
+				// sanitize_lists only sets `title` for non-empty strings; mirror that contract.
+				if ( ! isset( $list['title'] ) ) {
+					continue;
+				}
 				$stored_list = self::get_or_create_remote_list( $list );
 			}
 
@@ -787,6 +796,15 @@ class Subscription_Lists {
 			$existing_ids[] = $stored_list->get_id();
 			$stored_list->update( $list );
 
+		}
+
+		// Bail before cleanup so it doesn't deactivate everything when no rows landed.
+		if ( empty( $existing_ids ) ) {
+			return new WP_Error(
+				'newspack_newsletters_invalid_lists',
+				__( 'Invalid list configuration.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
 		}
 
 		// Cleanup is scoped to the current provider's UI — other-provider rows weren't in the payload to begin with.

@@ -577,21 +577,22 @@ class Newspack_Newsletters_Subscription {
 	public static function sanitize_lists( $lists ) {
 		$sanitized = [];
 		foreach ( $lists as $list ) {
-			if ( ! isset( $list['id'], $list['title'] ) || empty( $list['id'] ) ) {
-				continue;
-			}
-			$title = is_string( $list['title'] ) ? trim( $list['title'] ) : '';
-			if ( '' === $title ) {
+			if ( ! isset( $list['id'] ) || empty( $list['id'] ) ) {
 				continue;
 			}
 			$entry = [
 				'id'     => $list['id'],
 				'active' => isset( $list['active'] ) ? (bool) $list['active'] : false,
-				'title'  => $title,
 			];
-			// Carry `description` only when present — preserves "omit means leave alone".
-			if ( array_key_exists( 'description', $list ) ) {
-				$entry['description'] = (string) $list['description'];
+			// Omit null/non-string title and description so update() no-ops the field.
+			if ( isset( $list['title'] ) && is_string( $list['title'] ) ) {
+				$title = trim( $list['title'] );
+				if ( '' !== $title ) {
+					$entry['title'] = $title;
+				}
+			}
+			if ( isset( $list['description'] ) && is_string( $list['description'] ) ) {
+				$entry['description'] = $list['description'];
 			}
 			$sanitized[] = $entry;
 		}

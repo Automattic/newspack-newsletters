@@ -160,6 +160,34 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Auth-gated but the comma split is otherwise unbounded — cap at 10.
+	 */
+	public function test_caps_recipients_at_ten() {
+		$post_id = $this->make_layout( '<p>Preview</p>' );
+
+		$addresses = [];
+		for ( $i = 1; $i <= 15; $i++ ) {
+			$addresses[] = sprintf( 'user%02d@example.com', $i );
+		}
+
+		$request = new WP_REST_Request( 'POST', '/newspack-newsletters/v1/layouts/' . $post_id . '/test' );
+		$request->set_param( 'test_email', implode( ',', $addresses ) );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 10, $this->captured_mail );
+
+		$recipients = array_map(
+			static function ( $atts ) {
+				return is_array( $atts['to'] ) ? $atts['to'][0] : $atts['to'];
+			},
+			$this->captured_mail
+		);
+		$this->assertSame( array_slice( $addresses, 0, 10 ), $recipients );
+	}
+
+	/**
 	 * Successful send persists the recipient list to the current user's
 	 * `newspack_nl_test_emails` meta — mirrors the provider /test handlers.
 	 */

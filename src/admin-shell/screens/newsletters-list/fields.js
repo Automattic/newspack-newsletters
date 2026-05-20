@@ -204,7 +204,7 @@ export function getFields( { authors = [], categories = [], tags = [], sendLists
 			} ) ),
 			filterBy: { operators: [ 'isAny' ] },
 			enableSorting: true,
-			getValue: ( { item } ) => item?._embedded?.author?.[ 0 ]?.name || '',
+			getValue: ( { item } ) => String( item?._embedded?.author?.[ 0 ]?.id || '' ),
 			render: renderAuthor,
 		},
 		{
