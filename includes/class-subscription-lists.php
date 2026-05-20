@@ -503,7 +503,8 @@ class Subscription_Lists {
 	 * @return Subscription_List
 	 */
 	public static function get_or_create_remote_list( $list ) {
-		if ( empty( $list['id'] ) || empty( $list['title'] ) ) {
+		// `empty()` would reject a legitimate `"0"` title; check string-emptiness directly.
+		if ( empty( $list['id'] ) || ! isset( $list['title'] ) || ! is_string( $list['title'] ) || '' === trim( $list['title'] ) ) {
 			throw new \Exception( 'Invalid list' );
 		}
 
@@ -772,8 +773,8 @@ class Subscription_Lists {
 
 			// If a remote list was not found, create one.
 			if ( ! $stored_list instanceof Subscription_List && ! Subscription_List::is_local_public_id( $list['id'] ) ) {
-				// get_or_create_remote_list() needs a title; skip rather than throw.
-				if ( empty( $list['title'] ) ) {
+				// sanitize_lists only sets `title` for non-empty strings; mirror that contract.
+				if ( ! isset( $list['title'] ) ) {
 					continue;
 				}
 				$stored_list = self::get_or_create_remote_list( $list );

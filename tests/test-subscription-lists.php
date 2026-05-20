@@ -152,6 +152,30 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A literal `"0"` title is a legal remote list name; `empty()` would reject it.
+	 */
+	public function test_update_lists_accepts_string_zero_as_title() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$count_before = count( Subscription_Lists::get_all() );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => 'xyz-zero-titled',
+					'active' => true,
+					'title'  => '0',
+				],
+			]
+		);
+		$this->assertTrue( $result );
+
+		$created = Subscription_List::from_public_id( 'xyz-zero-titled' );
+		$this->assertInstanceOf( Subscription_List::class, $created );
+		$this->assertSame( '0', $created->get_title() );
+		$this->assertSame( $count_before + 1, count( Subscription_Lists::get_all() ) );
+	}
+
+	/**
 	 * All-skipped payloads must error rather than fall through to the cleanup
 	 * loop, which would otherwise deactivate every scoped list.
 	 */
