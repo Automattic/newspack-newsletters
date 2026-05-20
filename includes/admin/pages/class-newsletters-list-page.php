@@ -2,9 +2,8 @@
 /**
  * Newsletters list admin page (React DataView).
  *
- * Replaces the classic WP_List_Table for the newsletters CPT in both
- * standalone and bundled modes. The slug deliberately lives under the
- * existing CPT menu so the menu structure is preserved.
+ * Replaces the classic WP_List_Table for the newsletters CPT. Lives
+ * under the existing CPT menu so the menu structure is preserved.
  *
  * @package Newspack_Newsletters
  */
@@ -27,10 +26,8 @@ class Newsletters_List_Page extends Hidden_React_List_Page {
 	protected $slug = 'newspack-newsletters-list';
 
 	/**
-	 * Get the page label.
-	 *
-	 * Matches the auto-generated CPT submenu label so the menu reads
-	 * identically before and after the swap.
+	 * Get the page label. Matches the auto-generated CPT submenu
+	 * label so the menu reads identically before and after the swap.
 	 *
 	 * @return string
 	 */
@@ -40,9 +37,7 @@ class Newsletters_List_Page extends Hidden_React_List_Page {
 
 	/**
 	 * Register under the newsletters CPT parent. `Admin_Shell_Menu::register_menu`
-	 * removes the visible submenu after registration because
-	 * `is_hidden_from_menu()` returns true (inherited from
-	 * `Hidden_React_List_Page`).
+	 * removes the visible submenu because `is_hidden_from_menu()`.
 	 *
 	 * @return string
 	 */
@@ -51,9 +46,7 @@ class Newsletters_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * The list page's visible click target is the auto-generated
-	 * "All Newsletters" submenu — point `submenu_file` there so it
-	 * appears highlighted while the React page is on screen.
+	 * Visible click target — the auto-generated "All Newsletters" submenu.
 	 *
 	 * @return string
 	 */

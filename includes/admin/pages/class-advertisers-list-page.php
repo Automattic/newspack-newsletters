@@ -2,12 +2,10 @@
 /**
  * Newsletter Advertisers list admin page (React DataView).
  *
- * Replaces the classic taxonomy term-management screen for the
- * Advertiser taxonomy (`newspack_nl_advertiser`) with a React
- * DataView, in both standalone and bundled modes. Mirrors the ads
- * list page — registers as a hidden submenu under the ads CPT
- * parent and 302s the legacy
- * `edit-tags.php?taxonomy=newspack_nl_advertiser` URL across.
+ * Replaces the classic taxonomy term-management screen for
+ * `newspack_nl_advertiser`. Mirrors the ads list page — hidden
+ * submenu under the ads CPT parent; the legacy `edit-tags.php`
+ * URL 302s to the React page.
  *
  * @package Newspack_Newsletters
  */
@@ -40,9 +38,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * Register under the parent WP resolves to at access-check time.
-	 * Mirrors `Ads_List_Page::get_parent_slug` — top-level when the
-	 * ads CPT is its own menu, under the newsletters CPT otherwise.
+	 * Mirrors `Ads_List_Page::get_parent_slug` — mode-dependent.
 	 *
 	 * @return string
 	 */
@@ -51,10 +47,10 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * Match the auto-generated taxonomy submenu URL so the sidebar entry
-	 * highlights. The advertiser tax is shared with the newsletters CPT
-	 * (the only one with `show_in_menu`), so submenu mode highlights
-	 * under the newsletters CPT URL.
+	 * Match the auto-generated taxonomy submenu URL so the sidebar
+	 * entry highlights. The advertiser tax is shared with the
+	 * newsletters CPT; submenu mode highlights under the newsletters
+	 * CPT URL.
 	 *
 	 * @return string
 	 */
@@ -66,8 +62,8 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * Classic taxonomy term-management screen the React page shadows.
-	 * `edit-tags.php?taxonomy=X` resolves to `WP_Screen::id = 'edit-X'`.
+	 * Classic taxonomy term-management screen the React page shadows
+	 * (`edit-tags.php?taxonomy=X` resolves to `WP_Screen::id = 'edit-X'`).
 	 *
 	 * @return string
 	 */
@@ -76,8 +72,8 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * Post type the React page lives under in the admin URL — the ads
-	 * CPT, regardless of which taxonomy URL the user came from.
+	 * Post type the React page lives under — the ads CPT regardless of
+	 * which taxonomy URL the user came from.
 	 *
 	 * @return string
 	 */
@@ -86,13 +82,8 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	}
 
 	/**
-	 * The newspack-plugin admin header (`WizardsAdminHeader`) renders an
-	 * "Advertisers" tab pointing at the legacy taxonomy URL for the
-	 * wizard's ads / advertisers screens. Our React page lives at the
-	 * ads CPT URL plus `&page=newspack-newsletters-advertisers-list`, so
-	 * the wizard's strict URL equality match never fires here. Return
-	 * the canonical Advertisers tab URL so `Admin_Shell` can flip the
-	 * matching `<a>` to `.selected` after the header mounts.
+	 * Canonical Advertisers tab URL — wizard header's strict URL
+	 * equality check would otherwise miss our `&page=…` subpage.
 	 *
 	 * @return string
 	 */

@@ -39,9 +39,9 @@ class Settings_Page extends Admin_Page {
 	}
 
 	/**
-	 * Settings is visible in the menu under the Newsletters CPT — this is
-	 * what gives standalone mode an entry point at all (in bundled mode
-	 * `Admin_Shell::get_pages()` doesn't include it).
+	 * Visible submenu under the Newsletters CPT — only the entry
+	 * point standalone mode has. (Bundled mode excludes Settings via
+	 * `Admin_Shell::get_pages()`.)
 	 *
 	 * @return string
 	 */
