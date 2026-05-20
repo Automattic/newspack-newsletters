@@ -21,6 +21,7 @@ use WP_Post;
  * Register the REST field powering the list view's Status column.
  */
 class Newsletters_List_REST {
+	use Rest_Status_Field;
 	use Status_Filter_Builder;
 
 	const IS_PUBLIC_QUERY_PARAM = 'newspack_newsletters_is_public';
@@ -428,50 +429,22 @@ class Newsletters_List_REST {
 	 * Register REST fields on the newsletters CPT.
 	 */
 	public static function register_rest_fields() {
-		register_rest_field(
+		self::register_status_field(
 			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			'newspack_newsletters_status',
 			[
-				'get_callback' => [ __CLASS__, 'rest_get_status' ],
-				'schema'       => [
-					'context'    => [ 'view', 'edit' ],
-					'type'       => 'object',
-					'readonly'   => true,
-					'properties' => [
-						'kind'         => [
-							'type' => 'string',
-							'enum' => [ 'draft', 'sent', 'scheduled', 'trash' ],
-						],
-						'sent_at'      => [
-							'type' => [ 'integer', 'null' ],
-						],
-						'scheduled_at' => [
-							'type' => [ 'integer', 'null' ],
-						],
-					],
+				'kind'         => [
+					'type' => 'string',
+					'enum' => [ 'draft', 'sent', 'scheduled', 'trash' ],
+				],
+				'sent_at'      => [
+					'type' => [ 'integer', 'null' ],
+				],
+				'scheduled_at' => [
+					'type' => [ 'integer', 'null' ],
 				],
 			]
 		);
-	}
-
-	/**
-	 * REST `get_callback` adapter — receives the prepared post array.
-	 *
-	 * Matches WP's documented field-callback signature so future strict-mode
-	 * runtimes and IDE tooling don't flag a mismatch:
-	 * `( $object, $field_name, $request, $object_type )`. Only `$object` is
-	 * used; the rest are accepted defensively.
-	 *
-	 * @param array            $post_array  Prepared post response.
-	 * @param string           $field_name  Field name (unused).
-	 * @param \WP_REST_Request $request     Request object (unused).
-	 * @param string           $object_type Object type (unused).
-	 * @return array Status payload.
-	 */
-	public static function rest_get_status( $post_array, $field_name = '', $request = null, $object_type = '' ) {
-		unset( $field_name, $request, $object_type );
-		$post = isset( $post_array['id'] ) ? get_post( $post_array['id'] ) : null;
-		return self::get_status_for_post( $post );
 	}
 
 	/**
