@@ -517,14 +517,14 @@ class Subscription_List {
 		if ( isset( $fields['active'] ) && $fields['active'] !== $this->is_active() ) {
 			$post_data['post_status'] = $fields['active'] ? 'publish' : 'draft';
 		}
-		if ( array_key_exists( 'title', $fields ) ) {
-			$title = is_string( $fields['title'] ) ? $fields['title'] : '';
+		if ( isset( $fields['title'] ) && is_string( $fields['title'] ) ) {
+			$title = $fields['title'];
 			if ( '' !== $title && $title !== $this->get_title() ) {
 				$post_data['post_title'] = $title;
 			}
 		}
-		if ( array_key_exists( 'description', $fields ) ) {
-			$description = is_string( $fields['description'] ) ? $fields['description'] : '';
+		if ( isset( $fields['description'] ) && is_string( $fields['description'] ) ) {
+			$description = $fields['description'];
 			if ( $description !== $this->get_description() ) {
 				$post_data['post_content'] = $description;
 			}
