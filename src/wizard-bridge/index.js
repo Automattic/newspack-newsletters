@@ -20,7 +20,7 @@ export function boot() {
 	const container = document.createElement( 'div' );
 	container.className = ROOT_CLASS;
 	document.body.appendChild( container );
-	// `<LocalListModalHost />` flips `bridgeReady` and dispatches `bridge-mounted` from its own effect, so a sync consumer dispatch lands at a ready listener.
+	// `<LocalListModalHost />` flips `window.newspackNewslettersBridgeReady` and dispatches `bridge-mounted` from its own effect, so a sync consumer dispatch lands at a ready listener.
 	render( <LocalListModalHost />, container );
 }
 
