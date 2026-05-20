@@ -772,6 +772,10 @@ class Subscription_Lists {
 
 			// If a remote list was not found, create one.
 			if ( ! $stored_list instanceof Subscription_List && ! Subscription_List::is_local_public_id( $list['id'] ) ) {
+				// get_or_create_remote_list() needs a title; skip rather than throw.
+				if ( empty( $list['title'] ) ) {
+					continue;
+				}
 				$stored_list = self::get_or_create_remote_list( $list );
 			}
 

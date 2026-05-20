@@ -125,11 +125,8 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * External sync callers that include a row with `title => null` (meaning
-	 * "leave the stored title alone") used to have the entire entry dropped
-	 * by sanitize_lists, which then made the cleanup loop deactivate the
-	 * list. The row must survive so its `active` flag is honoured and the
-	 * stored title is preserved.
+	 * A `title => null` row used to be dropped by sanitize_lists, which then
+	 * tripped the cleanup loop into deactivating the list.
 	 */
 	public function test_update_lists_keeps_row_when_title_is_null() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
@@ -155,9 +152,29 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Sanitization used to cast `description => null` to `''`, which then
-	 * clobbered the stored description via `Subscription_List::update()`.
-	 * A null/absent description must be a no-op.
+	 * Title-less rows for unknown remote ids must be skipped —
+	 * get_or_create_remote_list() would otherwise throw and 500.
+	 */
+	public function test_update_lists_skips_unknown_remote_id_without_title() {
+		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+		$count_before = count( Subscription_Lists::get_all() );
+
+		$result = Subscription_Lists::update_lists(
+			[
+				[
+					'id'     => 'xyz-brand-new-unknown',
+					'active' => true,
+					'title'  => null,
+				],
+			]
+		);
+		$this->assertTrue( $result );
+		$this->assertSame( $count_before, count( Subscription_Lists::get_all() ), 'Unknown remote id without a title must not be created' );
+		$this->assertNull( Subscription_List::from_public_id( 'xyz-brand-new-unknown' ) );
+	}
+
+	/**
+	 * `description => null` used to be cast to `''` and clobber the stored value.
 	 */
 	public function test_update_lists_preserves_description_when_passed_null() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
