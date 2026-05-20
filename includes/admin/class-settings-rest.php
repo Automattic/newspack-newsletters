@@ -116,9 +116,8 @@ class Settings_REST {
 
 		$provider_payload = $request->get_param( 'provider' );
 		if ( is_array( $provider_payload ) && array_key_exists( 'slug', $provider_payload ) ) {
-			$slug          = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
-			$previous_slug = Newspack_Newsletters::service_provider();
-			$valid_slugs   = Newspack_Newsletters::get_supported_providers();
+			$slug        = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
+			$valid_slugs = Newspack_Newsletters::get_supported_providers();
 			if ( '' === $slug ) {
 				$errors->add(
 					'newspack_newsletters_no_service_provider',
@@ -131,56 +130,40 @@ class Settings_REST {
 					__( 'Unknown service provider.', 'newspack-newsletters' ),
 					[ 'status' => 400 ]
 				);
-			} else {
+			} elseif ( 'manual' === $slug ) {
 				Newspack_Newsletters::set_service_provider( $slug );
-				if ( 'manual' !== $slug ) {
+			} else {
+				// Resolve the provider without committing the option — only flip on credentials success
+				// so a rejection can't leave the site pointing at an unconfigured provider.
+				$provider = Newspack_Newsletters::get_service_provider_instance( $slug );
+				if ( ! $provider || ! method_exists( $provider, 'set_api_credentials' ) ) {
+					$errors->add(
+						'newspack_newsletters_provider_unavailable',
+						__( 'The selected service provider is not available on this site.', 'newspack-newsletters' ),
+						[ 'status' => 400 ]
+					);
+				} else {
 					$credentials = isset( $provider_payload['credentials'] ) && is_array( $provider_payload['credentials'] )
 						? $provider_payload['credentials']
 						: [];
-					$provider    = Newspack_Newsletters::get_service_provider();
-					if ( ! $provider || ! method_exists( $provider, 'set_api_credentials' ) ) {
-						// Provider was registered via filter but the class
-						// failed to load — refuse to persist a credentials
-						// switch we can't actually apply.
+					// Validate the merged result, not the raw payload — a no-op save (no fields touched)
+					// is legal on an already-configured provider.
+					$merged = self::merge_credentials( $slug, $credentials, $provider );
+					if ( empty( $merged ) ) {
 						$errors->add(
-							'newspack_newsletters_provider_unavailable',
-							__( 'The selected service provider is not available on this site.', 'newspack-newsletters' ),
+							'newspack_newsletters_invalid_keys',
+							__( 'Please input credentials.', 'newspack-newsletters' ),
 							[ 'status' => 400 ]
 						);
 					} else {
-						$merged = self::merge_credentials( $slug, $credentials, $provider );
-						// Validate the merged result, not the raw payload —
-						// an already-configured provider can save with an
-						// empty edit (no fields touched), and the merge
-						// fills in the stored values so the no-op save
-						// still succeeds.
-						if ( empty( $merged ) ) {
-							$errors->add(
-								'newspack_newsletters_invalid_keys',
-								__( 'Please input credentials.', 'newspack-newsletters' ),
-								[ 'status' => 400 ]
-							);
-						} else {
-							$result = $provider->set_api_credentials( $merged );
-							if ( is_wp_error( $result ) ) {
-								foreach ( $result->errors as $code => $messages ) {
-									$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
-								}
+						$result = $provider->set_api_credentials( $merged );
+						if ( is_wp_error( $result ) ) {
+							foreach ( $result->errors as $code => $messages ) {
+								$errors->add( $code, implode( ' ', $messages ), [ 'status' => 400 ] );
 							}
+						} else {
+							Newspack_Newsletters::set_service_provider( $slug );
 						}
-					}
-				}
-				// Restore the previous provider if anything in the provider
-				// switch failed, so a rejected request doesn't leave the
-				// site pointing at an unconfigured provider. The
-				// `$previous_slug === false` branch covers a fresh site
-				// that had no provider configured before this request.
-				if ( $errors->has_errors() && $previous_slug !== $slug ) {
-					if ( $previous_slug ) {
-						Newspack_Newsletters::set_service_provider( $previous_slug );
-					} else {
-						delete_option( 'newspack_newsletters_service_provider' );
-						Newspack_Newsletters::memoize_service_provider();
 					}
 				}
 			}
