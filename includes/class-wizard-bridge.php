@@ -58,6 +58,7 @@ class Wizard_Bridge {
 
 		$asset = Asset_Loader::enqueue_bundle(
 			self::SCRIPT_HANDLE,
+			'wizard-bridge',
 			NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'dist',
 			plugins_url( '../dist', __FILE__ )
 		);
