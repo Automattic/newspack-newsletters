@@ -38,8 +38,14 @@ function useNewspackHeader() {
 			return undefined;
 		}
 
+		// Re-query synchronously — MutationObserver only fires on future mutations.
+		const synchronous = wrapper.querySelector( '.newspack-wizard__header' );
+		if ( synchronous ) {
+			setTarget( synchronous );
+			return undefined;
+		}
+
 		// Newspack admin-header's React app rewrites this subtree on mount.
-		// Watch for the slot to appear and capture it once.
 		const observer = new MutationObserver( () => {
 			const found = wrapper.querySelector( '.newspack-wizard__header' );
 			if ( found ) {
