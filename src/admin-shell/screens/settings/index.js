@@ -4,7 +4,7 @@ import {
 	__experimentalHStack as HStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 	__experimentalVStack as VStack, // eslint-disable-line @wordpress/no-unsafe-wp-apis
 } from '@wordpress/components';
-import { useCallback, useEffect, useState } from '@wordpress/element';
+import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { notifyError, notifySuccess } from '../../notices';
@@ -27,21 +27,12 @@ export default function SettingsScreen() {
 	const [ pendingOptions, setPendingOptions ] = useState( {} );
 	const [ isSaving, setIsSaving ] = useState( false );
 
-	// Resync pending state whenever fresh provider data lands (post-save
-	// reload, OAuth authorise, manual refresh). Depending on the whole
-	// `data.provider` object — not just `savedSlug` — so that saving new
-	// credentials for the *same* provider also clears the plaintext from
-	// the input and flips Save back to a clean state.
 	useEffect( () => {
 		setPendingSlug( savedSlug );
-		setPendingCredentials( {} );
-	}, [ data?.provider, savedSlug ] );
-
-	useEffect( () => {
-		setPendingOptions( {} );
-	}, [ data?.options ] );
+	}, [ savedSlug ] );
 
 	const handleAuthorized = useCallback( () => {
+		setPendingCredentials( {} );
 		reloadSettings();
 		reloadLists();
 	}, [ reloadSettings, reloadLists ] );
@@ -59,46 +50,87 @@ export default function SettingsScreen() {
 		setPendingCredentials( {} );
 	}, [] );
 
+	const newsletterOptionsSchema = useMemo( () => ( data?.schema || [] ).filter( field => field.key !== LETTERHEAD_KEY ), [ data?.schema ] );
+	const letterheadSchema = useMemo( () => ( data?.schema || [] ).filter( field => field.key === LETTERHEAD_KEY ), [ data?.schema ] );
+	const newsletterOptionKeys = useMemo( () => newsletterOptionsSchema.map( f => f.key ), [ newsletterOptionsSchema ] );
+	const letterheadOptionKeys = useMemo( () => letterheadSchema.map( f => f.key ), [ letterheadSchema ] );
+
 	const slugDirty = pendingSlug !== savedSlug;
 	const credentialsDirty = Object.keys( pendingCredentials ).length > 0;
-	const optionsDirty = Object.keys( pendingOptions ).length > 0;
-	const isDirty = slugDirty || credentialsDirty || optionsDirty;
+	const providerDirty = slugDirty || credentialsDirty;
+	const pendingOptionKeys = Object.keys( pendingOptions );
+	const newsletterOptionsDirty = pendingOptionKeys.some( k => newsletterOptionKeys.includes( k ) );
+	const letterheadOptionsDirty = pendingOptionKeys.some( k => letterheadOptionKeys.includes( k ) );
 
-	const handleSave = useCallback( async () => {
-		const payload = {};
-		if ( slugDirty || credentialsDirty ) {
-			payload.provider = { slug: pendingSlug };
-			if ( pendingSlug !== 'manual' && credentialsDirty ) {
-				const submitted = {};
-				Object.keys( pendingCredentials ).forEach( key => {
-					const value = pendingCredentials[ key ];
-					if ( typeof value === 'string' && value.length > 0 ) {
-						submitted[ key ] = value;
-					}
-				} );
-				payload.provider.credentials = submitted;
-			}
-		}
-		if ( optionsDirty ) {
-			payload.options = { ...pendingOptions };
-		}
-		if ( Object.keys( payload ).length === 0 ) {
+	const clearOptionKeys = useCallback( keys => {
+		setPendingOptions( prev => {
+			const next = { ...prev };
+			keys.forEach( k => delete next[ k ] );
+			return next;
+		} );
+	}, [] );
+
+	const handleSaveProvider = useCallback( async () => {
+		if ( ! providerDirty ) {
 			return;
+		}
+		const payload = { provider: { slug: pendingSlug } };
+		if ( pendingSlug !== 'manual' && credentialsDirty ) {
+			const submitted = {};
+			Object.keys( pendingCredentials ).forEach( key => {
+				const value = pendingCredentials[ key ];
+				if ( typeof value === 'string' && value.length > 0 ) {
+					submitted[ key ] = value;
+				}
+			} );
+			payload.provider.credentials = submitted;
 		}
 		setIsSaving( true );
 		try {
 			await saveSettings( payload );
-			notifySuccess( __( 'Settings saved.', 'newspack-newsletters' ) );
-			if ( payload.provider ) {
-				reloadLists();
-			}
+			notifySuccess( __( 'Provider settings saved.', 'newspack-newsletters' ) );
+			setPendingCredentials( {} );
+			reloadLists();
 		} catch ( err ) {
-			const message = err?.message || __( 'Could not save settings. Check the credentials and try again.', 'newspack-newsletters' );
-			notifyError( message );
+			notifyError( err?.message || __( 'Could not save settings. Check the credentials and try again.', 'newspack-newsletters' ) );
 		} finally {
 			setIsSaving( false );
 		}
-	}, [ slugDirty, credentialsDirty, optionsDirty, pendingSlug, pendingCredentials, pendingOptions, saveSettings, reloadLists ] );
+	}, [ providerDirty, credentialsDirty, pendingSlug, pendingCredentials, saveSettings, reloadLists ] );
+
+	const saveOptionsSubset = useCallback(
+		async ( keys, successMessage ) => {
+			const subset = {};
+			keys.forEach( key => {
+				if ( Object.prototype.hasOwnProperty.call( pendingOptions, key ) ) {
+					subset[ key ] = pendingOptions[ key ];
+				}
+			} );
+			if ( Object.keys( subset ).length === 0 ) {
+				return;
+			}
+			setIsSaving( true );
+			try {
+				await saveSettings( { options: subset } );
+				notifySuccess( successMessage );
+				clearOptionKeys( keys );
+			} catch ( err ) {
+				notifyError( err?.message || __( 'Could not save settings.', 'newspack-newsletters' ) );
+			} finally {
+				setIsSaving( false );
+			}
+		},
+		[ pendingOptions, saveSettings, clearOptionKeys ]
+	);
+
+	const handleSaveNewsletterOptions = useCallback(
+		() => saveOptionsSubset( newsletterOptionKeys, __( 'Newsletter options saved.', 'newspack-newsletters' ) ),
+		[ saveOptionsSubset, newsletterOptionKeys ]
+	);
+	const handleSaveLetterhead = useCallback(
+		() => saveOptionsSubset( letterheadOptionKeys, __( 'Letterhead saved.', 'newspack-newsletters' ) ),
+		[ saveOptionsSubset, letterheadOptionKeys ]
+	);
 
 	if ( isLoading && ! data ) {
 		return (
@@ -118,9 +150,6 @@ export default function SettingsScreen() {
 		);
 	}
 
-	const newsletterOptionsSchema = ( data?.schema || [] ).filter( field => field.key !== LETTERHEAD_KEY );
-	const letterheadSchema = ( data?.schema || [] ).filter( field => field.key === LETTERHEAD_KEY );
-
 	return (
 		<VStack spacing={ 12 } className="newspack-newsletters-settings">
 			<ProviderSection
@@ -131,8 +160,8 @@ export default function SettingsScreen() {
 				onSlugChange={ onSlugChange }
 				onCredentialChange={ updateCredential }
 				onAuthorized={ handleAuthorized }
-				onSave={ handleSave }
-				isDirty={ isDirty }
+				onSave={ handleSaveProvider }
+				isDirty={ providerDirty }
 				isSaving={ isSaving }
 				disabled={ isSaving }
 			/>
@@ -143,8 +172,8 @@ export default function SettingsScreen() {
 				activeProvider={ savedSlug }
 				pendingValues={ pendingOptions }
 				onChange={ updateOption }
-				onSave={ handleSave }
-				isDirty={ isDirty }
+				onSave={ handleSaveNewsletterOptions }
+				isDirty={ newsletterOptionsDirty }
 				isSaving={ isSaving }
 				disabled={ isSaving }
 			/>
@@ -155,8 +184,8 @@ export default function SettingsScreen() {
 				activeProvider={ savedSlug }
 				pendingValues={ pendingOptions }
 				onChange={ updateOption }
-				onSave={ handleSave }
-				isDirty={ isDirty }
+				onSave={ handleSaveLetterhead }
+				isDirty={ letterheadOptionsDirty }
 				isSaving={ isSaving }
 				disabled={ isSaving }
 			/>
