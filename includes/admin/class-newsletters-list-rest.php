@@ -166,13 +166,10 @@ class Newsletters_List_REST {
 			$args['post_status'] = $widened;
 		}
 
-		// Per-request token scopes the closure to this specific WP_Query.
-		// Without it, `posts_where` fires for every nested WP_Query in the
-		// same request (term queries, internal REST sub-requests, etc.)
-		// and the closure would both corrupt those unrelated queries and
-		// `remove_filter` itself before the intended WP_Query reached
-		// `posts_where`.
-		$token                            = uniqid( 'newspack_nl_bucket_', true );
+		// Token-scope the closure: `posts_where` fires for every WP_Query in the request, so
+		// without this gate a nested query corrupts the WHERE and self-removes the filter
+		// before our intended query runs.
+		$token                             = uniqid( 'newspack_nl_bucket_', true );
 		$args['_newspack_nl_bucket_token'] = $token;
 
 		$callback = static function ( $where, $wp_query ) use ( &$callback, $token, $wants_sent, $wants_draft, $wants_scheduled, $wants_trash ) {

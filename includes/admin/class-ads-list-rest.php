@@ -217,11 +217,9 @@ class Ads_List_REST {
 
 		$args['post_status'] = array_values( array_unique( $post_status_set ) );
 
-		// Per-request token scopes the closure to this specific WP_Query.
-		// Without it, `posts_where` fires for every nested WP_Query in the
-		// same request and the closure would both corrupt those unrelated
-		// queries and `remove_filter` itself before the intended WP_Query
-		// reached `posts_where`.
+		// Token-scope the closure: `posts_where` fires for every WP_Query in the request, so
+		// without this gate a nested query corrupts the WHERE and self-removes the filter
+		// before our intended query runs.
 		$token                              = uniqid( 'newspack_ads_bucket_', true );
 		$args['_newspack_ads_bucket_token'] = $token;
 
