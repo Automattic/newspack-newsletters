@@ -95,7 +95,7 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 	 * hidden React subpage (live URL has an extra `&page=…` query)
 	 * and the tab renders without `.selected`. The default base
 	 * implementation returns `null`; the override here is what makes
-	 * `Admin_Shell::patch_wizard_header_active_tab` flip the tab.
+	 * `Admin_Shell_Assets::patch_wizard_header_active_tab` flip the tab.
 	 */
 	public function test_wizard_tab_url_targets_ads_cpt() {
 		$page = new Ads_List_Page();

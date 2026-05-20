@@ -6,6 +6,7 @@
  */
 
 use Newspack\Newsletters\Admin\Admin_Shell;
+use Newspack\Newsletters\Admin\Admin_Shell_Assets;
 use Newspack\Newsletters\Admin\Admin_Shell_Legacy_Redirect;
 use Newspack\Newsletters\Admin\Admin_Shell_Menu;
 use Newspack\Newsletters\Admin\Pages\Newsletters_List_Page;
@@ -415,7 +416,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		$_GET['page'] = 'newspack-newsletters-ads-list';
 		set_current_screen( 'admin_page_newspack-newsletters-ads-list' );
 
-		Admin_Shell::patch_wizard_header_active_tab();
+		Admin_Shell_Assets::patch_wizard_header_active_tab();
 
 		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
 		$this->assertIsArray( $inline );
@@ -444,7 +445,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-list';
 
-		Admin_Shell::patch_wizard_header_active_tab();
+		Admin_Shell_Assets::patch_wizard_header_active_tab();
 
 		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
 		$this->assertEmpty( $inline, 'No inline script should be attached when the current page has no wizard-tab override.' );

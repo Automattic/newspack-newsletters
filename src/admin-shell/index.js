@@ -33,6 +33,6 @@ domReady( () => {
 
 	// Prefer the PHP-localised label so the rendered heading/title stays
 	// aligned with the admin menu label registered in PHP (see
-	// `Admin_Shell::enqueue_assets`). Registry label is the fallback.
+	// `Admin_Shell_Assets::enqueue`). Registry label is the fallback.
 	createRoot( target ).render( <App label={ resolveLabel( currentPage ) } Screen={ entry.component } /> );
 } );
