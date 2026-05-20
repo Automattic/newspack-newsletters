@@ -25,6 +25,12 @@ class Newsletters_List_REST {
 	const SEND_LIST_QUERY_PARAM = 'newspack_newsletters_send_list_id';
 
 	/**
+	 * Defensive cap on each filter-options query so a site with tens of
+	 * thousands of newsletters can't blow up the payload (or the SQL).
+	 */
+	const FILTER_OPTIONS_LIMIT = 500;
+
+	/**
 	 * Boot hooks.
 	 */
 	public static function init() {
@@ -331,8 +337,10 @@ class Newsletters_List_REST {
 				 FROM {$wpdb->posts} p
 				 WHERE p.post_type = %s
 				   AND p.post_status NOT IN ( 'auto-draft' )
-				   AND p.post_author <> 0" . $user_scope_sql,
-				$cpt
+				   AND p.post_author <> 0" . $user_scope_sql . '
+				 LIMIT %d',
+				$cpt,
+				self::FILTER_OPTIONS_LIMIT
 			)
 		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
@@ -376,9 +384,11 @@ class Newsletters_List_REST {
 				 WHERE p.post_type = %s
 				   AND p.post_status NOT IN ( 'auto-draft' )
 				   AND tt.taxonomy = %s" . $user_scope_sql . '
-				 ORDER BY t.name ASC',
+				 ORDER BY t.name ASC
+				 LIMIT %d',
 				$cpt,
-				$taxonomy
+				$taxonomy,
+				self::FILTER_OPTIONS_LIMIT
 			),
 			ARRAY_A
 		);
@@ -414,8 +424,10 @@ class Newsletters_List_REST {
 				   AND pm.meta_value <> ''
 				   AND p.post_type = %s
 				   AND p.post_status NOT IN ( 'auto-draft' )" . $user_scope_sql . '
-				 ORDER BY pm.meta_value ASC',
-				$cpt
+				 ORDER BY pm.meta_value ASC
+				 LIMIT %d',
+				$cpt,
+				self::FILTER_OPTIONS_LIMIT
 			)
 		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared

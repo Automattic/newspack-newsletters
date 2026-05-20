@@ -1251,6 +1251,33 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Filter-options queries are capped at `FILTER_OPTIONS_LIMIT` rows
+	 * so a site with tens of thousands of newsletters can't blow up the
+	 * payload (or the SQL). Exercised via `send_list_id`, but the same
+	 * literal `LIMIT` clause guards the authors and terms queries too.
+	 */
+	public function test_filter_options_caps_results_at_filter_options_limit() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$cpt   = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
+		$cap   = Newsletters_List_REST::FILTER_OPTIONS_LIMIT;
+		$total = $cap + 5;
+
+		for ( $i = 0; $i < $total; $i++ ) {
+			self::factory()->post->create(
+				[
+					'post_type'   => $cpt,
+					'post_status' => 'publish',
+					'meta_input'  => [ 'send_list_id' => sprintf( 'list-%04d', $i ) ],
+				]
+			);
+		}
+
+		$send_lists = Newsletters_List_REST::rest_get_filter_options()->get_data()['send_lists'];
+
+		$this->assertCount( $cap, $send_lists, 'Send-list options should be capped at FILTER_OPTIONS_LIMIT.' );
+	}
+
+	/**
 	 * A user without `edit_others_posts` only sees options derived from
 	 * their own newsletters — never leaks authors / terms / send-list
 	 * IDs from other publishers' drafts or private rows.
