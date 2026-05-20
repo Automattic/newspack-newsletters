@@ -77,6 +77,8 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/tracking/class-admin.
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-newspack-newsletters.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/plugins/woocommerce-memberships/class-woocommerce-memberships.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/class-admin-page.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-react-list-page.php';
+require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-hidden-react-list-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-newsletters-list-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-ads-list-page.php';
 require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/admin/pages/class-advertisers-list-page.php';
