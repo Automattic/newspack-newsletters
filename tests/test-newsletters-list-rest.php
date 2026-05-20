@@ -472,6 +472,12 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 			$drain = new WP_Query();
 			$drain->set( '_newspack_nl_bucket_token', $args['_newspack_nl_bucket_token'] );
 			apply_filters( 'posts_where', '', $drain );
+
+			$this->assertSame(
+				$before,
+				$this->count_posts_where_callbacks(),
+				'Token-matching drain should self-remove the closure for params: ' . wp_json_encode( $params )
+			);
 		}
 	}
 
