@@ -114,6 +114,24 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	}
 
 	/**
+	 * Build the OAuth authorisation URL without calling the live API.
+	 * Decoupled from `verify_token()` so admin surfaces can render the
+	 * "Authorize" button (which requires a session-current
+	 * `wp_create_nonce`) without paying for a `validate_token` round trip.
+	 *
+	 * @return string
+	 */
+	public function get_oauth_auth_url() {
+		try {
+			$redirect_uri = $this->get_oauth_redirect_uri();
+			$cc           = $this->get_sdk();
+			return $cc->get_auth_code_url( wp_create_nonce( 'constant_contact_oauth2' ), $redirect_uri );
+		} catch ( Exception $e ) {
+			return '';
+		}
+	}
+
+	/**
 	 * Verify service provider connection.
 	 *
 	 * @param boolean $refresh Whether to attempt connection refresh.

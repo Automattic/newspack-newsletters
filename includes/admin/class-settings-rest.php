@@ -271,8 +271,13 @@ class Settings_REST {
 	}
 
 	/**
-	 * Return the provider's OAuth state, short-cached so the Settings GET
+	 * Resolve the provider's OAuth state for the Settings response.
+	 *
+	 * The `valid` flag is short-cached (site-global) so the Settings GET
 	 * doesn't hit the provider's verify endpoint on every page load.
+	 * `auth_url` is built fresh on every request — it carries a
+	 * `wp_create_nonce` that's session-token-scoped, so caching it
+	 * would leak nonces across users / browser sessions.
 	 *
 	 * @param object|null $provider      Active provider instance.
 	 * @param string      $provider_slug Provider slug.
@@ -283,28 +288,37 @@ class Settings_REST {
 			return null;
 		}
 
-		$cache_key = self::oauth_cache_key( $provider_slug );
-		$cached    = get_transient( $cache_key );
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
+		$valid    = self::resolve_oauth_validity( $provider, $provider_slug );
+		$auth_url = method_exists( $provider, 'get_oauth_auth_url' ) ? (string) $provider->get_oauth_auth_url() : '';
 
-		$token = $provider->verify_token( true );
-		if ( ! is_array( $token ) ) {
-			return null;
-		}
-
-		$auth_url = isset( $token['auth_url'] ) ? (string) $token['auth_url'] : '';
-		$oauth    = [
-			'valid'    => ! empty( $token['valid'] ),
+		return [
+			'valid'    => (bool) $valid,
 			'auth_url' => $auth_url ? esc_url_raw( $auth_url ) : '',
 		];
-		set_transient( $cache_key, $oauth, self::OAUTH_STATE_CACHE_TTL );
-		return $oauth;
 	}
 
 	/**
-	 * Drop the cached OAuth state. Called after a successful provider
+	 * Read or compute the validity flag for the active provider, caching
+	 * the result so back-to-back GETs share one verify call.
+	 *
+	 * @param object $provider      Provider instance.
+	 * @param string $provider_slug Provider slug.
+	 * @return bool
+	 */
+	private static function resolve_oauth_validity( $provider, $provider_slug ) {
+		$cache_key = self::oauth_cache_key( $provider_slug );
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) && array_key_exists( 'valid', $cached ) ) {
+			return (bool) $cached['valid'];
+		}
+		$token = $provider->verify_token( true );
+		$valid = is_array( $token ) && ! empty( $token['valid'] );
+		set_transient( $cache_key, [ 'valid' => $valid ], self::OAUTH_STATE_CACHE_TTL );
+		return $valid;
+	}
+
+	/**
+	 * Drop the cached OAuth validity. Called after a successful provider
 	 * switch or credentials update so the next GET reflects the change.
 	 *
 	 * @param string $provider_slug Provider slug.
@@ -316,15 +330,15 @@ class Settings_REST {
 	}
 
 	/**
-	 * Transient key for the cached OAuth snapshot. Keyed per user because
-	 * `auth_url` carries a per-user `wp_create_nonce` — sharing the cache
-	 * across users would leak User A's nonce into User B's response.
+	 * Transient key for the cached OAuth validity. Site-global —
+	 * `auth_url` is no longer cached here, so per-user keying is not
+	 * required.
 	 *
 	 * @param string $provider_slug Provider slug.
 	 * @return string Transient key.
 	 */
 	private static function oauth_cache_key( $provider_slug ) {
-		return 'newspack_newsletters_oauth_state_' . sanitize_key( $provider_slug ) . '_' . get_current_user_id();
+		return 'newspack_newsletters_oauth_valid_' . sanitize_key( $provider_slug );
 	}
 
 	/**

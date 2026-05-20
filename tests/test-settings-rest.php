@@ -59,10 +59,8 @@ class Settings_REST_Test extends WP_UnitTestCase {
 		foreach ( $keys as $key ) {
 			delete_option( $key );
 		}
-		global $wpdb;
-		// Per-user cache keys: scrub anything matching the prefix so test
-		// order can't leak across user IDs.
-		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_newspack\\_newsletters\\_oauth\\_state\\_%' OR option_name LIKE '\\_transient\\_timeout\\_newspack\\_newsletters\\_oauth\\_state\\_%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		delete_transient( 'newspack_newsletters_oauth_valid_constant_contact' );
+		delete_transient( 'newspack_newsletters_oauth_valid_mailchimp' );
 		// Reset the memoized provider instance so later tests can't see
 		// a stale `Newspack_Newsletters::$provider` after the option was
 		// deleted out from under it.
@@ -249,73 +247,58 @@ class Settings_REST_Test extends WP_UnitTestCase {
 	 * Settings GET serves the cached OAuth snapshot rather than calling
 	 * the provider's verify_token() on every page load.
 	 */
-	public function test_oauth_state_served_from_transient() {
-		$user_id = $this->become_admin();
+	public function test_oauth_validity_served_from_transient() {
+		$this->become_admin();
 		Newspack_Newsletters::set_service_provider( 'constant_contact' );
-
-		set_transient(
-			'newspack_newsletters_oauth_state_constant_contact_' . $user_id,
-			[
-				'valid'    => true,
-				'auth_url' => 'https://example.test/oauth-from-cache',
-			],
-			60
-		);
+		set_transient( 'newspack_newsletters_oauth_valid_constant_contact', [ 'valid' => true ], 60 );
 
 		$oauth = Settings_REST::get_settings( $this->rest_request( 'GET' ) )->get_data()['provider']['oauth'];
 
 		$this->assertTrue( $oauth['valid'] );
-		$this->assertSame( 'https://example.test/oauth-from-cache', $oauth['auth_url'] );
 	}
 
 	/**
-	 * The cache key includes the current user id so a Settings GET in
-	 * one admin's session can't surface another admin's wp_create_nonce.
+	 * `auth_url` carries a session-token-scoped `wp_create_nonce` — it
+	 * must not be persisted in the transient, otherwise a cached URL
+	 * from a different session would fail the callback nonce check.
 	 */
-	public function test_oauth_cache_does_not_leak_across_users() {
-		$other_user = self::factory()->user->create( [ 'role' => 'administrator' ] );
-		set_transient(
-			'newspack_newsletters_oauth_state_constant_contact_' . $other_user,
-			[
-				'valid'    => true,
-				'auth_url' => 'https://example.test/other-user-nonce',
-			],
-			60
-		);
-
+	public function test_oauth_auth_url_is_not_cached() {
 		$this->become_admin();
 		Newspack_Newsletters::set_service_provider( 'constant_contact' );
+		set_transient( 'newspack_newsletters_oauth_valid_constant_contact', [ 'valid' => true ], 60 );
 
-		$oauth = Settings_REST::get_settings( $this->rest_request( 'GET' ) )->get_data()['provider']['oauth'];
+		Settings_REST::get_settings( $this->rest_request( 'GET' ) );
 
-		$this->assertNotSame( 'https://example.test/other-user-nonce', $oauth['auth_url'] );
+		$stored = get_transient( 'newspack_newsletters_oauth_valid_constant_contact' );
+		$this->assertIsArray( $stored );
+		$this->assertArrayNotHasKey( 'auth_url', $stored );
 	}
 
 	/**
-	 * Successful provider-switch busts the cached OAuth snapshot so the
+	 * Successful provider-switch busts the cached OAuth validity so the
 	 * next GET reflects the new credentials.
 	 */
 	public function test_oauth_cache_busted_on_manual_switch() {
-		$user_id = $this->become_admin();
+		$this->become_admin();
 		Newspack_Newsletters::set_service_provider( 'constant_contact' );
-		set_transient( 'newspack_newsletters_oauth_state_constant_contact_' . $user_id, [ 'valid' => true ], 60 );
+		set_transient( 'newspack_newsletters_oauth_valid_constant_contact', [ 'valid' => true ], 60 );
 
 		Settings_REST::update_settings( $this->rest_request( 'POST', [ 'provider' => [ 'slug' => 'manual' ] ] ) );
 
-		$this->assertFalse( get_transient( 'newspack_newsletters_oauth_state_constant_contact_' . $user_id ) );
+		$this->assertFalse( get_transient( 'newspack_newsletters_oauth_valid_constant_contact' ) );
 	}
 
 	/**
 	 * Firing the `newspack_newsletters_provider_credentials_changed` action
-	 * busts the current user's cached OAuth state (used by the OAuth
-	 * callback path so the post-authorize Settings reload sees fresh state).
+	 * busts the cached OAuth validity — used by the OAuth callback path
+	 * so the post-authorize Settings reload sees fresh state.
 	 */
 	public function test_oauth_cache_busted_on_credentials_changed_action() {
-		$user_id = $this->become_admin();
-		set_transient( 'newspack_newsletters_oauth_state_constant_contact_' . $user_id, [ 'valid' => false ], 60 );
+		$this->become_admin();
+		set_transient( 'newspack_newsletters_oauth_valid_constant_contact', [ 'valid' => false ], 60 );
 
 		do_action( 'newspack_newsletters_provider_credentials_changed', 'constant_contact' );
 
-		$this->assertFalse( get_transient( 'newspack_newsletters_oauth_state_constant_contact_' . $user_id ) );
+		$this->assertFalse( get_transient( 'newspack_newsletters_oauth_valid_constant_contact' ) );
 	}
 }
