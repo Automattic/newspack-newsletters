@@ -1,3 +1,10 @@
+## [3.33.3](https://github.com/Automattic/newspack-newsletters/compare/v3.33.2...v3.33.3) (2026-05-20)
+
+
+### Bug Fixes
+
+* read script deps from .asset.php for WP 7.0 ([#2142](https://github.com/Automattic/newspack-newsletters/issues/2142)) ([a375fff](https://github.com/Automattic/newspack-newsletters/commit/a375fff25e64aab559f2ce4bae5ac597b71e85f6))
+
 ## [3.33.2](https://github.com/Automattic/newspack-newsletters/compare/v3.33.1...v3.33.2) (2026-05-19)
 
 
