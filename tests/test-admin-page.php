@@ -59,4 +59,16 @@ class Admin_Page_Test extends WP_UnitTestCase {
 		set_current_screen( 'tools' );
 		$this->assertFalse( $page->is_admin_page() );
 	}
+
+	/**
+	 * `tools.php?page=<slug>` produces a `tools_page_<slug>` screen id —
+	 * the substring contains the slug but isn't a hookname we registered.
+	 * Must still be rejected.
+	 */
+	public function test_is_admin_page_rejects_foreign_url_with_slug_in_screen_id() {
+		$page         = new Settings_Page();
+		$_GET['page'] = $page->get_slug();
+		set_current_screen( 'tools_page_' . $page->get_slug() );
+		$this->assertFalse( $page->is_admin_page() );
+	}
 }

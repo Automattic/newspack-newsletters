@@ -315,6 +315,15 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		}
 		$update_access_token  = update_option( 'newspack_newsletters_constant_contact_api_access_token', $access_token );
 		$update_refresh_token = update_option( 'newspack_newsletters_constant_contact_api_refresh_token', $refresh_token );
+
+		/**
+		 * Provider credentials persisted — listeners (e.g. Settings_REST's
+		 * OAuth cache) bust their caches so the next read reflects the change.
+		 *
+		 * @param string $provider_slug The provider whose credentials changed.
+		 */
+		do_action( 'newspack_newsletters_provider_credentials_changed', 'constant_contact' );
+
 		return $update_access_token;
 	}
 
