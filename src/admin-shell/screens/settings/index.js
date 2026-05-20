@@ -52,8 +52,15 @@ export default function SettingsScreen() {
 
 	const newsletterOptionsSchema = useMemo( () => ( data?.schema || [] ).filter( field => field.key !== LETTERHEAD_KEY ), [ data?.schema ] );
 	const letterheadSchema = useMemo( () => ( data?.schema || [] ).filter( field => field.key === LETTERHEAD_KEY ), [ data?.schema ] );
-	const newsletterOptionKeys = useMemo( () => newsletterOptionsSchema.map( f => f.key ), [ newsletterOptionsSchema ] );
-	const letterheadOptionKeys = useMemo( () => letterheadSchema.map( f => f.key ), [ letterheadSchema ] );
+	// Restrict to fields visible under the saved provider so stale other-provider keys don't get POSTed.
+	const newsletterOptionKeys = useMemo(
+		() => newsletterOptionsSchema.filter( f => ! f.provider || f.provider === savedSlug ).map( f => f.key ),
+		[ newsletterOptionsSchema, savedSlug ]
+	);
+	const letterheadOptionKeys = useMemo(
+		() => letterheadSchema.filter( f => ! f.provider || f.provider === savedSlug ).map( f => f.key ),
+		[ letterheadSchema, savedSlug ]
+	);
 
 	const slugDirty = pendingSlug !== savedSlug;
 	const credentialsDirty = Object.keys( pendingCredentials ).length > 0;
