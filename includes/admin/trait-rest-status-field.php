@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shared `register_rest_field` scaffolding for list-page status fields.
  *
- * Using classes must implement a `get_status_for_post( WP_Post|null $post ): array` method.
+ * Using classes must implement a static `get_status_for_post( \WP_Post|null $post ): array` method.
  */
 trait Rest_Status_Field {
 	/**
