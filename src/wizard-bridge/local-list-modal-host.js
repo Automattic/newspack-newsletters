@@ -1,9 +1,8 @@
 import apiFetch from '@wordpress/api-fetch';
-import { dispatch } from '@wordpress/data';
 import { useCallback, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { store as noticesStore } from '@wordpress/notices';
 
+import { notifyError } from '../admin-shell/notices';
 import LocalListModal from '../admin-shell/screens/settings/local-list-modal';
 import LocalListDeleteModal from '../admin-shell/screens/settings/local-list-delete-modal';
 import { EVENTS } from './events';
@@ -74,8 +73,7 @@ export default function LocalListModalHost() {
 			document.dispatchEvent( new CustomEvent( EVENTS.LOCAL_LIST_DELETED, { detail: { listId: list.db_id } } ) );
 			setDeletePending( null );
 		} catch ( err ) {
-			dispatch( noticesStore ).createErrorNotice( err?.message || __( 'Could not delete the local list.', 'newspack-newsletters' ), {
-				type: 'snackbar',
+			notifyError( err?.message || __( 'Could not delete the local list.', 'newspack-newsletters' ), {
 				explicitDismiss: true,
 			} );
 		} finally {
