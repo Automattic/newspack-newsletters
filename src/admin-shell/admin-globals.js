@@ -8,7 +8,7 @@
  *
  * The values are PHP-side mirrors; if they ever drift from the real
  * registration, the fallbacks here are a safety net rather than a
- * source of truth — see `Admin_Shell::enqueue_assets`.
+ * source of truth — see `Admin_Shell_Assets::enqueue`.
  */
 
 const DEFAULT_ADMIN_URL = '/wp-admin/';

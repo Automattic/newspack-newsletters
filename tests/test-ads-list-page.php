@@ -80,7 +80,7 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 
 	/**
 	 * Legacy screen id matches the classic ads CPT list so
-	 * `Admin_Shell::maybe_redirect_legacy_list` can route the GET
+	 * `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list` can route the GET
 	 * request to the React page.
 	 */
 	public function test_legacy_screen_id_matches_ads_cpt() {
@@ -95,7 +95,7 @@ class Ads_List_Page_Test extends WP_UnitTestCase {
 	 * hidden React subpage (live URL has an extra `&page=…` query)
 	 * and the tab renders without `.selected`. The default base
 	 * implementation returns `null`; the override here is what makes
-	 * `Admin_Shell::patch_wizard_header_active_tab` flip the tab.
+	 * `Admin_Shell_Assets::patch_wizard_header_active_tab` flip the tab.
 	 */
 	public function test_wizard_tab_url_targets_ads_cpt() {
 		$page = new Ads_List_Page();

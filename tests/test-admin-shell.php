@@ -6,6 +6,10 @@
  */
 
 use Newspack\Newsletters\Admin\Admin_Shell;
+use Newspack\Newsletters\Admin\Admin_Shell_Assets;
+use Newspack\Newsletters\Admin\Admin_Shell_Legacy_Redirect;
+use Newspack\Newsletters\Admin\Admin_Shell_Menu;
+use Newspack\Newsletters\Admin\Pages\Newsletters_List_Page;
 
 /**
  * Admin Shell Test.
@@ -113,7 +117,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * isolated from `wp_safe_redirect`'s exit behaviour.
 	 */
 	public function test_legacy_list_url_redirects_to_react_page() {
-		$target = Admin_Shell::get_legacy_redirect_target();
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target();
 		$this->assertStringContainsString( 'edit.php?', $target );
 		$this->assertStringContainsString( 'post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT, $target );
 		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
@@ -127,7 +131,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * back-compat with the original signature.
 	 */
 	public function test_legacy_redirect_forwards_post_status() {
-		$target = Admin_Shell::get_legacy_redirect_target( 'trash' );
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target( 'trash' );
 		$this->assertStringContainsString( 'post_status=trash', $target );
 		$this->assertStringContainsString( 'page=newspack-newsletters-list', $target );
 	}
@@ -138,7 +142,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * with equivalent view state — Copilot review #2095.
 	 */
 	public function test_legacy_redirect_forwards_search_and_sort() {
-		$target = Admin_Shell::get_legacy_redirect_target(
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target(
 			[
 				's'       => 'weeklydigest',
 				'orderby' => 'title',
@@ -156,7 +160,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * doesn't translate cleanly. The redirect drops it on the floor.
 	 */
 	public function test_legacy_redirect_drops_paged() {
-		$target = Admin_Shell::get_legacy_redirect_target( [ 'paged' => '3' ] );
+		$target = ( new Newsletters_List_Page() )->get_legacy_redirect_target( [ 'paged' => '3' ] );
 		$this->assertStringNotContainsString( 'paged=3', $target );
 	}
 
@@ -165,7 +169,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	 * legacy → React redirect so bookmarked filtered URLs round-trip.
 	 */
 	public function test_legacy_redirect_forwards_new_filter_params() {
-		$target  = Admin_Shell::get_legacy_redirect_target(
+		$target  = ( new Newsletters_List_Page() )->get_legacy_redirect_target(
 			[
 				'author'                            => '42,7',
 				'categories'                        => '12',
@@ -194,7 +198,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 
 		$screen = WP_Screen::get( 'edit-' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
 
-		$reflection = new ReflectionMethod( Admin_Shell::class, 'has_real_get_action' );
+		$reflection = new ReflectionMethod( Admin_Shell_Legacy_Redirect::class, 'has_real_get_action' );
 		$reflection->setAccessible( true );
 
 		// `has_real_get_action` is the gate the live redirect uses; if it
@@ -344,7 +348,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `Admin_Shell::register_menu` registers each hidden page's
+	 * `Admin_Shell_Menu::register_menu` registers each hidden page's
 	 * callback under both the parent-derived hookname (what
 	 * `add_submenu_page` returns) and the URL-derived `admin_page_*`
 	 * hookname `admin.php` line ~182 looks up at request time. Without
@@ -356,7 +360,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 
 		// Run the same hook the admin chrome would fire.
-		Admin_Shell::register_menu();
+		Admin_Shell_Menu::register_menu();
 
 		global $_registered_pages;
 
@@ -412,7 +416,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		$_GET['page'] = 'newspack-newsletters-ads-list';
 		set_current_screen( 'admin_page_newspack-newsletters-ads-list' );
 
-		Admin_Shell::patch_wizard_header_active_tab();
+		Admin_Shell_Assets::patch_wizard_header_active_tab();
 
 		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
 		$this->assertIsArray( $inline );
@@ -441,7 +445,7 @@ class Admin_Shell_Test extends WP_UnitTestCase {
 		add_filter( 'newspack_newsletters_admin_bundled_mode', '__return_true' );
 		$_GET['page'] = 'newspack-newsletters-list';
 
-		Admin_Shell::patch_wizard_header_active_tab();
+		Admin_Shell_Assets::patch_wizard_header_active_tab();
 
 		$inline = wp_scripts()->get_data( 'newspack-wizards-admin-header', 'after' );
 		$this->assertEmpty( $inline, 'No inline script should be attached when the current page has no wizard-tab override.' );

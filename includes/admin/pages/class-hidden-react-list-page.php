@@ -4,7 +4,7 @@
  *
  * Adds the "registered but invisible" submenu plumbing on top of
  * `React_List_Page`: the page is routable via its slug but stripped
- * from the sidebar by `Admin_Shell::register_menu`. Subclasses keep
+ * from the sidebar by `Admin_Shell_Menu::register_menu`. Subclasses keep
  * `get_parent_slug()` (mode-aware) and `get_submenu_file()` (target
  * of the highlight); this base defaults `get_parent_file()` to the
  * same URL as `get_parent_slug()`, which is the right answer for

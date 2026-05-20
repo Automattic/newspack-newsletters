@@ -32,9 +32,10 @@ abstract class Admin_Page {
 	protected $capability = 'edit_posts';
 
 	/**
-	 * Hookname returned by `add_submenu_page`. Captured by `Admin_Shell`
-	 * at registration time so `is_admin_page()` can narrow its match to
-	 * the actual admin screen rather than just `$_GET['page']`.
+	 * Hookname returned by `add_submenu_page`. Captured by
+	 * `Admin_Shell_Menu` at registration time so `is_admin_page()` can
+	 * narrow its match to the actual admin screen rather than just
+	 * `$_GET['page']`.
 	 *
 	 * @var string
 	 */
@@ -133,8 +134,8 @@ abstract class Admin_Page {
 	 * `WP_Screen::id` of the classic CPT list this page shadows, or
 	 * `null` when the page doesn't replace a legacy URL. Hidden React
 	 * pages typically declare an id like `'edit-newspack_nl_cpt'` so
-	 * `Admin_Shell::maybe_redirect_legacy_list` can 302 the legacy
-	 * URL across to the React surface.
+	 * `Admin_Shell_Legacy_Redirect::maybe_redirect_legacy_list` can
+	 * 302 the legacy URL across to the React surface.
 	 *
 	 * @return string|null
 	 */
@@ -212,6 +213,26 @@ abstract class Admin_Page {
 	}
 
 	/**
+	 * Extra CSS deps for the admin-shell bundle — the only way to force
+	 * load order relative to `admin-shell.css`.
+	 *
+	 * @return string[]
+	 */
+	public function get_admin_shell_style_deps() {
+		return [];
+	}
+
+	/**
+	 * Page-specific extras attached after the admin-shell bundle is
+	 * registered under `$handle`.
+	 *
+	 * @param string $handle Admin-shell script handle.
+	 */
+	public function enqueue_extras( $handle ) {
+		unset( $handle );
+	}
+
+	/**
 	 * Store the hookname `add_submenu_page` returned at registration.
 	 *
 	 * @param string $hook_suffix Hookname.
@@ -240,9 +261,9 @@ abstract class Admin_Page {
 		if ( ! $screen ) {
 			return false;
 		}
-		$hook_suffix = $this->hook_suffix ? $this->hook_suffix : Admin_Shell::get_hook_suffix_for_slug( $this->slug );
+		$hook_suffix = $this->hook_suffix ? $this->hook_suffix : Admin_Shell_Menu::get_hook_suffix_for_slug( $this->slug );
 		// `admin_page_<slug>` is the shadow hookname used when the parent
-		// CPT isn't a top-level menu — see Admin_Shell::register_menu.
+		// CPT isn't a top-level menu — see Admin_Shell_Menu::register_menu.
 		$expected = array_filter( [ $hook_suffix, 'admin_page_' . $this->slug ] );
 		return in_array( $screen->id, $expected, true );
 	}
