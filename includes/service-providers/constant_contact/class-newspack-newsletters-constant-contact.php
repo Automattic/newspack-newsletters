@@ -139,14 +139,16 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 	 * @return array
 	 */
 	public function verify_token( $refresh = true ) {
+		// Initialise outside the try so the catch has a safe shape if SDK setup throws.
+		$response = [
+			'error'    => null,
+			'valid'    => false,
+			'auth_url' => '',
+		];
 		try {
-			$redirect_uri = $this->get_oauth_redirect_uri();
-			$cc           = $this->get_sdk();
-			$response     = [
-				'error'    => null,
-				'valid'    => false,
-				'auth_url' => $cc->get_auth_code_url( wp_create_nonce( 'constant_contact_oauth2' ), $redirect_uri ),
-			];
+			$redirect_uri         = $this->get_oauth_redirect_uri();
+			$cc                   = $this->get_sdk();
+			$response['auth_url'] = $cc->get_auth_code_url( wp_create_nonce( 'constant_contact_oauth2' ), $redirect_uri );
 			// If we have a valid access token, we're connected.
 			if ( $cc->validate_token() ) {
 				$response['valid'] = true;
