@@ -411,9 +411,13 @@ final class Newspack_Newsletters_Editor {
 		// Only override button element styles for block themes — classic themes
 		// use their own neutral defaults and don't need the opinionated blue.
 		if ( wp_is_block_theme() ) {
+			// Read the palette from the filter's own data instead of calling
+			// wp_get_global_settings(), which would re-enter this filter and recurse.
 			$primary_color = '#36f';
-			if ( method_exists( '\Newspack\Lite_Site', 'get_primary_color' ) ) {
-				$primary_color = Newspack\Lite_Site::get_primary_color();
+			$theme_data    = $theme_json->get_data();
+			$palette       = $theme_data['settings']['color']['palette'] ?? [];
+			if ( ! empty( $palette[0]['color'] ) ) {
+				$primary_color = $palette[0]['color'];
 			}
 			$email_overrides['styles'] = [
 				'elements' => [
