@@ -408,11 +408,7 @@ class Admin_Shell {
 		$is_layouts_list = 'newspack-newsletters-layouts-list' === $current_page->get_slug();
 
 		// `wp-edit-blocks` is only needed by the layouts-list BlockPreview iframes — keep it off other admin-shell pages.
-		$admin_shell_css_deps = [];
-		if ( $is_layouts_list ) {
-			wp_enqueue_style( 'wp-edit-blocks' );
-			$admin_shell_css_deps[] = 'wp-edit-blocks';
-		}
+		$admin_shell_css_deps = $is_layouts_list ? [ 'wp-edit-blocks' ] : [];
 
 		$asset = Asset_Loader::enqueue_bundle(
 			self::SCRIPT_HANDLE,
@@ -424,6 +420,13 @@ class Admin_Shell {
 		);
 		if ( ! $asset ) {
 			return;
+		}
+
+		// Explicit fallback so `wp-edit-blocks` still loads on layouts-list when
+		// `dist/admin-shell.css` is missing (the dep array only fires through the
+		// CSS enqueue, which `Asset_Loader` skips when the .css isn't built).
+		if ( $is_layouts_list ) {
+			wp_enqueue_style( 'wp-edit-blocks' );
 		}
 
 		// Layouts list previews render `newspack-newsletters/posts-inserter`; without `editorBlocks.js` BlockPreview shows the "block not supported" fallback.

@@ -4,10 +4,11 @@
  *
  * Centralises the script + style enqueue sequence used by admin-side
  * React bundles built via `@wordpress/scripts` — each bundle emits a
- * sibling `<handle>.asset.php` carrying the runtime dependency array
- * and a content-hash version. Callers compose URLs and pass any
- * extra dependencies; the helper handles the file_exists guard, the
- * asset.php require, and the two enqueue calls.
+ * sibling `<basename>.asset.php` carrying the runtime dependency
+ * array and a content-hash version. Callers compose URLs and pass
+ * any extra dependencies; the helper handles the file_exists guard,
+ * the asset.php require, and the two enqueue calls. The WP handle
+ * is independent from the on-disk basename — see `enqueue_bundle()`.
  *
  * @package Newspack_Newsletters
  */
@@ -17,7 +18,7 @@ namespace Newspack\Newsletters\Admin;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Shared `<handle>.asset.php` + script + style enqueue helper.
+ * Shared `<basename>.asset.php` + script + style enqueue helper.
  */
 class Asset_Loader {
 	/**
