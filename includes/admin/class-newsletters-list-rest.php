@@ -21,6 +21,8 @@ use WP_Post;
  * Register the REST field powering the list view's Status column.
  */
 class Newsletters_List_REST {
+	use Status_Filter_Builder;
+
 	const IS_PUBLIC_QUERY_PARAM = 'newspack_newsletters_is_public';
 	const SEND_LIST_QUERY_PARAM = 'newspack_newsletters_send_list_id';
 
@@ -127,23 +129,7 @@ class Newsletters_List_REST {
 	 * @return array
 	 */
 	public static function align_status_filter_with_scheduled_meta( $args, $request ) {
-		$status = $request->get_param( 'status' );
-		if ( is_array( $status ) ) {
-			$values = array_map( 'strval', $status );
-		} else {
-			$values = '' === $status || null === $status ? [] : explode( ',', (string) $status );
-		}
-		$values = array_values(
-			array_unique(
-				array_filter(
-					array_map( 'trim', $values ),
-					static function ( $v ) {
-						return '' !== $v;
-					}
-				)
-			)
-		);
-
+		$values = self::parse_status_values( $request->get_param( 'status' ) );
 		if ( empty( $values ) ) {
 			return $args;
 		}
@@ -172,48 +158,43 @@ class Newsletters_List_REST {
 			$args['post_status'] = $widened;
 		}
 
-		// Token-scope the closure: `posts_where` fires for every WP_Query in the request, so
-		// without this gate a nested query corrupts the WHERE and self-removes the filter
-		// before our intended query runs.
-		$token                             = uniqid( 'newspack_nl_bucket_', true );
-		$args['_newspack_nl_bucket_token'] = $token;
+		global $wpdb;
+		$bucket_clauses = [];
 
-		$callback = static function ( $where, $wp_query ) use ( &$callback, $token, $wants_sent, $wants_draft, $wants_scheduled, $wants_trash ) {
-			if ( ! is_object( $wp_query ) || $wp_query->get( '_newspack_nl_bucket_token' ) !== $token ) {
-				return $where;
-			}
-			global $wpdb;
-			$clauses      = [];
-			$prepare_args = [];
+		if ( $wants_trash ) {
+			$bucket_clauses[] = $wpdb->prepare( "{$wpdb->posts}.post_status = %s", 'trash' );
+		}
+		if ( $wants_sent ) {
+			$bucket_clauses[] = $wpdb->prepare(
+				"( {$wpdb->posts}.post_status IN (%s, %s) AND NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )",
+				'publish',
+				'private',
+				'sending_scheduled',
+				'scheduling_error'
+			);
+		}
+		if ( $wants_scheduled ) {
+			$bucket_clauses[] = $wpdb->prepare(
+				"( {$wpdb->posts}.post_status <> %s AND ( {$wpdb->posts}.post_status = %s OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) ) )",
+				'trash',
+				'future',
+				'sending_scheduled'
+			);
+		}
+		if ( $wants_draft ) {
+			$bucket_clauses[] = $wpdb->prepare(
+				"( NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) AND ( {$wpdb->posts}.post_status IN (%s, %s, %s) OR ( {$wpdb->posts}.post_status IN (%s, %s) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) ) ) )",
+				'sending_scheduled',
+				'draft',
+				'pending',
+				'auto-draft',
+				'publish',
+				'private',
+				'scheduling_error'
+			);
+		}
 
-			if ( $wants_trash ) {
-				$clauses[]      = "{$wpdb->posts}.post_status = %s";
-				$prepare_args[] = 'trash';
-			}
-			if ( $wants_sent ) {
-				$clauses[] = "( {$wpdb->posts}.post_status IN (%s, %s) AND NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key IN (%s, %s) AND meta_value <> '' ) )";
-				array_push( $prepare_args, 'publish', 'private', 'sending_scheduled', 'scheduling_error' );
-			}
-			if ( $wants_scheduled ) {
-				$clauses[] = "( {$wpdb->posts}.post_status <> %s AND ( {$wpdb->posts}.post_status = %s OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) ) )";
-				array_push( $prepare_args, 'trash', 'future', 'sending_scheduled' );
-			}
-			if ( $wants_draft ) {
-				$clauses[] = "( NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) AND ( {$wpdb->posts}.post_status IN (%s, %s, %s) OR ( {$wpdb->posts}.post_status IN (%s, %s) AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = %s AND meta_value <> '' ) ) ) )";
-				array_push( $prepare_args, 'sending_scheduled', 'draft', 'pending', 'auto-draft', 'publish', 'private', 'scheduling_error' );
-			}
-
-			if ( ! empty( $clauses ) ) {
-				$sql    = ' AND ( ' . implode( ' OR ', $clauses ) . ' )';
-				$where .= $wpdb->prepare( $sql, $prepare_args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is composed from a fixed set of `%s` placeholders.
-			}
-
-			remove_filter( 'posts_where', $callback, 10 );
-			return $where;
-		};
-		add_filter( 'posts_where', $callback, 10, 2 );
-
-		return $args;
+		return self::install_bucket_filter( $args, $bucket_clauses, '_newspack_nl_bucket_token' );
 	}
 
 	/**
