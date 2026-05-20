@@ -762,7 +762,11 @@ class Subscription_Lists {
 		}
 		$lists = Newspack_Newsletters_Subscription::sanitize_lists( $lists );
 		if ( empty( $lists ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
+			return new WP_Error(
+				'newspack_newsletters_invalid_lists',
+				__( 'Invalid list configuration.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
 		}
 
 		$existing_ids = [];
@@ -796,7 +800,11 @@ class Subscription_Lists {
 
 		// Bail before cleanup so it doesn't deactivate everything when no rows landed.
 		if ( empty( $existing_ids ) ) {
-			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
+			return new WP_Error(
+				'newspack_newsletters_invalid_lists',
+				__( 'Invalid list configuration.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
 		}
 
 		// Cleanup is scoped to the current provider's UI — other-provider rows weren't in the payload to begin with.
