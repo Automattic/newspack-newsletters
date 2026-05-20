@@ -48,6 +48,8 @@ class Settings_REST {
 		'newspack_newsletters_active_campaign_key',
 	];
 
+	const OAUTH_STATE_CACHE_TTL = 60;
+
 	/**
 	 * Boot hooks.
 	 */
@@ -116,8 +118,9 @@ class Settings_REST {
 
 		$provider_payload = $request->get_param( 'provider' );
 		if ( is_array( $provider_payload ) && array_key_exists( 'slug', $provider_payload ) ) {
-			$slug        = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
-			$valid_slugs = Newspack_Newsletters::get_supported_providers();
+			$slug          = is_string( $provider_payload['slug'] ) ? $provider_payload['slug'] : '';
+			$previous_slug = Newspack_Newsletters::service_provider();
+			$valid_slugs   = Newspack_Newsletters::get_supported_providers();
 			if ( '' === $slug ) {
 				$errors->add(
 					'newspack_newsletters_no_service_provider',
@@ -132,6 +135,8 @@ class Settings_REST {
 				);
 			} elseif ( 'manual' === $slug ) {
 				Newspack_Newsletters::set_service_provider( $slug );
+				self::bust_oauth_cache( $previous_slug );
+				self::bust_oauth_cache( $slug );
 			} else {
 				// Resolve the provider without committing the option — only flip on credentials success
 				// so a rejection can't leave the site pointing at an unconfigured provider.
@@ -163,6 +168,8 @@ class Settings_REST {
 							}
 						} else {
 							Newspack_Newsletters::set_service_provider( $slug );
+							self::bust_oauth_cache( $previous_slug );
+							self::bust_oauth_cache( $slug );
 						}
 					}
 				}
@@ -215,17 +222,7 @@ class Settings_REST {
 		$is_manual = 'manual' === $provider_slug;
 		$status    = $is_manual || ( $provider && $has_creds );
 
-		$oauth = null;
-		if ( $provider && method_exists( $provider, 'verify_token' ) ) {
-			$token = $provider->verify_token( true );
-			if ( is_array( $token ) ) {
-				$auth_url = isset( $token['auth_url'] ) ? (string) $token['auth_url'] : '';
-				$oauth    = [
-					'valid'    => ! empty( $token['valid'] ),
-					'auth_url' => $auth_url ? esc_url_raw( $auth_url ) : '',
-				];
-			}
-		}
+		$oauth = self::resolve_oauth_state( $provider, $provider_slug );
 
 		$schema  = self::get_options_schema();
 		$options = [];
@@ -270,6 +267,61 @@ class Settings_REST {
 			'schema'              => $client_schema,
 			'lists_can_add_local' => (bool) $lists_can_add_local,
 		];
+	}
+
+	/**
+	 * Return the provider's OAuth state, short-cached so the Settings GET
+	 * doesn't hit the provider's verify endpoint on every page load.
+	 *
+	 * @param object|null $provider      Active provider instance.
+	 * @param string      $provider_slug Provider slug.
+	 * @return array|null
+	 */
+	private static function resolve_oauth_state( $provider, $provider_slug ) {
+		if ( ! $provider || ! method_exists( $provider, 'verify_token' ) ) {
+			return null;
+		}
+
+		$cache_key = self::oauth_cache_key( $provider_slug );
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		$token = $provider->verify_token( true );
+		if ( ! is_array( $token ) ) {
+			return null;
+		}
+
+		$auth_url = isset( $token['auth_url'] ) ? (string) $token['auth_url'] : '';
+		$oauth    = [
+			'valid'    => ! empty( $token['valid'] ),
+			'auth_url' => $auth_url ? esc_url_raw( $auth_url ) : '',
+		];
+		set_transient( $cache_key, $oauth, self::OAUTH_STATE_CACHE_TTL );
+		return $oauth;
+	}
+
+	/**
+	 * Drop the cached OAuth state. Called after a successful provider
+	 * switch or credentials update so the next GET reflects the change.
+	 *
+	 * @param string $provider_slug Provider slug.
+	 */
+	public static function bust_oauth_cache( $provider_slug ) {
+		if ( $provider_slug ) {
+			delete_transient( self::oauth_cache_key( $provider_slug ) );
+		}
+	}
+
+	/**
+	 * Transient key for the cached OAuth snapshot.
+	 *
+	 * @param string $provider_slug Provider slug.
+	 * @return string Transient key.
+	 */
+	private static function oauth_cache_key( $provider_slug ) {
+		return 'newspack_newsletters_oauth_state_' . sanitize_key( $provider_slug );
 	}
 
 	/**

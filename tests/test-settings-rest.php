@@ -59,6 +59,8 @@ class Settings_REST_Test extends WP_UnitTestCase {
 		foreach ( $keys as $key ) {
 			delete_option( $key );
 		}
+		delete_transient( 'newspack_newsletters_oauth_state_constant_contact' );
+		delete_transient( 'newspack_newsletters_oauth_state_mailchimp' );
 		// Reset the memoized provider instance so later tests can't see
 		// a stale `Newspack_Newsletters::$provider` after the option was
 		// deleted out from under it.
@@ -239,5 +241,42 @@ class Settings_REST_Test extends WP_UnitTestCase {
 		$this->assertIsArray( $flags );
 		$this->assertArrayHasKey( 'api_key', $flags );
 		$this->assertTrue( $flags['api_key'] );
+	}
+
+	/**
+	 * Settings GET serves the cached OAuth snapshot rather than calling
+	 * the provider's verify_token() on every page load.
+	 */
+	public function test_oauth_state_served_from_transient() {
+		$this->become_admin();
+		Newspack_Newsletters::set_service_provider( 'constant_contact' );
+
+		set_transient(
+			'newspack_newsletters_oauth_state_constant_contact',
+			[
+				'valid'    => true,
+				'auth_url' => 'https://example.test/oauth-from-cache',
+			],
+			60
+		);
+
+		$oauth = Settings_REST::get_settings( $this->rest_request( 'GET' ) )->get_data()['provider']['oauth'];
+
+		$this->assertTrue( $oauth['valid'] );
+		$this->assertSame( 'https://example.test/oauth-from-cache', $oauth['auth_url'] );
+	}
+
+	/**
+	 * Successful provider-switch busts the cached OAuth snapshot so the
+	 * next GET reflects the new credentials.
+	 */
+	public function test_oauth_cache_busted_on_manual_switch() {
+		$this->become_admin();
+		Newspack_Newsletters::set_service_provider( 'constant_contact' );
+		set_transient( 'newspack_newsletters_oauth_state_constant_contact', [ 'valid' => true ], 60 );
+
+		Settings_REST::update_settings( $this->rest_request( 'POST', [ 'provider' => [ 'slug' => 'manual' ] ] ) );
+
+		$this->assertFalse( get_transient( 'newspack_newsletters_oauth_state_constant_contact' ) );
 	}
 }
