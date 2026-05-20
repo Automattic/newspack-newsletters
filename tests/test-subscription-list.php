@@ -657,10 +657,7 @@ class Subscription_List_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Passing non-string title/description must not clobber the
-	 * existing values — external callers (eg. ESP sync) that send
-	 * `null` for an absent field used to silently wipe the stored
-	 * content.
+	 * Non-string title/description must no-op rather than wipe the stored value.
 	 */
 	public function test_update_non_string_title_and_description_are_noops() {
 		$list = new Subscription_List( self::$posts['only_mailchimp'] );

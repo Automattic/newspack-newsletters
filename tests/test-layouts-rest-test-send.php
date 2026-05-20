@@ -160,8 +160,7 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The endpoint is auth-gated but `explode( ',', $raw )` is otherwise
-	 * unbounded — guard against a flood by capping at 10 recipients.
+	 * Auth-gated but the comma split is otherwise unbounded — cap at 10.
 	 */
 	public function test_caps_recipients_at_ten() {
 		$post_id = $this->make_layout( '<p>Preview</p>' );

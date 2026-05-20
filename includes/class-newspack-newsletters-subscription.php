@@ -584,17 +584,13 @@ class Newspack_Newsletters_Subscription {
 				'id'     => $list['id'],
 				'active' => isset( $list['active'] ) ? (bool) $list['active'] : false,
 			];
-			// Carry `title` only when caller supplied a non-empty string.
-			// null / missing / non-string → omit so update() no-ops the field
-			// and the cleanup loop still sees the row in `$existing_ids`.
+			// Omit null/non-string title and description so update() no-ops the field.
 			if ( isset( $list['title'] ) && is_string( $list['title'] ) ) {
 				$title = trim( $list['title'] );
 				if ( '' !== $title ) {
 					$entry['title'] = $title;
 				}
 			}
-			// Carry `description` only when caller supplied a string. Casting
-			// null → '' here would silently clobber the stored description.
 			if ( isset( $list['description'] ) && is_string( $list['description'] ) ) {
 				$entry['description'] = $list['description'];
 			}
