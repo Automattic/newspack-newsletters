@@ -1,14 +1,8 @@
 /**
  * URL-driven initial view state for the Advertisers list DataView.
  *
- * `Admin_Shell::maybe_redirect_legacy_list` forwards a curated set of
- * query args from the legacy `edit-tags.php?taxonomy=newspack_nl_advertiser`
- * URL onto the React page (search term, sort field, sort direction).
- * Translate those raw values into DataViews-shaped state so a deep link
- * like `…&s=acme&orderby=slug` lands on the matching filtered + sorted
- * list rather than the unfiltered default.
- *
- * Pure module so it stays trivial to unit-test.
+ * Translates the curated args forwarded by the legacy-list redirect
+ * (search, sort) into DataViews-shaped state.
  */
 
 import { makeGetInitialView } from '../../utils/initial-view';

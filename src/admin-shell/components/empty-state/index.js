@@ -1,13 +1,9 @@
 /**
  * Reusable empty-state for admin-shell list screens.
  *
- * Mirrors newspack-plugin's content-gates onboarding pattern: `Grid` +
- * centred-column `VStack`, `SectionHeader pageHeader`, then a primary
- * `Add new …` button.
- *
  * Strict-empty only — render this when the unfiltered list has zero
- * items. The filter-empty / search-empty case keeps the DataView's
- * built-in "no results" treatment.
+ * items. Filter-/search-empty case keeps the DataView's built-in
+ * "no results" treatment.
  */
 
 import { Button, __experimentalHStack as HStack, __experimentalVStack as VStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis

@@ -1,15 +1,9 @@
 /**
  * Chassis page header.
  *
- * Renders the action row populated via `useHeaderActions`. When
- * `newspack-plugin`'s admin-header chrome (the dark Newspack strip) is
- * present, the actions are portaled into its `__inner` flex container so
- * they sit alongside the breadcrumb. In standalone mode the actions
- * render above the screen content as a plain row.
- *
- * The portal target only exists after `newspack-plugin`'s React app has
- * mounted and rendered the strip's contents — we wait for it via a
- * `MutationObserver` rather than blocking on a fixed delay.
+ * Renders actions registered via `useHeaderActions`. Portals into the
+ * newspack-plugin admin-header strip when present, falls back to an
+ * inline row in standalone mode.
  */
 
 import { Button } from '@wordpress/components';
@@ -17,10 +11,7 @@ import { createPortal, useEffect, useState } from '@wordpress/element';
 
 import { useHeaderActionsValue } from './header-actions-context';
 
-// Portal target is `.newspack-wizard__header`, the flex parent of `__inner`.
-// Newspack-plugin's wizard mounts its primary actions as a SIBLING of `__inner`
-// inside `__header` (see `packages/components/src/wizard/index.js`); matching
-// that structure lets the existing flex layout do the alignment for us.
+// Mount as a sibling of `__inner` (matching the wizard's own primary-action mount in `packages/components/src/wizard/index.js`) so its flex rules align our buttons next to the breadcrumb.
 const NEWSPACK_HEADER_SELECTOR = '#newspack-wizards-admin-header .newspack-wizard__header';
 
 const variantFor = type => ( 'primary' === type ? 'primary' : 'secondary' );
@@ -88,8 +79,7 @@ export default function PageHeader() {
 	}
 
 	if ( newspackHeader ) {
-		// Reuse the wizard's `__header__actions` class so the host's existing
-		// flex/spacing rules align our buttons next to the breadcrumb.
+		// Reuse the wizard's `__header__actions` class so its flex/spacing aligns us next to the breadcrumb.
 		return createPortal(
 			<div className="newspack-wizard__header__actions newspack-newsletters-admin__header-actions--in-newspack-header">
 				<ActionButtons actions={ actions } />

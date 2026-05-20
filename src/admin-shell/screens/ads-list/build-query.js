@@ -1,17 +1,10 @@
 /**
- * Translate a DataViews `view` object into the query string used by
- * `/wp/v2/newspack_nl_ads_cpt`.
+ * Translate a DataViews `view` into the `/wp/v2/newspack_nl_ads_cpt`
+ * query string.
  *
- * Notes on filtering:
- * - The status filter passes kind values (`active|scheduled|expired|draft|trash`)
- *   through the custom REST query param `newspack_newsletters_ad_status`. The
- *   server (`Ads_List_REST::filter_rest_query`) turns each kind into the
- *   corresponding `post_status` set + a date-driven SQL bucket. The Status
- *   column renders the same kinds, so the displayed and filtered sets always
- *   match exactly.
- * - When no kind filter is set, we hand the request a wide `post_status`
- *   default (every writable status except trash) so the React list shows the
- *   same set the publisher previously saw on the classic CPT list.
+ * Status filter passes kind values through the custom param
+ * `newspack_newsletters_ad_status`; `Ads_List_REST::filter_rest_query`
+ * turns each into the matching `post_status` set + date-driven SQL.
  */
 
 import { buildQueryParams as baseBuildQueryParams, toQueryString } from '../../utils/build-query';

@@ -1,12 +1,9 @@
 /**
  * URL-driven initial view state for the Newsletters list DataView.
  *
- * `Admin_Shell::maybe_redirect_legacy_list` forwards a curated set of
- * query args from the legacy `edit.php?post_type=newspack_nl_cpt` URL
- * onto the React page (status filter, search term, sort field, sort
- * direction). Translate those raw values into DataViews-shaped state.
- *
- * Pure module so it stays trivial to unit-test.
+ * Translates the curated args forwarded by the legacy-list redirect
+ * (status, search, sort, author, terms, send-list) into
+ * DataViews-shaped state.
  */
 
 import { makeGetInitialView } from '../../utils/initial-view';
