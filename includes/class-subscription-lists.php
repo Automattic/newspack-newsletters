@@ -793,6 +793,11 @@ class Subscription_Lists {
 
 		}
 
+		// Bail before cleanup so it doesn't deactivate everything when no rows landed.
+		if ( empty( $existing_ids ) ) {
+			return new WP_Error( 'newspack_newsletters_invalid_lists', __( 'Invalid list configuration.' ) );
+		}
+
 		// Cleanup is scoped to the current provider's UI — other-provider rows weren't in the payload to begin with.
 		$current_provider_slug = Newspack_Newsletters::service_provider();
 		$scoped_lists          = array_merge(

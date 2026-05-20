@@ -152,11 +152,16 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Title-less rows for unknown remote ids must be skipped —
-	 * get_or_create_remote_list() would otherwise throw and 500.
+	 * All-skipped payloads must error rather than fall through to the cleanup
+	 * loop, which would otherwise deactivate every scoped list.
 	 */
-	public function test_update_lists_skips_unknown_remote_id_without_title() {
+	public function test_update_lists_all_skipped_payload_errors_without_cleanup() {
 		Newspack_Newsletters::set_service_provider( 'mailchimp' );
+
+		$mc_list = new Subscription_List( self::$posts['only_mailchimp'] );
+		$mc_list->update( [ 'active' => true ] );
+		$this->assertTrue( $mc_list->is_active() );
+
 		$count_before = count( Subscription_Lists::get_all() );
 
 		$result = Subscription_Lists::update_lists(
@@ -168,9 +173,13 @@ class Subscription_Lists_Test extends WP_UnitTestCase {
 				],
 			]
 		);
-		$this->assertTrue( $result );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'newspack_newsletters_invalid_lists', $result->get_error_code() );
 		$this->assertSame( $count_before, count( Subscription_Lists::get_all() ), 'Unknown remote id without a title must not be created' );
 		$this->assertNull( Subscription_List::from_public_id( 'xyz-brand-new-unknown' ) );
+
+		$reloaded = new Subscription_List( self::$posts['only_mailchimp'] );
+		$this->assertTrue( $reloaded->is_active(), 'Existing scoped lists must remain active when every payload row was skipped' );
 	}
 
 	/**
