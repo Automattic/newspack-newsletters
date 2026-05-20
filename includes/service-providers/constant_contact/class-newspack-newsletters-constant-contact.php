@@ -935,7 +935,7 @@ final class Newspack_Newsletters_Constant_Contact extends \Newspack_Newsletters_
 		// Layouts share the email editor (so the bundle, MJML refresh, and
 		// editor chrome all load) but must never create or update an ESP
 		// campaign — the post type is the boundary.
-		if ( Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT === get_post_type( $post_id ) ) {
+		if ( $this->is_layout_post( $post_id ) ) {
 			return;
 		}
 		if ( ! Newspack_Newsletters_Editor::is_editing_email( $post_id ) ) {
