@@ -5,7 +5,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import {
 	Button,
 	TextControl,
@@ -38,7 +38,8 @@ export default compose( [
 	const isRefreshingHtml = useIsRefreshingHtml();
 	const wasRefreshingHtml = usePrevious( isRefreshingHtml );
 	const lastRefreshHadError = useLastRefreshHadError();
-	const [ shouldSendTest, setShouldSendTest ] = useState( false );
+	// Ref so the refresh-transition effect sees the intent regardless of render timing.
+	const sendOnNextRefreshRef = useRef( false );
 	const [ localInFlight, setLocalInFlight ] = useState( false );
 	const [ localMessage, setLocalMessage ] = useState( '' );
 	const { newsletterData } = useNewsletterData();
@@ -47,11 +48,14 @@ export default compose( [
 	// Deps intentionally narrow — fire on refresh transitions only.
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect( () => {
-		if ( wasRefreshingHtml && ! isRefreshingHtml && shouldSendTest ) {
+		if ( wasRefreshingHtml && ! isRefreshingHtml && sendOnNextRefreshRef.current ) {
+			sendOnNextRefreshRef.current = false;
 			if ( lastRefreshHadError ) {
-				// MJML already raised the error notice; clear pending state.
-				setShouldSendTest( false );
-				setLocalInFlight( false );
+				if ( inlineNotifications ) {
+					setLocalInFlight( false );
+				} else {
+					setInFlightForAsync( false );
+				}
 				return;
 			}
 			sendTestEmail();
@@ -81,11 +85,9 @@ export default compose( [
 				} )
 				.finally( () => {
 					setLocalInFlight( false );
-					setShouldSendTest( false );
 				} );
 		} else {
 			await apiFetchWithErrorHandling( params );
-			setShouldSendTest( false );
 		}
 	};
 
@@ -95,8 +97,18 @@ export default compose( [
 		} else {
 			setInFlightForAsync();
 		}
-		await savePost();
-		setShouldSendTest( true );
+		sendOnNextRefreshRef.current = true;
+		try {
+			await savePost();
+		} catch ( err ) {
+			// Save rejected — clear the latched intent and the busy flags so the panel doesn't stay stuck.
+			sendOnNextRefreshRef.current = false;
+			if ( inlineNotifications ) {
+				setLocalInFlight( false );
+			} else {
+				setInFlightForAsync( false );
+			}
+		}
 	};
 
 	return (

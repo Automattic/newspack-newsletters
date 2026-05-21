@@ -521,6 +521,7 @@ class Subscription_Lists {
 
 				// Only update the title if it was not customized by the user.
 				if ( ! $has_customized_title ) {
+					// Best-effort sync; a single failure shouldn't abort the wider remote-list refresh.
 					$saved_list->update( [ 'title' => $list['title'] ] );
 				}
 			}
@@ -605,7 +606,7 @@ class Subscription_Lists {
 				'post_type'    => self::CPT,
 				'post_status'  => 'draft',
 				'post_title'   => $title,
-				'post_content' => is_string( $description ) ? $description : '',
+				'post_content' => is_string( $description ) ? wp_kses_post( $description ) : '',
 			],
 			true
 		);
@@ -687,12 +688,15 @@ class Subscription_Lists {
 		$original_description = $list->get_description();
 
 		$title_changed = $title !== $original_title;
-		$list->update(
+		$updated       = $list->update(
 			[
 				'title'       => $title,
 				'description' => is_string( $description ) ? $description : '',
 			]
 		);
+		if ( is_wp_error( $updated ) ) {
+			return $updated;
+		}
 
 		$audience_id = is_string( $audience_id ) ? trim( $audience_id ) : '';
 
@@ -708,27 +712,31 @@ class Subscription_Lists {
 		$tag_prefix   = $provider::label( 'tag_prefix' );
 		$new_tag_name = $list->generate_tag_name( $tag_prefix );
 
-		$rollback_local = function () use ( $list, $original_title, $original_description ) {
-			$list->update(
+		$rollback_local = function ( $original_error ) use ( $list, $original_title, $original_description ) {
+			$rollback = $list->update(
 				[
 					'title'       => $original_title,
 					'description' => $original_description,
 				]
 			);
+			if ( is_wp_error( $rollback ) ) {
+				$data                 = (array) $original_error->get_error_data();
+				$data['rolled_back']  = false;
+				$original_error->add_data( $data );
+			}
+			return $original_error;
 		};
 
 		if ( '' !== $audience_id && $audience_id !== $current_audience ) {
 			$tag_id = $provider->get_esp_local_list_id( $new_tag_name, true, $audience_id );
 			if ( is_wp_error( $tag_id ) ) {
-				$rollback_local();
-				return $tag_id;
+				return $rollback_local( $tag_id );
 			}
 			$list->update_current_provider_settings( $audience_id, $tag_id, $new_tag_name );
 		} elseif ( $title_changed && '' !== $current_audience && ! empty( $current_tag_id ) && method_exists( $provider, 'update_esp_local_list' ) ) {
 			$rename = $provider->update_esp_local_list( $current_tag_id, $new_tag_name, $current_audience );
 			if ( is_wp_error( $rename ) ) {
-				$rollback_local();
-				return $rename;
+				return $rollback_local( $rename );
 			}
 			$list->update_current_provider_settings( $current_audience, $current_tag_id, $new_tag_name );
 		}
@@ -794,6 +802,7 @@ class Subscription_Lists {
 			}
 
 			$existing_ids[] = $stored_list->get_id();
+			// Best-effort sync inside a batch loop; per-row failures don't abort the whole save.
 			$stored_list->update( $list );
 
 		}
@@ -819,6 +828,7 @@ class Subscription_Lists {
 		);
 		foreach ( $scoped_lists as $list ) {
 			if ( ! in_array( $list->get_id(), $existing_ids, true ) ) {
+				// Best-effort deactivation cleanup; per-row failures don't abort the sweep.
 				$list->update( [ 'active' => false ] );
 			}
 		}

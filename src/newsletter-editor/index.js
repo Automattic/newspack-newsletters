@@ -97,7 +97,7 @@ function NewsletterEdit( { apiFetchWithErrorHandling, setInFlightForAsync, inFli
 		} else {
 			removeNotice( 'newspack-newsletters-newsletter-data-error' );
 		}
-	}, newsletterDataError );
+	}, [ newsletterDataError ] );
 
 	const isLayout = isLayoutEditor();
 	// Layouts work without an ESP (wp_mail preview, provider-agnostic styling).

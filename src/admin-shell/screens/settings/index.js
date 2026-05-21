@@ -32,7 +32,7 @@ export default function SettingsScreen() {
 	}, [ savedSlug ] );
 
 	const handleAuthorized = useCallback( () => {
-		setPendingCredentials( {} );
+		notifySuccess( __( 'Provider connected.', 'newspack-newsletters' ) );
 		reloadSettings();
 		reloadLists();
 	}, [ reloadSettings, reloadLists ] );

@@ -380,7 +380,10 @@ class Newspack_Newsletters_Subscription {
 		}
 
 		if ( ! empty( $fields ) ) {
-			$list->update( $fields );
+			$updated = $list->update( $fields );
+			if ( is_wp_error( $updated ) ) {
+				return \rest_ensure_response( $updated );
+			}
 		}
 
 		return \rest_ensure_response( $list->to_array() );

@@ -515,4 +515,3 @@ class Newsletters_List_REST {
 		return null;
 	}
 }
-Newsletters_List_REST::init();

@@ -136,6 +136,86 @@ class Asset_Loader_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Malformed asset.php returning a non-array → bail without enqueueing.
+	 */
+	public function test_returns_null_when_asset_php_returns_non_array() {
+		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- Per-test fixture asset.php under sys_get_temp_dir().
+		file_put_contents( $path, '<?php return false;' );
+		$this->touch_bundle_file( 'my-bundle', 'js' );
+
+		$asset = Asset_Loader::enqueue_bundle(
+			'my-prefix-my-bundle',
+			'my-bundle',
+			$this->build_dir,
+			'https://example.test/dist'
+		);
+
+		$this->assertNull( $asset );
+		$this->assertFalse( wp_script_is( 'my-prefix-my-bundle', 'enqueued' ) );
+	}
+
+	/**
+	 * Missing `dependencies` key → bail without enqueueing.
+	 */
+	public function test_returns_null_when_dependencies_key_missing() {
+		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- Per-test fixture asset.php under sys_get_temp_dir().
+		file_put_contents( $path, "<?php return [ 'version' => 'v1' ];" );
+		$this->touch_bundle_file( 'my-bundle', 'js' );
+
+		$asset = Asset_Loader::enqueue_bundle(
+			'my-prefix-my-bundle',
+			'my-bundle',
+			$this->build_dir,
+			'https://example.test/dist'
+		);
+
+		$this->assertNull( $asset );
+		$this->assertFalse( wp_script_is( 'my-prefix-my-bundle', 'enqueued' ) );
+	}
+
+	/**
+	 * Non-array `dependencies` value → bail without enqueueing.
+	 */
+	public function test_returns_null_when_dependencies_value_is_not_array() {
+		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- Per-test fixture asset.php under sys_get_temp_dir().
+		file_put_contents( $path, "<?php return [ 'dependencies' => null, 'version' => 'v1' ];" );
+		$this->touch_bundle_file( 'my-bundle', 'js' );
+
+		$asset = Asset_Loader::enqueue_bundle(
+			'my-prefix-my-bundle',
+			'my-bundle',
+			$this->build_dir,
+			'https://example.test/dist'
+		);
+
+		$this->assertNull( $asset );
+		$this->assertFalse( wp_script_is( 'my-prefix-my-bundle', 'enqueued' ) );
+	}
+
+	/**
+	 * Non-string `version` value → bail; wp_enqueue_* can't use it safely.
+	 */
+	public function test_returns_null_when_version_value_is_not_string() {
+		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- Per-test fixture asset.php under sys_get_temp_dir().
+		file_put_contents( $path, "<?php return [ 'dependencies' => [], 'version' => [ 'v1' ] ];" );
+		$this->touch_bundle_file( 'my-bundle', 'js' );
+
+		$asset = Asset_Loader::enqueue_bundle(
+			'my-prefix-my-bundle',
+			'my-bundle',
+			$this->build_dir,
+			'https://example.test/dist'
+		);
+
+		$this->assertNull( $asset );
+		$this->assertFalse( wp_script_is( 'my-prefix-my-bundle', 'enqueued' ) );
+	}
+
+	/**
 	 * Caller-supplied script deps merge with the asset.php's; CSS gets
 	 * the explicit style deps. Duplicates collapse via array_unique so
 	 * `wp-element` doesn't appear twice.

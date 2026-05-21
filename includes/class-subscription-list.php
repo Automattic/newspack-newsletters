@@ -524,14 +524,18 @@ class Subscription_List {
 			}
 		}
 		if ( isset( $fields['description'] ) && is_string( $fields['description'] ) ) {
-			$description = $fields['description'];
+			// kses at the sink so all callers store a safe description regardless of writer caps.
+			$description = wp_kses_post( $fields['description'] );
 			if ( $description !== $this->get_description() ) {
 				$post_data['post_content'] = $description;
 			}
 		}
 		if ( ! empty( $post_data ) ) {
 			$post_data['ID'] = $this->get_id();
-			wp_update_post( $post_data );
+			$result          = wp_update_post( $post_data, true );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 			$this->post = get_post( $this->get_id() );
 			return true;
 		}

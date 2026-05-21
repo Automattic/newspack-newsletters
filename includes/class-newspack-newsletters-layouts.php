@@ -319,27 +319,27 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * Get default layouts.
+	 * Get default layouts. ID is the number in `N.json` so deletions leave
+	 * gaps rather than renumbering stored `template_id` references.
 	 */
 	public static function get_default_layouts() {
 		$layouts_base_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'includes/layouts/';
 		$layouts           = [];
-		// 1-indexed, because 0 denotes a blank layout.
-		$layout_id = 1;
 		foreach ( scandir( $layouts_base_path ) as $layout ) {
-			if ( strpos( $layout, '.json' ) !== false ) {
-				$decoded_layout  = json_decode( file_get_contents( $layouts_base_path . $layout, true ) ); //phpcs:ignore
-				$title          = '';
-				if ( property_exists( $decoded_layout, 'title' ) ) {
-					$title = $decoded_layout->title;
-				}
-				$layouts[] = array(
-					'ID'           => $layout_id,
-					'post_title'   => $title,
-					'post_content' => self::layout_token_replacement( $decoded_layout->content ),
-				);
-				$layout_id++;
+			if ( ! preg_match( '/^(\d+)\.json$/', $layout, $matches ) ) {
+				continue;
 			}
+			$layout_id      = (int) $matches[1];
+			$decoded_layout = json_decode( file_get_contents( $layouts_base_path . $layout, true ) ); //phpcs:ignore
+			if ( ! is_object( $decoded_layout ) || ! property_exists( $decoded_layout, 'content' ) ) {
+				continue;
+			}
+			$title = property_exists( $decoded_layout, 'title' ) ? $decoded_layout->title : '';
+			$layouts[] = array(
+				'ID'           => $layout_id,
+				'post_title'   => $title,
+				'post_content' => self::layout_token_replacement( $decoded_layout->content ),
+			);
 		}
 		return $layouts;
 	}

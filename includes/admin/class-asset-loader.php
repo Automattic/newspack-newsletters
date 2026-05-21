@@ -28,7 +28,9 @@ class Asset_Loader {
 	 * @param string $url_dir           Public URL prefix matching `$build_dir`.
 	 * @param array  $extra_script_deps Handles to merge into the script deps.
 	 * @param array  $extra_style_deps  Handles to merge into the style deps.
-	 * @return array|null Asset metadata, or null when `asset.php` is missing.
+	 * @return array|null Asset metadata, or null when `asset.php` is missing
+	 *                   or malformed (non-array, or missing/non-array
+	 *                   `dependencies` / `version`).
 	 */
 	public static function enqueue_bundle(
 		$handle,
@@ -43,6 +45,16 @@ class Asset_Loader {
 			return null;
 		}
 		$asset = require $asset_path;
+
+		// Bail on malformed asset.php rather than fatal in array_merge() or feed wp_enqueue_* an invalid version.
+		if (
+			! is_array( $asset )
+			|| ! isset( $asset['dependencies'], $asset['version'] )
+			|| ! is_array( $asset['dependencies'] )
+			|| ! is_string( $asset['version'] )
+		) {
+			return null;
+		}
 
 		$script_deps = array_values(
 			array_unique( array_merge( $asset['dependencies'], $extra_script_deps ) )
