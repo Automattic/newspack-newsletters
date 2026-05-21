@@ -524,7 +524,8 @@ class Subscription_List {
 			}
 		}
 		if ( isset( $fields['description'] ) && is_string( $fields['description'] ) ) {
-			$description = $fields['description'];
+			// kses at the sink so all callers store a safe description regardless of writer caps.
+			$description = wp_kses_post( $fields['description'] );
 			if ( $description !== $this->get_description() ) {
 				$post_data['post_content'] = $description;
 			}
