@@ -94,7 +94,13 @@ export default compose( [
 			setInFlightForAsync();
 		}
 		sendOnNextRefreshRef.current = true;
-		await savePost();
+		try {
+			await savePost();
+		} catch ( err ) {
+			// Save rejected — clear the latched intent so a future unrelated refresh doesn't trigger a send.
+			sendOnNextRefreshRef.current = false;
+			setLocalInFlight( false );
+		}
 	};
 
 	return (
