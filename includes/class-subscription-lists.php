@@ -708,27 +708,31 @@ class Subscription_Lists {
 		$tag_prefix   = $provider::label( 'tag_prefix' );
 		$new_tag_name = $list->generate_tag_name( $tag_prefix );
 
-		$rollback_local = function () use ( $list, $original_title, $original_description ) {
-			$list->update(
+		$rollback_local = function ( $original_error ) use ( $list, $original_title, $original_description ) {
+			$rollback = $list->update(
 				[
 					'title'       => $original_title,
 					'description' => $original_description,
 				]
 			);
+			if ( is_wp_error( $rollback ) ) {
+				$data                 = (array) $original_error->get_error_data();
+				$data['rolled_back']  = false;
+				$original_error->add_data( $data );
+			}
+			return $original_error;
 		};
 
 		if ( '' !== $audience_id && $audience_id !== $current_audience ) {
 			$tag_id = $provider->get_esp_local_list_id( $new_tag_name, true, $audience_id );
 			if ( is_wp_error( $tag_id ) ) {
-				$rollback_local();
-				return $tag_id;
+				return $rollback_local( $tag_id );
 			}
 			$list->update_current_provider_settings( $audience_id, $tag_id, $new_tag_name );
 		} elseif ( $title_changed && '' !== $current_audience && ! empty( $current_tag_id ) && method_exists( $provider, 'update_esp_local_list' ) ) {
 			$rename = $provider->update_esp_local_list( $current_tag_id, $new_tag_name, $current_audience );
 			if ( is_wp_error( $rename ) ) {
-				$rollback_local();
-				return $rename;
+				return $rollback_local( $rename );
 			}
 			$list->update_current_provider_settings( $current_audience, $current_tag_id, $new_tag_name );
 		}
