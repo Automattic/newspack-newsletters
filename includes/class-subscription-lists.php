@@ -687,12 +687,15 @@ class Subscription_Lists {
 		$original_description = $list->get_description();
 
 		$title_changed = $title !== $original_title;
-		$list->update(
+		$updated       = $list->update(
 			[
 				'title'       => $title,
 				'description' => is_string( $description ) ? $description : '',
 			]
 		);
+		if ( is_wp_error( $updated ) ) {
+			return $updated;
+		}
 
 		$audience_id = is_string( $audience_id ) ? trim( $audience_id ) : '';
 

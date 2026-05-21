@@ -28,7 +28,9 @@ class Asset_Loader {
 	 * @param string $url_dir           Public URL prefix matching `$build_dir`.
 	 * @param array  $extra_script_deps Handles to merge into the script deps.
 	 * @param array  $extra_style_deps  Handles to merge into the style deps.
-	 * @return array|null Asset metadata, or null when `asset.php` is missing.
+	 * @return array|null Asset metadata, or null when `asset.php` is missing
+	 *                   or malformed (non-array, or missing/non-array
+	 *                   `dependencies` / `version`).
 	 */
 	public static function enqueue_bundle(
 		$handle,
