@@ -1,10 +1,1 @@
-# Intentionally minimal on the epic/newsletters-modernisation branch.
-#
-# This file overrides the trunk version to skip auto-review requests from
-# @Automattic/newspack-product during long-running iteration on this epic.
-#
-# !!! WHEN MERGING THIS BRANCH TO trunk, RESTORE THE ORIGINAL RULE: !!!
-#
-#   *  @Automattic/newspack-product
-#
-# See docs/newsletter-modernisation/CONTEXT.md "Decisions log" for context.
+* @Automattic/newspack-product

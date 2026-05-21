@@ -6,30 +6,29 @@ This document captures the *why* behind decisions for the newsletter modernisati
 
 This is the contract for anyone — human or AI agent — working on this project:
 
-1. **Before starting a session** on any branch in this project (the project epic, a milestone integration branch, or a per-ticket branch off either): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
-2. **Before opening a PR**: identify the right base branch (see *Branch structure* below — per-ticket PRs target their milestone branch, not the project epic). Per-ticket rationale belongs in the PR description (and Linear ticket), not here. Only update this doc if your work changes strategy, branch structure, or surfaces a cross-cutting gotcha future agents would lose hours rediscovering. Otherwise say "No context change." in the PR description.
+1. **Before starting a session** on any branch in this project (a milestone integration branch or a per-ticket branch off one): read this doc in full. It tells you what's been decided and why, and which open questions still bind.
+2. **Before opening a PR**: identify the right base branch (see *Branch structure* below — per-ticket PRs target their milestone integration branch; milestone PRs target `trunk`). Per-ticket rationale belongs in the PR description (and Linear ticket), not here. Only update this doc if your work changes strategy, branch structure, or surfaces a cross-cutting gotcha future agents would lose hours rediscovering. Otherwise say "No context change." in the PR description.
 3. **Tone:** terse. Gotcha entries should be one short paragraph with a PR link; the PR holds the full rationale.
 
 ## Branch structure
 
-Three tiers:
+Two tiers:
 
-- **`epic/newsletters-modernisation`** — the project epic. Receives only milestone-integration merges. Ultimately merges to `trunk`.
-- **`epic/<milestone>`** — one integration branch per Linear milestone (e.g. `epic/admin-ux-modernisation`, `epic/editor-refactor`, `epic/beehiiv`, `epic/de-risk`, `epic/validate`). Receives per-ticket PRs and is QA'd as a coherent unit before promoting to the project epic. Naming: kebab-case version of the Linear milestone name.
+- **`epic/<milestone>`** — one integration branch per Linear milestone, cut from `trunk` (e.g. `epic/editor-refactor`, `epic/beehiiv`, `epic/validate`). Receives per-ticket PRs and is QA'd as a coherent unit before promoting to `trunk`. Naming: kebab-case version of the Linear milestone name.
 - **`news-<id>-<slug>`** — per-ticket branch cut from its milestone integration branch. PRs target the milestone branch.
 
-**Why three tiers.** Newsletters are critical and the modernisation is wide-ranging. We want each milestone to land on the project epic only after it's been tested as a unit (cross-ticket integration, regression sweep, manual UAT). Per-ticket review still happens via individual PRs into the milestone branch — Copilot review, lint, tests — so nothing skips the per-ticket gate.
+**Why two tiers.** Newsletters are critical and each milestone is wide-ranging. We want each milestone to land on `trunk` only after it's been tested as a unit (cross-ticket integration, regression sweep, manual UAT). Per-ticket review still happens via individual PRs into the milestone branch — Copilot review, lint, tests — so nothing skips the per-ticket gate.
 
-**Promoting a milestone:** once a milestone branch is fully QA'd, open a single PR `epic/<milestone>` → `epic/newsletters-modernisation`. Treat that PR as the integration-test gate.
+**Promoting a milestone:** once a milestone branch is fully QA'd, open a single PR `epic/<milestone>` → `trunk`. Treat that PR as the integration-test gate. If the milestone has a **companion PR in `newspack-plugin`** (e.g. a wizard-bridge counterpart, a shared component bump), coordinate the two so they merge in lockstep — call it out in both PR descriptions and on the Linear ticket so neither lands first and leaves the other repo broken.
 
-**Promoting the project:** once the project epic is ready, open a final PR `epic/newsletters-modernisation` → `trunk`. The pre-merge checklist for that step lives in `AGENTS.md`.
+**Creating a new milestone integration branch.** When you cut a fresh `epic/<milestone>` from `trunk`, configure repo settings so PRs into it can land without a CODEOWNERS approval gate:
 
-**Creating a new milestone integration branch.** When you cut a fresh `epic/<milestone>` from the project epic, also configure repo settings so PRs into it follow the same convention as the project epic:
+- **Branch protection:** waive the review-required rule for `epic/<milestone>` (or use a glob pattern like `epic/*` so all integration branches inherit the waiver). Without this, PRs into the milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes — the per-ticket gate is the Copilot pass at PR time, not a CODEOWNERS approval.
+- **CODEOWNERS waiver:** add a comment-only stub to `.github/CODEOWNERS` on the milestone branch so trunk's `* @Automattic/newspack-product` rule doesn't auto-request product reviews on every per-ticket PR. Restore the trunk content (single line: `* @Automattic/newspack-product`) as the final step of the milestone → trunk PR.
 
-- **Branch protection:** waive the review-required rule for `epic/<milestone>` (or use a glob pattern like `epic/*` so all integration branches inherit the waiver). Without this, PRs into the new milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes — the per-ticket gate is the Copilot pass at PR time, not a CODEOWNERS approval.
-- **CODEOWNERS:** the empty stub on the project epic is inherited automatically when you branch, so no separate action is needed.
+Reasoning: milestone integration branches are intentionally long-running and accumulate per-ticket PRs without per-PR human approval. The integration-test gate is the milestone → trunk *promotion* PR, not the individual tickets.
 
-Reasoning: long-running integration branches (the project epic and milestone branches alike) intentionally accumulate per-ticket PRs without per-PR human approval. The integration-test gate is the *promotion* PR (milestone → epic, then epic → trunk), not the individual tickets.
+**Historical note.** The Admin UX milestone shipped via a three-tier structure that included a now-deprecated project-epic branch (`epic/newsletters-modernisation`). That branch may still exist as historical scaffolding, but new milestones cut directly from `trunk`. See [PR #2141](https://github.com/Automattic/newspack-newsletters/pull/2141) for the milestone's roll-up; the model change happened as part of the milestone → trunk merge.
 
 ## Strategy
 
@@ -91,8 +90,8 @@ Cross-cutting traps an agent would lose hours rediscovering from code alone. Per
 
 ## Process rules
 
-- **Milestone integration branches need their own branch-protection waiver.** Configure with a glob like `epic/*` so all integration branches inherit; without it, PRs into a new milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes. See *Branch structure* above and the pre-merge checklist in `AGENTS.md`.
-- **Epic-only `AGENTS.md` addendum + `.github/CODEOWNERS` stub.** Scaffolding for long-running iteration; pre-merge checklist in `AGENTS.md` covers removing both when merging epic → trunk.
+- **Milestone integration branches need their own branch-protection waiver.** Configure with a glob like `epic/*` so all integration branches inherit; without it, PRs into a new milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes. See *Branch structure* above.
+- **Milestone-branch `.github/CODEOWNERS` stub.** Each milestone branch carries a comment-only `CODEOWNERS` stub that disables auto-review requests during iteration. Restore the trunk content (`* @Automattic/newspack-product`) as the final step of the milestone → trunk PR — see *Branch structure* above.
 - **When you hit build / tooling friction in this repo, grep `newspack-plugin` for the same symptom first** — both share `newspack-scripts`, so solutions transfer 1:1.
 
 ## Known gaps / follow-ups
