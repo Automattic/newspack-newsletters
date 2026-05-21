@@ -194,7 +194,9 @@ export default function LayoutPicker() {
 	const selectedLayoutId = selection[ 0 ] ? Number( selection[ 0 ] ) : null;
 
 	const insertLayout = layoutId => {
-		let { post_content = '', meta = {} } = find( layouts, { ID: layoutId } ) || {};
+		const layout = find( layouts, { ID: layoutId } ) || {};
+		let post_content = layout.post_content || '';
+		const meta = { ...( layout.meta || {} ) };
 		if ( meta.campaign_defaults && 'string' === typeof meta.campaign_defaults ) {
 			meta.stringifiedCampaignDefaults = meta.campaign_defaults;
 		}
