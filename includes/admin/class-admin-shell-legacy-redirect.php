@@ -98,7 +98,7 @@ class Admin_Shell_Legacy_Redirect {
 			}
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitised below.
 			$value = wp_unslash( $_GET[ $key ] );
-			if ( '' === $value ) {
+			if ( '' === $value || ( is_array( $value ) && empty( $value ) ) ) {
 				continue;
 			}
 			$forwarded[ $key ] = is_array( $value ) ? array_map( 'sanitize_text_field', $value ) : sanitize_text_field( $value );
