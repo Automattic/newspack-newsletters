@@ -521,6 +521,7 @@ class Subscription_Lists {
 
 				// Only update the title if it was not customized by the user.
 				if ( ! $has_customized_title ) {
+					// Best-effort sync; a single failure shouldn't abort the wider remote-list refresh.
 					$saved_list->update( [ 'title' => $list['title'] ] );
 				}
 			}
@@ -801,6 +802,7 @@ class Subscription_Lists {
 			}
 
 			$existing_ids[] = $stored_list->get_id();
+			// Best-effort sync inside a batch loop; per-row failures don't abort the whole save.
 			$stored_list->update( $list );
 
 		}
@@ -826,6 +828,7 @@ class Subscription_Lists {
 		);
 		foreach ( $scoped_lists as $list ) {
 			if ( ! in_array( $list->get_id(), $existing_ids, true ) ) {
+				// Best-effort deactivation cleanup; per-row failures don't abort the sweep.
 				$list->update( [ 'active' => false ] );
 			}
 		}
