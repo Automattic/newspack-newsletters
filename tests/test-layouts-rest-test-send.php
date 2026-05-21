@@ -72,11 +72,12 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `pre_wp_mail` filter: record the call, short-circuit wp_mail with `true`.
+	 * `pre_wp_mail` filter: record the call, then short-circuit wp_mail. Returns `false`
+	 * for recipients listed in `$fail_recipients` (simulating delivery failure), `true` otherwise.
 	 *
 	 * @param null|bool $short_circuit Unused.
 	 * @param array     $atts          wp_mail attributes.
-	 * @return true
+	 * @return bool
 	 */
 	public function capture_wp_mail( $short_circuit, $atts ) {
 		unset( $short_circuit );

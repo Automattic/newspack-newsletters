@@ -19,7 +19,7 @@ export default function useAllAdvertisers( refreshKey = 0 ) {
 
 	useEffect( () => {
 		let cancelled = false;
-		fetchAllTerms( TAXONOMY_PATH, { fields: 'id,name,parent' } ).then( list => {
+		fetchAllTerms( TAXONOMY_PATH, { fields: [ 'id', 'name', 'parent' ] } ).then( list => {
 			if ( ! cancelled ) {
 				setAdvertisers( list );
 			}
