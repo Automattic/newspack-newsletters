@@ -8,7 +8,7 @@ import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/da
  * @param {Object}            item        DataView row.
  * @param {string}            [fieldName] Date field key on the row (default `date`).
  * @param {Object}            [opts]
- * @param {'date'|'datetime'} [opts.kind] Which `formats` entry to pull (default `datetime`).
+ * @param {'date'|'datetime'} [opts.kind] `wp.date.settings.formats` entry (default `datetime`).
  * @return {string} Localised date string, or '' when the field is empty.
  */
 export function formatPostDate( item, fieldName = 'date', { kind = 'datetime' } = {} ) {
