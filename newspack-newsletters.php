@@ -102,6 +102,7 @@ require_once NEWSPACK_NEWSLETTERS_PLUGIN_FILE . '/includes/class-wizard-bridge.p
 \Newspack\Newsletters\Send_Lists::init();
 \Newspack\Newsletters\Admin\Admin_Shell::init();
 \Newspack\Newsletters\Wizard_Bridge::init();
+\Newspack\Newsletters\Admin\Newsletters_List_REST::init();
 \Newspack\Newsletters\Admin\Ads_List_REST::init();
 \Newspack\Newsletters\Admin\Advertisers_List_REST::init();
 \Newspack\Newsletters\Admin\Settings_REST::init();
