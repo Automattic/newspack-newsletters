@@ -251,7 +251,15 @@ class Newspack_Newsletters_Subscription {
 	 * @return WP_REST_Response|WP_Error WP_REST_Response on success, or WP_Error object on failure.
 	 */
 	public static function api_update_lists( $request ) {
-		$update = self::update_lists( $request['lists'] );
+		$lists = $request['lists'];
+		if ( ! is_array( $lists ) ) {
+			return new \WP_Error(
+				'rest_invalid_param',
+				__( 'The "lists" parameter must be an array.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+		}
+		$update = self::update_lists( $lists );
 		if ( is_wp_error( $update ) ) {
 			return \rest_ensure_response( $update );
 		}
