@@ -12,14 +12,14 @@ import apiFetch from '@wordpress/api-fetch';
 export const TERMS_PER_PAGE = 100;
 
 // Walk every page — `per_page` caps at 100 server-side, so a single request silently truncates on sites with many terms.
-export async function fetchAllTerms( basePath ) {
+export async function fetchAllTerms( basePath, { fields = 'id,name' } = {} ) {
 	const all = [];
 	let page = 1;
 	let totalPages = 1;
 	while ( page <= totalPages ) {
 		try {
 			const response = await apiFetch( {
-				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=id,name&page=${ page }`,
+				path: `${ basePath }?per_page=${ TERMS_PER_PAGE }&_fields=${ fields }&page=${ page }`,
 				parse: false,
 			} );
 			const data = await response.json();

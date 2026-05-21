@@ -4,44 +4,11 @@
  * picker on sites with more than one page of advertisers.
  */
 
-import apiFetch from '@wordpress/api-fetch';
 import { useEffect, useState } from '@wordpress/element';
 
-const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
-// REST term collections cap `per_page` at 100 server-side; paginate
-// until exhausted so sites with many advertisers still get the full
-// graph.
-const PER_PAGE = 100;
+import { fetchAllTerms } from '../../utils/terms';
 
-async function fetchAllAdvertisers() {
-	const all = [];
-	let page = 1;
-	let totalPages = 1;
-	while ( page <= totalPages ) {
-		try {
-			const response = await apiFetch( {
-				path: `${ TAXONOMY_PATH }?per_page=${ PER_PAGE }&_fields=id,name,parent&page=${ page }`,
-				parse: false,
-			} );
-			const data = await response.json();
-			if ( ! Array.isArray( data ) ) {
-				break;
-			}
-			all.push( ...data );
-			if ( page === 1 ) {
-				const headerPages = parseInt( response.headers?.get?.( 'X-WP-TotalPages' ) || '1', 10 );
-				totalPages = Number.isFinite( headerPages ) && headerPages > 0 ? headerPages : 1;
-			}
-		} catch ( error ) {
-			// Network / shape errors fall back to whatever has been
-			// collected — picker degrades to a partial tree rather than
-			// blocking the modal entirely.
-			break;
-		}
-		page += 1;
-	}
-	return all;
-}
+const TAXONOMY_PATH = '/wp/v2/newspack_nl_advertiser';
 
 /**
  * @param {number} refreshKey Bump to refetch — wire to the screen's save trigger.
@@ -52,7 +19,7 @@ export default function useAllAdvertisers( refreshKey = 0 ) {
 
 	useEffect( () => {
 		let cancelled = false;
-		fetchAllAdvertisers().then( list => {
+		fetchAllTerms( TAXONOMY_PATH, { fields: 'id,name,parent' } ).then( list => {
 			if ( ! cancelled ) {
 				setAdvertisers( list );
 			}
