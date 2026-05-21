@@ -51,7 +51,11 @@ export default compose( [
 		if ( wasRefreshingHtml && ! isRefreshingHtml && sendOnNextRefreshRef.current ) {
 			sendOnNextRefreshRef.current = false;
 			if ( lastRefreshHadError ) {
-				setLocalInFlight( false );
+				if ( inlineNotifications ) {
+					setLocalInFlight( false );
+				} else {
+					setInFlightForAsync( false );
+				}
 				return;
 			}
 			sendTestEmail();

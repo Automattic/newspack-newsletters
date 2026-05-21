@@ -487,6 +487,14 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	public function test_install_bucket_filter_drains_on_shutdown_if_query_never_runs() {
 		$before = $this->count_posts_where_callbacks();
 
+		// Snapshot existing priority-0 shutdown subscribers so we only fire
+		// the callback this install adds — calling do_action('shutdown') or
+		// every p0 callback would run unrelated hooks and trip PHPUnit's
+		// output-buffer hygiene check.
+		$pre_shutdown = isset( $GLOBALS['wp_filter']['shutdown'] ) && isset( $GLOBALS['wp_filter']['shutdown']->callbacks[0] )
+			? array_keys( $GLOBALS['wp_filter']['shutdown']->callbacks[0] )
+			: [];
+
 		Newsletters_List_REST::align_status_filter_with_scheduled_meta(
 			[],
 			$this->rest_request( [ 'status' => 'publish' ] )
@@ -494,12 +502,11 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 		$this->assertSame( $before + 1, $this->count_posts_where_callbacks() );
 
-		// Fire only the drain callback registered at priority 0 — calling
-		// do_action('shutdown') would also run unrelated subscribers and
-		// trip PHPUnit's output-buffer hygiene check.
-		$shutdown = $GLOBALS['wp_filter']['shutdown'] ?? null;
-		if ( $shutdown && isset( $shutdown->callbacks[0] ) ) {
-			foreach ( $shutdown->callbacks[0] as $registered ) {
+		$post_shutdown = isset( $GLOBALS['wp_filter']['shutdown']->callbacks[0] )
+			? $GLOBALS['wp_filter']['shutdown']->callbacks[0]
+			: [];
+		foreach ( $post_shutdown as $key => $registered ) {
+			if ( ! in_array( $key, $pre_shutdown, true ) ) {
 				call_user_func( $registered['function'] );
 			}
 		}
