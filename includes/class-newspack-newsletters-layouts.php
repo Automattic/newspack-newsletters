@@ -187,18 +187,19 @@ final class Newspack_Newsletters_Layouts {
 		if ( ! empty( $failed ) ) {
 			return rest_ensure_response(
 				[
-					'message' => sprintf(
+					'message'           => sprintf(
 						/* translators: %s: comma-separated list of email addresses that failed. */
 						__( 'Test email sent, but delivery failed for: %s.', 'newspack-newsletters' ),
 						implode( ', ', $failed )
 					),
+					'failed_recipients' => $failed,
 				]
 			);
 		}
 
 		return rest_ensure_response(
 			[
-				'message' => sprintf(
+				'message'           => sprintf(
 					/* translators: %s: comma-separated list of email addresses. */
 					_n(
 						'Test email sent to %s.',
@@ -208,6 +209,7 @@ final class Newspack_Newsletters_Layouts {
 					),
 					implode( ', ', $valid )
 				),
+				'failed_recipients' => [],
 			]
 		);
 	}

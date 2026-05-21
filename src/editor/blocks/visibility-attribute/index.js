@@ -146,6 +146,7 @@ const withVisibilityNotice = createHigherOrderComponent(
 								<>
 									{ __( 'Newsletter is not public, this block will not be visible.', 'newspack-newsletters' ) }
 									<button
+										type="button"
 										onClick={ () => {
 											props.setAttributes( { [ ATTRIBUTE_NAME ]: '' } );
 										} }

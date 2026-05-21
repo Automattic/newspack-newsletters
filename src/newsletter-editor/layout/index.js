@@ -99,8 +99,14 @@ export default compose( [
 	const [ usedLayout, setUsedLayout ] = useState( {} );
 
 	useEffect( () => {
-		setUsedLayout( find( layouts, { ID: layoutId } ) || {} );
-	}, [ layouts.length ] );
+		const match = find( layouts, { ID: layoutId } );
+		if ( match ) {
+			setUsedLayout( match );
+			return;
+		}
+		// Preserve a just-saved layout the cache hasn't picked up yet.
+		setUsedLayout( prev => ( prev?.ID === layoutId ? prev : {} ) );
+	}, [ layouts, layoutId ] );
 
 	const blockPreview = useMemo( () => {
 		return usedLayout.post_content ? parse( usedLayout.post_content ) : null;

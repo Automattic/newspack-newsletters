@@ -115,6 +115,7 @@ const withConditionalContentNotice = createHigherOrderComponent(
 						<>
 							{ __( 'Missing opening tag for conditional content.', 'newspack-newsletters' ) }
 							<button
+								type="button"
 								onClick={ () => {
 									props.setAttributes( { conditionalAfter: '' } );
 								} }
@@ -131,6 +132,7 @@ const withConditionalContentNotice = createHigherOrderComponent(
 						<>
 							{ __( 'Missing closing tag for conditional content.', 'newspack-newsletters' ) }
 							<button
+								type="button"
 								onClick={ () => {
 									props.setAttributes( { conditionalBefore: '' } );
 								} }
