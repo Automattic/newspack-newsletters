@@ -319,7 +319,7 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * Get default layouts. ID is the digit in `N.json` so deletions leave
+	 * Get default layouts. ID is the number in `N.json` so deletions leave
 	 * gaps rather than renumbering stored `template_id` references.
 	 */
 	public static function get_default_layouts() {
