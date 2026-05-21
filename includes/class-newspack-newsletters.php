@@ -974,7 +974,9 @@ final class Newspack_Newsletters {
 		$credentials      = $request['credentials'];
 		$wp_error         = new WP_Error();
 
-		if ( empty( $service_provider ) ) {
+		// The /settings route doesn't declare arg types, so guard here —
+		// otherwise an array slug trips a TypeError in `isset( $providers[ … ] )`.
+		if ( ! is_string( $service_provider ) || '' === $service_provider ) {
 			$wp_error->add(
 				'newspack_newsletters_no_service_provider',
 				__( 'Please select a newsletter service provider.', 'newspack-newsletters' )
@@ -987,7 +989,7 @@ final class Newspack_Newsletters {
 			return self::api_get_settings();
 		}
 
-		if ( empty( $credentials ) ) {
+		if ( ! is_array( $credentials ) || empty( $credentials ) ) {
 			$wp_error->add(
 				'newspack_newsletters_invalid_keys',
 				__( 'Please input credentials.', 'newspack-newsletters' )

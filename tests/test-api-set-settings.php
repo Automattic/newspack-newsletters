@@ -86,6 +86,47 @@ class Api_Set_Settings_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A non-string `service_provider` (e.g. an array payload from
+	 * `service_provider[]=mailchimp`) is rejected before it can trip a
+	 * TypeError in `isset( $providers[ $slug ] )` on PHP 8.
+	 */
+	public function test_non_string_service_provider_rejected() {
+		update_option( 'newspack_newsletters_service_provider', 'manual' );
+		Newspack_Newsletters::memoize_service_provider();
+
+		$result = Newspack_Newsletters::api_set_settings(
+			$this->rest_request( [ 'service_provider' => [ 'mailchimp' ] ] )
+		);
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertNotEmpty( $result->get_error_message( 'newspack_newsletters_no_service_provider' ) );
+		$this->assertSame( 'manual', get_option( 'newspack_newsletters_service_provider' ) );
+	}
+
+	/**
+	 * A non-array `credentials` payload (e.g. `credentials=foo`) is
+	 * rejected before reaching the provider's set_api_credentials() —
+	 * which would otherwise do string-offset access on `$credentials['…']`.
+	 */
+	public function test_non_array_credentials_rejected() {
+		update_option( 'newspack_newsletters_service_provider', 'manual' );
+		Newspack_Newsletters::memoize_service_provider();
+
+		$result = Newspack_Newsletters::api_set_settings(
+			$this->rest_request(
+				[
+					'service_provider' => 'active_campaign',
+					'credentials'      => 'foo',
+				]
+			)
+		);
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertNotEmpty( $result->get_error_message( 'newspack_newsletters_invalid_keys' ) );
+		$this->assertSame( 'manual', get_option( 'newspack_newsletters_service_provider' ) );
+	}
+
+	/**
 	 * Accepted credentials commit both the provider option and the
 	 * credential fields.
 	 */
