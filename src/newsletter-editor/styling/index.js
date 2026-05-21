@@ -15,7 +15,7 @@ import {
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useSelect, withDispatch, withSelect } from '@wordpress/data';
-import { useEffect, useRef } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -153,7 +153,52 @@ export const useCustomFontsInIframe = () => {
 	return ref;
 };
 
+const EDITOR_CANVAS_SELECTOR = 'iframe[name="editor-canvas"]';
+
+// TODO: Remove the parent-document fallback once WP 7.0 is officially released
+// and becomes the minimum supported version.
+const getEditorCanvasDocument = () => {
+	const iframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
+	return iframe?.contentDocument ?? document;
+};
+
 export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fontHeader, backgroundColor, textColor, customCss } ) => {
+	// Bumped on canvas iframe mount/remount/load so the per-style effects
+	// below re-apply styles inside the new canvas document.
+	const [ iframeKey, setIframeKey ] = useState( 0 );
+
+	useEffect( () => {
+		const bump = () => setIframeKey( key => key + 1 );
+		let currentIframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
+		if ( currentIframe ) {
+			currentIframe.addEventListener( 'load', bump );
+		}
+		const observer = new MutationObserver( () => {
+			const nextIframe = document.querySelector( EDITOR_CANVAS_SELECTOR );
+			if ( nextIframe === currentIframe ) {
+				return;
+			}
+			if ( currentIframe ) {
+				currentIframe.removeEventListener( 'load', bump );
+			}
+			currentIframe = nextIframe;
+			if ( currentIframe ) {
+				currentIframe.addEventListener( 'load', bump );
+			}
+			bump();
+		} );
+		// Scope the observer to the editor content region rather than the whole
+		// body so unrelated editor mutations don't trigger the callback.
+		const observerRoot = document.querySelector( '.interface-interface-skeleton__content' ) || document.body;
+		observer.observe( observerRoot, { childList: true, subtree: true } );
+		return () => {
+			if ( currentIframe ) {
+				currentIframe.removeEventListener( 'load', bump );
+			}
+			observer.disconnect();
+		};
+	}, [] );
+
 	useEffect( () => {
 		document.documentElement.style.setProperty( '--newspack-newsletters-body-font', fontBody );
 	}, [ fontBody ] );
@@ -178,6 +223,10 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 		const apply = iframeDoc => {
 			iframeDoc.documentElement.style.setProperty( '--newspack-newsletters-body-font', fontBody );
 			iframeDoc.documentElement.style.setProperty( '--newspack-newsletters-header-font', fontHeader );
+			// Clear the iframe body background so the editor-styles-wrapper background colour shows through.
+			if ( iframeDoc.body ) {
+				iframeDoc.body.style.setProperty( 'background', 'none' );
+			}
 			const wrapper = iframeDoc.querySelector( '.editor-styles-wrapper' );
 			if ( wrapper ) {
 				wrapper.style.backgroundColor = backgroundColor;
@@ -232,22 +281,22 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 			listeners.forEach( remove => remove() );
 		};
 	}, [ fontBody, fontHeader, backgroundColor, textColor ] );
+
 	useEffect( () => {
-		const editorElement = document.querySelector( '.edit-post-visual-editor' );
-		if ( editorElement ) {
-			let styleEl = document.getElementById( 'newspack-newsletters__custom-styles' );
-			if ( ! styleEl ) {
-				styleEl = document.createElement( 'style' );
-				styleEl.setAttribute( 'type', 'text/css' );
-				styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
-				document.head.appendChild( styleEl );
-			}
-
-			const scopedCss = getScopedCss( '.edit-post-visual-editor', customCss );
-
-			styleEl.textContent = scopedCss;
+		const canvasDoc = getEditorCanvasDocument();
+		const editorElement = canvasDoc.querySelector( '.editor-styles-wrapper' );
+		if ( ! editorElement ) {
+			return;
 		}
-	}, [ customCss ] );
+		let styleEl = canvasDoc.getElementById( 'newspack-newsletters__custom-styles' );
+		if ( ! styleEl ) {
+			styleEl = canvasDoc.createElement( 'style' );
+			styleEl.setAttribute( 'type', 'text/css' );
+			styleEl.setAttribute( 'id', 'newspack-newsletters__custom-styles' );
+			canvasDoc.head.appendChild( styleEl );
+		}
+		styleEl.textContent = getScopedCss( '.editor-styles-wrapper', customCss );
+	}, [ customCss, iframeKey ] );
 
 	return null;
 } );

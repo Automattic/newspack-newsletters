@@ -1017,7 +1017,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	 * Get a payload for syncing post data to the ESP campaign.
 	 *
 	 * @param WP_Post|int $post Post object or ID.
-	 * @return object Payload for syncing.
+	 * @return array|WP_Error Payload for syncing, or WP_Error if the payload cannot be safely built (e.g. an unverified sender domain, or a configured sublist that cannot be resolved against Mailchimp).
 	 */
 	public function get_sync_payload( $post ) {
 		if ( is_int( $post ) ) {
@@ -1054,7 +1054,20 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				'list_id' => $send_list_id,
 			];
 			$send_sublist_id = get_post_meta( $post->ID, 'send_sublist_id', true );
-			if ( ! empty( $send_sublist_id ) ) {
+			// Only an explicitly unset send_sublist_id (null or '' — no sublist
+			// ever picked) is treated as an intentional whole-list send. Any
+			// other value, including a literal "0", is treated as
+			// configured-and-must-resolve so a garbage value can't quietly fall
+			// through to the whole audience.
+			if ( null !== $send_sublist_id && '' !== $send_sublist_id ) {
+				// Note: Mailchimp groups and tags are looked up via
+				// Newspack_Newsletters_Mailchimp_Cached_Data, which refreshes
+				// asynchronously (~10-minute TTL). A group or tag that was
+				// deleted upstream within that window can still resolve from
+				// stale cache and pass this check. Saved segments are looked
+				// up live via `fetch_segment()` further down and don't have
+				// this gap. Closing the group/tag gap would mean a live
+				// lookup at send time — tracked as follow-up.
 				$sublist = $this->get_send_lists(
 					[
 						'ids'       => [ $send_sublist_id ],
@@ -1063,47 +1076,81 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 						'type'      => 'sublist',
 					]
 				);
-				if ( ! empty( $sublist ) && ! empty( $sublist[0]->get_entity_type() ) ) {
-					$sublist_type = $sublist[0]->get_entity_type();
-					switch ( $sublist_type ) {
-						case 'group':
-							$payload['recipients']['segment_opts'] = [
-								'match'      => 'all',
-								'conditions' => [
-									[
-										'condition_type' => 'Interests',
-										'field'          => 'interests-' . $send_sublist_id,
-										'op'             => 'interestcontains',
-										'value'          => [ $send_sublist_id ],
-									],
+				// A configured-but-unresolvable sublist must NOT silently fall
+				// through to a list-only payload — Mailchimp would treat the
+				// missing segment_opts as "send to the entire audience", and
+				// sent email cannot be unsent.
+				if ( is_wp_error( $sublist ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_sublist_lookup_failed',
+						sprintf(
+							// Translators: %s is the upstream error message from Mailchimp.
+							__( 'Could not verify the selected sublist with Mailchimp (%s). Sending was aborted to avoid sending to the entire audience.', 'newspack-newsletters' ),
+							$sublist->get_error_message()
+						)
+					);
+				}
+				if ( empty( $sublist ) || empty( $sublist[0]->get_entity_type() ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_sublist_not_found',
+						__( 'The selected sublist could not be found in Mailchimp. Sending was aborted to avoid sending to the entire audience. Please re-select a sublist and try again.', 'newspack-newsletters' )
+					);
+				}
+				$sublist_type = $sublist[0]->get_entity_type();
+				switch ( $sublist_type ) {
+					case 'group':
+						$payload['recipients']['segment_opts'] = [
+							'match'      => 'all',
+							'conditions' => [
+								[
+									'condition_type' => 'Interests',
+									'field'          => 'interests-' . $send_sublist_id,
+									'op'             => 'interestcontains',
+									'value'          => [ $send_sublist_id ],
 								],
-							];
-							break;
-						case 'tag':
-							$payload['recipients']['segment_opts'] = [
-								'match'      => 'all',
-								'conditions' => [
-									[
-										'condition_type' => 'StaticSegment',
-										'field'          => 'static_segment',
-										'op'             => 'static_is',
-										'value'          => $send_sublist_id,
-									],
+							],
+						];
+						break;
+					case 'tag':
+						$payload['recipients']['segment_opts'] = [
+							'match'      => 'all',
+							'conditions' => [
+								[
+									'condition_type' => 'StaticSegment',
+									'field'          => 'static_segment',
+									'op'             => 'static_is',
+									'value'          => $send_sublist_id,
 								],
-							];
-							break;
-						case 'segment':
-							$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $send_sublist_id, $send_list_id );
-							if ( is_wp_error( $segment_data ) ) {
-								return $segment_data;
-							}
-							if ( ! empty( $segment_data['options'] ) ) {
-								$payload['recipients']['segment_opts'] = $segment_data['options'];
-							} else {
-								return new WP_Error( 'newspack_newsletters_mailchimp_error', __( 'Could not fetch segment criteria for segment ', 'newspack-newsletters' ) . $sublist['name'] );
-							}
-							break;
-					}
+							],
+						];
+						break;
+					case 'segment':
+						$segment_data = Newspack_Newsletters_Mailchimp_Cached_Data::fetch_segment( $send_sublist_id, $send_list_id );
+						if ( is_wp_error( $segment_data ) ) {
+							return $segment_data;
+						}
+						if ( ! empty( $segment_data['options'] ) ) {
+							$payload['recipients']['segment_opts'] = $segment_data['options'];
+						} else {
+							return new WP_Error(
+								'newspack_newsletters_mailchimp_error',
+								sprintf(
+									// Translators: %s is the name of the Mailchimp segment.
+									__( 'Could not fetch segment criteria for segment %s.', 'newspack-newsletters' ),
+									$sublist[0]->get_name()
+								)
+							);
+						}
+						break;
+					default:
+						return new WP_Error(
+							'newspack_newsletters_mailchimp_sublist_unknown_type',
+							sprintf(
+								// Translators: %s is the unrecognized sublist entity type.
+								__( 'Unrecognized Mailchimp sublist type "%s". Sending was aborted to avoid sending to the entire audience.', 'newspack-newsletters' ),
+								$sublist_type
+							)
+						);
 				}
 			} else {
 				$payload['recipients']['segment_opts'] = (object) [];
@@ -1144,6 +1191,14 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			$mc_campaign_id = get_post_meta( $post->ID, 'mc_campaign_id', true );
 			$payload        = $this->get_sync_payload( $post );
 
+			// Short-circuit on a WP_Error payload before reaching the filter
+			// below — its contract is an array, and passing a WP_Error through
+			// would fatal any third-party callback that assumes the documented
+			// shape.
+			if ( is_wp_error( $payload ) ) {
+				throw new Exception( esc_html( $payload->get_error_message() ) );
+			}
+
 			/**
 			 * Filter the metadata payload sent to Mailchimp when syncing.
 			 *
@@ -1154,11 +1209,6 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			 * @param string $mc_campaign_id Mailchimp campaign ID, if defined.
 			 */
 			$payload = apply_filters( 'newspack_newsletters_mc_payload_sync', $payload, $post, $mc_campaign_id );
-
-			// If we have any errors in the payload, throw an exception.
-			if ( is_wp_error( $payload ) ) {
-				throw new Exception( esc_html( $payload->get_error_message() ) );
-			}
 
 			if ( $mc_campaign_id ) {
 				$campaign_result = $this->validate(
@@ -1403,6 +1453,16 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				];
 			} elseif ( $segment_id ) {
 				$segment_data = $mc->get( "lists/$list_id/segments/$segment_id" );
+				// A configured-but-unresolvable saved segment must NOT silently
+				// fall through to an empty segment_opts payload — Mailchimp
+				// would PATCH the campaign to "send to the entire audience",
+				// and a subsequent send would mail the full list.
+				if ( empty( $segment_data ) || empty( $segment_data['type'] ) ) {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_segment_not_found',
+						__( 'The selected segment could not be found in Mailchimp. The audience was not updated to avoid sending to the entire list.', 'newspack-newsletters' )
+					);
+				}
 				if ( 'static' === $segment_data['type'] ) {
 					// Handle static segments (tags).
 					$segment_opts = [
@@ -1419,6 +1479,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 				} elseif ( 'saved' === $segment_data['type'] ) {
 					// Handle saved segments.
 					$segment_opts = $segment_data['options'];
+				} else {
+					return new WP_Error(
+						'newspack_newsletters_mailchimp_segment_unknown_type',
+						sprintf(
+							// Translators: %s is the unrecognized segment type returned by Mailchimp.
+							__( 'Unrecognized Mailchimp segment type "%s". The audience was not updated to avoid sending to the entire list.', 'newspack-newsletters' ),
+							$segment_data['type']
+						)
+					);
 				}
 			}
 
@@ -2495,17 +2564,12 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
-	 * Get contact fields for a list.
+	 * Get contact fields for Newspack integrations.
 	 *
-	 * By default, this method returns an empty array, but providers can override it to return the fields available in the ESP for a specific list.
-	 *
-	 * This is used by Newspack integrations to sync contact data.
-	 *
-	 * @param string|null $list_id The List ID. Optional, as some providers might not have different fields per list.
-	 * @return array|WP_Error The contact fields for the list. Each field should be an array with 'key' key at least. WP_Error if the request to fetch the fields failed.
+	 * @param string|null $list_id The List ID.
+	 * @return array|WP_Error
 	 */
-	public function get_contact_fields( $list_id = null ) {
-		// Validate list_id up front.
+	public function get_contact_fields_for_integrations( $list_id = null ) {
 		if ( empty( $list_id ) ) {
 			return new WP_Error(
 				'newspack_mailchimp_get_contact_fields_failed',
@@ -2522,17 +2586,58 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			);
 		}
 
-		// Normalize to array to prevent PHP warnings when iterating.
 		if ( ! is_array( $all_fields ) ) {
 			$all_fields = [];
 		}
 
 		$fields = [];
 		foreach ( $all_fields as $field ) {
-			$fields[] = [
-				'key' => $field['name'],
-			];
+			$mapped = self::map_merge_field_to_integration_schema( $field );
+			if ( null !== $mapped ) {
+				$fields[] = $mapped;
+			}
 		}
 		return $fields;
+	}
+
+	/**
+	 * Map a Mailchimp merge field to the Newspack integrations schema.
+	 *
+	 * Mailchimp types eligible for access-rule / segmentation defaults: text, number, date, radio, dropdown.
+	 * Other types (phone, url, imageurl, birthday, zip, address) are exposed but not promoted by default.
+	 *
+	 * @param array $field Raw merge field from the Mailchimp API.
+	 * @return array|null Mapped field, or null if no usable identifier is available.
+	 */
+	private static function map_merge_field_to_integration_schema( $field ) {
+		$tag = isset( $field['tag'] ) ? (string) $field['tag'] : '';
+		if ( '' === $tag ) {
+			return null;
+		}
+
+		$type                 = isset( $field['type'] ) ? $field['type'] : 'text';
+		$eligible_types       = [ 'text', 'number', 'date', 'radio', 'dropdown' ];
+		$is_promoted_by_default = in_array( $type, $eligible_types, true );
+
+		$options = [];
+		if ( in_array( $type, [ 'radio', 'dropdown' ], true ) && ! empty( $field['options']['choices'] ) ) {
+			foreach ( (array) $field['options']['choices'] as $choice ) {
+				$options[] = [
+					'value' => $choice,
+					'label' => $choice,
+				];
+			}
+		}
+
+		return [
+			'key'                 => $tag,
+			'name'                => ! empty( $field['name'] ) ? $field['name'] : $tag,
+			'value_type'          => 'string',
+			'matching_function'   => 'default',
+			'options'             => $options,
+			'description'         => isset( $field['help_text'] ) ? $field['help_text'] : '',
+			'is_access_rule'      => $is_promoted_by_default,
+			'is_segment_criteria' => $is_promoted_by_default,
+		];
 	}
 }

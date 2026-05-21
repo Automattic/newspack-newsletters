@@ -1,6 +1,6 @@
 {
 	"name": "newspack-newsletters",
-	"version": "3.31.1",
+	"version": "3.33.3",
 	"description": "",
 	"repository": {
 		"type": "git",
@@ -46,9 +46,9 @@
 		"mjml-browser": "^4.18.0",
 		"newspack-components": "^4.3.0",
 		"newspack-icons": "^1.0.5",
-		"qs": "^6.15.1"
+		"qs": "^6.15.2"
 	},
 	"devDependencies": {
-		"newspack-scripts": "^5.9.7"
+		"newspack-scripts": "^5.9.8"
 	}
 }

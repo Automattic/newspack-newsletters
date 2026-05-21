@@ -23,8 +23,6 @@ import { addBlocksValidationFilter } from './blocks-validation/blocks-filters';
 import { NestedColumnsDetection } from './blocks-validation/nesting-detection';
 import MJML from './mjml';
 
-const isEditingNewsletterCpt = newspack_email_editor_data.newsletter_post_type === newspack_email_editor_data.current_post_type;
-
 addBlocksValidationFilter();
 registerAdBlock();
 registerPostsInserterBlock();
@@ -66,10 +64,10 @@ addFilter( 'blocks.registerBlockType', 'newspack-newsletters/core-blocks', ( set
 		settings.supports = { ...settings.supports, align: [ 'full' ] };
 	}
 
-	/* Remove 'Hide' option only for the newsletter CPT. */
-	if ( isEditingNewsletterCpt ) {
-		settings.supports = { ...settings.supports, visibility: false };
-	}
+	/* This bundle is only enqueued in the email editor (see
+	 * Newspack_Newsletters_Editor::enqueue_block_editor_assets), so disabling
+	 * these block supports applies to the newsletter and newsletter-ad CPTs only. */
+	settings.supports = { ...settings.supports, customCSS: false, visibility: false };
 
 	return settings;
 } );

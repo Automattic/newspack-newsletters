@@ -83,6 +83,11 @@ final class Newspack_Newsletters_Renderer {
 	 * @return string HTML attributes as a string.
 	 */
 	private static function array_to_attributes( $attributes ) {
+		// Default: normalize image captions for consistent rendering across themes.
+		if ( isset( $attributes['css-class'] ) && 'image-caption' === $attributes['css-class'] ) {
+			$attributes['align']   = 'left';
+			$attributes['padding'] = '0';
+		}
 		$attributes = apply_filters( 'newspack_newsletters_mjml_component_attributes', $attributes );
 		return join(
 			' ',
@@ -329,13 +334,13 @@ final class Newspack_Newsletters_Renderer {
 	 */
 	private static function get_spacing_value( $value ) {
 		$presets = [
-			'20' => '0.44rem',
-			'30' => '0.67rem',
-			'40' => '1rem',
-			'50' => 'clamp( 1.25rem, 1rem + 0.8333vw, 1.5rem )',
-			'60' => 'clamp( 1.5rem, 0.75rem + 2.5vw, 2.25rem )',
-			'70' => 'clamp( 1.75rem, 0.12rem + 5.4333vw, 3.38rem )',
-			'80' => 'clamp( 2rem, -1.06rem + 10.2vw, 5.06rem )',
+			'20' => '8px',
+			'30' => '16px',
+			'40' => '24px',
+			'50' => '32px',
+			'60' => '32px',
+			'70' => '48px',
+			'80' => '64px',
 		];
 		if ( 0 === strpos( $value, 'var' ) ) {
 			$preset_key = explode( '|', $value );
@@ -382,6 +387,22 @@ final class Newspack_Newsletters_Renderer {
 			if ( ! empty( $attrs['padding'] ) ) {
 				$attrs['padding'] = sprintf( '%s %s %s %s', $padding['top'], $padding['right'], $padding['bottom'], $padding['left'] );
 			}
+		}
+
+		if ( isset( $attrs['style']['spacing']['margin'] ) ) {
+			$margin = array_merge(
+				[
+					'top'    => '0',
+					'right'  => '0',
+					'bottom' => '0',
+					'left'   => '0',
+				],
+				$attrs['style']['spacing']['margin']
+			);
+			foreach ( $margin as $key => $value ) {
+				$margin[ $key ] = self::get_spacing_value( $value );
+			}
+			$attrs['margin'] = sprintf( '%s %s %s %s', $margin['top'], $margin['right'], $margin['bottom'], $margin['left'] );
 		}
 
 		if ( ! empty( $attrs['borderRadius'] ) ) {
@@ -902,6 +923,9 @@ final class Newspack_Newsletters_Renderer {
 			];
 		}
 
+		// Save margin before stripping unsupported attrs — it will be used as section padding.
+		$block_margin = isset( $attrs['margin'] ) ? $attrs['margin'] : null;
+
 		// Remove block-only attributes and attributes that are not supported by MJML.
 		$unsupported_attrs = [
 			'newsletterVisibility',
@@ -913,6 +937,7 @@ final class Newspack_Newsletters_Renderer {
 			'fontSize',
 			'backgroundColor',
 			'borderColor',
+			'margin',
 			'style',
 		];
 		foreach ( $unsupported_attrs as $attr ) {
@@ -922,17 +947,33 @@ final class Newspack_Newsletters_Renderer {
 		}
 
 		// Default attributes for the section which will envelop the mj-column.
-		$section_attrs = array_merge(
+		// Use the block's margin (if any) as the section's padding, since MJML
+		// doesn't support margins — section padding is the equivalent of outer spacing.
+		// Exclude visual properties (border, borderRadius) from the section — they
+		// belong on the inner content, not on the outer spacing wrapper.
+		$section_only_attrs = array_diff_key(
 			$attrs,
+			array_flip( [ 'border', 'borderRadius', 'border-color' ] )
+		);
+		$section_attrs = array_merge(
+			$section_only_attrs,
 			array(
-				'padding' => '0',
+				'padding' => $block_margin ? $block_margin : '0',
 			)
 		);
 
 		// Default attributes for the column which will envelop the component.
+		// Border goes on the column (not section or mj-text) since mj-column
+		// supports border while mj-text does not.
 		$column_attrs = array(
 			'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
 		);
+		if ( isset( $attrs['border'] ) ) {
+			$column_attrs['border'] = $attrs['border'];
+		}
+		if ( isset( $attrs['borderRadius'] ) ) {
+			$column_attrs['border-radius'] = $attrs['borderRadius'];
+		}
 
 		$font_family = 'core/heading' === $block_name ? self::$font_header : self::$font_body;
 
@@ -940,9 +981,16 @@ final class Newspack_Newsletters_Renderer {
 			// Replace <mark /> with <span />.
 			$inner_html = preg_replace( '/<mark\s(.+?)>(.+?)<\/mark>/is', '<span $1>$2</span>', $inner_html );
 
-			// Remove border and padding styles from inner html to avoid duplicate styles, as these styles are applied to the container.
+			// Remove styles from inner html that are handled by MJML attributes on the container.
+			$styles_to_strip = [];
 			if ( isset( $attrs['border'] ) || isset( $attrs['padding'] ) ) {
-				$inner_html = self::remove_unwanted_style_properties( [ 'border', 'padding' ], $inner_html );
+				$styles_to_strip = array_merge( $styles_to_strip, [ 'border', 'padding' ] );
+			}
+			if ( $block_margin ) {
+				$styles_to_strip[] = 'margin';
+			}
+			if ( ! empty( $styles_to_strip ) ) {
+				$inner_html = self::remove_unwanted_style_properties( $styles_to_strip, $inner_html );
 			}
 		}
 
@@ -1092,6 +1140,14 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['className'] ) && strpos( $attrs['className'], 'is-style-rounded' ) !== false ) {
 					$img_attrs['border-radius'] = '999px';
 				}
+				// Apply border to the image itself (matching WordPress core which
+				// puts image borders on <img>, not <figure>).
+				if ( isset( $attrs['border'] ) ) {
+					$img_attrs['border'] = $attrs['border'];
+				}
+				if ( isset( $attrs['borderRadius'] ) ) {
+					$img_attrs['border-radius'] = $attrs['borderRadius'];
+				}
 				$markup = '<mj-image ' . self::array_to_attributes( $img_attrs ) . ' />';
 
 				if ( $figcaption ) {
@@ -1150,6 +1206,20 @@ final class Newspack_Newsletters_Renderer {
 					'padding'    => '0',
 					'text-align' => $alignment,
 				];
+				// Apply the buttons container's border and padding to the wrapper.
+				if ( isset( $attrs['border'] ) ) {
+					$wrapper_attrs['border'] = $attrs['border'];
+				}
+				if ( isset( $attrs['borderRadius'] ) ) {
+					$wrapper_attrs['border-radius'] = $attrs['borderRadius'];
+				}
+				if ( isset( $attrs['padding'] ) ) {
+					$wrapper_attrs['padding'] = $attrs['padding'];
+				}
+				// Strip border and padding from column_attrs so individual button
+				// columns don't inherit the container's border or padding.
+				unset( $column_attrs['border'], $column_attrs['border-radius'] );
+				$column_attrs['padding'] = '12px';
 
 				// If the total width of the buttons is greater than 100%, reduce the default width.
 				if ( ( $default_width * $no_widths ) + $total_defined_width > 100 ) {
@@ -1157,8 +1227,10 @@ final class Newspack_Newsletters_Renderer {
 					$is_multi_row  = true;
 				}
 
-				$block_mjml_array = [];
-
+				$block_mjml_array      = [];
+				$is_block_theme        = wp_is_block_theme();
+				$default_bg            = $is_block_theme ? '#36f' : '#32373c';
+				$default_border_radius = $is_block_theme ? '5px' : '999px';
 				foreach ( $inner_blocks as $button_block ) {
 					if ( empty( $button_block['innerHTML'] ) ) {
 						break;
@@ -1177,7 +1249,7 @@ final class Newspack_Newsletters_Renderer {
 
 					$attrs         = self::process_attributes( $button_block['attrs'] );
 					$text          = $anchor->textContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : '999px';
+					$border_radius = isset( $attrs['borderRadius'] ) ? $attrs['borderRadius'] : $default_border_radius;
 					$is_outlined   = isset( $attrs['className'] ) && 'is-style-outline' == $attrs['className'];
 
 					$default_button_attrs = array(
@@ -1191,12 +1263,12 @@ final class Newspack_Newsletters_Renderer {
 						'font-family'   => $font_family,
 						'font-weight'   => 'bold',
 						// Default color - will be replaced by get_colors if there are colors set.
-						'color'         => $is_outlined ? '#32373c' : '#fff !important',
+						'color'         => $is_outlined ? $default_bg : '#fff !important',
 					);
 					if ( $is_outlined ) {
 						$default_button_attrs['background-color'] = 'transparent';
 					} else {
-						$default_button_attrs['background-color'] = '#32373c';
+						$default_button_attrs['background-color'] = $default_bg;
 					}
 					if ( ! empty( $attrs['background-color'] ) ) {
 						$default_button_attrs['background-color'] = $attrs['background-color'];
@@ -1231,7 +1303,12 @@ final class Newspack_Newsletters_Renderer {
 					];
 				}
 
-				$markup = '<mj-section ' . self::array_to_attributes( $wrapper_attrs ) . '>';
+				// Inner section only needs alignment — border and padding go on the wrapper.
+				$inner_section_attrs = [
+					'padding'    => '0',
+					'text-align' => $alignment,
+				];
+				$markup = '<mj-section ' . self::array_to_attributes( $inner_section_attrs ) . '>';
 				foreach ( $block_mjml_array as $block_mjml ) {
 					$markup .= implode( $block_mjml );
 				}
@@ -1384,6 +1461,18 @@ final class Newspack_Newsletters_Renderer {
 				if ( isset( $attrs['color'] ) ) {
 					$default_attrs['color'] = $attrs['color'];
 				}
+
+				// Apply the columns block's border and padding to the section.
+				if ( isset( $attrs['border'] ) ) {
+					$section_attrs['border'] = $attrs['border'];
+				}
+				if ( isset( $attrs['borderRadius'] ) ) {
+					$section_attrs['border-radius'] = $attrs['borderRadius'];
+				}
+				if ( isset( $attrs['padding'] ) ) {
+					$section_attrs['padding'] = $attrs['padding'];
+				}
+
 				$stack_on_mobile = ! isset( $attrs['isStackedOnMobile'] ) || true === $attrs['isStackedOnMobile'];
 				if ( ! $stack_on_mobile ) {
 					$markup = '<mj-group>';
@@ -1427,6 +1516,12 @@ final class Newspack_Newsletters_Renderer {
 					$attrs
 				);
 
+				// When wrapping in a column (top-level list/quote), padding goes
+				// on the column, not the mj-text — avoid doubling up.
+				if ( ! $is_in_list_or_quote ) {
+					$text_attrs['padding'] = '0';
+				}
+
 				// If a wrapper block, wrap in mj-text.
 				if ( ! $is_in_list_or_quote ) {
 					$block_mjml_markup .= '<mj-text ' . self::array_to_attributes( $text_attrs ) . '>';
@@ -1442,6 +1537,21 @@ final class Newspack_Newsletters_Renderer {
 
 				if ( ! $is_in_list_or_quote ) {
 					$block_mjml_markup .= '</mj-text>';
+
+					// List and quote blocks skip generic column wrapping (they are
+					// "grouped blocks"). Add an explicit column wrapper so borders
+					// and padding from the block are applied — mj-text does not
+					// support border, but mj-column does.
+					$list_quote_col_attrs = [
+						'padding' => isset( $attrs['padding'] ) ? $attrs['padding'] : '12px',
+					];
+					if ( isset( $attrs['border'] ) ) {
+						$list_quote_col_attrs['border'] = $attrs['border'];
+					}
+					if ( isset( $attrs['borderRadius'] ) ) {
+						$list_quote_col_attrs['border-radius'] = $attrs['borderRadius'];
+					}
+					$block_mjml_markup = '<mj-column ' . self::array_to_attributes( $list_quote_col_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 				}
 
 				break;
@@ -1665,6 +1775,11 @@ final class Newspack_Newsletters_Renderer {
 			'core/separator' != $block_name &&
 			! $is_posts_inserter_block
 		) {
+			// For image blocks, the border is on the mj-image element (matching
+			// WordPress core), so remove it from the column wrapper.
+			if ( 'core/image' === $block_name ) {
+				unset( $column_attrs['border'], $column_attrs['border-radius'] );
+			}
 			$column_attrs['width'] = '100%';
 			$block_mjml_markup     = '<mj-column ' . self::array_to_attributes( $column_attrs ) . '>' . $block_mjml_markup . '</mj-column>';
 		}

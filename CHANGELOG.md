@@ -1,3 +1,52 @@
+## [3.33.3](https://github.com/Automattic/newspack-newsletters/compare/v3.33.2...v3.33.3) (2026-05-20)
+
+
+### Bug Fixes
+
+* read script deps from .asset.php for WP 7.0 ([#2142](https://github.com/Automattic/newspack-newsletters/issues/2142)) ([a375fff](https://github.com/Automattic/newspack-newsletters/commit/a375fff25e64aab559f2ce4bae5ac597b71e85f6))
+
+## [3.33.2](https://github.com/Automattic/newspack-newsletters/compare/v3.33.1...v3.33.2) (2026-05-19)
+
+
+### Bug Fixes
+
+* make sure newsletter styles are previewed in WP 7.0 ([#2115](https://github.com/Automattic/newspack-newsletters/issues/2115)) ([94b69e7](https://github.com/Automattic/newspack-newsletters/commit/94b69e7a19f6f91e68f976a4a1a5d3429ae51f28))
+
+## [3.33.1](https://github.com/Automattic/newspack-newsletters/compare/v3.33.0...v3.33.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* remove block-level CSS field from Newsletter editor ([#2116](https://github.com/Automattic/newspack-newsletters/issues/2116)) ([6789a29](https://github.com/Automattic/newspack-newsletters/commit/6789a29ecf95c26b3509e7e8de05f0e7a6c91018))
+
+# [3.33.0](https://github.com/Automattic/newspack-newsletters/compare/v3.32.0...v3.33.0) (2026-05-18)
+
+
+### Bug Fixes
+
+* **block-theme:** override theme.json styles in the newsletter editor ([#2078](https://github.com/Automattic/newspack-newsletters/issues/2078)) ([49c857c](https://github.com/Automattic/newspack-newsletters/commit/49c857c11cf11da39c7e11cca830edb9e77c84ab))
+* ensure editor preview and front end match for default subscription block style ([#2107](https://github.com/Automattic/newspack-newsletters/issues/2107)) ([9624edc](https://github.com/Automattic/newspack-newsletters/commit/9624edc3ee1d0a2bd32898fa9a2a2c8358e30587))
+* hide font family option from newsletter ([#2099](https://github.com/Automattic/newspack-newsletters/issues/2099)) ([3a928a5](https://github.com/Automattic/newspack-newsletters/commit/3a928a5c4a1a8988ea40b68083f5495e735cb565))
+* skip and remove malformed subscription intents ([#2102](https://github.com/Automattic/newspack-newsletters/issues/2102)) ([c0417c6](https://github.com/Automattic/newspack-newsletters/commit/c0417c68d33e0fcc1f98f1e0f59e1bc11d85e16a))
+
+
+### Features
+
+* **esp:** enrich contact field schema for integrations ([#2082](https://github.com/Automattic/newspack-newsletters/issues/2082)) ([3434e75](https://github.com/Automattic/newspack-newsletters/commit/3434e754817c33a3a6fb8171cf28d73c0b39627e))
+* improve newsletter editor layout and post-inserter UX ([#2077](https://github.com/Automattic/newspack-newsletters/issues/2077)) ([d9927cc](https://github.com/Automattic/newspack-newsletters/commit/d9927cca85c0100d705908fc36de9f384656aa57))
+
+# [3.32.0](https://github.com/Automattic/newspack-newsletters/compare/v3.31.1...v3.32.0) (2026-05-04)
+
+
+### Bug Fixes
+
+* **block-theme:** newsletters subscription form style fixes ([#2070](https://github.com/Automattic/newspack-newsletters/issues/2070)) ([d7e54ac](https://github.com/Automattic/newspack-newsletters/commit/d7e54ac41702d6bd9b3bc1d9e266a2ff018c4a4f))
+
+
+### Features
+
+* add newsletter editor check regression testing ([#2064](https://github.com/Automattic/newspack-newsletters/issues/2064)) ([998021f](https://github.com/Automattic/newspack-newsletters/commit/998021f2cc73b9588172e7ded083e858429b2b9b))
+
 ## [3.31.1](https://github.com/Automattic/newspack-newsletters/compare/v3.31.0...v3.31.1) (2026-04-15)
 
 
