@@ -48,36 +48,3 @@ Requires PHP, JS, and registration. See Constant Contact or ActiveCampaign for s
 4. Add provider-specific UI in `src/service-providers/<name>/`. Export an object matching the shape in `src/service-providers/index.js` (`ProviderSidebar`, `renderPreSendInfo`, `isCampaignSent`), and add it to the `SERVICE_PROVIDERS` map.
 5. Run `composer dump-autoload`.
 6. Rebuild: `n build`.
-
-<!--
-=====================================================================
-Epic branch addendum — REMOVE this entire section (and apply the
-pre-merge checklist below) before merging epic/newsletters-modernisation
-back into trunk. See docs/newsletter-modernisation/CONTEXT.md
-"Process rules" for context.
-=====================================================================
--->
-
-## Working on `epic/newsletters-modernisation`
-
-If you are on `epic/newsletters-modernisation`, on a milestone integration branch (`epic/<milestone>`, e.g. `epic/admin-ux-modernisation`), or on a per-ticket branch off either:
-
-1. **Read `docs/newsletter-modernisation/CONTEXT.md` in full at the start of the session.** It is the authoritative record of decisions, rationale, constraints, and open questions for this work — including the *Branch structure* section that defines which base branch your PR should target.
-2. **Treat the contract in that file's "How to use this doc" section as binding.** Per-ticket PRs target their milestone integration branch (`epic/<milestone>`), not the project epic directly. Per-ticket rationale belongs in the PR description (and Linear ticket); only update `CONTEXT.md` when the work changes strategy, branch structure, or surfaces a cross-cutting gotcha — otherwise state "No context change." in the PR description.
-3. **When in doubt about which milestone branch is yours**, look up the Linear ticket's milestone and kebab-case the milestone name (e.g. "Admin UX modernisation" → `epic/admin-ux-modernisation`). Cut the per-ticket branch from there and target the same branch with your PR.
-4. **When creating a fresh milestone integration branch**, after pushing it to origin ask the project owner to extend the project epic's branch-protection waiver to the new branch (or use a glob like `epic/*` so it inherits automatically). Without it, PRs targeting the new milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes. CODEOWNERS inherits via branching; branch-protection does not. See *Branch structure* in CONTEXT.md.
-
-### Pre-merge checklist (epic → trunk)
-
-When merging `epic/newsletters-modernisation` back to trunk, do the following before completing the merge:
-
-1. **Remove this entire "Working on `epic/newsletters-modernisation`" section** from `AGENTS.md` (including the HTML comment marker above and this checklist). It is epic-only scaffolding.
-2. **Restore `.github/CODEOWNERS`** to its trunk content (a single line: `* @Automattic/newspack-product`). The file on this branch is currently a comment-only stub that disables auto-review requests during epic iteration.
-
-See `docs/newsletter-modernisation/CONTEXT.md` "Process rules" for the rationale behind both items.
-
-<!--
-=====================================================================
-END epic branch addendum — anything below this marker is shared with trunk.
-=====================================================================
--->
