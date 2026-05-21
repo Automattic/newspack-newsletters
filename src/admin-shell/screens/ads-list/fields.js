@@ -8,9 +8,10 @@
 import { Icon } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
 import { drafts, notAllowed, published, scheduled, trash } from '@wordpress/icons';
-import { dateI18n, getDate, getSettings as getDateSettings } from '@wordpress/date';
+import { dateI18n, getSettings as getDateSettings } from '@wordpress/date';
 
 import { getAdminUrl } from '../../admin-globals';
+import { formatPostDate } from '../../utils/format-date';
 import { termsForTaxonomy } from '../../utils/terms';
 import { statusKindLabel, STATUS_KIND_LABELS } from './status-label';
 
@@ -108,14 +109,7 @@ const renderPrice = ( { item } ) => {
 	return String( price );
 };
 
-const renderDate = ( { item } ) => {
-	if ( ! item?.date ) {
-		return '';
-	}
-	const settings = getDateSettings();
-	const format = settings.formats?.datetime || 'M j, Y g:ia';
-	return dateI18n( format, getDate( item.date ) );
-};
+const renderDate = ( { item } ) => formatPostDate( item );
 
 export function getFields( { advertisers = [], placements = [] } = {} ) {
 	const statusLabels = STATUS_KIND_LABELS();

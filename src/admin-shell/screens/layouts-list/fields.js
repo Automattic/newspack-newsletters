@@ -5,13 +5,13 @@
 import { parse } from '@wordpress/blocks';
 import { Icon, TextControl } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { dateI18n, getDate, getSettings } from '@wordpress/date';
 import { __ } from '@wordpress/i18n';
 import { commentAuthorAvatar, plugins } from '@wordpress/icons';
 import { ENTER, ESCAPE } from '@wordpress/keycodes';
 
 import NewsletterPreview from '../../../components/newsletter-preview';
 import { setPreventDeduplicationForPostsInserter } from '../../../editor/blocks/posts-inserter/utils';
+import { formatPostDate } from '../../utils/format-date';
 import LazyPreview from './lazy-preview';
 
 // String token can't collide with real (positive integer) WP user IDs.
@@ -179,16 +179,8 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 			enableSorting: true,
 			getValue: ( { item } ) => item?.modified || '',
 			render: ( { item } ) => {
-				const value = item?.modified;
-				if ( ! value ) {
-					return null;
-				}
-				// REST `modified` is a site-local string with no offset.
-				// `getDate` re-anchors it to `wp.date.settings.timezone` so
-				// admins outside the site timezone don't see the wrong
-				// calendar date — same pattern the newsletters list uses.
-				const settings = getSettings();
-				return <span>{ dateI18n( settings.formats.date, getDate( value ) ) }</span>;
+				const formatted = formatPostDate( item, 'modified', { kind: 'date' } );
+				return formatted ? <span>{ formatted }</span> : null;
 			},
 		},
 	];
