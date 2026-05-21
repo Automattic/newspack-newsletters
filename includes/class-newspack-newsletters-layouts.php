@@ -319,13 +319,8 @@ final class Newspack_Newsletters_Layouts {
 	}
 
 	/**
-	 * Get default layouts.
-	 *
-	 * Layout IDs are derived from the digit in `N.json`, not from scandir
-	 * position. Existing newsletters store `template_id` post-meta pointing at
-	 * a specific prebuilt; deleting a file would silently renumber the others
-	 * under positional IDs, so every stored `template_id` past the gap would
-	 * resolve to the wrong layout in the editor's Layout panel.
+	 * Get default layouts. ID is the digit in `N.json` so deletions leave
+	 * gaps rather than renumbering stored `template_id` references.
 	 */
 	public static function get_default_layouts() {
 		$layouts_base_path = NEWSPACK_NEWSLETTERS_PLUGIN_FILE . 'includes/layouts/';

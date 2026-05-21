@@ -136,10 +136,7 @@ class Asset_Loader_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Malformed asset.php (returns a non-array) → bail without enqueueing
-	 * rather than fataling the admin shell on PHP 8's array_merge() type
-	 * check. Webpack never emits this in practice; the guard exists so a
-	 * corrupt build can't take down every admin page.
+	 * Malformed asset.php returning a non-array → bail without enqueueing.
 	 */
 	public function test_returns_null_when_asset_php_returns_non_array() {
 		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';
@@ -159,7 +156,7 @@ class Asset_Loader_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Asset.php missing the `dependencies` key → bail without enqueueing.
+	 * Missing `dependencies` key → bail without enqueueing.
 	 */
 	public function test_returns_null_when_dependencies_key_missing() {
 		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';
@@ -179,8 +176,7 @@ class Asset_Loader_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Asset.php with a non-array `dependencies` value → bail without
-	 * enqueueing (otherwise array_merge() fatals on PHP 8).
+	 * Non-array `dependencies` value → bail without enqueueing.
 	 */
 	public function test_returns_null_when_dependencies_value_is_not_array() {
 		$path = trailingslashit( $this->build_dir ) . 'my-bundle.asset.php';

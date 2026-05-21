@@ -44,9 +44,7 @@ class Asset_Loader {
 		}
 		$asset = require $asset_path;
 
-		// Webpack always emits a well-formed `[ dependencies, version ]`
-		// array, but a corrupt build or out-of-band edit could land us
-		// with a malformed payload; bail rather than fatal the admin shell.
+		// Bail on malformed asset.php rather than fatal in array_merge().
 		if ( ! is_array( $asset ) || ! isset( $asset['dependencies'], $asset['version'] ) || ! is_array( $asset['dependencies'] ) ) {
 			return null;
 		}
