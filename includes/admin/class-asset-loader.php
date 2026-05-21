@@ -46,8 +46,13 @@ class Asset_Loader {
 		}
 		$asset = require $asset_path;
 
-		// Bail on malformed asset.php rather than fatal in array_merge().
-		if ( ! is_array( $asset ) || ! isset( $asset['dependencies'], $asset['version'] ) || ! is_array( $asset['dependencies'] ) ) {
+		// Bail on malformed asset.php rather than fatal in array_merge() or feed wp_enqueue_* an invalid version.
+		if (
+			! is_array( $asset )
+			|| ! isset( $asset['dependencies'], $asset['version'] )
+			|| ! is_array( $asset['dependencies'] )
+			|| ! is_string( $asset['version'] )
+		) {
 			return null;
 		}
 
