@@ -3,6 +3,7 @@
  */
 import { BlockPreview } from '@wordpress/block-editor';
 import { Spinner } from '@wordpress/components';
+import { useInstanceId } from '@wordpress/compose';
 import { Fragment, useEffect, useMemo, useRef, useState } from '@wordpress/element';
 
 /**
@@ -42,29 +43,24 @@ const withSamplePostsInserter = blocks => {
 
 const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) => {
 	const previewBlocks = useMemo( () => withSamplePostsInserter( blocks ), [ blocks ] );
-	const [ elementId, setElementId ] = useState( '' );
+	const instanceId = useInstanceId( NewsletterPreview );
+	const elementId = `preview-${ instanceId }`;
 	const [ css, setCss ] = useState( '' );
 	const [ isReady, setIsReady ] = useState( false );
 
-	// Generate inline layout styles for the preview.
-	useEffect(
-		() => {
-			const _elementId = `preview-${ Math.round( Math.random() * 1000 ) }`;
-			setElementId( _elementId );
-			const cssRules = [];
-			if ( meta.font_body ) {
-				cssRules.push( `*:not( code ) { font-family: ${ meta.font_body }; }` );
-			}
-			if ( meta.font_header ) {
-				cssRules.push( `h1, h2, h3, h4, h5, h6 { font-family: ${ meta.font_header }; }` );
-			}
-			if ( meta.custom_css ) {
-				cssRules.push( meta.custom_css );
-			}
-			setCss( cssRules.length ? getScopedCss( `#${ _elementId }`, cssRules.join( '\n' ) ) : '' );
-		},
-		[ layoutId ].concat( Object.values( meta ) )
-	);
+	useEffect( () => {
+		const cssRules = [];
+		if ( meta.font_body ) {
+			cssRules.push( `*:not( code ) { font-family: ${ meta.font_body }; }` );
+		}
+		if ( meta.font_header ) {
+			cssRules.push( `h1, h2, h3, h4, h5, h6 { font-family: ${ meta.font_header }; }` );
+		}
+		if ( meta.custom_css ) {
+			cssRules.push( meta.custom_css );
+		}
+		setCss( cssRules.length ? getScopedCss( `#${ elementId }`, cssRules.join( '\n' ) ) : '' );
+	}, [ elementId, layoutId, meta.font_body, meta.font_header, meta.custom_css ] );
 
 	// Apply the styles to the iframe editor.
 	const useInlineStyles = () => {
@@ -155,7 +151,6 @@ const NewsletterPreview = ( { layoutId = null, meta = {}, blocks, ...props } ) =
 						style.id = styleId;
 						iframe.contentDocument.head.appendChild( style );
 					}
-					// Always reassign — `elementId` re-generates on css recompute, leaving stale rules scoped to the old ID.
 					style.textContent = css;
 					markReady( iframe );
 				};
