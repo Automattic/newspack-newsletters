@@ -15,6 +15,10 @@ class Api_Set_Settings_Test extends WP_UnitTestCase {
 	public function tear_down() {
 		$keys = [
 			'newspack_newsletters_service_provider',
+			'newspack_mailchimp_api_key',
+			'newspack_newsletters_mailchimp_api_key',
+			'newspack_newsletters_constant_contact_api_key',
+			'newspack_newsletters_constant_contact_api_secret',
 			'newspack_newsletters_active_campaign_url',
 			'newspack_newsletters_active_campaign_key',
 		];
@@ -63,6 +67,7 @@ class Api_Set_Settings_Test extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertNotEmpty( $result->get_error_message( 'newspack_newsletters_invalid_keys' ) );
+		$this->assertSame( 400, $result->get_error_data( 'newspack_newsletters_invalid_keys' )['status'] ?? null );
 		$this->assertSame(
 			'manual',
 			get_option( 'newspack_newsletters_service_provider' ),
@@ -100,6 +105,7 @@ class Api_Set_Settings_Test extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertNotEmpty( $result->get_error_message( 'newspack_newsletters_no_service_provider' ) );
+		$this->assertSame( 400, $result->get_error_data( 'newspack_newsletters_no_service_provider' )['status'] ?? null );
 		$this->assertSame( 'manual', get_option( 'newspack_newsletters_service_provider' ) );
 	}
 
@@ -123,6 +129,7 @@ class Api_Set_Settings_Test extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertNotEmpty( $result->get_error_message( 'newspack_newsletters_invalid_keys' ) );
+		$this->assertSame( 400, $result->get_error_data( 'newspack_newsletters_invalid_keys' )['status'] ?? null );
 		$this->assertSame( 'manual', get_option( 'newspack_newsletters_service_provider' ) );
 	}
 

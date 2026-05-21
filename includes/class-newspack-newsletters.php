@@ -977,7 +977,8 @@ final class Newspack_Newsletters {
 		if ( ! is_string( $service_provider ) || '' === $service_provider ) {
 			$wp_error->add(
 				'newspack_newsletters_no_service_provider',
-				__( 'Please select a newsletter service provider.', 'newspack-newsletters' )
+				__( 'Please select a newsletter service provider.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
 			);
 			return $wp_error;
 		}
@@ -990,7 +991,8 @@ final class Newspack_Newsletters {
 		if ( ! is_array( $credentials ) || empty( $credentials ) ) {
 			$wp_error->add(
 				'newspack_newsletters_invalid_keys',
-				__( 'Please input credentials.', 'newspack-newsletters' )
+				__( 'Please input credentials.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
 			);
 			return $wp_error;
 		}
@@ -1000,7 +1002,8 @@ final class Newspack_Newsletters {
 		if ( ! $provider || ! method_exists( $provider, 'set_api_credentials' ) ) {
 			$wp_error->add(
 				'newspack_newsletters_provider_unavailable',
-				__( 'The selected service provider is not available on this site.', 'newspack-newsletters' )
+				__( 'The selected service provider is not available on this site.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
 			);
 			return $wp_error;
 		}
@@ -1008,7 +1011,7 @@ final class Newspack_Newsletters {
 		$status = $provider->set_api_credentials( $credentials );
 		if ( is_wp_error( $status ) ) {
 			foreach ( $status->errors as $code => $message ) {
-				$wp_error->add( $code, implode( ' ', $message ) );
+				$wp_error->add( $code, implode( ' ', $message ), [ 'status' => 400 ] );
 			}
 			return $wp_error;
 		}
