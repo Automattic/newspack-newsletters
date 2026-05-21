@@ -974,34 +974,50 @@ final class Newspack_Newsletters {
 		$credentials      = $request['credentials'];
 		$wp_error         = new WP_Error();
 
-		// Service Provider slug.
-		if ( empty( $service_provider ) ) {
+		if ( ! is_string( $service_provider ) || '' === $service_provider ) {
 			$wp_error->add(
 				'newspack_newsletters_no_service_provider',
-				__( 'Please select a newsletter service provider.', 'newspack-newsletters' )
+				__( 'Please select a newsletter service provider.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
 			);
-		} else {
+			return $wp_error;
+		}
+
+		if ( 'manual' === $service_provider ) {
 			self::set_service_provider( $service_provider );
+			return self::api_get_settings();
 		}
 
-		// Service Provider credentials.
-		if ( 'manual' !== $service_provider ) {
-			if ( empty( $credentials ) ) {
-				$wp_error->add(
-					'newspack_newsletters_invalid_keys',
-					__( 'Please input credentials.', 'newspack-newsletters' )
-				);
-			} else {
-				$status = self::$provider->set_api_credentials( $credentials );
-				if ( is_wp_error( $status ) ) {
-					foreach ( $status->errors as $code => $message ) {
-						$wp_error->add( $code, implode( ' ', $message ) );
-					}
-				}
+		if ( ! is_array( $credentials ) || empty( $credentials ) ) {
+			$wp_error->add(
+				'newspack_newsletters_invalid_keys',
+				__( 'Please input credentials.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+			return $wp_error;
+		}
+
+		// Only commit set_service_provider on credentials success — a rejection must not leave the site pointing at an unconfigured ESP.
+		$provider = self::get_service_provider_instance( $service_provider );
+		if ( ! $provider || ! method_exists( $provider, 'set_api_credentials' ) ) {
+			$wp_error->add(
+				'newspack_newsletters_provider_unavailable',
+				__( 'The selected service provider is not available on this site.', 'newspack-newsletters' ),
+				[ 'status' => 400 ]
+			);
+			return $wp_error;
+		}
+
+		$status = $provider->set_api_credentials( $credentials );
+		if ( is_wp_error( $status ) ) {
+			foreach ( $status->errors as $code => $message ) {
+				$wp_error->add( $code, implode( ' ', $message ), [ 'status' => 400 ] );
 			}
+			return $wp_error;
 		}
 
-		return $wp_error->has_errors() ? $wp_error : self::api_get_settings();
+		self::set_service_provider( $service_provider );
+		return self::api_get_settings();
 	}
 
 	/**
