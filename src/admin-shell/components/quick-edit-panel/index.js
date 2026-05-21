@@ -37,6 +37,18 @@ export default function QuickEditPanel( {
 		onClose();
 	}, [ isBusy, onClose ] );
 
+	// Esc is a common reflex; confirm before dropping unsaved edits.
+	const handleEscape = useCallback( () => {
+		if ( isBusy ) {
+			return;
+		}
+		// eslint-disable-next-line no-alert
+		if ( isDirty && ! window.confirm( __( 'Discard unsaved changes?', 'newspack-newsletters' ) ) ) {
+			return;
+		}
+		onClose();
+	}, [ isBusy, isDirty, onClose ] );
+
 	const handleSubmit = event => {
 		event.preventDefault();
 		if ( isBusy || ! canSave ) {
@@ -52,10 +64,8 @@ export default function QuickEditPanel( {
 			title={ title }
 			contentLabel={ subjectTitle ? `${ title }: ${ subjectTitle }` : title }
 			__experimentalHideHeader
-			onRequestClose={ isBusy ? () => {} : onClose }
+			onRequestClose={ handleEscape }
 			shouldCloseOnEsc={ ! isBusy }
-			// Block click-outside dismissal while the form is dirty so
-			// unsaved edits aren't silently dropped by a stray click.
 			shouldCloseOnClickOutside={ ! isBusy && ! isDirty }
 			className={ frameClassName }
 			overlayClassName="newspack-newsletters-quick-edit-modal__overlay"
