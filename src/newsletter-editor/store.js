@@ -246,7 +246,7 @@ export const fetchSendLists = debounce( async ( opts, replace = false ) => {
 		};
 
 		const newsletterData = coreSelect( STORE_NAMESPACE ).getData();
-		const sendLists = 'list' === args.type ? [ ...newsletterData?.lists ] || [] : [ ...newsletterData?.sublists ] || [];
+		const sendLists = 'list' === args.type ? [ ...( newsletterData?.lists || [] ) ] : [ ...( newsletterData?.sublists || [] ) ];
 
 		// If we already have a matching result, no need to fetch more.
 		const foundItems = sendLists.filter( item => {
