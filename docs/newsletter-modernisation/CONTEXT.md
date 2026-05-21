@@ -12,23 +12,31 @@ This is the contract for anyone — human or AI agent — working on this projec
 
 ## Branch structure
 
-Two tiers:
+Each milestone ships to `trunk` independently. Two active tiers plus a scaffolding parent:
 
-- **`epic/<milestone>`** — one integration branch per Linear milestone, cut from `trunk` (e.g. `epic/editor-refactor`, `epic/beehiiv`, `epic/validate`). Receives per-ticket PRs and is QA'd as a coherent unit before promoting to `trunk`. Naming: kebab-case version of the Linear milestone name.
+- **`epic/<milestone>`** — one integration branch per Linear milestone, cut from `epic/newsletters-modernisation` so it inherits the scaffolding docs (e.g. `epic/editor-refactor`, `epic/beehiiv`, `epic/validate`). Receives per-ticket PRs and is QA'd as a coherent unit before promoting to `trunk`. Naming: kebab-case version of the Linear milestone name.
 - **`news-<id>-<slug>`** — per-ticket branch cut from its milestone integration branch. PRs target the milestone branch.
+- **`epic/newsletters-modernisation`** — scaffolding parent. Holds `docs/newsletter-modernisation/CONTEXT.md` (this file) and any other modernisation-only docs. Receives no milestone merges going forward; serves only as the source new milestone branches cut from so they inherit the scaffolding.
 
-**Why two tiers.** Newsletters are critical and each milestone is wide-ranging. We want each milestone to land on `trunk` only after it's been tested as a unit (cross-ticket integration, regression sweep, manual UAT). Per-ticket review still happens via individual PRs into the milestone branch — Copilot review, lint, tests — so nothing skips the per-ticket gate.
+**Why this shape.** Newsletters are critical and each milestone is wide-ranging. We want each milestone to land on `trunk` only after it's been tested as a unit (cross-ticket integration, regression sweep, manual UAT). Per-ticket review still happens via individual PRs into the milestone branch — Copilot review, lint, tests — so nothing skips the per-ticket gate. The scaffolding parent exists so modernisation-only docs stay out of `trunk` but are still inherited when new milestones cut.
 
-**Promoting a milestone:** once a milestone branch is fully QA'd, open a single PR `epic/<milestone>` → `trunk`. Treat that PR as the integration-test gate. If the milestone has a **companion PR in `newspack-plugin`** (e.g. a wizard-bridge counterpart, a shared component bump), coordinate the two so they merge in lockstep — call it out in both PR descriptions and on the Linear ticket so neither lands first and leaves the other repo broken.
+**Promoting a milestone to `trunk`:**
 
-**Creating a new milestone integration branch.** When you cut a fresh `epic/<milestone>` from `trunk`, configure repo settings so PRs into it can land without a CODEOWNERS approval gate:
+1. Cut a transient `news-promote-<milestone>-to-trunk` branch from the milestone branch.
+2. On the transient branch, strip the modernisation scaffolding before opening the PR:
+   - `git rm docs/newsletter-modernisation/CONTEXT.md` (inherited from the scaffolding parent; stays on `epic/newsletters-modernisation` for future milestones).
+   - Restore `.github/CODEOWNERS` to trunk content (`* @Automattic/newspack-product`) if the milestone added a waiver stub.
+3. Open the PR: transient branch → `trunk`. Treat it as the integration-test gate.
+4. If the milestone has a **companion PR in `newspack-plugin`** (e.g. a wizard-bridge counterpart, a shared component bump), coordinate the two so they merge in lockstep — call it out in both PR descriptions and on the Linear ticket so neither lands first and leaves the other repo broken.
+
+**Creating a new milestone integration branch.** Cut `epic/<milestone>` from `epic/newsletters-modernisation` (so it inherits CONTEXT.md) and configure repo settings so per-ticket PRs into it can land without a CODEOWNERS approval gate:
 
 - **Branch protection:** waive the review-required rule for `epic/<milestone>` (or use a glob pattern like `epic/*` so all integration branches inherit the waiver). Without this, PRs into the milestone branch are `BLOCKED` by the org-default review-required rule even though Copilot review passes — the per-ticket gate is the Copilot pass at PR time, not a CODEOWNERS approval.
-- **CODEOWNERS waiver:** add a comment-only stub to `.github/CODEOWNERS` on the milestone branch so trunk's `* @Automattic/newspack-product` rule doesn't auto-request product reviews on every per-ticket PR. Restore the trunk content (single line: `* @Automattic/newspack-product`) as the final step of the milestone → trunk PR.
+- **CODEOWNERS waiver:** add a comment-only stub to `.github/CODEOWNERS` on the milestone branch so trunk's `* @Automattic/newspack-product` rule doesn't auto-request product reviews on every per-ticket PR. The trunk-promotion step above restores the trunk rule.
 
 Reasoning: milestone integration branches are intentionally long-running and accumulate per-ticket PRs without per-PR human approval. The integration-test gate is the milestone → trunk *promotion* PR, not the individual tickets.
 
-**Historical note.** The Admin UX milestone shipped via a three-tier structure that included a now-deprecated project-epic branch (`epic/newsletters-modernisation`). That branch may still exist as historical scaffolding, but new milestones cut directly from `trunk`. See [PR #2141](https://github.com/Automattic/newspack-newsletters/pull/2141) for the milestone's roll-up; the model change happened as part of the milestone → trunk merge.
+**Historical note.** Earlier milestones in this modernisation effort intended to accumulate into a single batched `epic/newsletters-modernisation` → `trunk` PR. The Admin UX milestone was rolled into `epic/newsletters-modernisation` under that batched model (see [PR #2141](https://github.com/Automattic/newspack-newsletters/pull/2141) for the roll-up). The model change to per-milestone shipping happened immediately after, with the Admin UX milestone serving as the first promotion to `trunk` under the new flow.
 
 ## Strategy
 
