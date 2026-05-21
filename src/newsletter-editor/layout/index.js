@@ -100,7 +100,7 @@ export default compose( [
 
 	useEffect( () => {
 		setUsedLayout( find( layouts, { ID: layoutId } ) || {} );
-	}, [ layouts.length ] );
+	}, [ layouts, layoutId ] );
 
 	const blockPreview = useMemo( () => {
 		return usedLayout.post_content ? parse( usedLayout.post_content ) : null;
