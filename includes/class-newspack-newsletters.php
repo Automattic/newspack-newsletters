@@ -974,8 +974,6 @@ final class Newspack_Newsletters {
 		$credentials      = $request['credentials'];
 		$wp_error         = new WP_Error();
 
-		// The /settings route doesn't declare arg types, so guard here —
-		// otherwise an array slug trips a TypeError in `isset( $providers[ … ] )`.
 		if ( ! is_string( $service_provider ) || '' === $service_provider ) {
 			$wp_error->add(
 				'newspack_newsletters_no_service_provider',
@@ -997,8 +995,7 @@ final class Newspack_Newsletters {
 			return $wp_error;
 		}
 
-		// Only flip the stored provider on credentials success — a
-		// rejection must not leave the site pointing at an unconfigured ESP.
+		// Only commit set_service_provider on credentials success — a rejection must not leave the site pointing at an unconfigured ESP.
 		$provider = self::get_service_provider_instance( $service_provider );
 		if ( ! $provider || ! method_exists( $provider, 'set_api_credentials' ) ) {
 			$wp_error->add(
