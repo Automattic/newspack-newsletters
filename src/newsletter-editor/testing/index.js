@@ -97,9 +97,13 @@ export default compose( [
 		try {
 			await savePost();
 		} catch ( err ) {
-			// Save rejected — clear the latched intent so a future unrelated refresh doesn't trigger a send.
+			// Save rejected — clear the latched intent and the busy flags so the panel doesn't stay stuck.
 			sendOnNextRefreshRef.current = false;
-			setLocalInFlight( false );
+			if ( inlineNotifications ) {
+				setLocalInFlight( false );
+			} else {
+				setInFlightForAsync( false );
+			}
 		}
 	};
 
