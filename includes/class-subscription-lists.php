@@ -605,7 +605,7 @@ class Subscription_Lists {
 				'post_type'    => self::CPT,
 				'post_status'  => 'draft',
 				'post_title'   => $title,
-				'post_content' => is_string( $description ) ? $description : '',
+				'post_content' => is_string( $description ) ? wp_kses_post( $description ) : '',
 			],
 			true
 		);
