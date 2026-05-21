@@ -532,7 +532,10 @@ class Subscription_List {
 		}
 		if ( ! empty( $post_data ) ) {
 			$post_data['ID'] = $this->get_id();
-			wp_update_post( $post_data );
+			$result          = wp_update_post( $post_data, true );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 			$this->post = get_post( $this->get_id() );
 			return true;
 		}
