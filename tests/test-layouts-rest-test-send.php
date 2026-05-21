@@ -18,6 +18,13 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	private $captured_mail = [];
 
 	/**
+	 * Recipients the `pre_wp_mail` filter should report as failed.
+	 *
+	 * @var array<int, string>
+	 */
+	private $fail_recipients = [];
+
+	/**
 	 * Pre-test snapshot of the current user id.
 	 *
 	 * @var int
@@ -38,6 +45,7 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 		parent::set_up();
 
 		$this->captured_mail              = [];
+		$this->fail_recipients            = [];
 		$this->previous_user_id           = get_current_user_id();
 		$this->layouts_cpt_was_registered = post_type_exists( \Newspack_Newsletters_Layouts::NEWSPACK_NEWSLETTERS_LAYOUT_CPT );
 
@@ -73,7 +81,8 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 	public function capture_wp_mail( $short_circuit, $atts ) {
 		unset( $short_circuit );
 		$this->captured_mail[] = $atts;
-		return true;
+		$to = is_array( $atts['to'] ) ? ( $atts['to'][0] ?? '' ) : $atts['to'];
+		return in_array( $to, $this->fail_recipients, true ) ? false : true;
 	}
 
 	/**
@@ -202,5 +211,59 @@ class Layouts_REST_Test_Send_Test extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$stored = get_user_meta( get_current_user_id(), 'newspack_nl_test_emails', true );
 		$this->assertSame( [ 'team@example.com', 'lead@example.com' ], $stored );
+	}
+
+	/**
+	 * Partial failure → 200 with a `failed_recipients` array the client
+	 * can branch on (without parsing message text).
+	 */
+	public function test_partial_failure_returns_200_with_failed_recipients() {
+		$post_id               = $this->make_layout( '<p>Preview</p>' );
+		$this->fail_recipients = [ 'b@example.com' ];
+
+		$request = new WP_REST_Request( 'POST', '/newspack-newsletters/v1/layouts/' . $post_id . '/test' );
+		$request->set_param( 'test_email', 'a@example.com, b@example.com, c@example.com' );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'failed_recipients', $data );
+		$this->assertSame( [ 'b@example.com' ], $data['failed_recipients'] );
+	}
+
+	/**
+	 * Full success still carries `failed_recipients` (empty array) so the
+	 * client can probe the field unconditionally.
+	 */
+	public function test_full_success_includes_empty_failed_recipients() {
+		$post_id = $this->make_layout( '<p>Preview</p>' );
+
+		$request = new WP_REST_Request( 'POST', '/newspack-newsletters/v1/layouts/' . $post_id . '/test' );
+		$request->set_param( 'test_email', 'a@example.com, b@example.com' );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'failed_recipients', $data );
+		$this->assertSame( [], $data['failed_recipients'] );
+	}
+
+	/**
+	 * All recipients fail → 500 with the mail_failed error code (no
+	 * partial-success masking).
+	 */
+	public function test_full_failure_returns_500() {
+		$post_id               = $this->make_layout( '<p>Preview</p>' );
+		$this->fail_recipients = [ 'a@example.com', 'b@example.com' ];
+
+		$request = new WP_REST_Request( 'POST', '/newspack-newsletters/v1/layouts/' . $post_id . '/test' );
+		$request->set_param( 'test_email', 'a@example.com, b@example.com' );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 500, $response->get_status() );
+		$this->assertSame( 'newspack_newsletters_mail_failed', $response->get_data()['code'] ?? null );
 	}
 }
