@@ -60,9 +60,22 @@ trait Status_Filter_Builder {
 			}
 			$where .= ' AND ( ' . implode( ' OR ', $bucket_clauses ) . ' )';
 			remove_filter( 'posts_where', $callback, 10 );
+			$callback = null;
 			return $where;
 		};
 		add_filter( 'posts_where', $callback, 10, 2 );
+
+		// Belt-and-braces drain in case the owning query short-circuits before firing.
+		add_action(
+			'shutdown',
+			static function () use ( &$callback ) {
+				if ( $callback ) {
+					remove_filter( 'posts_where', $callback, 10 );
+					$callback = null;
+				}
+			},
+			0
+		);
 
 		return $args;
 	}

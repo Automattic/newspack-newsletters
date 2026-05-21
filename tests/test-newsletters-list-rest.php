@@ -482,6 +482,24 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Shutdown drains an orphan closure when the owning query never ran.
+	 */
+	public function test_install_bucket_filter_drains_on_shutdown_if_query_never_runs() {
+		$before = $this->count_posts_where_callbacks();
+
+		Newsletters_List_REST::align_status_filter_with_scheduled_meta(
+			[],
+			$this->rest_request( [ 'status' => 'publish' ] )
+		);
+
+		$this->assertSame( $before + 1, $this->count_posts_where_callbacks() );
+
+		do_action( 'shutdown' );
+
+		$this->assertSame( $before, $this->count_posts_where_callbacks(), 'Shutdown drain should remove the orphan closure.' );
+	}
+
+	/**
 	 * Draft selection widens `post_status` to include publish/private so
 	 * scheduling_error fallthrough rows are reachable. Other selections
 	 * don't need widening.
