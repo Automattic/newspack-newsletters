@@ -75,8 +75,7 @@ const fontOptgroups = [
 ];
 
 const customStylesSelector = select => {
-	const { getEditedPostAttribute } = select( 'core/editor' );
-	const meta = getEditedPostAttribute( 'meta' );
+	const meta = select( 'core/editor' )?.getEditedPostAttribute?.( 'meta' ) || {};
 	return {
 		fontBody: meta.font_body || fontOptgroups[ 1 ].options[ 0 ].value,
 		fontHeader: meta.font_header || fontOptgroups[ 0 ].options[ 0 ].value,
@@ -161,13 +160,78 @@ export const ApplyStyling = withSelect( customStylesSelector )( ( { fontBody, fo
 	useEffect( () => {
 		document.documentElement.style.setProperty( '--newspack-newsletters-header-font', fontHeader );
 	}, [ fontHeader ] );
+	// Fallback for non-iframed canvases (older WP / classic metabox); the iframe walker below handles modern iframed canvases.
 	useEffect( () => {
-		const editorElement = document.querySelector( '.editor-styles-wrapper' );
-		if ( editorElement ) {
-			editorElement.style.backgroundColor = backgroundColor;
-			editorElement.style.color = textColor;
+		const parentWrapper = document.querySelector( '.editor-styles-wrapper' );
+		if ( parentWrapper ) {
+			parentWrapper.style.backgroundColor = backgroundColor;
+			parentWrapper.style.color = textColor;
 		}
 	}, [ backgroundColor, textColor ] );
+	// Walks all canvas iframes (including the nested posts-inserter BlockPreview) so fonts and bg/text colour apply inside each.
+	useEffect( () => {
+		const selector = 'iframe[name="editor-canvas"], iframe[title="Editor canvas"]';
+		const seenIframes = new WeakSet();
+		const seenDocs = new WeakSet();
+		const observers = [];
+		const listeners = [];
+		const apply = iframeDoc => {
+			iframeDoc.documentElement.style.setProperty( '--newspack-newsletters-body-font', fontBody );
+			iframeDoc.documentElement.style.setProperty( '--newspack-newsletters-header-font', fontHeader );
+			const wrapper = iframeDoc.querySelector( '.editor-styles-wrapper' );
+			if ( wrapper ) {
+				wrapper.style.backgroundColor = backgroundColor;
+				wrapper.style.color = textColor;
+			}
+		};
+		const visit = root => {
+			root.querySelectorAll( selector ).forEach( iframe => {
+				if ( seenIframes.has( iframe ) ) {
+					return;
+				}
+				seenIframes.add( iframe );
+				const onLoad = () => {
+					const iframeDoc = iframe.contentDocument;
+					if ( ! iframeDoc?.documentElement ) {
+						return;
+					}
+					apply( iframeDoc );
+					if ( iframeDoc.body && ! seenDocs.has( iframeDoc ) ) {
+						seenDocs.add( iframeDoc );
+						const innerObserver = new MutationObserver( () => {
+							apply( iframeDoc );
+							visit( iframeDoc );
+						} );
+						innerObserver.observe( iframeDoc.body, { childList: true, subtree: true } );
+						observers.push( innerObserver );
+						visit( iframeDoc );
+					}
+				};
+				onLoad();
+				iframe.addEventListener( 'load', onLoad );
+				listeners.push( () => iframe.removeEventListener( 'load', onLoad ) );
+			} );
+		};
+		if ( ! document.body ) {
+			return;
+		}
+		visit( document );
+		// Scope to the editor wrapper when present so we don't react to every mutation across the admin chrome.
+		const scope = document.querySelector( '.editor-styles-wrapper, .edit-post-visual-editor, #editor' ) || document.body;
+		const rootObserver = new MutationObserver( mutations => {
+			const isCanvasIframe = n => n.nodeType === 1 && ( n.matches?.( selector ) || n.querySelector?.( selector ) );
+			const hasIframeChange = mutations.some( m => Array.from( m.addedNodes ).some( isCanvasIframe ) );
+			if ( hasIframeChange ) {
+				visit( document );
+			}
+		} );
+		rootObserver.observe( scope, { childList: true, subtree: true } );
+		observers.push( rootObserver );
+		return () => {
+			observers.forEach( o => o.disconnect() );
+			listeners.forEach( remove => remove() );
+		};
+	}, [ fontBody, fontHeader, backgroundColor, textColor ] );
 	useEffect( () => {
 		const editorElement = document.querySelector( '.edit-post-visual-editor' );
 		if ( editorElement ) {
