@@ -494,7 +494,15 @@ class Newsletters_List_REST_Test extends WP_UnitTestCase {
 
 		$this->assertSame( $before + 1, $this->count_posts_where_callbacks() );
 
-		do_action( 'shutdown' );
+		// Fire only the drain callback registered at priority 0 — calling
+		// do_action('shutdown') would also run unrelated subscribers and
+		// trip PHPUnit's output-buffer hygiene check.
+		$shutdown = $GLOBALS['wp_filter']['shutdown'] ?? null;
+		if ( $shutdown && isset( $shutdown->callbacks[0] ) ) {
+			foreach ( $shutdown->callbacks[0] as $registered ) {
+				call_user_func( $registered['function'] );
+			}
+		}
 
 		$this->assertSame( $before, $this->count_posts_where_callbacks(), 'Shutdown drain should remove the orphan closure.' );
 	}
