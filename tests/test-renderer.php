@@ -87,33 +87,35 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 			);
 		};
 
-		$this->assertStringContainsString(
-			'align="center"',
+		// Anchor assertions to <mj-text …> so the test doesn't accept alignment
+		// that only landed on <mj-section> or another wrapper tag.
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="center"/',
 			$render( [ 'align' => 'center' ] ),
 			'Legacy align attribute reaches mj-text'
 		);
 
-		$this->assertStringContainsString(
-			'align="center"',
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="center"/',
 			$render( [ 'textAlign' => 'center' ] ),
 			'Top-level textAlign attribute reaches mj-text'
 		);
 
-		$this->assertStringContainsString(
-			'align="center"',
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="center"/',
 			$render( [ 'style' => [ 'typography' => [ 'textAlign' => 'center' ] ] ] ),
 			'WP 7.0 style.typography.textAlign reaches mj-text'
 		);
 
-		$this->assertStringContainsString(
-			'align="right"',
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="right"/',
 			$render( [ 'style' => [ 'typography' => [ 'textAlign' => 'right' ] ] ] ),
 			'WP 7.0 style.typography.textAlign right reaches mj-text'
 		);
 
 		// Top-level attributes win over style.typography to preserve existing behavior.
-		$this->assertStringContainsString(
-			'align="left"',
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="left"/',
 			$render(
 				[
 					'align' => 'left',
