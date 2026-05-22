@@ -417,6 +417,12 @@ final class Newspack_Newsletters_Renderer {
 			$attrs['border'] = $attrs['style']['border']['width'] . ' ' . $border_style . ' ' . $border_color;
 		}
 
+		// WP 7.0+ stores text alignment under style.typography.textAlign via the
+		// new textAlign block support (paragraph, heading, etc.).
+		if ( isset( $attrs['style']['typography']['textAlign'] ) && ! isset( $attrs['align'] ) && ! isset( $attrs['textAlign'] ) ) {
+			$attrs['align'] = $attrs['style']['typography']['textAlign'];
+		}
+
 		if ( isset( $attrs['textAlign'] ) && ! isset( $attrs['align'] ) ) {
 			$attrs['align'] = $attrs['textAlign'];
 			unset( $attrs['textAlign'] );

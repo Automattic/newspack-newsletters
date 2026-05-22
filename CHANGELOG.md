@@ -1,3 +1,10 @@
+## [3.33.4](https://github.com/Automattic/newspack-newsletters/compare/v3.33.3...v3.33.4) (2026-05-22)
+
+
+### Bug Fixes
+
+* update text alignment based on changes in WP 7.0 ([#2166](https://github.com/Automattic/newspack-newsletters/issues/2166)) ([635c3bb](https://github.com/Automattic/newspack-newsletters/commit/635c3bbf10a04904313ee186b70de37821da4523))
+
 ## [3.33.3](https://github.com/Automattic/newspack-newsletters/compare/v3.33.2...v3.33.3) (2026-05-20)
 
 
