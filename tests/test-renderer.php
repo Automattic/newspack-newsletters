@@ -66,6 +66,67 @@ class Newsletters_Renderer_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test text alignment is promoted to mj-text's align attribute regardless of
+	 * which Gutenberg attribute shape is used:
+	 *   - `align` (legacy)
+	 *   - top-level `textAlign` (intermediate)
+	 *   - `style.typography.textAlign` (WP 7.0+ textAlign block support)
+	 */
+	public function test_render_text_alignment_variants() {
+		$inner_html = '<p class="has-text-align-center">Hello</p>';
+
+		$render = function ( $attrs ) use ( $inner_html ) {
+			return Newspack_Newsletters_Renderer::render_mjml_component(
+				[
+					'blockName'    => 'core/paragraph',
+					'attrs'        => $attrs,
+					'innerBlocks'  => [],
+					'innerContent' => [],
+					'innerHTML'    => $inner_html,
+				]
+			);
+		};
+
+		// Anchor assertions to <mj-text …> so the test doesn't accept alignment
+		// that only landed on <mj-section> or another wrapper tag.
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="center"/',
+			$render( [ 'align' => 'center' ] ),
+			'Legacy align attribute reaches mj-text'
+		);
+
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="center"/',
+			$render( [ 'textAlign' => 'center' ] ),
+			'Top-level textAlign attribute reaches mj-text'
+		);
+
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="center"/',
+			$render( [ 'style' => [ 'typography' => [ 'textAlign' => 'center' ] ] ] ),
+			'WP 7.0 style.typography.textAlign reaches mj-text'
+		);
+
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="right"/',
+			$render( [ 'style' => [ 'typography' => [ 'textAlign' => 'right' ] ] ] ),
+			'WP 7.0 style.typography.textAlign right reaches mj-text'
+		);
+
+		// Top-level attributes win over style.typography to preserve existing behavior.
+		$this->assertMatchesRegularExpression(
+			'/<mj-text\b[^>]*\balign="left"/',
+			$render(
+				[
+					'align' => 'left',
+					'style' => [ 'typography' => [ 'textAlign' => 'right' ] ],
+				]
+			),
+			'Top-level align takes precedence over style.typography.textAlign'
+		);
+	}
+
+	/**
 	 * Test font-size preset mapping in paragraph rendering.
 	 */
 	public function test_render_font_size_presets() {
