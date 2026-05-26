@@ -116,5 +116,18 @@ class Admin_Shell_Menu {
 				remove_submenu_page( $parent_slug, $page->get_slug() );
 			}
 		}
+		// `remove_submenu_page` strips the entry WP reads for the `<title>` tag. Reinstate it once the screen is known — fires before `admin-header.php`.
+		add_action( 'current_screen', [ __CLASS__, 'set_title_for_hidden_pages' ] );
+	}
+
+	/**
+	 * Set `$title` on hidden chassis pages so the browser tab matches the page label.
+	 */
+	public static function set_title_for_hidden_pages() {
+		$page = Admin_Shell::get_current_page();
+		if ( ! $page || ! $page->is_hidden_from_menu() ) {
+			return;
+		}
+		$GLOBALS['title'] = $page->get_label(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 	}
 }
