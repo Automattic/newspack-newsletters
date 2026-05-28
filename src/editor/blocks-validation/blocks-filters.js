@@ -120,7 +120,7 @@ const withUnsupportedFeaturesNotices = createHigherOrderComponent( BlockListBloc
 			<BlockListBlock { ...props } />
 		);
 	};
-}, 'withInspectorControl' );
+}, 'withUnsupportedFeaturesNotices' );
 
 export const addBlocksValidationFilter = () => {
 	addFilter( 'editor.BlockListBlock', 'newspack-newsletters/unsupported-features-notices', withUnsupportedFeaturesNotices );
