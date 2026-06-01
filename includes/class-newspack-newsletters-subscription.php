@@ -26,6 +26,8 @@ class Newspack_Newsletters_Subscription {
 
 	const SUBSCRIPTION_INTENT_CPT = 'np_nl_sub_intent';
 
+	const LISTS_CACHE_PREFIX = 'newspack_newsletters_lists_';
+
 	/**
 	 * Memoized lists config.
 	 *
@@ -39,6 +41,10 @@ class Newspack_Newsletters_Subscription {
 	public static function init() {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_api_endpoints' ] );
 		add_action( 'newspack_registered_reader', [ __CLASS__, 'newspack_registered_reader' ], 10, 5 );
+
+		add_action( 'save_post_' . Subscription_Lists::CPT, [ __CLASS__, 'clear_lists_cache' ] );
+		add_action( 'deleted_post', [ __CLASS__, 'clear_lists_cache_on_delete' ], 10, 2 );
+		add_action( 'newspack_newsletters_provider_credentials_changed', [ __CLASS__, 'clear_lists_cache' ] );
 
 		/** User email verification for subscription management. */
 		add_action( 'resetpass_form', [ __CLASS__, 'set_current_user_email_verified' ] );
@@ -472,10 +478,12 @@ class Newspack_Newsletters_Subscription {
 		if ( empty( $provider ) ) {
 			return new WP_Error( 'newspack_newsletters_invalid_provider', __( 'Provider is not set.' ) );
 		}
+		$cache_key = self::LISTS_CACHE_PREFIX . Newspack_Newsletters::service_provider();
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
 		try {
-			/**
-			 * Here we always fetch the lists from the ESP, because we want to make sure we have the latest data.
-			 */
 			$lists = $provider->get_lists();
 			if ( is_wp_error( $lists ) ) {
 				return $lists;
@@ -513,6 +521,7 @@ class Newspack_Newsletters_Subscription {
 			foreach ( Subscription_Lists::get_locals_for_current_provider() as $local_list ) {
 				$return_lists[] = $local_list->to_array();
 			}
+			set_transient( $cache_key, $return_lists, self::get_lists_cache_ttl() );
 			return $return_lists;
 		} catch ( \Exception $e ) {
 			return new WP_Error(
@@ -521,6 +530,36 @@ class Newspack_Newsletters_Subscription {
 			);
 		}
 		return [];
+	}
+
+	/**
+	 * TTL, in seconds, for the cached subscription lists.
+	 *
+	 * @return int
+	 */
+	private static function get_lists_cache_ttl() {
+		return (int) apply_filters( 'newspack_newsletters_lists_cache_ttl', 5 * MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * Clear the cached subscription lists for every registered provider.
+	 */
+	public static function clear_lists_cache() {
+		foreach ( array_keys( Newspack_Newsletters::get_registered_providers() ) as $slug ) {
+			delete_transient( self::LISTS_CACHE_PREFIX . $slug );
+		}
+	}
+
+	/**
+	 * Clear the cache when a subscription list post is deleted.
+	 *
+	 * @param int           $post_id Deleted post ID.
+	 * @param \WP_Post|null $post   Deleted post object.
+	 */
+	public static function clear_lists_cache_on_delete( $post_id, $post = null ) {
+		if ( $post instanceof \WP_Post && Subscription_Lists::CPT === $post->post_type ) {
+			self::clear_lists_cache();
+		}
 	}
 
 	/**

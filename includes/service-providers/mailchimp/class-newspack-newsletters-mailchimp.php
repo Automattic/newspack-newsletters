@@ -170,12 +170,15 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 		} catch ( Exception $e ) {
 			$ping = null;
 		}
-		return $ping ?
-			update_option( 'newspack_mailchimp_api_key', $api_key ) :
-			new WP_Error(
+		if ( ! $ping ) {
+			return new WP_Error(
 				'newspack_newsletters_invalid_keys',
 				__( 'Please input a valid Mailchimp API key.', 'newspack-newsletters' )
 			);
+		}
+		$updated = update_option( 'newspack_mailchimp_api_key', $api_key );
+		do_action( 'newspack_newsletters_provider_credentials_changed', 'mailchimp' );
+		return $updated;
 	}
 
 	/**

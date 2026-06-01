@@ -868,6 +868,7 @@ final class Newspack_Newsletters_Active_Campaign extends \Newspack_Newsletters_S
 		} else {
 			$updated_url = update_option( 'newspack_newsletters_active_campaign_url', $credentials['url'] );
 			$updated_key = update_option( 'newspack_newsletters_active_campaign_key', $credentials['key'] );
+			do_action( 'newspack_newsletters_provider_credentials_changed', 'active_campaign' );
 			return $updated_url && $updated_key;
 		}
 	}
