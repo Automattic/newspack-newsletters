@@ -109,10 +109,10 @@ abstract class Admin_Page {
 	/**
 	 * Build the URL the legacy CPT list redirects to.
 	 *
-	 * @param array $forwarded Forwarded query args.
+	 * @param array|string $forwarded Forwarded query args, or a `post_status` string.
 	 * @return string|null
 	 */
-	public function get_legacy_redirect_target( array $forwarded = [] ): ?string {
+	public function get_legacy_redirect_target( $forwarded = [] ): ?string {
 		return null;
 	}
 

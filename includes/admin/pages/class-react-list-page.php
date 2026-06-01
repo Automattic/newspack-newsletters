@@ -31,10 +31,10 @@ abstract class React_List_Page extends Admin_Page {
 	/**
 	 * Default redirect target — page's CPT slug + own slug.
 	 *
-	 * @param array $forwarded Forwarded query args.
+	 * @param array|string $forwarded Forwarded query args, or a `post_status` string.
 	 * @return string
 	 */
-	public function get_legacy_redirect_target( array $forwarded = [] ): ?string {
+	public function get_legacy_redirect_target( $forwarded = [] ): ?string {
 		return Admin_Shell_Legacy_Redirect::build_legacy_redirect_target(
 			$this->get_redirect_post_type(),
 			$this->slug,
