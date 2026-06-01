@@ -46,6 +46,7 @@ export default function LocalListModalHost() {
 		return () => {
 			document.removeEventListener( EVENTS.OPEN_MODAL, handleOpen );
 			document.removeEventListener( EVENTS.OPEN_CONFIRM_DELETE, handleConfirmDelete );
+			window.newspackNewslettersBridgeReady = false;
 		};
 	}, [] );
 

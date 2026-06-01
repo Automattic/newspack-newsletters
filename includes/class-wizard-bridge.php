@@ -42,6 +42,9 @@ class Wizard_Bridge {
 		if ( ! class_exists( '\Newspack\Newspack' ) ) {
 			return false;
 		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 		return self::WIZARD_PAGE_SLUG === $page;

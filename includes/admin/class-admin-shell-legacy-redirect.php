@@ -133,7 +133,9 @@ class Admin_Shell_Legacy_Redirect {
 
 		foreach ( self::FORWARDED_LEGACY_ARGS as $key ) {
 			if ( ! empty( $forwarded[ $key ] ) ) {
-				$args[ $key ] = $forwarded[ $key ];
+				// `add_query_arg()` does not URL-encode values, so encode to prevent param injection.
+				$value        = $forwarded[ $key ];
+				$args[ $key ] = is_array( $value ) ? array_map( 'rawurlencode', $value ) : rawurlencode( $value );
 			}
 		}
 
