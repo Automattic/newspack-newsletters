@@ -4,8 +4,14 @@ import './extensions';
 import { render } from '@wordpress/element';
 
 import LocalListModalHost from './local-list-modal-host';
+import { EVENTS } from './events';
 
 const ROOT_CLASS = 'newspack-newsletters-wizard-bridge-root';
+
+// Expose the event contract so wizard consumers read the live names rather than a mirror.
+if ( typeof window !== 'undefined' ) {
+	window.newspackNewslettersEvents = EVENTS;
+}
 
 export function boot() {
 	if ( typeof document === 'undefined' ) {
