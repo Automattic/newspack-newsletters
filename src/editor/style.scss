@@ -55,7 +55,8 @@
 		margin-left: auto;
 		margin-right: auto;
 		margin-bottom: wp-vars.$grid-unit-40;
-		padding: 0;
+		// Match the 12px horizontal inset of `.wp-block` so title and body align.
+		padding: 0 12px;
 	}
 
 	.block-editor-block-list__layout {
