@@ -75,6 +75,8 @@ class Wizard_Bridge_Test extends WP_UnitTestCase {
 		if ( ! class_exists( '\Newspack\Newspack' ) ) {
 			class_alias( '\stdClass', '\Newspack\Newspack' );
 		}
+		// The wizard page is capability-gated, so `should_enqueue` requires it too.
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		$_GET['page'] = Wizard_Bridge::WIZARD_PAGE_SLUG;
 		$this->assertTrue( Wizard_Bridge::should_enqueue() );
 	}
