@@ -11,8 +11,11 @@ import { ENTER, ESCAPE } from '@wordpress/keycodes';
 
 import NewsletterPreview from '../../../components/newsletter-preview';
 import { setPreventDeduplicationForPostsInserter } from '../../../editor/blocks/posts-inserter/utils';
+import { getAdminUrl } from '../../admin-globals';
 import { formatPostDate } from '../../utils/format-date';
 import LazyPreview from './lazy-preview';
+
+const editUrl = item => `${ getAdminUrl() }post.php?post=${ item.id }&action=edit`;
 
 // String token can't collide with real (positive integer) WP user IDs.
 export const PREBUILT_AUTHOR_VALUE = 'newspack';
@@ -113,8 +116,18 @@ export function getFields( { renamingId = null, onRenameCommit, onRenameCancel, 
 		if ( renamingId !== null && String( renamingId ) === String( id ) ) {
 			return <RenamingTitle item={ item } onCommit={ next => onRenameCommit?.( item, next ) } onCancel={ () => onRenameCancel?.() } />;
 		}
-		const label = getRawTitle( item ) || __( '(no title)', 'newspack-newsletters' );
-		return <strong>{ label }</strong>;
+		const raw = getRawTitle( item );
+		// Auto-drafts carry WordPress's "Auto Draft" placeholder; show a friendly title instead.
+		const label = ! raw || 'auto-draft' === item?.status ? __( '(no title)', 'newspack-newsletters' ) : raw;
+		// Prebuilts aren't editable; only user-owned layouts link to the editor.
+		if ( item?.is_prebuilt ) {
+			return <strong>{ label }</strong>;
+		}
+		return (
+			<a className="newspack-newsletters-list__title" href={ editUrl( item ) } onClickCapture={ event => event.stopPropagation() }>
+				<strong>{ label }</strong>
+			</a>
+		);
 	};
 
 	const renderAuthor = ( { item } ) => {

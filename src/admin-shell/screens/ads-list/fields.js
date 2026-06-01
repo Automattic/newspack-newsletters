@@ -48,9 +48,11 @@ const editUrl = item => `${ getAdminUrl() }post.php?post=${ item.id }&action=edi
 const getTitle = item => item?.title?.raw ?? item?.title?.rendered ?? '';
 
 const renderTitle = ( { item } ) => {
-	const title = getTitle( item ) || __( '(no title)', 'newspack-newsletters' );
+	const raw = getTitle( item );
+	// Auto-drafts carry WordPress's "Auto Draft" placeholder; show a friendly title instead.
+	const title = ! raw || 'auto-draft' === item?.status ? __( '(no title)', 'newspack-newsletters' ) : raw;
 	return (
-		<a className="newspack-newsletters-list__title" href={ editUrl( item ) }>
+		<a className="newspack-newsletters-list__title" href={ editUrl( item ) } onClickCapture={ event => event.stopPropagation() }>
 			<strong>{ title }</strong>
 		</a>
 	);

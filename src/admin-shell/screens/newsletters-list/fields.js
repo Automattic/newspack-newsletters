@@ -43,7 +43,7 @@ const getTitle = item => item?.title?.raw ?? item?.title?.rendered ?? '';
 const renderTitle = ( { item } ) => {
 	const title = getTitle( item ) || __( '(no subject)', 'newspack-newsletters' );
 	return (
-		<a className="newspack-newsletters-list__title" href={ editUrl( item ) }>
+		<a className="newspack-newsletters-list__title" href={ editUrl( item ) } onClickCapture={ event => event.stopPropagation() }>
 			<strong>{ title }</strong>
 		</a>
 	);
