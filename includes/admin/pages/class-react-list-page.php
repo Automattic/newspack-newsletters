@@ -26,7 +26,7 @@ abstract class React_List_Page extends Admin_Page {
 	 *
 	 * @return string
 	 */
-	abstract public function get_redirect_post_type();
+	abstract public function get_redirect_post_type(): string;
 
 	/**
 	 * Default redirect target — page's CPT slug + own slug.
@@ -34,7 +34,7 @@ abstract class React_List_Page extends Admin_Page {
 	 * @param array $forwarded Forwarded query args.
 	 * @return string
 	 */
-	public function get_legacy_redirect_target( $forwarded = [] ) {
+	public function get_legacy_redirect_target( array $forwarded = [] ): ?string {
 		return Admin_Shell_Legacy_Redirect::build_legacy_redirect_target(
 			$this->get_redirect_post_type(),
 			$this->slug,

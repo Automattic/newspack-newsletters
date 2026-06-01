@@ -34,7 +34,7 @@ class Settings_Page extends Admin_Page {
 	 *
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		return __( 'Settings', 'newspack-newsletters' );
 	}
 
@@ -45,7 +45,7 @@ class Settings_Page extends Admin_Page {
 	 *
 	 * @return string
 	 */
-	public function get_parent_slug() {
+	public function get_parent_slug(): string {
 		return 'edit.php?post_type=' . \Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 	}
 }

@@ -30,7 +30,7 @@ class Advertisers_List_REST {
 	 * `rest_request_before_callbacks` fires after routing and treats
 	 * a returned WP_Error as the response.
 	 */
-	public static function init() {
+	public static function init(): void {
 		add_filter( 'rest_request_before_callbacks', [ __CLASS__, 'guard_parent_self' ], 10, 3 );
 	}
 

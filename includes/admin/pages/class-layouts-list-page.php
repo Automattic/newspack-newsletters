@@ -35,7 +35,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		return __( 'Layouts', 'newspack-newsletters' );
 	}
 
@@ -44,7 +44,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_parent_slug() {
+	public function get_parent_slug(): string {
 		return 'edit.php?post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 	}
 
@@ -54,7 +54,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return string|null
 	 */
-	public function get_legacy_screen_id() {
+	public function get_legacy_screen_id(): ?string {
 		// Guard against a load-order regression fatalling every wp-admin request.
 		if ( ! class_exists( '\Newspack_Newsletters_Layouts' ) ) {
 			return null;
@@ -68,7 +68,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_redirect_post_type() {
+	public function get_redirect_post_type(): string {
 		return Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 	}
 
@@ -78,7 +78,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return int
 	 */
-	public function get_submenu_index() {
+	public function get_submenu_index(): ?int {
 		return 2;
 	}
 
@@ -87,7 +87,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_wizard_header_label() {
+	public function get_wizard_header_label(): ?string {
 		return __( 'Newsletters / Layouts', 'newspack-newsletters' );
 	}
 
@@ -97,7 +97,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @return string[]
 	 */
-	public function get_admin_shell_style_deps() {
+	public function get_admin_shell_style_deps(): array {
 		return [ 'wp-edit-blocks' ];
 	}
 
@@ -108,7 +108,7 @@ class Layouts_List_Page extends React_List_Page {
 	 *
 	 * @param string $handle Admin-shell script handle.
 	 */
-	public function enqueue_extras( $handle ) {
+	public function enqueue_extras( string $handle ): void {
 		// Fallback for dev mode: `Asset_Loader` skips the CSS enqueue (and its dep chain) when `dist/admin-shell.css` is missing.
 		wp_enqueue_style( 'wp-edit-blocks' );
 

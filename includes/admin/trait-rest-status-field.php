@@ -24,7 +24,7 @@ trait Rest_Status_Field {
 	 * @param string $object_type Unused.
 	 * @return array
 	 */
-	public static function rest_get_status( $post_array, $field_name = '', $request = null, $object_type = '' ) {
+	public static function rest_get_status( $post_array, $field_name = '', $request = null, $object_type = '' ): array {
 		unset( $field_name, $request, $object_type );
 		$post = isset( $post_array['id'] ) ? get_post( $post_array['id'] ) : null;
 		return static::get_status_for_post( $post );
@@ -37,7 +37,7 @@ trait Rest_Status_Field {
 	 * @param string $field_name REST field name.
 	 * @param array  $properties Schema `properties` map.
 	 */
-	protected static function register_status_field( $cpt, $field_name, array $properties ) {
+	protected static function register_status_field( string $cpt, string $field_name, array $properties ): void {
 		register_rest_field(
 			$cpt,
 			$field_name,

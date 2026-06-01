@@ -33,7 +33,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		return __( 'Advertisers', 'newspack-newsletters' );
 	}
 
@@ -42,7 +42,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_parent_slug() {
+	public function get_parent_slug(): string {
 		return Ads::get_top_level_url();
 	}
 
@@ -54,7 +54,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_submenu_file() {
+	public function get_submenu_file(): ?string {
 		if ( Ads::display_ads_menu_item_separately() ) {
 			return 'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&amp;post_type=' . Ads::CPT;
 		}
@@ -67,7 +67,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_legacy_screen_id() {
+	public function get_legacy_screen_id(): ?string {
 		return 'edit-' . Ads::ADVERTISER_TAX;
 	}
 
@@ -77,7 +77,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_redirect_post_type() {
+	public function get_redirect_post_type(): string {
 		return Ads::CPT;
 	}
 
@@ -87,7 +87,7 @@ class Advertisers_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_wizard_tab_url() {
+	public function get_wizard_tab_url(): ?string {
 		return admin_url( 'edit-tags.php?taxonomy=' . Ads::ADVERTISER_TAX . '&post_type=' . Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
 	}
 }

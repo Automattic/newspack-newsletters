@@ -33,13 +33,13 @@ class Asset_Loader {
 	 *                   `dependencies` / `version`).
 	 */
 	public static function enqueue_bundle(
-		$handle,
-		$basename,
-		$build_dir,
-		$url_dir,
-		$extra_script_deps = [],
-		$extra_style_deps = []
-	) {
+		string $handle,
+		string $basename,
+		string $build_dir,
+		string $url_dir,
+		array $extra_script_deps = [],
+		array $extra_style_deps = []
+	): ?array {
 		$asset_path = trailingslashit( $build_dir ) . $basename . '.asset.php';
 		if ( ! file_exists( $asset_path ) ) {
 			return null;

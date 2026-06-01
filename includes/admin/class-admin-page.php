@@ -39,7 +39,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string
 	 */
-	public function get_slug() {
+	public function get_slug(): string {
 		return $this->slug;
 	}
 
@@ -48,14 +48,14 @@ abstract class Admin_Page {
 	 *
 	 * @return string
 	 */
-	abstract public function get_label();
+	abstract public function get_label(): string;
 
 	/**
 	 * Get the capability required to view the page.
 	 *
 	 * @return string
 	 */
-	public function get_capability() {
+	public function get_capability(): string {
 		return $this->capability;
 	}
 
@@ -68,14 +68,14 @@ abstract class Admin_Page {
 	 *
 	 * @return string|null
 	 */
-	abstract public function get_parent_slug();
+	abstract public function get_parent_slug(): string;
 
 	/**
 	 * Whether the page should be unhooked from the visible submenu list.
 	 *
 	 * @return bool
 	 */
-	public function is_hidden_from_menu() {
+	public function is_hidden_from_menu(): bool {
 		return false;
 	}
 
@@ -84,7 +84,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string|null
 	 */
-	public function get_parent_file() {
+	public function get_parent_file(): ?string {
 		return null;
 	}
 
@@ -93,7 +93,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string|null
 	 */
-	public function get_submenu_file() {
+	public function get_submenu_file(): ?string {
 		return null;
 	}
 
@@ -102,7 +102,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string|null
 	 */
-	public function get_legacy_screen_id() {
+	public function get_legacy_screen_id(): ?string {
 		return null;
 	}
 
@@ -112,7 +112,7 @@ abstract class Admin_Page {
 	 * @param array $forwarded Forwarded query args.
 	 * @return string|null
 	 */
-	public function get_legacy_redirect_target( $forwarded = [] ) {
+	public function get_legacy_redirect_target( array $forwarded = [] ): ?string {
 		return null;
 	}
 
@@ -126,7 +126,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string|null
 	 */
-	public function get_wizard_tab_url() {
+	public function get_wizard_tab_url(): ?string {
 		return null;
 	}
 
@@ -139,7 +139,7 @@ abstract class Admin_Page {
 	 *
 	 * @return int|null
 	 */
-	public function get_submenu_index() {
+	public function get_submenu_index(): ?int {
 		return null;
 	}
 
@@ -153,7 +153,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string|null
 	 */
-	public function get_wizard_header_label() {
+	public function get_wizard_header_label(): ?string {
 		return null;
 	}
 
@@ -163,7 +163,7 @@ abstract class Admin_Page {
 	 *
 	 * @return string[]
 	 */
-	public function get_admin_shell_style_deps() {
+	public function get_admin_shell_style_deps(): array {
 		return [];
 	}
 
@@ -173,7 +173,7 @@ abstract class Admin_Page {
 	 *
 	 * @param string $handle Admin-shell script handle.
 	 */
-	public function enqueue_extras( $handle ) {
+	public function enqueue_extras( string $handle ): void {
 		unset( $handle );
 	}
 
@@ -182,7 +182,7 @@ abstract class Admin_Page {
 	 *
 	 * @param string $hook_suffix Hookname.
 	 */
-	public function set_hook_suffix( $hook_suffix ) {
+	public function set_hook_suffix( $hook_suffix ): void {
 		$this->hook_suffix = (string) $hook_suffix;
 	}
 
@@ -191,7 +191,7 @@ abstract class Admin_Page {
 	 *
 	 * @return bool
 	 */
-	public function is_admin_page() {
+	public function is_admin_page(): bool {
 		if ( ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return false;
 		}
@@ -213,14 +213,14 @@ abstract class Admin_Page {
 	 *
 	 * @return string
 	 */
-	public function get_mount_id() {
+	public function get_mount_id(): string {
 		return $this->slug . '-root';
 	}
 
 	/**
 	 * Render the React mount container.
 	 */
-	public function render() {
+	public function render(): void {
 		printf(
 			'<div id="%s" class="newspack-newsletters-admin-mount"></div>',
 			esc_attr( $this->get_mount_id() )

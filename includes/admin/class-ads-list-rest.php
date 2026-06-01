@@ -27,7 +27,7 @@ class Ads_List_REST {
 	/**
 	 * Boot hooks.
 	 */
-	public static function init() {
+	public static function init(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_filter(
@@ -83,7 +83,7 @@ class Ads_List_REST {
 	 * REST — these are server-managed counters; direct `update_post_meta`
 	 * from the tracking layer isn't gated by `auth_callback`.
 	 */
-	public static function register_meta() {
+	public static function register_meta(): void {
 		$readonly_counter_args = [
 			'show_in_rest'  => [
 				'schema' => [
@@ -261,7 +261,7 @@ class Ads_List_REST {
 	/**
 	 * Register REST fields on the ads CPT.
 	 */
-	public static function register_rest_fields() {
+	public static function register_rest_fields(): void {
 		self::register_status_field(
 			Ads::CPT,
 			'newspack_newsletters_ad_status',
@@ -286,7 +286,7 @@ class Ads_List_REST {
 	 * @param WP_Post|null $post Post object.
 	 * @return array { kind, starts_at, expires_at }
 	 */
-	public static function get_status_for_post( $post ) {
+	public static function get_status_for_post( $post ): array {
 		$payload = [
 			'kind'       => 'draft',
 			'starts_at'  => null,

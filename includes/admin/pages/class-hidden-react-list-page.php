@@ -21,7 +21,7 @@ abstract class Hidden_React_List_Page extends React_List_Page {
 	 *
 	 * @return bool
 	 */
-	public function is_hidden_from_menu() {
+	public function is_hidden_from_menu(): bool {
 		return true;
 	}
 
@@ -30,7 +30,7 @@ abstract class Hidden_React_List_Page extends React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_parent_file() {
+	public function get_parent_file(): ?string {
 		return $this->get_parent_slug();
 	}
 }

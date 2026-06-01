@@ -50,7 +50,7 @@ class Settings_REST {
 	/**
 	 * Boot hooks.
 	 */
-	public static function init() {
+	public static function init(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_routes' ] );
 		add_action( 'newspack_newsletters_provider_credentials_changed', [ __CLASS__, 'bust_oauth_cache' ] );
 	}
@@ -58,7 +58,7 @@ class Settings_REST {
 	/**
 	 * Register the GET/POST pair.
 	 */
-	public static function register_routes() {
+	public static function register_routes(): void {
 		register_rest_route(
 			self::API_NAMESPACE,
 			'/' . self::ROUTE,
@@ -204,7 +204,7 @@ class Settings_REST {
 	 *
 	 * @return array
 	 */
-	private static function build_payload() {
+	private static function build_payload(): array {
 		$provider_slug = Newspack_Newsletters::service_provider();
 		$provider      = Newspack_Newsletters::get_service_provider();
 
@@ -278,7 +278,7 @@ class Settings_REST {
 	 * @param string      $provider_slug Provider slug.
 	 * @return array|null
 	 */
-	private static function resolve_oauth_state( $provider, $provider_slug ) {
+	private static function resolve_oauth_state( $provider, $provider_slug ): ?array {
 		if ( ! $provider || ! method_exists( $provider, 'verify_token' ) ) {
 			return null;
 		}
@@ -300,7 +300,7 @@ class Settings_REST {
 	 * @param string $provider_slug Provider slug.
 	 * @return bool
 	 */
-	private static function resolve_oauth_validity( $provider, $provider_slug ) {
+	private static function resolve_oauth_validity( $provider, $provider_slug ): bool {
 		$cache_key = self::oauth_cache_key( $provider_slug );
 		$cached    = get_transient( $cache_key );
 		if ( is_array( $cached ) && array_key_exists( 'valid', $cached ) ) {
@@ -318,7 +318,7 @@ class Settings_REST {
 	 *
 	 * @param string $provider_slug Provider slug.
 	 */
-	public static function bust_oauth_cache( $provider_slug ) {
+	public static function bust_oauth_cache( $provider_slug ): void {
 		if ( $provider_slug ) {
 			delete_transient( self::oauth_cache_key( $provider_slug ) );
 		}
@@ -330,7 +330,7 @@ class Settings_REST {
 	 * @param string $provider_slug Provider slug.
 	 * @return string Transient key.
 	 */
-	private static function oauth_cache_key( $provider_slug ) {
+	private static function oauth_cache_key( $provider_slug ): string {
 		return 'newspack_newsletters_oauth_valid_' . sanitize_key( $provider_slug );
 	}
 
@@ -339,7 +339,7 @@ class Settings_REST {
 	 *
 	 * @return array
 	 */
-	private static function get_provider_choices() {
+	private static function get_provider_choices(): array {
 		$choices = [
 			[
 				'slug' => '',
@@ -371,7 +371,7 @@ class Settings_REST {
 	 *
 	 * @return array
 	 */
-	private static function get_options_schema() {
+	private static function get_options_schema(): array {
 		// Render order: cross-cutting options first, then provider-scoped
 		// extras (e.g. Mailchimp footer toggle), then tracking — keeps the
 		// always-relevant settings together at the top of the section.
@@ -449,7 +449,7 @@ class Settings_REST {
 	 * @param mixed  $credentials Raw `api_credentials()` payload.
 	 * @return array
 	 */
-	private static function credentials_set_flags( $slug, $credentials ) {
+	private static function credentials_set_flags( $slug, $credentials ): array {
 		$allowlist = self::PROVIDER_CREDENTIAL_ALLOWLIST[ $slug ] ?? [];
 		$flags     = [];
 		foreach ( $allowlist as $field ) {
@@ -470,7 +470,7 @@ class Settings_REST {
 	 * @param object $provider    The active service-provider instance.
 	 * @return array
 	 */
-	private static function merge_credentials( $slug, $submitted, $provider ) {
+	private static function merge_credentials( $slug, $submitted, $provider ): array {
 		$allowlist = self::PROVIDER_CREDENTIAL_ALLOWLIST[ $slug ] ?? [];
 		if ( empty( $allowlist ) ) {
 			return is_array( $submitted ) ? $submitted : [];

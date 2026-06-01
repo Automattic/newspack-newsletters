@@ -37,7 +37,7 @@ class Ads_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		return __( 'Newsletter Ads', 'newspack-newsletters' );
 	}
 
@@ -48,7 +48,7 @@ class Ads_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_parent_slug() {
+	public function get_parent_slug(): string {
 		return Ads::get_top_level_url();
 	}
 
@@ -58,7 +58,7 @@ class Ads_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_submenu_file() {
+	public function get_submenu_file(): ?string {
 		return 'edit.php?post_type=' . Ads::CPT;
 	}
 
@@ -67,7 +67,7 @@ class Ads_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_legacy_screen_id() {
+	public function get_legacy_screen_id(): ?string {
 		return 'edit-' . Ads::CPT;
 	}
 
@@ -76,7 +76,7 @@ class Ads_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_redirect_post_type() {
+	public function get_redirect_post_type(): string {
 		return Ads::CPT;
 	}
 
@@ -86,7 +86,7 @@ class Ads_List_Page extends Hidden_React_List_Page {
 	 *
 	 * @return string
 	 */
-	public function get_wizard_tab_url() {
+	public function get_wizard_tab_url(): ?string {
 		return admin_url( 'edit.php?post_type=' . Ads::CPT );
 	}
 }

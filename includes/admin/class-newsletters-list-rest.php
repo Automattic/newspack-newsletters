@@ -34,7 +34,7 @@ class Newsletters_List_REST {
 	/**
 	 * Boot hooks.
 	 */
-	public static function init() {
+	public static function init(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_fields' ] );
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		add_filter(
@@ -226,7 +226,7 @@ class Newsletters_List_REST {
 	/**
 	 * Register the helper route feeding the React list filter dropdowns.
 	 */
-	public static function register_rest_routes() {
+	public static function register_rest_routes(): void {
 		register_rest_route(
 			'newspack-newsletters/v1',
 			'/newsletters-list/filter-options',
@@ -243,7 +243,7 @@ class Newsletters_List_REST {
 	 *
 	 * @return bool
 	 */
-	public static function rest_filter_options_permission_check() {
+	public static function rest_filter_options_permission_check(): bool {
 		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
 		if ( ! $cpt_object || empty( $cpt_object->cap->edit_posts ) ) {
 			return false;
@@ -277,7 +277,7 @@ class Newsletters_List_REST {
 	 *
 	 * @return string
 	 */
-	private static function build_user_post_scope_sql() {
+	private static function build_user_post_scope_sql(): string {
 		global $wpdb;
 		$cpt_object = get_post_type_object( Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT );
 		if ( $cpt_object && current_user_can( $cpt_object->cap->edit_others_posts ) ) {
@@ -292,7 +292,7 @@ class Newsletters_List_REST {
 	 * @param string $user_scope_sql User-scope WHERE fragment.
 	 * @return array<array{id: int, label: string}>
 	 */
-	private static function get_authors_used( $user_scope_sql = '' ) {
+	private static function get_authors_used( $user_scope_sql = '' ): array {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
@@ -336,7 +336,7 @@ class Newsletters_List_REST {
 	 * @param string $user_scope_sql User-scope WHERE fragment.
 	 * @return array<array{id: int, label: string}>
 	 */
-	private static function get_terms_used( $taxonomy, $user_scope_sql = '' ) {
+	private static function get_terms_used( $taxonomy, $user_scope_sql = '' ): array {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
@@ -377,7 +377,7 @@ class Newsletters_List_REST {
 	 * @param string $user_scope_sql User-scope WHERE fragment.
 	 * @return array<array{id: string, label: string}>
 	 */
-	private static function get_send_list_ids_used( $user_scope_sql = '' ) {
+	private static function get_send_list_ids_used( $user_scope_sql = '' ): array {
 		global $wpdb;
 		$cpt = Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT;
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
@@ -411,7 +411,7 @@ class Newsletters_List_REST {
 	/**
 	 * Register REST fields on the newsletters CPT.
 	 */
-	public static function register_rest_fields() {
+	public static function register_rest_fields(): void {
 		self::register_status_field(
 			Newspack_Newsletters::NEWSPACK_NEWSLETTERS_CPT,
 			'newspack_newsletters_status',
@@ -440,7 +440,7 @@ class Newsletters_List_REST {
 	 * @param WP_Post|null $post Post object.
 	 * @return array { kind, sent_at, scheduled_at }
 	 */
-	public static function get_status_for_post( $post ) {
+	public static function get_status_for_post( $post ): array {
 		$payload = [
 			'kind'         => 'draft',
 			'sent_at'      => null,
@@ -490,7 +490,7 @@ class Newsletters_List_REST {
 	 * @param WP_Post $post Post object.
 	 * @return int|null Sent timestamp, or null when not (yet) sent.
 	 */
-	private static function compute_sent_at( $post ) {
+	private static function compute_sent_at( $post ): ?int {
 		if ( get_post_meta( $post->ID, 'sending_scheduled', true ) ) {
 			return null;
 		}

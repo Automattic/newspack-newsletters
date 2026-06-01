@@ -19,7 +19,7 @@ trait Status_Filter_Builder {
 	 * @param mixed $value Raw param value (string or array).
 	 * @return string[]
 	 */
-	protected static function parse_status_values( $value ) {
+	protected static function parse_status_values( $value ): array {
 		if ( null === $value || '' === $value ) {
 			return [];
 		}
@@ -46,7 +46,7 @@ trait Status_Filter_Builder {
 	 * @param string   $token_key      Query-args key scoping the closure.
 	 * @return array
 	 */
-	protected static function install_bucket_filter( array $args, array $bucket_clauses, $token_key ) {
+	protected static function install_bucket_filter( array $args, array $bucket_clauses, string $token_key ): array {
 		if ( empty( $bucket_clauses ) ) {
 			return $args;
 		}
