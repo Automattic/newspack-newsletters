@@ -1,3 +1,10 @@
+## [3.33.5](https://github.com/Automattic/newspack-newsletters/compare/v3.33.4...v3.33.5) (2026-08-06)
+
+
+### Bug Fixes
+
+* trigger wrong version to sunset the repo ([c587b58](https://github.com/Automattic/newspack-newsletters/commit/c587b5838df3bb71ec975094f166137bd8a78543))
+
 ## [3.33.4](https://github.com/Automattic/newspack-newsletters/compare/v3.33.3...v3.33.4) (2026-05-22)
 
 
