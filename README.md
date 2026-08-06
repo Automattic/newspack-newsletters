@@ -1,18 +1,3 @@
-# newspack-newsletters
-Author email newsletters in WordPress
+# Newspack Newsletters
 
-Visit [the documentation](https://help.newspack.com/engagement/newspack-newsletters/) for more guidance.
-
-## Development
-
-Run `composer update && npm install`.
-
-Run `npm run build`.
-
-### Environment variables
-
-```php
-
-// Optionally change the Letterhead API endpoint for development
-define('NEWSPACK_NEWSLETTERS_LETTERHEAD_ENDPOINT', 'https://a-different-endpoint.dev');
-```
+This repository has been deprecated and archived. This extension now lives in our monorepo at https://github.com/Automattic/newspack-workspace.

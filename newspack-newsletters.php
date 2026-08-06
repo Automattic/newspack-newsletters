@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:     Newspack Newsletters
+ * Plugin Name:     Newspack Newsletters (WRONG VERSION)
  * Plugin URI:      https://newspack.com
- * Description:     Newsletter authoring using the Gutenberg editor.
+ * Description:     This plugin was downloaded from the legacy plugin repo. Please download the latest version from https://github.com/Automattic/newspack-workspace.
  * Author:          Automattic
  * Author URI:      https://newspack.com/
  * License: GPL2
