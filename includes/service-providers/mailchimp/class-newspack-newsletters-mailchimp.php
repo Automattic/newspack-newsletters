@@ -1032,6 +1032,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 			'settings'     => [
 				'subject_line' => html_entity_decode( $post->post_title ),
 				'title'        => $this->get_campaign_name( $post ),
+				'auto_footer'  => false,
 			],
 		];
 
@@ -1170,6 +1171,21 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 	}
 
 	/**
+	 * Get the campaign footer HTML.
+	 *
+	 * @return string Campaign footer HTML.
+	 */
+	public function get_campaign_footer() {
+		return '
+			<p>
+				<strong>*|LIST:COMPANY|*</strong> — *|HTML:LIST_ADDRESS_HTML|*
+				<br />
+				<a href="*|UPDATE_PROFILE|*">Update your preferences</a> — <a href="*|UNSUB|*">Unsubscribe from all *|LIST:COMPANY|* newsletters</a>
+				*|IF:REWARDS|* <br /> *|HTML:REWARDS|* *|END:IF|*
+			</p>';
+	}
+
+	/**
 	 * Synchronize post with corresponding ESP campaign.
 	 *
 	 * @param WP_Post $post Post to synchronize.
@@ -1232,7 +1248,7 @@ final class Newspack_Newsletters_Mailchimp extends \Newspack_Newsletters_Service
 
 			$renderer        = new Newspack_Newsletters_Renderer();
 			$content_payload = [
-				'html' => $renderer->retrieve_email_html( $post ),
+				'html' => $renderer->retrieve_email_html( $post ) . $this->get_campaign_footer(),
 			];
 
 			$content_result = $this->validate(
